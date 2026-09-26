@@ -199,7 +199,8 @@ def newest_prompt(session_dir: Path, cwd: Path) -> dict | None:
     key = "--" + str(cwd).lstrip("/").replace("/", "-").replace(":", "-") + "--"
     candidates = sorted((session_dir / key).glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
     if not candidates:
-        candidates = sorted(session_dir.glob("*/*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+        flat = [*session_dir.glob("*.jsonl"), *session_dir.glob("*/*.jsonl")]
+        candidates = sorted(flat, key=lambda p: p.stat().st_mtime, reverse=True)
     for f in candidates:
         sections: dict[str, str] = {}
         tools: dict[str, int] = {}
