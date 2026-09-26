@@ -1,48 +1,39 @@
-# Correlation, modeling, and verification
+# Correlation and verification
 
-## Phase Q: prove that the source path executes
+## Claim gate
 
-Finding a function that could explain a behavior is not evidence that it ran. Prove execution with at least one of: controlled logging in an isolated source build, a debugger breakpoint, coverage, a tracepoint, Frida, a side effect unique to that branch, or a branch-specific input. Record the resulting chain in `re/70_model/architecture.md`:
+For every significant claim, point to exact raw observations, reproduction case, relevant source symbol/revision or binary location, and the tested scope. Ask whether another mechanism could yield the same result. Check environment, caches, child ownership, source/install mismatch, and instrumentation effects before selecting a discriminating probe.
 
-```text
-input → observed CLI result → runtime event → command handler → domain operation → I/O call → observable side effect
-```
+PROVEN requires a runtime observation and matching implementation evidence. OBSERVED describes tested behavior without a confirmed implementation path. SUPPORTED describes direct source/binary facts without runtime confirmation. INFERRED names an indirect explanation. UNKNOWN marks insufficient evidence. Never replace these with percentages or informal high/low confidence labels.
 
-## Phase S: invariants and state transitions
+A plausible source function does not prove it executed. Use a branch-specific input, debugger, coverage, narrow runtime trace, or logging in an isolated build to link the observed behavior to the path. Do not modify the shipped target. Record build differences and establish behavioral agreement before transferring findings.
 
-Turn traces into a model of states, the operation, transitions, and invariants:
+Example correlation:
 
 ```text
-State:       configuration; authenticated or not; cache present or absent; target exists or missing
-Transitions: config loaded → input validated → resource resolved → child executed → output formatted
-Invariants:  validation precedes mutation; stdout carries machine output; diagnostics go to stderr;
-             nonzero child exit maps to CLI exit 2
+C-014 OBSERVED: deploy --dry-run opens project.toml before printing its plan.
+Runtime: P-014 plus traces/filesystem/P-014.log, open event at offset N.
+Source: revision ABC, deploy.ts, loadProjectConfig; correspondence unconfirmed.
+Alternative: startup config loader also opens that file.
+Next: trace call ownership or choose an input distinguishing both paths.
 ```
 
-Assert an invariant only after testing several paths that could violate it.
+After source correspondence and ownership are confirmed, update the level and evidence. Preserve the prior hypothesis and resolution.
 
-## Phase U: executable specification
+## Behavioral and architectural models
 
-Turn each confirmed behavior into a test in `re/80_tests/`. When the claim is about CLI behavior, drive the real process boundary and assert on argv, stdin, stdout, stderr, exit status, filesystem effects, environment handling, and child-process behavior where practical. Do not test private functions as a stand-in for the user-visible contract. Use golden files only for stable, deterministic output. For structured output, parse and compare structures unless the formatting itself is part of the contract. Existing `probes.jsonl` records give expected values that can be replayed.
+Model meaningful state transitions and ownership. Distinguish parser validation, configuration loading, application decisions, adapters, and presentation. Test error boundaries and whether mutation occurs before failure. Assert invariants only over the tested domain; avoid extrapolating from one successful case.
 
-## Phase V: differential testing
+For algorithms, use fixtures whose outputs differ between plausible implementations. Preserve minimized counterexamples and boundary inputs in the permanent corpus. Generative tests are optional after the grammar is understood; random input spraying is not an investigation plan.
 
-When building a replacement, compatibility layer, or model, send identical input to the reference and the candidate. Compare exit code, stdout, stderr, filesystem, network behavior, child processes, and timing category where relevant. Classify every difference as `EXPECTED`, `REFERENCE NONDETERMINISM`, `CANDIDATE BUG`, or `UNKNOWN`. Never normalize a difference nobody has explained.
+## Differential comparison
 
-## Phase W: generative probing
+Compare releases or isolated source builds with identical corpus/fixtures and recorded environments. Compare exit status, signal, stdout, stderr, filesystem effects, process/network effects, default values, command tree, precedence, and performance when contractual. Investigate behavior differences before source or binary diffs. Classify differences with a reason and evidence; normalization never excuses an unexplained discrepancy.
 
-Once the grammar is understood, generate inputs with fast-check (TypeScript), Hypothesis (Python), or proptest (Rust). Target benign interface properties: argument ordering, path normalization, Unicode, numeric boundaries, repeated options, empty collections, configuration combinations, and serialization round trips. For each counterexample: minimize it, reproduce it directly, add it to the permanent corpus, and find the responsible implementation path.
+Exact native binary hashes may differ for the same source because of timestamps, toolchain, paths, signing, flags and linking. Require relevant behavioral agreement and identity provenance, not byte equality. Agreement over a small corpus does not prove all behavior equivalent.
 
-## Phase X: adversarial check
+## Completion review
 
-Before calling an important behavior understood, try to falsify it:
+Rerun `repro/run-all` and inspect raw files and assertions. Ensure expected observations are genuine assertions rather than narrative claims. Audit major claims against alternatives and the identity of the artifact that produced them. Report unmeasured systems, missing tools, unsupported cases, and unresolved hypotheses explicitly.
 
-- What other mechanism could produce this result, and what input would distinguish them?
-- Did I observe it more than once?
-- Could environment state explain it?
-- Could a child process own the behavior instead?
-- Could source and the installed binary differ?
-- Could output be cached?
-- Could tracing have changed timing?
-
-While a credible alternative remains, run one more discriminating experiment.
+Completion means the requested behavior is reproduced, the implementation path is identified where possible, relevant alternatives are tested, and another operator can rerun the evidence. Scope can exclude irrelevant internals, but required unknowns cannot silently disappear. Successful compilation, parser coverage, or decompiler output alone does not establish completion.

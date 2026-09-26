@@ -1,63 +1,80 @@
-# Identity, surface, and black-box probing
+# Identity and behavioral experiments
 
-Capture behavior before reading implementation, so source does not bias what you look for. Save every output under `re/10_identity/` or `re/20_surface/`, and run the probes through `scripts/probe.py`.
+## Evidence workspace
 
-## Phase A: target identity
+Use a dedicated `.re/` outside the target repository when practical. Never reuse a workspace for a different artifact identity.
 
-```bash
-command -v <cli>; type -a <cli>
-realpath "$(command -v <cli>)"
-file "$(command -v <cli>)"
-head -n 1 "$(command -v <cli>)"
-sha256sum <binary>        # macOS: shasum -a 256 <binary>
+```text
+.re/
+  target/ identity.json hashes.txt
+  raw/ help/ versions/ metadata/
+  probes/ cases.json results.jsonl
+  source/ symbols.jsonl entrypoints.json flow.md command-tree.json
+  traces/ process/ filesystem/ network/ runtime/
+  binary/ metadata/ strings/ functions/ decompiler/
+  hypotheses/ open.md resolved.md
+  repro/ fixtures/ scripts/ run-all
+  report/ behavior.md architecture.md evidence.md
 ```
 
-Windows (PowerShell): `Get-Command <cli> | Format-List *` and `Get-FileHash <path> -Algorithm SHA256`.
+Raw evidence belongs to immutable run directories. Summaries and ledgers reference those files, never replace them.
 
-Record the resolved PATH entry, symlink chain, file type, architecture, executable format, hash, version output, modification time, and code signature if it matters. Try `<cli> --version`, `-V`, and `version`, and keep only the forms the CLI accepts.
+## Resolve what runs
 
-When source also exists, collect the installed version, repository version, commit or build ID, package version, release tag, and build metadata. Label the relationship `MATCHED`, `LIKELY_MATCHED`, `MISMATCHED`, or `UNKNOWN`.
+For an installed command, inspect shell resolution in the operator's actual shell:
 
-## Phase B: classify the launcher
-
-Decide what the PATH executable actually is: a shell wrapper, a Node.js launcher, a Python console-script wrapper, native ELF, Mach-O, or PE, a bundled JavaScript or Python executable, or a launcher for another executable. Decide from the shebang, symlink target, imports, embedded runtime strings, neighboring package files, and loaded runtime libraries. The answer picks the branch in `source-branches.md` or `tracing-and-binary.md`.
-
-## Phase C: public contract
-
-Run `<cli>`, `--help`, `-h`, `help`, and `--version`, keeping stdout, stderr, and exit code separate. Recurse into every discovered subcommand (`cli foo --help`, `cli foo bar --help`, and so on). Also read man pages, README examples, packaged docs and examples, and shell completion scripts or generated completions. Completions often reveal hidden aliases, option values, nested subcommands, enumerations, and dynamic completion.
-
-Write the command tree to `re/70_model/cli-contract.json`:
-
-```json
-{"name": "tool", "options": [], "subcommands": [{"name": "build", "arguments": [], "options": []}]}
+```sh
+type -a tool
+command -v tool
 ```
 
-## Phase D: harness conventions
+Resolve symlinks with `realpath` where available. Inspect `file` output on the resolved path, and read its first 20 lines only if it is text. `command -v` may describe a function or alias rather than a file. A subprocess argv array does not reproduce shell aliases/functions: record and recreate their expansion explicitly.
 
-Compare the raw bytes `scripts/probe.py` saves, not decoded text.
+On Windows, use `Get-Command -All`, resolved file properties, and `Get-FileHash -Algorithm SHA256`. Follow `.cmd`, PowerShell, package-manager shims, and native launchers.
 
-Normalize nondeterministic data (timestamps, temporary paths, PIDs, random IDs, absolute machine paths, assigned ports) only after repeated runs show it varies, and record each normalization rule next to the evidence for it.
+Record the complete chain:
 
-## Phase E: behavioral matrix
+```text
+user command → PATH entry → wrappers/symlinks → runtime → package entry → application entry
+```
 
-Vary one dimension at a time per significant command.
+Classify shell wrapper, Node script, Python console script, native ELF/Mach-O/PE, standalone Node/Bun executable, Python archive, PyInstaller/Nuitka, Rust, or unknown. A native executable does not prove Rust implementation.
 
-**Inputs.** No arguments, the minimum valid invocation, a typical valid invocation, empty strings, whitespace, relative and absolute paths, nonexistent paths, a directory where a file is expected and the reverse, Unicode, very long values, duplicate flags, reordered independent flags, an unknown flag, an unknown subcommand, a missing required argument, and an extra positional argument.
+`target/identity.json` must contain target and resolved paths, SHA-256, size, platform, architecture, reported version with evidence, repository commit/dirty state, runtime version, package-manager metadata, and UTC analysis timestamp. Distinguish host architecture from target architecture. The initializer leaves unavailable values null for the investigator to resolve or mark unavailable with a reason. Record all identity-bearing files in the artifact list and `hashes.txt`.
 
-**stdin.** Empty (`--stdin-mode null`), small text, multi-line, a missing final newline, large input, binary bytes, closed (`--stdin-mode closed`), TTY (`--stdin-mode tty`), and pipe.
+Collect supported version commands through the probe runner. Inspect `package.json`, `pyproject.toml`, `Cargo.toml`, lockfiles, version constants, release metadata, and tags. Capture `git rev-parse HEAD`, `git status --porcelain`, and `git describe --tags --always`. Record source changes, submodules, build flags, runtime/compiler versions and selected features when they affect a build. Never execute a package installation hook or build script merely to read metadata.
 
-**Output.** Record stdout and stderr separately, including ANSI escapes, progress output, TTY formatting (`--tty stdout|stderr|both`), line endings, the trailing newline, JSON formatting, and ordering.
+## Public command tree
 
-**Environment.** Start from `--clean-env` and add one variable at a time. Candidates are `HOME`, `USERPROFILE`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, `XDG_DATA_HOME`, `TMPDIR`, `TEMP`, `PATH`, `NO_COLOR`, `CI`, `TERM`, `LANG`, `LC_ALL`, `TZ`, `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY`. A variable matters only after a probe shows that it does.
+Capture supported `--help`, `-h`, and version forms; nested help; unknown options; and missing required arguments. Run bare invocation only after evaluating its effects. Record every stream and status.
 
-**Working directory.** Run identical commands from the repository root, a nested directory, an empty temp directory, home, a directory containing config, and one without config (`--cwd`, or `--seed` into the sandbox).
+Each command-tree node contains `command`, `arguments`, `options`, `subcommands`, and `evidence`. Each option includes long/short spelling, type, requirement, default, repeatability, environment/config counterpart, conflicts, dependencies, possible values, and evidence. Use null for unknown fields, not an invented default. Include aliases, hidden commands discovered in source/completions, and whether each item is advertised, source-declared, or actually observed.
 
-**Lifecycle.** SIGINT (`--send-signal INT`), SIGTERM where appropriate, broken pipe (`-- sh -c 'tool … | head -c1'`), child-process failure, timeout (`--timeout`), partial output, and cleanup after failure. A record with `descendants_hold_output: true` means the CLI left descendants running with its output streams open.
+## Behavioral matrix
 
-## Phase F: filesystem effects
+Every case answers a question. Select relevant dimensions and record why others do not apply.
 
-Use `--isolate` (plus `--snapshot DIR` for anything outside the sandbox) so every significant probe starts from a fresh HOME, config, cache, temp, and working directory. Read the diff for created, modified, and deleted files, permissions, symlinks, temp files, lock files, cache entries, and database files. Reads leave no diff, so confirm them with a trace (`tracing-and-binary.md`). A filesystem diff often reveals the configuration model faster than reading source does.
+| Area | Cases |
+|---|---|
+| Grammar | No arguments, valid/invalid/missing arguments, unknown/repeated options, order, `--`, aliases |
+| Input | stdin, file, empty/binary/malformed input, missing final newline, large bounded input |
+| Paths | Relative/absolute, spaces, Unicode, missing file, directory instead of file, permissions |
+| Configuration | Empty/malformed files, discovery locations, env, defaults, explicit config, merge rules |
+| Environment | cwd, clean/inherited env, PATH, locale, timezone, NO_COLOR, CI, terminal size |
+| Streams | stdin/stdout/stderr TTY independently, pipe, raw bytes, ANSI, newline, JSON, closed stdin |
+| Lifecycle | Interrupt/termination, timeout, broken pipe, cleanup, child failure, unavailable dependencies |
+| External systems | Offline behavior, controlled endpoint, retry/timeout, cache present/absent, unavailable network |
 
-## Phase R: configuration precedence
+Use fresh fixture directories and isolated HOME/XDG/TMP paths. Explicitly control PATH, LANG, LC_ALL, TERM, NO_COLOR, CI, COLUMNS, and LINES when relevant. Set these only in the child environment. Record interpreter resolution changes caused by a modified PATH. Test permission errors as an ordinary user; root bypasses many permission checks.
 
-Precedence usually matters more than syntax. Put a conflicting, uniquely marked value in each layer: built-in default (`default-A`), global config (`global-B`), user config (`user-C`), project config (`project-D`), environment variable (`env-E`), and CLI option (`cli-F`). Seed the files into the sandbox with `--seed`. Run the command and see which marker wins. Remove the winning layer and repeat until the full order is derived. Only then check it against source, and write the result to `re/70_model/config-precedence.md`.
+Snapshots identify final changes, not reads or files created and deleted between snapshots. Use traces for those questions. `network_observed: null` means unmeasured, not offline. An empty network trace proves nothing without adequate process/child and syscall coverage.
+
+For broken-pipe behavior, build a consumer that deliberately closes its pipe and record the target process's status separately. A shell pipeline's status may describe only its final command.
+
+## Configuration precedence
+
+Give every layer a distinct valid sentinel: default, system, user, project, environment, CLI. Probe each layer independently, then conflicting pairs and combined layers. Remove the winner and repeat. Include explicit config-file selection, field-level deep/shallow merges, lists, null/empty values, discovery from nested cwd, and malformed losing layers. A losing value can still be read or validated.
+
+Write the question, controlled inputs, observation, and conclusion. Example: setting env to `env-value` and the flag to `cli-value` selects `cli-value` in P-014. This establishes precedence for that field and case, not every field.
+
+Do not instrument before recording a baseline. Instrumentation may change timing, buffering, environment, or control flow; replay uninstrumented cases to check the relevant conclusion.
