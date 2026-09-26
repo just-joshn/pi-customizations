@@ -1,0 +1,31 @@
+{
+  "name": "pi-pstack",
+  "version": "0.15.5-pi.1",
+  "description": "pstack workflows for pi with preserved upstream sources and explicit host compatibility limits",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["pi-package", "pstack"],
+  "engines": { "node": ">=22.19.0" },
+  "pi": { "extensions": ["./src/index.ts"], "skills": ["./skills"] },
+  "files": ["src", "skills", "upstream", "upstream/.gitignore", "docs", "scripts", "test", "tsconfig.json", "LICENSE", "README.md"],
+  "scripts": {
+    "generate": "node scripts/resources.mjs --write",
+    "check:resources": "node scripts/resources.mjs",
+    "check:cli": "node scripts/verify-cli.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-ai": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "0.87.1",
+    "@earendil-works/pi-ai": "0.87.1",
+    "typebox": "1.3.27",
+    "@types/node": "^22.19.0",
+    "typescript": "^5.9.3",
+    "tsx": "^4.20.0"
+  }
+}
