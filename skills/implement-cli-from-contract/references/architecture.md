@@ -3,83 +3,175 @@
 This is a logical architecture. Collapse any layer that provides no useful boundary.
 
 ```text
-CLI adapter (argv, env, stdin, TTY)
-  → typed request
-  → config resolution (defaults, files, env, CLI)
-  → domain / use case (validation and decisions)
-  → filesystem, process, network adapters
-  → typed result or semantic error
-  → presentation (human, JSON, stderr, exit code)
+raw process inputs
+        |
+        v
+CLI boundary
+        |
+        v
+typed command request
+        |
+        v
+application operation
+        |
+        +----> filesystem adapter
+        |
+        +----> network adapter
+        |
+        +----> process adapter
+        |
+        v
+typed outcome
+        |
+        v
+presentation boundary
+        |
+        +----> stdout
+        +----> stderr
+        +----> exit code
 ```
 
 ## Choose the shape
 
-- **A. The command owns everything.** Simple at first, but it degrades once the behavior grows.
-- **B. A thin command plus a domain operation.** Parse, then build a typed request, run the operation, get a typed result, and render it. This is the default.
-- **C. B plus ports for the filesystem, processes, network, clock, and env.** Escalate to C only when several side effects, heavy testing, determinism, or reuse across frontends demand it.
-
-Commands share domain operations. A command never invokes another command, unless the contract shows it spawning one.
-
-## Domain types
-
-Define the request, the result, and the errors before the parser. Example:
+When ownership is not obvious, sketch at least two designs. Example:
 
 ```text
-ResolveConfigRequest { key, explicit_config_path?, cwd }
-ResolveConfigResult  = Found { value, source } | Missing
+Design A: CLI parser → command handler → domain operation → adapters
+Design B: CLI parser → generic dispatcher → stateful service → adapters
 ```
 
-- Give states that behave differently their own variants. Use `NotConfigured | Configured(value) | InvalidConfig(reason)`, not `string | null`.
-- Use an enum for output mode when more modes are possible or behavior diverges, instead of a boolean such as `is_json`.
-- Keep provenance (`Resolved<T> { value, source }`) when the source affects diagnostics or later behavior.
+Compare caller complexity, ownership, testability, invalid states, branches, external dependencies, compatibility complexity, and failure handling. Choose the design that removes knowledge from callers. Do not choose the design with the most abstractions.
 
-## Parsing boundary
+Default to a thin command plus a domain operation. Escalate to explicit ports only when several side effects, heavy testing, determinism, or reuse across frontends demand it. Commands share domain operations. A command never invokes another command unless the contract shows it spawning one.
 
-The parser owns syntax, types, required and optional distinctions, aliases, enumerations, conflicts, and defaults that belong purely to syntax. Domain policy stays out of parser callbacks. Convert parser output to domain types immediately.
+Do not add a new architecture next to an existing one without evidence that the current shape cannot support the feature.
 
-Parse a default as absent (`Option<T>`, `T | undefined`, `None`) when config can override it. The resolver can then tell "not specified" apart from "explicitly the default value". Precedence depends on that distinction.
+## Model the command as data
 
-Generate help and completions from the command definitions. Don't hand-maintain a second command tree.
-
-## Configuration
-
-Load each source separately, then merge them once in the precedence order the evidence established:
+Convert parser output into a domain request immediately. Do not pass parser framework objects into the application.
 
 ```text
-merge(Defaults, Global, User, Project, Environment, Cli)
+tool deploy prod --force --timeout 30
+        →
+DeployRequest { environment = Production, force = true, timeout = 30s }
 ```
 
-Do not read config or env lazily from scattered call sites. Pass controlled environments to tests.
+Prefer variants over boolean combinations. `DeployMode = Preview | Execute | Rollback` beats three mutually exclusive booleans. Give states that behave differently their own variants. Keep provenance (`Resolved<T> { value, source }`) when the source affects diagnostics or later behavior.
 
-## Side effects
+## Parse external values once
 
-- **Pure core.** Turn inputs into a plan, such as `DownloadPlan { url, destination, overwrite_policy }`. A narrow adapter executes the plan.
-- **Filesystem.** Centralize path resolution, creation, overwrite, permissions, symlinks, temp files, and cleanup. If the reference writes atomically (temp file, then optional fsync, then rename), keep that, because failure behavior differs from a direct overwrite. For multi-step mutations, validate first, prepare, commit, and clean up. Reproduce partial mutation only when the contract exposes it.
-- **Child processes.** Use one interface, `ProcessRequest { executable, args, cwd, env, stdin_mode }`. Execute with an argv array (`spawn`/`execFile`, `subprocess.run([...])`, `Command::new`), never a shell string, unless the contract needs shell semantics. Preserve the observed stream semantics: inherited versus captured output, live versus buffered, stdin forwarding, detach, and signal propagation. Children start from a minimal environment plus explicitly inherited variables when that matches the reference.
-- **Network.** Separate request construction, transport, response parsing, and domain interpretation. HTTP objects never enter the domain model. Model timeouts, redirects, proxies, and the auth source explicitly when the reference depends on them. Retry deliberately. Define which failures retry, the maximum attempts, backoff, jitter, and the timeout relationship. Never retry non-idempotent mutations automatically. Use a deterministic clock and RNG in tests.
-- **Determinism.** Inject the clock, random IDs, temp paths, env, cwd, and hostname only where their values reach observable behavior.
+Treat argv, environment, configuration, stdin, JSON, filesystem contents, HTTP responses, and IPC as untrusted until parsed:
 
-## Output, errors, exit codes
+```text
+raw value → parse → validate → typed value → application
+```
 
-- Stdout and stderr are APIs. Render domain results through a human renderer, a JSON serializer, and quiet mode. Never produce JSON by parsing human text. Machine output carries no progress lines and no ANSI unless the evidence shows it. The usual split puts results on stdout and diagnostics on stderr, but follow the reference where it differs.
-- Keep debug logging off stdout and stderr, and redact secrets before formatting. That includes debug representations, error context, and fixtures.
-- Define semantic errors (`InvalidArgument`, `ConfigNotFound`, `PermissionDenied`, `ChildProcessFailed`, and so on). One outer mapping turns each into a message, a destination stream, and an exit code, using only codes the contract established. If the reference always exits 1, the candidate does too.
-- Only `main` exits: `main → run → Result → exit status`. Never call `process.exit`, `sys.exit`, or `std::process::exit` from inside the core.
+Do not scatter validation through business logic. Trust internal types after the boundary.
 
-## TTY, prompts, signals, concurrency
+## Encode semantic values as semantic types
 
-- Model `stdin_is_tty`, `stdout_is_tty`, and `stderr_is_tty` separately. Colors, progress, prompts, paging, and line rewriting can each depend on a different stream.
-- Separate the decision to prompt (`destructive && !force → confirmation required`) from the terminal adapter that asks. Test the policy directly and the prompt under a PTY.
-- For Ctrl-C, SIGTERM, broken pipes, and parent or child death, match the reference's cleanup, signal forwarding, exit status, and retained partial state. Model cancellation as owned state, not a global flag.
-- Add concurrency only when the contract or a measurement requires it. Then define the units, the output ordering, the limit, cancellation, and error aggregation, and aggregate immutable results deterministically.
-- Branch on platform only where behavior truly differs: path separators, PATH lookup, case sensitivity, permissions, symlinks, line endings, signals, executable suffixes, shells, and env-name casing. Keep those branches in one place, outside domain code.
+Prefer `ProjectPath`, `ConfigPath`, `ApiToken`, `EnvironmentName`, `Timeout`, `OutputFormat`, and `RepositoryUrl` over interchangeable primitives.
 
-## Per-language shape
+- TypeScript: branded values or discriminated unions; `unknown` for unparsed external data; exhaustive switches; no casual `as` or `any`.
+- Rust: newtypes and enums; exhaustive match; `Result<T, E>`; `PathBuf` for paths.
+- Python: enums, dataclasses (frozen where appropriate), Protocols for capabilities, constructors that validate at the boundary.
 
-Keep the repository's existing framework: Commander, oclif, Click, Typer, clap derive, or clap builder.
+## Configuration resolution is one operation
 
-- **TypeScript.** Use `src/commands/`, `domain/`, `adapters/`, `output/`, and `config/`. In oclif, declare args and flags, and extract shared logic instead of calling one command from another. Check ESM and CJS behavior of the built bin.
-- **Python.** Use `cli/`, `domain/`, `adapters/`, and `output/`. Keep command functions thin, with explicit `Path`, `Enum`, `Optional`, and typed result types. Typer maps annotations to CLI inputs.
-- **Rust.** Use `cli.rs`, `commands/`, `domain/`, `adapters/`, `output.rs`, and `error.rs`. Structure clap derive as `Parser`, then `enum Command`, then a typed request, then `Result<DomainResult, DomainError>`, then a renderer. `ArgMatches` never leaves `cli.rs`.
+Encode the reverse-engineered precedence in one owner:
 
-Add a dependency only when the repository and the standard library lack the capability and the dependency clearly simplifies the code. Add a feature flag only for a real operational need, never to hide indecision.
+```text
+defaults → user config → project config → environment → CLI → ResolvedConfig
+```
+
+Do not let feature modules independently inspect `process.env`, `os.environ`, `std::env`, config files, or parser state. The application receives a resolved value. Parse defaults as absent when config can override them so "unspecified" differs from "explicitly the default".
+
+## External effects are explicit
+
+If the feature performs I/O, isolate it as narrow capabilities (`Filesystem`, `HttpClient`, `ProcessRunner`, `Clock`, `CredentialStore`, `Terminal`). Pass only what the operation needs. Plain parameters or small service objects are enough. Do not build a dependency-injection framework for this.
+
+- **Filesystem.** Centralize path resolution, creation, overwrite, permissions, symlinks, temp files, and cleanup. When writes must not be partial, generate content, write a temporary file, flush when required, then rename into place. Preserve an existing atomicity contract. Model multi-step persistent transitions instead of scattering writes.
+- **Child processes.** One interface with executable, args, cwd, env, and stdin mode. Use argv arrays, never shell strings, unless the contract needs shell semantics. Preserve stream and signal behavior the reference established.
+- **Network.** Separate request construction, transport, response parsing, and domain interpretation. Define which failures retry, maximum attempts, backoff ownership, and whether the operation is idempotent. Never retry non-idempotent mutations automatically. Encode convergence under repeat delivery in tests when required.
+- **Determinism.** Inject clock, random IDs, temp paths, env, cwd, and hostname only where their values reach observable behavior.
+
+## Output stays separate from operations
+
+Do not print from business logic when output compatibility matters. Return typed outcomes, then render:
+
+```text
+InspectOutcome = PackageFound(...) | PackageMissing(...) | InvalidArchive(...)
+render_human(outcome) / render_json(outcome)
+outcome/error → stdout/stderr → exit code
+```
+
+Stdout and stderr are APIs. Never produce JSON by parsing human text. Machine output carries no progress lines and no ANSI unless the evidence shows it. Preserve machine-readable formats more strictly than human output. Define typed schemas for `--json`, NDJSON, CSV, and protocol messages. Do not serialize internal structs casually.
+
+## Errors are part of the contract
+
+```text
+CliFailure = UsageError | InvalidConfig | InputNotFound
+  | AuthenticationFailure | RemoteFailure | OperationFailure
+```
+
+Each variant owns exit code, human message, machine-readable representation, and whether retry makes sense. The outer boundary owns process termination. Only `main` exits: `main → run → Result → exit status`.
+
+## Preserve strange behavior at the boundary
+
+Historical misspellings, unusual exit codes, option overrides, stderr-on-success, odd precedence, and legacy JSON properties stay at adapters such as `CompatibilityRenderer`, `LegacyConfigParser`, or `ExitCodeMapper`. Do not infect the domain model. Comment with a pointer to the compatibility test, not a speculative history.
+
+## TTY, signals, and cancellation
+
+Terminal capability usually feeds the renderer or prompt boundary, not business logic. Model `stdin_is_tty`, `stdout_is_tty`, and `stderr_is_tty` separately when color, progress, prompts, paging, or line rewriting depend on them.
+
+The outer process layer handles SIGINT, SIGTERM where applicable, and terminal cancellation. Translate into application cancellation. The operation decides how to stop work, clean temporary state, cancel children, and close resources. The CLI boundary then selects the externally compatible exit behavior. Test cancellation on the actual executable.
+
+## Language-specific shape
+
+Prefer the framework already used by the repository.
+
+### TypeScript
+
+For greenfield work, choose by CLI size. Commander (with `@commander-js/extra-typings` when useful) fits command/argument/option programs. oclif fits plugin architecture, command discovery, hooks, large trees, and framework-managed help. Keep either at the boundary.
+
+```text
+src/
+  cli/commands/  parse.ts  render.ts  exit.ts
+  domain/
+  adapters/filesystem.ts  http.ts  process.ts
+  config/resolve.ts
+```
+
+For true process tests, Execa exposes typed subprocess execution with independent streams, env control, timeouts, and termination behavior. Vitest snapshots suit committed compatibility-sensitive CLI output. Review every snapshot update.
+
+### Python
+
+Typer remains a strong typed greenfield fit. Click is fine when already present.
+
+```text
+src/tool/
+  cli.py  commands/  domain/  adapters/
+  config.py  errors.py  render.py
+```
+
+Use Enum, dataclass, Protocol, `pathlib.Path`, and explicit result variants. Typer `CliRunner` is useful for boundary tests. Keep subprocess tests for compatibility-critical behavior. Use `uv` for locked environments, installed commands, builds, and install verification. The final compatibility suite runs the installed console script from the built package.
+
+### Rust
+
+Prefer clap when already present or for a conventional Rust CLI. Derive maps arguments to structs and subcommands to enums.
+
+```text
+src/
+  main.rs  cli/  domain/  adapters/
+  config.rs  error.rs  render.rs
+```
+
+Keep `clap::Parser` types at the CLI boundary. Convert to application requests before domain logic. Process-level tools include `assert_cmd`, `assert_fs`, `trycmd`, and `snapbox`. Use process-level tests for the compatibility suite even when internal tests call Rust functions directly.
+
+## Redesign signals
+
+Stop and redesign when the same special case appears in several handlers, optional fields depend on each other, casts and null assertions repeat, several modules compute the same rule, CLI framework objects reach deep into the application, multiple modules read the same environment variable, error-to-exit mappings diverge, or tests require extensive mocks. Fix ownership or the data model. Do not cover the smell with another helper.
+
+## Migrate then delete
+
+When replacing an internal implementation, design the new internal contract, inventory callers, migrate every caller, and delete the old API. Do not leave `oldOperation`, `newOperation`, and `legacyOperationAdapter` indefinitely. External CLI compatibility and internal API compatibility are different concerns.
