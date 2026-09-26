@@ -1,81 +1,43 @@
-# Source topology and language branches
+# Source and language branches
 
-Start this only after the black-box contract from `probing.md` is captured.
+## Trace ownership from the established entry point
 
-## Phase G: topology
+Record entrypoints in `source/entrypoints.json`, selected symbols as JSONL in `source/symbols.jsonl`, and the flow in `source/flow.md`. Every source reference includes artifact/revision, path, symbol, and line range where useful. Lines alone become stale.
 
-Record repository state and change nothing:
+Follow parser → configuration → dispatch → operation → adapters → output/error/exit selection. At each boundary identify inputs, validation, transformation, state, effects, and ownership. Stop when the requested behavior is explained. Repository-wide searches are a fallback after entry-point tracing, not the starting point.
 
-```bash
-git status --short
-git rev-parse HEAD
-git branch --show-current
-git log -1 --format=fuller
-```
+Use `rg` for literals. Use ast-grep structural patterns, Tree-sitter queries, or Universal Ctags JSON when the construct is known. Check the installed tool's help/current official documentation before choosing syntax. Do not invent subcommands. Search command/option registration, handlers, env reads, file operations, HTTP clients, process creation, serialization, error conversion, and exits. Keep symbol extraction scoped.
 
-Read structural files first: README, package manifest, lockfile, workspace config, build system, CLI entrypoint, tests, and config schema. Use `rg` for text and ast-grep for syntax-aware structure. Prefer structural queries over giant regular expressions.
+## TypeScript and JavaScript
 
-```bash
-ast-grep outline src --items exports --json=compact
-ast-grep outline src --items imports --json=compact
-```
+Inspect the installed package's `package.json` first. Record `bin`, `main`, `exports`, `imports`, `type`, dependencies, optional/peer dependencies, engines, and scripts. Resolve `bin` to the actual parser and registration code. Inspect tsconfig, lockfile, build/bundler config, and source-map settings. Parser calls such as command, option, action, parse, parseAsync, handler, run, execute, and main are discovery leads only.
 
-Use structural search to find where commands are registered, subprocesses spawned, files opened, environment variables read, HTTP clients constructed, configuration merged, and exit codes chosen.
+Distinguish compiled JS, bundles, minification, ncc/esbuild output, standalone Node/Bun executables, and native wrappers. Search `sourceMappingURL` and `.map` files before reading minified code. Preserve map hashes, original member names, and `sourcesContent`; reconstruct only into a separate recovery directory. Resolve names safely, rejecting absolute paths and traversal. Do not fetch map URLs automatically. Maps may be stale or incomplete; correlate them to the shipped bundle.
 
-## TypeScript / JavaScript
-
-Read `package.json` (`bin`, `exports`, `scripts`), the lockfile, `tsconfig.json`, bundler config, source maps, and which CLI framework it uses. The `bin` field maps installed command names to executable files, so check it early for npm-installed CLIs.
-
-Map: bin entry → argument parser → command handlers → domain/service layer → I/O adapters.
-
-Work out whether the installed command runs plain JS, transpiled TypeScript, bundled JS, a Node executable wrapper, Bun or Deno output, or a native packaged binary. Preserve source maps.
-
-For runtime debugging, use the V8 inspector bound to localhost. `--inspect-brk` stops at startup, and `--inspect-wait` waits for a debugger to attach.
-
-```bash
-node --inspect-brk path/to/entry.js ...
-```
-
-Enable only the Node tracing flags the current question needs.
+For runtime questions, launch the identified JS entry under the matching Node runtime with inspector support bound to loopback. Preserve wrapper arguments and environment. Target one handler, config object, path transformation, request construction, or exception conversion. Record differences between this invocation and the shipped launcher; inspector behavior alone does not establish release behavior.
 
 ## Python
 
-Read `pyproject.toml`, `setup.cfg` or `setup.py`, `src/`, the package modules, tests, and entry points (`[project.scripts]` / `console_scripts` map the executable to an importable object).
+Resolve the wrapper's interpreter and environment first. Use that interpreter's `importlib.metadata.entry_points(group="console_scripts", name="tool")` where supported to inspect module/callable/distribution metadata. Do not call `EntryPoint.load()` just to identify the entry. Inspect distribution files, `METADATA`, `RECORD`, `entry_points.txt`, and `direct_url.json`. Entry point availability and API shape depend on interpreter version. Installed `.py` source is stronger evidence for an installed CLI than an unmatched checkout.
 
-For an installed distribution, read `*.dist-info/METADATA`, `RECORD` (which enumerates installed files), `entry_points.txt`, and `direct_url.json`. Prefer `importlib.metadata` over guessing from the filesystem.
+Classify normal `.py`, `.pyc` only, zipapp, PEX/Shiv archive, PyInstaller, Nuitka/native, or embedded Python. Inspect archive listings before extraction or decompilation. Preserve paths safely in a dedicated recovery directory. PyInstaller one-file runtime extraction can be observed through a controlled temp directory; do not assume every bundle uses that mode.
 
-Map: console entry point → `main()` or app object → argument framework → command handler → domain logic.
+Trace the console entry → parser → handler → application → adapters. Use the interpreter's `trace` module for executed functions or caller/callee information before line tracing. Resolve a runnable script/module; a console entry specification is not itself a script filename. Check that tracing preserves launcher semantics.
 
-Source beats bytecode. Use `dis` (API or `python -m dis`) only when source is missing or generated behavior stays unclear. Bytecode changes between CPython releases, so record the exact interpreter version whenever bytecode is evidence.
+For bytecode, identify magic number and exact CPython version, then use compatible `dis` tooling. The `python -m dis` interface does not imply it can directly consume every `.pyc` container. Preserve headers, distinguish container parsing from code-object disassembly, and do not load untrusted marshal data on the host. Treat guessed reconstructed source as inference. For Nuitka or unrecoverable bundled code, use native analysis.
 
 ## Rust
 
-```bash
-cargo metadata --format-version 1   # workspace members, targets, resolved deps
-cargo tree                          # dependency graph and enabled features
-```
+After installed-command identity, use Cargo to map the repository. Inspect Cargo.toml, Cargo.lock, workspace members, `[[bin]]`, `src/main.rs`, `src/bin/`, build.rs, features, toolchain and target config. Capture `cargo metadata --format-version 1` and `cargo tree` in an isolated checkout with locked/offline options when appropriate. If resolution needs network or lockfile changes, record that requirement rather than silently altering evidence. A no-deps result is an incomplete dependency graph.
 
-Binary targets come from `src/main.rs`, `src/bin/*`, and `[[bin]]`.
+Record selected binary/package, target triple, feature flags, workspace/default members, direct/build/platform dependencies, and matching build invocation. Default Cargo output does not prove release feature selection. Trace main → parser structs/enums → dispatch → handler → operation → adapters → output/errors. Inspect parser declarations rather than only help strings.
 
-Map: `main` → CLI parser → command enum/dispatch → application/domain functions → filesystem/network/process adapters.
+Build a matching revision in isolation when feasible. Compare its observable behavior with the installed release before using a debug build to explain release internals. Record compiler, optimization, LTO, panic strategy, linking, and features. Byte equality is not required.
 
-When lower-level behavior stays unclear, build an isolated diagnostic build and emit IR or assembly for the specific question only:
+For installed-only native targets, collect architecture, stripped/debug state, libraries, build ID, paths, symbols, panic strings, and crate/version leads. Demangle retained Rust names with rustfilt. Treat embedded crate versions and strings as leads until correlated. Monomorphization, inlining, LTO, and stripping can erase apparent source boundaries.
 
-```bash
-cargo rustc --bin <target> -- --emit=llvm-ir,asm
-```
+## Algorithms and history
 
-A local release build will rarely match a distributed binary byte for byte. Compiler version, target features, linker, LTO, stripping, and build environment all differ. Aim for behavioral equivalence.
+For an important transformation, identify input/output domains, ordering, state, invariants, limits, and errors. Construct minimal fixtures that distinguish candidate algorithms. Check ties, empty inputs, numeric boundaries, Unicode, stability, and deterministic ordering where relevant. Measure complexity only when it matters to compatibility and distinguish measurements from asymptotic claims.
 
-## Phase T: repository history
-
-Once current behavior is known, use history to explain intent: why a branch exists, when a flag appeared, whether a behavior was a bug fix, and what older interface it replaced.
-
-```bash
-git log -- <path>
-git blame <path>
-git log -S'<identifier>'
-git log -G'<pattern>'
-```
-
-Commit messages are `HIST` evidence of intent. They do not prove current runtime behavior.
+Use blame/history after current behavior is understood to explain intent. Commit messages can support historical rationale; they do not establish current runtime behavior.

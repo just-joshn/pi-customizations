@@ -17,7 +17,7 @@ Success means two things. Users see the established contract. Maintainers see co
 
 ## 1. Load the contract
 
-Find the reverse-engineering outputs. These are usually `re/REPORT.md`, `re/70_model/` (`cli-contract.json`, `ledger.md`, `config-precedence.md`, `side-effects.md`, `unknowns.md`), `re/30_probes/`, and the reference executable. If they are missing, rebuild the equivalent from the available evidence. Run `/skill:reverse-engineer-cli` first when there is no contract.
+Find the reverse-engineering outputs: `.re/report/behavior.md`, `architecture.md`, `evidence.md`, `.re/source/command-tree.json`, `.re/probes/`, `.re/repro/`, and the reference executable. Older investigations may use `re/REPORT.md`, `re/70_model/`, and `re/30_probes/`. If they are missing, rebuild the equivalent from the available evidence. Run `/skill:reverse-engineer-cli` first when there is no contract.
 
 For each feature, or each group of tightly coupled features, create a packet under `re/90_impl/<feature>/` from `references/feature-packet.md`. Every implementation decision traces to one of four sources: a compatibility requirement, existing repository architecture, a language or runtime constraint, or a deliberate new design decision.
 

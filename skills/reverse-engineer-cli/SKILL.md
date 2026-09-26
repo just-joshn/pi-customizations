@@ -1,131 +1,101 @@
 ---
 name: reverse-engineer-cli
-description: "Reverse engineer a CLI tool (TypeScript/JavaScript, Python, Rust, or native binary) from its source repository, installed executable, or both. Reconstructs the observable contract (commands, options, stdin/stdout/stderr, exit codes, TTY behavior, config and environment precedence, filesystem, process, and network side effects) through an evidence ledger and progressive escalation from black-box probes to tracing, runtime instrumentation, and targeted decompilation, then delivers a verified model, report, and regression tests. For authorized interoperability, debugging, migration, or reimplementation work only. Use when the user runs /skill:reverse-engineer-cli."
+description: "Reverse engineer TypeScript/JavaScript, Python, or Rust CLI tools from an installed command, a repository, or both. Use for authorized behavior reconstruction, architecture analysis, configuration precedence, release comparisons, or preparation for a compatible implementation. Produces reproducible probes and evidence-linked behavior and architecture reports. Invoke with /skill:reverse-engineer-cli followed by the target and investigation scope."
 license: MIT
+compatibility: "Pi coding agent. Bundled automation requires Python 3.10+ on macOS or Linux; Windows investigations require equivalent native capture tooling. Optional analysis tools are selected per target."
 disable-model-invocation: true
 ---
 
 # Reverse engineer a CLI
 
-The product is a verified model, not decompiled code:
+Reconstruct the behavior that matters, identify its implementation where possible, and leave evidence another operator can replay. Analyze only software the operator owns or is authorized to inspect. Resolve supporting paths relative to this skill directory, then use absolute paths in commands. Read references only for the current phase.
+
+## 1. Establish scope and identity
+
+Use the user's target, available artifacts, and compatibility questions. If the target is missing, ask for it. Otherwise proceed with the available evidence. Record scope, required behaviors, exclusions, and unknowns in `.re/report/behavior.md`.
+
+Read [references/probing.md](references/probing.md). Create the evidence workspace before invoking the target:
+
+```sh
+python3 /absolute/skill/scripts/investigate.py init --workspace .re --target /absolute/path/to/tool --repository /absolute/path/to/repository
+```
+
+Omit whichever input is unavailable. This initializes the requested layout, records file identity and repository state, copies the reproduction helpers, and leaves empty probe cases. It does not run the target. Add `--artifact PATH` for each discovered runtime, package entry point, bundle, or relevant package manifest that needs hash verification. Large artifact trees can use a separately recorded file manifest.
+
+If an installed command exists, start with that command before the repository. Resolve aliases, functions, shims, symlinks, and wrappers through to the runtime and application entry point. Hash and, when practical, copy each relevant artifact without changing the installed executable. A wrapper hash does not identify its dependencies.
+
+If both inputs exist, version correspondence is mandatory. Record version strings, build IDs, commits, dirty state, and package metadata. A matching version string is insufficient. Replay the same relevant corpus against the installed executable and an isolated source build. Keep installed and repository models separate until their relationship is established. Behavioral agreement applies only to the tested scope; binary equality is unnecessary.
+
+## 2. Capture the public contract
+
+Use supported help/version forms first; capture nested subcommands, invalid syntax, and missing arguments. Bare invocation may mutate state, start a server, or enter a REPL. Assess it before running it. Help is evidence of advertised syntax, not proof of actual behavior.
+
+Record `.re/source/command-tree.json` with commands, options, arguments, defaults, repeatability, environment/config counterparts, conflicts, dependencies, possible values, evidence IDs, and unknowns. Record help stream and exit status.
+
+Run several targeted manual probes, then encode the repeating experiment in `.re/probes/cases.json`. Read [references/reproduction.md](references/reproduction.md) for the executable corpus format and helper limits. Every case must have a question, reviewed scope, controlled input, and expected observations when established.
+
+```sh
+python3 .re/repro/scripts/probe.py --out .re/probes/manual --isolate --clean-env --label 'Which stream receives help?' -- /absolute/path/to/tool --help
+python3 .re/repro/run-all
+```
+
+The runner preserves raw streams separately, stdin, environment changes, TTY state, signals, timings, hashes, and filesystem snapshots. Clean environment and temporary directories are experimental controls, not OS containment. Use an OS sandbox or VM when probes might escape fixtures, reach real services, or execute untrusted code. Never use live user data when disposable fixtures suffice.
+
+Cover the relevant behavioral matrix from `probing.md`. Derive configuration precedence with distinct values at every layer, pairwise conflicts, and removal of winning layers. Test empty/unset values, merge semantics, discovery roots, and error timing. Do not assume a global total order when fields follow different rules.
+
+## 3. Explain the implementation
+
+Select the route:
+
+| Available evidence | Route |
+|---|---|
+| Repository and installed command | Establish identity, probe installed behavior, trace source, compare isolated build, correlate only matching paths |
+| Repository only | Resolve the declared entry point, trace source, build in isolation when feasible, probe the resulting artifact; label unexecuted conclusions SUPPORTED |
+| Installed command only | Resolve launcher and package, probe behavior, inspect recoverable source, trace boundaries, escalate to native analysis for remaining questions |
+
+Read [references/source-branches.md](references/source-branches.md) for the language. Follow the actual entry point through parser, configuration, dispatch, application operation, adapters, presentation, and exit selection. For each boundary record inputs, validation, transformations, state reads/writes, external calls, streams, and errors. Investigate important algorithms with discriminating fixtures, including boundary values and failure paths.
+
+Use `rg` for discovery, then AST search, Tree-sitter queries, Ctags JSON, or compiler metadata for the relevant constructs. Build a small symbol map. Do not index or read the entire repository by default.
+
+If source cannot resolve a question, read [references/tracing-and-binary.md](references/tracing-and-binary.md). Escalate only as needed:
 
 ```text
-INPUTS → PARSING → CONFIGURATION + STATE → DECISIONS → DOMAIN TRANSFORMATIONS → I/O BOUNDARIES → OUTPUTS + SIDE EFFECTS
+process/filesystem/network observation → targeted runtime debugging
+→ recover packaged source → native metadata/symbols/imports/strings
+→ targeted Frida instrumentation → candidate-function decompilation
 ```
 
-Source, traces, symbols, debugger state, and decompiler output exist only to establish that model. Stop once the model predicts the reference CLI across the probe corpus and survives attempts to falsify it.
+Recover JS source maps and Python package/archive contents before native decompilation. Preserve archive/member provenance and prevent extraction paths from escaping the recovery directory. Never infer framework behavior, bytecode semantics, or decompiler names/types without evidence.
 
-Only do this for authorized interoperability, debugging, migration, compatibility testing, maintenance, or reimplementation. Never bypass authentication, licensing, access controls, or other protections. Use synthetic credentials and configuration, never production ones. Do not run unknown binaries as root or administrator. Do not weaken host security to get a trace. Move the probe to a disposable VM instead.
+## 4. Resolve competing explanations
 
-## 1. Set up the workspace
+Maintain `.re/hypotheses/open.md` and `resolved.md`. For each question record hypotheses, evidence for/against, the smallest discriminating probe, result, and status. Choose an experiment whose predicted outcomes differ. Do not repeat an inference until it sounds established.
 
-Create `re/` outside the target repository unless the user says otherwise:
+Join runtime observations, traces, source symbols, and binary locations in `.re/report/evidence.md`. Read [references/verification.md](references/verification.md) before closing a claim. Use exactly these levels:
 
-```text
-re/
-├── 00_context/   10_identity/   20_surface/   30_probes/   40_traces/
-├── 50_source/    60_binary/     70_model/     80_tests/    REPORT.md
-```
+| Level | Required evidence |
+|---|---|
+| PROVEN | Direct runtime observation plus matching implementation evidence |
+| OBSERVED | Direct runtime observation; implementation unconfirmed |
+| SUPPORTED | Direct source/binary evidence; runtime untested |
+| INFERRED | Indirect evidence supports the explanation |
+| UNKNOWN | Insufficient evidence |
 
-Store raw output before writing summaries. Run every CLI invocation through `scripts/probe.py` (in this skill's directory), from the directory that contains `re/`, so each run appends a JSONL record to `re/30_probes/probes.jsonl` with argv, cwd, env overrides, stdin bytes, TTY state per stream, raw stdout/stderr bytes, exit code or signal, duration, target hash, and a filesystem diff. Run `python3 scripts/probe.py --help` for options. Common forms:
+Decompiled pseudocode alone generally supports an inference. Direct symbol/import/instruction facts can be SUPPORTED. Do not use confidence percentages. Source alone cannot establish runtime behavior when the executable is available for testing.
 
-```bash
-python3 scripts/probe.py --label "unknown flag" --isolate -- tool --bogus
-python3 scripts/probe.py --isolate --clean-env --env NO_COLOR=1 --tty both -- tool build
-python3 scripts/probe.py --isolate --seed fixtures/proj:work --stdin-file input.bin -- tool fmt -
-python3 scripts/probe.py --send-signal INT --after 2 -- tool watch
-```
+For multiple releases, identify each artifact independently, replay the same corpus, compare behavior first, then inspect the responsible implementation changes. Preserve stdout, stderr, exit status, effects, and timings. Keep raw and normalized outputs; document every normalization and never hide unexplained differences.
 
-`--isolate` gives each run a fresh `HOME`, `XDG_*`, `TMPDIR`, and `work/` under `re/30_probes/sandboxes/<id>/` and diffs it. `--snapshot DIR` diffs any other directory. On a pty, output line endings become `\r\n`, which is terminal behavior and not the CLI's.
+## 5. Deliver and verify
 
-## 2. Keep an evidence ledger
+Use [references/report-templates.md](references/report-templates.md) to complete:
 
-Record every meaningful claim in `re/70_model/ledger.md`:
+- `.re/report/behavior.md`: public contract, configuration, environment, I/O, errors, effects, TTY, edge cases, and scoped gaps.
+- `.re/report/architecture.md`: launcher, dispatch, configuration flow, meaningful components and state, algorithms, external boundaries, and a data-flow diagram.
+- `.re/report/evidence.md`: claims with levels, artifact identity, probe/trace/source/binary references, alternatives, and replay commands.
+- `.re/repro/`: reviewed fixtures and scripts sufficient to reproduce major observations with one command.
 
-```text
-CLAIM-001
-Claim: --config overrides the configuration discovered in $HOME.
-Evidence: OBS-014 (probe P-…), TRACE-006, SRC-037
-Confidence: high
-Reproduction: re/80_tests/config-precedence.sh
-```
+Before completion, rerun the safe corpus, verify hashes, challenge major claims against alternatives, and inspect actual evidence files. Reproduction failures, unavailable tracing, source/build mismatches, and untested branches remain explicit gaps. The bundled runner's success only covers its recorded assertions; attach target-specific checks for traces, network/process effects, normalization, and algorithms where required.
 
-Evidence classes: `OBS` observed CLI behavior, `SRC` source, `TRACE` syscall/filesystem/process/network trace, `DBG` debugger, `DYN` dynamic instrumentation, `BIN` static binary facts, `DEC` decompiler, `HIST` repository history, `HYP` unverified hypothesis.
+Finish only when the requested behavior is reproduced, the responsible path is identified where possible, meaningful alternatives are tested, and another agent can replay the evidence. A successful build or decompilation does not satisfy this condition. If access or tooling blocks a required conclusion, deliver the partial evidence and identify the blocking gap.
 
-Weight evidence in this order: repeated observable behavior > runtime observation correlated with source > source > system trace > debugger/instrumentation > symbol/import evidence > decompiler inference > string-based inference > guess. Decompiler output is evidence, not source code. Never promote a plausible explanation to fact because the source or decompiler output looks convincing.
-
-## 3. Pick the route
-
-Establish identity and the public contract first (`references/probing.md`, Phases A to F). Then follow the route for the evidence you have:
-
-- **Both source and installed CLI.** The installed executable is authoritative for its own behavior. (1) Record its identity. (2) Capture its black-box corpus. (3) Inspect source entrypoints and architecture. (4) Build source in isolation. (5) Replay the identical corpus against the source build. (6) Investigate every difference before correlating internals. (7) Once matched, use source-level instrumentation to explain the reference. Never silently substitute source behavior for installed behavior.
-- **Source only.** Entrypoints → command grammar → domain model → dependencies → state and configuration → I/O boundaries → tests → build → execute probes. Still run the real CLI. Tests and source alone do not establish the user-visible contract.
-- **Installed CLI only.** Identity → surface → behavioral corpus → filesystem/process/network tracing → package or wrapper discovery → runtime-specific inspection → binary metadata → dynamic instrumentation → targeted decompilation → executable specification. Stay with external observation as long as possible.
-
-## 4. Work each unknown with the loop
-
-```text
-QUESTION → 2+ PLAUSIBLE HYPOTHESES → SMALLEST DISCRIMINATING PROBE → RUN → RAW EVIDENCE → UPDATE MODEL → VERIFY
-```
-
-Climb this ladder and stop at the first level that explains the behavior with sufficient evidence. Install tools only when a level needs them.
-
-| Level | Method | Where |
-|---|---|---|
-| 0 | CLI help, docs, completions | `references/probing.md` |
-| 1 | black-box input/output probe | `references/probing.md` |
-| 2 | filesystem/process/network observation | `references/tracing-and-binary.md` |
-| 3 | structural source search | `references/source-branches.md` |
-| 4 | a specific source path, proven to execute | `references/source-branches.md`, `references/verification.md` |
-| 5 | language-runtime instrumentation (Node inspector, Python introspection) | `references/source-branches.md` |
-| 6 | binary metadata, imports, symbols | `references/tracing-and-binary.md` |
-| 7 | targeted debugger or Frida trace | `references/tracing-and-binary.md` |
-| 8 | Ghidra/Rizin analysis of only the implicated regions | `references/tracing-and-binary.md` |
-| 9 | instruction-level debugging, rr record/replay | `references/tracing-and-binary.md` |
-
-After each explained behavior: update the model, add a permanent regression probe to `re/80_tests/`, and try to falsify the conclusion (`references/verification.md`).
-
-**Stop a branch** when the claim is already reproducible, when more evidence would not change an implementation decision, when the behavior belongs entirely to a known dependency, or when the cost exceeds its relevance to observable compatibility.
-
-**Escalate** when two observations conflict, when source and installed behavior disagree, when a nondeterministic failure will not reproduce, when a side effect has no explained owner, or when a critical transformation stays opaque. If two investigations fail on the same assumption, stop and test that assumption.
-
-## 5. Avoid these
-
-- Reading the repository sequentially, decompiling every function, dumping unfiltered syscalls, or tracing every Frida-callable function.
-- Assuming README behavior is current, that source matches the installed binary, or that product marketing names the runtime language.
-- Inferring configuration precedence from source layout.
-- Treating strings as control-flow evidence or decompiler variable names as authoritative.
-- Rewriting the tool before the contract is understood.
-- Normalizing output differences that nobody has explained.
-- Testing only successful inputs, or ignoring the stdout/stderr split.
-
-## 6. Definition of done
-
-With evidence, the model reproduces or explains:
-
-1. the command and subcommand hierarchy;
-2. arguments, options, defaults, aliases, and precedence;
-3. stdin, stdout, and stderr behavior, and exit-code semantics;
-4. TTY versus non-TTY behavior;
-5. configuration files, relevant environment variables, and their precedence;
-6. filesystem reads and writes, and cache/state directories;
-7. child processes, plus network endpoints and protocols where they apply;
-8. important data transformations and major control-flow decisions;
-9. error handling, recovery, meaningful boundaries, and invalid inputs.
-
-Every important behavior also needs at least one reproducible test. Unresolved behavior is marked unknown, not guessed. Exact reconstruction of internals is not required once the observable behavior is fully explained.
-
-## 7. Deliverables
-
-```text
-re/REPORT.md
-re/70_model/cli-contract.json      machine-readable command tree
-re/70_model/architecture.md
-re/70_model/config-precedence.md
-re/70_model/side-effects.md
-re/70_model/unknowns.md
-re/70_model/ledger.md
-re/80_tests/
-```
-
-`REPORT.md` covers target identity, the source/binary relationship, the CLI command model, the configuration model, runtime architecture, important data flows, child processes, filesystem behavior, network behavior, important algorithms, evidence references, verification performed, known mismatches, and remaining unknowns. Label every statement `OBSERVED`, `VERIFIED FROM SOURCE`, `CORRELATED`, `INFERRED`, or `UNKNOWN`.
+For Pi loading and documentation provenance, see [references/pi-integration.md](references/pi-integration.md).
