@@ -8,6 +8,9 @@ screenshot), and lets an agent poke the UI by sending lines of text.
 
 The skill's `SKILL.md` then becomes a short manual for that driver.
 
+xvfb is for headless Linux. On macOS or a Linux desktop with a display,
+drop the `xvfb-run -a` prefix and the apt packages; the driver is the same.
+
 ## What you're building
 
 ```
