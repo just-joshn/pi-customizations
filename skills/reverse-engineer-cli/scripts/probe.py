@@ -11,9 +11,11 @@ import argparse
 import fcntl
 import hashlib
 import json
+import math
 import os
 import platform
 import pty
+import re
 import shutil
 import signal
 import struct
@@ -71,7 +73,8 @@ def diff(before: dict, after: dict) -> dict:
 
 
 def output_summary(data: bytes, path: Path) -> dict:
-    path.write_bytes(data)
+    with path.open("xb") as stream:
+        stream.write(data)
     return {
         "path": str(path),
         "bytes": len(data),
@@ -130,6 +133,8 @@ def build_sandbox(root: Path, seeds: list[str]) -> dict[str, str]:
     for seed in seeds:
         src, _, dest = seed.partition(":")
         target = root / (dest or Path(src).name)
+        if not target.resolve().is_relative_to(root.resolve()):
+            raise ValueError("seed destination escapes sandbox")
         target.parent.mkdir(parents=True, exist_ok=True)
         if Path(src).is_dir():
             shutil.copytree(src, target, symlinks=True, dirs_exist_ok=True)
@@ -140,7 +145,7 @@ def build_sandbox(root: Path, seeds: list[str]) -> dict[str, str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--out", default="re/30_probes", help="probe directory (default re/30_probes)")
+    ap.add_argument("--out", default=".re/probes/manual", help="probe output directory")
     ap.add_argument("--id", help="probe id (default generated)")
     ap.add_argument("--label", default="", help="free-text description of what this probe discriminates")
     ap.add_argument("--cwd", help="working directory (default: sandbox work/ with --isolate, else current)")
@@ -170,17 +175,29 @@ def main() -> int:
     cmd = a.cmd[1:] if a.cmd[:1] == ["--"] else a.cmd
     if not cmd:
         ap.error("missing command after --")
+    if not math.isfinite(a.timeout) or not math.isfinite(a.after) or a.timeout <= 0 or a.after < 0 or (a.send_signal and a.after >= a.timeout):
+        ap.error("require timeout > after >= 0")
+    if a.seed and not a.isolate:
+        ap.error("--seed requires --isolate")
+    if any("=" not in kv or not kv.split("=", 1)[0] for kv in a.env):
+        ap.error("--env requires NAME=VALUE")
+    if a.send_signal and not hasattr(signal, "SIG" + a.send_signal.upper().removeprefix("SIG")):
+        ap.error("unknown signal")
 
     out = Path(a.out).resolve()
     (out / "raw").mkdir(parents=True, exist_ok=True)
     probe_id = a.id or f"P-{datetime.now(timezone.utc):%Y%m%dT%H%M%S}-{uuid.uuid4().hex[:6]}"
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", probe_id):
+        ap.error("id must contain only letters, digits, dots, underscores, and hyphens")
+    # Repeated case IDs retain older bytes and receive fresh sandbox directories.
+    run_id = f"{probe_id}-{uuid.uuid4().hex}"
 
     env = {"PATH": os.environ.get("PATH", "")} if a.clean_env else dict(os.environ)
     overrides: dict[str, str | None] = {}
     snap_dirs = [Path(d).resolve() for d in a.snapshot]
     sandbox = None
     if a.isolate:
-        sandbox = out / "sandboxes" / probe_id
+        sandbox = out / "sandboxes" / run_id
         overrides.update(build_sandbox(sandbox, a.seed))
         snap_dirs.append(sandbox)
     for kv in a.env:
@@ -200,7 +217,9 @@ def main() -> int:
                   else Path(a.stdin_file).read_bytes() if a.stdin_file else b"")
     stdin_mode = a.stdin_mode or ("pipe" if a.stdin_text is not None or a.stdin_file else "null")
 
-    resolved = shutil.which(cmd[0], path=env.get("PATH"))
+    search_path = os.pathsep.join(str((cwd / p).resolve()) for p in env.get("PATH", os.defpath).split(os.pathsep))
+    executable = str((cwd / cmd[0]).resolve()) if os.sep in cmd[0] else cmd[0]
+    resolved = shutil.which(executable, path=search_path)
     target = {"argv0": cmd[0], "resolved": resolved,
               "realpath": os.path.realpath(resolved) if resolved else None,
               "sha256": sha256_file(Path(resolved)) if resolved else None}
@@ -250,29 +269,43 @@ def main() -> int:
 
     start_wall = datetime.now(timezone.utc)
     start = time.monotonic()
-    proc = subprocess.Popen(cmd, cwd=cwd, env=env, stdin=stdin_arg, stdout=fds["stdout"],
-                            stderr=fds["stderr"], preexec_fn=preexec, close_fds=True)
+    launch_error = None
+    try:
+        proc = subprocess.Popen(cmd, cwd=cwd, env=env, stdin=stdin_arg, stdout=fds["stdout"],
+                                stderr=fds["stderr"], preexec_fn=preexec, close_fds=True)
+    except OSError as exc:
+        launch_error = {"type": type(exc).__name__, "errno": exc.errno, "message": str(exc)}
+        proc = None
     for fd in parent_close:
         os.close(fd)
     for t in threads:
         t.start()
-    if writer:
+    if writer and proc is not None:
         threading.Thread(target=feed, args=writer, daemon=True).start()
+    elif writer:
+        os.close(writer[0])
 
     signal_sent = None
     timed_out = False
     try:
-        if a.send_signal:
+        if proc is not None and a.send_signal:
             try:
                 proc.wait(timeout=a.after)
             except subprocess.TimeoutExpired:
                 sig = getattr(signal, "SIG" + a.send_signal.upper().removeprefix("SIG"))
-                os.killpg(proc.pid, sig)
-                signal_sent = {"signal": sig.name, "after_s": a.after}
-        proc.wait(timeout=max(a.timeout - (time.monotonic() - start), 0.1))
+                try:
+                    os.killpg(proc.pid, sig)
+                    signal_sent = {"signal": sig.name, "after_s": a.after}
+                except ProcessLookupError:
+                    pass
+        if proc is not None:
+            proc.wait(timeout=max(a.timeout - (time.monotonic() - start), 0.1))
     except subprocess.TimeoutExpired:
         timed_out = True
-        os.killpg(proc.pid, signal.SIGTERM)
+        try:
+            os.killpg(proc.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
         try:
             proc.wait(timeout=2)
         except subprocess.TimeoutExpired:
@@ -283,39 +316,64 @@ def main() -> int:
     for t in threads:
         t.join(timeout=2)
     descendants_hold_output = any(t.is_alive() for t in threads)
-    if descendants_hold_output:
+    if descendants_hold_output and proc is not None:
         try:
             os.killpg(proc.pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
+        for t in threads:
+            t.join(timeout=2)
 
-    rc = proc.returncode
+    rc = proc.returncode if proc is not None else None
+    after = {str(d): snapshot(d) for d in snap_dirs}
+    before_file = out / "raw" / f"{run_id}.before.json"
+    after_file = out / "raw" / f"{run_id}.after.json"
+    before_file.write_text(json.dumps(before, indent=2))
+    after_file.write_text(json.dumps(after, indent=2))
+    stdin_file = out / "raw" / f"{run_id}.stdin"
+    stdin_file.write_bytes(stdin_data)
     record = {
         "id": probe_id,
+        "run_id": run_id,
+        "launch_error": launch_error,
         "label": a.label,
         "started_at": start_wall.isoformat(),
         "duration_s": round(duration, 4),
+        "duration_ms": round(duration * 1000, 3),
         "argv": cmd,
         "cwd": str(cwd),
         "target": target,
         "env_base": "clean" if a.clean_env else "inherited",
         "env_overrides": overrides,
+        "env_delta": overrides,
+        "base_path": env.get("PATH"),
+        "stdin_fixture": str(stdin_file) if stdin_mode in ("pipe", "tty") else None,
+        "stdin_is_tty": stdin_mode == "tty" or (stdin_mode == "inherit" and os.isatty(0)),
+        "stdout_is_tty": a.tty in ("stdout", "both"),
+        "stderr_is_tty": a.tty in ("stderr", "both"),
         "stdin": {"mode": stdin_mode, "bytes": len(stdin_data),
                   "sha256": hashlib.sha256(stdin_data).hexdigest(),
                   "tty_eof_sent": stdin_mode == "tty"},
-        "tty": {"stdin": stdin_mode == "tty",
+        "tty": {"stdin": stdin_mode == "tty" or (stdin_mode == "inherit" and os.isatty(0)),
                 "stdout": a.tty in ("stdout", "both"),
                 "stderr": a.tty in ("stderr", "both"),
                 "size": [a.cols, a.rows]},
-        "exit_code": rc if rc >= 0 else None,
-        "signal": signal.Signals(-rc).name if rc < 0 else None,
+        "exit_code": rc if rc is not None and rc >= 0 else None,
+        "signal": signal.Signals(-rc).name if rc is not None and rc < 0 else None,
         "signal_sent": signal_sent,
         "timed_out": timed_out,
         "descendants_hold_output": descendants_hold_output,
         "descendants_killed": descendants_hold_output,
-        "stdout": output_summary(bytes(bufs["stdout"]), out / "raw" / f"{probe_id}.stdout"),
-        "stderr": output_summary(bytes(bufs["stderr"]), out / "raw" / f"{probe_id}.stderr"),
-        "fs_diff": {d: diff(before[d], snapshot(Path(d))) for d in before},
+        "capture_complete": not any(t.is_alive() for t in threads),
+        "stdout_file": str(out / "raw" / f"{run_id}.stdout"),
+        "stderr_file": str(out / "raw" / f"{run_id}.stderr"),
+        "stdout": output_summary(bytes(bufs["stdout"]), out / "raw" / f"{run_id}.stdout"),
+        "stderr": output_summary(bytes(bufs["stderr"]), out / "raw" / f"{run_id}.stderr"),
+        "tty_echo": output_summary(bytes(bufs["tty_echo"]), out / "raw" / f"{run_id}.tty-echo"),
+        "filesystem_before": str(before_file),
+        "filesystem_after": str(after_file),
+        "fs_diff": {d: diff(before[d], after[d]) for d in before},
+        "network_observed": None,
         "sandbox": str(sandbox) if sandbox else None,
         "host": {"platform": platform.platform(), "python": platform.python_version()},
     }
