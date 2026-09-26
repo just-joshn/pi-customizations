@@ -8,9 +8,10 @@ CASES.json is a list of {"id", "label", "args": [...], "probe": [probe.py option
 Seed paths in "probe" resolve relative to CASES.json. Commands run from the sandbox work/
 directory under --isolate, so give the candidate as an absolute path or a PATH entry.
 
-TRIAGE.json maps a case id to {"class": "EXPECTED_DIFFERENCE" | "REFERENCE_NONDETERMINISM", "reason": "..."}.
-compare exits 1 while any case differs without triage, is missing from one side, or no records exist.
-Unix only. Standard library only.
+TRIAGE.json maps a case id to {"class": <accepted>, "reason": "..."}.
+Accepted classes: INTENTIONAL_CHANGE, NONDETERMINISM, and aliases EXPECTED_DIFFERENCE,
+REFERENCE_NONDETERMINISM. compare exits 1 while any case differs without triage, is missing
+from one side, or no records exist. Unix only. Standard library only.
 """
 
 from __future__ import annotations
@@ -27,6 +28,14 @@ SIDES = ("reference", "candidate")
 FIELDS = ("exit_code", "signal", "timed_out", "stdout", "stderr", "fs_diff")
 SANDBOX = "<SANDBOX>"
 DEFAULT_PROBE = Path(__file__).resolve().parents[2] / "reverse-engineer-cli" / "scripts" / "probe.py"
+DEFAULT_OUT = ".re/impl/differential"
+# Standing differences allowed in triage.json. Aliases keep older packets working.
+TRIAGE_CANONICAL = {
+    "INTENTIONAL_CHANGE": "INTENTIONAL_CHANGE",
+    "EXPECTED_DIFFERENCE": "INTENTIONAL_CHANGE",
+    "NONDETERMINISM": "NONDETERMINISM",
+    "REFERENCE_NONDETERMINISM": "NONDETERMINISM",
+}
 
 
 def run(a: argparse.Namespace) -> int:
@@ -101,7 +110,7 @@ def compare(a: argparse.Namespace) -> int:
     out = Path(a.out).resolve()
     ref, cand = (latest_records(out / side / "probes.jsonl") for side in SIDES)
     triage = json.loads(Path(a.triage).read_text()) if a.triage else {}
-    counts = {k: 0 for k in ("MATCH", "EXPECTED_DIFFERENCE", "REFERENCE_NONDETERMINISM", "UNCLASSIFIED", "MISSING")}
+    counts = {k: 0 for k in ("MATCH", "INTENTIONAL_CHANGE", "NONDETERMINISM", "UNCLASSIFIED", "MISSING")}
 
     for cid in sorted(ref.keys() | cand.keys()):
         if cid not in ref or cid not in cand:
@@ -115,7 +124,11 @@ def compare(a: argparse.Namespace) -> int:
             counts["MATCH"] += 1
             print(f"MATCH {cid}" + (" (stale triage entry, remove it)" if entry else ""))
             continue
-        status = entry["class"] if entry else "UNCLASSIFIED"
+        raw = entry["class"] if entry else "UNCLASSIFIED"
+        status = TRIAGE_CANONICAL.get(raw, "UNCLASSIFIED") if entry else "UNCLASSIFIED"
+        if entry and raw not in TRIAGE_CANONICAL:
+            print(f"UNCLASSIFIED {cid}: triage class {raw!r} is not accepted; use "
+                  f"{', '.join(sorted(set(TRIAGE_CANONICAL)))}")
         counts[status] += 1
         print(f"{status} {cid}: {', '.join(diffs)}" + (f" ({entry['reason']})" if entry else ""))
         for f in diffs:
@@ -137,7 +150,7 @@ def main() -> int:
     c = sub.add_parser("compare", help="compare the latest record per case id")
     c.add_argument("--triage", help="TRIAGE.json classifying explained differences")
     for p in (r, c):
-        p.add_argument("--out", default="re/90_impl/differential", help="output directory")
+        p.add_argument("--out", default=DEFAULT_OUT, help="output directory")
     a = ap.parse_args()
     return run(a) if a.command == "run" else compare(a)
 
