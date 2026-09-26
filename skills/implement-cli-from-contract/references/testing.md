@@ -1,88 +1,230 @@
 # Testing and verification
 
-## Levels
+## Compatibility corpus layout
 
-| Level | Runs | Covers |
-|---|---|---|
-| 1 Pure logic | Direct calls | Config merge, domain decisions, internal formats, state transitions |
-| 2 Adapters | Adapter with a temp directory or fake peer | Filesystem, process wrapper, HTTP wrapper, renderers |
-| 3 CLI integration | The built candidate executable | Argv, stdin, stdout, stderr, exit status, files |
-| 4 Differential | Reference and candidate under the same controlled environment | Everything class A |
-
-A feature is verified only when its relevant level 4 cases pass. In-process runners (oclif test helpers, Click and Typer `CliRunner`) are fine at level 2. They do not reproduce signals, environment inheritance, cwd, encoding, TTYs, or entrypoint packaging, so compatibility-critical cases spawn the real process.
-
-## Differential runs
-
-A case in `cases.json` for `scripts/differential.py`:
-
-```json
-{"id": "config-get-missing", "label": "OBS-034 missing key exits 2",
- "args": ["config", "get", "nope"],
- "probe": ["--isolate", "--clean-env", "--env", "NO_COLOR=1", "--seed", "fixtures/proj:work"]}
+```text
+.re/impl/<feature>/compat/
+  cases/                 # authoring cases (yaml or json)
+  fixtures/
+  snapshots/
+  normalizers/
+  cases.json             # corpus for scripts/differential.py
+  triage.json
+  reference/<sha256>/<case-id>/
+    meta.json
+    stdout.raw
+    stderr.raw
+    fs-before.json
+    fs-after.json
+    trace.json
+  differential/          # live reference vs candidate probe records
 ```
 
-The `probe` options are those of `reverse-engineer-cli/scripts/probe.py`: isolation, seeds, env, stdin, `--tty`, `--send-signal`, `--snapshot`, `--timeout`. The script compares exit code, signal, timeout, raw stdout and stderr bytes, and the filesystem diff. It replaces each side's own sandbox root with `<SANDBOX>`. That is the one normalization built in, because the two sides run in separate sandboxes by construction.
+Each case describes the entire process boundary. Important reverse-engineered behavior must eventually map to a case. Optional fields include signals, TTY status, terminal width, locale, `NO_COLOR`, filesystem permissions, network fixtures, child processes, and timeouts.
 
-Classify every difference, then act on the class:
+Example authoring shape:
 
-| Class | Meaning | Action |
+```yaml
+id: config-cli-overrides-env
+argv: [build, --config, fixtures/cli.toml]
+env: { TOOL_CONFIG: fixtures/env.toml }
+cwd: fixtures/project
+stdin: null
+expected:
+  exit_code: 0
+  stdout: { mode: exact, fixture: snapshots/config-cli-overrides-env.stdout }
+  stderr: { mode: exact, fixture: snapshots/config-cli-overrides-env.stderr }
+  filesystem: { created: [build/result.json] }
+  network: { allowed: false }
+```
+
+`cases.json` for `scripts/differential.py`:
+
+```json
+{"id": "config-cli-overrides-env",
+ "label": "CLI --config overrides TOOL_CONFIG",
+ "args": ["build", "--config", "fixtures/cli.toml"],
+ "probe": ["--isolate", "--clean-env", "--env", "TOOL_CONFIG=fixtures/env.toml",
+           "--env", "NO_COLOR=1", "--seed", "fixtures/project:work"]}
+```
+
+Seed paths in `probe` resolve relative to `cases.json`. Commands run from the sandbox `work/` directory under `--isolate`, so give the candidate as an absolute path or a PATH entry. The `probe` options are those of `reverse-engineer-cli/scripts/probe.py`.
+
+Capture reference results for the full safe corpus before coding. Store raw streams. Never store only normalized output.
+
+## Compatibility policy
+
+Write the policy before implementing. Example defaults:
+
+| Behavior | Required comparison |
+|---|---|
+| Exit code | Exact |
+| JSON / machine protocol | Exact schema and semantics (or structural when order is non-contractual) |
+| Error destination | Exact stdout or stderr |
+| Human help | Exact when compatibility requires it |
+| ANSI styling | TTY-dependent contract |
+| File contents | Exact or semantic per case |
+| File permissions | Explicit when contractual |
+| File paths | Semantic after temp-path normalization |
+| HTTP request | Method, URL, relevant headers, body |
+| Request IDs / timestamps / temp paths | Normalized when nondeterministic |
+| Timing | Threshold, not exact |
+
+A normalizer is valid only when the value is genuinely nondeterministic or explicitly outside the contract. Never normalize a deterministic difference because the candidate happens to differ.
+
+The differential script compares exit code, signal, timeout, raw stdout and stderr bytes, and filesystem diff. It replaces each side's own sandbox root with `<SANDBOX>`. That is the one built-in normalization, because the two sides run in separate sandboxes by construction. Put additional justified normalizers in repository compatibility tests or under `compat/normalizers/`.
+
+## Differential loop
+
+```text
+reference CLI + same argv/cwd/env/fixture/stdin → ReferenceResult
+candidate CLI + same inputs → CandidateResult
+normalize approved nondeterminism → structured diff
+```
+
+```sh
+python3 scripts/differential.py run .re/impl/<feature>/compat/cases.json \
+  --reference 'tool' --candidate '/abs/path/to/candidate' \
+  --out .re/impl/<feature>/compat/differential
+
+python3 scripts/differential.py compare \
+  --out .re/impl/<feature>/compat/differential \
+  --triage .re/impl/<feature>/compat/triage.json
+```
+
+Prefer a single project command such as `./compat/check` that verifies the reference hash, builds the candidate, creates isolated fixtures, runs every applicable case, normalizes approved nondeterminism, diffs, and exits nonzero on incompatibility. The comparison tool is part of the method.
+
+`triage.json` maps a case id to an accepted standing difference:
+
+```json
+{"deprecated-flag": {
+  "class": "INTENTIONAL_CHANGE",
+  "reason": "Removed by feature specification XYZ"}}
+```
+
+Accepted triage classes for `compare`:
+
+| Class | Meaning |
+|---|---|
+| `INTENTIONAL_CHANGE` | New requirement explicitly changes the contract (alias: `EXPECTED_DIFFERENCE`) |
+| `NONDETERMINISM` | Justified normalizer needed, or reference differs from itself (alias: `REFERENCE_NONDETERMINISM`) |
+
+Action classes that must not remain as untriaged success:
+
+| Class | Action |
+|---|---|
+| `REGRESSION` | Fix the candidate |
+| `REFERENCE_QUIRK` | Preserve the quirk; fix the candidate or isolate at the boundary |
+| `BAD_TEST` | Fix the contract case |
+| `VERSION_MISMATCH` | Align reference and expected version |
+| `UNCLASSIFIED` / `MISSING` | Not done |
+
+`compare` exits 1 while any difference is unclassified or a case is missing. Report exact totals, for example `CASES 127 MATCH 126 INTENTIONAL_CHANGE 1 UNCLASSIFIED 0 MISSING 0`.
+
+## Three test layers
+
+| Layer | Question | Examples |
 |---|---|---|
-| MATCH | Identical | Nothing |
-| EXPECTED_DIFFERENCE | A deliberate, recorded divergence | Add it to `triage.json` with the reason and the evidence ID |
-| REFERENCE_NONDETERMINISM | The reference differs from itself across runs | Prove it by running the reference repeatedly, then add it to `triage.json` or write a semantic comparator |
-| CANDIDATE_BUG | The candidate is wrong | Fix the root cause in the smallest coherent layer, never in `triage.json` |
-| UNKNOWN | Not yet explained | Write a smaller discriminating probe. It is not success |
+| 1 Domain | Pure rules without launching a process | Config precedence, state transitions, format selection, request construction, error classification, path resolution |
+| 2 Boundary | External representation ↔ internal types | Argument parsing, config parsing, serialization, rendering, exit-code mapping |
+| 3 Real process | Built executable | Argv, cwd, env, stdin, stdout, stderr, exit status, filesystem, signals, TTY |
 
-`compare` labels untriaged differences `UNCLASSIFIED`. Report the final totals exactly, for example `CASES 127 MATCH 126 EXPECTED_DIFFERENCE 1 UNCLASSIFIED 0 MISSING 0`, and never as a percentage.
-
-## Semantic comparators
-
-Byte identity is the default. A looser comparison needs a stated reason why the field is non-contractual:
-
-- Parse and compare JSON structurally when field order is not contractual.
-- Normalize a known per-test temp root.
-- Check the shape or range of timestamps and generated IDs.
-
-Write these as assertions in the repository's own compatibility tests. Never normalize a difference just because it is inconvenient.
+Compatibility-critical behavior belongs at layer 3. In-process runners (oclif helpers, Click/Typer `CliRunner`) are fine at layer 2. They do not replace process tests.
 
 ## Cases to write
 
-- **Raw bytes.** Capture stdout and stderr before decoding. This catches UTF-8 problems, invalid bytes, newline style, a missing trailing newline, ANSI codes, and control sequences.
-- **Stream split.** Assert stdout and stderr separately. With oclif under Vitest, disable console interception so the capture works.
-- **Config precedence.** Give each source a unique value (default A, user B, project C, env D, CLI E) and assert E. Then remove sources one at a time from the top and assert each next winner. Pin the whole order, not just one happy path.
-- **Errors, with the same weight as successes.** Cover invalid input, a missing file, permission denied, malformed config, a missing dependency, a child exiting nonzero, a network timeout, an invalid response, a partial write, and cancellation.
-- **Boundaries.** Test around each threshold (-1, 0, 1, max, max+1). For paths, test empty, relative, absolute, nonexistent, a directory, a file, a symlink, Unicode, and spaces. For input, test empty, newline-only, no final newline, large, and invalid encoding.
-- **Metamorphic.** `--quiet` leaves generated files unchanged. An absolute path gives the same target from any cwd. JSON mode and human mode encode the same result. Reordering independent flags changes nothing.
-- **Property-based,** for large input spaces only. Use fast-check, Hypothesis, or proptest. Good properties include "never crashes on valid Unicode", serialization round trips, idempotent path normalization, and "merge keeps higher-precedence values". Minimize every counterexample, reproduce it against the reference, and add it to `cases.json`.
-- **Filesystem.** Check existence, content, permissions, structure, and symlink state. Don't compare inodes or mtimes unless they are contractual.
-- **Golden fixtures,** for stable contractual output only: help, version, structured diagnostics, reports, JSON, completions, generated config. Update fixtures explicitly, and never auto-accept snapshots in CI.
-- **Help and completions.** Cover root and subcommand help, option order, how defaults are shown, aliases, required markers, examples, and version. For completions, check that the key commands, flags, aliases, and enum values appear.
-- **TTY and interactive behavior.** Use `--tty` probes and PTY tests for prompts, colors, and progress. On a pty, `\r\n` line endings come from the terminal, not the CLI.
-- **Signals.** Use `--send-signal INT --after N` to check cleanup, child signaling, exit status, and leftover state.
+- **Happy path and usage failures** from the public CLI examples written before design.
+- **Config precedence** with unique values per layer, then remove winners from the top.
+- **Errors with the same weight as successes.**
+- **Hostile boundaries** justified by the feature: missing/empty/malformed input, permission denied, read-only directory, network unavailable, timeout, auth failure, missing dependency, broken pipe, SIGINT, repeated invocation, partial prior state, TTY vs pipe, Unicode and spaces in paths, different cwd, empty `HOME`, invalid env, malformed config.
+- **Machine-readable output** as an API: field names, types, required/optional, null behavior, ordering when meaningful, error representation, versioning.
+- **Snapshots** for `--help`, usage errors, multi-line diagnostics, JSON fixtures, generated files. Assert a single property directly when only that property matters. Never blindly regenerate snapshots.
+- **Property / generated tests** for invariants reverse engineering stated but did not enumerate: irrelevant argument order, valid paths, config combinations, round trips, ranges, escaping, Unicode, repeated options.
+- **Filesystem** existence, content, permissions, structure, symlink state.
+- **Cross-platform** path separators, executable extensions, PATH resolution, shell invocation, permissions, symlinks, line endings, signals, temp dirs, Unicode paths, terminal capabilities when the CLI claims multi-OS support.
+
+## Packaged artifact
+
+Do not finish verification against `ts-node`, `python source.py`, `cargo test` helpers, or framework command runners unless that is how users run the product.
+
+Build or package, then execute the artifact users receive:
+
+- TypeScript: pack/install the npm artifact
+- Python: build wheel, install into a clean environment, invoke the console script
+- Rust: build the release binary and test that artifact
+
+Install verification covers PATH appearance, launcher target, `--version`, `--help`, packaged resources, configuration discovery, shell completion when supported, and runtime dependencies.
+
+## Feature interaction and continuous runs
+
+After every meaningful step, run the relevant subset: feature unit tests, feature compatibility cases, command-group tests, then the full suite. Also run existing commands that share global arguments, config, authentication, filesystem state, network clients, logging, formatting, or exit handling.
+
+## Full proof sequence
+
+Before declaring complete:
+
+1. Clean checkout or clean worktree.
+2. Install dependencies from the lockfile.
+3. Run static checks.
+4. Run unit tests.
+5. Run boundary tests.
+6. Build/package the CLI.
+7. Install or stage the built artifact.
+8. Run process-level tests against the built artifact.
+9. Run the reference/candidate differential suite.
+10. Run feature-interaction regression cases.
+11. Run supported-platform CI where available.
+12. Inspect the diff.
+13. Re-run the critical user scenario manually or through an end-to-end script.
+14. Save the final comparison report.
+
+Compilation is step 6, not proof of completion.
+
+## Compatibility report
+
+```json
+{
+  "reference": {"version": "4.2.1", "sha256": "..."},
+  "candidate": {"commit": "...", "artifact_sha256": "..."},
+  "cases": {"total": 87, "passed": 87, "failed": 0},
+  "intentional_differences": [
+    {"case": "deprecated-flag",
+     "reference": "accepted",
+     "candidate": "rejected",
+     "reason": "Removed by feature specification XYZ"}
+  ]
+}
+```
+
+Never hide intentional differences through normalization.
+
+## Agent decision tree
+
+```text
+START
+ |-- Read reverse-engineering evidence
+ |-- Required behavior uncertain? → probe reference → update evidence
+ |-- Encode compatibility cases
+ |-- Capture immutable reference results
+ |-- Inspect target architecture and blast radius
+ |-- Write desired public usage
+ |-- Separate public behavior from implementation accidents
+ |-- Design types and ownership (two shapes when ownership is unclear)
+ |-- Implement one vertical slice
+ |-- Run candidate against reference
+ |-- Mismatch? → classify → fix / probe / update contract / justify normalizer
+ |-- Expand implementation
+ |-- Add hostile-boundary cases
+ |-- Build/package real artifact
+ |-- Run full process suite, differential suite, blast-radius regressions
+ |-- Inspect diff → produce compatibility report
+END
+```
 
 ## Per-language stack
 
 Use the framework the repository already has.
 
-- **TypeScript.** Vitest or Jest for units. Spawn the built bin for integration. Vitest can target a single file or line for tight loops.
-- **Python.** pytest with `tmp_path` and `monkeypatch`. `CliRunner` for thin command tests, `subprocess` for boundary cases.
-- **Rust.** `cargo test` for logic. `assert_cmd` for args, cwd, env, stdin, timeout, exit status, stdout, and stderr. Adopt `trycmd` or `snapbox` only if they make a large case corpus simpler.
-
-## Verification matrix
-
-Build this before claiming completion. Mark only what you actually ran.
-
-| Behavior | Evidence | Unit | Integration | Differential |
-|---|---|---:|---:|---:|
-| valid invocation | OBS-001 | ✓ | ✓ | ✓ |
-| missing argument | OBS-002 | n/a | ✓ | ✓ |
-
-## Adversarial review
-
-Run each relevant case below against both executables and add any surprise to `cases.json`:
-
-- no arguments, and every required value missing
-- malformed config, `HOME` missing, an empty environment, an empty cwd
-- stdout piped, stderr piped, the destination already existing
-- the child executable absent, network access failing, Ctrl-C mid-operation
-- Unicode, spaces in paths, huge inputs
+- **TypeScript.** Vitest or Jest for units. Spawn the built bin for integration. Execa for typed process control. Vitest snapshots for committed CLI output.
+- **Python.** pytest with `tmp_path` and `monkeypatch`. `CliRunner` for thin command tests. `subprocess` for boundary cases. `uv` for install verification.
+- **Rust.** `cargo test` for logic. `assert_cmd` / `assert_fs` for process cases. `trycmd` or `snapbox` when a large corpus benefits.
