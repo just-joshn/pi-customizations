@@ -1,100 +1,149 @@
 ---
 name: implement-cli-from-contract
-description: "Implement or port CLI features in TypeScript, Python, or Rust so their observable behavior matches a contract established by reverse engineering (reverse-engineer-cli's re/ deliverables, a probe corpus, or a reference executable). Classifies each behavior as must-match, should-match, implementation detail, or unknown; pins must-match behavior with executable-boundary and differential tests against the reference CLI; and builds the smallest clean, repository-native implementation (thin CLI adapter, typed domain request and result, isolated side effects, one exit-code mapping) instead of copying reference internals. Use when the user runs /skill:implement-cli-from-contract."
+description: "Implement, extend, port, replace, or repair CLI features in TypeScript, Python, or Rust so observable behavior matches a reverse-engineered contract. Builds an executable compatibility corpus, captures immutable reference results before coding, designs a clean typed internal model, and proves the packaged candidate against the reference with differential tests. Use when implementing from reverse-engineer-cli evidence, a probe corpus, or a reference executable. Invoke with /skill:implement-cli-from-contract."
 license: MIT
+compatibility: "Pi coding agent. Bundled differential runner requires Python 3.10+ on macOS or Linux and the sibling reverse-engineer-cli probe runner."
 disable-model-invocation: true
 ---
 
 # Implement a CLI feature from its contract
 
-The observed behavior is the specification. The reference's internal code is not.
+Preserve required observable behavior. Build the cleanest internal design for that behavior. Prove the candidate against the reference. Reverse-engineered information is a specification, not an architecture. Reproduce only software behavior you are authorized to inspect and implement.
 
 ```text
-REFERENCE CLI → OBSERVABLE CONTRACT → EXECUTABLE TESTS → NEW IMPLEMENTATION
+reverse engineer → capture evidence → executable contract
+  → clean internal model → vertical slice → differential test
+  → expand → package real artifact → full verification → ship
 ```
 
-Success means two things. Users see the established contract. Maintainers see code that looks as if this repository had always implemented the feature. Aim for the smallest clean implementation that reproduces every behavior that matters. Internal architecture may differ completely from the reference.
+Resolve supporting paths relative to this skill directory, then use absolute paths in commands. Read references only for the current phase.
 
-## 1. Load the contract
+## 1. Establish the implementation mode
 
-Find the reverse-engineering outputs: `.re/report/behavior.md`, `architecture.md`, `evidence.md`, `.re/source/command-tree.json`, `.re/probes/`, `.re/repro/`, and the reference executable. Older investigations may use `re/REPORT.md`, `re/70_model/`, and `re/30_probes/`. If they are missing, rebuild the equivalent from the available evidence. Run `/skill:reverse-engineer-cli` first when there is no contract.
+Choose exactly one primary mode before changing code:
 
-For each feature, or each group of tightly coupled features, create a packet under `re/90_impl/<feature>/` from `references/feature-packet.md`. Every implementation decision traces to one of four sources: a compatibility requirement, existing repository architecture, a language or runtime constraint, or a deliberate new design decision.
+| Mode | Meaning |
+|---|---|
+| A Extend | Add a feature to the same CLI while preserving existing behavior |
+| B Reimplement | Reproduce an existing feature in another implementation |
+| C Replace | Replace an existing implementation while preserving public CLI behavior |
+| D Port | Move behavior from one language or architecture to another |
+| E Repair | Fix behavior whose intended contract was recovered through reverse engineering |
 
-## 2. Classify every behavior
+Record implementation mode, target repository, reference executable, reference version or hash, target version or commit, features in scope, features out of scope, and compatibility requirements. Do not begin implementation until these facts are known. Use the packet layout in [references/feature-packet.md](references/feature-packet.md).
 
-Put each behavior into exactly one class:
+## 2. Import reverse-engineering evidence
 
-| Class | Meaning | Action |
-|---|---|---|
-| A MUST MATCH | Observable and compatibility-significant: flags, grammar, exit codes, JSON schema, stderr diagnostics, file locations, config precedence, request formats, child invocations | Pin with a test before implementing |
-| B SHOULD MATCH | Observable, probably not depended upon: help spacing, punctuation, ANSI styling, informational message order | Match when cheap or known to be depended upon |
-| C IMPLEMENTATION DETAIL | Not observable: names, modules, data structures, dependencies, reference caching internals | Design it cleanly for this repository |
-| D UNKNOWN | Not established | Run a discriminating reference probe, or choose a behavior and record it as new behavior |
+Start from `reverse-engineer-cli` outputs under `.re/` (behavior, architecture, evidence, command tree, probes, repro). Older trees may use `re/REPORT.md` and numbered folders. If the contract is missing, run `/skill:reverse-engineer-cli` first.
 
-Never turn an unknown into an assumed compatibility requirement by accident.
+Expect command tree, arguments, options, defaults, environment, configuration precedence, stdout, stderr, exit codes, filesystem, network, child processes, TTY, signals, errors, edge cases, traces, source locations, versions, and hypotheses.
 
-## 3. Establish the baseline
+Classify every statement with the same levels as reverse-engineer-cli:
 
-Before editing, record the commit, `git status --short`, runtime and compiler versions, lockfile state, and the result of every build, test, lint, typecheck, and format command the repository already supports. Record pre-existing failures separately so you don't attribute them to your change.
+| Level | Meaning |
+|---|---|
+| PROVEN | Runtime observation plus matching implementation evidence |
+| OBSERVED | Runtime observation; implementation unconfirmed |
+| SUPPORTED | Source or binary evidence; runtime untested |
+| INFERRED | Indirect evidence only |
+| UNKNOWN | Insufficient evidence |
 
-## 4. Design
+Do not implement `INFERRED` behavior as a hard requirement. Design a probe that upgrades the finding first when the behavior matters.
 
-Trace a neighboring command end to end. Cover the entrypoint, parser, config loader, domain layer, filesystem, process, and HTTP adapters, output and error types, and tests. Reuse the patterns and frameworks you find. Do not migrate frameworks, test runners, or formatters, and do not mix in unrelated cleanup, unless the current architecture blocks a correct implementation.
+Separately ask whether a user, automation, another process, or documentation depends on the behavior. Preserve those. Drop implementation accidents (class layout, private IR, parser library choice) unless they leak into the process boundary.
 
-Name the domain contract before writing parser code: typed request, typed result, and semantic errors. Then pick the shallowest design that keeps the CLI thin and side effects isolated. Read `references/architecture.md` for design options, config merge, side effects, output, errors and exit codes, TTY, signals, and per-language shape.
+## 3. Encode an executable behavior contract
 
-For several features, group the work by shared subsystem, such as config, errors, or output, rather than finishing one command at a time. Extract a shared component only when one real use needs it and a second clearly implies it.
+Do not leave the report as prose. Create a machine-readable corpus under `.re/impl/<feature>/compat/` with cases, fixtures, snapshots, normalizers, and runners. Every important reverse-engineered behavior must map to a contract case that describes the full process boundary (argv, env, cwd, stdin, expected exit, streams, filesystem, network, signals, TTY).
 
-## 5. Write the tests first
+Write the compatibility policy before coding. Exit codes, stream routing, and machine-readable protocols are exact by default. Normalize only genuine nondeterminism or values the policy explicitly excludes. Never add a normalizer because the candidate differs.
 
-Turn each class A behavior into a test that runs the real executable. Assert argv, cwd, env, stdin, TTY mode, exit code, raw stdout and stderr bytes, and filesystem effects. Seed cases from the probe corpus, and confirm each test against the reference before it is allowed to fail against the candidate.
-
-Run the same case file against both executables:
-
-```bash
-python3 scripts/differential.py run re/90_impl/<feature>/cases.json \
-  --reference 'tool' --candidate '/abs/path/to/candidate' --out re/90_impl/<feature>/differential
-python3 scripts/differential.py compare --out re/90_impl/<feature>/differential \
-  --triage re/90_impl/<feature>/triage.json
-```
-
-The script drives `../reverse-engineer-cli/scripts/probe.py`, so each case's `probe` list takes that script's options. `compare` exits 1 while any difference is unclassified or a case is missing. Read `references/testing.md` for difference classes, justified normalization, the case types to write, and per-language test stacks.
-
-## 6. Implement in vertical slices
-
-Build one representative path end to end first: parse, config, domain, side effect, output, exit. Then apply this loop to every behavior:
+Capture immutable reference results for the full safe corpus **before** implementation:
 
 ```text
-evidence → test → passes on reference → fails on candidate → smallest coherent change
-→ candidate passes → differential matches → keep
+.re/impl/<feature>/compat/reference/<reference-sha256>/<case-id>/
 ```
 
-Never write large batches of code between differential runs. After each slice, read `git diff --stat` and `git diff`. Look for unrelated edits, duplicated functionality, parser types leaking into domain code, new mutable state, changed existing behavior, and leftover probes.
+Store raw stdout and stderr bytes, not only normalized forms. The reference corpus is the behavioral oracle. Coding first risks redefining expectations around the candidate.
 
-For any question during implementation, decide in this order:
+Seed and run cases with the bundled differential driver (it wraps `reverse-engineer-cli` `probe.py`):
 
-1. Not externally observable: use the cleanest repository-native implementation.
-2. Observable and established: match it and pin it with a test.
-3. Observable, unknown, and a small probe can settle it: run the probe.
-4. Unknown and it affects future compatibility: choose the most reversible design and record the unknown.
-5. Otherwise: choose the simplest design.
+```sh
+python3 /absolute/skill/scripts/differential.py run \
+  .re/impl/<feature>/compat/cases.json \
+  --reference 'tool' \
+  --candidate '/absolute/path/to/candidate' \
+  --out .re/impl/<feature>/compat/differential
 
-Keep externally significant quirks and give each a test that names its evidence. Examples are last duplicate flag wins, an error printed to stdout, or an unusual exit code. Drop accidental internal complexity the contract does not require, such as an intermediate temp file nobody can observe. Do not make output "look nicer" or invent exit codes the reference lacks.
+python3 /absolute/skill/scripts/differential.py compare \
+  --out .re/impl/<feature>/compat/differential \
+  --triage .re/impl/<feature>/compat/triage.json
+```
 
-## 7. Harden and verify
+Read [references/testing.md](references/testing.md) for case schema, policy tables, difference classes, layers of tests, and the full proof sequence.
 
-Once every differential case matches, simplify. Remove accidental abstractions, one-caller wrappers, temporary logging, dead branches, and obsolete mocks, then rerun the full corpus. Keep only the probes that now serve as regression tests.
+## 4. Inspect the target, blast radius, and public usage
 
-Run the full pipeline: format, lint, typecheck or compile, unit, integration, build, package, and the compatibility corpus. Run the corpus against the packaged form (npm-installed bin, wheel console script, release binary) at least once, not just `node src/…`, `python -m`, or `cargo run`. Then run the adversarial review in `references/testing.md` and walk every ledger claim for the feature. Mark each one implemented, tested, deliberately irrelevant, or still unknown. No claim may disappear silently.
+If a repository exists, trace entry point, parser, command registration, configuration, dispatcher, application logic, adapters, rendering, error mapping, exit handling, and tests. Find the nearest analogue. Do not add a parallel architecture without evidence the current shape cannot host the feature.
 
-## 8. Stop rules
+Trace blast radius across callers, shared options, config keys, env vars, serialization, files, cache, network, plugins, hooks, completions, docs generation, telemetry, exit codes, scripts, and CI. Turn each important safety fact into a test.
 
-- Stop probing when no implementation decision depends on the unknown.
-- Stop abstracting when the architecture expresses the known requirements clearly.
-- Stop optimizing when the measured requirement is met. Measure against the reference before optimizing, and only when performance is part of the contract.
-- Stop debugging when the original reproducer, its regression test, and the surrounding suite all pass.
+Write desired public usage and failure modes before designing internals. For each invocation define parsed meaning, stdout, stderr, exit code, and side effects. The CLI contract comes first.
 
-## 9. Definition of done
+## 5. Design from first principles
 
-The feature is done when every applicable class A behavior has a passing executable test and a matching differential case. That covers the command, arguments, flags, aliases, defaults, validation, stdin, stdout, stderr, exit status, TTY, config and env precedence, filesystem, child processes, network, signals, errors, machine-readable output, interactive behavior, and contractual help. Existing behavior must still pass, and `compare` must report zero `UNCLASSIFIED` and zero `MISSING`. Deliver the completion report from `references/feature-packet.md`. Enumerate the evidence, and never write "everything works".
+Ask what the clean implementation would look like if this behavior had been a day-one requirement. For a meaningful ownership choice, sketch at least two designs and compare caller complexity, ownership, testability, invalid states, branches, dependencies, compatibility cost, and failure handling. Choose the design that removes knowledge from callers, not the one with the most abstractions.
+
+Default flow:
+
+```text
+raw process inputs → CLI boundary → typed command request
+  → application operation → adapters → typed outcome
+  → presentation (stdout, stderr, exit code)
+```
+
+CLI frameworks stay at the outer boundary. Domain logic must not depend on Commander, oclif, Typer, Click, clap objects, `process.argv`, `sys.argv`, or `std::env::args` unless the behavior is genuinely CLI-specific.
+
+Model the command as data immediately after parsing. Prefer variants over contradictory boolean bags. Parse external values once at the boundary, then trust internal types. Encode semantic primitives as semantic types. Resolve configuration in one owner. Keep effects explicit as narrow capabilities. Return typed outcomes and render separately. Define errors as part of the contract, with the outer boundary owning process exit. Isolate historical quirks at the boundary with a comment that points at the compatibility test.
+
+Read [references/architecture.md](references/architecture.md) for ports, config merge, output, errors, TTY, signals, retries, atomic writes, language shapes, and anti-patterns that force a redesign.
+
+## 6. Implement one vertical slice, then expand
+
+Dependency order:
+
+```text
+contract cases → types → config resolution → application operation
+  → adapters → renderer → CLI parser → process tests → package → packaged verification
+```
+
+Implement one representative path that covers parsing, configuration, domain behavior, one external dependency, output, and exit status. Run reference versus candidate after that slice. If the second case requires bypassing the chosen abstractions, stop and revisit the design.
+
+Keep temporary comparators, dual runners, and extraction scripts under `compat/`, `scripts/`, `tests/`, or `tools/`. Do not ship them in the CLI runtime. When replacing an internal API, migrate callers and delete the legacy API in one wave.
+
+## 7. Prove with differential testing and the packaged artifact
+
+A feature is not complete when unit tests pass. It is complete when the **built** CLI satisfies the required reference contracts. Prefer `./compat/check` or the differential script above. Never ask an agent to visually compare hundreds of outputs.
+
+Use three test layers: domain (pure rules), boundary (parse, render, exit mapping), and real process (built executable). Snapshot only compatibility-sensitive multi-line output, and review every snapshot diff. Exercise hostile boundaries justified by the feature. Use property tests for invariants reverse engineering stated but did not enumerate.
+
+Verify the artifact users receive (npm package, wheel console script, release binary), not only `ts-node`, `python source.py`, or `cargo test` helpers. Run installation checks, feature-interaction regressions from the blast-radius list, and supported-platform cases when CI allows.
+
+When a comparison fails, classify it before changing expectations:
+
+```text
+REGRESSION | INTENTIONAL_CHANGE | REFERENCE_QUIRK
+NONDETERMINISM | BAD_TEST | VERSION_MISMATCH
+```
+
+## 8. Finish only with evidence
+
+Inspect every changed file for unrelated edits, leftover debug code, duplicated abstractions, domain leaks of compatibility quirks, unnecessary dependencies, and unexpected output changes.
+
+Produce a machine-readable compatibility report and an evidence map (behavior → contract case → implementation owner → test → reverse-engineering probe). Templates live in [references/feature-packet.md](references/feature-packet.md).
+
+Declare complete only when the required observable contract is encoded, ownership is clear, boundaries parse untrusted input, invalid states are hard to represent, the CLI framework stays at the edge, config precedence matches, errors map explicitly, effects are isolated, the packaged artifact passes process and differential suites, blast-radius regressions ran, intentional differences are documented, and a second agent can reproduce verification without trusting the first agent's explanation.
+
+Hard rules the agent must not violate are listed in [references/feature-packet.md](references/feature-packet.md#rules-the-implementation-agent-must-not-violate). The decision tree is in [references/testing.md](references/testing.md#agent-decision-tree).
+
+For Pi loading and documentation provenance, see [references/pi-integration.md](references/pi-integration.md).
