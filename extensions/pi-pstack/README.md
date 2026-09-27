@@ -4,11 +4,19 @@ This Pi package ports pstack 0.15.5 and team-kit 1.2.0 workflows to Pi 0.87.1. I
 
 ## Install
 
-From this repository root, run:
+Clone the repository with Git, then install the package:
 
 ```sh
+git clone https://github.com/just-joshn/pi-customizations.git
+cd pi-customizations
 pi install ./extensions/pi-pstack
 ```
+
+If you already have a checkout, run only the `pi install` command from its root. Keep the checkout in place. Pi loads local packages from that directory without copying them.
+
+The package lives in `extensions/pi-pstack`, not the repository root. Use the clone-and-install commands above rather than `pi install git:github.com/just-joshn/pi-customizations`.
+
+To update, run `git pull --ff-only` from the checkout root, then run `/reload` in pi.
 
 Reload an existing pi session with `/reload`. Run `/pstack` to inspect status and `/setup-pstack` to select available models for each role. Setup requires terminal or RPC dialogs and confirms the complete table before saving.
 
