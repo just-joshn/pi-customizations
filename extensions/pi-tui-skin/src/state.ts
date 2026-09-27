@@ -63,6 +63,17 @@ export function vimFooterLabel(state: ReferenceSessionState): string | undefined
 
 export const MODE_CYCLE: readonly ReferenceMode[] = ["default", "plan", "debug", "ask"];
 
+export function createSessionState(): ReferenceSessionState {
+	return {
+		mode: "default",
+		customMode: undefined,
+		runEverything: false,
+		autoReview: false,
+		vim: "insert",
+		compact: true,
+	};
+}
+
 export function nextMode(current: ReferenceMode): ReferenceMode {
 	const idx = MODE_CYCLE.indexOf(current);
 	return MODE_CYCLE[(idx + 1) % MODE_CYCLE.length];
