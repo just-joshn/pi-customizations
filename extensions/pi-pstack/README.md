@@ -22,15 +22,15 @@ The runtime uses current `@earendil-works` pi packages. Host dependencies are pe
 
 Pstack's required `/deslop`, `/control-cli`, and `/control-ui` skills are bundled. The kit also adds `/verify-this`, CI and PR workflows, `/pr-review-canvas` with its HTML, CSS, and renderer, and the complete strict code-review rubric. Every skill supports both its short alias and `/skill:name`.
 
-The kit's two `alwaysApply` rules require top-level imports and exhaustive TypeScript switches. They apply with Poteto mode on or off, including in readonly workers. These are model instructions, not compiler checks.
+The kit's two `alwaysApply` rules remain in the source archive. The observed Cursor CLI does not deliver plugin rules to the model, so this port does not inject them. Project rules supplied through pi still apply.
 
-CLI and UI workflows use the project's existing terminal or browser tools. Bundling instructions does not install tmux, Playwright, Chromium, or GitHub credentials. `loop-on-ci` watches CI through GitHub CLI. It does not implement Cursor's persistent `/loop` scheduler.
+CLI and UI workflows use the project's existing terminal or browser tools. Bundling instructions does not install tmux, Playwright, Chromium, or GitHub credentials. `loop-on-ci` watches CI through GitHub CLI. It does not supply the background shell notifications or cloud timers used by Cursor's synced `/loop` skill.
 
 ## Local agents
 
 `Task` starts a local SDK session. Background calls return a task ID and deliver a completion message. `TaskOutput` reads or waits for its result. `TaskMessage` sends steering or follow-up input. `TaskStop` aborts it. `Task` with `resume` continues the same child transcript.
 
-Supported personas are `generalPurpose`, `poteto-agent`, `comment-sicko` with alias `Comment Sicko`, `ci-watcher`, and `thermo-nuclear-code-quality-review`. The last includes the complete team-kit rubric. The CI watcher preserves the source's `fast` model request. Supply an exact available pi `model` or an explicit `inherit-parent` choice when that selector is unavailable. Resume retains the model already selected.
+Supported personas are `generalPurpose`, `poteto-agent`, `comment-sicko` with alias `Comment Sicko`, `ci-watcher`, and `thermo-nuclear-code-quality-review`. The last includes the complete team-kit rubric. The CI watcher inherits the parent model, matching the observed Cursor plugin loader. An explicit pi model selection overrides inheritance. Resume retains the model already selected. The original persona file still records its author-requested `fast` selector.
 
 Cursor's built-in `shell` and `explore` personas are not defined by either source plugin and remain unsupported. The thermo review persona can consume a diff and file contents collected with ordinary tools, but its prescribed built-in collector orchestration is not reproduced.
 
@@ -38,7 +38,7 @@ A terminal child closes its session and cancels unfinished descendants. Workers 
 
 Use a separate worktree when a workflow requires isolated writes. A child session does not isolate its filesystem. Readonly tasks restrict tools and disable extensions. They are not an operating-system sandbox. Writable children discover installed pi extensions, so service tools require those integrations to be installed.
 
-Readonly tasks also disable providers supplied only by extensions. Use a configured built-in provider for those tasks. Background model usage enters parent totals when the parent retrieves the result with `TaskOutput` or `TaskStop`; uncollected usage is not recovered after a reload.
+Readonly tasks copy the selected provider registration into an isolated model runtime without loading its tool extensions. Failed foreground tasks preserve their nested model usage in the failed tool result. Background model usage enters parent totals when the parent retrieves the result with `TaskOutput` or `TaskStop`; unclaimed usage persists on the active branch across reloads and is charged only once. Resuming a task retains any pending usage.
 
 `environment: "cloud"` fails explicitly. It never runs a cloud-required task locally without an explicit change of scope. Child processes do not survive parent shutdown as hosted Cursor cloud agents do.
 
@@ -58,7 +58,7 @@ Mode, todo, and task records follow the current session branch. Child transcript
 
 `skills/` contains 142 files and `prompts/` contains 63 templates generated from both snapshots. The generator normalizes two display names, removes unsupported Cursor frontmatter, and maps model-rule and skill-authoring paths to Pi locations. It retains the workflow bodies and supporting resources, with `bro` moved to a prompt template. It rejects overlapping source destinations before writing. [The resource map](docs/resource-map.json) lists every generated file and transformation. It is a maintenance inventory, not a Pi manifest or API.
 
-Use these commands inside this directory:
+Development verification requires Node/npm, uv, and Bun. From the repository root, `make verify` runs all maintained checks and the isolated helper suite. Use these commands inside this directory:
 
 ```sh
 npm install
@@ -67,6 +67,7 @@ npm run typecheck
 npm test
 npm run test:coverage
 npm run check:cli
+npm run check:upstream
 ```
 
 `npm run generate` recreates the operational skills and prompts from the immutable snapshot. The checker rejects changed upstream hashes and generated resource drift. Do not edit generated resources directly.
@@ -76,3 +77,5 @@ The CLI check starts an isolated local pi process and exercises RPC commands wit
 [Provenance](docs/provenance.json), [source audit](docs/source-audit.md), [architecture](docs/architecture.md), and [decision trail](docs/decisions.tsv) document the implementation. Original portable helper scripts retain their own runtime dependencies, including Bun, git, and GitHub CLI where required.
 
 The [Pi mechanism audit](docs/mechanism-audit.md) records the facility classifications, fixes, verification, and invocation changes.
+
+The [comprehensive audit](docs/comprehensive-audit.md) records the current rule checks, reference parity corrections, regression tests, and approved source-preservation conflicts.

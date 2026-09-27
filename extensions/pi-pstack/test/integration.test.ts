@@ -29,16 +29,8 @@ const model: Model<"openai-completions"> = {
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 };
 
-async function fixture({ extensionOnly = false }: { extensionOnly?: boolean } = {}) {
-  const root = await mkdtemp(join(tmpdir(), "pstack-integration-"));
-  const cwd = join(root, "workspace");
-  const agentDir = join(root, "agent");
-  await Promise.all([mkdir(cwd), mkdir(agentDir)]);
-  const requests: Context[] = [];
-  const calls: ToolCall[] = [];
-  const sessions: AgentSession[] = [];
-  const errors: string[] = [];
-  const provider: ExtensionFactory = (pi) => {
+function providerFixture(requests: Context[], calls: (ToolCall | ToolCall[])[]): ExtensionFactory {
+  return (pi) => {
     pi.registerProvider(model.provider, {
       api: model.api, baseUrl: model.baseUrl, apiKey: "integration-only-not-a-credential",
       models: [model],
@@ -47,7 +39,7 @@ async function fixture({ extensionOnly = false }: { extensionOnly?: boolean } = 
         const call = calls.shift();
         const message: AssistantMessage = {
           role: "assistant", api: model.api, provider: model.provider, model: model.id,
-          content: call ? [call] : [{ type: "text", text: "Scripted reply." }],
+          content: call ? (Array.isArray(call) ? call : [call]) : [{ type: "text", text: "Scripted reply." }],
           stopReason: call ? "toolUse" : "stop", timestamp: Date.now(),
           usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0,
             cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
@@ -59,6 +51,18 @@ async function fixture({ extensionOnly = false }: { extensionOnly?: boolean } = 
       },
     });
   };
+}
+
+async function fixture({ extensionOnly = false }: { extensionOnly?: boolean } = {}) {
+  const root = await mkdtemp(join(tmpdir(), "pstack-integration-"));
+  const cwd = join(root, "workspace");
+  const agentDir = join(root, "agent");
+  await Promise.all([mkdir(cwd), mkdir(agentDir)]);
+  const requests: Context[] = [];
+  const calls: (ToolCall | ToolCall[])[] = [];
+  const sessions: AgentSession[] = [];
+  const errors: string[] = [];
+  const provider = providerFixture(requests, calls);
   const settingsManager = SettingsManager.inMemory({
     packages: extensionOnly ? [] : [packageRoot], compaction: { enabled: false }, retry: { enabled: false },
   });
@@ -420,19 +424,19 @@ test("team-kit templates request skill reading and native skills expand complete
   } finally { await f.close(); }
 });
 
-test("team-kit always-on rules apply without Poteto mode and survive mode being turned off", async () => {
+test("team-kit rules stay archival to match observed Cursor plugin behavior", async () => {
   const f = await fixture();
   try {
     const { session } = await f.open();
     await prompt(session, "Work on this module.");
     const rules = section(f.requests, "pstack_team_kit_rules") ?? "";
-    assert.match(rules, /Always place imports at the top of the module/);
-    assert.match(rules, /use a `never` check in the default case/);
+    assert.equal(rules, "");
+    assert.match(section(f.requests, "pstack_host") ?? "", /rules remain archived/);
     assert.equal(section(f.requests, "pstack_mode"), null);
     await prompt(session, "/poteto-mode Enter the mode.");
     await prompt(session, "/poteto-mode off");
     await prompt(session, "Continue this module.");
-    assert.equal(section(f.requests, "pstack_team_kit_rules"), rules);
+    assert.equal(section(f.requests, "pstack_team_kit_rules") ?? "", rules);
     assert.equal(section(f.requests, "pstack_mode"), null);
     const host = section(f.requests, "pstack_host") ?? "";
     assert.ok(!host.includes("cursor-team-kit deslop/control-cli/control-ui, MCP connectors"));
@@ -544,4 +548,117 @@ test("large context output is bounded while structured transcript evidence remai
     else process.env.PI_CODING_AGENT_DIR = previous;
     await f.close();
   }
+});
+
+
+test("AskQuestion rejects ambiguous and blank identifiers before opening dialogs", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    let dialogs = 0;
+    session.extensionRunner.setUIContext({
+      ...session.extensionRunner.createContext().ui,
+      select: async () => { dialogs++; return undefined; },
+      input: async () => { dialogs++; return undefined; },
+    }, "rpc");
+    const invalid = [
+      [{ id: "same", prompt: "First" }, { id: "same", prompt: "Second" }],
+      [{ id: "", prompt: "Question" }],
+      [{ id: "blank", prompt: " " }],
+      [{ id: "pick", prompt: "Choose", options: [{ id: "same", label: "A" }, { id: "same", label: "B" }] }],
+      [{ id: "pick", prompt: "Choose", options: [{ id: "", label: "A" }] }],
+      [{ id: "pick", prompt: "Choose", options: [{ id: "b] [c", label: "a" }, { id: "c", label: "a [b]" }] }],
+    ];
+    for (const [index, questions] of invalid.entries()) {
+      f.calls.push({ type: "toolCall", id: `invalid-question-${index}`, name: "AskQuestion", arguments: { questions } });
+      await prompt(session, "Validate the question before asking it.");
+      const answer = toolResults(session, "AskQuestion").at(-1);
+      assert.ok(answer?.role === "toolResult" && answer.isError, JSON.stringify(answer));
+    }
+    assert.equal(dialogs, 0);
+  } finally { await f.close(); }
+});
+
+
+test("restoration ignores invalid todo snapshots and keeps the latest valid branch state", async () => {
+  const f = await fixture();
+  try {
+    const first = await f.open();
+    const valid = { enabled: true, todos: [{ id: "keep", content: "Keep this task", status: "completed" }] };
+    first.manager.appendCustomEntry("pstack-state", valid);
+    for (const invalid of [null, {}, { enabled: true, todos: [{ id: "bad", content: "Bad", status: "unknown" }] },
+      { ...valid, todos: [valid.todos[0], valid.todos[0]] }]) {
+      first.manager.appendCustomEntry("pstack-state", invalid);
+    }
+    const restored = await f.open(first.manager);
+    await prompt(restored.session, "Restore this branch.");
+    const saved = section(f.requests, "pstack_todos") ?? "";
+    assert.deepEqual(JSON.parse(saved.replace(/^<pstack_todos>\n|\n<\/pstack_todos>$/g, "")), valid.todos);
+    assert.match(section(f.requests, "pstack_mode") ?? "", /# Poteto mode/);
+  } finally { await f.close(); }
+});
+
+test("a Pi tool batch serializes question dialogs and retains both answers", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    let active = 0;
+    let maximum = 0;
+    session.extensionRunner.setUIContext({
+      ...session.extensionRunner.createContext().ui,
+      input: async (title) => {
+        active++;
+        maximum = Math.max(maximum, active);
+        await new Promise(resolve => setTimeout(resolve, 10));
+        active--;
+        return `Answer ${title}`;
+      },
+    }, "rpc");
+    f.calls.push(["first", "second"].map(id => ({ type: "toolCall", id, name: "AskQuestion",
+      arguments: { questions: [{ id, prompt: id }] } })));
+    await prompt(session, "Ask both questions.");
+    assert.equal(maximum, 1);
+    assert.deepEqual(toolResults(session, "AskQuestion").map(message => message.role === "toolResult" ? message.details : undefined), [
+      [{ id: "first", answers: ["Answer first"], cancelled: false }],
+      [{ id: "second", answers: ["Answer second"], cancelled: false }],
+    ]);
+  } finally { await f.close(); }
+});
+
+test("large todo results retain full structured state and point to the durable transcript", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    const todos = [{ id: "large", content: "Task detail ".repeat(5000), status: "pending" }];
+    f.calls.push({ type: "toolCall", id: "large-todos", name: "TodoWrite", arguments: { todos } });
+    await prompt(session, "Record the complete playbook.");
+    const result = toolResults(session, "TodoWrite").at(-1);
+    assert.ok(result?.role === "toolResult" && !result.isError);
+    const text = result.content.find(block => block.type === "text")?.text ?? "";
+    assert.ok(text.length < 49000);
+    assert.match(text, /Truncated\. Full current transcript:/);
+    assert.ok(text.includes(session.sessionManager.getSessionFile() ?? "missing transcript"));
+    assert.deepEqual(result.details, todos);
+  } finally { await f.close(); }
+});
+
+test("large question answers retain complete details when the session has no transcript file", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open(SessionManager.inMemory(f.cwd));
+    const answer = "Detailed answer ".repeat(4000);
+    session.extensionRunner.setUIContext({
+      ...session.extensionRunner.createContext().ui,
+      input: async () => answer,
+    }, "rpc");
+    f.calls.push({ type: "toolCall", id: "large-answer", name: "AskQuestion",
+      arguments: { questions: [{ id: "scope", prompt: "Describe the scope" }] } });
+    await prompt(session, "Ask for the complete scope.");
+    const result = toolResults(session, "AskQuestion").at(-1);
+    assert.ok(result?.role === "toolResult" && !result.isError);
+    const text = result.content.find(block => block.type === "text")?.text ?? "";
+    assert.ok(text.length < 49000);
+    assert.match(text, /Truncated\. Full current transcript: available in tool details/);
+    assert.deepEqual(result.details, [{ id: "scope", answers: [answer], cancelled: false }]);
+  } finally { await f.close(); }
 });

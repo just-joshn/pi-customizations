@@ -12,10 +12,10 @@ The named state shapes are skill registry, branch-local mode and todo state, exa
 
 ## Runtime modules
 
-- `src/index.ts` registers the three runtime commands, mode state, todos, questions, workspace context, and the host contract. Only mode and setup instructions are read at extension initialization.
+- `src/index.ts` registers the package through domain modules. `commands.ts` owns explicit and native mode/setup invocation. `state.ts` owns immutable branch snapshots and todo tools. `questions.ts` validates dialog inputs. `context.ts` owns status and workspace evidence. `host.ts` supplies the host instructions. Only mode and setup instructions are read at extension initialization.
 - `src/models.ts` owns model selection and role configuration.
-- `src/workers.ts` owns child sessions and task operations.
-- `src/personas.ts` owns the closed persona catalogue, source model defaults, complete review rubric, and team-kit rule text.
+- `src/workers.ts` registers task tools. `worker-runtime.ts` owns child lifecycle and usage accounting. `worker-support.ts` constructs sessions and copies the selected provider into readonly runtimes. `worker-records.ts` validates durable task records.
+- `src/personas.ts` owns the closed persona catalogue, parent-model inheritance and complete review rubric.
 - `scripts/resources.mjs` verifies immutable source and generates operational skills and prompt templates. Pi discovers both through the package manifest.
 
 The [mechanism audit](mechanism-audit.md) supersedes the original design's executable aliases. Native prompt templates own pure text entry points. Their instructions ask the model to read the full skill from the bundled path in the extension's host context. This preserves on-demand skill loading without copying workflow bodies into templates. `/bro` needs only a prompt. Mode and setup retain extension commands because they own state and dialogs.
@@ -26,9 +26,9 @@ Worker shutdown waits for registered child sessions and unfinished child constru
 
 The [second design comparison](team-kit-design-review.md) selects one combined package. A fixed list of two source descriptors retains independent provenance without adding package dependency discovery. The complete source and destination union is checked before generation writes any skill. The original pstack snapshot stays at `upstream/`; the 29-file kit snapshot lives at `upstream-team-kit/`.
 
-The added data shape is a closed persona catalogue. Explicit Task model choice takes precedence over a persisted resume choice, then the persona's published default. `ci-watcher` retains `fast`; unresolved selections fail through the existing exact model resolver. Unpublished Cursor personas are not inferred from their names.
+The added data shape is a closed persona catalogue. Explicit Task model choice takes precedence over a persisted resume choice, then the persona's published default. `ci-watcher` inherits the parent, matching the observed Cursor plugin loader; explicit unresolved selections fail through the exact model resolver. Unpublished Cursor personas are not inferred from their names.
 
-Both kit rules have `alwaysApply: true`. The parent and ordinary children receive them through `before_agent_start`. Readonly children disable extensions, so their resource loader appends the same original rule bodies directly. Rule delivery is independent of sticky Poteto mode. No user configuration or project AGENTS.md file is changed.
+Both kit rules have `alwaysApply: true` in the preserved source. Runtime observations show the Cursor plugin loader omits them. The port therefore leaves them archived. Readonly workers disable tool extensions but retain their selected provider registration in an isolated model runtime. No user configuration or project AGENTS.md file is changed.
 
 ## Host contracts
 
