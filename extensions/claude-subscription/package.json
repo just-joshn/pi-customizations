@@ -1,7 +1,7 @@
 {
   "name": "pi-claude-subscription",
   "version": "0.1.0",
-  "description": "Use a Claude Pro or Max subscription in Pi without the Anthropic SDK. Requests identify as Provider CLI.",
+  "description": "Use a Claude Pro or Max subscription in Pi. Requests identify as Provider CLI.",
   "type": "module",
   "license": "MIT",
   "keywords": ["pi-package"],
@@ -11,8 +11,7 @@
   },
   "files": ["src", "README.md"],
   "scripts": {
-    "test": "node --experimental-strip-types --test test/*.test.ts",
-    "check:no-sdk": "node --experimental-strip-types scripts/no-sdk.ts"
+    "test": "node --experimental-strip-types --test test/*.test.ts"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
