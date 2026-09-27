@@ -11,6 +11,8 @@ Sections:
   skills    every SKILL.md on disk under known roots, with frontmatter problems
   collisions skill names defined in more than one place
   trust     trust.json entries whose directory no longer exists
+  diagnostics operation, path, and error records for incomplete inspection
+  partial   true when diagnostics exist; partial reports still exit zero
 """
 
 from __future__ import annotations
@@ -21,10 +23,17 @@ import os
 import re
 import shutil
 import subprocess
+import stat
+import warnings
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+
+SECONDS_PER_DAY = 86400
+MAX_DAYS = 3652059  # A datetime's full calendar range is enough to request all retained history.
+VERSION_TIMEOUT_SECONDS = 30  # Bound a broken executable without penalizing cold startup.
+FILESYSTEM_ERRORS = (OSError, ValueError, RuntimeError)
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 SPEC_FIELDS = {"name", "description", "license", "compatibility", "metadata", "allowed-tools", "disable-model-invocation"}
@@ -32,6 +41,10 @@ SKIP_DIRS = {"node_modules", ".git", "__pycache__"}
 EXPLICIT_RE = re.compile(r'<skill name="([a-z0-9-]+)"')
 SKILL_BLOCK_RE = re.compile(r"<skill>\s*<name>(.*?)</name>.*?<location>(.*?)</location>\s*</skill>", re.S)
 CONTEXT_RE = re.compile(r'<project_instructions path="([^"]+)">(.*?)</project_instructions>', re.S)
+
+
+def diagnose(operation, path, error):
+    warnings.warn(f"{operation} {path}: {error}", stacklevel=2)
 
 
 def load_json(path: Path) -> tuple[object | None, str | None]:
@@ -73,8 +86,8 @@ def read_settings(agent_dir: Path, cwd: Path) -> tuple[list[dict], dict[str, str
 
 def nonnegative_days(value: str) -> int:
     days = int(value)
-    if days < 0:
-        raise argparse.ArgumentTypeError("days must be nonnegative")
+    if not 0 <= days <= MAX_DAYS:
+        raise argparse.ArgumentTypeError(f"days must be between 0 and {MAX_DAYS}")
     return days
 
 
@@ -98,19 +111,26 @@ def frontmatter(text: str) -> tuple[dict[str, str] | None, str | None]:
     return fields, None
 
 
-def skill_roots(agent_dir: Path, cwd: Path, settings: list[dict]) -> list[Path]:
+def skill_roots(agent_dir: Path, cwd: Path, settings: list[dict], on_error=diagnose) -> list[Path]:
     roots = [agent_dir / "skills", Path.home() / ".agents" / "skills", cwd / ".pi" / "skills"]
     d = cwd
     while True:
         roots.append(d / ".agents" / "skills")
-        if (d / ".git").exists() or d.parent == d:
+        try:
+            (d / ".git").stat()
             break
-        d = d.parent
+        except FileNotFoundError:
+            if d.parent == d:
+                break
+            d = d.parent
+        except FILESYSTEM_ERRORS as error:
+            on_error("inspect repository boundary", d / ".git", error)
+            break
     for s in settings:
         base = s["base"]
         for entry in s["data"].get("skills", []) if isinstance(s["data"], dict) else []:
             if isinstance(entry, str) and not entry.startswith(("!", "-")):
-                roots.append((base / os.path.expanduser(entry.lstrip("+"))).resolve())
+                roots.append(base / os.path.expanduser(entry.lstrip("+")))
         for pkg in s["data"].get("packages", []) if isinstance(s["data"], dict) else []:
             src = pkg.get("source") if isinstance(pkg, dict) else pkg
             if isinstance(src, str):
@@ -119,9 +139,12 @@ def skill_roots(agent_dir: Path, cwd: Path, settings: list[dict]) -> list[Path]:
                     roots.append(Path(directory) / "skills")
     seen, out = set(), []
     for r in roots:
-        if r.exists() and r.resolve() not in seen:
-            seen.add(r.resolve())
-            out.append(r)
+        try:
+            if optional_directory(r, on_error) and (real := r.resolve()) not in seen:
+                seen.add(real)
+                out.append(real)
+        except FILESYSTEM_ERRORS as error:
+            on_error("resolve skill root", r, error)
     return out
 
 
@@ -130,7 +153,14 @@ def package_dir(src: str, agent_dir: Path, base: Path) -> Path:
     if src.startswith("npm:"):
         spec = src[4:]
         name = spec if not spec[1:].count("@") else spec[: spec.rfind("@")]
-        return base / "npm" / "node_modules" / name
+        component = r"[a-zA-Z0-9~][a-zA-Z0-9._~-]*"
+        if not re.fullmatch(rf"(?:@{component}/)?{component}", name):
+            raise ValueError("invalid managed npm package name")
+        managed = base.resolve() / "npm" / "node_modules"
+        directory = managed / name
+        if not directory.resolve().is_relative_to(managed):
+            raise ValueError("managed npm package escapes node_modules")
+        return directory
     if src.startswith(("git:", "https://", "http://", "ssh://")):
         url = src[4:].strip() if src.startswith("git:") and not src.startswith("git://") else src
         scp = re.fullmatch(r"git@([^:]+):(.+)", url)
@@ -157,32 +187,46 @@ def unsafe_git_part(value: str) -> bool:
 def package_info(src: str, agent_dir: Path, base: Path) -> dict:
     try:
         directory = package_dir(src, agent_dir, base)
-        return {"source": src, "settings": str(base), "dir": str(directory), "exists": directory.exists()}
-    except (OSError, ValueError) as error:
+        try:
+            directory.stat()
+            exists = True
+        except FileNotFoundError:
+            exists = False
+        return {"source": src, "settings": str(base), "dir": str(directory), "exists": exists}
+    except FILESYSTEM_ERRORS as error:
         return {"source": src, "settings": str(base), "dir": None, "exists": False, "error": str(error)}
 
 
-def scan_skills(roots: list[Path]) -> list[dict]:
+def scan_skills(roots: list[Path], on_error=diagnose) -> list[dict]:
     found, seen = [], set()
     visited = set()
     for root in roots:
-        for dirpath, dirnames, filenames in os.walk(root, followlinks=True):
-            directory = Path(dirpath).resolve()
+        if not optional_directory(root, on_error):
+            continue
+        for dirpath, dirnames, filenames in os.walk(
+                root, followlinks=True, onerror=lambda e: on_error("walk skills", e.filename or root, e)):
+            try:
+                directory = Path(dirpath).resolve()
+            except FILESYSTEM_ERRORS as error:
+                on_error("resolve skill directory", dirpath, error)
+                dirnames[:] = []
+                continue
             if directory in visited:
                 dirnames[:] = []
                 continue
             visited.add(directory)
-            dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and (directory / d).resolve() not in visited]
+            dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
             if "SKILL.md" not in filenames:
                 continue
             path = Path(dirpath) / "SKILL.md"
-            real = path.resolve()
-            if real in seen:
-                continue
-            seen.add(real)
             try:
-                text = path.read_text(errors="replace")
-            except OSError:
+                real = path.resolve()
+                if real in seen:
+                    continue
+                seen.add(real)
+                text = path.read_text()
+            except FILESYSTEM_ERRORS as error:
+                on_error("read skill", path, error)
                 continue
             found.append(skill_info(path, root, text))
     return found
@@ -204,10 +248,45 @@ def skill_info(path: Path, root: Path, text: str) -> dict:
             "explicit_only": fields.get("disable-model-invocation", "").lower() == "true", "problems": problems}
 
 
-def session_files(session_dir: Path, days: int) -> list[Path]:
-    cutoff = datetime.now().timestamp() - days * 86400
-    files = [p for p in session_dir.rglob("*.jsonl") if p.is_file() and p.stat().st_mtime >= cutoff]
-    return sorted(files, key=lambda p: p.stat().st_mtime, reverse=True)
+def session_files(session_dir: Path, days: int | None, on_error=diagnose, depth=None):
+    cutoff = datetime.now().timestamp() - days * SECONDS_PER_DAY if days is not None else float('-inf')
+    files = []
+    try:
+        if not stat.S_ISDIR(session_dir.stat().st_mode):
+            on_error("inspect directory", session_dir, "not a directory")
+            return files
+    except FileNotFoundError:
+        return files
+    except FILESYSTEM_ERRORS as error:
+        on_error("inspect directory", session_dir, error)
+        return files
+    for directory, dirs, names in os.walk(
+            session_dir, followlinks=depth is not None,
+            onerror=lambda e: on_error("walk sessions", e.filename or session_dir, e)):
+        if depth is not None and len(Path(directory).relative_to(session_dir).parts) >= depth:
+            dirs[:] = []
+        for name in names:
+            if not name.endswith('.jsonl'):
+                continue
+            path = Path(directory) / name
+            try:
+                info = path.stat()
+                if stat.S_ISREG(info.st_mode) and info.st_mtime >= cutoff:
+                    datetime.fromtimestamp(info.st_mtime, timezone.utc)
+                    files.append((path, info.st_mtime))
+            except (*FILESYSTEM_ERRORS, OverflowError) as error:
+                on_error("stat session", path, error)
+    return sorted(files, key=lambda item: item[1], reverse=True)
+
+
+def optional_directory(path, on_error=diagnose):
+    try:
+        return stat.S_ISDIR(path.stat().st_mode)
+    except FileNotFoundError:
+        return False
+    except FILESYSTEM_ERRORS as error:
+        on_error("inspect directory", path, error)
+        return False
 
 
 def text_of(content) -> str:
@@ -218,18 +297,21 @@ def text_of(content) -> str:
     return ""
 
 
-def session_entries(path: Path):
+def session_entries(path: Path, on_error=diagnose):
     try:
-        with path.open(errors="replace") as lines:
+        with path.open() as lines:
             for line in lines:
                 try:
                     entry = json.loads(line)
-                except ValueError:
+                except ValueError as error:
+                    on_error("read session", path, error)
                     continue
                 if isinstance(entry, dict):
                     yield entry
-    except OSError:
-        return
+                else:
+                    on_error("read session", path, "record must be an object")
+    except FILESYSTEM_ERRORS as error:
+        on_error("read session", path, error)
 
 
 def objects(value) -> list[dict]:
@@ -257,12 +339,12 @@ def message_usage(entry: dict):
                 yield "model", Path(path).parent.name, timestamp
 
 
-def scan_usage(files: list[Path]) -> dict:
+def scan_usage(files: list[Path], on_error=diagnose) -> dict:
     explicit, model, tools = Counter(), Counter(), Counter()
     counts = {"explicit": explicit, "model": model, "tools": tools}
     last: dict[str, str] = {}
     for path in files:
-        for entry in session_entries(path):
+        for entry in session_entries(path, on_error):
             for kind, name, timestamp in message_usage(entry):
                 counts[kind][name] += 1
                 if kind != "tools":
@@ -274,19 +356,23 @@ def scan_usage(files: list[Path]) -> dict:
     }
 
 
-def newest_prompt(session_dir: Path, cwd: Path) -> dict | None:
+def newest_prompt(session_dir: Path, cwd: Path, on_error=diagnose) -> dict | None:
     key = "--" + str(cwd).lstrip("/").replace("/", "-").replace(":", "-") + "--"
-    candidates = sorted((session_dir / key).glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+    candidates = session_files(session_dir / key, None, on_error, depth=0)
     if not candidates:
-        flat = [*session_dir.glob("*.jsonl"), *session_dir.glob("*/*.jsonl")]
-        candidates = sorted(flat, key=lambda p: p.stat().st_mtime, reverse=True)
-    for f in candidates:
-        entries = session_entries(f)
+        candidates = session_files(session_dir, None, on_error, depth=1)
+    for f, _ in candidates:
+        entries = session_entries(f, on_error)
         header = next(entries, {})
         header_cwd = header.get("cwd")
         if header.get("type") != "session" or not isinstance(header_cwd, str) or not header_cwd:
+            on_error("read session header", f, "expected session header with nonempty cwd")
             continue
-        if Path(header_cwd).resolve() != cwd.resolve():
+        try:
+            if Path(header_cwd).resolve() != cwd.resolve():
+                continue
+        except FILESYSTEM_ERRORS as error:
+            on_error("resolve session header", f, error)
             continue
         sections, tools = prompt_state(active_branch(tuple(entries)))
         if not sections:
@@ -343,66 +429,131 @@ def prompt_state(entries) -> tuple[dict[str, str], dict[str, int]]:
     return sections, tools
 
 
-def install_info(agent_dir: Path) -> dict:
+def version_info(on_error=diagnose):
+    try:
+        if not shutil.which("pi"):
+            return {"status": "not_found", "version": None}
+        result = subprocess.run(["pi", "--version"], capture_output=True, text=True,
+                                timeout=VERSION_TIMEOUT_SECONDS)
+        if result.returncode == 0:
+            return {"status": "ok", "returncode": 0, "version": result.stdout.strip()}
+        on_error("pi version", "pi", f"exit {result.returncode}")
+        return {"status": "failed", "returncode": result.returncode, "version": None}
+    except (OSError, ValueError, subprocess.TimeoutExpired) as error:
+        on_error("pi version", "pi", error)
+        status = "timeout" if isinstance(error, subprocess.TimeoutExpired) else "error"
+        return {"status": status, "version": None, "error": str(error)}
+
+
+def installed_releases(path, on_error=diagnose):
+    releases = []
+    if not optional_directory(path, on_error):
+        return releases
+    try:
+        for entry in path.iterdir():
+            try:
+                if stat.S_ISDIR(entry.stat().st_mode):
+                    releases.append(entry.name)
+            except FILESYSTEM_ERRORS as error:
+                on_error("stat release", entry, error)
+    except FILESYSTEM_ERRORS as error:
+        on_error("list releases", path, error)
+    return sorted(releases)
+
+
+def install_info(agent_dir: Path, on_error=diagnose) -> dict:
     on_path = []
     for d in os.environ.get("PATH", "").split(os.pathsep):
         p = Path(d) / "pi"
-        if p.is_file() and os.access(p, os.X_OK):
-            on_path.append({"path": str(p), "resolves_to": str(p.resolve())})
-    version = None
-    if shutil.which("pi"):
         try:
-            version = subprocess.run(["pi", "--version"], capture_output=True, text=True, timeout=30).stdout.strip()
-        except (OSError, subprocess.TimeoutExpired):
-            pass
-    releases = agent_dir / "install" / "releases"
-    return {
-        "pi_on_path": on_path,
-        "version": version,
-        "releases": sorted(p.name for p in releases.iterdir() if p.is_dir()) if releases.is_dir() else [],
-    }
+            if stat.S_ISREG(p.stat().st_mode) and os.access(p, os.X_OK):
+                on_path.append({"path": str(p), "resolves_to": str(p.resolve())})
+        except FileNotFoundError:
+            continue
+        except FILESYSTEM_ERRORS as error:
+            on_error("inspect executable", p, error)
+    command = version_info(on_error)
+    return {"pi_on_path": on_path, "version": command["version"], "version_command": command,
+            "releases": installed_releases(agent_dir / "install" / "releases", on_error)}
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--agent-dir", type=Path, default=Path(os.environ.get("PI_CODING_AGENT_DIR", Path.home() / ".pi" / "agent")))
-    ap.add_argument("--cwd", type=Path, default=Path.cwd())
+    ap.add_argument("--agent-dir", type=Path, default=os.environ.get("PI_CODING_AGENT_DIR"))
+    ap.add_argument("--cwd", type=Path, default=None)
     ap.add_argument("--session-dir", type=Path, default=None)
     ap.add_argument("--days", type=nonnegative_days, default=30, help="scan session files modified in the last N days")
     a = ap.parse_args()
-    agent_dir, cwd = a.agent_dir.expanduser().resolve(), a.cwd.resolve()
+    diagnostics = []
+    def record_error(operation, path, error):
+        diagnostics.append({"operation": operation, "path": str(path), "error": str(error)})
+    try:
+        report = inventory_report(a, record_error)
+    except FILESYSTEM_ERRORS as error:
+        record_error("inventory paths", a.cwd, error)
+        report = {}
+    print(json.dumps({**report, "partial": bool(diagnostics), "diagnostics": diagnostics}, indent=2))
+    return 0
 
+
+def trust_info(path, on_error=diagnose):
+    trust, error = load_json(path)
+    if error == "missing":
+        return None
+    if error or not isinstance(trust, dict):
+        on_error("read trust", path, error or "trust must be an object")
+        return None
+    stale = []
+    for directory in trust:
+        try:
+            Path(directory).stat()
+        except FileNotFoundError:
+            stale.append(directory)
+        except FILESYSTEM_ERRORS as error:
+            on_error("inspect trust path", directory, error)
+    return {"stale": sorted(stale)}
+
+
+def inventory_report(a, on_error):
+    agent_dir = (a.agent_dir or Path.home() / ".pi" / "agent").expanduser().resolve()
+    cwd = (a.cwd or Path.cwd()).resolve()
     settings, settings_status = read_settings(agent_dir, cwd)
+    for path, status in settings_status.items():
+        if status not in ("ok", "missing"):
+            on_error("read settings", path, status)
     effective_settings = {key: value for item in settings for key, value in item["data"].items()}
     session_dir = (a.session_dir or Path(os.environ.get("PI_CODING_AGENT_SESSION_DIR") or effective_settings.get("sessionDir") or agent_dir / "sessions")).expanduser()
-    session_dir = (cwd / session_dir).resolve()
+    session_dir = cwd / session_dir
+    try:
+        session_dir = session_dir.resolve()
+    except FILESYSTEM_ERRORS as error:
+        on_error("resolve sessions", session_dir, error)
 
-    files = session_files(session_dir, a.days) if session_dir.is_dir() else []
-    mtimes = [datetime.fromtimestamp(f.stat().st_mtime, timezone.utc).isoformat(timespec="seconds") for f in files]
-    skills = scan_skills(skill_roots(agent_dir, cwd, settings))
+    sessions = session_files(session_dir, a.days, on_error)
+    files = [path for path, _ in sessions]
+    mtimes = [datetime.fromtimestamp(mtime, timezone.utc).isoformat(timespec="seconds") for _, mtime in sessions]
+    skills = scan_skills(skill_roots(agent_dir, cwd, settings, on_error), on_error)
     by_name = defaultdict(list)
     for s in skills:
         by_name[s["name"]].append(s["path"])
-    trust, _ = load_json(agent_dir / "trust.json")
-
-    print(json.dumps({
+    trust = trust_info(agent_dir / "trust.json", on_error)
+    packages = [package_info(pkg.get("source") if isinstance(pkg, dict) else pkg, agent_dir, s["base"])
+                for s in settings for pkg in s["data"].get("packages", [])]
+    for package in packages:
+        if "error" in package:
+            on_error("inspect package", package["source"], package["error"])
+    return {
         "agent_dir": str(agent_dir),
         "cwd": str(cwd),
-        "install": install_info(agent_dir),
+        "install": install_info(agent_dir, on_error),
         "settings": settings_status,
-        "packages": [
-            package_info(src, agent_dir, s["base"])
-            for s in settings
-            for pkg in s["data"].get("packages", [])
-            if isinstance(src := pkg.get("source") if isinstance(pkg, dict) else pkg, str)
-        ],
-        "prompt": newest_prompt(session_dir, cwd) if session_dir.is_dir() else None,
-        "usage": {"window": {"files": len(files), "oldest": min(mtimes, default=None), "newest": max(mtimes, default=None)}, **scan_usage(files)},
+        "packages": packages,
+        "prompt": newest_prompt(session_dir, cwd, on_error),
+        "usage": {"window": {"files": len(files), "oldest": min(mtimes, default=None), "newest": max(mtimes, default=None)}, **scan_usage(files, on_error)},
         "skills": skills,
         "collisions": {n: p for n, p in sorted(by_name.items()) if len(p) > 1},
-        "trust": {"stale": sorted(k for k in trust if not Path(k).exists())} if isinstance(trust, dict) else None,
-    }, indent=2))
-    return 0
+        "trust": trust,
+    }
 
 
 if __name__ == "__main__":
