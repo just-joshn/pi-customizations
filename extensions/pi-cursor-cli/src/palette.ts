@@ -99,7 +99,7 @@ export const CURSOR_TOKENS: Record<"cursor-dark" | "cursor-light", CursorTokens>
 	},
 };
 
-export function isCursorTheme(name: string | undefined): name is "cursor-dark" | "cursor-light" {
+function isCursorTheme(name: string | undefined): name is "cursor-dark" | "cursor-light" {
 	return name === "cursor-dark" || name === "cursor-light";
 }
 

@@ -236,11 +236,4 @@ export function installPagers(pi: ExtensionAPI): void {
 			await ctx.ui.custom((tui, theme, _keybindings, done) => new UsagePager(tui, theme, usageRows(ctx.sessionManager.getBranch()), done));
 		},
 	});
-	pi.registerCommand("copy", {
-		description: "Copy a previous message to the clipboard",
-		handler: async (_args, ctx) => {
-			if (ctx.mode !== "tui" || !ctx.hasUI) return;
-			await ctx.ui.custom((tui, theme, _keybindings, done) => new CopyPager(tui, theme, copyRows(ctx.sessionManager.getBranch()), done));
-		},
-	});
 }

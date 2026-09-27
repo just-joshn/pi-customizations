@@ -37,7 +37,7 @@ export function wizardResultMessage(result: WizardResult): string {
 	return "Cancelled.";
 }
 
-export async function runRuleWizard(ctx: Parameters<Parameters<ExtensionAPI["registerCommand"]>[1]["handler"]>[1], state: { agentDir: string }): Promise<WizardResult> {
+async function runRuleWizard(ctx: Parameters<Parameters<ExtensionAPI["registerCommand"]>[1]["handler"]>[1], state: { agentDir: string }): Promise<WizardResult> {
 	const description = await ctx.ui.input("What should this rule instruct the AI to do?", "e.g., Always use TypeScript strict mode");
 	if (!description) return { status: "cancelled", path: "", message: "Cancelled." };
 	const scope = await ctx.ui.select("Where should this rule be saved?", ["Project Rule — Applies to this repository only", "User Rule — Applies to all your projects"]);

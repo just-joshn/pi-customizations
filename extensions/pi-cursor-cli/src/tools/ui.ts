@@ -7,8 +7,7 @@
 
 import type { Theme } from "@earendil-works/pi-coding-agent";
 import type { Component } from "@earendil-works/pi-tui";
-import { truncateToWidth } from "@earendil-works/pi-tui";
-import { GREP_PATTERN_KEEP, GREP_PATTERN_MAX } from "../constants.ts";
+import { Text as TextCtor, truncateToWidth } from "@earendil-works/pi-tui";
 
 /** Structural subset of pi's renderer context (the full type is not public API). */
 export interface ToolRenderContextLike {
@@ -17,6 +16,8 @@ export interface ToolRenderContextLike {
 	state: ToolRowState | undefined;
 	args: unknown;
 	cwd: string;
+	/** Previously returned component for this render slot (pi provides it). */
+	lastComponent?: unknown;
 }
 
 export interface ToolRowState {
@@ -26,11 +27,47 @@ export interface ToolRowState {
 	error?: string;
 	added?: number;
 	removed?: number;
+	suffix?: string;
 }
 
 export function ensureState(context: ToolRenderContextLike): ToolRowState {
-	if (!context.state) context.state = { verb: "", primary: "" };
+	if (!context.state || Object.keys(context.state).length === 0) context.state = { verb: "", primary: "" };
 	return context.state;
+}
+
+/** Seeds the shared row state; pi initializes it as an empty object, so a nullish check is not enough. */
+const invalidated = new Set<string>();
+
+/**
+ * Requests exactly one redraw per tool call. renderResult runs on every TUI
+ * frame (the spinner re-renders the row), so an unconditional invalidate
+ * makes an infinite render loop.
+ */
+export function invalidateOnce(context: ToolRenderContextLike): void {
+	if (invalidated.has(context.toolCallId)) return;
+	invalidated.add(context.toolCallId);
+	context.invalidate();
+}
+
+export function seedState(context: ToolRenderContextLike, seed: ToolRowState): void {
+	if (!context.state || Object.keys(context.state).length === 0) context.state = seed;
+}
+
+type TextLike = { setText: (text: string) => void };
+
+/**
+ * Updates the previous result component in place when possible. pi re-renders
+ * the result on every partial update; returning a fresh component each time
+ * makes pi append rows instead of replacing them (tui.md: "reuse the previous
+ * component when it can be updated safely").
+ */
+export function renderTextBlock(context: ToolRenderContextLike, text: string, paddingX = 2): Component {
+	const prev = context.lastComponent as TextLike | undefined;
+	if (prev && typeof prev.setText === "function") {
+		prev.setText(text);
+		return prev as unknown as Component;
+	}
+	return new TextCtor(text, paddingX, 0);
 }
 
 export function truncateStart(text: string, max: number): string {
@@ -38,12 +75,7 @@ export function truncateStart(text: string, max: number): string {
 	return `...${text.slice(text.length - max + 3)}`;
 }
 
-export function truncatePattern(pattern: string): string {
-	if (pattern.length <= GREP_PATTERN_MAX) return pattern;
-	return `...${pattern.slice(pattern.length - GREP_PATTERN_KEEP)}`;
-}
-
-export function headerLine(theme: Theme, state: ToolRowState): string {
+function headerLine(theme: Theme, state: ToolRowState): string {
 	const name = theme.fg("toolTitle", theme.bold(state.verb));
 	const parts = [name];
 	if (state.primary) parts.push(theme.fg("dim", state.primary));

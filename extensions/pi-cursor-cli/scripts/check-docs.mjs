@@ -70,8 +70,12 @@ for (const file of files) {
 	for (const m of text.matchAll(/import\s+(?:type\s+)?\{([^}]+)\}\s*from\s*"(?:@earendil-works\/(pi-coding-agent|pi-tui))"/g)) {
 		const pkg = `@earendil-works/${m[2]}`;
 		for (const raw of m[1].split(",")) {
-			const name = raw.trim().replace(/^type\s+/, "");
-			if (!name) continue;
+			const part = raw.trim();
+			if (!part) continue;
+			// Verify the original exported name, ignoring a local alias ("Text as TextCtor").
+			const nameMatch = part.match(/^(?:type\s+)?([\w$]+)(?:\s+as\s+[\w$]+)?$/);
+			if (!nameMatch) continue;
+			const name = nameMatch[1];
 			if (!decls[pkg].has(name)) {
 				errors.push(`${relative(ROOT, file)}: ${pkg} has no export "${name}"`);
 			}

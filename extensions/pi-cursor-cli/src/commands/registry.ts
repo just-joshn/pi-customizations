@@ -33,7 +33,7 @@ export function findCommand(token: string): CommandEntry | undefined {
 	return CURSOR_COMMANDS.find((c) => c.id === lower) ?? CURSOR_COMMANDS.find((c) => c.aliases.includes(lower));
 }
 
-export function suffixFor(status: CommandStatus): string {
+function suffixFor(status: CommandStatus): string {
 	return status === "mapped" ? " (pi builtin)" : status === "unmet" ? " (unavailable in pi)" : "";
 }
 
@@ -191,8 +191,8 @@ export const CURSOR_COMMANDS: readonly CommandEntry[] = [
 			ctx.ui.notify("Thinking display is owned by pi — use /thinking to change it.");
 		},
 	},
-	{ id: "status-indicators", aliases: [], description: "Toggle terminal title status indicators (currently …)", status: "unmet", reason: "pi owns the terminal title; no toggle command" },
-	{ id: "shell", aliases: ["sh", "run"], description: "Enter Shell Mode (hint: type ! on an empty line)", status: "unmet", reason: "pi enters bash mode with the ! keybinding, not a /shell command" },
+	{ id: "status-indicators", aliases: [], description: "Toggle terminal title status indicators (currently …)", status: "mapped", reason: "pi owns the terminal title" },
+	{ id: "shell", aliases: ["sh", "run"], description: "Enter Shell Mode (hint: type ! on an empty line)", status: "mapped", reason: "pi enters bash mode with the ! keybinding" },
 	{
 		id: "about",
 		aliases: ["whoami", "account"],
@@ -200,7 +200,7 @@ export const CURSOR_COMMANDS: readonly CommandEntry[] = [
 		status: "implemented",
 		handler: aboutHandler,
 	},
-	{ id: "setup-terminal", aliases: [], description: "Configure your terminal for newlines", status: "unmet", reason: "pi ships its own terminal-setup flow" },
+	{ id: "setup-terminal", aliases: [], description: "Configure your terminal for newlines", status: "mapped", reason: "pi ships its own terminal-setup flow" },
 	{
 		id: "help",
 		aliases: [],
@@ -239,7 +239,7 @@ export const CURSOR_COMMANDS: readonly CommandEntry[] = [
 	{ id: "mcp", aliases: [], description: "Manage MCP servers (list, list-tools)", status: "unmet", reason: "pi manages MCP servers via settings, not this pager" },
 	{ id: "plugin", aliases: [], description: "Manage plugins - view installed, browse marketplace, install/uninstall", status: "unmet", reason: "needs Cursor's plugin marketplace" },
 	{ id: "config", aliases: ["settings", "preferences", "cli-config"], description: "Configure CLI settings interactively", status: "mapped", reason: "pi /settings builtin opens settings" },
-	{ id: "copy", aliases: ["clipboard", "paste"], description: "Copy a previous message to the clipboard", status: "implemented", registeredBy: "pagers" },
+	{ id: "copy", aliases: ["clipboard", "paste"], description: "Copy a previous message to the clipboard", status: "mapped", reason: "pi /copy builtin copies the last agent message" },
 	{ id: "sandbox", aliases: [], description: "✓ Sandbox enabled, …", status: "unmet", reason: "needs Cursor's sandbox runtime" },
 	{ id: "bedrock", aliases: [], description: "Configure Bedrock in-chat (configure/[use-team-role/]status/disable/clear)", status: "unmet", reason: "needs Cursor's Bedrock setup service" },
 	{ id: "debug-test", aliases: [], description: "Emit debug log", status: "unmet", reason: "Cursor debug-build command" },
@@ -271,7 +271,7 @@ export const CURSOR_COMMANDS: readonly CommandEntry[] = [
 	{ id: "skills", aliases: [], description: "Open skills menu", status: "unmet", reason: "pi has no skills menu command" },
 	{ id: "btw", aliases: [], description: "Ask on the side without disrupting the main chat; replies are not saved to history", status: "unmet", reason: "needs Cursor's side-chat backend" },
 	{ id: "static-indicator", aliases: [], description: "Toggle static divider and highlighting", status: "unmet", reason: "Cursor debug-only command" },
-	{ id: "full-conversation", aliases: [], description: "Toggle full conversation rendering after redraw truncation", status: "unmet", reason: "pi always renders the full conversation" },
-	{ id: "sync-theme", aliases: [], description: "Re-detect terminal theme and refresh UI", status: "unmet", reason: "pi detects the theme at startup; no re-detect command" },
+	{ id: "full-conversation", aliases: [], description: "Toggle full conversation rendering after redraw truncation", status: "mapped", reason: "pi always renders the full conversation" },
+	{ id: "sync-theme", aliases: [], description: "Re-detect terminal theme and refresh UI", status: "mapped", reason: "pi detects the theme at startup and follows appearance changes" },
 	{ id: "context", aliases: [], description: "Show context usage breakdown", status: "implemented", registeredBy: "pagers" },
 ];

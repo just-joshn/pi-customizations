@@ -26,7 +26,7 @@ function makeContext(args: unknown): { ctx: unknown; state: () => ToolRowState |
 	const holder: { toolCallId: string; invalidate: () => void; state: ToolRowState | undefined; args: unknown; cwd: string } = {
 		toolCallId: "t1",
 		invalidate: () => {},
-		state: undefined,
+		state: {} as ToolRowState,
 		args,
 		cwd: "/proj",
 	};
@@ -69,9 +69,11 @@ describe("cursor tool renderers", () => {
 		const { ctx } = makeContext({ command: "echo one" });
 		bash.renderCall!({ command: "echo one" }, theme, ctx);
 		const output = ["l1", "l2", "l3", "l4", "l5"].join("\n");
-		const comp = bash.renderResult!(result(`${output}\nexit code: 0`), { expanded: false, isPartial: false }, theme, ctx);
-		const rows = comp.render(200).map(strip);
-		assert.ok(rows.some((r) => r.includes("$ echo one")), `rows: ${JSON.stringify(rows)}`);
+		const callRow = bash.renderCall!({ command: "echo one" }, theme, ctx) as { render: (w: number) => string[] };
+		bash.renderResult!(result(`${output}\nexit code: 0`), { expanded: false, isPartial: false }, theme, ctx);
+		const header = strip(callRow.render(200)[0]!);
+		assert.ok(header.includes("$ echo one"), `header: ${header}`);
+		const rows = (bash.renderResult!(result(`${output}\nexit code: 0`), { expanded: false, isPartial: false }, theme, ctx) as { render: (w: number) => string[] }).render(200).map(strip);
 		assert.ok(rows.some((r) => r.includes("l1")));
 		assert.ok(rows.some((r) => r.includes("l2")));
 		assert.ok(rows.some((r) => r.includes("… 3 output lines hidden · ctrl+o to expand")), `rows: ${JSON.stringify(rows)}`);
@@ -82,9 +84,10 @@ describe("cursor tool renderers", () => {
 		const bash = capture().get("bash")!;
 		const { ctx } = makeContext({ command: "false" });
 		bash.renderCall!({ command: "false" }, theme, ctx);
-		const comp = bash.renderResult!(result("boom\nexit code: 2"), { expanded: false, isPartial: false }, theme, ctx);
-		const rows = comp.render(200).map(strip);
-		assert.ok(rows[0]!.includes("exit 2"), `header: ${rows[0]}`);
+		const callRow = bash.renderCall!({ command: "false" }, theme, ctx) as { render: (w: number) => string[] };
+		bash.renderResult!(result("boom\nexit code: 2"), { expanded: false, isPartial: false }, theme, ctx);
+		const header = strip(callRow.render(200)[0]!);
+		assert.ok(header.includes("exit 2"), `header: ${header}`);
 	});
 
 	it("grep: 40-char pattern rule and Found N matches", async () => {

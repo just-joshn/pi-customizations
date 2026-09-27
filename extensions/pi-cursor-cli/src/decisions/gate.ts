@@ -31,7 +31,7 @@ export function isAllowlisted(allowlist: AllowlistState, toolName: string, input
 	return path !== undefined && allowlist.paths.has(path);
 }
 
-export function previewFor(toolName: "bash" | "edit" | "write", input: unknown, cwd: string): string[] {
+function previewFor(toolName: "bash" | "edit" | "write", input: unknown, cwd: string): string[] {
 	if (toolName === "bash") {
 		const command = String((input as { command?: string }).command ?? "");
 		return [`$ ${command}`, `in ${cwd}`];
@@ -47,7 +47,7 @@ export function previewFor(toolName: "bash" | "edit" | "write", input: unknown, 
 	return [`${basename(path)} +${content.length === 0 ? 0 : content.split("\n").length}`, path];
 }
 
-export async function showDecision(request: {
+async function showDecision(request: {
 	ctx: ExtensionContext;
 	toolName: "bash" | "edit" | "write";
 	input: unknown;
