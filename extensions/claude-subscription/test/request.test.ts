@@ -46,10 +46,22 @@ test("subscription request identifies as Provider CLI and uses bearer auth", () 
 	assert.equal(built.headers["x-api-key"], undefined);
 	assert.equal(built.headers["x-stainless-lang"], undefined);
 	assert.equal(Object.values(built.headers).some((value) => value.includes("Anthropic/JS")), false);
-	const system = built.body.system as Array<{ text: string }>;
-	assert.equal(system[0]?.text, "You are Provider CLI, Anthropic's official CLI for Claude.");
-	assert.equal(system[1]?.text, "Follow the repo rules.");
+	const system = built.body.system as Array<{ text: string; cache_control?: { type: string } }>;
+	assert.equal(system[0]?.text, "x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;");
+	assert.equal(system[0]?.cache_control, undefined);
+	assert.equal(system[1]?.text, "You are Provider CLI, Anthropic's official CLI for Claude.");
+	assert.equal(system[2]?.text, "Follow the repo rules.");
 	assert.equal(built.body.stream, true);
+});
+
+test("the billing header block is not dropped when the transcript has no system prompt", () => {
+	const built = request({
+		context: normalizeContext({ messages: [{ role: "user", content: "hi", timestamp: 1 }] }),
+	});
+	const system = built.body.system as Array<{ text: string }>;
+	assert.match(system[0]?.text ?? "", /^x-anthropic-billing-header: cc_version=/);
+	assert.equal(system[1]?.text, "You are Provider CLI, Anthropic's official CLI for Claude.");
+	assert.equal(system.length, 2);
 });
 
 test("a null caller header deletes the Provider CLI user agent", () => {
