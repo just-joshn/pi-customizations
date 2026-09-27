@@ -47,6 +47,24 @@ class EvidenceTools(unittest.TestCase):
         self.assertEqual(Path(record['stdout']['path']).read_bytes(), b'True\r\n')
         self.assertEqual(Path(record['stderr']['path']).read_bytes(), b'stderr\r\n')
 
+    def test_invalid_terminal_dimensions_fail_before_creating_output(self):
+        for flag in ('--cols', '--rows'):
+            for value in ('-1', '0', '65536', '999999999999999999', '', 'null', '1.5'):
+                with self.subTest(flag=flag, value=value):
+                    output = self.root / f'{flag}-{value}'
+                    result = self.probe('--out', str(output), flag, value, '--tty', 'both', '--', '/bin/true', expected=2)
+                    self.assertNotIn(b'Traceback', result.stderr)
+                    self.assertFalse(output.exists())
+
+    def test_terminal_dimensions_accept_unsigned_short_boundaries(self):
+        for size in (1, 65535):
+            with self.subTest(size=size):
+                record = self.probe('--cols', str(size), '--rows', str(size), '--tty', 'both',
+                                    '--', sys.executable, '-c', 'import os; print(os.get_terminal_size())')
+                self.assertEqual(record['exit_code'], 0)
+                self.assertEqual(record['tty']['size'], [size, size])
+                self.assertIn(f'columns={size}, lines={size}'.encode(), Path(record['stdout']['path']).read_bytes())
+
     def test_launch_failure_is_not_target_exit(self):
         record = self.probe('--isolate', '--', str(self.root / 'missing'))
         self.assertIsNone(record['exit_code'])
