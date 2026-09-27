@@ -10,11 +10,15 @@ import os
 import platform
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+
+GIT_QUERY_TIMEOUT_SECONDS = 30
+SIGNAL_NAMES = frozenset(member.name for member in signal.Signals)
 
 DIRECTORIES = (
     'target', 'raw/help', 'raw/versions', 'raw/metadata', 'probes', 'source',
@@ -73,7 +77,7 @@ def repository_metadata(repository: Path | None):
         return None, {}
     queries = [('commit', ['rev-parse', 'HEAD']), ('dirty_state', ['status', '--porcelain']),
                ('describe', ['describe', '--tags', '--always'])]
-    results = {key: subprocess.run(['git', '-C', str(repository), *args], capture_output=True, timeout=30)
+    results = {key: subprocess.run(['git', '-C', str(repository), *args], capture_output=True, timeout=GIT_QUERY_TIMEOUT_SECONDS)
                for key, args in queries}
     metadata = {'path': str(repository),
                 **{key: value.stdout.decode('utf-8', 'backslashreplace').strip() if value.returncode == 0 else None
@@ -136,19 +140,68 @@ def init(a: argparse.Namespace) -> int:
     return 0
 
 
+def signal_member(value: str):
+    return signal.Signals.__members__.get('SIG' + value.upper().removeprefix('SIG'))
+
+
+def finite_number(value: object) -> bool:
+    try:
+        return type(value) in (int, float) and math.isfinite(value)
+    except OverflowError:
+        return False
+
+
+def valid_text(value: object) -> bool:
+    return isinstance(value, str) and bool(value) and '\0' not in value
+
+
+def validate_assertions(expected: object) -> None:
+    if not isinstance(expected, dict):
+        raise ValueError('expect must be an assertion object')
+    validators = {
+        'exit_code': lambda value: value is None or type(value) is int and value >= 0,
+        'signal': lambda value: value is None or isinstance(value, str) and value in SIGNAL_NAMES,
+        'timed_out': lambda value: type(value) is bool,
+        'stdout_sha256': lambda value: isinstance(value, str) and re.fullmatch('[a-f0-9]{64}', value),
+        'stderr_sha256': lambda value: isinstance(value, str) and re.fullmatch('[a-f0-9]{64}', value),
+    }
+    if any(key not in validators or not validators[key](value) for key, value in expected.items()):
+        raise ValueError('unsupported assertion or invalid assertion value')
+
+
+def validate_case_controls(case: dict) -> None:
+    if 'stdin_file' in case and 'stdin_text' in case:
+        raise ValueError('choose one stdin input')
+    for field in ('stdin_file', 'stdin_text', 'send_signal'):
+        if field in case and (not isinstance(case[field], str) or '\0' in case[field]):
+            raise ValueError(f'{field} must be a string without NUL bytes')
+    timeout, after = case.get('timeout', 30), case.get('after', 0.1)
+    if not all(finite_number(value) for value in (timeout, after)):
+        raise ValueError('invalid timing')
+    if timeout <= 0 or after < 0 or ('send_signal' in case and after >= timeout):
+        raise ValueError('require positive timeout and signal delay below timeout')
+    if 'send_signal' in case and signal_member(case['send_signal']) is None:
+        raise ValueError('unknown signal')
+    for key, default, choices in (('stdin_mode', 'null', ('pipe', 'null', 'closed', 'tty')),
+                                  ('tty', 'none', ('none', 'stdout', 'stderr', 'both'))):
+        if not isinstance(case.get(key, default), str) or case.get(key, default) not in choices:
+            raise ValueError(f'unsupported {key}')
+    if not isinstance(case.get('seed', []), list) or not all(valid_text(s) for s in case.get('seed', [])):
+        raise ValueError('seed must be an array of nonempty strings without NUL bytes')
+
+
 def validate_cases(cases: object) -> list[dict]:
     if not isinstance(cases, list) or not cases:
         raise ValueError('cases.json must be a nonempty list of reviewed cases')
     supported = {'id', 'question', 'safe', 'args', 'env', 'seed', 'stdin_file', 'stdin_text',
                  'tty', 'stdin_mode', 'timeout', 'send_signal', 'after', 'expect'}
-    assertions = {'exit_code', 'signal', 'stdout_sha256', 'stderr_sha256', 'timed_out'}
     for case in cases:
         if not isinstance(case, dict) or set(case) - supported:
             raise ValueError('invalid case or unsupported field')
         case_id = case.get('id', '')
         if not isinstance(case_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*', case_id):
             raise ValueError('case IDs must be unique safe file components')
-        if case.get('safe') is not True or not isinstance(case.get('question'), str) or not case['question'].strip():
+        if case.get('safe') is not True or not valid_text(case.get('question')) or not case['question'].strip():
             raise ValueError(f'{case_id}: require a question and safe=true after reviewing effects')
         if not isinstance(case.get('args'), list) or not all(isinstance(x, str) and '\0' not in x for x in case['args']):
             raise ValueError(f'{case_id}: args must be an array of strings')
@@ -158,31 +211,34 @@ def validate_cases(cases: object) -> list[dict]:
             raise ValueError(f'{case_id}: invalid environment')
         if set(env) & {'HOME', 'XDG_CONFIG_HOME', 'XDG_CACHE_HOME', 'XDG_DATA_HOME', 'XDG_STATE_HOME', 'TMPDIR'}:
             raise ValueError(f'{case_id}: use seeds for isolated home/config/temp paths')
-        expected = case.get('expect', {})
-        if not isinstance(expected, dict) or set(expected) - assertions:
-            raise ValueError(f'{case_id}: unsupported assertion; add a target-specific check')
-        if 'stdin_file' in case and 'stdin_text' in case:
-            raise ValueError(f'{case_id}: choose one stdin input')
-        for field in ('stdin_file', 'stdin_text', 'send_signal'):
-            if field in case and (not isinstance(case[field], str) or '\0' in case[field]):
-                raise ValueError(f'{case_id}: {field} must be a string without NUL bytes')
-        timeout, after = case.get('timeout', 30), case.get('after', 0.1)
-        if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in (timeout, after)):
-            raise ValueError(f'{case_id}: invalid timing')
-        if timeout <= 0 or after < 0 or ('send_signal' in case and after >= timeout):
-            raise ValueError(f'{case_id}: require positive timeout and signal delay below timeout')
-        if case.get('stdin_mode', 'null') not in {'pipe', 'null', 'closed', 'tty'}:
-            raise ValueError(f'{case_id}: unsupported stdin mode')
-        if case.get('tty', 'none') not in {'none', 'stdout', 'stderr', 'both'}:
-            raise ValueError(f'{case_id}: unsupported TTY mode')
-        if not isinstance(case.get('seed', []), list) or not all(isinstance(s, str) for s in case.get('seed', [])):
-            raise ValueError(f'{case_id}: seed must be an array of strings')
+        validate_assertions(case.get('expect', {}))
+        validate_case_controls(case)
     if len({case['id'] for case in cases}) != len(cases):
         raise ValueError('case IDs must be unique safe file components')
     return cases
 
 
+def validate_identity(identity: object) -> None:
+    if not isinstance(identity, dict):
+        raise ValueError('identity must be an object')
+    if identity.get('target_path') is not None and not valid_text(identity['target_path']):
+        raise ValueError('identity target_path must be a nonempty string or null')
+    artifacts = identity.get('artifacts')
+    if not isinstance(artifacts, list):
+        raise ValueError('identity artifacts must be an array')
+    for item in artifacts:
+        if not isinstance(item, dict) or not all(valid_text(item.get(key)) for key in ('path', 'resolved_path', 'sha256')):
+            raise ValueError('artifact requires path, resolved_path and sha256 strings')
+        if not re.fullmatch('[a-f0-9]{64}', item['sha256']):
+            raise ValueError('artifact sha256 must be a SHA-256 digest')
+        if item.get('copy') is not None and not valid_text(item['copy']):
+            raise ValueError('artifact copy must be a path or null')
+        if 'size' in item and (type(item['size']) is not int or item['size'] < 0):
+            raise ValueError('artifact size must be a nonnegative integer')
+
+
 def verify_identity(identity: dict) -> None:
+    validate_identity(identity)
     if not identity.get('target_path'):
         raise ValueError('source-only investigation: register an isolated build as a new target workspace before replay')
     if not identity.get('artifacts') or identity['artifacts'][0]['path'] != identity['target_path']:
@@ -206,24 +262,87 @@ def case_command(root: Path, out: Path, case: dict, target: str) -> list[str]:
     return options + env + seeds + inputs + ['--', target, *case['args']]
 
 
+def validate_stream_outcome(value: object, allowed: tuple[str, ...]) -> None:
+    if not isinstance(value, dict) or set(value) != {'status', 'bytes', 'error'}:
+        raise ValueError('stream outcome must contain status, bytes and error')
+    if not isinstance(value['status'], str) or value['status'] not in allowed:
+        raise ValueError('invalid stream outcome status')
+    if type(value['bytes']) is not int or value['bytes'] < 0:
+        raise ValueError('stream outcome bytes must be a nonnegative integer')
+    error = value['error']
+    if value['status'] == 'error':
+        if not isinstance(error, dict) or set(error) != {'type', 'errno', 'message'}:
+            raise ValueError('invalid stream error')
+        if not valid_text(error['type']) or not isinstance(error['message'], str):
+            raise ValueError('invalid stream error details')
+        if error['errno'] is not None and type(error['errno']) is not int:
+            raise ValueError('invalid stream error errno')
+    elif error is not None:
+        raise ValueError('only an error outcome may carry an error')
+    if value['status'] == 'not_applicable' and value['bytes'] != 0:
+        raise ValueError('unused stream cannot transfer bytes')
+
+
+def outcomes_failed(record: dict) -> bool:
+    outcomes = record.get('capture_outcomes', {})
+    if 'capture_outcomes' in record:
+        if not isinstance(outcomes, dict) or set(outcomes) != {'stdout', 'stderr', 'tty_echo'}:
+            raise ValueError('capture outcomes must describe stdout, stderr and tty_echo')
+        for name, outcome in outcomes.items():
+            allowed = ('complete', 'error', 'cancelled') + (('not_applicable',) if name == 'tty_echo' else ())
+            validate_stream_outcome(outcome, allowed)
+    delivery = record.get('input_delivery')
+    if 'input_delivery' in record:
+        validate_stream_outcome(delivery, ('complete', 'closed', 'not_applicable', 'error', 'cancelled'))
+    return any(item['status'] in ('error', 'cancelled') for item in outcomes.values()) or (
+        delivery is not None and delivery['status'] in ('error', 'cancelled'))
+
+
+def validate_observation(record: object, case_id: str) -> dict:
+    if not isinstance(record, dict) or record.get('id') != case_id:
+        raise ValueError('runner observation must be an object matching the case id')
+    if any(key not in record for key in ('exit_code', 'signal', 'timed_out', 'stdout', 'stderr')):
+        raise ValueError('runner observation is missing required fields')
+    validate_assertions({key: record[key] for key in ('exit_code', 'signal', 'timed_out')})
+    for name in ('stdout', 'stderr'):
+        if not isinstance(record[name], dict):
+            raise ValueError('runner stream must be an object')
+        validate_assertions({name + '_sha256': record[name].get('sha256')})
+    for name in ('capture_complete', 'descendants_hold_output'):
+        if name in record and type(record[name]) is not bool:
+            raise ValueError(f'{name} must be a boolean')
+    if record.get('launch_error') is not None:
+        validate_stream_outcome({'status': 'error', 'bytes': 0, 'error': record['launch_error']}, ('error',))
+    outcomes_failed(record)
+    return record
+
+
 def expectation_mismatches(record: dict, expected: dict) -> dict:
     actual = {**{key: record[key] for key in ('exit_code', 'signal', 'timed_out')},
               **{f'{stream}_sha256': record[stream]['sha256'] for stream in ('stdout', 'stderr')}}
     differences = {key: {'expected': value, 'actual': actual[key]}
                    for key, value in expected.items() if actual[key] != value}
-    incomplete = record['launch_error'] or not record['capture_complete'] or record['descendants_hold_output']
+    incomplete = (record.get('launch_error') or not record.get('capture_complete', True)
+                  or record.get('descendants_hold_output', False) or outcomes_failed(record))
     return {**differences,
-            **({'execution': 'launch failure, incomplete capture, or descendant-held output'} if incomplete else {}),
+            **({'execution': 'launch failure, incomplete capture, input error, or descendant-held output'} if incomplete else {}),
             **({'timeout': 'unexpected timeout'} if record['timed_out'] and expected.get('timed_out') is not True else {})}
 
 
 def replay_case(root: Path, out: Path, run_id: str, case: dict, target: str):
+    log = out / 'probes.jsonl'
+    offset = log.stat().st_size if log.exists() else 0
     result = subprocess.run(case_command(root, out, case, target), cwd=root, capture_output=True)
     (out / f"{case['id']}.runner.stdout").write_bytes(result.stdout)
     (out / f"{case['id']}.runner.stderr").write_bytes(result.stderr)
     if result.returncode:
         return {'case': case['id'], 'reason': 'probe runner failed', 'exit_code': result.returncode}, None
-    record = json.loads((out / 'probes.jsonl').read_text().splitlines()[-1])
+    with log.open('rb') as stream:
+        stream.seek(offset)
+        lines = stream.read().splitlines()
+    if len(lines) != 1:
+        raise ValueError('runner must append exactly one observation')
+    record = validate_observation(json.loads(lines[0]), case['id'])
     expected = case.get('expect', {})
     mismatches = expectation_mismatches(record, expected)
     completed = {**record, 'corpus_run': run_id, 'expectation_mismatches': mismatches}

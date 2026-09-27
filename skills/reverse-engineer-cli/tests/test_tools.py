@@ -1,4 +1,3 @@
-"""Executable-boundary checks for evidence preservation and replay failures."""
 import hashlib
 import json
 from pathlib import Path
@@ -40,12 +39,27 @@ class EvidenceTools(unittest.TestCase):
         self.assertIn('work/created', first['fs_diff'][first['sandbox']]['created'])
         self.assertTrue(Path(first['filesystem_before']).is_file())
         self.assertIsNone(first['network_observed'])
+        self.assertEqual(first['input_delivery'], {'bytes': 11, 'status': 'complete', 'error': None})
+
+    def test_child_closed_stdin_preserves_expected_pipe_closure(self):
+        fixture = self.root / 'large-input'
+        fixture.write_bytes(b'x' * (1 << 20))
+        record = self.probe('--stdin-file', str(fixture), '--', sys.executable,
+                            '-c', 'import os; os.close(0); print("closed")')
+        self.assertEqual(record['exit_code'], 0)
+        self.assertEqual(Path(record['stdout']['path']).read_bytes(), b'closed\n')
+        self.assertTrue(record['capture_complete'])
+        self.assertEqual(record['input_delivery']['status'], 'closed')
+        self.assertIsNone(record['input_delivery']['error'])
+        self.assertLess(record['input_delivery']['bytes'], 1 << 20)
 
     def test_tty_streams_remain_separate(self):
         record = self.probe('--isolate', '--clean-env', '--tty', 'both', '--', sys.executable,
                             '-c', 'import os; print(os.isatty(1)); os.write(2,b"stderr\\n")')
         self.assertEqual(Path(record['stdout']['path']).read_bytes(), b'True\r\n')
         self.assertEqual(Path(record['stderr']['path']).read_bytes(), b'stderr\r\n')
+        self.assertTrue(record['capture_complete'])
+        self.assertIsNone(record['capture_outcomes']['stdout']['error'])
 
     def test_invalid_terminal_dimensions_fail_before_creating_output(self):
         for flag in ('--cols', '--rows'):
@@ -99,6 +113,43 @@ class EvidenceTools(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((self.out / 'escape').exists())
 
+    def test_overlapping_seed_copy_is_rejected_before_target_launch(self):
+        first, second, outside = (self.root / name for name in ('first', 'second', 'outside'))
+        for path in (first, second, outside):
+            path.mkdir()
+        (first / 'nested').symlink_to(outside, target_is_directory=True)
+        (second / 'nested').mkdir()
+        (second / 'nested/payload').write_text('unsafe')
+        marker = self.root / 'launched'
+        result = self.probe('--isolate', '--seed', f'{first}:work', '--seed', f'{second}:work',
+                            '--', sys.executable, '-c', f'from pathlib import Path; Path({str(marker)!r}).touch()',
+                            expected=2)
+        self.assertIn(b'seed destinations must not overlap', result.stderr)
+        self.assertNotIn(b'Traceback', result.stderr)
+        self.assertFalse((outside / 'payload').exists())
+        self.assertFalse(marker.exists())
+
+    def test_seed_copy_uses_the_validated_destination_after_an_earlier_symlink(self):
+        source, outside = self.root / 'source', self.root / 'outside'
+        source.mkdir()
+        (outside / 'a/b').mkdir(parents=True)
+        (source / 'link').symlink_to(outside / 'a/b', target_is_directory=True)
+        payload = self.root / 'payload'
+        payload.write_text('controlled')
+        marker = self.root / 'launched'
+        record = self.probe('--isolate', '--seed', f'{source}:work/seed',
+                            '--seed', f'{payload}:work/seed/link/../../payload', '--', sys.executable,
+                            '-c', f'from pathlib import Path; Path({str(marker)!r}).touch()')
+        sandbox = Path(record['sandbox'])
+        effective = (sandbox / 'work/seed', (sandbox / 'work/seed/link/../../payload').resolve())
+        validated = (sandbox / 'work/seed', sandbox / 'work/payload')
+        self.assertEqual([int(actual != planned) for actual, planned in zip(effective, validated)], [0, 1])
+        self.assertEqual(effective[1], outside / 'payload')
+        self.assertFalse((outside / 'payload').exists(), 'copy used a different path from the validated destination')
+        self.assertEqual((sandbox / 'work/payload').read_text(), 'controlled')
+        self.assertEqual(record['exit_code'], 0)
+        self.assertTrue(marker.exists())
+
     def test_corpus_assertions_empty_cases_hashes_and_replay(self):
         target = self.root / 'tool'
         target.write_text('#!/bin/sh\nprintf "hello\\n"\n')
@@ -119,11 +170,11 @@ class EvidenceTools(unittest.TestCase):
         records = [json.loads(line) for line in (workspace / 'probes/results.jsonl').read_text().splitlines()]
         self.assertEqual(len(records), 2)
         self.assertNotEqual(records[0]['stdout']['path'], records[1]['stdout']['path'])
-        cases[0]['expect']['exit_code'] = 9
-        corpus.write_text(json.dumps(cases))
+        changed = [{**cases[0], 'expect': {**cases[0]['expect'], 'exit_code': 9}}]
+        corpus.write_text(json.dumps(changed))
         self.assertEqual(subprocess.run(run, capture_output=True).returncode, 1)
-        del cases[0]['expect']
-        corpus.write_text(json.dumps(cases))
+        unchecked = [{key: value for key, value in cases[0].items() if key != 'expect'}]
+        corpus.write_text(json.dumps(unchecked))
         self.assertEqual(subprocess.run(run, capture_output=True).returncode, 3)
         target.write_text('#!/bin/sh\nprintf changed\n')
         self.assertEqual(subprocess.run(run, capture_output=True).returncode, 2)

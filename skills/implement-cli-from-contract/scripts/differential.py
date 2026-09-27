@@ -18,18 +18,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import shlex
+import signal
 import subprocess
 import sys
 from pathlib import Path
 
 SIDES = ("reference", "candidate")
+SIGNAL_NAMES = frozenset(member.name for member in signal.Signals)
 FIELDS = ("exit_code", "signal", "timed_out", "stdout", "stderr", "fs_diff")
 SANDBOX = "<SANDBOX>"
 DEFAULT_PROBE = Path(__file__).resolve().parents[2] / "reverse-engineer-cli" / "scripts" / "probe.py"
 DEFAULT_OUT = ".re/impl/differential"
-# Standing differences allowed in triage.json. Aliases keep older packets working.
 TRIAGE_CANONICAL = {
     "INTENTIONAL_CHANGE": "INTENTIONAL_CHANGE",
     "EXPECTED_DIFFERENCE": "INTENTIONAL_CHANGE",
@@ -48,18 +50,48 @@ def string_list(value: object, field: str) -> list[str]:
     return value
 
 
+def validate_probe_value(option: str, value: str) -> None:
+    choices = {'--tty': ('none', 'stdout', 'stderr', 'both'),
+               '--stdin-mode': ('pipe', 'null', 'closed', 'tty', 'inherit')}
+    if option in choices and value not in choices[option]:
+        raise ValueError(f'invalid {option}')
+    if option in ('--rows', '--cols') and not 1 <= int(value) <= 65535:
+        raise ValueError('terminal dimensions must be between 1 and 65535')
+    if option in ('--timeout', '--after'):
+        float(value)
+    if option == '--send-signal' and 'SIG' + value.upper().removeprefix('SIG') not in signal.Signals.__members__:
+        raise ValueError('unknown signal')
+    if option == '--env' and ('=' not in value or not value.split('=', 1)[0]):
+        raise ValueError('--env requires NAME=VALUE')
+    if option == '--unset' and (not value or '=' in value):
+        raise ValueError('--unset requires an environment name')
+
+
 def validate_probe(options: list[str]) -> None:
-    index = 0
+    index, values = 0, {}
     while index < len(options):
-        option, separator, _ = options[index].partition("=")
+        option, separator, value = options[index].partition('=')
         if option in PROBE_FLAGS and not separator:
+            values[option] = True
             index += 1
-        elif option in PROBE_VALUES:
-            if not separator and (index + 1 == len(options) or options[index + 1].startswith("--")):
-                raise ValueError(f"probe option {option} requires a value")
-            index += 1 if separator else 2
-        else:
-            raise ValueError(f"unsupported probe option {option}; record identity and output are managed by differential")
+            continue
+        if option not in PROBE_VALUES:
+            raise ValueError(f'unsupported probe option {option}; record identity and output are managed by differential')
+        if not separator and (index + 1 == len(options) or options[index + 1].startswith('--')):
+            raise ValueError(f'probe option {option} requires a value')
+        value = value if separator else options[index + 1]
+        validate_probe_value(option, value)
+        values[option] = value
+        index += 1 if separator else 2
+    timeout, after = float(values.get('--timeout', 60)), float(values.get('--after', 1))
+    if not math.isfinite(timeout) or not math.isfinite(after) or timeout <= 0 or after < 0:
+        raise ValueError('require finite timeout > 0 and after >= 0')
+    if '--send-signal' in values and after >= timeout:
+        raise ValueError('signal delay must be below timeout')
+    if '--seed' in values and '--isolate' not in values:
+        raise ValueError('--seed requires --isolate')
+    if '--stdin-file' in values and '--stdin-text' in values:
+        raise ValueError('choose one stdin input')
 
 
 def validate_cases(value: object) -> list[dict]:
@@ -93,13 +125,14 @@ def run(a: argparse.Namespace) -> int:
     cases_path = Path(a.cases).resolve()
     cases = validate_cases(json.loads(cases_path.read_text()))
     if a.only:
-        if set(a.only) - {case["id"] for case in cases}:
+        selected = frozenset(a.only)
+        if selected - {case["id"] for case in cases}:
             raise ValueError("--only contains an unknown case id")
-        cases = [c for c in cases if c["id"] in a.only]
+        cases = [c for c in cases if c["id"] in selected]
     out = Path(a.out).resolve()
     prefixes = tuple((side, shlex.split(prefix)) for side, prefix in
                      (("reference", a.reference), ("candidate", a.candidate)))
-    if any(not prefix for _, prefix in prefixes):
+    if any(not prefix or any('\0' in argument for argument in prefix) for _, prefix in prefixes):
         raise ValueError("reference and candidate commands must not be empty")
     validate_output(out)
     for case in cases:
@@ -127,8 +160,12 @@ def latest_records(path: Path) -> dict[str, dict]:
     return records
 
 
+def valid_text(value: object) -> bool:
+    return isinstance(value, str) and bool(value) and '\0' not in value
+
+
 def validate_record(value: object) -> dict:
-    if not isinstance(value, dict) or not isinstance(value.get("id"), str) or not value["id"]:
+    if not isinstance(value, dict) or not valid_text(value.get("id")):
         raise ValueError("probe record must be an object with a nonempty string id")
     if not all(field in value for field in FIELDS):
         raise ValueError("probe record is missing required observation fields")
@@ -136,20 +173,45 @@ def validate_record(value: object) -> dict:
         raise ValueError("probe launch failed; comparison requires an executed target")
     if value.get("capture_complete", True) is not True:
         raise ValueError("probe capture is incomplete; comparison requires complete output")
-    if value["exit_code"] is not None and type(value["exit_code"]) is not int:
-        raise ValueError("probe exit_code must be an integer or null")
-    if value["signal"] is not None and not isinstance(value["signal"], str):
-        raise ValueError("probe signal must be a string or null")
+    if value["exit_code"] is not None and (type(value["exit_code"]) is not int or value["exit_code"] < 0):
+        raise ValueError("probe exit_code must be a nonnegative integer or null")
+    if value["signal"] is not None and (not isinstance(value["signal"], str) or value["signal"] not in SIGNAL_NAMES):
+        raise ValueError("probe signal must name a supported signal or be null")
     if not isinstance(value["timed_out"], bool):
         raise ValueError("probe timed_out must be a boolean")
-    if value.get("sandbox") is not None and not isinstance(value["sandbox"], str):
+    if value.get("sandbox") is not None and not valid_text(value["sandbox"]):
         raise ValueError("probe sandbox must be a string or null")
     for field in ("stdout", "stderr"):
         stream = value[field]
-        if not isinstance(stream, dict) or not isinstance(stream.get("path"), str) or not stream["path"]:
+        if not isinstance(stream, dict) or not valid_text(stream.get("path")):
             raise ValueError(f"probe {field} must contain a nonempty string path")
     validate_fs_diff(value["fs_diff"])
+    validate_outcomes(value)
     return value
+
+
+def validate_stream_outcome(value: object, allowed: tuple[str, ...]) -> None:
+    if not isinstance(value, dict) or set(value) != {'status', 'bytes', 'error'}:
+        raise ValueError('stream outcome must contain status, bytes and error')
+    if not isinstance(value['status'], str) or value['status'] not in allowed:
+        raise ValueError('invalid stream outcome status')
+    if type(value['bytes']) is not int or value['bytes'] < 0:
+        raise ValueError('stream outcome bytes must be a nonnegative integer')
+    if value['error'] is not None:
+        raise ValueError('stream outcome contains an unexpected I/O error')
+    if value['status'] == 'not_applicable' and value['bytes'] != 0:
+        raise ValueError('unused stream cannot transfer bytes')
+
+
+def validate_outcomes(record: dict) -> None:
+    if 'capture_outcomes' in record:
+        outcomes = record['capture_outcomes']
+        if not isinstance(outcomes, dict) or set(outcomes) != {'stdout', 'stderr', 'tty_echo'}:
+            raise ValueError('capture outcomes must describe stdout, stderr and tty_echo')
+        for name, outcome in outcomes.items():
+            validate_stream_outcome(outcome, ('complete', 'not_applicable') if name == 'tty_echo' else ('complete',))
+    if 'input_delivery' in record:
+        validate_stream_outcome(record['input_delivery'], ('complete', 'closed', 'not_applicable'))
 
 
 def validate_fs_diff(value: object) -> None:
@@ -171,20 +233,21 @@ def validate_triage(value: object) -> dict:
     return value
 
 
-def observed(rec: dict) -> dict:
-    # Each side runs in its own sandbox root by construction, so that root is the one normalized value.
-    root = rec.get("sandbox")
+def normalized_stream(rec: dict, name: str) -> bytes:
+    data = Path(rec[name]['path']).read_bytes()
+    root = rec.get('sandbox')
+    return data.replace(root.encode(), SANDBOX.encode()) if root else data
 
-    def stream(name: str) -> bytes:
-        data = Path(rec[name]["path"]).read_bytes()
-        return data.replace(root.encode(), SANDBOX.encode()) if root else data
+
+def observed(rec: dict) -> dict:
+    root = rec.get("sandbox")
 
     return {
         "exit_code": rec["exit_code"],
         "signal": rec["signal"],
         "timed_out": rec["timed_out"],
-        "stdout": stream("stdout"),
-        "stderr": stream("stderr"),
+        "stdout": normalized_stream(rec, "stdout"),
+        "stderr": normalized_stream(rec, "stderr"),
         "fs_diff": {(SANDBOX if k == root else k): v for k, v in rec["fs_diff"].items()},
     }
 
