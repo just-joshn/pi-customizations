@@ -7,6 +7,8 @@ import { registerCursorTools } from "./tools/renderers.ts";
 import { registerTodosTool } from "./tools/todos.ts";
 import { createAllowlist, installDecisionGate } from "./decisions/gate.ts";
 import { installEditor } from "./editor/install.ts";
+import { installCommands } from "./commands/register.ts";
+import { installPagers } from "./pagers/pagers.ts";
 
 export default function (pi: ExtensionAPI) {
 	const state = createSessionState();
@@ -18,4 +20,6 @@ export default function (pi: ExtensionAPI) {
 	registerCursorTools(pi);
 	registerTodosTool(pi);
 	installDecisionGate(pi, state, allowlist);
+	installCommands(pi, state);
+	installPagers(pi);
 }
