@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { parseFrontmatter, type ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { readModelRule } from './models.ts';
 import { registerWorkers } from './workers.ts';
+import { registerShells } from './shells.ts';
 import { registerQuestions } from './questions.ts';
 import { createState, registerStateTools } from './state.ts';
 import { registerCommands, registerNativeInput } from './commands.ts';
@@ -41,4 +42,5 @@ export default async function pstack(pi: ExtensionAPI) {
   registerContext(pi);
   registerStatus(pi, store);
   registerWorkers(pi);
+  registerShells(pi);
 }

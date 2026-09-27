@@ -1,6 +1,6 @@
 # pstack for pi
 
-This Pi package ports pstack 0.15.5 and cursor-team-kit 1.2.0 workflows to Pi 0.87.1. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. Its extension supplies executable behavior. It does **not** provide 100% behavior parity with Cursor. Required Cursor services and external integrations remain unavailable. Read the [compatibility report](docs/parity.md) before using those workflows.
+This Pi package ports pstack 0.15.5 and cursor-team-kit 1.2.0 workflows to Pi 0.87.1. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. It does **not** provide 100% behavior parity with Cursor. Required Cursor services and external integrations remain unavailable. Read the [compatibility report](docs/parity.md) before using those workflows.
 
 ## Install
 
@@ -32,7 +32,11 @@ Pstack's required `/deslop`, `/control-cli`, and `/control-ui` skills are bundle
 
 The kit's two `alwaysApply` rules remain in the source archive. The observed Cursor CLI does not deliver plugin rules to the model, so this port does not inject them. Project rules supplied through pi still apply.
 
-CLI and UI workflows use the project's existing terminal or browser tools. Bundling instructions does not install tmux, Playwright, Chromium, or GitHub credentials. `loop-on-ci` watches CI through GitHub CLI. It does not supply the background shell notifications or cloud timers used by Cursor's synced `/loop` skill.
+CLI and UI workflows use the project's existing terminal or browser tools. Bundling instructions does not install tmux, Playwright, Chromium, or GitHub credentials. `loop-on-ci` watches CI through GitHub CLI.
+
+## Loops
+
+`/loop [interval] <prompt>` runs a prompt on a fixed interval, on a self-paced heartbeat, or when a watched event fires. It ports the local half of Cursor's synced loop skill. The skill text in `host/skills/loop` is written for Pi, not copied. `BackgroundShell` starts a shell and wakes the agent on each output line that matches `notify_on_output`. While one wake is queued, later matches from the same shell are counted, not queued, so a slow turn never builds a backlog. `BackgroundShellList` and `BackgroundShellStop` find and stop shells. Shells end when the session quits, reloads, or switches. Cloud timers are not supplied.
 
 ## Local agents
 
