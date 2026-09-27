@@ -86,4 +86,4 @@ The CLI check starts an isolated local pi process and exercises RPC commands wit
 
 The [Pi mechanism audit](docs/mechanism-audit.md) records the facility classifications, fixes, verification, and invocation changes.
 
-The [comprehensive audit](docs/comprehensive-audit.md) records the current rule checks, reference parity corrections, regression tests, and approved source-preservation conflicts.
+The [earlier comprehensive audit](docs/comprehensive-audit.md) records rule checks, reference parity corrections, regression tests, and approved source-preservation conflicts. The [AGENTS compliance audit](docs/agents-compliance.md) records subsequent fixes, verification, compatibility changes, and remaining findings.
