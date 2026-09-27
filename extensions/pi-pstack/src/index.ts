@@ -21,12 +21,11 @@ const result = (text: string, details: unknown = undefined) => ({ content: [{ ty
 export default async function pstack(pi: ExtensionAPI) {
   const teamKitRules = await readTeamKitRules();
   const skills = new Map<string, { path: string; body: string; description: string }>();
-  for (const item of await readdir(join(root, 'skills'), { withFileTypes: true })) {
-    if (!item.isDirectory()) continue;
-    const path = join(root, 'skills', item.name, 'SKILL.md');
+  for (const name of ['poteto-mode', 'setup-pstack']) {
+    const path = join(root, 'skills', name, 'SKILL.md');
     const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(await readFile(path, 'utf8'));
     if (typeof frontmatter.description !== 'string') throw new Error(`Missing description in ${path}`);
-    skills.set(item.name, { path, body, description: frontmatter.description });
+    skills.set(name, { path, body, description: frontmatter.description });
   }
   const mode = skills.get('poteto-mode');
   if (!mode) throw new Error('Missing poteto-mode resource. Run npm run generate.');
@@ -67,7 +66,7 @@ export default async function pstack(pi: ExtensionAPI) {
       'The user completed /setup-pstack and confirmed the model configuration. Only its optional verification step remains.',
       'Inspect this project for an existing verification skill or a harness that drives the real app. A globally installed verify skill does not establish project coverage.',
       'If there is no such project capability, offer once: "want a project-local verification skill, so agents can drive the app the way a user does and prove changes work? I can generate one with /create-verification-skill."',
-      `Wait for the user to accept before invoking ${skills.get('create-verification-skill')?.path}. If a harness exists or the user declines, finish setup without creating one.`,
+      `Wait for the user to accept before invoking ${join(root, 'skills/create-verification-skill/SKILL.md')}. If a harness exists or the user declines, finish setup without creating one.`,
     ].join('\n'), { deliverAs: 'followUp' });
   };
   const handleSetup = async (ctx: ExtensionContext) => {
@@ -106,7 +105,7 @@ export default async function pstack(pi: ExtensionAPI) {
       const name = native[1];
       const args = native[2] ?? '';
       const discovered = pi.getCommands().find((command) => command.source === 'skill' && command.name === `skill:${name}`);
-      if (discovered && discovered.sourceInfo.path !== skills.get(name)?.path) return { action: 'continue' };
+      if (!discovered || discovered.sourceInfo.path !== skills.get(name)?.path) return { action: 'continue' };
       if (name === 'setup-pstack') {
         await handleSetup(ctx);
         return { action: 'handled' };
@@ -114,16 +113,6 @@ export default async function pstack(pi: ExtensionAPI) {
       toggle(args.trim() !== 'off', ctx);
       if (args.trim() === 'off') return { action: 'handled' };
       return { action: 'transform', text: expand(name, args), images: event.images };
-    }
-    const setupSkill = skills.get('setup-pstack');
-    if (setupSkill && event.text.startsWith('<skill name="setup-pstack" location="') && event.text.includes(`location="${setupSkill.path}"`)) {
-      await handleSetup(ctx);
-      return { action: 'handled' };
-    }
-    if (event.text.startsWith('<skill name="poteto-mode" location="') && event.text.includes(`location="${mode.path}"`)) {
-      const request = event.text.split('</skill>')[1]?.trim();
-      toggle(request !== 'off', ctx);
-      if (request === 'off') return { action: 'handled' };
     }
     return { action: 'continue' };
   });
@@ -133,6 +122,7 @@ export default async function pstack(pi: ExtensionAPI) {
     event.systemPromptOptions.sections.pstack_host = [
       'pstack pi host contract. Follow the bundled workflow instructions in full. Preserve their gates and report missing dependencies.',
       `Bundled skills: ${join(root, 'skills')}. Immutable source including agents and dormant Benny pack: ${join(root, 'upstream')}.`,
+      'Workflow aliases are Pi prompt templates. When one requests a skill, read its SKILL.md in full from the bundled skills directory and resolve references relative to that skill directory. /bro is a standalone prompt template. Only /poteto-mode, /setup-pstack, and /pstack are executable extension commands.',
       `team-kit 1.2.0 is bundled at ${join(root, 'upstream-team-kit')}. Its 18 skills, including deslop, control-cli, control-ui and verify-this, are in the same generated skills directory. Read the relevant SKILL.md in full before applying it. Its two alwaysApply rules apply independently of Poteto mode.`,
       `Read model role overrides at ${modelConfigPath()}. This is the Pi mapping of ~/.upstream/rules/pstack-models.mdc. The active rule follows:\n${rule || 'No override. Upstream defaults remain requests, not confirmed available models.'}`,
       'Task, TaskOutput, TaskMessage, TaskStop implement local delegation. Use exact available provider/model IDs, optionally :thinking. auto and inherit-parent inherit the parent. Unavailable Reference slugs fail with available choices. Follow the source fallback policy and report any model change.',
@@ -237,8 +227,10 @@ export default async function pstack(pi: ExtensionAPI) {
   pi.registerCommand('pstack', {
     description: 'Show pstack status, source version, model rule, and host compatibility limits.',
     handler: async (_args, ctx) => {
+      const skillCount = (await readdir(join(root, 'skills'), { withFileTypes: true })).filter((entry) => entry.isDirectory()).length;
+      const promptCount = (await readdir(join(root, 'prompts'))).filter((name) => name.endsWith('.md')).length;
       pi.sendMessage({ customType: 'pstack-status', display: true, details: state, content: [
-        `pstack 0.15.5 with team-kit 1.2.0 for Pi 0.87.1. ${skills.size} skill aliases. Poteto mode ${state.enabled ? 'on' : 'off'}.`,
+        `pstack 0.15.5 with team-kit 1.2.0 for Pi 0.87.1. ${skillCount} skills, ${promptCount} prompt templates. Poteto mode ${state.enabled ? 'on' : 'off'}.`,
         `Model configuration: ${modelConfigPath()}`,
         `Compatibility report: ${join(root, 'docs/parity.md')}`,
         'Partial runtime parity. Reference cloud agents, hosted automation editor, loops/goals, bot routines, built-in create-skill and credential isolation are not supplied.',
