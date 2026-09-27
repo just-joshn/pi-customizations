@@ -1,5 +1,5 @@
 {
-  "name": "pi-claude-subscription",
+  "name": "pi-anthropic-oauth",
   "version": "0.1.0",
   "description": "Use a Claude Pro or Max subscription in Pi. Requests identify as Provider CLI.",
   "type": "module",

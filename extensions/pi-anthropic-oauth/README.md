@@ -1,4 +1,4 @@
-# Claude subscription for Pi
+# pi-anthropic-oauth
 
 This Pi package lets a Claude Pro or Max subscription answer in Pi. Requests identify as Provider CLI. It registers a separate provider, `claude-subscription`, so the subscription login stays apart from the credentials of Pi's built-in `anthropic` provider.
 
