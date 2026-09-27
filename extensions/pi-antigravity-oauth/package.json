@@ -1,0 +1,21 @@
+{
+  "name": "pi-antigravity-oauth",
+  "version": "0.1.0",
+  "description": "Use a Google Antigravity subscription in Pi through Google OAuth and the Cloud Code Assist API.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["pi-package"],
+  "engines": { "node": ">=22.19.0" },
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
+  "files": ["src", "README.md"],
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "typecheck": "npx -y -p typescript tsc -p ."
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}
