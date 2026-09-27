@@ -45,11 +45,10 @@ def artifact(path: str, copy_to: Path, index: int) -> dict:
              'sha256': digest(resolved), 'size': resolved.stat().st_size}
     destination = copy_to / f'{index:03d}-{resolved.name}'
     shutil.copyfile(resolved, destination)
-    value['copy'] = str(destination)
-    return value
+    return {**value, 'copy': str(destination)}
 
 
-def init(a: argparse.Namespace) -> int:
+def initialization_inputs(a: argparse.Namespace):
     if not a.target and not a.repository:
         raise ValueError('provide --target or --repository')
     root = Path(a.workspace).resolve()
@@ -62,30 +61,31 @@ def init(a: argparse.Namespace) -> int:
         if not target:
             raise ValueError('target is not executable or was not found; provide its executable path')
         target = str(Path(target).absolute())
-    # Resolve inputs before creating a workspace; never launch the target here.
     paths = ([target] if target else []) + a.artifact
     for path in paths:
         if not Path(path).is_file():
             raise ValueError(f'artifact is not a file: {path}')
-    repo = None
-    repo_outputs = {}
-    if repository:
-        repo = {'path': str(repository)}
-        for key, args in [('commit', ['rev-parse', 'HEAD']),
-                          ('dirty_state', ['status', '--porcelain']),
-                          ('describe', ['describe', '--tags', '--always'])]:
-            result = subprocess.run(['git', '-C', str(repository), *args],
-                                    capture_output=True, timeout=30)
-            repo_outputs[f'git-{key}.stdout'] = result.stdout
-            repo_outputs[f'git-{key}.stderr'] = result.stderr
-            repo[key] = result.stdout.decode('utf-8', 'backslashreplace').strip() if result.returncode == 0 else None
-            repo[f'{key}_exit_code'] = result.returncode
-    for directory in DIRECTORIES:
-        (root / directory).mkdir(parents=True, exist_ok=True)
-    for filename, data in repo_outputs.items():
-        (root / 'raw/metadata' / filename).write_bytes(data)
-    artifacts = [artifact(path, root / 'target', i) for i, path in enumerate(paths)]
-    identity = {
+    return root, repository, target, paths
+
+
+def repository_metadata(repository: Path | None):
+    if repository is None:
+        return None, {}
+    queries = [('commit', ['rev-parse', 'HEAD']), ('dirty_state', ['status', '--porcelain']),
+               ('describe', ['describe', '--tags', '--always'])]
+    results = {key: subprocess.run(['git', '-C', str(repository), *args], capture_output=True, timeout=30)
+               for key, args in queries}
+    metadata = {'path': str(repository),
+                **{key: value.stdout.decode('utf-8', 'backslashreplace').strip() if value.returncode == 0 else None
+                   for key, value in results.items()},
+                **{f'{key}_exit_code': value.returncode for key, value in results.items()}}
+    outputs = {f'git-{key}.{stream}': getattr(value, stream)
+               for key, value in results.items() for stream in ('stdout', 'stderr')}
+    return metadata, outputs
+
+
+def initial_identity(target: str | None, artifacts: list[dict], repo: dict | None) -> dict:
+    return {
         'schema_version': 1, 'analysis_timestamp': datetime.now(timezone.utc).isoformat(),
         'target_path': target, 'resolved_target_path': artifacts[0]['resolved_path'] if target else None,
         'sha256': artifacts[0]['sha256'] if target else None,
@@ -96,8 +96,9 @@ def init(a: argparse.Namespace) -> int:
         'version_correspondence': 'UNKNOWN', 'artifacts': artifacts,
         'unresolved': ['target architecture, version, runtime, package metadata and launcher chain require investigation'],
     }
-    write_json(root / 'target/identity.json', identity)
-    (root / 'target/hashes.txt').write_text(''.join(f"{item['sha256']}  {item['path']}\n" for item in artifacts))
+
+
+def initialize_workspace_files(root: Path) -> None:
     write_json(root / 'probes/cases.json', [])
     (root / 'probes/results.jsonl').touch()
     write_json(root / 'source/entrypoints.json', [])
@@ -118,6 +119,19 @@ def init(a: argparse.Namespace) -> int:
         '"run", "--workspace", str(root)]))\n'
     )
     launcher.chmod(0o755)
+
+
+def init(a: argparse.Namespace) -> int:
+    root, repository, target, paths = initialization_inputs(a)
+    repo, repo_outputs = repository_metadata(repository)
+    for directory in DIRECTORIES:
+        (root / directory).mkdir(parents=True, exist_ok=True)
+    for filename, data in repo_outputs.items():
+        (root / 'raw/metadata' / filename).write_bytes(data)
+    artifacts = [artifact(path, root / 'target', index) for index, path in enumerate(paths)]
+    write_json(root / 'target/identity.json', initial_identity(target, artifacts, repo))
+    (root / 'target/hashes.txt').write_text(''.join(f"{item['sha256']}  {item['path']}\n" for item in artifacts))
+    initialize_workspace_files(root)
     print(root)
     return 0
 
@@ -125,7 +139,6 @@ def init(a: argparse.Namespace) -> int:
 def validate_cases(cases: object) -> list[dict]:
     if not isinstance(cases, list) or not cases:
         raise ValueError('cases.json must be a nonempty list of reviewed cases')
-    seen = set()
     supported = {'id', 'question', 'safe', 'args', 'env', 'seed', 'stdin_file', 'stdin_text',
                  'tty', 'stdin_mode', 'timeout', 'send_signal', 'after', 'expect'}
     assertions = {'exit_code', 'signal', 'stdout_sha256', 'stderr_sha256', 'timed_out'}
@@ -133,9 +146,8 @@ def validate_cases(cases: object) -> list[dict]:
         if not isinstance(case, dict) or set(case) - supported:
             raise ValueError('invalid case or unsupported field')
         case_id = case.get('id', '')
-        if not isinstance(case_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*', case_id) or case_id in seen:
+        if not isinstance(case_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*', case_id):
             raise ValueError('case IDs must be unique safe file components')
-        seen.add(case_id)
         if case.get('safe') is not True or not isinstance(case.get('question'), str) or not case['question'].strip():
             raise ValueError(f'{case_id}: require a question and safe=true after reviewing effects')
         if not isinstance(case.get('args'), list) or not all(isinstance(x, str) and '\0' not in x for x in case['args']):
@@ -165,12 +177,12 @@ def validate_cases(cases: object) -> list[dict]:
             raise ValueError(f'{case_id}: unsupported TTY mode')
         if not isinstance(case.get('seed', []), list) or not all(isinstance(s, str) for s in case.get('seed', [])):
             raise ValueError(f'{case_id}: seed must be an array of strings')
+    if len({case['id'] for case in cases}) != len(cases):
+        raise ValueError('case IDs must be unique safe file components')
     return cases
 
 
-def run(a: argparse.Namespace) -> int:
-    root = Path(a.workspace).resolve()
-    identity = json.loads((root / 'target/identity.json').read_text())
+def verify_identity(identity: dict) -> None:
     if not identity.get('target_path'):
         raise ValueError('source-only investigation: register an isolated build as a new target workspace before replay')
     if not identity.get('artifacts') or identity['artifacts'][0]['path'] != identity['target_path']:
@@ -180,48 +192,60 @@ def run(a: argparse.Namespace) -> int:
             raise ValueError(f"artifact identity changed: {item['path']}")
         if item.get('copy') and digest(Path(item['copy'])) != item['sha256']:
             raise ValueError(f"evidence copy changed: {item['copy']}")
+
+
+def case_command(root: Path, out: Path, case: dict, target: str) -> list[str]:
+    options = [sys.executable, str(root / 'repro/scripts/probe.py'), '--out', str(out),
+               '--id', case['id'], '--label', case['question'], '--isolate', '--clean-env',
+               '--timeout', str(case.get('timeout', 30)), '--after', str(case.get('after', 0.1))]
+    env = [part for key, value in case.get('env', {}).items()
+           for part in (['--unset', key] if value is None else ['--env', f'{key}={value}'])]
+    seeds = [part for seed in case.get('seed', []) for part in ('--seed', seed)]
+    inputs = [part for key in ('stdin_file', 'stdin_text', 'stdin_mode', 'tty', 'send_signal') if key in case
+              for part in ('--' + key.replace('_', '-'), str(case[key]))]
+    return options + env + seeds + inputs + ['--', target, *case['args']]
+
+
+def expectation_mismatches(record: dict, expected: dict) -> dict:
+    actual = {**{key: record[key] for key in ('exit_code', 'signal', 'timed_out')},
+              **{f'{stream}_sha256': record[stream]['sha256'] for stream in ('stdout', 'stderr')}}
+    differences = {key: {'expected': value, 'actual': actual[key]}
+                   for key, value in expected.items() if actual[key] != value}
+    incomplete = record['launch_error'] or not record['capture_complete'] or record['descendants_hold_output']
+    return {**differences,
+            **({'execution': 'launch failure, incomplete capture, or descendant-held output'} if incomplete else {}),
+            **({'timeout': 'unexpected timeout'} if record['timed_out'] and expected.get('timed_out') is not True else {})}
+
+
+def replay_case(root: Path, out: Path, run_id: str, case: dict, target: str):
+    result = subprocess.run(case_command(root, out, case, target), cwd=root, capture_output=True)
+    (out / f"{case['id']}.runner.stdout").write_bytes(result.stdout)
+    (out / f"{case['id']}.runner.stderr").write_bytes(result.stderr)
+    if result.returncode:
+        return {'case': case['id'], 'reason': 'probe runner failed', 'exit_code': result.returncode}, None
+    record = json.loads((out / 'probes.jsonl').read_text().splitlines()[-1])
+    expected = case.get('expect', {})
+    mismatches = expectation_mismatches(record, expected)
+    completed = {**record, 'corpus_run': run_id, 'expectation_mismatches': mismatches}
+    with (root / 'probes/results.jsonl').open('a') as stream:
+        stream.write(json.dumps(completed, ensure_ascii=False) + '\n')
+    return ({'case': case['id'], 'mismatches': mismatches} if mismatches else None,
+            case['id'] if not expected else None)
+
+
+def run(a: argparse.Namespace) -> int:
+    root = Path(a.workspace).resolve()
+    identity = json.loads((root / 'target/identity.json').read_text())
+    verify_identity(identity)
     cases = validate_cases(json.loads((root / 'probes/cases.json').read_text()))
     run_id = f"R-{datetime.now(timezone.utc):%Y%m%dT%H%M%S}-{uuid.uuid4().hex[:8]}"
     out = root / 'probes/runs' / run_id
     out.mkdir(parents=True)
     write_json(out / 'cases.json', cases)
     write_json(out / 'identity.json', identity)
-    failures, unchecked = [], []
-    for case in cases:
-        command = [sys.executable, str(root / 'repro/scripts/probe.py'), '--out', str(out),
-                   '--id', case['id'], '--label', case['question'], '--isolate', '--clean-env',
-                   '--timeout', str(case.get('timeout', 30)), '--after', str(case.get('after', 0.1))]
-        for key, value in case.get('env', {}).items():
-            command += ['--unset', key] if value is None else ['--env', f'{key}={value}']
-        for seed in case.get('seed', []):
-            command += ['--seed', seed]
-        for key in ('stdin_file', 'stdin_text', 'stdin_mode', 'tty', 'send_signal'):
-            if key in case:
-                command += ['--' + key.replace('_', '-'), str(case[key])]
-        command += ['--', identity['target_path'], *case['args']]
-        result = subprocess.run(command, cwd=root, capture_output=True)
-        (out / f"{case['id']}.runner.stdout").write_bytes(result.stdout)
-        (out / f"{case['id']}.runner.stderr").write_bytes(result.stderr)
-        if result.returncode:
-            failures.append({'case': case['id'], 'reason': 'probe runner failed', 'exit_code': result.returncode})
-            continue
-        record = json.loads((out / 'probes.jsonl').read_text().splitlines()[-1])
-        record['corpus_run'] = run_id
-        actual = {k: record[k] for k in ('exit_code', 'signal', 'timed_out')}
-        actual.update({f'{s}_sha256': record[s]['sha256'] for s in ('stdout', 'stderr')})
-        expected = case.get('expect', {})
-        if not expected:
-            unchecked.append(case['id'])
-        mismatches = {key: {'expected': value, 'actual': actual[key]} for key, value in expected.items() if actual[key] != value}
-        if record['launch_error'] or not record['capture_complete'] or record['descendants_hold_output']:
-            mismatches['execution'] = 'launch failure, incomplete capture, or descendant-held output'
-        if record['timed_out'] and expected.get('timed_out') is not True:
-            mismatches['timeout'] = 'unexpected timeout'
-        if mismatches:
-            failures.append({'case': case['id'], 'mismatches': mismatches})
-        record['expectation_mismatches'] = mismatches
-        with (root / 'probes/results.jsonl').open('a') as stream:
-            stream.write(json.dumps(record, ensure_ascii=False) + '\n')
+    outcomes = tuple(replay_case(root, out, run_id, case, identity['target_path']) for case in cases)
+    failures = [failure for failure, _ in outcomes if failure]
+    unchecked = [case_id for _, case_id in outcomes if case_id]
     summary = {'run': run_id, 'cases': len(cases), 'failures': failures, 'unchecked_cases': unchecked,
                'status': 'FAIL' if failures else 'OBSERVATIONS_ONLY' if unchecked else 'PASS'}
     write_json(out / 'summary.json', summary)
