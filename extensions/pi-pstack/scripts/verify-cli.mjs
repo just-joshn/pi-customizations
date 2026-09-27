@@ -80,7 +80,7 @@ try {
   try { assert.equal(await ended, 0); }
   finally { clearTimeout(timeout); }
   assert.doesNotMatch(stderr, /Failed to load extension|Extension error/);
-  console.log('Verified installed Pi CLI package loading, RPC commands, status, mode off, and orderly shutdown without model calls.');
+  process.stdout.write('Verified installed Pi CLI package loading, RPC commands, status, mode off, and orderly shutdown without model calls.\n');
 } finally {
   if (child.exitCode === null) child.kill('SIGKILL');
   await ended;

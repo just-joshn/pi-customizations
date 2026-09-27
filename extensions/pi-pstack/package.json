@@ -12,9 +12,10 @@
     "generate": "node scripts/resources.mjs --write",
     "check:resources": "node scripts/resources.mjs",
     "check:cli": "node scripts/verify-cli.mjs",
+    "check:upstream": "node scripts/verify-upstream.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test test/*.test.ts",
-    "test:coverage": "c8 --all --include='src/*.ts' --check-coverage --lines=80 --branches=80 --functions=80 --statements=80 node --import tsx --test test/*.test.ts"
+    "test:coverage": "c8 --all --include='src/*.ts' --include='scripts/*.mjs' --check-coverage --lines=80 --branches=80 --functions=80 --statements=80 node --import tsx --test test/*.test.ts"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",

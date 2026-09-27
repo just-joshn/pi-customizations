@@ -1,0 +1,19 @@
+[run]
+branch = True
+parallel = True
+patch = subprocess
+data_file = .audit/python-coverage/.coverage
+include =
+    */skills/doctor/scripts/*.py
+    */skills/implement-cli-from-contract/scripts/*.py
+    */skills/reverse-engineer-cli/scripts/*.py
+    */repro/scripts/*.py
+
+[paths]
+reverse_engineer_scripts =
+    skills/reverse-engineer-cli/scripts
+    */repro/scripts
+
+[report]
+fail_under = 80
+show_missing = True
