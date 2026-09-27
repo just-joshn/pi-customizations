@@ -169,6 +169,15 @@ function sgr(code: string, text: string): string {
 	return `\x1b[${code}m${text}\x1b[0m`;
 }
 
+/**
+ * Basic ANSI foreground color (0-7) as Ink-style named colors render in the
+ * Reference CLI (e.g. the magenta autorun label). In 256-color mode the bright
+ * variant (code + 60) keeps the label visible on dark backgrounds.
+ */
+export function basicFg(code: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7, text: string, mode: ColorMode): string {
+	return sgr(`${mode === "truecolor" ? code + 30 : code + 90}`, text);
+}
+
 export function paletteFg(hex: HexColor, mode: ColorMode, text: string): string {
 	const rgb = parseHex(hex);
 	if (mode === "truecolor") return sgr(`38;2;${rgb[0]};${rgb[1]};${rgb[2]}`, text);
