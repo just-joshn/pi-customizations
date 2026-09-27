@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readdir, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -140,12 +140,12 @@ function toolResults(session: AgentSession, name: string) {
   return session.messages.filter((message) => message.role === "toolResult" && message.toolName === name);
 }
 
-test("official resource loader exposes all 47 public skills and commands without Benny discovery", async () => {
+test("official resource loader exposes all 65 public skills and commands without Benny discovery", async () => {
   const f = await fixture();
   try {
     const { session, loader } = await f.open();
     const { skills, diagnostics } = loader.getSkills();
-    assert.equal(skills.length, 47);
+    assert.equal(skills.length, 65);
     assert.deepEqual(diagnostics, []);
     const expected = (await readdir(join(packageRoot, "skills"))).sort();
     assert.deepEqual(skills.map((skill) => skill.name).sort(), expected);
@@ -238,7 +238,8 @@ test("native /skill:poteto-mode enters the same mode and /pstack reports status 
     assert.equal(f.requests.length, callsBeforeStatus, "status must not spend an inference request");
     const status = session.messages.findLast((message) => message.role === "custom" && message.customType === "pstack-status");
     assert.ok(status);
-    assert.match(JSON.stringify(status), /47 skill aliases/);
+    assert.match(JSON.stringify(status), /65 skill aliases/);
+    assert.match(JSON.stringify(status), /team-kit 1.2.0/);
     assert.match(JSON.stringify(status), /Poteto mode on/);
     await prompt(session, "/poteto-mode off");
     await prompt(session, "Proceed casually.");
@@ -307,6 +308,64 @@ test("native and alias setup fail closed without UI and never fall through to in
     for (const message of errors) {
       if (message.role === "custom") assert.match(String(message.content), /requires Pi interactive or RPC dialog UI/);
     }
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("team-kit dependencies load through aliases and native skills with full instructions", async () => {
+  const f = await fixture();
+  try {
+    const { session, loader } = await f.open();
+    assert.equal(loader.getSkills().skills.length, 65);
+    const names = new Set(loader.getSkills().skills.map((skill) => skill.name));
+    for (const name of [
+      "check-compiler-errors", "control-cli", "control-ui", "deslop", "fix-ci",
+      "fix-merge-conflicts", "get-pr-comments", "loop-on-ci", "make-pr-easy-to-review",
+      "new-branch-and-pr", "pr-review-canvas", "review-and-ship", "run-smoke-tests",
+      "thermo-nuclear-code-quality-review", "verify-this", "weekly-review",
+      "what-did-i-get-done", "workflow-from-chats",
+    ]) assert.ok(names.has(name), `missing kit skill ${name}`);
+    for (const name of ["pr-review-canvas", "thermo-nuclear-code-quality-review"]) {
+      assert.equal(loader.getSkills().skills.find((skill) => skill.name === name)?.disableModelInvocation, true);
+    }
+    for (const name of ["template.html", "styles.css", "renderer.js"]) {
+      assert.deepEqual(
+        await readFile(join(packageRoot, "skills/pr-review-canvas", name)),
+        await readFile(join(packageRoot, "upstream-team-kit/skills/pr-review-canvas", name)),
+      );
+    }
+    for (const [name, evidence] of [
+      ["deslop", "Keep behavior unchanged unless fixing a clear bug."],
+      ["control-cli", "Capture the current screen before interacting."],
+      ["control-ui", "Do not rely on stale element references"],
+    ]) {
+      await prompt(session, `/${name} Inspect this workspace.`);
+      assert.ok(JSON.stringify(lastRequest(f.requests).messages).includes(evidence));
+      await prompt(session, `/skill:${name} Preserve this request.`);
+      const text = JSON.stringify(lastRequest(f.requests).messages);
+      assert.ok(text.includes(evidence));
+      assert.match(text, /Preserve this request/);
+    }
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("team-kit always-on rules apply without Poteto mode and survive mode being turned off", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    await prompt(session, "Work on this module.");
+    const rules = section(f.requests, "pstack_team_kit_rules") ?? "";
+    assert.match(rules, /Always place imports at the top of the module/);
+    assert.match(rules, /use a `never` check in the default case/);
+    assert.equal(section(f.requests, "pstack_mode"), null);
+    await prompt(session, "/poteto-mode Enter the mode.");
+    await prompt(session, "/poteto-mode off");
+    await prompt(session, "Continue this module.");
+    assert.equal(section(f.requests, "pstack_team_kit_rules"), rules);
+    assert.equal(section(f.requests, "pstack_mode"), null);
+    const host = section(f.requests, "pstack_host") ?? "";
+    assert.ok(!host.includes("team-kit deslop/control-cli/control-ui, MCP connectors"));
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

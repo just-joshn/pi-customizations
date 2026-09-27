@@ -876,5 +876,152 @@
     "sha256": "733a3e9cf897b1aca56aaddeae01a3832e4bfed024c2f602db2d1bf807d7a73b",
     "executable": false,
     "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/check-compiler-errors/SKILL.md",
+    "destination": "skills/check-compiler-errors/SKILL.md",
+    "sha256": "1ad76beccd581fc285199334709e0a37cdc2f76e5d0d33c90e1dc21905518004",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/control-cli/SKILL.md",
+    "destination": "skills/control-cli/SKILL.md",
+    "sha256": "13ac93e595bbda2000849bdb815d5f2ca03f7c2ca63788c8335f9212b9b422a2",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/control-ui/SKILL.md",
+    "destination": "skills/control-ui/SKILL.md",
+    "sha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/deslop/SKILL.md",
+    "destination": "skills/deslop/SKILL.md",
+    "sha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/fix-ci/SKILL.md",
+    "destination": "skills/fix-ci/SKILL.md",
+    "sha256": "925f8c3e11de8bcc0cd015ec907f4d00b12cde6714246554ed3a52e096536522",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/fix-merge-conflicts/SKILL.md",
+    "destination": "skills/fix-merge-conflicts/SKILL.md",
+    "sha256": "738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/get-pr-comments/SKILL.md",
+    "destination": "skills/get-pr-comments/SKILL.md",
+    "sha256": "8bf292736cab922276feb4d8377edc2fc4102a7beb62bcd1f3f5cf72a79b16cc",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/loop-on-ci/SKILL.md",
+    "destination": "skills/loop-on-ci/SKILL.md",
+    "sha256": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/make-pr-easy-to-review/SKILL.md",
+    "destination": "skills/make-pr-easy-to-review/SKILL.md",
+    "sha256": "e8da0d4a85b7c04823698f539251617389f827fd9137100ef7eaea5dcc992fe7",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/new-branch-and-pr/SKILL.md",
+    "destination": "skills/new-branch-and-pr/SKILL.md",
+    "sha256": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/pr-review-canvas/SKILL.md",
+    "destination": "skills/pr-review-canvas/SKILL.md",
+    "sha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/pr-review-canvas/renderer.js",
+    "destination": "skills/pr-review-canvas/renderer.js",
+    "sha256": "d78d36a46b0aeae755e2edd9b712970fd181183bb1c320d10caa8d9f776695c6",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/pr-review-canvas/styles.css",
+    "destination": "skills/pr-review-canvas/styles.css",
+    "sha256": "3c3ff002dd3bfe7f4fdbda521fce05e336c4a7922f4bd4d848f6566a961ceb19",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/pr-review-canvas/template.html",
+    "destination": "skills/pr-review-canvas/template.html",
+    "sha256": "cb56bc764384856da4733d1c999521c3e1b20d65ed80605630b74da448abe756",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/review-and-ship/SKILL.md",
+    "destination": "skills/review-and-ship/SKILL.md",
+    "sha256": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/run-smoke-tests/SKILL.md",
+    "destination": "skills/run-smoke-tests/SKILL.md",
+    "sha256": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
+    "destination": "skills/thermo-nuclear-code-quality-review/SKILL.md",
+    "sha256": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/verify-this/SKILL.md",
+    "destination": "skills/verify-this/SKILL.md",
+    "sha256": "c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/weekly-review/SKILL.md",
+    "destination": "skills/weekly-review/SKILL.md",
+    "sha256": "b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/what-did-i-get-done/SKILL.md",
+    "destination": "skills/what-did-i-get-done/SKILL.md",
+    "sha256": "479813c9abaacb5b6b0531f1de7dc5eb2f3bd9673707a992d1073335836e82f8",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream-team-kit/skills/workflow-from-chats/SKILL.md",
+    "destination": "skills/workflow-from-chats/SKILL.md",
+    "sha256": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16",
+    "executable": false,
+    "transformations": []
   }
 ]

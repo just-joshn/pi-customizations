@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
+const root = process.argv[2] ? resolve(process.argv[2]) : fileURLToPath(new URL('../', import.meta.url));
 const directory = await mkdtemp(join(tmpdir(), 'pi-pstack-cli-'));
 const cli = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 const child = spawn(process.execPath, [cli, '--mode', 'rpc', '--no-session', '-e', root], {
@@ -59,12 +59,15 @@ function send(command) {
 }
 try {
   const commands = await send({ type: 'get_commands' });
-  for (const name of ['poteto-mode', 'setup-pstack', 'pstack', 'how', 'bro']) {
+  for (const name of ['poteto-mode', 'setup-pstack', 'pstack', 'how', 'bro', 'deslop', 'control-cli', 'control-ui', 'verify-this', 'pr-review-canvas', 'thermo-nuclear-code-quality-review']) {
     assert.ok(commands.commands.some((command) => command.name === name), `CLI command ${name}`);
   }
   await send({ type: 'prompt', message: '/pstack' });
   const messages = await send({ type: 'get_messages' });
   assert.ok(messages.messages.some((message) => message.role === 'custom' && message.customType === 'pstack-status'));
+  const status = messages.messages.find((message) => message.role === 'custom' && message.customType === 'pstack-status');
+  assert.match(String(status.content), /65 skill aliases/);
+  assert.match(String(status.content), /team-kit 1.2.0/);
   await send({ type: 'prompt', message: '/poteto-mode off' });
   child.stdin.end();
   const timeout = setTimeout(() => child.kill('SIGKILL'), 5000);
