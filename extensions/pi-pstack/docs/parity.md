@@ -7,9 +7,9 @@ The requested 100% behavior parity is not achieved. The plugin requires Cursor c
 | Source contract | Pi implementation | Evidence |
 | --- | --- | --- |
 | Complete plugin distribution | Immutable 158-file snapshot with pinned commit and SHA-256 inventory | `scripts/resources.mjs`, `docs/source-inventory.json` |
-| 47 public skills and 23 playbooks | Generated legal skill names, original bodies and resources, `/name` aliases and native skill discovery | `src/index.ts`, `docs/resource-map.json` |
+| 47 pstack workflows and 23 playbooks | 46 skills with their resources, standalone `/bro` prompt, native prompt aliases, and coded mode/setup commands | `package.json`, `docs/resource-map.json` |
 | cursor-team-kit dependency distribution | Complete 29-file snapshot, 18 additional skills, both agents, both rules, and all canvas assets | `upstream-team-kit`, `docs/team-kit-source-inventory.json` |
-| Required deslop, control-cli, and control-ui workflows | Original instructions available through aliases and native skills, bringing the combined total to 65 skills | `test/integration.test.ts`, `scripts/verify-cli.mjs` |
+| Required deslop, control-cli, and control-ui workflows | All 18 kit skills remain available through prompt aliases and native skills, bringing the combined total to 64 skills plus the bro prompt | `test/integration.test.ts`, `scripts/verify-cli.mjs` |
 | Team-kit alwaysApply rules | Original rule bodies in parent and writable-child structured prompt sections and readonly-child appended prompts, independent of mode | `src/index.ts`, `src/personas.ts`, `src/workers.ts` |
 | Team-kit local agent personas | CI watcher preserves its default model request; strict review persona receives its complete rubric | `src/personas.ts`, `test/personas.test.ts`, `test/workers.test.ts` |
 | Sticky Poteto mode | Branch-local session entries and structured prompt section; explicit off command and mode tool | `src/index.ts`, integration tests |
@@ -42,6 +42,14 @@ The requested 100% behavior parity is not achieved. The plugin requires Cursor c
 | UI parity and stochastic instruction compliance | Pi has different UI and system instructions. Deterministic tests cannot establish every possible model decision or identical rendering. |
 
 The runtime tells the model to retain source gates and identify missing dependencies. That instruction is not a security boundary. Task rejects unsupported cloud execution, unknown personas, and unresolved model requests in code. Other workflow gates remain model instructions. Do not interpret the report as proof that every model will obey every workflow instruction.
+
+## Mechanism migration
+
+All 65 original workflow names remain callable. The 63 text-only aliases now use Pi prompt templates, and the three runtime commands remain extension registrations. There are 66 short commands including `/pstack` status. The original instructions and all 23 playbooks remain available. No tool, persona, model role, or branch-state capability was removed.
+
+Prompt aliases ask the model to read the full skill instead of injecting it from an extension command. Native `/skill:name` still expands it directly. This introduces a model-mediated read for aliases, so deterministic tests prove availability and the real read path, not universal model compliance. `/skill:bro` is intentionally removed; `/bro` preserves its complete prompt. Workflow templates need the extension's host context to locate bundled skills. `/bro` and native skills do not need that alias context.
+
+These invocation changes follow the [current mechanism audit](mechanism-audit.md). They preserve the existing capability coverage without claiming a numeric behavior-parity percentage.
 
 The team-kit increment closes three named skill-distribution dependencies. Its remaining 15 skills are additional available workflows, not 15 measured parity fixes. Prompt-rule delivery and persona construction can be tested deterministically. Successful real GitHub, browser, or model-driven workflow execution requires evidence from the user's configured environment. The kit's `loop-on-ci` skill does not implement the missing `/loop` host scheduler.
 
