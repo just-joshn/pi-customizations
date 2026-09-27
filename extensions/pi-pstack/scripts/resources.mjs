@@ -43,6 +43,43 @@ const verified = await Promise.all(entries.map(async (entry) => {
   if (sha(original) !== entry.sha256) throw new Error(`Upstream hash mismatch: ${entry.source}`);
   return { ...entry, original, mode: (await stat(path)).mode & 0o777 };
 }));
+const markdownFiles = /\.md$/;
+const worktreeAudit = /^skills\/poteto-mode\/scripts\/worktree-audit\.sh$/;
+const modelRule = 'Map model rule location to Pi agent configuration.';
+const skillDirectories = 'Map user and project skill directories to Pi discovery locations.';
+const transcripts = 'Map Reference agent-transcripts to the Pi session store and pstack-workers child transcripts.';
+const portableDates = 'Replace BSD-only stat and date calls with Perl so transcript dates survive GNU or uutils coreutils on PATH.';
+const hostPaths = [
+  [markdownFiles, '~/.upstream/rules/pstack-models.mdc', '~/.pi/agent/pstack/models.mdc', modelRule],
+  [markdownFiles, '~/.upstream/skills', '~/.pi/agent/skills', skillDirectories],
+  [markdownFiles, '.upstream/skills', '.pi/skills', skillDirectories],
+  [markdownFiles, 'or plugin-installed paths under `~/.upstream/plugins/`', 'or Pi package skill paths such as the bundled pstack skills directory named by the host contract', skillDirectories],
+  [markdownFiles, 'Transcripts live at `~/.upstream/projects/<slug>/agent-transcripts/<uuid>/<uuid>.jsonl`, where `<slug>` is the workspace path with the leading slash dropped and each "/" turned into "-" (so `/Users/you/proj` becomes `Users-you-proj`). Every line is one chat message.',
+    'Transcripts live at `~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`, with Task subagent transcripts under `<slug>/pstack-workers/<parent-uuid>/`. `<slug>` is the workspace path with the leading slash dropped, each "/" turned into "-", and `--` added at both ends (so `/Users/you/proj` becomes `--Users-you-proj--`). Every line is one session entry.', transcripts],
+  [markdownFiles, 'ls -t <agent-transcripts>/*.jsonl <agent-transcripts>/*/*.jsonl <agent-transcripts>/*/subagents/*.jsonl', 'ls -t <session-dir>/*.jsonl <session-dir>/pstack-workers/*/*.jsonl', transcripts],
+  [markdownFiles, 'Three transcript layouts: legacy flat (`<id>.jsonl`), current nested (`<id>/<id>.jsonl`), and subagent (`<parent>/subagents/<child>.jsonl`).',
+    'Two transcript layouts: session (`<timestamp>_<id>.jsonl`) and Task subagent (`pstack-workers/<parent>/<timestamp>_<child>.jsonl`).', transcripts],
+  [markdownFiles, 'read the first JSONL line and check that `message.content[0].text`', 'read the first JSONL line whose `message.role` is `user` and check that its `message.content[0].text`', transcripts],
+  [markdownFiles, '`agent-transcripts/` directory', 'Pi session directory', transcripts],
+  [markdownFiles, 'under `agent-transcripts/`', 'under the Pi session directory', transcripts],
+  [markdownFiles, '`~/.upstream/projects/*/`', '`~/.pi/agent/sessions/*/`', transcripts],
+  [worktreeAudit, `# Transcripts dir: ~/.upstream/projects/<slugified-repo-path>/agent-transcripts.\nslug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')\ntranscripts="$HOME/.upstream/projects/$slug/agent-transcripts"`,
+    `# Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including pstack-workers.\nsessions="\${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"; sessions="\${sessions/#\\~/$HOME}/sessions"\nsession_dir() { printf '%s/--%s--' "$sessions" "$(printf '%s' "$1" | sed 's#^/##; s#[/:]#-#g')"; }\ntranscripts=$(session_dir "$main_wt")`, transcripts],
+  [worktreeAudit, `\tif [ -d "$transcripts" ]; then\n\t\tf=$(rg -l -e "\${wt}/" -e "\${wt}\\"" "$transcripts" 2>/dev/null`,
+    `\twt_sessions=$(session_dir "$wt")\n\tif [ -d "$transcripts" ] || [ -d "$wt_sessions" ]; then\n\t\tf=$(rg -l -e "\${wt}/" -e "\${wt}\\"" "$transcripts" "$wt_sessions" 2>/dev/null`, transcripts],
+  [worktreeAudit, `| xargs stat -f '%m %N' 2>/dev/null`, `| xargs perl -e 'printf "%d %s\\n", (stat)[9], $_ for @ARGV' 2>/dev/null`, portableDates],
+  [worktreeAudit, `last=$(date -r "$last_ts" '+%Y-%m-%d' 2>/dev/null)`, `last=$(perl -MPOSIX -e 'print strftime("%Y-%m-%d", localtime shift)' "$last_ts" 2>/dev/null)`, portableDates],
+];
+const appliedHostPaths = new Set();
+function mapHostPaths(entry, text) {
+  return hostPaths.reduce(({ text, transformations }, row) => {
+    const [scope, from, to, reason] = row;
+    if (!scope.test(entry.path) || !text.includes(from)) return { text, transformations };
+    appliedHostPaths.add(row);
+    return { text: text.replaceAll(from, to), transformations: transformations.includes(reason) ? transformations : [...transformations, reason] };
+  }, { text, transformations: [] });
+}
+
 function markdown(entry) {
   let text = entry.original.toString('utf8');
   let transformations = [];
@@ -56,12 +93,14 @@ function markdown(entry) {
     if (text !== portable) transformations = [...transformations, 'Remove Reference-only frontmatter; Pi runtime behavior belongs to the extension.'];
     text = portable;
   }
-  let updated = text.replaceAll('~/.upstream/rules/pstack-models.mdc', '~/.pi/agent/pstack/models.mdc');
-  if (text !== updated) transformations = [...transformations, 'Map model rule location to Pi agent configuration.'];
-  text = updated;
-  updated = text.replaceAll('~/.upstream/skills', '~/.pi/agent/skills').replaceAll('.upstream/skills', '.pi/skills');
-  if (text !== updated) transformations = [...transformations, 'Map user and project skill directories to Pi discovery locations.'];
-  return { generated: Buffer.from(updated), transformations };
+  const mapped = mapHostPaths(entry, text);
+  return { generated: Buffer.from(mapped.text), transformations: [...transformations, ...mapped.transformations] };
+}
+
+function script(entry) {
+  if (!worktreeAudit.test(entry.path)) return { generated: entry.original, transformations: [] };
+  const mapped = mapHostPaths(entry, entry.original.toString('utf8'));
+  return { generated: Buffer.from(mapped.text), transformations: mapped.transformations };
 }
 
 function promptOutput(entry, generated) {
@@ -83,12 +122,13 @@ function promptOutput(entry, generated) {
 }
 
 const outputs = verified.filter(entry => entry.path.startsWith('skills/')).flatMap(entry => {
-  const { generated, transformations } = entry.path.endsWith('.md')
-    ? markdown(entry) : { generated: entry.original, transformations: [] };
+  const { generated, transformations } = entry.path.endsWith('.md') ? markdown(entry) : script(entry);
   const executable = (entry.mode & 0o111) !== 0;
   const skill = { source: entry.source, destination: entry.path, generated, mode: entry.mode, executable, transformations };
   return [...(entry.path === 'skills/bro/SKILL.md' ? [] : [skill]), ...promptOutput(entry, generated)];
 });
+const unusedHostPaths = hostPaths.filter(row => !appliedHostPaths.has(row));
+if (unusedHostPaths.length) throw new Error(`Host path mapping no longer matches upstream: ${unusedHostPaths.map(row => row[1].split('\n')[0]).join('; ')}`);
 for (const output of outputs) {
   const { generated, executable } = output;
   const destination = join(root, output.destination);

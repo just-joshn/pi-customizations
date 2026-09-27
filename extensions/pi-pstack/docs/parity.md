@@ -18,7 +18,7 @@ The requested 100% behavior parity is not achieved. The plugin requires Referenc
 | Model setup | Available pi model identities, supported effort, all 17 roles, ordered panels, aliases, budget selection, confirmed atomic rule write | `src/models.ts`, model tests |
 | Ordered playbook todos | Persistent replace or merge operation with verbatim content | `TodoWrite`, integration tests |
 | Preference and approval questions | TUI and RPC selection, free text, multiple selections, explicit cancellation | `AskQuestion`; installed CLI RPC tests verify selection and cancellation without paid inference |
-| Workspace transcript evidence | Current branch and workspace-scoped pi session history | `pstack_context` |
+| Workspace transcript evidence | Current branch and workspace-scoped pi session history. Generated transcript skills and the worktree audit read the Pi session directory and `pstack-workers` child transcripts that the host contract names | `pstack_context`, `scripts/resources.mjs`, `test/research-parity.test.ts` |
 | Helper scripts | Complete original scripts, lockfile, and test suites | `upstream/skills/poteto-mode/scripts` |
 | Benny source pack | Preserved and excluded from public skill discovery | Package manifest and resource inventory |
 
@@ -37,7 +37,7 @@ The requested 100% behavior parity is not achieved. The plugin requires Referenc
 | Benny reviewed Automations editor handoff | The source explicitly requires Reference's editor and approval flow. Preserved prompts are not deployed automations. |
 | Benny worker credential exclusion | Pi local sessions do not establish the required operating-system credential and Slack-write isolation. Benny delegated execution is not verified or enabled. |
 | Grok Bot routines, secret handoff, preview, and webhooks | Reference routine tools and associated services are not supplied by pi core. |
-| Reference chat UUID links, prior history, stores, and worktree transcript checks | Pi history is exposed separately. Original Reference-specific scripts and references remain unchanged and cannot prove pi history safety. |
+| Reference chat UUID links and prior Reference history | Pi history is exposed separately. The upstream snapshot keeps its Reference paths. Generated resources map them to the Pi session store, so prior Reference chats are not searched. |
 | Arbitrary MCP and business service integrations | Writable workers discover installed pi extensions. Availability, permissions, and external service behavior remain installation-specific. |
 | UI parity and stochastic instruction compliance | Pi has different UI and system instructions. Deterministic tests cannot establish every possible model decision or identical rendering. |
 
@@ -57,7 +57,7 @@ The team-kit increment closes three named skill-distribution dependencies. Its r
 
 The test suite exercises the actual pi resource loader and SDK with a deterministic provider. It does not contact paid model providers or deploy external automations. Source helper test results and final verification counts are recorded in `verification.md`.
 
-The source's worktree audit includes Reference transcript paths and macOS utilities. Preserve it as source, but do not use it as proof that pi sessions are inactive. The source `orch` CLI maintains an orchestration store; it does not itself provide the missing cloud scheduler.
+The generated worktree audit searches the Pi session directories of the main worktree and of each worktree, including `pstack-workers`. It uses Perl for file dates, so GNU or uutils coreutils on PATH do not blank the LAST_CHAT column. It cannot see sessions stored under a custom `--session-dir`. The source `orch` CLI maintains an orchestration store; it does not itself provide the missing cloud scheduler.
 
 ## Reference behavior audit
 

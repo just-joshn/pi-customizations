@@ -64,7 +64,7 @@ Mode, todo, and task records follow the current session branch. Child transcript
 
 `upstream-team-kit/` contains all 29 files from the pinned team-kit plugin, with its license, manifest, agents, rules, and canvas assets. The original pstack snapshot remains unchanged.
 
-`skills/` contains 142 files and `prompts/` contains 63 templates generated from both snapshots. The generator normalizes two display names, removes unsupported Reference frontmatter, and maps model-rule and skill-authoring paths to Pi locations. It retains the workflow bodies and supporting resources, with `bro` moved to a prompt template. It rejects overlapping source destinations before writing. [The resource map](docs/resource-map.json) lists every generated file and transformation. It is a maintenance inventory, not a Pi manifest or API.
+`skills/` contains 142 files and `prompts/` contains 63 templates generated from both snapshots. The generator normalizes two display names, removes unsupported Reference frontmatter, and maps model-rule, skill-authoring, and transcript paths to Pi locations. The generated worktree audit reads Pi session directories. It retains the workflow bodies and supporting resources, with `bro` moved to a prompt template. It rejects overlapping source destinations before writing. [The resource map](docs/resource-map.json) lists every generated file and transformation. It is a maintenance inventory, not a Pi manifest or API.
 
 Development verification requires Node/npm, uv, and Bun. From the repository root, `make verify` runs all maintained checks and the isolated helper suite. Use these commands inside this directory:
 
@@ -86,4 +86,4 @@ The CLI check starts an isolated local pi process and exercises RPC commands wit
 
 The [Pi mechanism audit](docs/mechanism-audit.md) records the facility classifications, fixes, verification, and invocation changes.
 
-The [earlier comprehensive audit](docs/comprehensive-audit.md) records rule checks, reference parity corrections, regression tests, and approved source-preservation conflicts. The [AGENTS compliance audit](docs/agents-compliance.md) records subsequent fixes, verification, compatibility changes, and remaining findings.
+The [earlier comprehensive audit](docs/comprehensive-audit.md) records rule checks, reference parity corrections, regression tests, and approved source-preservation conflicts. The [AGENTS compliance audit](docs/agents-compliance.md) records subsequent fixes, verification, compatibility changes, and remaining findings. The [research parity audit](docs/research-parity-audit.md) checks each claim in the pstack ecosystem reverse-engineering report.
