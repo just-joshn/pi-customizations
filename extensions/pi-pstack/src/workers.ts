@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, realpath, writeFile } from 'node:fs/promises';
+import { mkdir, realpath, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Usage } from '@earendil-works/pi-ai';
@@ -7,6 +7,7 @@ import { Type, type Static } from 'typebox';
 import { Check } from 'typebox/value';
 import { createAgentSession, DefaultResourceLoader, getAgentDir, SessionManager, type AgentSession, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { resolveModel } from './models.ts';
+import { readPersona, readTeamKitRules } from './personas.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const entryType = 'pstack-task';
@@ -91,20 +92,14 @@ export function registerWorkers(pi: ExtensionAPI): void {
         const persona = params.subagent_type ?? prior?.persona ?? 'generalPurpose';
         const readonly = params.readonly ?? prior?.readonly ?? false;
         if (prior && (cwd !== prior.cwd || persona !== prior.persona || readonly !== prior.readonly)) throw new Error('Resume must preserve the task workspace, persona, and readonly policy.');
-        const known = ['generalPurpose', 'poteto-agent', 'comment-sicko', 'Comment Sicko'];
-        if (!known.includes(persona)) throw new Error(`Unknown agent ${persona}. Available: ${known.join(', ')}`);
-        let instructions = '';
-        if (persona !== 'generalPurpose') {
-          const file = persona === 'poteto-agent' ? 'poteto-agent.md' : 'comment-sicko.md';
-          instructions = await readFile(join(root, 'upstream/agents', file), 'utf8');
-          if (persona === 'poteto-agent') instructions += '\n' + await readFile(join(root, 'skills/poteto-mode/SKILL.md'), 'utf8');
-        }
-        const selected = resolveModel(params.model ?? prior?.modelReference, ctx);
+        const profile = await readPersona(persona);
+        const selected = resolveModel(params.model ?? prior?.modelReference ?? profile.defaultModel, ctx);
+        const rules = readonly ? await readTeamKitRules() : '';
         const loader = new DefaultResourceLoader({
           cwd, agentDir: getAgentDir(), noExtensions: readonly,
           additionalExtensionPaths: readonly ? [] : [join(root, 'src/index.ts')],
           additionalSkillPaths: [join(root, 'skills')],
-          appendSystemPrompt: [instructions, `This is task ${id}. Task tools create nested agents. Drain every required child with TaskOutput before returning findings. Your final return closes this session and cancels unfinished descendants. Skill resources are in ${join(root, 'skills')}.`],
+          appendSystemPrompt: [profile.instructions, rules, `This is task ${id}. Task tools create nested agents. Drain every required child with TaskOutput before returning findings. Your final return closes this session and cancels unfinished descendants. Skill resources are in ${join(root, 'skills')}.`],
           extensionsOverride: result => ({ ...result, extensions: result.extensions.filter((extension, index, all) => all.findIndex(other => other.resolvedPath === extension.resolvedPath) === index) }),
         });
         await loader.reload();

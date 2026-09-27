@@ -2,7 +2,7 @@
 
 ## Verified source and host contracts
 
-The resource checker verifies all 158 upstream hashes and all 122 generated skill resources, including executable bits. The official pi loader discovers 47 legal skill names with no skill diagnostics. Benny's three operational skills remain outside discovery.
+The resource checker verifies all 187 upstream hashes and all 143 generated skill resources, including executable bits. The official pi loader discovers 65 legal skill names with no skill diagnostics. Benny's three operational skills remain outside discovery.
 
 The TypeScript compiler checks the implementation against pi SDK 0.87.1. Integration tests use the real resource loader, extension runner, session manager, and agent sessions with a deterministic local provider. They make no paid model calls.
 
@@ -33,4 +33,29 @@ No live multi-provider model comparison, paid provider inference, external servi
 
 The completion predicate for full runtime parity remains NOT VERIFIED because the [compatibility report](parity.md) lists unmet host contracts. Passing local tests does not remove those gaps or prove universal instruction adherence.
 
-The final extension suite has 17 passing tests and zero failures. The real nested-worker test proves active descendants are cancelled on both terminal completion and TaskStop, with no later writes after their scheduled completion time. TypeScript, resource checks, the CLI check, and the final package inventory also pass. The decision trail records these outcomes.
+The original pstack increment finished with 17 passing tests. The real nested-worker test proves active descendants are cancelled on both terminal completion and TaskStop, with no later writes after their scheduled completion time. Those checks remain in the expanded suite.
+
+## Team-kit increment
+
+The new integration checks initially failed on the old implementation. Discovery returned 47 instead of 65 skills, and the expected always-on rule section was empty. After implementation, the full suite passed 28 tests with zero failures. TypeScript and resource verification passed against official pi 0.87.1.
+
+| Contract | Evidence and limit |
+| --- | --- |
+| Skill dependency closure | Real SDK discovery finds all 18 literal kit names. Alias and native invocations for deslop, control-cli, and control-ui carry their source instructions and user arguments. |
+| Source and assets | All 187 hashes and 143 generated resources pass. Canvas HTML, CSS, and renderer equal their source files. The pstack snapshot has no changes. |
+| Generator failure behavior | Temporary copies show source corruption and overlapping destinations fail before any generated skill is overwritten. A generation rerun leaves the resource map unchanged. |
+| Rule delivery | Actual parent and writable-child requests contain both rule bodies. Parent rules remain after Poteto mode is disabled. |
+| Readonly rule delivery | The test observes the actual SDK resource loader during readonly child construction and sees both rules and the full review rubric with extensions disabled. The fixture's extension-only provider then fails as expected. A completed readonly model turn is not claimed. |
+| Kit personas | Actual writable child requests contain the CI persona or complete review rubric. Missing `fast` fails, explicit model succeeds, and resume retains its concrete model. Unsupported shell and explore requests fail explicitly. |
+| CLI and distribution | The RPC check passes against the working package and an extracted npm tarball. Both report 65 aliases and the kit version without model calls. The package inventory contains all 330 preserved and generated resources. |
+| Coverage | Node's coverage report over `src/*.ts` reports 91.73% lines, 75.42% branches, and 80.88% functions across the full suite. |
+
+Coverage command:
+
+```sh
+node --import tsx --test --experimental-test-coverage --test-coverage-include='src/*.ts' test/*.test.ts
+```
+
+To check an extracted package through the real CLI, run `npm run check:cli -- /absolute/path/to/extracted/package` from this development directory. The script uses the installed official CLI with the extracted package as its extension source. It does not install the package globally.
+
+The source's local control-cli workflow informed this reuse of the existing isolated RPC harness. Interactive terminal rendering, actual GitHub CI, browser automation, and stochastic workflow compliance were not exercised. Full parity remains unverified.

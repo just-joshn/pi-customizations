@@ -6,6 +6,7 @@ import { Check } from 'typebox/value';
 import { parseFrontmatter, SessionManager, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { modelConfigPath, readModelRule, setupModels } from './models.ts';
 import { registerWorkers } from './workers.ts';
+import { readTeamKitRules } from './personas.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const Todo = Type.Object({
@@ -18,6 +19,7 @@ type State = Static<typeof State>;
 const result = (text: string, details: unknown = undefined) => ({ content: [{ type: 'text' as const, text }], details });
 
 export default async function pstack(pi: ExtensionAPI) {
+  const teamKitRules = await readTeamKitRules();
   const skills = new Map<string, { path: string; body: string; description: string }>();
   for (const item of await readdir(join(root, 'skills'), { withFileTypes: true })) {
     if (!item.isDirectory()) continue;
@@ -127,16 +129,20 @@ export default async function pstack(pi: ExtensionAPI) {
   });
   pi.on('before_agent_start', async (event, ctx) => {
     const rule = await readModelRule();
+    event.systemPromptOptions.sections.pstack_team_kit_rules = teamKitRules;
     event.systemPromptOptions.sections.pstack_host = [
       'pstack pi host contract. Follow the bundled workflow instructions in full. Preserve their gates and report missing dependencies.',
       `Bundled skills: ${join(root, 'skills')}. Immutable source including agents and dormant Benny pack: ${join(root, 'upstream')}.`,
+      `cursor-team-kit 1.2.0 is bundled at ${join(root, 'upstream-team-kit')}. Its 18 skills, including deslop, control-cli, control-ui and verify-this, are in the same generated skills directory. Read the relevant SKILL.md in full before applying it. Its two alwaysApply rules apply independently of Poteto mode.`,
       `Read model role overrides at ${modelConfigPath()}. This is the Pi mapping of ~/.cursor/rules/pstack-models.mdc. The active rule follows:\n${rule || 'No override. Upstream defaults remain requests, not confirmed available models.'}`,
       'Task, TaskOutput, TaskMessage, TaskStop implement local delegation. Use exact available provider/model IDs, optionally :thinking. auto and inherit-parent inherit the parent. Unavailable Cursor slugs fail with available choices. Follow the source fallback policy and report any model change.',
       'Cloud Task execution is unavailable. Never silently replace a required cloud task with local execution. Readonly workers have restricted tools, not an OS sandbox. Agent-mode workers use installed Pi extensions; their tool availability depends on those extensions.',
       'TodoWrite keeps the verbatim ordered playbook steps. AskQuestion is available only with interactive or RPC dialogs. Cancellation is not approval.',
       'pstack_mode changes sticky mode on explicit user entry or opt-out. Recognize natural-language user requests through that tool, not quoted examples. Only apply the active mode to tasks matching its own scope.',
       'Use pstack_context for this Pi session and workspace history. Cursor transcript paths and chat links in upstream prose are source-host references; do not invent them or read other workspaces to fill gaps.',
-      'Cursor /loop, /goal, cloud hosting, /automate editor, built-in create-skill and Grok Bot routines are not implemented here. cursor-team-kit deslop/control-cli/control-ui, MCP connectors and service credentials are external dependencies. Stop the affected workflow at its unmet gate and name what is missing. Do not fabricate equivalent verification or approvals.',
+      'Task also supports the bundled ci-watcher and thermo-nuclear-code-quality-review personas. ci-watcher requests the source model selector fast unless the caller supplies a configured Pi model. No model is silently substituted. The kit references Cursor built-in shell and explore personas whose contracts are not published here; these remain unsupported. Collect the required diff and file contents with available tools before invoking the thermo review persona.',
+      'control-cli and control-ui provide local harness instructions, not installed terminal or browser tooling. Discover and use the project tools as those skills require. pr-review-canvas assets are bundled, but Pi has no Cursor in-app browser. Use available local browser tooling only when it satisfies the workflow. workflow-from-chats can inspect Pi workspace history through pstack_context; identify that corpus and cite real parent session IDs without exposing private transcript paths or inventing Cursor links.',
+      'Cursor /loop, /goal, cloud hosting, /automate editor, built-in create-skill and Grok Bot routines are not implemented here. The bundled loop-on-ci skill watches GitHub checks; it does not supply persistent /loop scheduling. MCP connectors and service credentials remain external dependencies. Stop the affected workflow at its unmet gate and name what is missing. Do not fabricate equivalent verification or approvals.',
       'Benny is a dormant source pack, not a registered automation. Its Cursor reviewed-editor creation and credential-isolation requirements remain unsatisfied by this extension.',
       `This session transcript is ${ctx.sessionManager.getSessionFile() ?? 'in memory'}. Workspace is ${ctx.cwd}.`,
     ].join('\n\n');
@@ -232,10 +238,10 @@ export default async function pstack(pi: ExtensionAPI) {
     description: 'Show pstack status, source version, model rule, and host compatibility limits.',
     handler: async (_args, ctx) => {
       pi.sendMessage({ customType: 'pstack-status', display: true, details: state, content: [
-        `pstack 0.15.5 for Pi 0.87.1. ${skills.size} skill aliases. Poteto mode ${state.enabled ? 'on' : 'off'}.`,
+        `pstack 0.15.5 with cursor-team-kit 1.2.0 for Pi 0.87.1. ${skills.size} skill aliases. Poteto mode ${state.enabled ? 'on' : 'off'}.`,
         `Model configuration: ${modelConfigPath()}`,
         `Compatibility report: ${join(root, 'docs/parity.md')}`,
-        'Partial runtime parity. Cursor cloud agents, hosted automation editor, loops/goals, bot routines, external skills and credential isolation are not supplied.',
+        'Partial runtime parity. Cursor cloud agents, hosted automation editor, loops/goals, bot routines, built-in create-skill and credential isolation are not supplied.',
       ].join('\n') });
       showState(ctx);
     },

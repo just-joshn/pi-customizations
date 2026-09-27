@@ -11,5 +11,12 @@
     "version": "0.87.1"
   },
   "parity": "partial",
-  "inventory": "source-inventory.json"
+  "inventory": "source-inventory.json",
+  "cursor-team-kit": {
+    "repository": "https://github.com/cursor/plugins",
+    "commit": "ecc249f1e306fc64ddf83c7bed16cacf7c2239db",
+    "path": "cursor-team-kit",
+    "version": "1.2.0",
+    "inventory": "team-kit-source-inventory.json"
+  }
 }
