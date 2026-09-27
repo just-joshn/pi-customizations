@@ -61,13 +61,13 @@ export function registerStatus(pi: ExtensionAPI, store: StateStore): void {
     description: 'Show pstack status, source version, model rule, and host compatibility limits.',
     handler: async (_args, ctx) => {
       const state = store.read();
-      const skillCount = (await readdir(join(root, 'skills'), { withFileTypes: true })).filter((entry) => entry.isDirectory()).length;
-      const promptCount = (await readdir(join(root, 'prompts'))).filter((name) => name.endsWith('.md')).length;
+      const skillCount = (await Promise.all(['skills', 'host/skills'].map(dir => readdir(join(root, dir), { withFileTypes: true })))).flat().filter((entry) => entry.isDirectory()).length;
+      const promptCount = (await Promise.all(['prompts', 'host/prompts'].map(dir => readdir(join(root, dir))))).flat().filter((name) => name.endsWith('.md')).length;
       pi.sendMessage({ customType: 'pstack-status', display: true, details: state, content: [
         `pstack 0.15.5 with cursor-team-kit 1.2.0 for Pi 0.87.1. ${skillCount} skills, ${promptCount} prompt templates. Poteto mode ${state.enabled ? 'on' : 'off'}.`,
         `Model configuration: ${modelConfigPath()}`,
         `Compatibility report: ${join(root, 'docs/parity.md')}`,
-        'Partial runtime parity. Cursor cloud agents, hosted automation editor, loops/goals, bot routines, server-synced create-skill and credential isolation are not supplied.',
+        'Partial runtime parity. Cursor cloud agents, hosted automation editor, cloud timers, goals, bot routines, server-synced create-skill and credential isolation are not supplied.',
       ].join('\n') });
       store.showState(ctx);
     },

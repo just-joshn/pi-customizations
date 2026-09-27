@@ -120,3 +120,13 @@ test('host contract names the workspace session directory the transcript skills 
   assert.ok(host.includes('Workspace Pi session directory: /agent/sessions/--w--.'));
   assert.ok(host.includes('Task child transcripts: /agent/sessions/--w--/pstack-workers/<parent-session-id>.'));
 });
+
+test('local /loop ships as a Pi skill and template that the host contract names', async () => {
+  const skill = await read('host/skills/loop/SKILL.md');
+  assert.match(skill, /^---\nname: loop\ndescription: .+\ndisable-model-invocation: true\n---\n/);
+  for (const text of ['Usage: /loop [interval] <prompt>', 'notify_on_output: "^AGENT_LOOP_TICK_<purpose>"', 'notify_on_output: "^AGENT_LOOP_WAKE_<purpose>"', 'BackgroundShellStop']) assert.ok(skill.includes(text), text);
+  assert.ok((await read('host/prompts/loop.md')).includes('Read loop/SKILL.md in full under the pstack host skills directory'));
+  const { hostInstructions } = await import('../src/host.ts');
+  const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
+  assert.ok(hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '').includes('/loop is a Pi prompt template for the local loop skill at /pkg/host/skills/loop/SKILL.md.'));
+});

@@ -21,7 +21,7 @@ This audit checks the pstack Pi extension against `~/.cursor/research/pstack-eco
 | 6.2 | recall, automate-me, show-me-your-work, and eval read workspace transcripts | Violation, fixed. Generated skills named `~/.cursor/projects/<slug>/agent-transcripts`, which Pi never writes. They now name the Pi session store, its `--<slug>--` form, and `pstack-workers` child transcripts. The host contract names both directories. |
 | 6.3 | Shipping probes `command -v origin` before `gh` | Holds. Prose preserved. |
 | 6.3 | Mode overrides the built-in babysit | Holds. |
-| 6.3 | `/loop`, `/create-skill`, cloud timers | Host capability, not pstack. The report and the upstream guide both call `/loop` a Cursor built-in. The host contract names it as an unmet gate. |
+| 6.3 | Local `/loop` wakes on background output matching `AGENT_LOOP_TICK_<purpose>` | Ported on request. `BackgroundShell` supplies `notify_on_output` wakes and a Pi-authored loop skill follows the local procedure. Cloud timers and `/create-skill` stay unmet host gates. |
 | 7 | Benny is dormant | Holds. Preserved, not discoverable. |
 | 7 | watch-pr verdicts and backoff, orch stores, check-plan rules | Holds. Upstream helper suites pass through `npm run check:upstream`. |
 | 7 | worktree-audit dates the last agent chat per worktree | Violation, fixed. The script searched Cursor transcripts, so every Pi-touched worktree showed no chat and could reach the `safe` bucket. It now searches the Pi session directory of the main worktree and of each worktree. It also dated files with BSD `stat -f` and `date -r`, which fail when GNU or uutils coreutils lead PATH, as on the audited machine. Perl now reads the dates. |
