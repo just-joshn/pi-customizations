@@ -26,7 +26,7 @@ export type TaskParameters = Static<typeof TaskParameters>;
 export function restoreTaskRecords(entries: ReadonlyArray<{ type: string; customType?: string; data?: unknown }>): Map<string, TaskRecord> {
   const parsed = entries.flatMap(entry => {
     if (entry.type !== 'custom' || entry.customType !== taskEntryType || !Check(TaskRecordSchema, entry.data)) return [];
-    const record = entry.data;
+    const record = structuredClone(entry.data);
     const restored: TaskRecord = record.status === 'running'
       ? { ...record, status: 'interrupted', output: 'Parent session ended before completion. Resume this task to continue.' } : record;
     return [[record.id, restored] satisfies [string, TaskRecord]];

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test, { type TestContext } from 'node:test';
 import { workerFixture } from './worker-fixture.ts';
+import { workerTiming } from './worker-timing.ts';
 import { AgentSession, createAgentSession, DefaultResourceLoader, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { registerWorkers, restoreTaskRecords, taskSummary } from '../src/workers.ts';
 
@@ -176,22 +177,22 @@ workerTest('terminal children and explicit stops drain every grandchild', async 
     assert.match(audit, /grandchild-aborted/);
     assert.doesNotMatch(audit, /grandchild-finished/);
     const afterTerminal = audit;
-    await new Promise(resolve => setTimeout(resolve, 550));
+    await new Promise(resolve => setTimeout(resolve, workerTiming.descendantRunMs + workerTiming.drainMarginMs));
     assert.equal(await readFile(join(dir, 'audit.txt'), 'utf8'), afterTerminal, 'terminal child cannot leave delayed writes or wake new turns');
     await writeFile(join(dir, 'audit.txt'), '');
     const nestedRun = await call('Task', { prompt: 'NEST_STOP', model: 'worker-test/deterministic' });
     const nestedId = JSON.parse(nestedRun.content.find(block => block.type === 'text')!.text).task_id;
-    for (let attempt = 0; attempt < 100; attempt++) {
+    for (let attempt = 0; attempt < workerTiming.settlementDeadlineMs / workerTiming.pollIntervalMs; attempt++) {
       audit = await readFile(join(dir, 'audit.txt'), 'utf8');
       if (audit.includes('grandchild-start')) break;
-      await new Promise(resolve => setTimeout(resolve, 5));
+      await new Promise(resolve => setTimeout(resolve, workerTiming.pollIntervalMs));
     }
     assert.match(audit, /grandchild-start/);
     await call('TaskStop', { task_id: nestedId });
     const afterStop = await readFile(join(dir, 'audit.txt'), 'utf8');
     assert.match(afterStop, /grandchild-aborted/);
     assert.doesNotMatch(afterStop, /grandchild-finished/);
-    await new Promise(resolve => setTimeout(resolve, 550));
+    await new Promise(resolve => setTimeout(resolve, workerTiming.descendantRunMs + workerTiming.drainMarginMs));
     assert.equal(await readFile(join(dir, 'audit.txt'), 'utf8'), afterStop, 'TaskStop drains grandchildren before returning');
 
 });
@@ -278,10 +279,10 @@ workerTest('a blocking output call and stop in one Pi batch cannot deadlock each
 });
 
 async function completedTask(session: AgentSession, id: string): Promise<void> {
-  const deadline = Date.now() + 5000;
+  const deadline = Date.now() + workerTiming.settlementDeadlineMs;
   while (restoreTaskRecords(session.sessionManager.getBranch()).get(id)?.status !== 'settled') {
     assert.ok(Date.now() < deadline, 'background child must settle');
-    await new Promise(resolve => setTimeout(resolve, 5));
+    await new Promise(resolve => setTimeout(resolve, workerTiming.pollIntervalMs));
   }
   await session.waitForIdle();
 }

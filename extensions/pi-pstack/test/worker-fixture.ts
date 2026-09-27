@@ -9,17 +9,28 @@ async function writeProvider(dir: string): Promise<void> {
   await writeFile(join(dir, 'extensions/provider.ts'), `export { default } from ${JSON.stringify(resolve('test/worker-provider.ts'))};`);
 }
 
+async function closeFixture(session: Awaited<ReturnType<typeof createAgentSession>>['session'] | undefined, dir: string, priorDir: string | undefined) {
+  try {
+    if (session) {
+      try { await session.abort(); }
+      finally {
+        try { await session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' }); }
+        finally { session.dispose(); }
+      }
+    }
+  } finally {
+    if (priorDir === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = priorDir;
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
 export async function workerFixture() {
   const dir = await mkdtemp(join(tmpdir(), 'pstack-child-'));
   const priorDir = process.env.PI_CODING_AGENT_DIR;
   process.env.PI_CODING_AGENT_DIR = dir;
   let session: Awaited<ReturnType<typeof createAgentSession>>['session'] | undefined;
-  const close = async () => {
-    if (session) { await session.abort(); await session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' }); session.dispose(); }
-    if (priorDir === undefined) delete process.env.PI_CODING_AGENT_DIR;
-    else process.env.PI_CODING_AGENT_DIR = priorDir;
-    await rm(dir, { recursive: true, force: true });
-  };
+  const close = () => closeFixture(session, dir, priorDir);
   try {
     await mkdir(join(dir, 'extensions'));
     await writeFile(join(dir, 'settings.json'), JSON.stringify({ retry: { enabled: false }, compaction: { enabled: false } }));

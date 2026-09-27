@@ -24,19 +24,19 @@ export function createState(pi: ExtensionAPI) {
     state = { enabled: false, todos: [] };
     for (const entry of ctx.sessionManager.getBranch()) {
       if (entry.type === 'custom' && entry.customType === 'pstack-state' && Check(State, entry.data)
-        && new Set(entry.data.todos.map(todo => todo.id)).size === entry.data.todos.length) state = entry.data;
+        && new Set(entry.data.todos.map(todo => todo.id)).size === entry.data.todos.length) state = structuredClone(entry.data);
     }
     showState(ctx);
   };
   const update = (next: State, ctx: ExtensionContext) => {
-    state = next;
-    pi.appendEntry('pstack-state', state);
+    state = structuredClone(next);
+    pi.appendEntry('pstack-state', structuredClone(state));
     showState(ctx);
   };
   const toggle = (enabled: boolean, ctx: ExtensionContext) => {
     update({ ...state, enabled }, ctx);
   };
-  return { read: () => state, update, toggle, restore, showState };
+  return { read: () => structuredClone(state), update, toggle, restore, showState };
 }
 
 export type StateStore = ReturnType<typeof createState>;
@@ -64,7 +64,8 @@ export function registerStateTools(pi: ExtensionAPI, store: StateStore): void {
       const todos = new Map([...(params.merge ? state.todos : []), ...params.todos].map((todo) => [todo.id, todo]));
       const next = { ...state, todos: [...todos.values()] };
       store.update(next, ctx);
-      return boundedResult(JSON.stringify(next.todos), next.todos, ctx);
+      const published = store.read().todos;
+      return boundedResult(JSON.stringify(published), published, ctx);
     },
   });
 }

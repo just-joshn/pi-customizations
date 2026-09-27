@@ -10,6 +10,7 @@ import { Check } from 'typebox/value';
 import type { RpcCommand, RpcExtensionUIResponse } from '@earendil-works/pi-coding-agent';
 
 const packageRoot = fileURLToPath(new URL('../', import.meta.url));
+const dialogDeadlineMs = 15000;
 const Select = Type.Object({ type: Type.Literal('extension_ui_request'), id: Type.String(),
   method: Type.Literal('select'), title: Type.String(), options: Type.Array(Type.String()) });
 const End = Type.Object({ type: Type.Literal('tool_execution_end'), toolName: Type.Literal('AskQuestion'),
@@ -45,7 +46,7 @@ function exchange(child: ChildProcessWithoutNullStreams, cancelled: boolean): Pr
     let failure: Error | undefined;
     let stderr = '';
     const fail = (error: Error) => { failure = error; child.kill('SIGKILL'); };
-    const timer = setTimeout(() => fail(new Error('RPC dialog timed out. ' + stderr)), 15000);
+    const timer = setTimeout(() => fail(new Error('RPC dialog timed out. ' + stderr)), dialogDeadlineMs);
     child.stderr.on('data', data => { stderr += data.toString(); });
     child.once('error', fail);
     child.stdin.on('error', fail);
@@ -71,8 +72,8 @@ function exchange(child: ChildProcessWithoutNullStreams, cancelled: boolean): Pr
 }
 
 async function runDialog(cancelled: boolean): Promise<Outcome> {
-  const directory = await mkdtemp(join(tmpdir(), 'pstack-rpc-dialog-'));
   const cli = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-rpc-dialog-'));
   try {
     const child = spawn(process.execPath, [cli, '--mode', 'rpc', '--no-session', '--no-extensions',
       '--no-skills', '--no-prompt-templates', '--no-context-files', '-e', packageRoot,

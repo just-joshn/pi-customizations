@@ -8,19 +8,19 @@ import ts from 'typescript';
 const root = fileURLToPath(new URL('../', import.meta.url));
 
 function functions(source: ts.SourceFile): string[] {
-  let violations: string[] = [];
+  const violations: string[] = [];
   const visit = (node: ts.Node, depth = 0): void => {
     if (ts.isFunctionLike(node)) depth = 0;
     if (ts.isFunctionLike(node) && 'body' in node && node.body) {
       const first = source.getLineAndCharacterOfPosition(node.getStart()).line + 1;
       const last = source.getLineAndCharacterOfPosition(node.end).line + 1;
-      if (last - first + 1 >= 50) violations = [...violations, `${source.fileName}:${first} has ${last - first + 1} function lines`];
+      if (last - first + 1 >= 50) violations.push(`${source.fileName}:${first} has ${last - first + 1} function lines`);
     }
     const control = ts.isIfStatement(node) || ts.isForStatement(node) || ts.isForOfStatement(node)
       || ts.isForInStatement(node) || ts.isWhileStatement(node) || ts.isDoStatement(node)
       || ts.isTryStatement(node) || ts.isSwitchStatement(node);
     const nested = depth + Number(control);
-    if (nested > 4) violations = [...violations, `${source.fileName}:${source.getLineAndCharacterOfPosition(node.getStart()).line + 1} exceeds four control levels`];
+    if (nested > 4) violations.push(`${source.fileName}:${source.getLineAndCharacterOfPosition(node.getStart()).line + 1} exceeds four control levels`);
     else ts.forEachChild(node, child => visit(child, nested));
   };
   visit(source);
@@ -28,7 +28,7 @@ function functions(source: ts.SourceFile): string[] {
 }
 
 test('maintained extension code and tests meet the repository size and logging limits', async () => {
-  let violations: string[] = [];
+  const violations: string[] = [];
   for (const directory of ['src', 'scripts', 'test']) {
     for (const name of await readdir(join(root, directory), { recursive: true })) {
       if (!/\.(ts|mjs)$/.test(name)) continue;
@@ -36,8 +36,8 @@ test('maintained extension code and tests meet the repository size and logging l
       const text = await readFile(path, 'utf8');
       const source = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true);
       const count = text.trimEnd().split('\n').length;
-      if (count >= 800) violations = [...violations, `${path} has ${count} lines`];
-      violations = [...violations, ...functions(source)];
+      if (count >= 800) violations.push(`${path} has ${count} lines`);
+      violations.push(...functions(source));
       assert.doesNotMatch(text, /console[.]log\s*\(/, path);
     }
   }

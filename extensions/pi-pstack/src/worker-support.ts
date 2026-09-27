@@ -39,7 +39,7 @@ export function sumUsage(messages: AgentSession['messages'], previous?: Usage): 
         cacheRead: sum.cost.cacheRead + usage.cost.cacheRead, cacheWrite: sum.cost.cacheWrite + usage.cost.cacheWrite,
         total: sum.cost.total + usage.cost.total },
     };
-  }, previous ?? empty);
+  }, previous ? structuredClone(previous) : empty);
 }
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -68,7 +68,7 @@ export async function openWorkerSession({ id, params, prior, ctx }: OpenWorker):
   const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
   const sessionFile = manager.getSessionFile();
   if (!sessionFile) throw new Error('Worker session did not provide a durable transcript path.');
-  const record: TaskRecord = { id, persona, cwd, readonly, modelReference: `${selected.model.provider}/${selected.model.id}:${selected.thinkingLevel}`, sessionFile, outputFile: join(dir, `${id}.output.txt`), status: 'running', output: '', ...(prior?.usage ? { usage: prior.usage } : {}) };
+  const record: TaskRecord = { id, persona, cwd, readonly, modelReference: `${selected.model.provider}/${selected.model.id}:${selected.thinkingLevel}`, sessionFile, outputFile: join(dir, `${id}.output.txt`), status: 'running', output: '' };
   const modelRuntime = await childModelRuntime(readonly, selected.model.provider, ctx);
   const { session } = await createAgentSession({ cwd, modelRuntime, resourceLoader: loader, sessionManager: manager, ...selected, ...(readonly ? { tools: ['read', 'grep', 'find', 'ls'] } : {}) });
   return { session, record };
