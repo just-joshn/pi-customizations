@@ -7,8 +7,10 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
+const verificationDeadlineMs = 180000;
+const archiveDeadlineMs = 30000;
 const run = (script: string, args: string[] = []) => execFileSync(process.execPath,
-  [join(root, 'scripts', script), ...args], { encoding: 'utf8', timeout: 180000, stdio: 'pipe' });
+  [join(root, 'scripts', script), ...args], { encoding: 'utf8', timeout: verificationDeadlineMs, stdio: 'pipe' });
 
 test('the shipped resource checker verifies both source inventories and generated resources', () => {
   assert.equal(run('resources.mjs'), 'Verified 187 upstream files and 205 generated resources.\n');
@@ -26,9 +28,9 @@ test('the npm distribution loads in the actual Pi CLI and shuts down cleanly', a
   const directory = await mkdtemp(join(tmpdir(), 'pstack-package-'));
   try {
     const archive = execFileSync('npm', ['pack', '--silent', '--pack-destination', directory],
-      { cwd: root, encoding: 'utf8', timeout: 30000 }).trim();
+      { cwd: root, encoding: 'utf8', timeout: archiveDeadlineMs }).trim();
     assert.match(archive, /^pi-pstack-[^/]+\.tgz$/);
-    execFileSync('tar', ['-xzf', join(directory, archive), '-C', directory], { timeout: 30000 });
+    execFileSync('tar', ['-xzf', join(directory, archive), '-C', directory], { timeout: archiveDeadlineMs });
     assert.equal(run('verify-cli.mjs', [join(directory, 'package')]),
       'Verified installed Pi CLI package loading, RPC commands, status, mode off, and orderly shutdown without model calls.\n');
   } finally { await rm(directory, { recursive: true, force: true }); }

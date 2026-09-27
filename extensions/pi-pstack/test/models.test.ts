@@ -66,7 +66,7 @@ function confirmedContext(confirmed: () => void) {
         return true;
       },
     }) });
-  return { ctx, notices };
+  return { ctx, notices: () => notices.slice() };
 }
 
 test("setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles", async () => {
@@ -87,7 +87,7 @@ test("setup confirms before writing all roles, preserves duplicate aliases, and 
     assert.doesNotMatch(result, /how critics/);
     const lines = result.split("\n").filter((line) => line && !line.startsWith("#") && !line.startsWith("---") && !line.startsWith("description:") && !line.startsWith("alwaysApply:"));
     assert.equal(lines.length, 17);
-    assert.ok(notices.some((message) => message.includes("Dropped retired roles:\nhow critics: retired")));
+    assert.ok(notices().some((message) => message.includes("Dropped retired roles:\nhow critics: retired")));
     assert.match(result, /:medium/);
     await setupModels(context({ hasUI: true, ui: ui({ select: async () => undefined }) }));
     assert.equal(await readModelRule(), result);

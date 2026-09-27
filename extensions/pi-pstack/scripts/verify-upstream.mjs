@@ -5,14 +5,16 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
+const subprocessDeadlineMs = 120000;
+const requiredCoverage = 0.8;
 
-function run(args, cwd) {
-  const result = spawnSync('bun', args, { cwd, stdio: 'inherit', timeout: 120000 });
+export function run(args, cwd) {
+  const result = spawnSync('bun', args, { cwd, stdio: 'inherit', timeout: subprocessDeadlineMs });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`bun ${args.join(' ')} failed with ${result.signal ?? result.status}`);
 }
 
-async function enforceCoverage(workspace) {
+export async function enforceCoverage(workspace) {
   const report = await readFile(join(workspace, 'coverage/lcov.info'), 'utf8');
   const sum = key => [...report.matchAll(new RegExp(`^${key}:(\\d+)$`, 'gm'))]
     .reduce((total, match) => total + Number(match[1]), 0);
@@ -28,7 +30,7 @@ async function enforceCoverage(workspace) {
   process.stdout.write(`${files.join('\n')}\n`);
   for (const metric of metrics) {
     process.stdout.write(`${metric.name}: ${metric.hit}/${metric.found} (${(100 * metric.hit / metric.found).toFixed(2)}%)\n`);
-    if (metric.hit / metric.found < 0.8) throw new Error(`Upstream aggregate ${metric.name} coverage is below 80%.`);
+    if (metric.hit / metric.found < requiredCoverage) throw new Error(`Upstream aggregate ${metric.name} coverage is below 80%.`);
   }
 }
 
@@ -48,4 +50,4 @@ async function verify() {
   }
 }
 
-await verify();
+if (import.meta.main) await verify();

@@ -89,7 +89,7 @@ type ModelTable = ReadonlyMap<string, string[]>;
 
 function readTable(current: string): { working: ModelTable; dropped: string[] } {
   let working: ModelTable = new Map(defaults);
-  let dropped: string[] = [];
+  const dropped: string[] = [];
   let frontmatter = false;
   for (const line of current.split(/\r?\n/)) {
     if (line.trim() === "---") { frontmatter = !frontmatter; continue; }
@@ -99,7 +99,7 @@ function readTable(current: string): { working: ModelTable; dropped: string[] } 
     const role = line.slice(0, separator).trim();
     const values = line.slice(separator + 1).split(",").map((value) => value.trim());
     if (defaults.has(role)) working = new Map([...working, [role, values]]);
-    else dropped = [...dropped, line];
+    else dropped.push(line);
   }
   return { working, dropped };
 }

@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import { createAssistantMessageEventStream, type AssistantMessage, type ToolCall } from '@earendil-works/pi-ai';
 import { getAgentDir, type ExtensionAPI, type ProviderConfig } from '@earendil-works/pi-coding-agent';
 
+import { workerTiming } from './worker-timing.ts';
+
 type StreamArguments = Parameters<NonNullable<ProviderConfig['streamSimple']>>;
 
 function requestedTools(text: string, context: StreamArguments[1]): ToolCall[] {
@@ -65,7 +67,7 @@ function streamWorker(model: StreamArguments[0], context: StreamArguments[1], op
   };
   if (options?.signal?.aborted) { finish(true); return stream; }
   if (text.includes('WAIT') || (nested && !calls.length)) {
-    const delay = text.includes('WAIT_BLOCKED') ? 2000 : grandchild || text.includes('NEST_STOP') ? 500 : text.includes('NEST_ROOT') ? 20 : 100;
+    const delay = text.includes('WAIT_BLOCKED') ? workerTiming.blockedRunMs : grandchild || text.includes('NEST_STOP') ? workerTiming.descendantRunMs : text.includes('NEST_ROOT') ? workerTiming.parentRunMs : workerTiming.delayedRunMs;
     const timer = setTimeout(() => finish(), delay);
     options?.signal?.addEventListener('abort', () => { clearTimeout(timer); finish(true); }, { once: true });
   } else finish();

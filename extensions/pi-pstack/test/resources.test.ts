@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import fs, { access, cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { syncBuiltinESMExports } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
@@ -10,18 +11,34 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 
 async function fixture() {
   const directory = await mkdtemp(join(tmpdir(), 'pstack-resources-'));
-  await mkdir(join(directory, 'docs'));
-  await mkdir(join(directory, 'scripts'));
-  for (const path of [
-    'upstream', 'upstream-team-kit', 'skills', 'prompts', 'package.json', 'scripts/resources.mjs',
-    'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json',
-  ]) await cp(join(root, path), join(directory, path), { recursive: true, filter: source => !source.split('/').includes('node_modules') });
+  try {
+    await mkdir(join(directory, 'docs'));
+    await mkdir(join(directory, 'scripts'));
+    for (const path of [
+      'upstream', 'upstream-team-kit', 'skills', 'prompts', 'package.json', 'scripts/resources.mjs',
+      'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json',
+    ]) await cp(join(root, path), join(directory, path), { recursive: true, filter: source => !source.split('/').includes('node_modules') });
+  } catch (error) { await rm(directory, { recursive: true, force: true }); throw error; }
   return {
     directory,
     run: (...args: string[]) => execFileSync(process.execPath, [join(directory, 'scripts/resources.mjs'), ...args], { encoding: 'utf8', stdio: 'pipe' }),
     close: () => rm(directory, { recursive: true, force: true }),
   };
 }
+
+test('resource fixture copy failure removes the partially populated directory', async t => {
+  let directory = '';
+  t.mock.method(fs, 'cp', async (_source: unknown, destination: unknown) => {
+    directory = dirname(String(destination));
+    throw new Error('copy failed');
+  });
+  syncBuiltinESMExports();
+  try {
+    await assert.rejects(fixture(), /copy failed/);
+    assert.ok(directory);
+    await assert.rejects(access(directory), /ENOENT/);
+  } finally { t.mock.restoreAll(); syncBuiltinESMExports(); }
+});
 
 test('resource generation is reproducible across both source bundles', async () => {
   const f = await fixture();

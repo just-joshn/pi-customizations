@@ -38,7 +38,7 @@ CLI and UI workflows use the project's existing terminal or browser tools. Bundl
 
 `Task` starts a local SDK session. Background calls return a task ID and deliver a completion message. `TaskOutput` reads or waits for its result. `TaskMessage` sends steering or follow-up input. `TaskStop` aborts it. `Task` with `resume` continues the same child transcript.
 
-Supported personas are `generalPurpose`, `poteto-agent`, `comment-sicko` with alias `Comment Sicko`, `ci-watcher`, and `thermo-nuclear-code-quality-review`. The last includes the complete team-kit rubric. The CI watcher inherits the parent model, matching the observed Cursor plugin loader. An explicit pi model selection overrides inheritance. Resume retains the model already selected. The original persona file still records its author-requested `fast` selector.
+Supported personas are `generalPurpose`, `poteto-agent`, `comment-sicko` with alias `Comment Sicko`, `ci-watcher`, and `thermo-nuclear-code-quality-review`. The last includes the complete team-kit rubric. The CI watcher inherits the parent model, matching the observed Cursor plugin loader. An explicit pi model selection overrides inheritance. Resume retains the previously selected model unless the Task call supplies an explicit model. The original persona file still records its author-requested `fast` selector.
 
 Cursor's built-in `shell` and `explore` personas are not defined by either source plugin and remain unsupported. The thermo review persona can consume a diff and file contents collected with ordinary tools, but its prescribed built-in collector orchestration is not reproduced.
 

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import fs, { mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { syncBuiltinESMExports } from 'node:module';
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,6 +23,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const settlementDeadlineMs = 5000;
 const model: Model<"openai-completions"> = {
   id: "scripted", name: "Scripted integration provider", provider: "pstack-integration",
   api: "openai-completions", baseUrl: "https://integration.invalid", reasoning: false,
@@ -29,14 +31,14 @@ const model: Model<"openai-completions"> = {
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 };
 
-function providerFixture(requests: Context[], calls: (ToolCall | ToolCall[])[]): ExtensionFactory {
+function providerFixture(capture: (request: Context) => void, next: () => ToolCall | ToolCall[] | undefined): ExtensionFactory {
   return (pi) => {
     pi.registerProvider(model.provider, {
       api: model.api, baseUrl: model.baseUrl, apiKey: "integration-only-not-a-credential",
       models: [model],
       streamSimple: (_model, context) => {
-        requests.push(structuredClone(context));
-        const call = calls.shift();
+        capture(structuredClone(context));
+        const call = next();
         const message: AssistantMessage = {
           role: "assistant", api: model.api, provider: model.provider, model: model.id,
           content: call ? (Array.isArray(call) ? call : [call]) : [{ type: "text", text: "Scripted reply." }],
@@ -53,16 +55,27 @@ function providerFixture(requests: Context[], calls: (ToolCall | ToolCall[])[]):
   };
 }
 
+async function closeSessions(sessions: AgentSession[], root: string) {
+  try {
+    const results = await Promise.allSettled(sessions.map(async session => {
+      try { await session.abort(); } finally { session.dispose(); }
+    }));
+    const failures = results.filter(result => result.status === 'rejected');
+    if (failures.length) throw new AggregateError(failures.map(result => result.reason), 'Fixture cleanup failed');
+  } finally { await rm(root, { recursive: true, force: true }); }
+}
+
 async function fixture({ extensionOnly = false }: { extensionOnly?: boolean } = {}) {
   const root = await mkdtemp(join(tmpdir(), "pstack-integration-"));
   const cwd = join(root, "workspace");
   const agentDir = join(root, "agent");
-  await Promise.all([mkdir(cwd), mkdir(agentDir)]);
+  try { await mkdir(cwd); await mkdir(agentDir); }
+  catch (error) { await rm(root, { recursive: true, force: true }); throw error; }
   const requests: Context[] = [];
   const calls: (ToolCall | ToolCall[])[] = [];
   const sessions: AgentSession[] = [];
   const errors: string[] = [];
-  const provider = providerFixture(requests, calls);
+  const provider = providerFixture(request => requests.push(request), () => calls.shift());
   const settingsManager = SettingsManager.inMemory({
     packages: extensionOnly ? [] : [packageRoot], compaction: { enabled: false }, retry: { enabled: false },
   });
@@ -91,14 +104,9 @@ async function fixture({ extensionOnly = false }: { extensionOnly?: boolean } = 
     return { session, manager, loader };
   }
   return {
-    root, cwd, requests, calls, errors, load, open,
-    async close() {
-      for (const session of sessions) {
-        await session.abort();
-        session.dispose();
-      }
-      await rm(root, { recursive: true, force: true });
-    },
+    root, cwd, get requests() { return structuredClone(requests); }, get errors() { return errors.slice(); }, load, open,
+    calls: { push(...items: (ToolCall | ToolCall[])[]) { calls.push(...structuredClone(items)); } },
+    close: () => closeSessions(sessions, root),
   };
 }
 
@@ -110,7 +118,7 @@ async function prompt(session: AgentSession, text: string) {
   let unsubscribe = () => {};
   let timer: ReturnType<typeof setTimeout> | undefined;
   const settled = new Promise<void>((resolve, reject) => {
-    timer = setTimeout(() => reject(new Error("Pi did not settle the scripted request")), 5000);
+    timer = setTimeout(() => reject(new Error("Pi did not settle the scripted request")), settlementDeadlineMs);
     unsubscribe = session.subscribe((event) => {
       if (event.type === "agent_settled") resolve();
     });
@@ -143,6 +151,37 @@ function lastRequest(requests: Context[]) {
 function toolResults(session: AgentSession, name: string) {
   return session.messages.filter((message) => message.role === "toolResult" && message.toolName === name);
 }
+
+test('integration fixture setup failure removes its directory', async t => {
+  let directory = '';
+  t.mock.method(fs, 'mkdir', async (path: unknown) => {
+    directory = dirname(String(path));
+    throw new Error('mkdir failed');
+  });
+  syncBuiltinESMExports();
+  try {
+    await assert.rejects(fixture(), /mkdir failed/);
+    assert.ok(directory);
+    await assert.rejects(fs.access(directory), /ENOENT/);
+  } finally { t.mock.restoreAll(); syncBuiltinESMExports(); }
+});
+
+test('integration fixture disposes every session and removes files after abort failure', async t => {
+  const f = await fixture();
+  try {
+    const first = await f.open();
+    const second = await f.open();
+    const disposed: string[] = [];
+    for (const [name, session] of [['first', first.session], ['second', second.session]] as const) {
+      const dispose = session.dispose.bind(session);
+      t.mock.method(session, 'dispose', () => { dispose(); disposed.push(name); });
+    }
+    t.mock.method(first.session, 'abort', async () => { throw new Error('abort failure'); });
+    await assert.rejects(f.close(), /Fixture cleanup failed/);
+    assert.deepEqual(disposed.toSorted(), ['first', 'second']);
+    await assert.rejects(fs.access(f.root), /ENOENT/);
+  } finally { t.mock.restoreAll(); await f.close(); }
+});
 
 test("official resource loader separates skills, prompt aliases, and runtime commands without Benny discovery", async () => {
   const f = await fixture();
@@ -526,7 +565,7 @@ test("invalid todo replacement leaves progress intact and mode tool can opt out"
   } finally { await f.close(); }
 });
 
-test("large context output is bounded while structured transcript evidence remains complete", async () => {
+test("repeated context calls persist bounded nonrecursive evidence with transcript pointers", async t => {
   const f = await fixture();
   const previous = process.env.PI_CODING_AGENT_DIR;
   process.env.PI_CODING_AGENT_DIR = join(f.root, "agent");
@@ -534,14 +573,26 @@ test("large context output is bounded while structured transcript evidence remai
     const { session } = await f.open();
     const evidence = "Transcript evidence ".repeat(3000);
     await prompt(session, evidence);
-    f.calls.push({ type: "toolCall", id: "large-context", name: "pstack_context", arguments: { history: true } });
-    await prompt(session, "Locate the evidence and workspace history.");
-    const result = toolResults(session, "pstack_context").at(-1);
-    assert.ok(result?.role === "toolResult" && !result.isError, JSON.stringify(result));
-    const text = result.content.find((block) => block.type === "text")?.text ?? "";
-    assert.ok(text.length < 49000);
-    assert.match(text, /Truncated\. Full current transcript:/);
-    assert.ok(JSON.stringify(result.details).includes(evidence));
+    for (let index = 0; index < 100; index++) session.sessionManager.appendCustomEntry('context-fixture', { index });
+    for (let index = 0; index < 12; index++) {
+      f.calls.push({ type: "toolCall", id: `context-${index}`, name: "pstack_context", arguments: { history: true } });
+      await prompt(session, "Locate the evidence and workspace history.");
+      const result = toolResults(session, "pstack_context").at(-1);
+      assert.ok(result?.role === "toolResult" && !result.isError);
+      assert.ok(Buffer.byteLength(JSON.stringify(result)) < 128 * 1024);
+      const details = result.details as { sessionFile: string; entries: object[] };
+      assert.equal(details.sessionFile, session.sessionFile);
+      assert.ok(details.entries.every(entry => !('message' in entry) && !('details' in entry)));
+      assert.ok(!JSON.stringify(result.details).includes(evidence));
+    }
+    const persisted = (await readFile(session.sessionFile!, 'utf8')).trim().split('\n').map(line => JSON.parse(line));
+    const contexts = persisted.filter(entry => entry.message?.toolName === 'pstack_context');
+    assert.equal(contexts.length, 12);
+    const sizes = contexts.map(entry => Buffer.byteLength(JSON.stringify(entry)));
+    assert.ok(sizes.every(size => size < 128 * 1024));
+    assert.ok(contexts.at(-1).message.details.omitted.entries > 0);
+    t.diagnostic(`Persisted context results ${sizes.length}; maximum serialized entry bytes ${Math.max(...sizes)}; final omitted entries ${contexts.at(-1).message.details.omitted.entries}.`);
+    assert.ok(persisted.some(entry => entry.message?.role === 'user' && JSON.stringify(entry.message.content).includes(evidence)));
     assert.deepEqual(f.errors, []);
   } finally {
     if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
@@ -562,6 +613,7 @@ test("AskQuestion rejects ambiguous and blank identifiers before opening dialogs
       input: async () => { dialogs++; return undefined; },
     }, "rpc");
     const invalid = [
+      null, undefined, 'wrong type', [], Array.from({ length: 5 }, (_, index) => ({ id: `q-${index}`, prompt: 'Question' })),
       [{ id: "same", prompt: "First" }, { id: "same", prompt: "Second" }],
       [{ id: "", prompt: "Question" }],
       [{ id: "blank", prompt: " " }],
@@ -570,7 +622,7 @@ test("AskQuestion rejects ambiguous and blank identifiers before opening dialogs
       [{ id: "pick", prompt: "Choose", options: [{ id: "b] [c", label: "a" }, { id: "c", label: "a [b]" }] }],
     ];
     for (const [index, questions] of invalid.entries()) {
-      f.calls.push({ type: "toolCall", id: `invalid-question-${index}`, name: "AskQuestion", arguments: { questions } });
+      f.calls.push({ type: "toolCall", id: `invalid-question-${index}`, name: "AskQuestion", arguments: questions === undefined ? {} : { questions } });
       await prompt(session, "Validate the question before asking it.");
       const answer = toolResults(session, "AskQuestion").at(-1);
       assert.ok(answer?.role === "toolResult" && answer.isError, JSON.stringify(answer));
@@ -579,6 +631,19 @@ test("AskQuestion rejects ambiguous and blank identifiers before opening dialogs
   } finally { await f.close(); }
 });
 
+
+test('context history errors become failed Pi tool results rather than empty evidence', async t => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    t.mock.method(SessionManager, 'list', async () => { throw new Error('history unavailable'); });
+    f.calls.push({ type: 'toolCall', id: 'failed-history', name: 'pstack_context', arguments: { history: true } });
+    await prompt(session, 'Read workspace history');
+    const result = toolResults(session, 'pstack_context').at(-1);
+    assert.ok(result?.role === 'toolResult' && result.isError);
+    assert.match(JSON.stringify(result.content), /history unavailable/);
+  } finally { t.mock.restoreAll(); await f.close(); }
+});
 
 test("restoration ignores invalid todo snapshots and keeps the latest valid branch state", async () => {
   const f = await fixture();
