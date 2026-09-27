@@ -14,13 +14,16 @@ confirm. The checks live in `references/checks.md`. Read it before starting.
 
 - **Propose, then confirm, then apply, and recommend rather than just offer.**
   Run every check read-only first and present the full report. Then confirm
-  with ONE `questionnaire` call covering every proposed action. Options, in
+  with one question covering every proposed action. If an installed extension
+  exposes a `questionnaire` tool, use it; otherwise ask in chat. This skill
+  does not register tools or provide interactive UI. Options, in
   order: "Clean up everything (recommended)", "Let me pick", "No, keep
-  everything". Only on "Let me pick", ask one follow-up with `allowMultiple`
-  and one option per action group, each labeled with a short name and its
+  everything". Only on "Let me pick", ask one follow-up allowing several
+  selections, using `allowMultiple` if the tool supports it. Provide one
+  option per action group, each labeled with a short name and its
   benefit ("12 unused skills, saves ~1.4k est. tokens/session"). Never edit a
   file before its group is confirmed. Recommending changes the framing, not
-  the gating. When `questionnaire` reports no UI, ask the same question in chat.
+  the gating. If `questionnaire` reports no UI, ask the same question in chat.
 - **Scope of edits.** Disabling and dedup touch only user-owned files:
   `<agent-dir>/settings.json`, `<agent-dir>/trust.json`, `<agent-dir>/AGENTS.md`
   (and its siblings), files under `<agent-dir>/skills/` and `~/.agents/skills/`,
@@ -44,9 +47,9 @@ confirm. The checks live in `references/checks.md`. Read it before starting.
   when `PI_OFFLINE` is set.
 - **Plain language.** Assume the user has never configured Pi. Define terms on
   first use: "skills (task instructions Pi loads on demand)", "extensions
-  (code that adds tools and commands)", "packages (bundles of skills,
-  extensions, and prompts)", "context (what the model reads at the start of
-  every session)". Lead with what a finding means for the user.
+  (code that adds tools and commands)", "packages (distribution units for
+  skills, extensions, prompts, and themes)", "context (what the model reads
+  at the start of every session)". Lead with what a finding means for the user.
 
 ## Gather
 
@@ -61,9 +64,18 @@ out=$(mktemp) && python3 <skill-dir>/scripts/inventory.py --cwd "$PWD" > "$out" 
 Use `--days N` to change the session window (default 30). Query the output
 with `jq` rather than reading it whole. It covers install, settings parse
 status, packages, the newest session's real system prompt (section sizes,
-tool declarations, loaded skills, context files), skill and tool usage, every
-SKILL.md on disk with frontmatter problems, name collisions, and stale trust
-entries. The checks say which fields each one uses.
+tool declarations, loaded skills, context files), skill and tool usage,
+SKILL.md files under its scanned roots with frontmatter problems, name
+collisions, and stale trust entries. The checks say which fields each one uses.
+
+The inventory is a filesystem and session-log estimate, not Pi's resource
+loader. It scans conventional skill directories and literal configured
+paths. Inspect package `pi.skills` manifests, resource filters, explicit CLI
+paths, project trust, and current Pi diagnostics before deciding what loads.
+A configured standalone Markdown skill or a package's custom resource path
+may be absent from this inventory. Missing records do not prove disuse or a
+broken installation. Confirm these cases through Pi's loader or diagnostics
+and include them in the report before proposing cleanup.
 
 ## Report
 
