@@ -15,7 +15,16 @@ The named state shapes are skill registry, branch-local mode and todo state, exa
 - `src/index.ts` registers skill aliases, mode state, todos, questions, workspace context, and the host contract.
 - `src/models.ts` owns model selection and role configuration.
 - `src/workers.ts` owns child sessions and task operations.
+- `src/personas.ts` owns the closed persona catalogue, source model defaults, complete review rubric, and team-kit rule text.
 - `scripts/resources.mjs` verifies immutable source and generates the operational skills.
+
+## Team-kit extension of the design
+
+The [second design comparison](team-kit-design-review.md) selects one combined package. A fixed list of two source descriptors retains independent provenance without adding package dependency discovery. The complete source and destination union is checked before generation writes any skill. The original pstack snapshot stays at `upstream/`; the 29-file kit snapshot lives at `upstream-team-kit/`.
+
+The added data shape is a closed persona catalogue. Explicit Task model choice takes precedence over a persisted resume choice, then the persona's published default. `ci-watcher` retains `fast`; unresolved selections fail through the existing exact model resolver. Unpublished Reference personas are not inferred from their names.
+
+Both kit rules have `alwaysApply: true`. The parent and ordinary children receive them through `before_agent_start`. Readonly children disable extensions, so their resource loader appends the same original rule bodies directly. Rule delivery is independent of sticky Poteto mode. No user configuration or project AGENTS.md file is changed.
 
 ## Host contracts
 
