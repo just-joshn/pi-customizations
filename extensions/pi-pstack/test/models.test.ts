@@ -47,16 +47,8 @@ test("headless setup rejects without writes", async () => {
   await assert.rejects(setupModels(context()), /interactive or RPC dialog UI/);
 });
 
-test("setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
-  const previous = process.env.PI_CODING_AGENT_DIR;
-  process.env.PI_CODING_AGENT_DIR = directory;
-  try {
-    assert.equal(await readModelRule(), "");
-    await mkdir(dirname(modelConfigPath()), { recursive: true });
-    await writeFile(modelConfigPath(), "---\nalwaysApply: true\n---\n# budget: unlimited (max)\narena runners: auto, auto, inherit-parent\nhow critics: retired\n");
+function confirmedContext(confirmed: () => void) {
     const notices: string[] = [];
-    let confirmations = 0;
     const ctx = context({ hasUI: true, ui: ui({
       notify: (message) => { notices.push(message); },
       select: async (title, options) => {
@@ -70,10 +62,23 @@ test("setup confirms before writing all roles, preserves duplicate aliases, and 
         assert.match(message, /interrogate reviewers/);
         assert.match(message, /feature, refactoring/);
         assert.match(await readModelRule(), /how critics: retired/);
-        confirmations++;
+        confirmed();
         return true;
       },
     }) });
+  return { ctx, notices };
+}
+
+test("setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
+  const previous = process.env.PI_CODING_AGENT_DIR;
+  process.env.PI_CODING_AGENT_DIR = directory;
+  try {
+    assert.equal(await readModelRule(), "");
+    await mkdir(dirname(modelConfigPath()), { recursive: true });
+    await writeFile(modelConfigPath(), "---\nalwaysApply: true\n---\n# budget: unlimited (max)\narena runners: auto, auto, inherit-parent\nhow critics: retired\n");
+    let confirmations = 0;
+    const { ctx, notices } = confirmedContext(() => { confirmations++; });
     await setupModels(ctx);
     const result = await readFile(modelConfigPath(), "utf8");
     assert.equal(confirmations, 1);

@@ -85,11 +85,11 @@ function applyBudget(value: string, target: ThinkingLevel | undefined, ctx: Exte
   return `${model.provider}/${model.id}:${selected}`;
 }
 
-export async function setupModels(ctx: ExtensionContext): Promise<boolean> {
-  if (!ctx.hasUI) throw new Error("/setup-pstack requires Pi interactive or RPC dialog UI. Start interactive Pi and run /setup-pstack; no configuration was written.");
-  const current = await readModelRule();
-  const working = new Map([...defaults].map(([role, values]) => [role, [...values]]));
-  const dropped: string[] = [];
+type ModelTable = ReadonlyMap<string, string[]>;
+
+function readTable(current: string): { working: ModelTable; dropped: string[] } {
+  let working: ModelTable = new Map(defaults);
+  let dropped: string[] = [];
   let frontmatter = false;
   for (const line of current.split(/\r?\n/)) {
     if (line.trim() === "---") { frontmatter = !frontmatter; continue; }
@@ -98,85 +98,87 @@ export async function setupModels(ctx: ExtensionContext): Promise<boolean> {
     if (separator < 0) continue;
     const role = line.slice(0, separator).trim();
     const values = line.slice(separator + 1).split(",").map((value) => value.trim());
-    if (defaults.has(role)) working.set(role, values);
-    else dropped.push(line);
+    if (defaults.has(role)) working = new Map([...working, [role, values]]);
+    else dropped = [...dropped, line];
   }
+  return { working, dropped };
+}
+
+function validateRole(role: string, values: string[], target: ThinkingLevel | undefined, ctx: ExtensionContext): void {
+  if (values.length === 0 || (!panelRoles.has(role) && values.length !== 1)) throw new Error(`${role} requires ${panelRoles.has(role) ? "at least one model" : "one model"}.`);
+  for (const value of values) {
+    if (!value) throw new Error("Empty model selection.");
+    if (!isAlias(value)) {
+      resolveModel(value, ctx);
+      applyBudget(value, target, ctx);
+    }
+  }
+}
+
+function needsChoice(role: string, values: string[], target: ThinkingLevel | undefined, ctx: ExtensionContext): boolean {
+  try { validateRole(role, values, target, ctx); return false; } catch { return true; }
+}
+
+async function editRole(role: string, previous: string[], target: ThinkingLevel | undefined, ctx: ExtensionContext): Promise<string[] | undefined> {
+  const choices = [...ctx.modelRegistry.getAvailable().flatMap((model) => {
+    const name = `${model.provider}/${model.id}`;
+    return target ? [name] : [name, ...getSupportedThinkingLevels(model).map((level) => `${name}:${level}`)];
+  }), "inherit-parent", "auto"];
+  while (true) {
+    const answer = panelRoles.has(role)
+      ? await ctx.ui.input(`${role}: comma-separated models, ordered; duplicate aliases count. Available: ${choices.join(", ")}`, previous.join(", "))
+      : await ctx.ui.select(`${role} (current: ${previous.join(", ")})`, choices);
+    if (answer === undefined) return undefined;
+    try {
+      const values = (panelRoles.has(role) ? answer.split(",") : [answer]).map(value => applyBudget(value.trim(), target, ctx));
+      validateRole(role, values, target, ctx);
+      return values;
+    } catch (error) { ctx.ui.notify(String(error), "error"); }
+  }
+}
+
+async function writeConfiguration(working: ModelTable, budget: string, target: ThinkingLevel | undefined): Promise<void> {
+  const name = budget.split(" — ")[0];
+  const text = `---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. Delete a role line to fall back to its skill default.\n# auto and inherit-parent use the parent model; repeated panel entries each spawn a worker.\n# budget: ${name} (${target ?? "max"})\n${[...working].map(([role, values]) => `${role}: ${values.join(", ")}`).join("\n")}\n`;
+  const destination = modelConfigPath();
+  await mkdir(dirname(destination), { recursive: true });
+  const temporary = `${destination}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(temporary, text, { flag: "wx", mode: 0o600 });
+    await rename(temporary, destination);
+  } finally { await rm(temporary, { force: true }); }
+}
+
+export async function setupModels(ctx: ExtensionContext): Promise<boolean> {
+  if (!ctx.hasUI) throw new Error("/setup-pstack requires Pi interactive or RPC dialog UI. Start interactive Pi and run /setup-pstack; no configuration was written.");
+  const current = await readModelRule();
+  const parsed = readTable(current);
   const oldBudget = current.match(/^# budget: (.+)$/m)?.[1];
   const budget = await ctx.ui.select(`pstack reasoning budget${oldBudget ? ` (current: ${oldBudget})` : ""}`, [...budgets.keys()]);
   if (budget === undefined) return false;
   if (!budgets.has(budget)) throw new Error(`Unknown budget '${budget}'.`);
   const target = budgets.get(budget);
-  for (const [role, values] of working) {
-    working.set(role, values.map((value) => {
-      try { return applyBudget(value, target, ctx); } catch { return value; }
-    }));
-  }
-  const choices = [...ctx.modelRegistry.getAvailable().flatMap((model) => {
-    const name = `${model.provider}/${model.id}`;
-    return target ? [name] : [name, ...getSupportedThinkingLevels(model).map((level) => `${name}:${level}`)];
-  }), "inherit-parent", "auto"];
-  const validate = (role: string, values: string[]): void => {
-    if (values.length === 0 || (!panelRoles.has(role) && values.length !== 1)) throw new Error(`${role} requires ${panelRoles.has(role) ? "at least one model" : "one model"}.`);
-    for (const value of values) {
-      if (!value) throw new Error("Empty model selection.");
-      if (!isAlias(value)) {
-        resolveModel(value, ctx);
-        applyBudget(value, target, ctx);
-      }
-    }
-  };
-  const needsChoice = (role: string, values: string[]): boolean => {
-    try { validate(role, values); return false; } catch { return true; }
-  };
-  const editRole = async (role: string): Promise<boolean> => {
-    const previous = working.get(role) ?? [];
-    if (panelRoles.has(role)) {
-      while (true) {
-        const answer = await ctx.ui.input(`${role}: comma-separated models, ordered; duplicate aliases count. Available: ${choices.join(", ")}`, previous.join(", "));
-        if (answer === undefined) return false;
-        try {
-          const values = answer.split(",").map((value) => applyBudget(value.trim(), target, ctx));
-          validate(role, values);
-          working.set(role, values);
-          return true;
-        } catch (error) { ctx.ui.notify(String(error), "error"); }
-      }
-    }
-    while (true) {
-      const answer = await ctx.ui.select(`${role} (current: ${previous.join(", ")})`, choices);
-      if (answer === undefined) return false;
-      try {
-        const values = [applyBudget(answer, target, ctx)];
-        validate(role, values);
-        working.set(role, values);
-        return true;
-      } catch (error) { ctx.ui.notify(String(error), "error"); }
-    }
-  };
+  let working: ModelTable = new Map([...parsed.working].map(([role, values]) => [role, values.map((value) => {
+    try { return applyBudget(value, target, ctx); } catch { return value; }
+  })]));
   while (true) {
-    const table = [...working].map(([role, values]) => `${role}: ${values.join(", ")}${needsChoice(role, values) ? " [needs a choice]" : ""}`).join("\n");
-    ctx.ui.notify(`${table}${dropped.length ? `\nDropped retired roles:\n${dropped.join("\n")}` : ""}`, "info");
-    const pending = [...working].find(([role, values]) => needsChoice(role, values));
-    if (pending) { if (!await editRole(pending[0])) return false; continue; }
-    const action = await ctx.ui.select("Accept model table or change a role", ["Accept as-is", ...working.keys()]);
+    const table = [...working].map(([role, values]) => `${role}: ${values.join(", ")}${needsChoice(role, values, target, ctx) ? " [needs a choice]" : ""}`).join("\n");
+    ctx.ui.notify(`${table}${parsed.dropped.length ? `\nDropped retired roles:\n${parsed.dropped.join("\n")}` : ""}`, "info");
+    const pending = [...working].find(([role, values]) => needsChoice(role, values, target, ctx));
+    const action = pending?.[0] ?? await ctx.ui.select("Accept model table or change a role", ["Accept as-is", ...working.keys()]);
     if (action === undefined) return false;
     if (action !== "Accept as-is") {
-      if (!working.has(action)) throw new Error(`Unknown role '${action}'.`);
-      if (!await editRole(action)) return false;
+      const previous = working.get(action);
+      if (!previous) throw new Error(`Unknown role '${action}'.`);
+      const values = await editRole(action, previous, target, ctx);
+      if (!values) return false;
+      working = new Map([...working, [action, values]]);
       continue;
     }
     if (!await ctx.ui.confirm("Write pstack model configuration?", `${budget}\n\n${table}\n\n${modelConfigPath()}`)) return false;
-    for (const [role, values] of working) validate(role, values);
-    const name = budget.split(" — ")[0];
-    const text = `---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. Delete a role line to fall back to its skill default.\n# auto and inherit-parent use the parent model; repeated panel entries each spawn a worker.\n# budget: ${name} (${target ?? "max"})\n${[...working].map(([role, values]) => `${role}: ${values.join(", ")}`).join("\n")}\n`;
-    const destination = modelConfigPath();
-    await mkdir(dirname(destination), { recursive: true });
-    const temporary = `${destination}.${randomUUID()}.tmp`;
-    try {
-      await writeFile(temporary, text, { flag: "wx", mode: 0o600 });
-      await rename(temporary, destination);
-    } finally { await rm(temporary, { force: true }); }
-    ctx.ui.notify(`Wrote ${destination}. Applies to new sessions; re-run /setup-pstack to update it.`, "info");
+    for (const [role, values] of working) validateRole(role, values, target, ctx);
+    await writeConfiguration(working, budget, target);
+    ctx.ui.notify(`Wrote ${modelConfigPath()}. Applies to new sessions; re-run /setup-pstack to update it.`, "info");
     return true;
   }
 }
