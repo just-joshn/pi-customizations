@@ -1,8 +1,8 @@
 # Claude subscription for Pi
 
-This Pi package lets a Claude Pro or Max subscription answer in Pi. Requests identify as Claude Code. The package does not depend on `@anthropic-ai/sdk`. It sends the Messages API with `fetch` and registers a provider through `pi.registerProvider()`.
+This Pi package lets a Claude Pro or Max subscription answer in Pi. Requests identify as Claude Code. It registers a separate provider, `claude-subscription`, so the subscription login stays apart from the credentials of Pi's built-in `anthropic` provider.
 
-Pi's built-in Anthropic provider still uses an API key, or its own SDK-backed subscription login. This package adds a separate provider, `claude-subscription`, so the two credentials stay apart.
+The provider reuses Pi's own parts. Pi's Claude Pro/Max OAuth flow handles login and refresh. Pi's Anthropic Messages implementation sends requests through `@anthropic-ai/sdk`, and the model list is Pi's Anthropic catalog. The package adds one thing to each request: the Claude Code billing block.
 
 ## Use it
 
@@ -12,16 +12,20 @@ From this directory:
 pi -e .
 ```
 
-Then run `/login` and choose Claude subscription. Pick a `claude-subscription` model with `/model`.
+Then run `/login` and choose **Claude subscription (Claude Code)**. Pick a `claude-subscription` model with `/model`.
 
-Install it for later sessions with `pi install` and the path to this directory, or publish the package and install that npm name.
+To keep the package for later sessions, run `pi install` with the path to this directory, or publish the package and install that npm name.
 
 ## What Anthropic sees
 
-Subscription requests use bearer auth, `user-agent: claude-cli/<version>`, `x-app: cli`, and the `claude-code-20250219` and `oauth-2025-04-20` beta headers. The first system block is the Claude Code billing header (`x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;`). Anthropic's subscription gateway attributes requests to the Claude Code plan by that block; without it requests fail with a misleading out-of-usage error even when the plan has headroom. The second system block is Claude Code's preamble. The default version is `2.1.280`. Set `CLAUDE_CODE_VERSION` to send a different one in the user agent.
+Pi's Anthropic implementation treats the subscription token as an OAuth token. It sends bearer auth, `user-agent: claude-cli/2.1.280`, `x-app: cli`, and the `claude-code-20250219` and `oauth-2025-04-20` beta features. It also sends the SDK's `x-stainless-*` headers, as Claude Code does.
 
-The OAuth client, token URL, and redirect URI match Pi 0.87.1's Claude Pro/Max login. The token URL is `https://platform.claude.com/v1/oauth/token`. The callback is `http://localhost:53692/callback`. If that port is taken, paste the redirect URL at the prompt.
+The first system block is the Claude Code billing header (`x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;`). Anthropic's subscription gateway uses that block to bill the request to the Claude Code plan. A live test on 2026-09-27 showed the effect of removing it: the gateway returned HTTP 400 with an out-of-extra-usage error, even when the plan had usage left. The second system block is Claude Code's preamble, followed by the Pi system prompt.
 
-## What this does not do
+To send a different version in the user agent, set `CLAUDE_CODE_VERSION`. The billing block keeps its captured version.
 
-It does not bill an API key. It does not send the SDK's `Anthropic/JS` user agent or `x-stainless-*` headers. It does not retry inside the stream. Pi retries rate limits and transient failures after the stream reports the error. Overflow text from Anthropic is left intact so Pi can compact.
+## Verify it
+
+- `npm test` runs the provider against a local Messages server and checks the request and the Pi result.
+- `node --experimental-strip-types scripts/equivalence.ts` prints each captured request and result as JSON. To compare two versions, run it on both and diff the output.
+- `node --experimental-strip-types scripts/prove-pi.ts` loads the extension in `pi`. If you are logged in, it sends one live prompt. If not, it confirms that Pi asks you to log in.
