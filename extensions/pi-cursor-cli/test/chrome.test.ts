@@ -10,7 +10,7 @@ const ThemeCtor = (await import("@earendil-works/pi-coding-agent")).Theme;
 const { renderHeaderLine } = await import("../src/chrome/header.ts");
 const { countEditedFiles, formatContextPercent, formatContextWindow, renderFooterRows } = await import("../src/chrome/footer.ts");
 const { spinnerFrames } = await import("../src/chrome/working.ts");
-const { createState } = await import("../src/index.ts");
+const { createSessionState: createState } = await import("../src/state.ts");
 
 const themeJson = JSON.parse(readFileSync(fileURLToPath(new URL("../themes/cursor-dark.json", import.meta.url)), "utf8"));
 

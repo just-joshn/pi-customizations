@@ -63,6 +63,17 @@ export function vimFooterLabel(state: CursorSessionState): string | undefined {
 
 export const MODE_CYCLE: readonly CursorMode[] = ["default", "plan", "debug", "ask"];
 
+export function createSessionState(): CursorSessionState {
+	return {
+		mode: "default",
+		customMode: undefined,
+		runEverything: false,
+		autoReview: false,
+		vim: "insert",
+		compact: true,
+	};
+}
+
 export function nextMode(current: CursorMode): CursorMode {
 	const idx = MODE_CYCLE.indexOf(current);
 	return MODE_CYCLE[(idx + 1) % MODE_CYCLE.length];
