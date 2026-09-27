@@ -1,4 +1,3 @@
-"""Exercise differential execution at its file and process boundaries."""
 import json
 from pathlib import Path
 import subprocess
@@ -43,7 +42,8 @@ class DifferentialSafety(unittest.TestCase):
             incomplete = subprocess.run(command, capture_output=True, text=True)
             self.assertEqual(incomplete.returncode, 2, incomplete.stdout)
             self.assertIn('capture', incomplete.stderr)
-            older = {key: value for key, value in record.items() if key not in ('launch_error', 'capture_complete')}
+            older = {key: value for key, value in record.items()
+                     if key not in ('launch_error', 'capture_complete', 'capture_outcomes', 'input_delivery')}
             record_path.write_text(json.dumps(older) + '\n')
             self.assertEqual(subprocess.run(command, capture_output=True).returncode, 0)
 

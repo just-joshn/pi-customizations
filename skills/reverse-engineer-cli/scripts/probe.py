@@ -8,6 +8,9 @@ Unix only (uses pty). Standard library only.
 from __future__ import annotations
 
 import argparse
+import errno
+from concurrent.futures import Future
+from contextlib import ExitStack
 import fcntl
 import hashlib
 import json
@@ -25,11 +28,16 @@ import termios
 import threading
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from types import MappingProxyType
 
 PREVIEW_BYTES = 2000
+PROCESS_GRACE_SECONDS = 2
+CAPTURE_GRACE_SECONDS = 2
+POST_LAUNCH_MINIMUM_WAIT_SECONDS = 0.1
+IO_POLL_SECONDS = 0.01
 
 
 def sha256_file(path: Path) -> str:
@@ -52,9 +60,14 @@ def snapshot_entry(path: Path) -> dict:
     return {**mode, "type": "other"}
 
 
+def snapshot_error(error: OSError) -> None:
+    raise error
+
+
 def snapshot(root: Path) -> dict[str, dict]:
+    root.stat()
     return {str(path.relative_to(root)): snapshot_entry(path)
-            for directory, directories, files in os.walk(root)
+            for directory, directories, files in os.walk(root, onerror=snapshot_error)
             for name in directories + files for path in (Path(directory, name),)}
 
 
@@ -87,31 +100,84 @@ def output_summary(data: bytes, path: Path) -> dict:
 
 def open_pty(cols: int, rows: int) -> tuple[int, int]:
     master, slave = pty.openpty()
-    fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
-    return master, slave
+    with ExitStack() as resources:
+        resources.callback(os.close, slave)
+        resources.callback(os.close, master)
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
+        resources.pop_all()
+        return master, slave
 
 
-def drain(fd: int, buf: bytearray) -> None:
-    while True:
-        try:
-            chunk = os.read(fd, 65536)
-        except OSError:  # EIO from a pty master once every slave is closed
-            break
-        if not chunk:
-            break
-        buf.extend(chunk)
-    os.close(fd)
+@dataclass(frozen=True)
+class IOErrorDetail:
+    type: str
+    errno: int | None
+    message: str
 
 
-def feed(fd: int, data: bytes) -> None:
-    view = memoryview(data)
+@dataclass(frozen=True)
+class StreamOutcome:
+    data: bytes = b""
+    transferred: int = 0
+    status: str = "complete"
+    error: IOErrorDetail | None = None
+
+
+def next_io(fd: int, data: bytes | None, transferred: int, stop: threading.Event):
     try:
-        while view:
-            view = view[os.write(fd, view):]
-    except OSError:  # child exited first: EPIPE on a pipe, EIO on a pty
-        pass
-    finally:
+        if data is None:
+            return os.read(fd, 65536)
+        count = os.write(fd, memoryview(data)[transferred:])
+        if not count:
+            raise RuntimeError("write made no progress")
+        return count
+    except BlockingIOError:
+        stop.wait(IO_POLL_SECONDS)
+        return None
+
+
+def stream_io(fd: int, tty: bool, data: bytes | None, stop: threading.Event) -> StreamOutcome:
+    buffer, transferred = bytearray(), 0
+    try:
+        while not stop.is_set():
+            if data is not None and transferred == len(data):
+                return StreamOutcome(transferred=transferred)
+            chunk = next_io(fd, data, transferred, stop)
+            if chunk is None:
+                continue
+            if data is None:
+                if not chunk:
+                    return StreamOutcome(bytes(buffer), len(buffer))
+                buffer.extend(chunk)
+            else:
+                transferred += chunk
+        return StreamOutcome(bytes(buffer), transferred if data is not None else len(buffer), "cancelled")
+    except Exception as error:
+        number = error.errno if isinstance(error, OSError) else None
+        expected = (tty and number == errno.EIO) or (data is not None and not tty and number == errno.EPIPE)
+        status = ("complete" if data is None else "closed") if expected else "error"
+        detail = None if expected else IOErrorDetail(type(error).__name__, number, str(error))
+        return StreamOutcome(bytes(buffer), transferred if data is not None else len(buffer), status, detail)
+
+
+def stream_task(fd: int, tty: bool, data: bytes | None, stop: threading.Event, result: Future) -> None:
+    try:
+        os.set_blocking(fd, False)
+        outcome = stream_io(fd, tty, data, stop)
+    except Exception as error:
+        outcome = StreamOutcome(status="error",
+                                error=IOErrorDetail(type(error).__name__, getattr(error, 'errno', None), str(error)))
+    try:
         os.close(fd)
+    except OSError as error:
+        outcome = StreamOutcome(outcome.data, outcome.transferred, "error",
+                                IOErrorDetail(type(error).__name__, error.errno, str(error)))
+    result.set_result(outcome)
+
+
+def stream_metadata(outcome: StreamOutcome) -> dict:
+    return {"bytes": outcome.transferred, "status": outcome.status,
+            "error": asdict(outcome.error) if outcome.error else None}
 
 
 def build_sandbox(root: Path, seeds: list[str]) -> dict[str, str]:
@@ -126,11 +192,15 @@ def build_sandbox(root: Path, seeds: list[str]) -> dict[str, str]:
     for rel in layout.values():
         (root / rel).mkdir(parents=True, exist_ok=True)
     (root / "work").mkdir(exist_ok=True)
-    for seed in seeds:
-        src, _, dest = seed.partition(":")
-        target = root / (dest or Path(src).name)
-        if not target.resolve().is_relative_to(root.resolve()):
-            raise ValueError("seed destination escapes sandbox")
+    targets = tuple(root / (seed.partition(":")[2] or Path(seed.partition(":")[0]).name) for seed in seeds)
+    resolved = tuple(target.resolve() for target in targets)
+    if any(not target.is_relative_to(root.resolve()) for target in resolved):
+        raise ValueError("seed destination escapes sandbox")
+    ordered = sorted(resolved, key=lambda path: path.parts)
+    if any(target.is_relative_to(previous) for previous, target in zip(ordered, ordered[1:])):
+        raise ValueError("seed destinations must not overlap")
+    for seed, target in zip(seeds, resolved):
+        src = seed.partition(":")[0]
         target.parent.mkdir(parents=True, exist_ok=True)
         if Path(src).is_dir():
             shutil.copytree(src, target, symlinks=True, dirs_exist_ok=True)
@@ -143,13 +213,13 @@ def build_sandbox(root: Path, seeds: list[str]) -> dict[str, str]:
 class Invocation:
     command: tuple[str, ...]
     cwd: Path
-    env: dict[str, str]
-    overrides: dict[str, str | None]
+    env: MappingProxyType
+    overrides: MappingProxyType
     snapshot_roots: tuple[Path, ...]
     sandbox: Path | None
     stdin_data: bytes
     stdin_mode: str
-    target: dict
+    target: MappingProxyType
 
 
 @dataclass(frozen=True)
@@ -159,8 +229,10 @@ class Capture:
     stderr: int
     parent_close: tuple[int, ...]
     threads: tuple[threading.Thread, ...]
-    buffers: dict[str, bytearray]
-    writer: tuple[int, bytes] | None
+    results: tuple[tuple[str, Future], ...]
+    stop: threading.Event
+    owned: tuple[int, ...]
+    parent_resources: ExitStack
 
 
 @dataclass(frozen=True)
@@ -169,8 +241,8 @@ class Execution:
     started_at: datetime
     duration: float
     returncode: int | None
-    launch_error: dict | None
-    signal_sent: dict | None
+    launch_error: MappingProxyType | None
+    signal_sent: MappingProxyType | None
     timed_out: bool
 
 
@@ -216,8 +288,13 @@ def validate_arguments(a: argparse.Namespace, ap: argparse.ArgumentParser) -> tu
         ap.error("--seed requires --isolate")
     if any("=" not in kv or not kv.split("=", 1)[0] for kv in a.env):
         ap.error("--env requires NAME=VALUE")
-    if a.send_signal and not hasattr(signal, "SIG" + a.send_signal.upper().removeprefix("SIG")):
+    if a.send_signal is not None and "SIG" + a.send_signal.upper().removeprefix("SIG") not in signal.Signals.__members__:
         ap.error("unknown signal")
+    strings = (*cmd, *a.env, *a.unset, *a.seed, *a.snapshot, a.out, a.cwd, a.label, a.stdin_file)
+    if any(value is not None and "\0" in value for value in strings):
+        ap.error("arguments must not contain NUL bytes")
+    if any(not key or "=" in key for key in a.unset):
+        ap.error("--unset requires an environment name")
 
     if a.id and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", a.id):
         ap.error("id must contain only letters, digits, dots, underscores, and hyphens")
@@ -241,33 +318,50 @@ def prepare_invocation(a: argparse.Namespace, out: Path, run_id: str, command: t
     target = {"argv0": command[0], "resolved": resolved,
               "realpath": os.path.realpath(resolved) if resolved else None,
               "sha256": sha256_file(Path(resolved)) if resolved else None}
-    return Invocation(command, cwd, env, overrides, roots, sandbox, data, mode, target)
+    return Invocation(command, cwd, MappingProxyType(env), MappingProxyType(overrides), roots,
+                      sandbox, data, mode, MappingProxyType(target))
 
 
-def input_capture(a: argparse.Namespace, invocation: Invocation, echo: bytearray):
-    if invocation.stdin_mode == "pipe":
-        reader, writer = os.pipe()
-        return reader, (writer, invocation.stdin_data), (reader,), ()
-    if invocation.stdin_mode == "tty":
-        master, slave = open_pty(a.cols, a.rows)
-        thread = threading.Thread(target=drain, args=(master, echo), daemon=True)
-        return slave, (os.dup(master), invocation.stdin_data + b"\x04"), (slave,), (thread,)
-    descriptor = subprocess.DEVNULL if invocation.stdin_mode == "null" else None
-    return descriptor, None, (), ()
+def capture_pair(a: argparse.Namespace, tty: bool, resources: ExitStack):
+    pair = open_pty(a.cols, a.rows) if tty else os.pipe()
+    for fd in pair:
+        resources.callback(os.close, fd)
+    return pair
 
 
-def output_capture(a: argparse.Namespace, name: str, buffer: bytearray):
-    reader, writer = open_pty(a.cols, a.rows) if a.tty in (name, "both") else os.pipe()
-    return writer, threading.Thread(target=drain, args=(reader, buffer), daemon=True)
+def input_capture(a: argparse.Namespace, invocation: Invocation, resources: ExitStack):
+    mode = invocation.stdin_mode
+    if mode == "pipe":
+        reader, writer = capture_pair(a, False, resources)
+        return reader, (("stdin", writer, False, invocation.stdin_data),), (reader,)
+    if mode == "tty":
+        master, slave = capture_pair(a, True, resources)
+        writer = os.dup(master)
+        resources.callback(os.close, writer)
+        return slave, (("tty_echo", master, True, None),
+                       ("stdin", writer, True, invocation.stdin_data + b"\x04")), (slave,)
+    return subprocess.DEVNULL if mode == "null" else None, (), ()
 
 
 def prepare_capture(a: argparse.Namespace, invocation: Invocation) -> Capture:
-    buffers = {name: bytearray() for name in ("stdout", "stderr", "tty_echo")}
-    stdin, writer, parent_close, threads = input_capture(a, invocation, buffers["tty_echo"])
-    stdout, stdout_reader = output_capture(a, "stdout", buffers["stdout"])
-    stderr, stderr_reader = output_capture(a, "stderr", buffers["stderr"])
-    return Capture(stdin, stdout, stderr, parent_close + (stdout, stderr),
-                   threads + (stdout_reader, stderr_reader), buffers, writer)
+    with ExitStack() as resources:
+        stdin, workers, parent_close = input_capture(a, invocation, resources)
+        for name in ("stdout", "stderr"):
+            tty = a.tty in (name, "both")
+            reader, writer = capture_pair(a, tty, resources)
+            workers += ((name, reader, tty, None),)
+            parent_close += (writer,)
+        stop = threading.Event()
+        results = tuple((name, Future()) for name, _, _, _ in workers)
+        threads = tuple(threading.Thread(target=stream_task, args=(fd, tty, data, stop, result), daemon=True)
+                        for (_, fd, tty, data), (_, result) in zip(workers, results))
+        parent_resources = ExitStack()
+        for fd in parent_close:
+            parent_resources.callback(os.close, fd)
+        capture = Capture(stdin, parent_close[-2], parent_close[-1], parent_close, threads,
+                          results, stop, parent_close + tuple(fd for _, fd, _, _ in workers), parent_resources)
+        resources.pop_all()
+        return capture
 
 
 def launch(invocation: Invocation, capture: Capture):
@@ -284,18 +378,16 @@ def launch(invocation: Invocation, capture: Capture):
                                    preexec_fn=preexec, close_fds=True)
         return process, None
     except OSError as error:
-        return None, {"type": type(error).__name__, "errno": error.errno, "message": str(error)}
+        return None, MappingProxyType({"type": type(error).__name__, "errno": error.errno, "message": str(error)})
 
 
-def start_capture(capture: Capture, process: subprocess.Popen | None) -> None:
-    for descriptor in capture.parent_close:
-        os.close(descriptor)
-    for thread in capture.threads:
-        thread.start()
-    if capture.writer and process is not None:
-        threading.Thread(target=feed, args=capture.writer, daemon=True).start()
-    elif capture.writer:
-        os.close(capture.writer[0])
+def start_capture(capture: Capture) -> None:
+    capture.parent_resources.close()
+    try:
+        for thread in capture.threads:
+            thread.start()
+    except RuntimeError as error:
+        raise OSError(f"capture worker startup failed: {error}") from error
 
 
 def signal_group(process: subprocess.Popen, number: int) -> bool:
@@ -317,40 +409,76 @@ def wait_for_process(a: argparse.Namespace, process: subprocess.Popen | None, st
             except subprocess.TimeoutExpired:
                 number = getattr(signal, "SIG" + a.send_signal.upper().removeprefix("SIG"))
                 if signal_group(process, number):
-                    sent = {"signal": number.name, "after_s": a.after}
-        process.wait(timeout=max(a.timeout - (time.monotonic() - start), 0.1))
+                    sent = MappingProxyType({"signal": number.name, "after_s": a.after})
+        process.wait(timeout=max(a.timeout - (time.monotonic() - start), POST_LAUNCH_MINIMUM_WAIT_SECONDS))
         return sent, False
     except subprocess.TimeoutExpired:
         signal_group(process, signal.SIGTERM)
         try:
-            process.wait(timeout=2)
+            process.wait(timeout=PROCESS_GRACE_SECONDS)
         except subprocess.TimeoutExpired:
             signal_group(process, signal.SIGKILL)
-            process.wait()
+            process.wait(timeout=PROCESS_GRACE_SECONDS)
         return sent, True
 
 
 def execute(a: argparse.Namespace, invocation: Invocation, capture: Capture) -> Execution:
     started_at, start = datetime.now(timezone.utc), time.monotonic()
-    process, error = launch(invocation, capture)
-    start_capture(capture, process)
-    sent, timed_out = wait_for_process(a, process, start)
+    process = None
+    try:
+        process, error = launch(invocation, capture)
+        start_capture(capture)
+        sent, timed_out = wait_for_process(a, process, start)
+    except BaseException:
+        cleanup_execution(capture, process)
+        raise
     return Execution(process, started_at, time.monotonic() - start,
                      process.returncode if process is not None else None, error, sent, timed_out)
 
 
-def finish_capture(capture: Capture, execution: Execution) -> bool:
+def join_capture(capture: Capture) -> None:
+    deadline = time.monotonic() + CAPTURE_GRACE_SECONDS
     for thread in capture.threads:
-        thread.join(timeout=2)
-    descendants_hold_output = any(thread.is_alive() for thread in capture.threads)
-    if descendants_hold_output and execution.process is not None:
+        if thread.ident is not None:
+            thread.join(timeout=max(0, deadline - time.monotonic()))
+
+
+def cleanup_execution(capture: Capture, process: subprocess.Popen | None) -> None:
+    errors = []
+    actions = (() if process is None else (lambda: signal_group(process, signal.SIGKILL),
+                                           lambda: process.wait(timeout=PROCESS_GRACE_SECONDS)))
+    unstarted = tuple(fd for fd, thread in zip(capture.owned[len(capture.parent_close):], capture.threads)
+                      if thread.ident is None)
+    actions += (capture.stop.set, lambda: join_capture(capture), capture.parent_resources.close)
+    actions += tuple(lambda fd=fd: os.close(fd) for fd in unstarted)
+    for action in actions:
+        try:
+            action()
+        except (OSError, subprocess.SubprocessError) as error:
+            errors.append(str(error))
+    if errors:
+        raise OSError('capture cleanup failed: ' + '; '.join(errors))
+
+
+def finish_capture(capture: Capture, execution: Execution) -> bool:
+    join_capture(capture)
+    descendants_hold_output = any(not result.done() for name, result in capture.results if name != "stdin")
+    if any(thread.is_alive() for thread in capture.threads) and execution.process is not None:
         signal_group(execution.process, signal.SIGKILL)
-        for thread in capture.threads:
-            thread.join(timeout=2)
+        join_capture(capture)
+    capture.stop.set()
+    join_capture(capture)
     return descendants_hold_output
 
 
-def terminal_metadata(a: argparse.Namespace, invocation: Invocation, stdin_file: Path) -> dict:
+def completed_outcomes(capture: Capture) -> dict[str, StreamOutcome]:
+    defaults = {name: StreamOutcome(status="not_applicable") for name in ("stdout", "stderr", "tty_echo", "stdin")}
+    return {**defaults, **{name: result.result() if result.done() else StreamOutcome(status="cancelled")
+                          for name, result in capture.results}}
+
+
+def terminal_metadata(a: argparse.Namespace, invocation: Invocation, stdin_file: Path,
+                      delivery: StreamOutcome) -> dict:
     return {
         "stdin_fixture": str(stdin_file) if invocation.stdin_mode in ("pipe", "tty") else None,
         "stdin_is_tty": invocation.stdin_mode == "tty" or (invocation.stdin_mode == "inherit" and os.isatty(0)),
@@ -358,7 +486,7 @@ def terminal_metadata(a: argparse.Namespace, invocation: Invocation, stdin_file:
         "stderr_is_tty": a.tty in ("stderr", "both"),
         "stdin": {"mode": invocation.stdin_mode, "bytes": len(invocation.stdin_data),
                   "sha256": hashlib.sha256(invocation.stdin_data).hexdigest(),
-                  "tty_eof_sent": invocation.stdin_mode == "tty"},
+                  "tty_eof_sent": invocation.stdin_mode == "tty" and delivery.status == "complete"},
         "tty": {"stdin": invocation.stdin_mode == "tty" or (invocation.stdin_mode == "inherit" and os.isatty(0)),
                 "stdout": a.tty in ("stdout", "both"),
                 "stderr": a.tty in ("stderr", "both"),
@@ -368,6 +496,7 @@ def terminal_metadata(a: argparse.Namespace, invocation: Invocation, stdin_file:
 
 def evidence_record(a: argparse.Namespace, invocation: Invocation, execution: Execution, capture: Capture,
                     out: Path, probe_id: str, run_id: str, before: dict, descendants_hold_output: bool) -> dict:
+    outcomes = completed_outcomes(capture)
     after = {str(directory): snapshot(directory) for directory in invocation.snapshot_roots}
     before_file = out / "raw" / f"{run_id}.before.json"
     after_file = out / "raw" / f"{run_id}.after.json"
@@ -378,31 +507,33 @@ def evidence_record(a: argparse.Namespace, invocation: Invocation, execution: Ex
     return {
         "id": probe_id,
         "run_id": run_id,
-        "launch_error": execution.launch_error,
+        "launch_error": dict(execution.launch_error) if execution.launch_error is not None else None,
         "label": a.label,
         "started_at": execution.started_at.isoformat(),
         "duration_s": round(execution.duration, 4),
         "duration_ms": round(execution.duration * 1000, 3),
         "argv": list(invocation.command),
         "cwd": str(invocation.cwd),
-        "target": invocation.target,
+        "target": dict(invocation.target),
         "env_base": "clean" if a.clean_env else "inherited",
-        "env_overrides": invocation.overrides,
-        "env_delta": invocation.overrides,
+        "env_overrides": dict(invocation.overrides),
+        "env_delta": dict(invocation.overrides),
         "base_path": invocation.env.get("PATH"),
-        **terminal_metadata(a, invocation, stdin_file),
+        **terminal_metadata(a, invocation, stdin_file, outcomes["stdin"]),
         "exit_code": execution.returncode if execution.returncode is not None and execution.returncode >= 0 else None,
         "signal": signal.Signals(-execution.returncode).name if execution.returncode is not None and execution.returncode < 0 else None,
-        "signal_sent": execution.signal_sent,
+        "signal_sent": dict(execution.signal_sent) if execution.signal_sent is not None else None,
         "timed_out": execution.timed_out,
         "descendants_hold_output": descendants_hold_output,
-        "descendants_killed": descendants_hold_output,
-        "capture_complete": not any(t.is_alive() for t in capture.threads),
+        "capture_complete": all(outcomes[name].status in ("complete", "not_applicable")
+                                for name in ("stdout", "stderr", "tty_echo")),
+        "capture_outcomes": {name: stream_metadata(outcomes[name]) for name in ("stdout", "stderr", "tty_echo")},
+        "input_delivery": stream_metadata(outcomes["stdin"]),
         "stdout_file": str(out / "raw" / f"{run_id}.stdout"),
         "stderr_file": str(out / "raw" / f"{run_id}.stderr"),
-        "stdout": output_summary(bytes(capture.buffers["stdout"]), out / "raw" / f"{run_id}.stdout"),
-        "stderr": output_summary(bytes(capture.buffers["stderr"]), out / "raw" / f"{run_id}.stderr"),
-        "tty_echo": output_summary(bytes(capture.buffers["tty_echo"]), out / "raw" / f"{run_id}.tty-echo"),
+        "stdout": output_summary(outcomes["stdout"].data, out / "raw" / f"{run_id}.stdout"),
+        "stderr": output_summary(outcomes["stderr"].data, out / "raw" / f"{run_id}.stderr"),
+        "tty_echo": output_summary(outcomes["tty_echo"].data, out / "raw" / f"{run_id}.tty-echo"),
         "filesystem_before": str(before_file),
         "filesystem_after": str(after_file),
         "fs_diff": {d: diff(before[d], after[d]) for d in before},
@@ -412,10 +543,7 @@ def evidence_record(a: argparse.Namespace, invocation: Invocation, execution: Ex
     }
 
 
-def main() -> int:
-    parser = argument_parser()
-    args = parser.parse_args()
-    command = validate_arguments(args, parser)
+def run(args: argparse.Namespace, command: tuple[str, ...]) -> int:
     out = Path(args.out).resolve()
     (out / "raw").mkdir(parents=True, exist_ok=True)
     probe_id = args.id or f"P-{datetime.now(timezone.utc):%Y%m%dT%H%M%S}-{uuid.uuid4().hex[:6]}"
@@ -424,13 +552,28 @@ def main() -> int:
     before = {str(directory): snapshot(directory) for directory in invocation.snapshot_roots}
     capture = prepare_capture(args, invocation)
     execution = execute(args, invocation, capture)
-    descendants_hold_output = finish_capture(capture, execution)
-    record = evidence_record(args, invocation, execution, capture, out, probe_id, run_id, before, descendants_hold_output)
+    try:
+        descendants_hold_output = finish_capture(capture, execution)
+        record = evidence_record(args, invocation, execution, capture, out, probe_id, run_id, before, descendants_hold_output)
+    except BaseException:
+        cleanup_execution(capture, execution.process)
+        raise
     with open(out / "probes.jsonl", "a") as stream:
         stream.write(json.dumps(record, ensure_ascii=False) + "\n")
     json.dump({key: record[key] for key in ("id", "exit_code", "signal", "timed_out", "duration_s")}, sys.stdout)
     print()
     return 0
+
+
+def main() -> int:
+    parser = argument_parser()
+    args = parser.parse_args()
+    command = validate_arguments(args, parser)
+    try:
+        return run(args, command)
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print(f"probe: {error}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":
