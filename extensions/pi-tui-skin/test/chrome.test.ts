@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 
 process.env.FORCE_COLOR = "3";
 
-const { Theme } = await import("@earendil-works/pi-coding-agent");
+const ThemeCtor = (await import("@earendil-works/pi-coding-agent")).Theme;
+	type Theme = InstanceType<typeof ThemeCtor>;
 const { renderHeaderLine } = await import("../src/chrome/header.ts");
 const { countEditedFiles, formatContextPercent, formatContextWindow, renderFooterRows } = await import("../src/chrome/footer.ts");
 const { spinnerFrames } = await import("../src/chrome/working.ts");
@@ -28,7 +29,7 @@ function darkTheme(): Theme {
 	const bgRoles = ["customMessageBg", "searchMatchBg", "selectedBg", "toolErrorBg", "toolPendingBg", "toolSuccessBg", "userMessageBg"];
 	const fg = Object.fromEntries(fgRoles.map((r) => [r, colors[r]!]));
 	const bg = Object.fromEntries(bgRoles.map((r) => [r, colors[r]!]));
-	return new Theme(fg as never, bg as never, "truecolor", { name: "reference-dark" });
+	return new ThemeCtor(fg as never, bg as never, "truecolor", { name: "reference-dark" });
 }
 
 const ANSI = /\x1b\[[0-9;]*m/g;
