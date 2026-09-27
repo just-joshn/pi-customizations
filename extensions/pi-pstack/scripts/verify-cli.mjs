@@ -62,11 +62,17 @@ try {
   for (const name of ['poteto-mode', 'setup-pstack', 'pstack', 'how', 'bro', 'deslop', 'control-cli', 'control-ui', 'verify-this', 'pr-review-canvas', 'thermo-nuclear-code-quality-review']) {
     assert.ok(commands.commands.some((command) => command.name === name), `CLI command ${name}`);
   }
+  for (const name of ['how', 'bro', 'deslop', 'control-cli', 'control-ui']) {
+    assert.equal(commands.commands.find((command) => command.name === name)?.source, 'prompt', `${name} must be a native prompt template`);
+  }
+  for (const name of ['poteto-mode', 'setup-pstack', 'pstack']) {
+    assert.equal(commands.commands.find((command) => command.name === name)?.source, 'extension', `${name} requires runtime behavior`);
+  }
   await send({ type: 'prompt', message: '/pstack' });
   const messages = await send({ type: 'get_messages' });
   assert.ok(messages.messages.some((message) => message.role === 'custom' && message.customType === 'pstack-status'));
   const status = messages.messages.find((message) => message.role === 'custom' && message.customType === 'pstack-status');
-  assert.match(String(status.content), /65 skill aliases/);
+  assert.match(String(status.content), /64 skills, 63 prompt templates/);
   assert.match(String(status.content), /cursor-team-kit 1.2.0/);
   await send({ type: 'prompt', message: '/poteto-mode off' });
   child.stdin.end();

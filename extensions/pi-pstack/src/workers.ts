@@ -38,8 +38,9 @@ export function taskSummary(record: TaskRecord): string {
 export function registerWorkers(pi: ExtensionAPI): void {
   let records = new Map<string, TaskRecord>();
   const workers = new Map<string, Worker>();
-  const starting = new Set<string>();
+  const starting = new Map<string, Promise<void>>();
   let generation = 0;
+  let lifecycle: { kind: 'active' } | { kind: 'stopped' } | { kind: 'stopping'; completion: Promise<void> } = { kind: 'stopped' };
   const closing = new WeakMap<AgentSession, Promise<void>>();
   const close = (session: AgentSession): Promise<void> => {
     const pending = closing.get(session);
@@ -56,16 +57,29 @@ export function registerWorkers(pi: ExtensionAPI): void {
     worker.usageClaimed = true;
     return worker.usage;
   };
-  const stopAll = async () => {
+  const stopAll = (): Promise<void> => {
     generation++;
+    if (lifecycle.kind === 'stopping') return lifecycle.completion;
+    if (lifecycle.kind === 'stopped') return Promise.resolve();
     const current = [...workers.values()];
     workers.clear();
-    for (const worker of current) worker.stop();
-    await Promise.allSettled(current.map(async worker => { await worker.session.abort(); await worker.completion; await close(worker.session); }));
+    const completion = Promise.resolve().then(async () => {
+      for (const worker of current) worker.stop();
+      await Promise.allSettled([
+        ...starting.values(),
+        ...current.map(async worker => { await worker.session.abort(); await worker.completion; await close(worker.session); }),
+      ]);
+    }).finally(() => { lifecycle = { kind: 'stopped' }; });
+    lifecycle = { kind: 'stopping', completion };
+    return completion;
   };
   const restore = async (ctx: ExtensionContext) => {
-    await stopAll();
+    const completion = stopAll();
+    const owner = generation;
+    await completion;
+    if (owner !== generation) return;
     records = restoreTaskRecords(ctx.sessionManager.getBranch());
+    lifecycle = { kind: 'active' };
   };
   pi.on('session_start', async (_event, ctx) => restore(ctx));
   pi.on('session_tree', async (_event, ctx) => restore(ctx));
@@ -79,12 +93,14 @@ export function registerWorkers(pi: ExtensionAPI): void {
       readonly: Type.Optional(Type.Boolean()), run_in_background: Type.Optional(Type.Boolean()), resume: Type.Optional(Type.String()),
     }),
     async execute(_id, params, signal, _update, ctx) {
+      if (lifecycle.kind !== 'active') throw new Error('Parent session is not active. Wait for session startup or tree restoration before starting a task.');
       if (params.environment === 'cloud') throw new Error('Cursor cloud execution is unavailable in Pi. Explicitly choose environment local only when local execution satisfies the task.');
       const prior = params.resume ? records.get(params.resume) : undefined;
       if (params.resume && !prior) throw new Error(`Unknown task in this branch: ${params.resume}`);
       const id = prior?.id ?? randomUUID();
       if (starting.has(id) || workers.get(id)?.record.status === 'running') throw new Error(`Task ${id} is running. Use TaskMessage to queue input.`);
-      starting.add(id);
+      let finishStarting = () => {};
+      starting.set(id, new Promise<void>(resolveStart => { finishStarting = resolveStart; }));
       const owner = generation;
       let session: AgentSession | undefined;
       try {
@@ -99,7 +115,8 @@ export function registerWorkers(pi: ExtensionAPI): void {
           cwd, agentDir: getAgentDir(), noExtensions: readonly,
           additionalExtensionPaths: readonly ? [] : [join(root, 'src/index.ts')],
           additionalSkillPaths: [join(root, 'skills')],
-          appendSystemPrompt: [profile.instructions, rules, `This is task ${id}. Task tools create nested agents. Drain every required child with TaskOutput before returning findings. Your final return closes this session and cancels unfinished descendants. Skill resources are in ${join(root, 'skills')}.`],
+          additionalPromptTemplatePaths: [join(root, 'prompts')],
+          appendSystemPrompt: [profile.instructions, rules, `This is task ${id}. Task tools create nested agents. Drain every required child with TaskOutput before returning findings. Your final return closes this session and cancels unfinished descendants. pstack host contract. Bundled skills: ${join(root, 'skills')}.`],
           extensionsOverride: result => ({ ...result, extensions: result.extensions.filter((extension, index, all) => all.findIndex(other => other.resolvedPath === extension.resolvedPath) === index) }),
         });
         await loader.reload();
@@ -108,6 +125,7 @@ export function registerWorkers(pi: ExtensionAPI): void {
         await mkdir(dir, { recursive: true });
         const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
         session = (await createAgentSession({ cwd, resourceLoader: loader, sessionManager: manager, ...selected, ...(readonly ? { tools: ['read', 'grep', 'find', 'ls'] } : {}) })).session;
+        if (generation !== owner || signal?.aborted) throw new Error('Task startup was cancelled.');
         await session.bindExtensions({ mode: 'print' });
         if (generation !== owner || signal?.aborted) throw new Error('Task startup was cancelled.');
         const sessionFile = manager.getSessionFile();
@@ -115,6 +133,7 @@ export function registerWorkers(pi: ExtensionAPI): void {
         const record: TaskRecord = { id, persona, cwd, readonly, modelReference: `${selected.model.provider}/${selected.model.id}:${selected.thinkingLevel}`, sessionFile, outputFile: join(dir, `${id}.output.txt`), status: 'running', output: '' };
         const previous = workers.get(id);
         if (previous) await close(previous.session);
+        if (generation !== owner || signal?.aborted) throw new Error('Task startup was cancelled.');
         records.set(id, record);
         pi.appendEntry(entryType, record);
         const child = session;
@@ -167,7 +186,7 @@ export function registerWorkers(pi: ExtensionAPI): void {
         }
         return { content: [{ type: 'text', text: taskSummary(worker.record) }], details: worker.record, usage: claimUsage(worker) };
       } catch (error) { if (session) await close(session); throw error; }
-      finally { starting.delete(id); }
+      finally { starting.delete(id); finishStarting(); }
     },
   });
 

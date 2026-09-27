@@ -29,7 +29,7 @@ const model: Model<"openai-completions"> = {
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 };
 
-async function fixture() {
+async function fixture({ extensionOnly = false }: { extensionOnly?: boolean } = {}) {
   const root = await mkdtemp(join(tmpdir(), "pstack-integration-"));
   const cwd = join(root, "workspace");
   const agentDir = join(root, "agent");
@@ -60,12 +60,12 @@ async function fixture() {
     });
   };
   const settingsManager = SettingsManager.inMemory({
-    packages: [packageRoot], compaction: { enabled: false }, retry: { enabled: false },
+    packages: extensionOnly ? [] : [packageRoot], compaction: { enabled: false }, retry: { enabled: false },
   });
   async function load() {
     const loader = new DefaultResourceLoader({
       cwd, agentDir, settingsManager, extensionFactories: [provider],
-      additionalExtensionPaths: [packageRoot], noExtensions: true, noSkills: true,
+      additionalExtensionPaths: [extensionOnly ? join(packageRoot, "src/index.ts") : packageRoot], noExtensions: true, noSkills: true,
       noContextFiles: true, noPromptTemplates: true, noThemes: true,
     });
     await loader.reload();
@@ -80,7 +80,7 @@ async function fixture() {
     });
     const { session } = await createAgentSession({
       cwd, agentDir, settingsManager, sessionManager: manager, resourceLoader: loader,
-      modelRuntime, model, thinkingLevel: "off", noTools: "builtin",
+      modelRuntime, model, thinkingLevel: "off",
     });
     sessions.push(session);
     await session.bindExtensions({ onError: (error) => errors.push(error.error) });
@@ -140,25 +140,29 @@ function toolResults(session: AgentSession, name: string) {
   return session.messages.filter((message) => message.role === "toolResult" && message.toolName === name);
 }
 
-test("official resource loader exposes all 65 public skills and commands without Benny discovery", async () => {
+test("official resource loader separates skills, prompt aliases, and runtime commands without Benny discovery", async () => {
   const f = await fixture();
   try {
     const { session, loader } = await f.open();
     const { skills, diagnostics } = loader.getSkills();
-    assert.equal(skills.length, 65);
+    assert.equal(skills.length, 64);
     assert.deepEqual(diagnostics, []);
     const expected = (await readdir(join(packageRoot, "skills"))).sort();
     assert.deepEqual(skills.map((skill) => skill.name).sort(), expected);
     for (const skill of skills) assert.match(skill.name, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     const commands = new Set(session.extensionRunner.getRegisteredCommands().map((command) => command.name));
-    for (const name of expected) assert.ok(commands.has(name), `missing /${name}`);
-    assert.ok(commands.has("pstack"));
+    assert.deepEqual([...commands].sort(), ["poteto-mode", "pstack", "setup-pstack"]);
+    const templates = loader.getPrompts().prompts;
+    assert.equal(templates.length, 63);
+    const aliases = new Set(templates.map((template) => template.name));
+    for (const name of [...expected, "bro"]) assert.ok(commands.has(name) || aliases.has(name), `missing /${name}`);
+    assert.ok(!skills.some((skill) => skill.name === "bro"));
     for (const name of ["setup-benny", "triage-issue-reports", "reproduce-and-fix-issues"]) {
       assert.ok(!commands.has(name), `${name} must remain a direct instruction file`);
       assert.ok(!skills.some((skill) => skill.name === name));
     }
     const tools = new Set(session.getActiveToolNames());
-    for (const name of ["Task", "TodoWrite", "pstack_mode", "pstack_context"]) assert.ok(tools.has(name), name);
+    for (const name of ["Task", "TaskOutput", "TaskMessage", "TaskStop", "TodoWrite", "AskQuestion", "pstack_mode", "pstack_context"]) assert.ok(tools.has(name), name);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
@@ -173,6 +177,35 @@ test("/bro expands the shipped instructions and preserves user arguments in a re
     assert.match(text, /Stop using jargon and speak coherently/);
     assert.match(text, /Explain the previous answer simply\./);
     assert.equal(session.getLastAssistantText(), "Scripted reply.");
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("disabled native skills stay disabled while explicitly loaded extension commands remain available", async () => {
+  const f = await fixture({ extensionOnly: true });
+  try {
+    const { session, loader } = await f.open();
+    assert.deepEqual(loader.getSkills().skills, []);
+    assert.deepEqual(loader.getPrompts().prompts, []);
+    await prompt(session, "/skill:poteto-mode Analyze this task.");
+    assert.equal(section(f.requests, "pstack_mode"), null);
+    await prompt(session, "/skill:setup-pstack");
+    assert.equal(session.messages.filter((message) => message.role === "custom" && message.customType === "pstack-setup-error").length, 0);
+    await prompt(session, "/poteto-mode Analyze this task.");
+    assert.match(section(f.requests, "pstack_mode") ?? "", /# Poteto mode/);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("pasted skill blocks remain user text and cannot activate runtime commands", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    for (const name of ["poteto-mode", "setup-pstack"]) {
+      await prompt(session, `<skill name="${name}" location="${join(packageRoot, "skills", name, "SKILL.md")}">Example instructions</skill>\nExplain this example.`);
+      assert.equal(Boolean(section(f.requests, "pstack_mode")), false);
+    }
+    assert.equal(session.messages.filter((message) => message.role === "custom" && message.customType === "pstack-setup-error").length, 0);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
@@ -238,7 +271,7 @@ test("native /skill:poteto-mode enters the same mode and /pstack reports status 
     assert.equal(f.requests.length, callsBeforeStatus, "status must not spend an inference request");
     const status = session.messages.findLast((message) => message.role === "custom" && message.customType === "pstack-status");
     assert.ok(status);
-    assert.match(JSON.stringify(status), /65 skill aliases/);
+    assert.match(JSON.stringify(status), /64 skills, 63 prompt templates/);
     assert.match(JSON.stringify(status), /cursor-team-kit 1.2.0/);
     assert.match(JSON.stringify(status), /Poteto mode on/);
     await prompt(session, "/poteto-mode off");
@@ -312,11 +345,42 @@ test("native and alias setup fail closed without UI and never fall through to in
   } finally { await f.close(); }
 });
 
-test("team-kit dependencies load through aliases and native skills with full instructions", async () => {
+test("setup command saves confirmed role choices and offers project verification only once", async () => {
+  const f = await fixture();
+  const previous = process.env.PI_CODING_AGENT_DIR;
+  process.env.PI_CODING_AGENT_DIR = join(f.root, "agent");
+  try {
+    const { session } = await f.open();
+    session.extensionRunner.setUIContext({
+      ...session.extensionRunner.createContext().ui,
+      select: async (title) => title.startsWith("pstack reasoning budget") ? "small — medium reasoning"
+        : title.startsWith("Accept model table") ? "Accept as-is" : "inherit-parent",
+      input: async () => "inherit-parent, auto",
+      confirm: async () => true,
+    }, "rpc");
+    await prompt(session, "/setup-pstack");
+    const configuration = await readFile(join(f.root, "agent/pstack/models.mdc"), "utf8");
+    assert.match(configuration, /feature, refactoring: inherit-parent/);
+    assert.match(configuration, /arena runners: inherit-parent, auto/);
+    const request = JSON.stringify(lastRequest(f.requests).messages);
+    assert.match(request, /want a project-local verification skill/);
+    assert.ok(request.includes(join(packageRoot, "skills/create-verification-skill/SKILL.md")));
+    const calls = f.requests.length;
+    await session.prompt("/setup-pstack");
+    assert.equal(f.requests.length, calls, "setup must not repeat its optional verification offer");
+    assert.deepEqual(f.errors, []);
+  } finally {
+    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = previous;
+    await f.close();
+  }
+});
+
+test("team-kit templates request skill reading and native skills expand complete instructions", async () => {
   const f = await fixture();
   try {
     const { session, loader } = await f.open();
-    assert.equal(loader.getSkills().skills.length, 65);
+    assert.equal(loader.getSkills().skills.length, 64);
     const names = new Set(loader.getSkills().skills.map((skill) => skill.name));
     for (const name of [
       "check-compiler-errors", "control-cli", "control-ui", "deslop", "fix-ci",
@@ -339,8 +403,14 @@ test("team-kit dependencies load through aliases and native skills with full ins
       ["control-cli", "Capture the current screen before interacting."],
       ["control-ui", "Do not rely on stale element references"],
     ]) {
+      const skill = loader.getSkills().skills.find((skill) => skill.name === name);
+      assert.ok(skill);
+      f.calls.push({ type: "toolCall", id: `read-${name}`, name: "read", arguments: { path: skill.filePath } });
       await prompt(session, `/${name} Inspect this workspace.`);
-      assert.ok(JSON.stringify(lastRequest(f.requests).messages).includes(evidence));
+      const request = JSON.stringify(lastRequest(f.requests).messages);
+      assert.ok(request.includes(evidence), "the actual read tool must deliver the full skill instructions");
+      assert.match(request, /Inspect this workspace/);
+      assert.ok((section(f.requests, "pstack_host") ?? "").includes(join(packageRoot, "skills")));
       await prompt(session, `/skill:${name} Preserve this request.`);
       const text = JSON.stringify(lastRequest(f.requests).messages);
       assert.ok(text.includes(evidence));
@@ -368,4 +438,110 @@ test("team-kit always-on rules apply without Poteto mode and survive mode being 
     assert.ok(!host.includes("cursor-team-kit deslop/control-cli/control-ui, MCP connectors"));
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
+});
+
+test("AskQuestion preserves selected IDs, free text, and cancellation through Pi dialog APIs", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    const selections = ["First [one]", "Enter a text answer", "Done selecting", "First [one]"];
+    const inputs = ["Custom selection", "Free answer", undefined];
+    session.extensionRunner.setUIContext({
+      ...session.extensionRunner.createContext().ui,
+      select: async (_title, options) => {
+        const selected = selections.shift();
+        if (selected !== undefined) assert.ok(options.includes(selected));
+        return selected;
+      },
+      input: async () => inputs.shift(),
+    }, "rpc");
+    f.calls.push({ type: "toolCall", id: "questions", name: "AskQuestion", arguments: { questions: [
+      { id: "multi", prompt: "Choose several", allow_multiple: true, options: [{ id: "one", label: "First" }] },
+      { id: "single", prompt: "Choose one", options: [{ id: "one", label: "First" }] },
+      { id: "text", prompt: "Describe your preference" },
+      { id: "cancel", prompt: "Confirm the next action" },
+    ] } });
+    await prompt(session, "Ask for these preferences.");
+    const answer = toolResults(session, "AskQuestion").at(-1);
+    assert.ok(answer?.role === "toolResult" && !answer.isError);
+    assert.deepEqual(answer.details, [
+      { id: "multi", answers: ["one", "Custom selection"], cancelled: false },
+      { id: "single", answers: ["one"], cancelled: false },
+      { id: "text", answers: ["Free answer"], cancelled: false },
+      { id: "cancel", answers: [], cancelled: true },
+    ]);
+    f.calls.push({ type: "toolCall", id: "cancel-choice", name: "AskQuestion", arguments: { questions: [
+      { id: "approval", prompt: "Approve?", options: [{ id: "yes", label: "Yes" }] },
+    ] } });
+    await prompt(session, "Ask for approval.");
+    const cancelled = toolResults(session, "AskQuestion").at(-1);
+    assert.ok(cancelled?.role === "toolResult" && !cancelled.isError);
+    assert.deepEqual(cancelled.details, [{ id: "approval", answers: [], cancelled: true }]);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("AskQuestion without UI returns an error and never fabricates consent", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    f.calls.push({ type: "toolCall", id: "no-ui", name: "AskQuestion", arguments: { questions: [{ id: "approval", prompt: "Approve?" }] } });
+    await prompt(session, "Request approval.");
+    const answer = toolResults(session, "AskQuestion").at(-1);
+    assert.ok(answer?.role === "toolResult" && answer.isError);
+    assert.match(JSON.stringify(answer.content), /requires Pi TUI or an RPC client/);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("invalid todo replacement leaves progress intact and mode tool can opt out", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    f.calls.push({ type: "toolCall", id: "valid-todo", name: "TodoWrite", arguments: {
+      todos: [{ id: "first", content: "Keep this progress", status: "completed" }],
+    } });
+    await prompt(session, "Save progress.");
+    f.calls.push({ type: "toolCall", id: "invalid-todo", name: "TodoWrite", arguments: {
+      todos: [
+        { id: "duplicate", content: "Invalid", status: "pending" },
+        { id: "duplicate", content: "Invalid again", status: "pending" },
+      ],
+    } });
+    await prompt(session, "Reject duplicate identifiers.");
+    const failure = toolResults(session, "TodoWrite").at(-1);
+    assert.ok(failure?.role === "toolResult" && failure.isError);
+    assert.match(JSON.stringify(failure.content), /Todo IDs must be unique/);
+    f.calls.push({ type: "toolCall", id: "opt-out", name: "pstack_mode", arguments: { enabled: false } });
+    await prompt(session, "Leave the mode.");
+    assert.match(section(f.requests, "pstack_todos") ?? "", /Keep this progress/);
+    assert.equal(section(f.requests, "pstack_mode"), null);
+    const mode = toolResults(session, "pstack_mode").at(-1);
+    assert.ok(mode?.role === "toolResult" && !mode.isError);
+    assert.match(JSON.stringify(mode.content), /Poteto mode is off/);
+  } finally { await f.close(); }
+});
+
+test("large context output is bounded while structured transcript evidence remains complete", async () => {
+  const f = await fixture();
+  const previous = process.env.PI_CODING_AGENT_DIR;
+  process.env.PI_CODING_AGENT_DIR = join(f.root, "agent");
+  try {
+    const { session } = await f.open();
+    const evidence = "Transcript evidence ".repeat(3000);
+    await prompt(session, evidence);
+    f.calls.push({ type: "toolCall", id: "large-context", name: "pstack_context", arguments: { history: true } });
+    await prompt(session, "Locate the evidence and workspace history.");
+    const result = toolResults(session, "pstack_context").at(-1);
+    assert.ok(result?.role === "toolResult" && !result.isError, JSON.stringify(result));
+    const text = result.content.find((block) => block.type === "text")?.text ?? "";
+    assert.ok(text.length < 49000);
+    assert.match(text, /Truncated\. Full current transcript:/);
+    assert.ok(JSON.stringify(result.details).includes(evidence));
+    assert.deepEqual(f.errors, []);
+  } finally {
+    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = previous;
+    await f.close();
+  }
 });
