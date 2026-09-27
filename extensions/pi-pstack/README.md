@@ -1,6 +1,6 @@
 # pstack for pi
 
-This package ports pstack 0.15.5 and team-kit 1.2.0 workflows to pi 0.87.1. It preserves 187 upstream files and exposes 65 public skills. It does **not** provide 100% behavior parity with Reference. Required Reference services and external integrations remain unavailable. Read the [compatibility report](docs/parity.md) before using those workflows.
+This Pi package ports pstack 0.15.5 and team-kit 1.2.0 workflows to Pi 0.87.1. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. Its extension supplies executable behavior. It does **not** provide 100% behavior parity with Reference. Required Reference services and external integrations remain unavailable. Read the [compatibility report](docs/parity.md) before using those workflows.
 
 ## Install
 
@@ -12,7 +12,9 @@ pi install ./extensions/pi-pstack
 
 Reload an existing pi session with `/reload`. Run `/pstack` to inspect status and `/setup-pstack` to select available models for each role. Setup requires terminal or RPC dialogs and confirms the complete table before saving.
 
-Start a task with `/poteto-mode your task`. The mode persists on that session branch until `/poteto-mode off`. Natural-language opt-in and opt-out use the model-callable `pstack_mode` tool. Each public skill also has its original slash alias, such as `/how`, `/architect`, `/swarm`, and `/bro`. Pi's `/skill:poteto-mode` form is supported.
+Start a task with `/poteto-mode your task`. The mode persists on that session branch until `/poteto-mode off`. Natural-language opt-in and opt-out use the model-callable `pstack_mode` tool. `/poteto-mode`, `/setup-pstack`, and `/pstack` are extension commands. Workflow aliases such as `/how`, `/architect`, and `/swarm` are prompt templates that ask the model to read the corresponding skill. Pi's `/skill:name` form loads those instructions directly. `/bro` is a standalone prompt template; use it instead of the retired `/skill:bro`.
+
+Workflow templates obtain the bundled skill path from the extension's host context. Enable the package extension when using these aliases. Native `/skill:name` invocation remains available when only skills are loaded. Templates do not recursively invoke `/skill:` commands or enforce the skill's instructions.
 
 The runtime uses current `@earendil-works` pi packages. Host dependencies are peers. SDK 0.87.1 is the development and verification target. Other versions have not been verified.
 
@@ -54,7 +56,7 @@ Mode, todo, and task records follow the current session branch. Child transcript
 
 `upstream-team-kit/` contains all 29 files from the pinned team-kit plugin, with its license, manifest, agents, rules, and canvas assets. The original pstack snapshot remains unchanged.
 
-`skills/` contains 143 resources generated from both snapshots. The generator normalizes two display names to valid pi names and maps model-rule and skill-authoring paths to pi locations. It preserves every other byte and rejects overlapping source destinations before writing. [The resource map](docs/resource-map.json) lists every generated file and transformation.
+`skills/` contains 142 files and `prompts/` contains 63 templates generated from both snapshots. The generator normalizes two display names, removes unsupported Reference frontmatter, and maps model-rule and skill-authoring paths to Pi locations. It retains the workflow bodies and supporting resources, with `bro` moved to a prompt template. It rejects overlapping source destinations before writing. [The resource map](docs/resource-map.json) lists every generated file and transformation. It is a maintenance inventory, not a Pi manifest or API.
 
 Use these commands inside this directory:
 
@@ -63,11 +65,14 @@ npm install
 npm run check:resources
 npm run typecheck
 npm test
+npm run test:coverage
 npm run check:cli
 ```
 
-`npm run generate` recreates the operational skills from the immutable snapshot. The checker rejects changed upstream hashes and generated resource drift. Do not edit generated skills directly.
+`npm run generate` recreates the operational skills and prompts from the immutable snapshot. The checker rejects changed upstream hashes and generated resource drift. Do not edit generated resources directly.
 
 The CLI check starts an isolated local pi process and exercises RPC commands without model calls. Helper scripts may install their locked dependencies into their generated `node_modules` directory. The resource checker excludes that dependency directory and still checks every generated source file.
 
 [Provenance](docs/provenance.json), [source audit](docs/source-audit.md), [architecture](docs/architecture.md), and [decision trail](docs/decisions.tsv) document the implementation. Original portable helper scripts retain their own runtime dependencies, including Bun, git, and GitHub CLI where required.
+
+The [Pi mechanism audit](docs/mechanism-audit.md) records the facility classifications, fixes, verification, and invocation changes.

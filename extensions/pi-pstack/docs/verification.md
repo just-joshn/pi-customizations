@@ -2,7 +2,7 @@
 
 ## Verified source and host contracts
 
-The resource checker verifies all 187 upstream hashes and all 143 generated skill resources, including executable bits. The official pi loader discovers 65 legal skill names with no skill diagnostics. Benny's three operational skills remain outside discovery.
+The resource checker verifies all 187 upstream hashes and all 205 generated resources, including executable bits. The official Pi loader discovers 64 legal skill names and 63 prompt templates. Benny's three operational skills remain outside discovery. The [mechanism audit](mechanism-audit.md) records the current checks and invocation changes.
 
 The TypeScript compiler checks the implementation against pi SDK 0.87.1. Integration tests use the real resource loader, extension runner, session manager, and agent sessions with a deterministic local provider. They make no paid model calls.
 
@@ -21,6 +21,7 @@ npm install
 npm run check:resources
 npm run typecheck
 npm test
+npm run test:coverage
 npm run check:cli
 npm pack --dry-run --json
 ```
@@ -35,7 +36,15 @@ The completion predicate for full runtime parity remains NOT VERIFIED because th
 
 The original pstack increment finished with 17 passing tests. The real nested-worker test proves active descendants are cancelled on both terminal completion and TaskStop, with no later writes after their scheduled completion time. Those checks remain in the expanded suite.
 
-## Team-kit increment
+## Mechanism audit verification
+
+The current suite passes 38 tests. `npm run test:coverage` uses pinned `c8` 12.0.0 and reports 93.31% lines and statements, 80% branches, and 98% functions. It enforces an aggregate 80% minimum in all four categories and includes all runtime source files. `coverage/` is generated and ignored.
+
+The native Node 26.10.0 coverage merger initially reported 73.11% lines and marked model setup code uncovered despite passing isolated setup tests with 96.15% coverage. The current command uses a source-map-aware reporter. Additional SDK tests verify successful setup and its once-only offer, question answers and cancellation, task message delivery and cancelled waits, invalid todo rejection, and complete structured context behind truncated text. See the [audit report](mechanism-audit.md) for the comparison and review limits.
+
+## Historical team-kit increment
+
+These results describe the pre-audit implementation at `91946b769c398ddd66cef9a085c600f05ba61fa6`. The mechanism audit supersedes its skill counts and alias implementation. The source helper results above are also retained historical evidence; unchanged helper code does not require rerunning those tests for this migration.
 
 The new integration checks initially failed on the old implementation. Discovery returned 47 instead of 65 skills, and the expected always-on rule section was empty. After implementation, the full suite passed 28 tests with zero failures. TypeScript and resource verification passed against official pi 0.87.1.
 

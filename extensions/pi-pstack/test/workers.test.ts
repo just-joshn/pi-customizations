@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import test from 'node:test';
-import { createAgentSession, DefaultResourceLoader, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
+import { AgentSession, createAgentSession, DefaultResourceLoader, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { registerWorkers, restoreTaskRecords, taskSummary } from '../src/workers.ts';
 
 const record = {
@@ -71,6 +71,8 @@ test('real child sessions preserve history and report provider failures, backgro
             const users = context.messages.filter(m => m.role === 'user');
             const text = JSON.stringify(users.at(-1));
             writeFileSync(${JSON.stringify(join(dir, 'child-system.txt'))}, JSON.stringify(context.messages.filter(message => message.role === 'system')));
+            writeFileSync(${JSON.stringify(join(dir, 'child-input.txt'))}, JSON.stringify(users));
+            appendFileSync(${JSON.stringify(join(dir, 'provider-inputs.jsonl'))}, JSON.stringify(users) + '\\n');
             const error = text.includes('FAIL');
             const nested = text.includes('NEST_ROOT') || text.includes('NEST_STOP');
             const last = context.messages.at(-1);
@@ -111,11 +113,14 @@ test('real child sessions preserve history and report provider failures, backgro
     assert.ok(model);
     await session.setModel(model);
     const tools = loader.getExtensions().extensions.flatMap(extension => [...extension.tools.values()]);
-    async function call(name: string, params: Record<string, unknown>) {
+    async function call(name: string, params: Record<string, unknown>, signal?: AbortSignal) {
       const tool = tools.find(tool => tool.definition.name === name);
       assert.ok(tool);
-      return tool.definition.execute('test-' + name, params, undefined, undefined, session!.extensionRunner.createContext());
+      return tool.definition.execute('test-' + name, params, signal, undefined, session!.extensionRunner.createContext());
     }
+    await assert.rejects(call('TaskMessage', { task_id: 'missing', message: 'hello' }), /Task is not running/);
+    await assert.rejects(call('TaskOutput', { task_id: 'missing' }), /Unknown task in this branch/);
+    await assert.rejects(call('TaskStop', { task_id: 'missing' }), /No live task/);
     await assert.rejects(call('Task', { prompt: 'watch', subagent_type: 'ci-watcher' }), /Unavailable model 'fast'/);
     for (const role of ['shell', 'explore']) {
       await assert.rejects(call('Task', { prompt: 'prepare', subagent_type: role }), /Unsupported agent/);
@@ -133,24 +138,37 @@ test('real child sessions preserve history and report provider failures, backgro
     assert.match(childPrompt, /You are a \*\*Task subagent\*\*/);
     assert.match(childPrompt, /## Approval Bar/);
     const appended: string[][] = [];
+    const childPrompts: { readonly: boolean; names: string[] }[] = [];
     const getAppendSystemPrompt = DefaultResourceLoader.prototype.getAppendSystemPrompt;
     const observer = t.mock.method(DefaultResourceLoader.prototype, 'getAppendSystemPrompt', function (this: DefaultResourceLoader) {
       const prompts = getAppendSystemPrompt.call(this);
+      childPrompts.push({ readonly: this.getExtensions().extensions.length === 0, names: this.getPrompts().prompts.map(prompt => prompt.name) });
       if (this.getExtensions().extensions.length === 0) appended.push(prompts);
       return prompts;
     });
+    await call('Task', { prompt: '/bro Rewrite this plainly.', model: 'worker-test/deterministic', run_in_background: false });
+    assert.equal(childPrompts.find(loader => !loader.readonly)?.names.length, 63);
+    const childInput = await readFile(join(dir, 'child-input.txt'), 'utf8');
+    assert.match(childInput, /Stop using jargon and speak coherently/);
+    assert.match(childInput, /Rewrite this plainly/);
     await assert.rejects(call('Task', { prompt: 'readonly review', subagent_type: 'thermo-nuclear-code-quality-review', model: 'worker-test/deterministic', readonly: true, run_in_background: false }), /No API key found for worker-test/);
     observer.mock.restore();
+    assert.equal(childPrompts.find(loader => loader.readonly)?.names.length, 63);
     childPrompt = appended.flat().join('\n');
     assert.match(childPrompt, /You are a \*\*Task subagent\*\*/);
     assert.match(childPrompt, /## Approval Bar/);
     assert.match(childPrompt, /# No inline imports/);
     assert.match(childPrompt, /typescript-exhaustive-switch: In switch statements/);
+    assert.match(childPrompt, /pstack host contract\. Bundled skills:/);
     const first = await call('Task', { prompt: 'first', model: 'worker-test/deterministic', run_in_background: false });
     const data = JSON.parse(first.content.find(block => block.type === 'text')!.text);
     assert.equal(data.status, 'settled');
     assert.equal(data.output, 'users=1');
     assert.equal(first.usage?.totalTokens, 5);
+    await assert.rejects(call('TaskMessage', { task_id: data.task_id, message: 'too late' }), /Task is not running/);
+    for (const policy of [{ readonly: true }, { subagent_type: 'comment-sicko' }, { cwd: join(dir, 'sessions') }]) {
+      await assert.rejects(call('Task', { prompt: 'change policy', resume: data.task_id, ...policy }), /Resume must preserve the task workspace, persona, and readonly policy/);
+    }
     const second = await call('Task', { prompt: 'second', resume: data.task_id, run_in_background: false });
     assert.match(JSON.stringify(second.content), /users=2/);
     await session.extensionRunner.emit({ type: 'session_start', reason: 'reload' });
@@ -159,9 +177,25 @@ test('real child sessions preserve history and report provider failures, backgro
     await assert.rejects(call('Task', { prompt: 'FAIL', model: 'worker-test/deterministic', run_in_background: false }), /scripted failure/);
     const running = await call('Task', { prompt: 'WAIT', model: 'worker-test/deterministic' });
     const runningId = JSON.parse(running.content.find(block => block.type === 'text')!.text).task_id;
+    await assert.rejects(call('Task', { prompt: 'resume running', resume: runningId }), /is running\. Use TaskMessage/);
+    const cancelled = new AbortController();
+    cancelled.abort();
+    await assert.rejects(call('TaskOutput', { task_id: runningId, block: true }, cancelled.signal), /Wait cancelled/);
+    const waiting = new AbortController();
+    const wait = assert.rejects(call('TaskOutput', { task_id: runningId, block: true }, waiting.signal), /Wait cancelled/);
+    waiting.abort();
+    await wait;
+    const stillRunning = await call('TaskOutput', { task_id: runningId });
+    assert.equal(JSON.parse(stillRunning.content.find(block => block.type === 'text')!.text).status, 'running');
+    await call('TaskMessage', { task_id: runningId, message: 'STEER use the corrected scope', mode: 'steer' });
+    await call('TaskMessage', { task_id: runningId, message: 'FOLLOW_UP verify the result', mode: 'followUp' });
     const completed = await call('TaskOutput', { task_id: runningId, block: true });
-    assert.match(JSON.stringify(completed.content), /settled/);
-    assert.equal(completed.usage?.totalTokens, 5);
+    const completedData = JSON.parse(completed.content.find(block => block.type === 'text')!.text);
+    assert.equal(completedData.status, 'settled');
+    assert.equal(completedData.output, 'users=3');
+    assert.equal(completed.usage?.totalTokens, 10);
+    const inputs = (await readFile(join(dir, 'provider-inputs.jsonl'), 'utf8')).trim().split('\n');
+    assert.ok(inputs.some(input => input.includes('STEER use the corrected scope') && input.includes('FOLLOW_UP verify the result')), 'the child provider must receive both queued messages');
     assert.equal((await call('TaskOutput', { task_id: runningId })).usage, undefined);
     await session.waitForIdle();
     const background = await call('Task', { prompt: 'WAIT', model: 'worker-test/deterministic' });
@@ -193,6 +227,57 @@ test('real child sessions preserve history and report provider failures, backgro
     assert.doesNotMatch(afterStop, /grandchild-finished/);
     await new Promise(resolve => setTimeout(resolve, 550));
     assert.equal(await readFile(join(dir, 'audit.txt'), 'utf8'), afterStop, 'TaskStop drains grandchildren before returning');
+
+    await call('Task', { prompt: 'WAIT', model: 'worker-test/deterministic' });
+    const abort = AgentSession.prototype.abort;
+    let releaseAbort = () => {};
+    const abortGate = new Promise<void>(resolve => { releaseAbort = resolve; });
+    const delayedAbort = t.mock.method(AgentSession.prototype, 'abort', async function (this: AgentSession) {
+      await abortGate;
+      await abort.call(this);
+    });
+    let firstFinished = false;
+    let secondFinished = false;
+    const firstShutdown = session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' }).then(() => { firstFinished = true; });
+    const supersededRestore = session.extensionRunner.emit({ type: 'session_tree', oldLeafId: null, newLeafId: session.sessionManager.getLeafId() });
+    const secondShutdown = session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' }).then(() => { secondFinished = true; });
+    try {
+      await new Promise<void>(resolve => setImmediate(resolve));
+      assert.equal(firstFinished, false);
+      assert.equal(secondFinished, false, 'overlapping shutdown must wait for the same cleanup');
+      await assert.rejects(call('Task', { prompt: 'during shutdown' }), /Parent session is not active/);
+    } finally {
+      releaseAbort();
+      await Promise.all([firstShutdown, supersededRestore, secondShutdown]);
+      delayedAbort.mock.restore();
+    }
+    await assert.rejects(call('Task', { prompt: 'after shutdown' }), /Parent session is not active/);
+    await session.extensionRunner.emit({ type: 'session_tree', oldLeafId: null, newLeafId: session.sessionManager.getLeafId() });
+    const reopened = await call('Task', { prompt: 'after reopening', model: 'worker-test/deterministic', run_in_background: false });
+    assert.equal(JSON.parse(reopened.content.find(block => block.type === 'text')!.text).status, 'settled');
+    const reload = DefaultResourceLoader.prototype.reload;
+    let releaseStartup = () => {};
+    let startupEntered = () => {};
+    const startupGate = new Promise<void>(resolve => { releaseStartup = resolve; });
+    const entered = new Promise<void>(resolve => { startupEntered = resolve; });
+    const paused = t.mock.method(DefaultResourceLoader.prototype, 'reload', async function (this: DefaultResourceLoader) {
+      await reload.call(this);
+      startupEntered();
+      await startupGate;
+    });
+    const starting = assert.rejects(call('Task', { prompt: 'cancel before startup', model: 'worker-test/deterministic' }), /Task startup was cancelled/);
+    await entered;
+    let shutdownFinished = false;
+    const shutdown = session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' }).then(() => { shutdownFinished = true; });
+    try {
+      await new Promise<void>(resolve => setImmediate(resolve));
+      assert.equal(shutdownFinished, false, 'shutdown must drain in-flight child construction before returning');
+    } finally {
+      releaseStartup();
+      await Promise.all([starting, shutdown]);
+      paused.mock.restore();
+    }
+    assert.equal(shutdownFinished, true);
 
   } finally {
     if (session) { await session.abort(); await session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' }); session.dispose(); }
