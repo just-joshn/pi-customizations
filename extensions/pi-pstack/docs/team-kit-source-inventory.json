@@ -1,0 +1,147 @@
+[
+  {
+    "path": "plugin-metadata/plugin.json",
+    "bytes": 899,
+    "sha256": "9c8622d0577205959b6469a5454cbe2787ad3c6412439759328e92dc0115584d"
+  },
+  {
+    "path": "LICENSE",
+    "bytes": 1063,
+    "sha256": "702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0"
+  },
+  {
+    "path": "README.md",
+    "bytes": 2526,
+    "sha256": "6f0e34073ee503824eb5baf52a52119cffe330f2685477ea8d303e881ecd1679"
+  },
+  {
+    "path": "agents/ci-watcher.md",
+    "bytes": 984,
+    "sha256": "8bc93b9ced5588f0ece54ce52690e9682ac49a7fd64be7124379b0e2e128556e"
+  },
+  {
+    "path": "agents/thermo-nuclear-code-quality-review.md",
+    "bytes": 1874,
+    "sha256": "4d15c05be503f9fdb795a292807334558e7619ffc2fd75ddbc9e97e0d6312234"
+  },
+  {
+    "path": "assets/avatar.png",
+    "bytes": 59641,
+    "sha256": "13127219825cd53eff1f09686798f2dd7f5e00d0a7093e74d2619e72d5a44c26"
+  },
+  {
+    "path": "rules/no-inline-imports.mdc",
+    "bytes": 314,
+    "sha256": "91bb4412f2775b386ddf6af0d235fbe8160907f6104c76928470fdf51be69edd"
+  },
+  {
+    "path": "rules/typescript-exhaustive-switch.mdc",
+    "bytes": 297,
+    "sha256": "58214625757c38b73fc3e66a715ea4b2ae609f6b3e285edc4393c5144430a8f4"
+  },
+  {
+    "path": "skills/check-compiler-errors/SKILL.md",
+    "bytes": 535,
+    "sha256": "1ad76beccd581fc285199334709e0a37cdc2f76e5d0d33c90e1dc21905518004"
+  },
+  {
+    "path": "skills/control-cli/SKILL.md",
+    "bytes": 4333,
+    "sha256": "13ac93e595bbda2000849bdb815d5f2ca03f7c2ca63788c8335f9212b9b422a2"
+  },
+  {
+    "path": "skills/control-ui/SKILL.md",
+    "bytes": 4802,
+    "sha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871"
+  },
+  {
+    "path": "skills/deslop/SKILL.md",
+    "bytes": 719,
+    "sha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810"
+  },
+  {
+    "path": "skills/fix-ci/SKILL.md",
+    "bytes": 901,
+    "sha256": "925f8c3e11de8bcc0cd015ec907f4d00b12cde6714246554ed3a52e096536522"
+  },
+  {
+    "path": "skills/fix-merge-conflicts/SKILL.md",
+    "bytes": 988,
+    "sha256": "738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76"
+  },
+  {
+    "path": "skills/get-pr-comments/SKILL.md",
+    "bytes": 529,
+    "sha256": "8bf292736cab922276feb4d8377edc2fc4102a7beb62bcd1f3f5cf72a79b16cc"
+  },
+  {
+    "path": "skills/loop-on-ci/SKILL.md",
+    "bytes": 1611,
+    "sha256": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de"
+  },
+  {
+    "path": "skills/make-pr-easy-to-review/SKILL.md",
+    "bytes": 2275,
+    "sha256": "e8da0d4a85b7c04823698f539251617389f827fd9137100ef7eaea5dcc992fe7"
+  },
+  {
+    "path": "skills/new-branch-and-pr/SKILL.md",
+    "bytes": 665,
+    "sha256": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd"
+  },
+  {
+    "path": "skills/pr-review-canvas/SKILL.md",
+    "bytes": 9088,
+    "sha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6"
+  },
+  {
+    "path": "skills/pr-review-canvas/renderer.js",
+    "bytes": 6762,
+    "sha256": "d78d36a46b0aeae755e2edd9b712970fd181183bb1c320d10caa8d9f776695c6"
+  },
+  {
+    "path": "skills/pr-review-canvas/styles.css",
+    "bytes": 5788,
+    "sha256": "3c3ff002dd3bfe7f4fdbda521fce05e336c4a7922f4bd4d848f6566a961ceb19"
+  },
+  {
+    "path": "skills/pr-review-canvas/template.html",
+    "bytes": 513,
+    "sha256": "cb56bc764384856da4733d1c999521c3e1b20d65ed80605630b74da448abe756"
+  },
+  {
+    "path": "skills/review-and-ship/SKILL.md",
+    "bytes": 1398,
+    "sha256": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1"
+  },
+  {
+    "path": "skills/run-smoke-tests/SKILL.md",
+    "bytes": 967,
+    "sha256": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb"
+  },
+  {
+    "path": "skills/thermo-nuclear-code-quality-review/SKILL.md",
+    "bytes": 12437,
+    "sha256": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f"
+  },
+  {
+    "path": "skills/verify-this/SKILL.md",
+    "bytes": 2805,
+    "sha256": "c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de"
+  },
+  {
+    "path": "skills/weekly-review/SKILL.md",
+    "bytes": 902,
+    "sha256": "b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712"
+  },
+  {
+    "path": "skills/what-did-i-get-done/SKILL.md",
+    "bytes": 1012,
+    "sha256": "479813c9abaacb5b6b0531f1de7dc5eb2f3bd9673707a992d1073335836e82f8"
+  },
+  {
+    "path": "skills/workflow-from-chats/SKILL.md",
+    "bytes": 2685,
+    "sha256": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16"
+  }
+]

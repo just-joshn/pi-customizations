@@ -14,3 +14,11 @@ The implementation targets the official repository revision recorded in [provena
 | Real CLI check, acceptance versus completion, JSONL framing | [RPC](https://github.com/earendil-works/pi/blob/2b0a123de98318c2ff8069661721ce0c3794c34e/packages/coding-agent/docs/rpc.md) |
 
 SDK child construction explicitly binds extensions. Cleanup emits the child shutdown lifecycle before disposing the SDK session, so nested extension-owned workers can release resources. A bare `dispose()` is insufficient for that ownership contract. The worker test exercises recursive cleanup with actual SDK sessions.
+
+## Team-kit documentation refresh
+
+On 2026-09-26, fetching both repositories' `main` branches returned the same pinned revisions. Two Context7 searches using `pi coding agent` and `earendil-works/pi` returned only third-party projects under the configured filters. The official docs above and their exported types were read directly.
+
+The team-kit increment uses existing package skill discovery, `parseFrontmatter`, structured `before_agent_start` sections, and the SDK resource loader's `appendSystemPrompt`. The latter carries always-on rules into readonly children that deliberately disable extension loading. These APIs are defined in the [official resource loader](https://github.com/earendil-works/pi/blob/2b0a123de98318c2ff8069661721ce0c3794c34e/packages/coding-agent/src/core/resource-loader.ts).
+
+Plugin contracts come from the [pinned team-kit source](the upstream plugins repository/tree/ecc249f1e306fc64ddf83c7bed16cacf7c2239db/team-kit). Its 18 skills, two agents, and two rules are preserved under `upstream-team-kit`. Neither the plugin nor pi documentation defines Reference's private `shell`, `explore`, cloud, or persistent scheduler behavior.
