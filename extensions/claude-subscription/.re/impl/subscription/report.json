@@ -1,0 +1,21 @@
+{
+  "status": "IMPLEMENTED",
+  "commands": ["pi -e <extension>", "/login", "/model claude-subscription/<id>"],
+  "differential": {
+    "cases": 18,
+    "match": 18,
+    "intentional_change": 3,
+    "unclassified": 0,
+    "missing": 0,
+    "note": "Candidate assertions are the extension test suite. They encode the proven SDK fields that this provider keeps and the Provider CLI identity fields the SDK does not send. A live SDK process differential was not re-run in this session. The reference corpus is the existing replay R-20260927T085528-d69391ac."
+  },
+  "intentional_differences": [
+    "user-agent is claude-cli/2.1.280, not Anthropic/JS 0.128.0",
+    "x-stainless-* headers are omitted",
+    "SDK maxRetries is not reimplemented inside the stream"
+  ],
+  "unresolved": [
+    "H-007 OAuth refresh was not probed against Anthropic in the reverse-engineering corpus. Refresh follows Pi 0.87.1's token endpoint and body.",
+    "Live subscription inference was not called. Verification stops at Pi resolving the provider and a local Messages server accepting the built request."
+  ]
+}
