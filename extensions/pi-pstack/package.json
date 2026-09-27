@@ -6,8 +6,8 @@
   "license": "MIT",
   "keywords": ["pi-package", "pstack"],
   "engines": { "node": ">=22.19.0" },
-  "pi": { "extensions": ["./src/index.ts"], "skills": ["./skills"], "prompts": ["./prompts"] },
-  "files": ["src", "skills", "prompts", "upstream", "upstream/.gitignore", "upstream-team-kit", "docs", "scripts", "test", "tsconfig.json", "LICENSE", "README.md"],
+  "pi": { "extensions": ["./src/index.ts"], "skills": ["./skills", "./host/skills"], "prompts": ["./prompts", "./host/prompts"] },
+  "files": ["src", "skills", "prompts", "host", "upstream", "upstream/.gitignore", "upstream-team-kit", "docs", "scripts", "test", "tsconfig.json", "LICENSE", "README.md"],
   "scripts": {
     "generate": "node scripts/resources.mjs --write",
     "check:resources": "node scripts/resources.mjs",

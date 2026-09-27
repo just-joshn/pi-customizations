@@ -11,7 +11,7 @@ const sources = [
 const write = process.argv.includes('--write');
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-if (JSON.stringify(manifest.pi?.prompts) !== JSON.stringify(['./prompts']) || !manifest.files?.includes('prompts')) {
+if (!manifest.pi?.prompts?.includes('./prompts') || !manifest.files?.includes('prompts')) {
   throw new Error('Package must register and distribute the generated prompts directory.');
 }
 async function files(dir, installedDependencies = false) {
