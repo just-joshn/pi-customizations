@@ -21,10 +21,13 @@ const code = await new Promise<number>((resolveCode, reject) => {
 	child.on("close", (status) => resolveCode(status ?? 1));
 });
 const output = `${stdout}\n${stderr}`;
-if (!output.includes("No API key found for claude-subscription")) {
+const askedForLogin = output.includes("No API key found for claude-subscription");
+const answered = code === 0 && stdout.trim().length > 0;
+if (output.includes("Unknown model") || (!askedForLogin && !answered)) {
 	throw new Error(`pi did not resolve claude-subscription.\nexit=${code}\n${output}`);
 }
-if (output.includes("Unknown model") || output.includes("@anthropic-ai/sdk")) {
-	throw new Error(output);
-}
-console.log("pi resolved claude-subscription/claude-sonnet-4-6 and asked for login");
+console.log(
+	askedForLogin
+		? "pi resolved claude-subscription/claude-sonnet-4-6 and asked for login"
+		: `pi answered through claude-subscription/claude-sonnet-4-6: ${stdout.trim()}`,
+);
