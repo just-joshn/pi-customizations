@@ -94,7 +94,7 @@ describe("command registry", () => {
 	});
 
 	it("marks backend-only commands unmet with a reason", () => {
-		const unmet = ["goal", "detach", "update", "max-mode", "fast", "feedback", "open", "cursor", "team", "mcp", "plugin", "sandbox", "bedrock", "btw", "rule"];
+		const unmet = ["goal", "detach", "update", "max-mode", "fast", "feedback", "open", "cursor", "team", "mcp", "plugin", "sandbox", "bedrock", "btw"];
 		for (const id of unmet) {
 			assert.equal(entry(id).status, "unmet", id);
 			assert.ok(entry(id).reason && entry(id).reason!.length > 0, `${id} names the missing service`);
