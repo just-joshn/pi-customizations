@@ -21,13 +21,14 @@ The requested 100% behavior parity is not achieved. The plugin requires Referenc
 | Workspace transcript evidence | Current branch and workspace-scoped pi session history. Generated transcript skills and the worktree audit read the Pi session directory and `pstack-workers` child transcripts that the host contract names | `pstack_context`, `scripts/resources.mjs`, `test/research-parity.test.ts` |
 | Helper scripts | Complete original scripts, lockfile, and test suites | `upstream/skills/poteto-mode/scripts` |
 | Benny source pack | Preserved and excluded from public skill discovery | Package manifest and resource inventory |
+| Local `/loop` with monitored shell output | `BackgroundShell` wakes the agent on each output line that matches `notify_on_output` and on unexpected exit. `BackgroundShellList` and `BackgroundShellStop` manage shells. A Pi-authored loop skill and `/loop` template follow the local fixed, dynamic, and watcher procedures. Shells end with the session | `src/shells.ts`, `host/skills/loop/SKILL.md`, `test/shells.test.ts` |
 
 ## Unmet contracts
 
 | Source requirement | Why parity is unavailable |
 | --- | --- |
 | Reference cloud agent environment and durable hosted lifecycle | SDK children run locally and stop with their owner. Cloud requests fail explicitly. |
-| Reference loop notifications and goal continuation | This extension does not implement the background-shell output notifications used by the synced loop skill, cloud timer subscriptions, or active-goal continuation. A required loop or goal is an unmet gate. |
+| Reference cloud timers and goal continuation | Cloud timer subscriptions and active-goal continuation are not implemented. A required cloud wake chain or goal is an unmet gate. |
 | Exact Reference model entitlements, aliases, speed tiers, and inference behavior | Pi uses provider/model IDs and separate supported thinking levels. Availability depends on configured providers. No silent family substitution occurs. |
 | Reference synced `create-skill` and Automations services | The references identify server-synced skills and host services. This package does not implement those services or distribute their complete current skill text. |
 | Terminal, browser, and GitHub execution dependencies | Team-kit instructions are now bundled, but actual project tools, browser binaries, credentials, and target applications remain environment-dependent. No universal UI or CLI check is implied by installing a skill. |
@@ -51,7 +52,7 @@ Prompt aliases ask the model to read the full skill instead of injecting it from
 
 These invocation changes follow the [current mechanism audit](mechanism-audit.md). They preserve the existing capability coverage without claiming a numeric behavior-parity percentage.
 
-The team-kit increment closes three named skill-distribution dependencies. Its remaining 15 skills are additional available workflows, not 15 measured parity fixes. Plugin rule omission and persona construction can be tested deterministically. Successful real GitHub, browser, or model-driven workflow execution requires evidence from the user's configured environment. The kit's `loop-on-ci` skill does not implement Reference's loop notification protocol.
+The team-kit increment closes three named skill-distribution dependencies. Its remaining 15 skills are additional available workflows, not 15 measured parity fixes. Plugin rule omission and persona construction can be tested deterministically. Successful real GitHub, browser, or model-driven workflow execution requires evidence from the user's configured environment. The kit's `loop-on-ci` skill does not implement Reference's loop notification protocol. The separate `/loop` port does.
 
 ## Verification limits
 
