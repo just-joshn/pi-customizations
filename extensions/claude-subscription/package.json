@@ -1,0 +1,21 @@
+{
+  "name": "pi-claude-subscription",
+  "version": "0.1.0",
+  "description": "Use a Claude Pro or Max subscription in Pi without the Anthropic SDK. Requests identify as Claude Code.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["pi-package"],
+  "engines": { "node": ">=22.19.0" },
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
+  "files": ["src", "README.md"],
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "check:no-sdk": "node --experimental-strip-types scripts/no-sdk.ts"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}
