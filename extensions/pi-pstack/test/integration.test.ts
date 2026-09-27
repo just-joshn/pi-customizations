@@ -1,156 +1,10 @@
 import assert from "node:assert/strict";
-import fs, { mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import fs, { readFile, readdir } from "node:fs/promises";
 import { syncBuiltinESMExports } from 'node:module';
-import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import test from "node:test";
-import {
-  createAssistantMessageEventStream,
-  type AssistantMessage,
-  type Context,
-  type Model,
-  type ToolCall,
-} from "@earendil-works/pi-ai";
-import {
-  createAgentSession,
-  DefaultResourceLoader,
-  ModelRuntime,
-  SessionManager,
-  SettingsManager,
-  type AgentSession,
-  type ExtensionFactory,
-} from "@earendil-works/pi-coding-agent";
-
-const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const settlementDeadlineMs = 5000;
-const model: Model<"openai-completions"> = {
-  id: "scripted", name: "Scripted integration provider", provider: "pstack-integration",
-  api: "openai-completions", baseUrl: "https://integration.invalid", reasoning: false,
-  input: ["text"], contextWindow: 128000, maxTokens: 4096,
-  cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-};
-
-function providerFixture(capture: (request: Context) => void, next: () => ToolCall | ToolCall[] | undefined): ExtensionFactory {
-  return (pi) => {
-    pi.registerProvider(model.provider, {
-      api: model.api, baseUrl: model.baseUrl, apiKey: "integration-only-not-a-credential",
-      models: [model],
-      streamSimple: (_model, context) => {
-        capture(structuredClone(context));
-        const call = next();
-        const message: AssistantMessage = {
-          role: "assistant", api: model.api, provider: model.provider, model: model.id,
-          content: call ? (Array.isArray(call) ? call : [call]) : [{ type: "text", text: "Scripted reply." }],
-          stopReason: call ? "toolUse" : "stop", timestamp: Date.now(),
-          usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0,
-            cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
-        };
-        const stream = createAssistantMessageEventStream();
-        stream.push({ type: "done", reason: call ? "toolUse" : "stop", message });
-        stream.end(message);
-        return stream;
-      },
-    });
-  };
-}
-
-async function closeSessions(sessions: AgentSession[], root: string) {
-  try {
-    const results = await Promise.allSettled(sessions.map(async session => {
-      try { await session.abort(); } finally { session.dispose(); }
-    }));
-    const failures = results.filter(result => result.status === 'rejected');
-    if (failures.length) throw new AggregateError(failures.map(result => result.reason), 'Fixture cleanup failed');
-  } finally { await rm(root, { recursive: true, force: true }); }
-}
-
-async function fixture({ extensionOnly = false }: { extensionOnly?: boolean } = {}) {
-  const root = await mkdtemp(join(tmpdir(), "pstack-integration-"));
-  const cwd = join(root, "workspace");
-  const agentDir = join(root, "agent");
-  try { await mkdir(cwd); await mkdir(agentDir); }
-  catch (error) { await rm(root, { recursive: true, force: true }); throw error; }
-  const requests: Context[] = [];
-  const calls: (ToolCall | ToolCall[])[] = [];
-  const sessions: AgentSession[] = [];
-  const errors: string[] = [];
-  const provider = providerFixture(request => requests.push(request), () => calls.shift());
-  const settingsManager = SettingsManager.inMemory({
-    packages: extensionOnly ? [] : [packageRoot], compaction: { enabled: false }, retry: { enabled: false },
-  });
-  async function load() {
-    const loader = new DefaultResourceLoader({
-      cwd, agentDir, settingsManager, extensionFactories: [provider],
-      additionalExtensionPaths: [extensionOnly ? join(packageRoot, "src/index.ts") : packageRoot], noExtensions: true, noSkills: true,
-      noContextFiles: true, noPromptTemplates: true, noThemes: true,
-    });
-    await loader.reload();
-    assert.deepEqual(loader.getExtensions().errors, [], "package extension must load without errors");
-    return loader;
-  }
-  async function open(manager = SessionManager.create(cwd, join(root, "sessions"))) {
-    const loader = await load();
-    const modelRuntime = await ModelRuntime.create({
-      authPath: join(agentDir, "auth.json"), modelsPath: null,
-      allowModelNetwork: false, refreshOnCreate: false,
-    });
-    const { session } = await createAgentSession({
-      cwd, agentDir, settingsManager, sessionManager: manager, resourceLoader: loader,
-      modelRuntime, model, thinkingLevel: "off",
-    });
-    sessions.push(session);
-    await session.bindExtensions({ onError: (error) => errors.push(error.error) });
-    return { session, manager, loader };
-  }
-  return {
-    root, cwd, get requests() { return structuredClone(requests); }, get errors() { return errors.slice(); }, load, open,
-    calls: { push(...items: (ToolCall | ToolCall[])[]) { calls.push(...structuredClone(items)); } },
-    close: () => closeSessions(sessions, root),
-  };
-}
-
-async function prompt(session: AgentSession, text: string) {
-  if (text === "/poteto-mode off") {
-    await session.prompt(text);
-    return;
-  }
-  let unsubscribe = () => {};
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const settled = new Promise<void>((resolve, reject) => {
-    timer = setTimeout(() => reject(new Error("Pi did not settle the scripted request")), settlementDeadlineMs);
-    unsubscribe = session.subscribe((event) => {
-      if (event.type === "agent_settled") resolve();
-    });
-  });
-  try {
-    await session.prompt(text);
-    await settled;
-  } finally {
-    clearTimeout(timer);
-    unsubscribe();
-  }
-}
-
-function section(requests: Context[], name: string) {
-  let value: string | null = null;
-  for (const message of lastRequest(requests).messages) {
-    if (message.role === "system" && message.sections && name in message.sections) {
-      value = message.sections[name] ?? null;
-    }
-  }
-  return value;
-}
-
-function lastRequest(requests: Context[]) {
-  const request = requests.at(-1);
-  assert.ok(request, "the scripted provider must receive a real Pi request");
-  return request;
-}
-
-function toolResults(session: AgentSession, name: string) {
-  return session.messages.filter((message) => message.role === "toolResult" && message.toolName === name);
-}
+import { SessionManager } from "@earendil-works/pi-coding-agent";
+import { fixture, lastRequest, packageRoot, prompt, section, toolResults } from "./session-fixture.ts";
 
 test('integration fixture setup failure removes its directory', async t => {
   let directory = '';
@@ -188,15 +42,15 @@ test("official resource loader separates skills, prompt aliases, and runtime com
   try {
     const { session, loader } = await f.open();
     const { skills, diagnostics } = loader.getSkills();
-    assert.equal(skills.length, 64);
+    assert.equal(skills.length, 65);
     assert.deepEqual(diagnostics, []);
-    const expected = (await readdir(join(packageRoot, "skills"))).sort();
+    const expected = [...await readdir(join(packageRoot, "skills")), ...await readdir(join(packageRoot, "host/skills"))].sort();
     assert.deepEqual(skills.map((skill) => skill.name).sort(), expected);
     for (const skill of skills) assert.match(skill.name, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     const commands = new Set(session.extensionRunner.getRegisteredCommands().map((command) => command.name));
     assert.deepEqual([...commands].sort(), ["poteto-mode", "pstack", "setup-pstack"]);
     const templates = loader.getPrompts().prompts;
-    assert.equal(templates.length, 63);
+    assert.equal(templates.length, 64);
     const aliases = new Set(templates.map((template) => template.name));
     for (const name of [...expected, "bro"]) assert.ok(commands.has(name) || aliases.has(name), `missing /${name}`);
     assert.ok(!skills.some((skill) => skill.name === "bro"));
@@ -314,7 +168,7 @@ test("native /skill:poteto-mode enters the same mode and /pstack reports status 
     assert.equal(f.requests.length, callsBeforeStatus, "status must not spend an inference request");
     const status = session.messages.findLast((message) => message.role === "custom" && message.customType === "pstack-status");
     assert.ok(status);
-    assert.match(JSON.stringify(status), /64 skills, 63 prompt templates/);
+    assert.match(JSON.stringify(status), /65 skills, 64 prompt templates/);
     assert.match(JSON.stringify(status), /team-kit 1.2.0/);
     assert.match(JSON.stringify(status), /Poteto mode on/);
     await prompt(session, "/poteto-mode off");
@@ -423,7 +277,7 @@ test("team-kit templates request skill reading and native skills expand complete
   const f = await fixture();
   try {
     const { session, loader } = await f.open();
-    assert.equal(loader.getSkills().skills.length, 64);
+    assert.equal(loader.getSkills().skills.length, 65);
     const names = new Set(loader.getSkills().skills.map((skill) => skill.name));
     for (const name of [
       "check-compiler-errors", "control-cli", "control-ui", "deslop", "fix-ci",
