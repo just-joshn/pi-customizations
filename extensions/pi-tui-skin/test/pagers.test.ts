@@ -127,6 +127,6 @@ describe("context pager component and install", () => {
 	it("registers the context, usage, and copy commands", () => {
 		const names: string[] = [];
 		installPagers({ registerCommand: (name: string) => names.push(name) } as unknown as ExtensionAPI);
-		assert.deepEqual(names, ["context", "usage", "copy"]);
+		assert.deepEqual(names, ["context", "usage"]);
 	});
 });

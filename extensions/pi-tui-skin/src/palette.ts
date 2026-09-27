@@ -99,7 +99,7 @@ export const REFERENCE_TOKENS: Record<"reference-dark" | "reference-light", Refe
 	},
 };
 
-export function isReferenceTheme(name: string | undefined): name is "reference-dark" | "reference-light" {
+function isReferenceTheme(name: string | undefined): name is "reference-dark" | "reference-light" {
 	return name === "reference-dark" || name === "reference-light";
 }
 

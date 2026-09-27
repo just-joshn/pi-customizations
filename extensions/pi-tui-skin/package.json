@@ -8,7 +8,9 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test test/*.test.ts",
     "test:coverage": "c8 --all --include='src/*.ts' --check-coverage --lines=80 --branches=80 --functions=80 --statements=80 node --import tsx --test test/*.test.ts",
-    "check:docs": "node scripts/check-docs.mjs"
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:parity": "node scripts/check-parity.mjs",
+    "check:smoke": "node scripts/tmux-smoke.mjs"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "0.87.1",

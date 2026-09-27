@@ -1,11 +1,17 @@
 .PHONY: verify verify-extension verify-python
 
-verify: verify-extension verify-python
+verify: verify-extension verify-reference-cli verify-python
 
 verify-extension:
 	npm --prefix extensions/pi-pstack run check:resources
 	npm --prefix extensions/pi-pstack run typecheck
 	npm --prefix extensions/pi-pstack run test:coverage
+
+verify-reference-cli:
+	npm --prefix extensions/pi-reference-cli run check:docs
+	npm --prefix extensions/pi-reference-cli run check:parity
+	npm --prefix extensions/pi-reference-cli run typecheck
+	npm --prefix extensions/pi-reference-cli run test:coverage
 
 verify-python:
 	uv run --no-project --with coverage==7.16.1 coverage erase

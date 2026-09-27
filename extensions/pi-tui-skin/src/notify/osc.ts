@@ -6,7 +6,7 @@
  * focus reporting; under tmux only after a focus report was seen.
  */
 
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { NOTIFY_MESSAGES } from "../constants.ts";
 
 export type NotifyTerminal = "iterm2" | "ghostty" | "warp" | "kitty" | "vscode" | "apple" | "other";
@@ -84,10 +84,9 @@ export function installNotifications(pi: ExtensionAPI): void {
 		if (ctx.mode !== "tui") return;
 		process.stdout.write(FOCUS_ENABLE);
 	});
-	pi.on("agent_settled", async (_event, ctx: ExtensionContext) => {
+	pi.on("agent_settled", async () => {
 		if (!gate.shouldNotify()) return;
 		const seq = notificationSequence(terminal, "Reference", NOTIFY_MESSAGES.waitingForYou, insideTmux);
 		if (seq) process.stdout.write(seq);
-		void ctx;
 	});
 }

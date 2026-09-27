@@ -16,7 +16,7 @@
 
 import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent";
 import { createBashTool, createEditTool, createFindTool, createGrepTool, createLsTool, createReadTool, createWriteTool, type BashToolDetails, type EditToolDetails, type FindToolDetails, type GrepToolDetails, type LsToolDetails, type ReadToolDetails } from "@earendil-works/pi-coding-agent";
-import { Text } from "@earendil-works/pi-tui";
+import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import {
 	SHELL_INPUT_LINES,
 	SHELL_EXPANDED_OUTPUT_LINES,
@@ -30,7 +30,7 @@ import {
 } from "../constants.ts";
 import { basename, cwdRelative, displayPath, lineRange, truncatePatternHead } from "../format.ts";
 import { getTokens, paletteFg } from "../palette.ts";
-import { countNewLines, diffCounts, editDiffBlock, ensureState, headerLine, measureDuration, statefulCallRow, truncateStart, type ToolRenderContextLike, type ToolRowState } from "./ui.ts";
+import { countNewLines, diffCounts, editDiffBlock, ensureState, invalidateOnce, measureDuration, renderTextBlock, seedState, statefulCallRow, truncateStart, type ToolRenderContextLike, type ToolRowState } from "./ui.ts";
 
 type AnyToolRenderContext = ToolRenderContextLike;
 
@@ -69,13 +69,14 @@ export function registerReferenceTools(pi: ExtensionAPI): void {
 		},
 		renderCall(args, theme, context) {
 			const c = context as AnyToolRenderContext;
-			c.state ??= { verb: "Ran", primary: "" };
-			return statefulCallRow(c, theme, (state) => {
-				const start = starts.get(c.toolCallId);
-				const suffix = start === undefined ? "" : ` ${measureDuration(start)}`;
-				const rows = [`$ ${args.command}${theme.fg("dim", suffix)}${theme.fg("dim", ` in ${displayPath(cwd, c.cwd, CWD_TRUNCATE_WIDTH)}`)}`];
-				return rows;
-			});
+			seedState(c, { verb: "Ran", primary: "", suffix: undefined });
+			return {
+				invalidate() {},
+				render(width: number): string[] {
+					const suffix = (c.state as { suffix?: string } | undefined)?.suffix ?? "";
+					return [truncateToWidth(`$ ${args.command}${suffix}${theme.fg("dim", ` in ${displayPath(cwd, c.cwd, CWD_TRUNCATE_WIDTH)}`)}`, width)];
+				},
+			};
 		},
 		renderResult(result, { expanded, isPartial }, theme, context) {
 			const c = context as AnyToolRenderContext;
@@ -87,7 +88,10 @@ export function registerReferenceTools(pi: ExtensionAPI): void {
 			const dur = start === undefined ? "" : measureDuration(start);
 			const suffix = exit !== undefined && exit !== 0 ? `exit ${exit}${dur ? ` • ${dur}` : ""}` : dur;
 			const command = String((c.args as { command?: string })?.command ?? "");
-			const rows = [`$ ${command}${suffix ? theme.fg("dim", suffix) : ""}${theme.fg("dim", ` in ${displayPath(cwd, c.cwd, CWD_TRUNCATE_WIDTH)}`)}`];
+			const state0 = ensureState(c);
+			state0.suffix = suffix ? theme.fg("dim", ` ${suffix}`) : undefined;
+			invalidateOnce(c);
+			const rows: string[] = [];
 			let body: string[];
 			if (expanded) {
 				body = outputLines.slice(0, SHELL_EXPANDED_OUTPUT_LINES).map((l) => theme.fg("dim", l));
@@ -103,7 +107,7 @@ export function registerReferenceTools(pi: ExtensionAPI): void {
 			if (commandLines.length > SHELL_INPUT_LINES && !expanded) {
 				rows.push(theme.fg("dim", `… ${commandLines.length - SHELL_INPUT_LINES} input lines hidden`));
 			}
-			return new Text([...rows, ...body].join("\n"), 2, 0);
+			return renderTextBlock(c, [...rows, ...body].join("\n"));
 		},
 	});
 
@@ -119,11 +123,11 @@ export function registerReferenceTools(pi: ExtensionAPI): void {
 		},
 		renderCall(args, theme, context) {
 			const c = context as AnyToolRenderContext;
-			c.state ??= {
+			seedState(c, {
 				verb: "Reading",
 				primary: truncateStart(String(args.path), 96),
 				note: lineRange((Number(args.offset) || 0) + 1, args.limit === undefined ? undefined : Number(args.limit)),
-			};
+			});
 			return statefulCallRow(c, theme);
 		},
 		renderResult(result, { isPartial }, theme, context) {
@@ -136,8 +140,8 @@ export function registerReferenceTools(pi: ExtensionAPI): void {
 				const output = outputText(result);
 				if (output.startsWith("Error") || output.startsWith("<error>")) state0.error = output.slice(0, 200);
 			}
-			c.invalidate();
-			return new Text("", 0, 0);
+			invalidateOnce(c);
+			return renderTextBlock(c, "");
 		},
 	});
 
@@ -153,17 +157,17 @@ export function registerReferenceTools(pi: ExtensionAPI): void {
 		},
 		renderCall(args, theme, context) {
 			const c = context as AnyToolRenderContext;
-			c.state ??= {
+			seedState(c, {
 				verb: "Editing",
 				primary: truncateStart(basename(String(args.path)), 64),
 				note: "",
-			};
+			});
 			return statefulCallRow(c, theme, (state) => (state.added === undefined ? [] : [theme.fg("dim", ` ${state.added} changed line(s) · ctrl+r to review`)]));
 		},
 		renderResult(result, { isPartial }, theme, context) {
 			const c = context as AnyToolRenderContext;
 			const state0 = ensureState(c);
-			if (isPartial) return new Text(theme.fg("dim", "Editing..."), 2, 0);
+			if (isPartial) return renderTextBlock(c, theme.fg("dim", "Editing..."));
 			const details = result.details as EditToolDetails | undefined;
 			if (details?.patch) {
 				const { added, removed } = diffCounts(details.patch);
@@ -172,7 +176,7 @@ export function registerReferenceTools(pi: ExtensionAPI): void {
 				state0.note = `${theme.fg("success", `+${added}`)} ${theme.fg("error", `-${removed}`)}`;
 			}
 			state0.verb = "Edited";
-			c.invalidate();
+			invalidateOnce(c);
 			const rows: string[] = [];
 			if (details?.diff) {
 				const tokens = getTokens(theme.name);
@@ -198,20 +202,20 @@ export function registerReferenceTools(pi: ExtensionAPI): void {
 		},
 		renderCall(args, theme, context) {
 			const c = context as AnyToolRenderContext;
-			c.state ??= {
+			seedState(c, {
 				verb: "Writing",
 				primary: truncateStart(basename(String(args.path)), 64),
 				note: `+${countNewLines(String(args.content ?? ""))}`,
-			};
+			});
 			return statefulCallRow(c, theme);
 		},
 		renderResult(result, { isPartial }, theme, context) {
 			const c = context as AnyToolRenderContext;
 			const state0 = ensureState(c);
-			if (isPartial) return new Text(theme.fg("dim", "Writing..."), 2, 0);
+			if (isPartial) return renderTextBlock(c, theme.fg("dim", "Writing..."));
 			state0.verb = "Wrote";
-			c.invalidate();
-			return new Text(theme.fg("dim", truncateStart(cwdRelative(cwd, String((c.args as { path?: string }).path ?? "")), PATH_TRUNCATE_WIDTH)), 2, 0);
+			invalidateOnce(c);
+			return renderTextBlock(c, theme.fg("dim", truncateStart(cwdRelative(cwd, String((c.args as { path?: string }).path ?? "")), PATH_TRUNCATE_WIDTH)));
 		},
 	});
 
@@ -227,24 +231,24 @@ export function registerReferenceTools(pi: ExtensionAPI): void {
 		},
 		renderCall(args, theme, context) {
 			const c = context as AnyToolRenderContext;
-			c.state ??= {
+			seedState(c, {
 				verb: "Grepping",
 				primary: `"${truncatePatternHead(String(args.pattern))}"`,
 				note: `in ${displayPath(cwd, String(args.path ?? cwd), PATH_TRUNCATE_WIDTH)}`,
-			};
+			});
 			return statefulCallRow(c, theme);
 		},
 		renderResult(result, { isPartial }, theme, context) {
 			const c = context as AnyToolRenderContext;
 			const state0 = ensureState(c);
-			if (isPartial) return new Text(theme.fg("dim", "Searching..."), 2, 0);
+			if (isPartial) return renderTextBlock(c, theme.fg("dim", "Searching..."));
 			state0.verb = "Grepped";
-			c.invalidate();
+			invalidateOnce(c);
 			const output = outputText(result);
 			const details = result.details as GrepToolDetails | undefined;
 			const matches = output.length > 0 ? output.split("\n").filter((l) => l.length > 0).length : 0;
 			const truncated = details?.truncation?.truncated ? " (truncated)" : "";
-			return new Text(theme.fg("dim", `Found ${matches} match${matches === 1 ? "" : "es"}${truncated}`), 2, 0);
+			return renderTextBlock(c, theme.fg("dim", `Found ${matches} match${matches === 1 ? "" : "es"}${truncated}`));
 		},
 	});
 
@@ -260,24 +264,24 @@ export function registerReferenceTools(pi: ExtensionAPI): void {
 		},
 		renderCall(args, theme, context) {
 			const c = context as AnyToolRenderContext;
-			c.state ??= {
+			seedState(c, {
 				verb: "Globbing",
 				primary: `"${truncatePatternHead(String(args.pattern))}"`,
 				note: `in ${displayPath(cwd, String(args.path ?? cwd), PATH_TRUNCATE_WIDTH)}`,
-			};
+			});
 			return statefulCallRow(c, theme);
 		},
 		renderResult(result, { isPartial }, theme, context) {
 			const c = context as AnyToolRenderContext;
 			const state0 = ensureState(c);
-			if (isPartial) return new Text(theme.fg("dim", "Searching..."), 2, 0);
+			if (isPartial) return renderTextBlock(c, theme.fg("dim", "Searching..."));
 			state0.verb = "Globbed";
-			c.invalidate();
+			invalidateOnce(c);
 			const output = outputText(result);
 			const details = result.details as FindToolDetails | undefined;
 			const files = output.length > 0 ? output.split("\n").filter((l) => l.length > 0).length : 0;
 			const truncated = details?.resultLimitReached || details?.truncation?.truncated ? " (truncated)" : "";
-			return new Text(theme.fg("dim", `Found ${files} file${files === 1 ? "" : "s"}${truncated}`), 2, 0);
+			return renderTextBlock(c, theme.fg("dim", `Found ${files} file${files === 1 ? "" : "s"}${truncated}`));
 		},
 	});
 
@@ -293,26 +297,26 @@ export function registerReferenceTools(pi: ExtensionAPI): void {
 		},
 		renderCall(args, theme, context) {
 			const c = context as AnyToolRenderContext;
-			c.state ??= {
+			seedState(c, {
 				verb: "Listing",
 				primary: displayPath(cwd, String(args.path ?? cwd), PATH_TRUNCATE_WIDTH),
-			};
+			});
 			return statefulCallRow(c, theme);
 		},
 		renderResult(result, { isPartial }, theme, context) {
 			const c = context as AnyToolRenderContext;
 			const state0 = ensureState(c);
-			if (isPartial) return new Text(theme.fg("dim", "Listing..."), 2, 0);
+			if (isPartial) return renderTextBlock(c, theme.fg("dim", "Listing..."));
 			state0.verb = "Listed";
-			c.invalidate();
+			invalidateOnce(c);
 			const output = outputText(result);
 			const details = result.details as LsToolDetails | undefined;
-			if (output === "(empty directory)") return new Text(theme.fg("dim", "0 files, 0 directories"), 2, 0);
+			if (output === "(empty directory)") return renderTextBlock(c, theme.fg("dim", "0 files, 0 directories"));
 			const lines = output.split("\n").filter((l) => l.length > 0 && !l.startsWith("["));
 			const dirs = lines.filter((l) => l.endsWith("/")).length;
 			const files = lines.length - dirs;
 			const truncated = details?.entryLimitReached || details?.truncation?.truncated ? " (truncated)" : "";
-			return new Text(theme.fg("dim", `${files} files, ${dirs} directories${truncated}`), 2, 0);
+			return renderTextBlock(c, theme.fg("dim", `${files} files, ${dirs} directories${truncated}`));
 		},
 	});
 }

@@ -1,0 +1,36 @@
+
+Reference Agent v0.87.1
+
+[Extensions]
+  scripted-provider.ts, src
+
+
+ hello
+
+
+
+ $ echo parity-smoke in .
+   parity-smoke
+
+
+
+ Warning: tmux extended-keys is off. Modified Enter keys may not work. Add `set -g extended-keys on` to
+ ~/.tmux.conf and restart tmux.
+
+
+   To-do Updating to-dos...
+   To-do All done
+     ✔ Smoke passed
+
+
+ Parity smoke complete.
+
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+ → Add a follow-up
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+  Test Model · 128k · 1.5%                                                                       -- INSERT --
+  /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-smoke-ws-51216-1790540806953
+
+
+
+
