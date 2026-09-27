@@ -18,7 +18,7 @@ Install it for later sessions with `pi install` and the path to this directory, 
 
 ## What Anthropic sees
 
-Subscription requests use bearer auth, `user-agent: claude-cli/<version>`, `x-app: cli`, and the `claude-code-20250219` and `oauth-2025-04-20` beta headers. The first system block is Claude Code's preamble. The default version is `2.1.280`. Set `CLAUDE_CODE_VERSION` to send a different one.
+Subscription requests use bearer auth, `user-agent: claude-cli/<version>`, `x-app: cli`, and the `claude-code-20250219` and `oauth-2025-04-20` beta headers. The first system block is the Claude Code billing header (`x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;`). Anthropic's subscription gateway attributes requests to the Claude Code plan by that block; without it requests fail with a misleading out-of-usage error even when the plan has headroom. The second system block is Claude Code's preamble. The default version is `2.1.280`. Set `CLAUDE_CODE_VERSION` to send a different one in the user agent.
 
 The OAuth client, token URL, and redirect URI match Pi 0.87.1's Claude Pro/Max login. The token URL is `https://platform.claude.com/v1/oauth/token`. The callback is `http://localhost:53692/callback`. If that port is taken, paste the redirect URL at the prompt.
 

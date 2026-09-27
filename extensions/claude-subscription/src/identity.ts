@@ -1,5 +1,10 @@
 export const CLAUDE_CODE_PREAMBLE = "You are Claude Code, Anthropic's official CLI for Claude.";
 
+// Anthropic's subscription gateway attributes requests to the Claude Code plan
+// by this first system block. Without it the request is billed against extra
+// usage and refused, so the exact captured string must stay intact.
+export const CLAUDE_CODE_BILLING = "x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;";
+
 export const ANTHROPIC_VERSION = "2023-06-01";
 
 export const DEFAULT_CLAUDE_CODE_VERSION = "2.1.280";

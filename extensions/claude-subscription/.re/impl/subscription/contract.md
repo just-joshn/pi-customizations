@@ -16,3 +16,4 @@ INTENTIONAL      user-agent claude-cli, not Anthropic/JS           Pi OAuth path
 INTENTIONAL      omit x-stainless-*                                Claude Code identity
 OBSERVED         token URL https://platform.claude.com/v1/oauth/token  Pi 0.87.1 oauth/anthropic.js
 UNKNOWN          live subscription acceptance                      not called
+PROVEN live      first system block must be the billing header     live bisect 2026-09-27: without it HTTP 400 out-of-extra-usage
