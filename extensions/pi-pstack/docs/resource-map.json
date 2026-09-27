@@ -57,10 +57,11 @@
   {
     "source": "upstream/skills/automate-me/SKILL.md",
     "destination": "skills/automate-me/SKILL.md",
-    "sha256": "4fe438465e70f5e6ebf5b74fb4287c59e1af5e79641f2e4bbd14831b14d3013b",
+    "sha256": "dbb5e5d8ceb626ebb2d026cc896b7f6071d1ad1c0deb3331a5ac81bcaf89a902",
     "executable": false,
     "transformations": [
-      "Map user and project skill directories to Pi discovery locations."
+      "Map user and project skill directories to Pi discovery locations.",
+      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
     ]
   },
   {
@@ -335,9 +336,11 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/eval.md",
     "destination": "skills/poteto-mode/playbooks/eval.md",
-    "sha256": "b862bfa2fae2399abf047a8e80d3e3dddb64003af96fb1cebb625216131e36bb",
+    "sha256": "d60da0146518979dd042b658d33e56c94bd3deb8797efe7d2b208a5b6f0c0bf7",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/feature.md",
@@ -377,9 +380,11 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/orchestrate.md",
     "destination": "skills/poteto-mode/playbooks/orchestrate.md",
-    "sha256": "d42b4375f1bd4ce23da0b575a198571a2117df7eea10c3c9fc6d92ae1053f7be",
+    "sha256": "b94b15469775c524556caf3c7de7907182bb80a8ea2e020a174c7a03d57935ff",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/pause-safely.md",
@@ -419,9 +424,11 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/session-pickup.md",
     "destination": "skills/poteto-mode/playbooks/session-pickup.md",
-    "sha256": "1604fb463f7c7410d43fa024ca76c1c1824c166a01fd69d61f073d06fdca2a47",
+    "sha256": "cfe9ebd5b5ef619058526804a2b045401eddfe131f78cf9e12054b26a5e84fff",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/shipping.md",
@@ -594,9 +601,12 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/worktree-audit.sh",
     "destination": "skills/poteto-mode/scripts/worktree-audit.sh",
-    "sha256": "95b8530f3c0ccada8cabc4b0727c052fbc85c141531375aaace65c427af8aecc",
+    "sha256": "1f9ef415ce6e29602be2cde800b3c0045e226c6db8571224de1ab684ad143e63",
     "executable": true,
-    "transformations": []
+    "transformations": [
+      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.",
+      "Replace BSD-only stat and date calls with Perl so transcript dates survive GNU or uutils coreutils on PATH."
+    ]
   },
   {
     "source": "upstream/skills/principle-attack-the-premise/SKILL.md",
@@ -969,9 +979,11 @@
   {
     "source": "upstream/skills/recall/SKILL.md",
     "destination": "skills/recall/SKILL.md",
-    "sha256": "d265b0e5b6dc5b89c0407f3387d24462c988e1990a37d5359735137908128c5a",
+    "sha256": "0a23a264ff5643bd575b6d96be767d09bf10a8fe2a905ea24cab3e239da490ca",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+    ]
   },
   {
     "source": "upstream/skills/recall/SKILL.md",
@@ -985,9 +997,11 @@
   {
     "source": "upstream/skills/reflect/SKILL.md",
     "destination": "skills/reflect/SKILL.md",
-    "sha256": "36efa48cc4ec2ba6f8131651aae24c6321682b098ed47a1069a7509462bf4a84",
+    "sha256": "a7e05e81c5d6c8c0b141f1210d2c439548c9d0c6a0bcfc943d192c1e142472d6",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+    ]
   },
   {
     "source": "upstream/skills/reflect/SKILL.md",
@@ -1001,7 +1015,7 @@
   {
     "source": "upstream/skills/reflect/references/divergent-reviewer.md",
     "destination": "skills/reflect/references/divergent-reviewer.md",
-    "sha256": "ebe5ddc49fde1615bb31756068725cf9b7e365b46764fdfb5d312851b0077916",
+    "sha256": "d222a93009bf7ac5159ce4bfd867bc104d14a89ab4fb87416b1f009d494df9c6",
     "executable": false,
     "transformations": [
       "Map user and project skill directories to Pi discovery locations."
@@ -1010,7 +1024,7 @@
   {
     "source": "upstream/skills/reflect/references/judgment-reviewer.md",
     "destination": "skills/reflect/references/judgment-reviewer.md",
-    "sha256": "9b07ef85ef972850073c7f82c73bf47574e97f668f5831a1534ac0e4e02847b8",
+    "sha256": "6e61926cb0161fa9289fd2c314a225e166f5effee19c9d241f47b3a69fe3cca3",
     "executable": false,
     "transformations": [
       "Map user and project skill directories to Pi discovery locations."
@@ -1026,7 +1040,7 @@
   {
     "source": "upstream/skills/reflect/references/tooling-reviewer.md",
     "destination": "skills/reflect/references/tooling-reviewer.md",
-    "sha256": "a68745bb59b4d79b9320fc55831b518ef9edf88aef2479ddd4989f4299be4191",
+    "sha256": "0debb381d7016a759e3bc2d3872a9638536801b5018614d35ed0966c45e4bd92",
     "executable": false,
     "transformations": [
       "Map user and project skill directories to Pi discovery locations."
@@ -1044,9 +1058,11 @@
   {
     "source": "upstream/skills/show-me-your-work/SKILL.md",
     "destination": "skills/show-me-your-work/SKILL.md",
-    "sha256": "bcff5f7f9fd23f92c12b251f9cd6b947e9485e1055cfacb6fdd9cae0789d7550",
+    "sha256": "45706fe3600c76acf85d0a5b16d2f6dc18ff0eb07c71c8fe3fe6a50fef93cd7a",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+    ]
   },
   {
     "source": "upstream/skills/show-me-your-work/SKILL.md",
