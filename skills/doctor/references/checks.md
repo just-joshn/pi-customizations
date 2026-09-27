@@ -15,17 +15,24 @@ confirmation. Field names below are inventory keys.
 - **Settings.** Any `settings` value other than `ok` or `missing` means Pi
   ignores that file wholesale. Report the parser error position as a warning.
   Offer a repair only if the user asks, since repairing means reading the file.
-- **Packages.** A `packages` entry with `exists: false` is declared but not
-  installed. Propose `pi update --extensions` to reconcile, or removing the
+- **Packages.** A `packages` entry with `exists: false` means the inventory
+  did not find its estimated checkout path. Confirm the actual installation
+  through Pi before reporting a missing package. For a confirmed missing
+  package, propose `pi update --extensions` to reconcile, or removing the
   declaration with `pi remove <source>` if the user no longer wants it.
-- **Skills.** Report each `skills[].problems` entry with the file path and
-  propose the frontmatter repair, quoting only the offending frontmatter
-  lines. "missing description (not loaded)" and "invalid name" stop a skill
-  from loading or routing. "non-spec fields" is cosmetic in Pi. Report it in
-  one line per file and propose nothing unless the user wants portability.
+- **Skills.** Compare `skills[].problems` with Pi's actual diagnostics before
+  proposing a frontmatter repair. Quote only the offending frontmatter lines.
+  Missing or empty descriptions and malformed declared skills prevent
+  loading. Invalid names and oversized descriptions produce warnings but do
+  not by themselves prevent loading. Pi falls back to the directory name
+  when `name` is absent. The inventory's "name differs from directory" is a
+  portability advisory; Pi neither requires a match nor warns about it.
+  Report that advisory and "non-spec fields" in one line per file, and
+  propose no change for them unless the user wants portability.
 - **Collisions.** Each `collisions` entry is one name defined in several
-  places. Pi keeps the first discovered and warns. Report the group and which
-  copy is live (the `prompt.loaded_skills` location), and propose disabling
+  scanned places. Confirm that both copies are enabled and discovered by Pi.
+  Actual Pi name collisions keep the first discovered and warn. Report the
+  group and which copy is live (the `prompt.loaded_skills` location), and propose disabling
   the others (check 1 mechanics) or renaming one.
 
 ## Check 1: unused skills, extensions, prompts, and packages
@@ -162,8 +169,11 @@ the current settings may differ if they changed since.
 
 `trust.stale` lists trust entries for directories that no longer exist.
 Propose removing them from `<agent-dir>/trust.json`. Also report, without
-proposing, a `defaultProjectTrust` of `"always"` in user settings: it runs
-every project's extensions and skills without asking.
+proposing, a `defaultProjectTrust` of `"always"` in user settings. For projects
+without a saved trust decision, it permits project resource loading without
+asking. Extensions execute in Pi; skills supply instructions that may lead
+the model to run supporting scripts through existing tools. Loading a skill
+does not execute its scripts or register runtime behavior.
 
 ## Check 7: Pi version
 
