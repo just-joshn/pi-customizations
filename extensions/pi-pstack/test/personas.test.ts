@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { readPersona, readTeamKitRules } from '../src/personas.ts';
+import { readPersona } from '../src/personas.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
@@ -21,9 +21,9 @@ test('Poteto and both Comment Sicko names preserve complete existing prompts', a
   }
 });
 
-test('CI watcher preserves its full prompt and fast model request', async () => {
+test('CI watcher preserves its full prompt and inherits the parent model like a Reference plugin agent', async () => {
   const profile = await readPersona('ci-watcher');
-  assert.equal(profile.defaultModel, 'fast');
+  assert.equal(profile.defaultModel, undefined);
   assert.equal(profile.instructions, await readFile(join(root, 'upstream-team-kit/agents/ci-watcher.md'), 'utf8'));
 });
 
@@ -38,14 +38,4 @@ test('unknown or unsupported builtin roles do not silently become general purpos
   for (const name of ['', 'shell', 'explore', 'other', '../poteto-agent']) {
     await assert.rejects(readPersona(name), /Unsupported agent .*Available:/);
   }
-});
-
-test('both always applied kit rules are loaded in full without frontmatter', async () => {
-  const rules = await readTeamKitRules();
-  const originals = await Promise.all(['no-inline-imports.mdc', 'typescript-exhaustive-switch.mdc'].map(file => readFile(join(root, 'upstream-team-kit/rules', file), 'utf8')));
-  assert.equal(rules, originals.map(source => source.replace(/^---\n[\s\S]*?\n---\n/, '').trim()).join('\n\n'));
-  assert.match(rules, /# No inline imports/);
-  assert.match(rules, /strict circular-dependency reason and it is documented\./);
-  assert.match(rules, /typescript-exhaustive-switch: In switch statements/);
-  assert.doesNotMatch(rules, /alwaysApply:|description:/);
 });

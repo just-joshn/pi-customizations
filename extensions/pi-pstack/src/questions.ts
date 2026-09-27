@@ -1,0 +1,66 @@
+import { Type, type Static } from 'typebox';
+import { boundedResult } from './results.ts';
+import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+
+const text = Type.String({ minLength: 1, pattern: '\\S' });
+const Question = Type.Object({
+  id: text, prompt: text,
+  options: Type.Optional(Type.Array(Type.Object({ id: text, label: text }))),
+  allow_multiple: Type.Optional(Type.Boolean()),
+});
+type Question = Static<typeof Question>;
+type Answer = { id: string; answers: string[]; cancelled: boolean };
+const freeText = 'Enter a text answer';
+const done = 'Done selecting';
+
+function validateQuestions(questions: Question[]): void {
+  if (new Set(questions.map(question => question.id)).size !== questions.length) {
+    throw new Error('Question IDs must be unique.');
+  }
+  for (const question of questions) {
+    const ids = question.options?.map(option => option.id) ?? [];
+    if (new Set(ids).size !== ids.length) throw new Error('Option IDs must be unique within each question.');
+    const labels = question.options?.map(option => `${option.label} [${option.id}]`) ?? [];
+    if (new Set(labels).size !== labels.length) throw new Error('Option labels and IDs must produce distinct displayed choices.');
+  }
+}
+
+async function ask(question: Question, ctx: ExtensionContext, signal: AbortSignal | undefined): Promise<Answer> {
+  if (!question.options?.length) {
+    const answer = await ctx.ui.input(question.prompt, undefined, { signal });
+    return { id: question.id, answers: answer === undefined ? [] : [answer], cancelled: answer === undefined };
+  }
+  let choices = new Map(question.options.map(option => [`${option.label} [${option.id}]`, option.id]));
+  let answers: string[] = [];
+  while (true) {
+    const labels = [...choices.keys(), freeText, ...(question.allow_multiple ? [done] : [])];
+    const selected = await ctx.ui.select(question.prompt, labels, { signal });
+    if (selected === undefined) return { id: question.id, answers, cancelled: true };
+    if (selected === done && question.allow_multiple) return { id: question.id, answers, cancelled: false };
+    const answer = selected === freeText
+      ? await ctx.ui.input(question.prompt, undefined, { signal }) : choices.get(selected);
+    if (answer === undefined) return { id: question.id, answers, cancelled: true };
+    answers = [...answers, answer];
+    choices = new Map([...choices].filter(([label]) => label !== selected));
+    if (!question.allow_multiple) return { id: question.id, answers, cancelled: false };
+  }
+}
+
+export function registerQuestions(pi: ExtensionAPI): void {
+  pi.registerTool({
+    name: 'AskQuestion', label: 'Ask question', executionMode: 'sequential',
+    description: 'Ask the user a preference or required approval. No UI means no answer. Never infer consent from cancellation.',
+    parameters: Type.Object({ questions: Type.Array(Question, { minItems: 1, maxItems: 4 }) }),
+    async execute(_id, params, signal, _update, ctx) {
+      validateQuestions(params.questions);
+      if (!ctx.hasUI) throw new Error('AskQuestion requires Pi TUI or an RPC client supporting extension dialogs. Ask in the conversation and wait for a user reply.');
+      let answers: Answer[] = [];
+      for (const question of params.questions) {
+        const answer = await ask(question, ctx, signal);
+        answers = [...answers, answer];
+        if (answer.cancelled) break;
+      }
+      return boundedResult(JSON.stringify(answers), answers, ctx);
+    },
+  });
+}
