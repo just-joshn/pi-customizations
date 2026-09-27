@@ -265,7 +265,7 @@ export const REFERENCE_COMMANDS: readonly CommandEntry[] = [
 			ctx.ui.notify(ctx.ui.theme.fg("dim", "No active tasks"));
 		},
 	},
-	{ id: "rule", aliases: [], description: "Manage Reference rules", status: "unmet", reason: "needs Reference's rules service and items-pager" },
+	{ id: "rule", aliases: [], description: "Manage Reference rules", status: "implemented", registeredBy: "wizard" },
 	{ id: "command", aliases: ["commands"], description: "Manage custom commands", status: "unmet", reason: "pi loads prompt templates but has no manager command" },
 	{ id: "usage", aliases: [], description: "Show plan and on-demand usage", status: "implemented", handler: usageHandler, registeredBy: "pagers" },
 	{ id: "skills", aliases: [], description: "Open skills menu", status: "unmet", reason: "pi has no skills menu command" },

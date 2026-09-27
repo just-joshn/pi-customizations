@@ -9,6 +9,8 @@ import { createAllowlist, installDecisionGate } from "./decisions/gate.ts";
 import { installEditor } from "./editor/install.ts";
 import { installCommands } from "./commands/register.ts";
 import { installPagers } from "./pagers/pagers.ts";
+import { installNotifications } from "./notify/osc.ts";
+import { installRuleWizard } from "./wizard/rule.ts";
 
 export default function (pi: ExtensionAPI) {
 	const state = createSessionState();
@@ -22,4 +24,6 @@ export default function (pi: ExtensionAPI) {
 	installDecisionGate(pi, state, allowlist);
 	installCommands(pi, state);
 	installPagers(pi);
+	installNotifications(pi);
+	installRuleWizard(pi);
 }
