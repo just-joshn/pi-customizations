@@ -25,6 +25,7 @@ import termios
 import threading
 import time
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -39,25 +40,22 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def snapshot_entry(path: Path) -> dict:
+    metadata = path.lstat()
+    mode = {"mode": oct(metadata.st_mode)}
+    if path.is_symlink():
+        return {**mode, "type": "symlink", "link": os.readlink(path)}
+    if path.is_dir():
+        return {**mode, "type": "dir"}
+    if path.is_file():
+        return {**mode, "type": "file", "size": metadata.st_size, "sha256": sha256_file(path)}
+    return {**mode, "type": "other"}
+
+
 def snapshot(root: Path) -> dict[str, dict]:
-    entries: dict[str, dict] = {}
-    if not root.exists():
-        return entries
-    for dirpath, dirnames, filenames in os.walk(root):
-        for name in dirnames + filenames:
-            p = Path(dirpath, name)
-            st = p.lstat()
-            entry: dict = {"mode": oct(st.st_mode)}
-            if p.is_symlink():
-                entry["type"], entry["link"] = "symlink", os.readlink(p)
-            elif p.is_dir():
-                entry["type"] = "dir"
-            elif p.is_file():
-                entry.update(type="file", size=st.st_size, sha256=sha256_file(p))
-            else:
-                entry["type"] = "other"
-            entries[str(p.relative_to(root))] = entry
-    return entries
+    return {str(path.relative_to(root)): snapshot_entry(path)
+            for directory, directories, files in os.walk(root)
+            for name in directories + files for path in (Path(directory, name),)}
 
 
 def diff(before: dict, after: dict) -> dict:
@@ -125,10 +123,8 @@ def build_sandbox(root: Path, seeds: list[str]) -> dict[str, str]:
         "XDG_STATE_HOME": "home/.local/state",
         "TMPDIR": "tmp",
     }
-    env = {}
-    for var, rel in layout.items():
+    for rel in layout.values():
         (root / rel).mkdir(parents=True, exist_ok=True)
-        env[var] = str(root / rel)
     (root / "work").mkdir(exist_ok=True)
     for seed in seeds:
         src, _, dest = seed.partition(":")
@@ -140,10 +136,45 @@ def build_sandbox(root: Path, seeds: list[str]) -> dict[str, str]:
             shutil.copytree(src, target, symlinks=True, dirs_exist_ok=True)
         else:
             shutil.copy2(src, target, follow_symlinks=False)
-    return env
+    return {var: str(root / rel) for var, rel in layout.items()}
 
 
-def main() -> int:
+@dataclass(frozen=True)
+class Invocation:
+    command: tuple[str, ...]
+    cwd: Path
+    env: dict[str, str]
+    overrides: dict[str, str | None]
+    snapshot_roots: tuple[Path, ...]
+    sandbox: Path | None
+    stdin_data: bytes
+    stdin_mode: str
+    target: dict
+
+
+@dataclass(frozen=True)
+class Capture:
+    stdin: int | None
+    stdout: int
+    stderr: int
+    parent_close: tuple[int, ...]
+    threads: tuple[threading.Thread, ...]
+    buffers: dict[str, bytearray]
+    writer: tuple[int, bytes] | None
+
+
+@dataclass(frozen=True)
+class Execution:
+    process: subprocess.Popen | None
+    started_at: datetime
+    duration: float
+    returncode: int | None
+    launch_error: dict | None
+    signal_sent: dict | None
+    timed_out: bool
+
+
+def argument_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", default=".re/probes/manual", help="probe output directory")
     ap.add_argument("--id", help="probe id (default generated)")
@@ -170,11 +201,15 @@ def main() -> int:
     ap.add_argument("--send-signal", metavar="SIG", help="signal the process group, e.g. INT or TERM")
     ap.add_argument("--after", type=float, default=1.0, help="seconds before --send-signal")
     ap.add_argument("cmd", nargs=argparse.REMAINDER)
-    a = ap.parse_args()
+    return ap
 
+
+def validate_arguments(a: argparse.Namespace, ap: argparse.ArgumentParser) -> tuple[str, ...]:
     cmd = a.cmd[1:] if a.cmd[:1] == ["--"] else a.cmd
     if not cmd:
         ap.error("missing command after --")
+    if not 1 <= a.cols <= 65535 or not 1 <= a.rows <= 65535:
+        ap.error("--cols and --rows must be between 1 and 65535")
     if not math.isfinite(a.timeout) or not math.isfinite(a.after) or a.timeout <= 0 or a.after < 0 or (a.send_signal and a.after >= a.timeout):
         ap.error("require timeout > after >= 0")
     if a.seed and not a.isolate:
@@ -184,202 +219,216 @@ def main() -> int:
     if a.send_signal and not hasattr(signal, "SIG" + a.send_signal.upper().removeprefix("SIG")):
         ap.error("unknown signal")
 
-    out = Path(a.out).resolve()
-    (out / "raw").mkdir(parents=True, exist_ok=True)
-    probe_id = a.id or f"P-{datetime.now(timezone.utc):%Y%m%dT%H%M%S}-{uuid.uuid4().hex[:6]}"
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", probe_id):
+    if a.id and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", a.id):
         ap.error("id must contain only letters, digits, dots, underscores, and hyphens")
-    # Repeated case IDs retain older bytes and receive fresh sandbox directories.
-    run_id = f"{probe_id}-{uuid.uuid4().hex}"
+    return tuple(cmd)
 
-    env = {"PATH": os.environ.get("PATH", "")} if a.clean_env else dict(os.environ)
-    overrides: dict[str, str | None] = {}
-    snap_dirs = [Path(d).resolve() for d in a.snapshot]
-    sandbox = None
-    if a.isolate:
-        sandbox = out / "sandboxes" / run_id
-        overrides.update(build_sandbox(sandbox, a.seed))
-        snap_dirs.append(sandbox)
-    for kv in a.env:
-        k, _, v = kv.partition("=")
-        overrides[k] = v
-    for k in a.unset:
-        overrides[k] = None
-    for k, v in overrides.items():
-        if v is None:
-            env.pop(k, None)
-        else:
-            env[k] = v
 
+def prepare_invocation(a: argparse.Namespace, out: Path, run_id: str, command: tuple[str, ...]) -> Invocation:
+    sandbox = out / "sandboxes" / run_id if a.isolate else None
+    sandbox_env = build_sandbox(sandbox, a.seed) if sandbox else {}
+    overrides = {**sandbox_env, **dict(item.split("=", 1) for item in a.env), **dict.fromkeys(a.unset)}
+    base = {"PATH": os.environ.get("PATH", "")} if a.clean_env else dict(os.environ)
+    env = {key: value for key, value in {**base, **overrides}.items() if value is not None}
+    roots = tuple(Path(directory).resolve() for directory in a.snapshot) + ((sandbox,) if sandbox else ())
     cwd = Path(a.cwd).resolve() if a.cwd else (sandbox / "work" if sandbox else Path.cwd())
-
-    stdin_data = (a.stdin_text.encode() if a.stdin_text is not None
-                  else Path(a.stdin_file).read_bytes() if a.stdin_file else b"")
-    stdin_mode = a.stdin_mode or ("pipe" if a.stdin_text is not None or a.stdin_file else "null")
-
-    search_path = os.pathsep.join(str((cwd / p).resolve()) for p in env.get("PATH", os.defpath).split(os.pathsep))
-    executable = str((cwd / cmd[0]).resolve()) if os.sep in cmd[0] else cmd[0]
+    data = (a.stdin_text.encode() if a.stdin_text is not None
+            else Path(a.stdin_file).read_bytes() if a.stdin_file else b"")
+    mode = a.stdin_mode or ("pipe" if a.stdin_text is not None or a.stdin_file else "null")
+    search_path = os.pathsep.join(str((cwd / part).resolve()) for part in env.get("PATH", os.defpath).split(os.pathsep))
+    executable = str((cwd / command[0]).resolve()) if os.sep in command[0] else command[0]
     resolved = shutil.which(executable, path=search_path)
-    target = {"argv0": cmd[0], "resolved": resolved,
+    target = {"argv0": command[0], "resolved": resolved,
               "realpath": os.path.realpath(resolved) if resolved else None,
               "sha256": sha256_file(Path(resolved)) if resolved else None}
+    return Invocation(command, cwd, env, overrides, roots, sandbox, data, mode, target)
 
-    before = {str(d): snapshot(d) for d in snap_dirs}
 
-    parent_close: list[int] = []
-    threads: list[threading.Thread] = []
-    bufs = {"stdout": bytearray(), "stderr": bytearray(), "tty_echo": bytearray()}
+def input_capture(a: argparse.Namespace, invocation: Invocation, echo: bytearray):
+    if invocation.stdin_mode == "pipe":
+        reader, writer = os.pipe()
+        return reader, (writer, invocation.stdin_data), (reader,), ()
+    if invocation.stdin_mode == "tty":
+        master, slave = open_pty(a.cols, a.rows)
+        thread = threading.Thread(target=drain, args=(master, echo), daemon=True)
+        return slave, (os.dup(master), invocation.stdin_data + b"\x04"), (slave,), (thread,)
+    descriptor = subprocess.DEVNULL if invocation.stdin_mode == "null" else None
+    return descriptor, None, (), ()
 
-    def reader(fd: int, name: str) -> None:
-        t = threading.Thread(target=drain, args=(fd, bufs[name]), daemon=True)
-        threads.append(t)
 
-    stdin_arg: int | None
-    writer = None
-    if stdin_mode == "pipe":
-        r, w = os.pipe()
-        stdin_arg, writer = r, (w, stdin_data)
-        parent_close.append(r)
-    elif stdin_mode == "tty":
-        m, s = open_pty(a.cols, a.rows)
-        stdin_arg, writer = s, (os.dup(m), stdin_data + b"\x04")
-        parent_close.append(s)
-        reader(m, "tty_echo")
-    elif stdin_mode == "null":
-        stdin_arg = subprocess.DEVNULL
-    else:
-        stdin_arg = None
+def output_capture(a: argparse.Namespace, name: str, buffer: bytearray):
+    reader, writer = open_pty(a.cols, a.rows) if a.tty in (name, "both") else os.pipe()
+    return writer, threading.Thread(target=drain, args=(reader, buffer), daemon=True)
 
-    fds = {}
-    for name in ("stdout", "stderr"):
-        if a.tty in (name, "both"):
-            m, s = open_pty(a.cols, a.rows)
-        else:
-            m, s = os.pipe()
-        fds[name] = s
-        parent_close.append(s)
-        reader(m, name)
 
+def prepare_capture(a: argparse.Namespace, invocation: Invocation) -> Capture:
+    buffers = {name: bytearray() for name in ("stdout", "stderr", "tty_echo")}
+    stdin, writer, parent_close, threads = input_capture(a, invocation, buffers["tty_echo"])
+    stdout, stdout_reader = output_capture(a, "stdout", buffers["stdout"])
+    stderr, stderr_reader = output_capture(a, "stderr", buffers["stderr"])
+    return Capture(stdin, stdout, stderr, parent_close + (stdout, stderr),
+                   threads + (stdout_reader, stderr_reader), buffers, writer)
+
+
+def launch(invocation: Invocation, capture: Capture):
     def preexec() -> None:
         os.setsid()
-        if stdin_mode == "tty":
+        if invocation.stdin_mode == "tty":
             fcntl.ioctl(0, termios.TIOCSCTTY, 0)
-        if stdin_mode == "closed":
+        if invocation.stdin_mode == "closed":
             os.close(0)
 
-    start_wall = datetime.now(timezone.utc)
-    start = time.monotonic()
-    launch_error = None
     try:
-        proc = subprocess.Popen(cmd, cwd=cwd, env=env, stdin=stdin_arg, stdout=fds["stdout"],
-                                stderr=fds["stderr"], preexec_fn=preexec, close_fds=True)
-    except OSError as exc:
-        launch_error = {"type": type(exc).__name__, "errno": exc.errno, "message": str(exc)}
-        proc = None
-    for fd in parent_close:
-        os.close(fd)
-    for t in threads:
-        t.start()
-    if writer and proc is not None:
-        threading.Thread(target=feed, args=writer, daemon=True).start()
-    elif writer:
-        os.close(writer[0])
+        process = subprocess.Popen(invocation.command, cwd=invocation.cwd, env=invocation.env,
+                                   stdin=capture.stdin, stdout=capture.stdout, stderr=capture.stderr,
+                                   preexec_fn=preexec, close_fds=True)
+        return process, None
+    except OSError as error:
+        return None, {"type": type(error).__name__, "errno": error.errno, "message": str(error)}
 
-    signal_sent = None
-    timed_out = False
+
+def start_capture(capture: Capture, process: subprocess.Popen | None) -> None:
+    for descriptor in capture.parent_close:
+        os.close(descriptor)
+    for thread in capture.threads:
+        thread.start()
+    if capture.writer and process is not None:
+        threading.Thread(target=feed, args=capture.writer, daemon=True).start()
+    elif capture.writer:
+        os.close(capture.writer[0])
+
+
+def signal_group(process: subprocess.Popen, number: int) -> bool:
     try:
-        if proc is not None and a.send_signal:
+        os.killpg(process.pid, number)
+        return True
+    except ProcessLookupError:
+        return False
+
+
+def wait_for_process(a: argparse.Namespace, process: subprocess.Popen | None, start: float):
+    sent = None
+    if process is None:
+        return sent, False
+    try:
+        if a.send_signal:
             try:
-                proc.wait(timeout=a.after)
+                process.wait(timeout=a.after)
             except subprocess.TimeoutExpired:
-                sig = getattr(signal, "SIG" + a.send_signal.upper().removeprefix("SIG"))
-                try:
-                    os.killpg(proc.pid, sig)
-                    signal_sent = {"signal": sig.name, "after_s": a.after}
-                except ProcessLookupError:
-                    pass
-        if proc is not None:
-            proc.wait(timeout=max(a.timeout - (time.monotonic() - start), 0.1))
+                number = getattr(signal, "SIG" + a.send_signal.upper().removeprefix("SIG"))
+                if signal_group(process, number):
+                    sent = {"signal": number.name, "after_s": a.after}
+        process.wait(timeout=max(a.timeout - (time.monotonic() - start), 0.1))
+        return sent, False
     except subprocess.TimeoutExpired:
-        timed_out = True
+        signal_group(process, signal.SIGTERM)
         try:
-            os.killpg(proc.pid, signal.SIGTERM)
-        except ProcessLookupError:
-            pass
-        try:
-            proc.wait(timeout=2)
+            process.wait(timeout=2)
         except subprocess.TimeoutExpired:
-            os.killpg(proc.pid, signal.SIGKILL)
-            proc.wait()
-    duration = time.monotonic() - start
+            signal_group(process, signal.SIGKILL)
+            process.wait()
+        return sent, True
 
-    for t in threads:
-        t.join(timeout=2)
-    descendants_hold_output = any(t.is_alive() for t in threads)
-    if descendants_hold_output and proc is not None:
-        try:
-            os.killpg(proc.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        for t in threads:
-            t.join(timeout=2)
 
-    rc = proc.returncode if proc is not None else None
-    after = {str(d): snapshot(d) for d in snap_dirs}
+def execute(a: argparse.Namespace, invocation: Invocation, capture: Capture) -> Execution:
+    started_at, start = datetime.now(timezone.utc), time.monotonic()
+    process, error = launch(invocation, capture)
+    start_capture(capture, process)
+    sent, timed_out = wait_for_process(a, process, start)
+    return Execution(process, started_at, time.monotonic() - start,
+                     process.returncode if process is not None else None, error, sent, timed_out)
+
+
+def finish_capture(capture: Capture, execution: Execution) -> bool:
+    for thread in capture.threads:
+        thread.join(timeout=2)
+    descendants_hold_output = any(thread.is_alive() for thread in capture.threads)
+    if descendants_hold_output and execution.process is not None:
+        signal_group(execution.process, signal.SIGKILL)
+        for thread in capture.threads:
+            thread.join(timeout=2)
+    return descendants_hold_output
+
+
+def terminal_metadata(a: argparse.Namespace, invocation: Invocation, stdin_file: Path) -> dict:
+    return {
+        "stdin_fixture": str(stdin_file) if invocation.stdin_mode in ("pipe", "tty") else None,
+        "stdin_is_tty": invocation.stdin_mode == "tty" or (invocation.stdin_mode == "inherit" and os.isatty(0)),
+        "stdout_is_tty": a.tty in ("stdout", "both"),
+        "stderr_is_tty": a.tty in ("stderr", "both"),
+        "stdin": {"mode": invocation.stdin_mode, "bytes": len(invocation.stdin_data),
+                  "sha256": hashlib.sha256(invocation.stdin_data).hexdigest(),
+                  "tty_eof_sent": invocation.stdin_mode == "tty"},
+        "tty": {"stdin": invocation.stdin_mode == "tty" or (invocation.stdin_mode == "inherit" and os.isatty(0)),
+                "stdout": a.tty in ("stdout", "both"),
+                "stderr": a.tty in ("stderr", "both"),
+                "size": [a.cols, a.rows]},
+    }
+
+
+def evidence_record(a: argparse.Namespace, invocation: Invocation, execution: Execution, capture: Capture,
+                    out: Path, probe_id: str, run_id: str, before: dict, descendants_hold_output: bool) -> dict:
+    after = {str(directory): snapshot(directory) for directory in invocation.snapshot_roots}
     before_file = out / "raw" / f"{run_id}.before.json"
     after_file = out / "raw" / f"{run_id}.after.json"
     before_file.write_text(json.dumps(before, indent=2))
     after_file.write_text(json.dumps(after, indent=2))
     stdin_file = out / "raw" / f"{run_id}.stdin"
-    stdin_file.write_bytes(stdin_data)
-    record = {
+    stdin_file.write_bytes(invocation.stdin_data)
+    return {
         "id": probe_id,
         "run_id": run_id,
-        "launch_error": launch_error,
+        "launch_error": execution.launch_error,
         "label": a.label,
-        "started_at": start_wall.isoformat(),
-        "duration_s": round(duration, 4),
-        "duration_ms": round(duration * 1000, 3),
-        "argv": cmd,
-        "cwd": str(cwd),
-        "target": target,
+        "started_at": execution.started_at.isoformat(),
+        "duration_s": round(execution.duration, 4),
+        "duration_ms": round(execution.duration * 1000, 3),
+        "argv": list(invocation.command),
+        "cwd": str(invocation.cwd),
+        "target": invocation.target,
         "env_base": "clean" if a.clean_env else "inherited",
-        "env_overrides": overrides,
-        "env_delta": overrides,
-        "base_path": env.get("PATH"),
-        "stdin_fixture": str(stdin_file) if stdin_mode in ("pipe", "tty") else None,
-        "stdin_is_tty": stdin_mode == "tty" or (stdin_mode == "inherit" and os.isatty(0)),
-        "stdout_is_tty": a.tty in ("stdout", "both"),
-        "stderr_is_tty": a.tty in ("stderr", "both"),
-        "stdin": {"mode": stdin_mode, "bytes": len(stdin_data),
-                  "sha256": hashlib.sha256(stdin_data).hexdigest(),
-                  "tty_eof_sent": stdin_mode == "tty"},
-        "tty": {"stdin": stdin_mode == "tty" or (stdin_mode == "inherit" and os.isatty(0)),
-                "stdout": a.tty in ("stdout", "both"),
-                "stderr": a.tty in ("stderr", "both"),
-                "size": [a.cols, a.rows]},
-        "exit_code": rc if rc is not None and rc >= 0 else None,
-        "signal": signal.Signals(-rc).name if rc is not None and rc < 0 else None,
-        "signal_sent": signal_sent,
-        "timed_out": timed_out,
+        "env_overrides": invocation.overrides,
+        "env_delta": invocation.overrides,
+        "base_path": invocation.env.get("PATH"),
+        **terminal_metadata(a, invocation, stdin_file),
+        "exit_code": execution.returncode if execution.returncode is not None and execution.returncode >= 0 else None,
+        "signal": signal.Signals(-execution.returncode).name if execution.returncode is not None and execution.returncode < 0 else None,
+        "signal_sent": execution.signal_sent,
+        "timed_out": execution.timed_out,
         "descendants_hold_output": descendants_hold_output,
         "descendants_killed": descendants_hold_output,
-        "capture_complete": not any(t.is_alive() for t in threads),
+        "capture_complete": not any(t.is_alive() for t in capture.threads),
         "stdout_file": str(out / "raw" / f"{run_id}.stdout"),
         "stderr_file": str(out / "raw" / f"{run_id}.stderr"),
-        "stdout": output_summary(bytes(bufs["stdout"]), out / "raw" / f"{run_id}.stdout"),
-        "stderr": output_summary(bytes(bufs["stderr"]), out / "raw" / f"{run_id}.stderr"),
-        "tty_echo": output_summary(bytes(bufs["tty_echo"]), out / "raw" / f"{run_id}.tty-echo"),
+        "stdout": output_summary(bytes(capture.buffers["stdout"]), out / "raw" / f"{run_id}.stdout"),
+        "stderr": output_summary(bytes(capture.buffers["stderr"]), out / "raw" / f"{run_id}.stderr"),
+        "tty_echo": output_summary(bytes(capture.buffers["tty_echo"]), out / "raw" / f"{run_id}.tty-echo"),
         "filesystem_before": str(before_file),
         "filesystem_after": str(after_file),
         "fs_diff": {d: diff(before[d], after[d]) for d in before},
         "network_observed": None,
-        "sandbox": str(sandbox) if sandbox else None,
+        "sandbox": str(invocation.sandbox) if invocation.sandbox else None,
         "host": {"platform": platform.platform(), "python": platform.python_version()},
     }
-    with open(out / "probes.jsonl", "a") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
-    json.dump({k: record[k] for k in ("id", "exit_code", "signal", "timed_out", "duration_s")}, sys.stdout)
+
+
+def main() -> int:
+    parser = argument_parser()
+    args = parser.parse_args()
+    command = validate_arguments(args, parser)
+    out = Path(args.out).resolve()
+    (out / "raw").mkdir(parents=True, exist_ok=True)
+    probe_id = args.id or f"P-{datetime.now(timezone.utc):%Y%m%dT%H%M%S}-{uuid.uuid4().hex[:6]}"
+    run_id = f"{probe_id}-{uuid.uuid4().hex}"
+    invocation = prepare_invocation(args, out, run_id, command)
+    before = {str(directory): snapshot(directory) for directory in invocation.snapshot_roots}
+    capture = prepare_capture(args, invocation)
+    execution = execute(args, invocation, capture)
+    descendants_hold_output = finish_capture(capture, execution)
+    record = evidence_record(args, invocation, execution, capture, out, probe_id, run_id, before, descendants_hold_output)
+    with open(out / "probes.jsonl", "a") as stream:
+        stream.write(json.dumps(record, ensure_ascii=False) + "\n")
+    json.dump({key: record[key] for key in ("id", "exit_code", "signal", "timed_out", "duration_s")}, sys.stdout)
     print()
     return 0
 
