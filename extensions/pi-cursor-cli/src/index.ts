@@ -6,6 +6,7 @@ import { installWorkingIndicator } from "./chrome/working.ts";
 import { registerCursorTools } from "./tools/renderers.ts";
 import { registerTodosTool } from "./tools/todos.ts";
 import { createAllowlist, installDecisionGate } from "./decisions/gate.ts";
+import { installEditor } from "./editor/install.ts";
 
 export default function (pi: ExtensionAPI) {
 	const state = createSessionState();
@@ -13,6 +14,7 @@ export default function (pi: ExtensionAPI) {
 	installHeader(pi);
 	installFooter(pi, state);
 	installWorkingIndicator(pi);
+	installEditor(pi, state);
 	registerCursorTools(pi);
 	registerTodosTool(pi);
 	installDecisionGate(pi, state, allowlist);
