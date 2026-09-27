@@ -50,7 +50,7 @@ test('official SDK loads all worker tools without spawning children', async () =
 });
 
 
-test('real child sessions preserve history and report provider failures, background output, and cancellation', async () => {
+test('real child sessions preserve history and report provider failures, background output, and cancellation', async (t) => {
   const dir = await mkdtemp(join(tmpdir(), 'pstack-child-'));
   const priorDir = process.env.PI_CODING_AGENT_DIR;
   process.env.PI_CODING_AGENT_DIR = dir;
@@ -60,7 +60,7 @@ test('real child sessions preserve history and report provider failures, backgro
     await writeFile(join(dir, 'settings.json'), JSON.stringify({ retry: { enabled: false }, compaction: { enabled: false } }));
     const ai = resolve('node_modules/@earendil-works/pi-ai/dist/index.js');
     await writeFile(join(dir, 'extensions/provider.ts'), `
-      import { appendFileSync } from 'node:fs';
+      import { appendFileSync, writeFileSync } from 'node:fs';
       import { createAssistantMessageEventStream } from ${JSON.stringify(ai)};
       export default function (pi) {
         pi.registerProvider('worker-test', {
@@ -70,6 +70,7 @@ test('real child sessions preserve history and report provider failures, backgro
             const stream = createAssistantMessageEventStream();
             const users = context.messages.filter(m => m.role === 'user');
             const text = JSON.stringify(users.at(-1));
+            writeFileSync(${JSON.stringify(join(dir, 'child-system.txt'))}, JSON.stringify(context.messages.filter(message => message.role === 'system')));
             const error = text.includes('FAIL');
             const nested = text.includes('NEST_ROOT') || text.includes('NEST_STOP');
             const last = context.messages.at(-1);
@@ -115,6 +116,36 @@ test('real child sessions preserve history and report provider failures, backgro
       assert.ok(tool);
       return tool.definition.execute('test-' + name, params, undefined, undefined, session!.extensionRunner.createContext());
     }
+    await assert.rejects(call('Task', { prompt: 'watch', subagent_type: 'ci-watcher' }), /Unavailable model 'fast'/);
+    for (const role of ['shell', 'explore']) {
+      await assert.rejects(call('Task', { prompt: 'prepare', subagent_type: role }), /Unsupported agent/);
+    }
+    const watcher = await call('Task', { prompt: 'watch', subagent_type: 'ci-watcher', model: 'worker-test/deterministic', run_in_background: false });
+    const watcherData = JSON.parse(watcher.content.find(block => block.type === 'text')!.text);
+    assert.equal(watcherData.status, 'settled');
+    let childPrompt = await readFile(join(dir, 'child-system.txt'), 'utf8');
+    assert.match(childPrompt, /CI monitoring specialist for PR-attached checks/);
+    assert.match(childPrompt, /# No inline imports/);
+    assert.match(childPrompt, /typescript-exhaustive-switch: In switch statements/);
+    await call('Task', { prompt: 'watch again', resume: watcherData.task_id, run_in_background: false });
+    await call('Task', { prompt: 'review', subagent_type: 'thermo-nuclear-code-quality-review', model: 'worker-test/deterministic', run_in_background: false });
+    childPrompt = await readFile(join(dir, 'child-system.txt'), 'utf8');
+    assert.match(childPrompt, /You are a \*\*Task subagent\*\*/);
+    assert.match(childPrompt, /## Approval Bar/);
+    const appended: string[][] = [];
+    const getAppendSystemPrompt = DefaultResourceLoader.prototype.getAppendSystemPrompt;
+    const observer = t.mock.method(DefaultResourceLoader.prototype, 'getAppendSystemPrompt', function (this: DefaultResourceLoader) {
+      const prompts = getAppendSystemPrompt.call(this);
+      if (this.getExtensions().extensions.length === 0) appended.push(prompts);
+      return prompts;
+    });
+    await assert.rejects(call('Task', { prompt: 'readonly review', subagent_type: 'thermo-nuclear-code-quality-review', model: 'worker-test/deterministic', readonly: true, run_in_background: false }), /No API key found for worker-test/);
+    observer.mock.restore();
+    childPrompt = appended.flat().join('\n');
+    assert.match(childPrompt, /You are a \*\*Task subagent\*\*/);
+    assert.match(childPrompt, /## Approval Bar/);
+    assert.match(childPrompt, /# No inline imports/);
+    assert.match(childPrompt, /typescript-exhaustive-switch: In switch statements/);
     const first = await call('Task', { prompt: 'first', model: 'worker-test/deterministic', run_in_background: false });
     const data = JSON.parse(first.content.find(block => block.type === 'text')!.text);
     assert.equal(data.status, 'settled');
