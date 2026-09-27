@@ -26,7 +26,7 @@ def log(path, cwd, messages):
 def run_inventory(root, *options):
     return subprocess.run([sys.executable, str(SCRIPT), '--agent-dir', str(root / 'agent'),
                            '--cwd', str(root / 'project'), *options], cwd=root,
-                          env={**os.environ, 'PATH': '', 'PI_CODING_AGENT_SESSION_DIR': ''},
+                          env={**os.environ, 'HOME': str(root), 'PATH': '', 'PI_CODING_AGENT_SESSION_DIR': ''},
                           capture_output=True, text=True, timeout=20)
 
 
@@ -200,8 +200,10 @@ class InventorySessions(unittest.TestCase):
                              {'role': 'assistant', 'content': [{'type': 'toolCall', 'name': 'read', 'arguments': []}]}])
             with path.open('a') as stream:
                 stream.write('null\n[]\n{"message":5}\n{broken\n')
-            self.assertEqual(inventory.newest_prompt(root, root)['section_chars'], {'one': 3})
-            self.assertEqual(inventory.scan_usage([path])['skills']['how']['explicit'], 1)
+            with self.assertWarnsRegex(UserWarning, 'read session'):
+                self.assertEqual(inventory.newest_prompt(root, root)['section_chars'], {'one': 3})
+            with self.assertWarnsRegex(UserWarning, 'read session'):
+                self.assertEqual(inventory.scan_usage([path])['skills']['how']['explicit'], 1)
 
     def test_skill_directory_cycles_are_pruned(self):
         with tempfile.TemporaryDirectory() as temp:
