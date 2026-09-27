@@ -8,7 +8,8 @@ Exact:
 - user-agent is claude-cli/<version>, default 2.1.280
 - x-app is cli
 - anthropic-beta includes claude-code-20250219 and oauth-2025-04-20
-- the first system block is the Claude Code preamble
+- the first system block is the billing header `x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;`, captured live from Claude Code 2.1.280 on 2026-09-27. The gateway uses it to attribute the request to the Claude Code plan; without it requests bill against extra usage and fail with a misleading out-of-usage notice
+- the second system block is the Claude Code preamble
 - a null caller header deletes the named header
 - missing token throws before a stream returns
 - overflow text from the server is preserved

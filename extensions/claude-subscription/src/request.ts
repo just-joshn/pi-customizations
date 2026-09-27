@@ -14,6 +14,7 @@ import {
 import {
 	ANTHROPIC_VERSION,
 	CLAUDE_CODE_BETA,
+	CLAUDE_CODE_BILLING,
 	CLAUDE_CODE_PREAMBLE,
 	FINE_GRAINED_TOOL_STREAMING_BETA,
 	INTERLEAVED_THINKING_BETA,
@@ -186,7 +187,7 @@ function thinkingBudget(level: ThinkingLevel, custom: ThinkingBudgets | undefine
 }
 
 function systemBlocks(systemPrompt: string): Array<Record<string, unknown>> {
-	const blocks = [cachedText(CLAUDE_CODE_PREAMBLE)];
+	const blocks = [{ type: "text", text: CLAUDE_CODE_BILLING }, cachedText(CLAUDE_CODE_PREAMBLE)];
 	if (systemPrompt.trim()) blocks.push(cachedText(sanitizeText(systemPrompt)));
 	return blocks;
 }
