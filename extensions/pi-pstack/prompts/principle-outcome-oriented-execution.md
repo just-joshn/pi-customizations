@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-outcome-oriented-execution workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-outcome-oriented-execution/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

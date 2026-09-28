@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
 	isContextOverflow,
+	isRetryableAssistantError,
 	normalizeContext,
 	type Api,
 	type AssistantMessage,
@@ -232,13 +233,23 @@ test("a 404 cascades to the next endpoint without retrying the first", async () 
 	assert.equal(message.stopReason, "stop");
 });
 
-test("a 429 waits for retry-after and then succeeds", async () => {
+test("a 429 reaches Pi's own retry without a provider retry by default", async () => {
+	const { server, message } = await run((_, res) => json(res, 429, { error: { message: "Resource has been exhausted" } }));
+	assert.equal(server.requests.length, 1);
+	assert.equal(message.stopReason, "error");
+	assert.equal(message.errorMessage, "Cloud Code Assist API error (429): Resource has been exhausted");
+	assert.equal(isRetryableAssistantError(message), true);
+});
+
+test("with retry.provider.maxRetries set, a 429 waits for retry-after and then succeeds", async () => {
 	let calls = 0;
 	const started = Date.now();
-	const { server, message } = await run((_, res) =>
-		calls++ === 0
-			? json(res, 429, { error: { message: "Resource has been exhausted" } }, { "retry-after": "0.01" })
-			: stream(res, textAndThinking),
+	const { server, message } = await run(
+		(_, res) =>
+			calls++ === 0
+				? json(res, 429, { error: { message: "Resource has been exhausted" } }, { "retry-after": "0.01" })
+				: stream(res, textAndThinking),
+		{ stream: { maxRetries: 1 } },
 	);
 	assert.equal(server.requests.length, 2);
 	assert.equal(message.stopReason, "stop");
@@ -265,6 +276,25 @@ test("an aborted request ends as aborted", async () => {
 	});
 	assert.equal(message.stopReason, "aborted");
 	assert.deepEqual(events, ["error"]);
+});
+
+test("a stream that closes before a finish reason is an error Pi retries", async () => {
+	const { message } = await run((_, res) =>
+		stream(res, sse([{ response: { candidates: [{ content: { parts: [{ text: "cut off" }] } }] } }])),
+	);
+	assert.equal(message.stopReason, "error");
+	assert.equal(message.errorMessage, "Cloud Code Assist stream ended without a finish reason");
+	assert.equal(isRetryableAssistantError(message), true);
+});
+
+test("a supplied fetch implementation carries the request", async () => {
+	const urls: string[] = [];
+	const { message } = await run((_, res) => stream(res, textAndThinking), {
+		stream: { fetch: (input, init) => (urls.push(String(input)), fetch(input, init)) },
+	});
+	assert.equal(message.stopReason, "stop");
+	assert.equal(urls.length, 1);
+	assert.match(urls[0]!, /\/v1internal:streamGenerateContent\?alt=sse$/);
 });
 
 test("a malformed SSE line is skipped", async () => {

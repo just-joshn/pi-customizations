@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled swarm workflow."
+argument-hint: "[task]"
 ---
 
 Read swarm/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

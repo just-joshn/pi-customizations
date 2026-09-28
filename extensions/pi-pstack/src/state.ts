@@ -46,6 +46,8 @@ export function registerStateTools(pi: ExtensionAPI, store: StateStore): void {
     executionMode: 'sequential',
     name: 'pstack_mode', label: 'Poteto mode',
     description: 'Set sticky Poteto mode when the user requests it or opts out. Persists on the active session branch.',
+    promptSnippet: 'Turn sticky Poteto mode on or off for this session branch',
+    promptGuidelines: ['pstack_mode changes sticky mode on explicit user entry or opt-out. Recognize natural-language user requests through that tool, not quoted examples.'],
     parameters: Type.Object({ enabled: Type.Boolean() }),
     async execute(_id, params, _signal, _update, ctx) {
       store.toggle(params.enabled, ctx);
@@ -57,6 +59,8 @@ export function registerStateTools(pi: ExtensionAPI, store: StateStore): void {
     executionMode: 'sequential',
     name: 'TodoWrite', label: 'Pstack todos',
     description: 'Replace or merge the ordered todo list. Copy the selected playbook steps verbatim before task-specific steps. Keep skipped steps with a reason.',
+    promptSnippet: 'Replace or merge the ordered pstack todo list',
+    promptGuidelines: ['TodoWrite keeps the verbatim ordered playbook steps.'],
     parameters: Type.Object({ todos: Type.Array(Todo), merge: Type.Optional(Type.Boolean()) }),
     async execute(_id, params, _signal, _update, ctx) {
       if (new Set(params.todos.map((todo) => todo.id)).size !== params.todos.length) throw new Error('Todo IDs must be unique.');

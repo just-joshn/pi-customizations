@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled arena workflow."
+argument-hint: "[task]"
 ---
 
 Read arena/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

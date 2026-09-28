@@ -36,4 +36,8 @@ Pi 0.87.1 exposes the package and extension APIs used here. The peer dependency 
 
 Source instructions can require capabilities that this extension does not provide. The host contract preserves those gates and reports them. It must never describe local execution as cloud execution or copied automation prompts as a deployed automation.
 
+Rules that belong to one tool live in that tool's `promptSnippet` and `promptGuidelines`. Pi lists them only while the tool is active, so `--tools` or `setActiveTools()` also removes their guidance. The `pstack_host` prompt section keeps the rules that apply whatever tools are active.
+
+Task children load the extension, skill, and prompt paths from the package's own `pi` manifest. A new resource directory therefore reaches children without a second list to update.
+
 The extension's `pstack/models.mdc` file stores role preferences. It does not configure providers and is not a Pi context file. The extension explicitly reads it. Use Pi's `models.json` for compatible provider endpoints and a provider extension when authentication or protocols need executable behavior.

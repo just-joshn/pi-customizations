@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled recall workflow."
+argument-hint: "[task]"
 ---
 
 Read recall/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

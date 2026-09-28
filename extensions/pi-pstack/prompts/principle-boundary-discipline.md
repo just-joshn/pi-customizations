@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-boundary-discipline workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-boundary-discipline/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

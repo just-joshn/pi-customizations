@@ -1,0 +1,11 @@
+{
+  "name": "pi-customizations",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone Pi skills: doctor, run, simplify, reverse-engineer-cli, and implement-cli-from-contract.",
+  "license": "MIT",
+  "keywords": ["pi-package"],
+  "pi": {
+    "skills": ["./skills"]
+  }
+}

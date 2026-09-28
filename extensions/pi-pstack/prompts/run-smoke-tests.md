@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled run-smoke-tests workflow."
+argument-hint: "[task]"
 ---
 
 Read run-smoke-tests/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

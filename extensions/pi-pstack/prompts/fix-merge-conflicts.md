@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled fix-merge-conflicts workflow."
+argument-hint: "[task]"
 ---
 
 Read fix-merge-conflicts/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

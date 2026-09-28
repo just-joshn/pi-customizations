@@ -9,7 +9,7 @@
   {
     "source": "upstream/skills/architect/SKILL.md",
     "destination": "prompts/architect.md",
-    "sha256": "b191c73d65018db56e8bc367fd9b04fe9db100a7b14fad15bf0f7c3c5d66af96",
+    "sha256": "2eba27a9b79f54e149470890c7500b2f04dfe62c2908dfa55818d02e9451de44",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -48,7 +48,7 @@
   {
     "source": "upstream/skills/arena/SKILL.md",
     "destination": "prompts/arena.md",
-    "sha256": "fa332c74173ad9be75968a7677ca9c11b5d546d647ca62ac43770f24f0905f8b",
+    "sha256": "cc98d9bb7cf0bb95fe928fa7c4281a11551f662aa0e8ed7dfb38edeea95ee19a",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -57,7 +57,7 @@
   {
     "source": "upstream/skills/automate-me/SKILL.md",
     "destination": "skills/automate-me/SKILL.md",
-    "sha256": "dbb5e5d8ceb626ebb2d026cc896b7f6071d1ad1c0deb3331a5ac81bcaf89a902",
+    "sha256": "891965908b20b2d9665fef9ec6c5ad2f860e1b318b3043b2057f8dbee9f8ce20",
     "executable": false,
     "transformations": [
       "Map user and project skill directories to Pi discovery locations.",
@@ -67,7 +67,7 @@
   {
     "source": "upstream/skills/automate-me/SKILL.md",
     "destination": "prompts/automate-me.md",
-    "sha256": "453d8e1f31b22d6bd22f706bce4e458e365a759acfff215d2e207205b809cfc1",
+    "sha256": "ed6f5d0a6253a907e1510a3e2398c1153682779f1c1f6a8b970354e1b4b3861b",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -83,7 +83,7 @@
   {
     "source": "upstream/skills/blast-radius/SKILL.md",
     "destination": "prompts/blast-radius.md",
-    "sha256": "2c9e067cd47be2fbf36706d5a0f8ac0d4fb78522df58cb6b6afd0b27d3037c4a",
+    "sha256": "f7e3e1a4f5dcdbad40902e35c8bbf65b356eb7af47f980010642ca7fcbe49b82",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -92,7 +92,7 @@
   {
     "source": "upstream/skills/bro/SKILL.md",
     "destination": "prompts/bro.md",
-    "sha256": "c41fea6462cf321e8d09d2fc643c2f30f2326c222e068bcbb77b9a0791217823",
+    "sha256": "a9c853afc279dfd543e6c0181c80e01ac7ba7279b2191ceb2e2181e421bc5f01",
     "executable": false,
     "transformations": [
       "Classify reusable restatement text as a Pi prompt template."
@@ -110,7 +110,7 @@
   {
     "source": "upstream/skills/create-verification-skill/SKILL.md",
     "destination": "prompts/create-verification-skill.md",
-    "sha256": "48ff9387af97810c1016b80185d7d6a672b269713e4a98d4ec91514cbaad6ff1",
+    "sha256": "b5012faf2cc49cd441d9968731619346c8d4e6dd309c990b41f25262aae54ce3",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -147,7 +147,7 @@
   {
     "source": "upstream/skills/figure-it-out/SKILL.md",
     "destination": "prompts/figure-it-out.md",
-    "sha256": "92434bfc518e799976df37ed8ba4ee9f25526eea7b0c4c38dc06469f4b0741d7",
+    "sha256": "470c08951a2cfa329a719480f4447018713220566b7a6b91863acb80bcc899ad",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -163,7 +163,7 @@
   {
     "source": "upstream/skills/how/SKILL.md",
     "destination": "prompts/how.md",
-    "sha256": "f3264ce7d2ddece5cf0ed3ac61cf3e0bf99e848564b107a4157bf0585813638b",
+    "sha256": "4b90641cc7cf255b9e5e76fbdb8011e508986aca587a51d9acee4b4f9d96df77",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -195,7 +195,7 @@
   {
     "source": "upstream/skills/interrogate/SKILL.md",
     "destination": "prompts/interrogate.md",
-    "sha256": "3c4d9b7ece8666cafa37ed6215d810e0d9af3dba2eb71085a208c67dc1feb192",
+    "sha256": "aa0aa761d5af1ef1265c032732be2a2ae1d56b0fb47475e3b5ba77b9bcb2cda2",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -241,7 +241,7 @@
   {
     "source": "upstream/skills/maintain-verification-skill/SKILL.md",
     "destination": "prompts/maintain-verification-skill.md",
-    "sha256": "e6307b071e4dffd8fc8a414f32771cbfea25f7a650c6389b8ef74d656dbba8bd",
+    "sha256": "d2342d8b820fc173fbc4ecdcfd48820e4aed8a31966bce20bb5ed6bc25ca7d72",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -259,7 +259,7 @@
   {
     "source": "upstream/skills/make-bot-ui/SKILL.md",
     "destination": "prompts/make-bot-ui.md",
-    "sha256": "b69ba13e2f3827fa78bc854f5304b2cb9e150dfaf9b4cdb48ac8bcbc279c01ef",
+    "sha256": "bd884268b99e2a3fae5aa7f4ccb22ff5dbebd582527c00a5326eba7afa1e1e64",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -275,7 +275,7 @@
   {
     "source": "upstream/skills/no-comments/SKILL.md",
     "destination": "prompts/no-comments.md",
-    "sha256": "72ba7493c0ca649c4795d1549ca6ba58d0a1137ce414168c492cc07fbdad65de",
+    "sha256": "f7c10cf364040ecb312bd0fda181a24d7d369362109b078f8e473a4175fbb37a",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -618,7 +618,7 @@
   {
     "source": "upstream/skills/principle-attack-the-premise/SKILL.md",
     "destination": "prompts/principle-attack-the-premise.md",
-    "sha256": "e678fe6130ee3cfcae2638723af324ed78d4f202b1bc74195e4149c7f0cf798a",
+    "sha256": "3e9966c7e8e30d7f2a46a5f80111684c70f39dba542601f4423217c63c4354de",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -634,7 +634,7 @@
   {
     "source": "upstream/skills/principle-boundary-discipline/SKILL.md",
     "destination": "prompts/principle-boundary-discipline.md",
-    "sha256": "1794f7c038f12e908c14c34b607674818493b7d00585a12fb6c6a980abbd2358",
+    "sha256": "f6f46103d5ce0c892da7430462eb535439ec45f1b5ac770dcfc6053c18de97cb",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -650,7 +650,7 @@
   {
     "source": "upstream/skills/principle-build-the-lever/SKILL.md",
     "destination": "prompts/principle-build-the-lever.md",
-    "sha256": "229880fd6e17c77f923e7434d9994d64363dfe48600fdcfc1b1ea011956e656f",
+    "sha256": "a7a0d18242007d24b701c404654c56c801a0e965e03a81046429a5d2dc6653dc",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -666,7 +666,7 @@
   {
     "source": "upstream/skills/principle-encode-lessons-in-structure/SKILL.md",
     "destination": "prompts/principle-encode-lessons-in-structure.md",
-    "sha256": "bd9c74f97f9aedaa94b449dced0f47237d36020c6965af7651338b2556996b49",
+    "sha256": "03631cf8de6c10c004de004f5337d1e81ead3f74a0fa0088dc56ddd59637316a",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -682,7 +682,7 @@
   {
     "source": "upstream/skills/principle-exhaust-the-design-space/SKILL.md",
     "destination": "prompts/principle-exhaust-the-design-space.md",
-    "sha256": "50595d489696222ddf6ff5a5af80d5ba960bfe693019c50e5bcb5c3ed006bdbe",
+    "sha256": "1968fef44f49e177f67b96269affa91acbf52c2d6aff125b55f36addc4d5694d",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -698,7 +698,7 @@
   {
     "source": "upstream/skills/principle-experience-first/SKILL.md",
     "destination": "prompts/principle-experience-first.md",
-    "sha256": "ee9fd5256b3c7e3b9889cf62c73f5006a0c1a86b5b183b54bad6f6de0b882c52",
+    "sha256": "380ab267a9549432f4cb84e1f49aef9dda90ce5ba407892c3dac2a93e123ead7",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -714,7 +714,7 @@
   {
     "source": "upstream/skills/principle-fix-root-causes/SKILL.md",
     "destination": "prompts/principle-fix-root-causes.md",
-    "sha256": "00ef0058188ff17769467e2c9c657b2130a98bcb1ee69c4fec376c8a310fd56d",
+    "sha256": "7d56494ea50bcb37a59e42d8665151d5fc26f103965c5bf2dc5fe85288d170bc",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -730,7 +730,7 @@
   {
     "source": "upstream/skills/principle-foundational-thinking/SKILL.md",
     "destination": "prompts/principle-foundational-thinking.md",
-    "sha256": "b79f5f59f98d92326b811445329cd4c5f282ae5af75dcc51df0f9901f3e97649",
+    "sha256": "f7005f1fcdfd6e938aac494642070296481457a3c499cfa050a8834aa7ad1019",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -746,7 +746,7 @@
   {
     "source": "upstream/skills/principle-guard-the-context-window/SKILL.md",
     "destination": "prompts/principle-guard-the-context-window.md",
-    "sha256": "891a16ab21d35296c89b7376631633c4bd210b85979776b15ac228b93bf96e71",
+    "sha256": "fb024702e2d6cc227cc97f425afa9795d80e8704c485c98ded76532c00461383",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -762,7 +762,7 @@
   {
     "source": "upstream/skills/principle-laziness-protocol/SKILL.md",
     "destination": "prompts/principle-laziness-protocol.md",
-    "sha256": "0db8865c4de90dccbc11f8b2a077347e4403f1aead4b01e11b37c429239a1a85",
+    "sha256": "0b5eaff3c2ce50961e2ba8fbd32cac89e2918b60b6dc404fa7ad0718fd835dff",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -778,7 +778,7 @@
   {
     "source": "upstream/skills/principle-make-operations-idempotent/SKILL.md",
     "destination": "prompts/principle-make-operations-idempotent.md",
-    "sha256": "ece691847db358eb5b1e8c08f438158a4ab53bb41e287aa220a87c1d0b19f809",
+    "sha256": "81131441eae68d981077fc6c5a39960c12e21b87c0f218121ed3d11b3425d150",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -794,7 +794,7 @@
   {
     "source": "upstream/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
     "destination": "prompts/principle-migrate-callers-then-delete-legacy-apis.md",
-    "sha256": "7d7fe3fe1e6299b41a4619ce5489630a90544c024c000420e4979edeef90b4cf",
+    "sha256": "2cc503056069e5619c38a2c4dd70ca02855a4cc348719c531736af517b44b9dc",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -810,7 +810,7 @@
   {
     "source": "upstream/skills/principle-minimize-reader-load/SKILL.md",
     "destination": "prompts/principle-minimize-reader-load.md",
-    "sha256": "d3307feebd605760b6e6e73002764ee221655a69d6385261b53613de9a01c7ae",
+    "sha256": "790ed3785d7fcdc1806b3d4a7398294f022aab2d8039b56053d659f365b20a20",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -826,7 +826,7 @@
   {
     "source": "upstream/skills/principle-model-the-domain/SKILL.md",
     "destination": "prompts/principle-model-the-domain.md",
-    "sha256": "ef694bad587ca399d3ac9d79e3344f177fc8ced4f0a4a4e6d01288010fa04171",
+    "sha256": "ab5a704c35c55d25ea432130c4279a8600c88c46c0007d949fd652dfd42ad898",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -842,7 +842,7 @@
   {
     "source": "upstream/skills/principle-never-block-on-the-human/SKILL.md",
     "destination": "prompts/principle-never-block-on-the-human.md",
-    "sha256": "67c1e66eb7dda8ce225680e83b63900229d21d49fbf9fbacc671a34a43677aae",
+    "sha256": "58bd7e85f8ff580918775032586a3207aca1feb3742356496e635615866839f3",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -858,7 +858,7 @@
   {
     "source": "upstream/skills/principle-outcome-oriented-execution/SKILL.md",
     "destination": "prompts/principle-outcome-oriented-execution.md",
-    "sha256": "8a156b7fc04b4182bf17f25102a23db1b325d80e349d857f11f9bdb55057c589",
+    "sha256": "08d17b591c3a666333939f3d77de67bc506586f363a8173ae9b25770ff1459fd",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -874,7 +874,7 @@
   {
     "source": "upstream/skills/principle-prove-it-works/SKILL.md",
     "destination": "prompts/principle-prove-it-works.md",
-    "sha256": "63a1199ab280236352d3a5aab9a75ecacb25e15f554b71b2cff77e6370a2ad79",
+    "sha256": "034d37645e993ea6f9f59357fa3e37384ce27dc6e0937c941d80be8d1795f385",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -890,7 +890,7 @@
   {
     "source": "upstream/skills/principle-redesign-from-first-principles/SKILL.md",
     "destination": "prompts/principle-redesign-from-first-principles.md",
-    "sha256": "b2b0a1de49d6cae1969456c0b1c20842f4411e1033fdd2d7a314ab8824b99fa2",
+    "sha256": "5092af6ab70d65904d83de4d0ebe414df693f7762f36a41dffa945f9b7404863",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -906,7 +906,7 @@
   {
     "source": "upstream/skills/principle-separate-before-serializing-shared-state/SKILL.md",
     "destination": "prompts/principle-separate-before-serializing-shared-state.md",
-    "sha256": "0e6708d7f4be7dede8bc3905fd9af485a3e41e79336790e606e27888f7007dc3",
+    "sha256": "cba4f182f13c23079b1f5ea0114f4d1749307513eec64a8c77fa8f22a86dbc1d",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -922,7 +922,7 @@
   {
     "source": "upstream/skills/principle-sequence-verifiable-units/SKILL.md",
     "destination": "prompts/principle-sequence-verifiable-units.md",
-    "sha256": "c9d7c4ff7ed1791e926d2949002eb814bc02043d9202b5d10d5999fbe762115e",
+    "sha256": "ef0a7a5b37b8566df259c96b18bf598dcc2842530c298c4ea7b88dcd23f05f49",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -938,7 +938,7 @@
   {
     "source": "upstream/skills/principle-subtract-before-you-add/SKILL.md",
     "destination": "prompts/principle-subtract-before-you-add.md",
-    "sha256": "47c9b7d964dca3f6fb9089aa5ff93529e7ee4b1841dd1d09450e59771c4dfb75",
+    "sha256": "94800c018440e008005f191486ca54337566a4701864dc2941ffeb3964f32d43",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -954,7 +954,7 @@
   {
     "source": "upstream/skills/principle-test-behavior-not-implementation/SKILL.md",
     "destination": "prompts/principle-test-behavior-not-implementation.md",
-    "sha256": "60d5d7c8275b6362309f6d97fe99e8f826905bde2548eb82b8114b5a55b24db7",
+    "sha256": "dc27c9c6ea816a59baf48d4bf79c83826bcbe6fbe1ff89039472df2d874b5e6d",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -970,7 +970,7 @@
   {
     "source": "upstream/skills/principle-type-system-discipline/SKILL.md",
     "destination": "prompts/principle-type-system-discipline.md",
-    "sha256": "260719d9d1ccaafb4140bc29a6ad8ddecd92b175d819ca40685c739a53a08c81",
+    "sha256": "abdc794340080f12ee1823fe3fb6915b36f44e0d63afb498bf1e3133e198f2a7",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -979,7 +979,7 @@
   {
     "source": "upstream/skills/recall/SKILL.md",
     "destination": "skills/recall/SKILL.md",
-    "sha256": "0a23a264ff5643bd575b6d96be767d09bf10a8fe2a905ea24cab3e239da490ca",
+    "sha256": "1f8cfccb5a5942f9c3a5f395ba9593d43991337cb740bf3042f4554831754004",
     "executable": false,
     "transformations": [
       "Map Reference agent-transcripts to the Pi session store and pstack-workers child transcripts."
@@ -988,7 +988,7 @@
   {
     "source": "upstream/skills/recall/SKILL.md",
     "destination": "prompts/recall.md",
-    "sha256": "ff8716c4eff515280efca72701302dafb7c4bffce81f521d83790288862f5938",
+    "sha256": "19d1723ac0705699824b100bce5c4618aa697fe96d04d661f65f3f018c70a437",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -997,7 +997,7 @@
   {
     "source": "upstream/skills/reflect/SKILL.md",
     "destination": "skills/reflect/SKILL.md",
-    "sha256": "a7e05e81c5d6c8c0b141f1210d2c439548c9d0c6a0bcfc943d192c1e142472d6",
+    "sha256": "655ddf208cc8061148ea3baed144b1f340990fb74e63ce17dd6ccce2bae5799a",
     "executable": false,
     "transformations": [
       "Map Reference agent-transcripts to the Pi session store and pstack-workers child transcripts."
@@ -1006,7 +1006,7 @@
   {
     "source": "upstream/skills/reflect/SKILL.md",
     "destination": "prompts/reflect.md",
-    "sha256": "b95c7ec9bfc83101d87778cce93e8ceec11878f8d8b0b7c2fe267342c1fbc952",
+    "sha256": "52e7bbbdd3e8a5e048d1e272073c6641ae0863a187fcfe74562b74bdd51f5f56",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1049,9 +1049,10 @@
   {
     "source": "upstream/skills/setup-pstack/SKILL.md",
     "destination": "skills/setup-pstack/SKILL.md",
-    "sha256": "54210f6b575feb1960053f2eb7a68851b5d65210011b1c8769974b24f3770a4a",
+    "sha256": "79f1b031f3bf3eb2e8c96a18e7185c82101cb732e1862cc569820272fad39ca8",
     "executable": false,
     "transformations": [
+      "Hide the skill from automatic selection; the extension's /setup-pstack and /skill:setup-pstack handlers own the validated dialogs.",
       "Map model rule location to Pi agent configuration."
     ]
   },
@@ -1067,7 +1068,7 @@
   {
     "source": "upstream/skills/show-me-your-work/SKILL.md",
     "destination": "prompts/show-me-your-work.md",
-    "sha256": "17fbe25188175e619765ee0c3c14a61e55152f7d9bce90c1fd8be5f3b86e605a",
+    "sha256": "b11966e55dc20e5364ee8cadb20920b512a604385b6a3485f8a89b4797130ea9",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1099,7 +1100,7 @@
   {
     "source": "upstream/skills/swarm/SKILL.md",
     "destination": "prompts/swarm.md",
-    "sha256": "d42670f1d77d72b36788989affd53122952b39147d5fcb8e9c3e810e0791564d",
+    "sha256": "da36600cc59c64731bc41ac2115fbfffb83cffe712daca8aee7506785e3da72f",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1115,7 +1116,7 @@
   {
     "source": "upstream/skills/tdd/SKILL.md",
     "destination": "prompts/tdd.md",
-    "sha256": "e9c2221dc74a37d1973862edea382a98db6a04b443bc840892ee0c3ba5bc627a",
+    "sha256": "3972f07348bf42d150bcb1516aa836fc71836e5403919f08bf34345fa8dec857",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1131,7 +1132,7 @@
   {
     "source": "upstream/skills/teach/SKILL.md",
     "destination": "prompts/teach.md",
-    "sha256": "65be2bdfd326ac37629d9eb389b286f98b1d41770f27538e48e0eeee834e7599",
+    "sha256": "a1b0233c3c8ade582a890f3094fd6209b53b18db6edab11ea78d34539b07078f",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1147,7 +1148,7 @@
   {
     "source": "upstream/skills/technical-writing/SKILL.md",
     "destination": "prompts/technical-writing.md",
-    "sha256": "c2e55504dd4d6137aaf10b6dbbc1f2c5bc63a82b6cee89d5480c8e4f77267627",
+    "sha256": "c6c2c2b2bcde905fb1bb6eaebebc8093a447a5e90de3414cfc373999ba1f8045",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1156,16 +1157,17 @@
   {
     "source": "upstream/skills/typescript-best-practices/SKILL.md",
     "destination": "skills/typescript-best-practices/SKILL.md",
-    "sha256": "a40da091ebac92080cf0ed142051d2bef35e56358084511d599f1097c58f5c73",
+    "sha256": "abd84f43d3c33db81d90273777313a55cf39a6d32414f67e53951246ab4f3adc",
     "executable": false,
     "transformations": [
-      "Remove Reference-only frontmatter; Pi runtime behavior belongs to the extension."
+      "Remove Reference-only frontmatter; Pi runtime behavior belongs to the extension.",
+      "Pi has no file-path skill trigger, so let the description route the skill instead of hiding it."
     ]
   },
   {
     "source": "upstream/skills/typescript-best-practices/SKILL.md",
     "destination": "prompts/typescript-best-practices.md",
-    "sha256": "9c6198620699445f7de28dbcbc7deb89299b342b88d421668c852d4ff21562f2",
+    "sha256": "25c90dca40f9da5387b44ec357fe3f8ba02bb38fba672f1d727e77d4a9b8d4f6",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1188,7 +1190,7 @@
   {
     "source": "upstream/skills/unslop/SKILL.md",
     "destination": "prompts/unslop.md",
-    "sha256": "e811fa46f118b410c173e24df5a1a42ffb703127bcea20c59781377500660616",
+    "sha256": "a008146e23cecaf4e588e45e3fa3933931cc6ed44b0d598ea7ba04614bc2de04",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1204,7 +1206,7 @@
   {
     "source": "upstream/skills/why/SKILL.md",
     "destination": "prompts/why.md",
-    "sha256": "b07338dc80a0599ab49de870d54d26c4811cfcf839c438a00068aa2044905fe1",
+    "sha256": "a0160f7f42961b7876af73760e35d6fa494da7a009b5217fd9000b04790231e5",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1304,7 +1306,7 @@
   {
     "source": "upstream-team-kit/skills/check-compiler-errors/SKILL.md",
     "destination": "prompts/check-compiler-errors.md",
-    "sha256": "aa3ac601457d0e14545cabe6fcfce86bb6711407f89a17bbb6983d5ea2c15c57",
+    "sha256": "cdd869565e6d4afca7ae48ca92a34e207b8f21810fd9a600cdbdb5ab6ddaa12d",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1320,7 +1322,7 @@
   {
     "source": "upstream-team-kit/skills/control-cli/SKILL.md",
     "destination": "prompts/control-cli.md",
-    "sha256": "d3ab84368b93b76cfb6a2e9fbe5037304481bb93103fb44b208f6f28dd49d3be",
+    "sha256": "e4d4b9532b53ce7743c10e8b474fbb9675c1db04d3f8824622fbd199b5fcf7ad",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1336,7 +1338,7 @@
   {
     "source": "upstream-team-kit/skills/control-ui/SKILL.md",
     "destination": "prompts/control-ui.md",
-    "sha256": "c65bf607bbd04bb6e938a3e9936acd0e1f53dff3f3bfc58259b626fd3500b74c",
+    "sha256": "3dc6cd743b59a474229ec4394be2b7861adf83827a12a25b0943cb0db6a166d0",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1352,7 +1354,7 @@
   {
     "source": "upstream-team-kit/skills/deslop/SKILL.md",
     "destination": "prompts/deslop.md",
-    "sha256": "41380cb7f8636636685a0009fdccd4bf9411f5a76f471d89340f57559d7c3c45",
+    "sha256": "b61b2940359929534434acffe5013a71f298b453d0a68574f4ffd7e3b000540c",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1368,7 +1370,7 @@
   {
     "source": "upstream-team-kit/skills/fix-ci/SKILL.md",
     "destination": "prompts/fix-ci.md",
-    "sha256": "1c8ed29b6e4c2fc1aaffd5884473d4ac74685a878c9b3e49b33c80137670b9b0",
+    "sha256": "862cc8acfab8b0b3272cf9f0c9bbbeed9e630cce20a7a9de521385fc18148c3d",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1384,7 +1386,7 @@
   {
     "source": "upstream-team-kit/skills/fix-merge-conflicts/SKILL.md",
     "destination": "prompts/fix-merge-conflicts.md",
-    "sha256": "66dc36cc34ac2b655db4b5e59c29b8e218b8e691ff0e885f5505bc994b9e91f9",
+    "sha256": "381487330b10b209e7bd917057e7e74d1c235a673fd03af3e3d1d62b411200df",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1400,7 +1402,7 @@
   {
     "source": "upstream-team-kit/skills/get-pr-comments/SKILL.md",
     "destination": "prompts/get-pr-comments.md",
-    "sha256": "211fba93c792e5c5b0cb62df5a6c16874d947e1fdaad746e9cf73f177e41f41a",
+    "sha256": "28c54bf6f492203590a36a60a873775da81c517d6782c34e75b04e46e6cd339c",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1416,7 +1418,7 @@
   {
     "source": "upstream-team-kit/skills/loop-on-ci/SKILL.md",
     "destination": "prompts/loop-on-ci.md",
-    "sha256": "32d89fda4d1a89ac834d6b88ca954fc2cb99025a04cf5f1514d553f596f7b674",
+    "sha256": "2f758d18b8e12ada7e8e1c3f30177d9e1ec9476dc5ce1407b2fd588cd6017c66",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1432,7 +1434,7 @@
   {
     "source": "upstream-team-kit/skills/make-pr-easy-to-review/SKILL.md",
     "destination": "prompts/make-pr-easy-to-review.md",
-    "sha256": "1ab352d78da4e0371df59c98b62bf787dd544b94979d340a8b3b14c333a2922e",
+    "sha256": "a044f3799d2876ea2d1f47c51d2412933e7982728fa991c55675e3a2389e07c0",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1448,7 +1450,7 @@
   {
     "source": "upstream-team-kit/skills/new-branch-and-pr/SKILL.md",
     "destination": "prompts/new-branch-and-pr.md",
-    "sha256": "6576092f019d359b6c3283c9facf1747cead6e4793a6885730d14783f3656102",
+    "sha256": "8d3ada223e0b3cede7b4e82c1f72867b5f679338a2880dff97c3ea8476cf0dc1",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1464,7 +1466,7 @@
   {
     "source": "upstream-team-kit/skills/pr-review-canvas/SKILL.md",
     "destination": "prompts/pr-review-canvas.md",
-    "sha256": "6c5c350b72819afa6812bac22dd1a9106205f23c06c745204368fbdb8a767be1",
+    "sha256": "16358d70e9679eaf53f292ec9669fd65ee9aae089bb5e57ce16e6d0d4a07b2d6",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1501,7 +1503,7 @@
   {
     "source": "upstream-team-kit/skills/review-and-ship/SKILL.md",
     "destination": "prompts/review-and-ship.md",
-    "sha256": "965f9dc416c4f5cb63ac55668ad95d7ad79de78e74057d8e2d9bf326abfee678",
+    "sha256": "17325c1f672845e8b5a3b0918cdf3bc774a2004d199aba9054aadc9d19eb264c",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1517,7 +1519,7 @@
   {
     "source": "upstream-team-kit/skills/run-smoke-tests/SKILL.md",
     "destination": "prompts/run-smoke-tests.md",
-    "sha256": "d6ee0e8a0afe63deb48cc0d6d14146d3913301baac3ce8a7aa86ca7e5b3d64da",
+    "sha256": "b6388f44f8056b6d891535f7134e0af76ee9526842c4dc7c8cd1e34366e923d7",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1533,7 +1535,7 @@
   {
     "source": "upstream-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
     "destination": "prompts/thermo-nuclear-code-quality-review.md",
-    "sha256": "25d797abcd80206b62977a2a8fbf877a2aad852dc0385da2c200941c7c3f5cec",
+    "sha256": "67467f0e78c75f93b2d9719816b89202e43889a202f07129ede60ccccc6aa5c3",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1549,7 +1551,7 @@
   {
     "source": "upstream-team-kit/skills/verify-this/SKILL.md",
     "destination": "prompts/verify-this.md",
-    "sha256": "d7324921d3535307e1933379887389417f3be813eb0cb46fb8361ebd59a13623",
+    "sha256": "29ddd870d5bc0cfe0372eda0da7b4f0ed6dab613b3ebf5fa0d29b3b5e694cae1",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1565,7 +1567,7 @@
   {
     "source": "upstream-team-kit/skills/weekly-review/SKILL.md",
     "destination": "prompts/weekly-review.md",
-    "sha256": "5bcc7eb8d254de9e8e4330957dd05327840dca7cef254cb76019022dc9f2cca7",
+    "sha256": "29a23c3302e15eeba6d83fcc24296173f64b949b8bdcec730908ac2f319fe31b",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1581,7 +1583,7 @@
   {
     "source": "upstream-team-kit/skills/what-did-i-get-done/SKILL.md",
     "destination": "prompts/what-did-i-get-done.md",
-    "sha256": "7d0ce4c1ac9532bbbe095664ab1feec1acbf7b182d1f137b6ac7f6bddf149304",
+    "sha256": "57bc8b6bd5c95fcf2486214e41bf79fac15210db2414d67db50ed270bd2160fc",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."
@@ -1597,7 +1599,7 @@
   {
     "source": "upstream-team-kit/skills/workflow-from-chats/SKILL.md",
     "destination": "prompts/workflow-from-chats.md",
-    "sha256": "35f0a2b0e17349959858bfa65b3e81627b9ca51e9dae588ffb20f909dc03c602",
+    "sha256": "f598d6cd65aa14e994aea460ae2c6f558ac65d7953cfd29452aa3d2acec087d4",
     "executable": false,
     "transformations": [
       "Expose the skill entry point as a native Pi prompt template with user arguments."

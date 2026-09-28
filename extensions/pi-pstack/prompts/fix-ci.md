@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled fix-ci workflow."
+argument-hint: "[task]"
 ---
 
 Read fix-ci/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

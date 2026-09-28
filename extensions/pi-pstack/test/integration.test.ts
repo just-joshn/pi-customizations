@@ -317,6 +317,27 @@ test("team-kit templates request skill reading and native skills expand complete
   } finally { await f.close(); }
 });
 
+test("pstack tool snippets and guidance follow the active tool set", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    await prompt(session, "Work on this module.");
+    const tools = section(f.requests, "tools") ?? "";
+    for (const name of ["Task", "TaskOutput", "TaskMessage", "TaskStop", "TodoWrite", "AskQuestion", "pstack_mode", "pstack_context", "BackgroundShell", "BackgroundShellList", "BackgroundShellStop"]) {
+      assert.match(tools, new RegExp(`^- ${name}: `, "m"), `${name} is listed with the available tools`);
+    }
+    assert.match(section(f.requests, "rules") ?? "", /Cloud Task execution is unavailable/);
+    assert.match(section(f.requests, "rules") ?? "", /AskQuestion is available only with interactive or RPC dialogs/);
+    assert.doesNotMatch(section(f.requests, "pstack_host") ?? "", /Cloud Task execution is unavailable|TodoWrite keeps/);
+    session.setActiveToolsByName(["read", "bash"]);
+    await prompt(session, "Continue with read and bash only.");
+    assert.doesNotMatch(section(f.requests, "tools") ?? "", /^- (Task|TodoWrite|BackgroundShell): /m);
+    assert.doesNotMatch(section(f.requests, "rules") ?? "", /Cloud Task execution is unavailable|TodoWrite keeps|BackgroundShell/);
+    assert.doesNotMatch(section(f.requests, "pstack_host") ?? "", /Cloud Task execution is unavailable|TodoWrite keeps|BackgroundShell with notify_on_output/);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
 test("team-kit rules stay archival to match observed Reference plugin behavior", async () => {
   const f = await fixture();
   try {

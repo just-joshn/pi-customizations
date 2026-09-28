@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-never-block-on-the-human workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-never-block-on-the-human/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled check-compiler-errors workflow."
+argument-hint: "[task]"
 ---
 
 Read check-compiler-errors/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

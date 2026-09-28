@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-foundational-thinking workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-foundational-thinking/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

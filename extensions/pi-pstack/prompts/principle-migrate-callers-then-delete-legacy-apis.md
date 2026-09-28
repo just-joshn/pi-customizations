@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-migrate-callers-then-delete-legacy-apis workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-migrate-callers-then-delete-legacy-apis/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

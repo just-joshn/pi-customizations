@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-guard-the-context-window workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-guard-the-context-window/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.
