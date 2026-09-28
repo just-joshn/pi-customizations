@@ -1,6 +1,6 @@
-.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
+.PHONY: verify sweep-cursor-ui verify-lint verify-mechanisms verify-toolchain verify-extension verify-oauth verify-tui-parity verify-cursor-ui verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
 
-verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-install verify-python
+verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-cursor-ui verify-one-dark-pro-theme verify-install verify-python
 
 verify-lint:
 	bun run ci
@@ -32,6 +32,17 @@ verify-tui-parity:
 	bun run --filter pi-tui-parity check:parity
 	bun run --filter pi-tui-parity typecheck
 	bun run --filter pi-tui-parity test:coverage
+
+verify-cursor-ui:
+	bun run --filter pi-cursor-ui check:skin
+	bun run --filter pi-cursor-ui typecheck
+	bun run --filter pi-cursor-ui test:coverage
+
+# Needs tmux and a real pi binary, so it stays out of `verify`.
+# Runs the fast gates, the live TUI matrix, and seeded randomized sessions,
+# then prints `findings: <n>`.
+sweep-cursor-ui:
+	bun run --filter pi-cursor-ui sweep
 
 verify-one-dark-pro-theme:
 	bun run --filter pi-one-dark-pro-theme check:parity
