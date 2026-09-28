@@ -61,16 +61,33 @@ export function registerContext(pi: ExtensionAPI): void {
 export function registerStatus(pi: ExtensionAPI, store: StateStore): void {
   pi.registerCommand('pstack', {
     description: 'Show pstack status, source version, model rule, and host compatibility limits.',
-    handler: async (_args, ctx) => {
+    getArgumentCompletions: (prefix) => {
+      const candidates = [
+        { value: 'status', label: 'status', description: 'Show pstack status and configuration' },
+        { value: 'todos', label: 'todos', description: 'Show current todos and progress' },
+      ];
+      return candidates.filter((c) => c.value.startsWith(prefix));
+    },
+    handler: async (args, ctx) => {
       const state = store.read();
       const skillCount = (await Promise.all(['skills', 'host/skills'].map(dir => readdir(join(root, dir), { withFileTypes: true })))).flat().filter((entry) => entry.isDirectory()).length;
       const promptCount = (await Promise.all(['prompts', 'host/prompts'].map(dir => readdir(join(root, dir))))).flat().filter((name) => name.endsWith('.md')).length;
-      pi.sendMessage({ customType: 'pstack-status', display: true, details: state, content: [
-        `pstack 0.15.5 with team-kit 1.2.0 for Pi 0.87.1. ${skillCount} skills, ${promptCount} prompt templates. Poteto mode ${state.enabled ? 'on' : 'off'}.`,
+      const completed = state.todos.filter((t) => t.status === 'completed').length;
+      const todoSummary = state.todos.length ? ` Todos: ${completed}/${state.todos.length} completed.` : '';
+      const lines = [
+        `pstack 0.15.5 with team-kit 1.2.0 for Pi 0.87.1. ${skillCount} skills, ${promptCount} prompt templates. Poteto mode ${state.enabled ? 'on' : 'off'}.${todoSummary}`,
         `Model configuration: ${modelConfigPath()}`,
         `Compatibility report: ${join(root, 'docs/parity.md')}`,
         'Partial runtime parity. Reference cloud agents, hosted automation editor, cloud timers, goals, bot routines, server-synced create-skill and credential isolation are not supplied.',
-      ].join('\n') });
+      ];
+      if (args.trim() === 'todos' && state.todos.length > 0) {
+        lines.push('', 'Todos:');
+        for (const t of state.todos) {
+          const mark = t.status === 'completed' ? '[x]' : t.status === 'in_progress' ? '[>]' : t.status === 'cancelled' ? '[-]' : '[ ]';
+          lines.push(`${mark} ${t.content} (${t.status})`);
+        }
+      }
+      pi.sendMessage({ customType: 'pstack-status', display: true, details: state, content: lines.join('\n') });
       store.showState(ctx);
     },
   });
