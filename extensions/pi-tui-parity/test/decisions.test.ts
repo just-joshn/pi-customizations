@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { createAllowlist, isAllowlisted, installDecisionGate } from "../src/decisions/gate.ts";
 import { DecisionSurface, decisionTitle, shellOptions, writeOptions } from "../src/decisions/surface.ts";
+import { visibleWidth } from "@earendil-works/pi-tui";
 import { createSessionState } from "../src/state.ts";
 import { registerTodosTool, sortTodos, todoRows, todoStatusLine } from "../src/tools/todos.ts";
 import { makeTheme } from "./theme.ts";
@@ -149,5 +150,27 @@ describe("decision surface keys", () => {
 			surface.handleInput("\x1b");
 		});
 		assert.deepEqual(outcome, { action: "reject", reason: "The user skipped this action." });
+	});
+
+	it("truncates all rendered rows to width when command and paths exceed terminal width", async () => {
+		const theme = await makeTheme();
+		const longCommand = "cat ~/.pi/agent/settings.json 2>/dev/null || cat ~/.pi/agent/config.json 2>/dev/null || ls -la ~/.pi/agent/";
+		const surface = new DecisionSurface(
+			{ requestRender: () => {} },
+			theme,
+			{
+				operation: "bash",
+				title: "Run this command?",
+				preview: [`$ ${longCommand}`, "in /Users/josh-desktop/src/personal/pi-customizations"],
+				allowlistLabel: "",
+			},
+			shellOptions(longCommand),
+			() => {},
+		);
+		const rows = surface.render(87);
+		for (const [idx, row] of rows.entries()) {
+			const w = visibleWidth(row);
+			assert.ok(w <= 87, `row ${idx} exceeds width: ${w} > 87`);
+		}
 	});
 });
