@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { builtinModules } from 'node:module';
 import { tmpdir } from 'node:os';
@@ -74,6 +74,12 @@ for (const manifestPath of manifests) {
   for (const [type, entries] of Object.entries(manifest.pi)) {
     for (const entry of entries) {
       const path = resolve(dirname(manifestPath), entry);
+      if (/[*?[]/.test(entry)) {
+        const pattern = new RegExp(`${basename(entry).replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*').replace(/\?/g, '[^/]')}$`);
+        const dir = dirname(path);
+        if (!existsSync(dir) || !readdirSync(dir).some(name => pattern.test(name))) report(manifestPath, `pi.${type} entry ${entry} matches nothing`);
+        continue;
+      }
       if (!existsSync(path)) { report(manifestPath, `pi.${type} entry ${entry} does not exist`); continue; }
       if (type === 'extensions') { counts.extensions++; await checkImports(manifestPath, manifest, entry); }
       else if (type === 'skills') counts.skills += await checkSkills(path);
