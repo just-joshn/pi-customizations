@@ -17,6 +17,16 @@ const Todo = Type.Object({
 const State = Type.Object({ enabled: Type.Boolean(), todos: Type.Array(Todo), verificationOffered: Type.Optional(Type.Boolean()) });
 type State = Static<typeof State>;
 
+const collapsedTodos = 8;
+
+function todoWindow<T extends Static<typeof Todo>>(todos: readonly T[]) {
+  const active = todos.findIndex((t) => t.status === 'in_progress');
+  const anchor = active >= 0 ? active : todos.findIndex((t) => t.status === 'pending');
+  const start = Math.max(0, Math.min(anchor - 1, todos.length - collapsedTodos));
+  const visible = todos.slice(start, start + collapsedTodos);
+  return { visible, earlier: start, later: todos.length - start - visible.length };
+}
+
 function renderTodoItem(t: Static<typeof Todo>, theme: Theme): string {
   if (t.status === 'completed') return `  ${theme.fg('success', '✓')} ${theme.fg('dim', t.content)}`;
   if (t.status === 'in_progress') return `  ${theme.fg('warning', '◐')} ${theme.fg('accent', t.content)}`;
@@ -42,14 +52,15 @@ function renderTodoResult(result: { details?: unknown }, options: ToolRenderResu
   const todos = result.details as Static<typeof Todo>[] | undefined;
   if (!todos || todos.length === 0) return { render: () => [theme.fg('dim', 'No todos')], invalidate() {} };
   const header = renderTodoSummary(todos, theme);
-  const limit = 8;
   return {
     render: (width: number) => {
-      const visible = options.expanded ? todos : todos.slice(0, limit);
-      const lines = [header, ...visible.map((t) => renderTodoItem(t, theme))];
-      if (!options.expanded && todos.length > limit) {
-        lines.push(theme.fg('dim', `  ... ${todos.length - limit} more (expand to view all)`));
-      }
+      const { visible, earlier, later } = options.expanded ? { visible: todos, earlier: 0, later: 0 } : todoWindow(todos);
+      const lines = [
+        header,
+        ...earlier ? [theme.fg('dim', `  ... ${earlier} earlier`)] : [],
+        ...visible.map((t) => renderTodoItem(t, theme)),
+        ...later ? [theme.fg('dim', `  ... ${later} more (expand to view all)`)] : [],
+      ];
       return lines.map((line) => truncateToWidth(line, width));
     },
     invalidate() {},
@@ -68,14 +79,15 @@ export function createState(pi: ExtensionAPI) {
 
   const showState = (ctx: ExtensionContext) => {
     ctx.ui.setStatus('pstack', state.enabled ? 'poteto-mode' : undefined);
+    const { visible, earlier, later } = todoWindow(state.todos);
     ctx.ui.setWidget('pstack-todos', state.todos.length
-      ? state.todos.map((todo) => {
+      ? [...earlier ? [`... ${earlier} earlier`] : [], ...visible.map((todo) => {
         const marker = todo.status === 'completed' ? '[x]'
           : todo.status === 'in_progress' ? '[>]'
           : todo.status === 'cancelled' ? '[-]'
           : '[ ]';
         return `${marker} ${todo.content} (${todo.status})`;
-      })
+      }), ...later ? [`... ${later} more`] : []]
       : undefined);
   };
   const restore = (ctx: ExtensionContext) => {
