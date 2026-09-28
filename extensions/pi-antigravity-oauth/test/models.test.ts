@@ -1,7 +1,6 @@
-import assert from "node:assert/strict";
-import test from "node:test";
 import type { ModelsPublication, Provider, RefreshModelsContext } from "@earendil-works/pi-ai";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { expect, test } from "vitest";
 import extension, { createAntigravityProvider } from "../src/index.ts";
 import { FAMILY, familyOf } from "../src/models.ts";
 import { GOOGLE_OAUTH } from "../src/oauth.ts";
@@ -41,27 +40,31 @@ test("the extension registers the Google Antigravity subscription provider and c
 		registerCommand: (name: string) => commands.push(name),
 	} as unknown as ExtensionAPI);
 	const [provider] = providers;
-	assert.equal(provider?.id, "google-antigravity");
-	assert.equal(provider?.name, "Google Antigravity");
-	assert.equal(provider?.auth.oauth?.loginLabel, "Sign in with Google (Antigravity)");
-	assert.equal(provider?.auth.oauth?.isSubscription, true);
-	assert.deepEqual(
-		provider?.getModels().map((model) => model.id),
-		["gemini-3.1-pro-low", "gemini-3-flash-agent", "claude-sonnet-4-6", "claude-opus-4-6-thinking", "gpt-oss-120b-medium"],
-	);
-	assert.equal(provider?.getModels()[0]?.baseUrl, "https://daily-cloudcode-pa.googleapis.com");
-	assert.deepEqual(commands, ["antigravity"]);
+	expect(provider?.id).toBe("google-antigravity");
+	expect(provider?.name).toBe("Google Antigravity");
+	expect(provider?.auth.oauth?.loginLabel).toBe("Sign in with Google (Antigravity)");
+	expect(provider?.auth.oauth?.isSubscription).toBe(true);
+	expect(provider?.getModels().map((model) => model.id)).toEqual([
+		"gemini-3.1-pro-low",
+		"gemini-3-flash-agent",
+		"claude-sonnet-4-6",
+		"claude-opus-4-6-thinking",
+		"gpt-oss-120b-medium",
+	]);
+	expect(provider?.getModels()[0]?.baseUrl).toBe("https://daily-cloudcode-pa.googleapis.com");
+	expect(commands).toEqual(["antigravity"]);
 });
 
 test("the family registry routes model ids to their wire behavior", () => {
-	assert.equal(familyOf("claude-opus-4-6-thinking"), "claude");
-	assert.equal(familyOf("gpt-oss-120b-medium"), "gpt-oss");
-	assert.equal(familyOf("gemini-pro-agent"), "gemini");
-	assert.deepEqual(
-		[FAMILY.gemini.toolParameters, FAMILY.claude.toolParameters, FAMILY["gpt-oss"].toolParameters],
-		[false, true, false],
-	);
-	assert.deepEqual([FAMILY.gemini.thinking, FAMILY.claude.thinking, FAMILY["gpt-oss"].thinking], ["level", "budget", "none"]);
+	expect(familyOf("claude-opus-4-6-thinking")).toBe("claude");
+	expect(familyOf("gpt-oss-120b-medium")).toBe("gpt-oss");
+	expect(familyOf("gemini-pro-agent")).toBe("gemini");
+	expect([FAMILY.gemini.toolParameters, FAMILY.claude.toolParameters, FAMILY["gpt-oss"].toolParameters]).toEqual([
+		false,
+		true,
+		false,
+	]);
+	expect([FAMILY.gemini.thinking, FAMILY.claude.thinking, FAMILY["gpt-oss"].thinking]).toEqual(["level", "budget", "none"]);
 });
 
 test("fetchModels overlays fetchAvailableModels onto the baseline", async () => {
@@ -69,22 +72,19 @@ test("fetchModels overlays fetchAvailableModels onto the baseline", async () => 
 	try {
 		const provider = createAntigravityProvider({ endpoints: [server.url], oauth: GOOGLE_OAUTH });
 		await provider.refreshModels!(refreshContext(CREDENTIAL));
-		assert.equal(server.requests[0]!.path, "/v1internal:fetchAvailableModels");
-		assert.deepEqual(JSON.parse(server.requests[0]!.body), { project: "proj-9" });
-		assert.equal(server.requests[0]!.headers.authorization, "Bearer ya29.t");
-		assert.deepEqual(
-			provider.getModels().map((model) => model.id),
-			[
-				"gemini-3.1-pro-low",
-				"gemini-3-flash-agent",
-				"claude-sonnet-4-6",
-				"claude-opus-4-6-thinking",
-				"gpt-oss-120b-medium",
-				"gemini-3.8-flash-high",
-			],
-		);
+		expect(server.requests[0]!.path).toBe("/v1internal:fetchAvailableModels");
+		expect(JSON.parse(server.requests[0]!.body)).toEqual({ project: "proj-9" });
+		expect(server.requests[0]!.headers.authorization).toBe("Bearer ya29.t");
+		expect(provider.getModels().map((model) => model.id)).toEqual([
+			"gemini-3.1-pro-low",
+			"gemini-3-flash-agent",
+			"claude-sonnet-4-6",
+			"claude-opus-4-6-thinking",
+			"gpt-oss-120b-medium",
+			"gemini-3.8-flash-high",
+		]);
 		const flash = provider.getModels().find((model) => model.id === "gemini-3.8-flash-high");
-		assert.deepEqual(flash, {
+		expect(flash).toEqual({
 			id: "gemini-3.8-flash-high",
 			name: "Gemini 3.8 Flash (High) (Antigravity)",
 			api: "cloud-code-assist",
@@ -98,8 +98,8 @@ test("fetchModels overlays fetchAvailableModels onto the baseline", async () => 
 			maxTokens: 65535,
 		});
 		const pro = provider.getModels().find((model) => model.id === "gemini-3.1-pro-low");
-		assert.equal(pro?.name, "Gemini 3.1 Pro Low (Antigravity)");
-		assert.deepEqual(pro?.cost, { input: 2, output: 12, cacheRead: 0.2, cacheWrite: 2.375 });
+		expect(pro?.name).toBe("Gemini 3.1 Pro Low (Antigravity)");
+		expect(pro?.cost).toEqual({ input: 2, output: 12, cacheRead: 0.2, cacheWrite: 2.375 });
 	} finally {
 		server.close();
 	}
@@ -109,10 +109,10 @@ test("a failed fetchAvailableModels keeps the baseline", async () => {
 	const server = await fakeServer((_, res) => json(res, 403, { error: { message: "denied" } }));
 	try {
 		const provider = createAntigravityProvider({ endpoints: [server.url], oauth: GOOGLE_OAUTH });
-		await assert.rejects(provider.refreshModels!(refreshContext(CREDENTIAL)), {
-			message: "fetchAvailableModels failed (403): denied",
-		});
-		assert.equal(provider.getModels().length, 5);
+		await expect(provider.refreshModels!(refreshContext(CREDENTIAL))).rejects.toThrow(
+			"fetchAvailableModels failed (403): denied",
+		);
+		expect(provider.getModels().length).toBe(5);
 	} finally {
 		server.close();
 	}
