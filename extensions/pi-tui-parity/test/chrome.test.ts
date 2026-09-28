@@ -1,12 +1,11 @@
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { describe, it, expect } from "vitest";
 
 process.env.FORCE_COLOR = "3";
 
 const ThemeCtor = (await import("@earendil-works/pi-coding-agent")).Theme;
-	type Theme = InstanceType<typeof ThemeCtor>;
+type Theme = InstanceType<typeof ThemeCtor>;
 const { renderHeaderLine } = await import("../src/chrome/header.ts");
 const { countEditedFiles, formatContextPercent, formatContextWindow, renderFooterRows } = await import("../src/chrome/footer.ts");
 const { spinnerFrames } = await import("../src/chrome/working.ts");
@@ -39,24 +38,24 @@ describe("header", () => {
 	it("renders the bold title and dim version", () => {
 		const theme = darkTheme();
 		const line = renderHeaderLine(theme, "0.87.1");
-		assert.equal(strip(line), "pi v0.87.1");
-		assert.ok(line.includes("\x1b[1mpi"), "title is bold");
-		assert.ok(line.includes("38;2;110;110;112m"), "version uses the dim hex #6E6E70");
+		expect(strip(line)).toBe("pi v0.87.1");
+		expect(line.includes("\x1b[1mpi")).toBe(true);
+		expect(line.includes("38;2;110;110;112m")).toBe(true);
 	});
 });
 
 describe("footer helpers", () => {
 	it("formats context percent like the reference CLI", () => {
-		assert.equal(formatContextPercent(42, 999), "42%");
-		assert.equal(formatContextPercent(42.44, 999), "42.4%");
-		assert.equal(formatContextPercent(42.45, 999), "42.5%");
-		assert.equal(formatContextPercent(null, 1230), "1.23k");
-		assert.equal(formatContextPercent(null, null), "-");
+		expect(formatContextPercent(42, 999)).toBe("42%");
+		expect(formatContextPercent(42.44, 999)).toBe("42.4%");
+		expect(formatContextPercent(42.45, 999)).toBe("42.5%");
+		expect(formatContextPercent(null, 1230)).toBe("1.23k");
+		expect(formatContextPercent(null, null)).toBe("-");
 	});
 
 	it("formats the context window as a k summary", () => {
-		assert.equal(formatContextWindow(200000), "200k");
-		assert.equal(formatContextWindow(1000000), "1000k");
+		expect(formatContextWindow(200000)).toBe("200k");
+		expect(formatContextWindow(1000000)).toBe("1000k");
 	});
 
 	it("counts distinct edited files from assistant tool calls", () => {
@@ -66,8 +65,8 @@ describe("footer helpers", () => {
 			{ type: "message", message: { role: "assistant", toolCalls: [{ name: "read", arguments: { path: "/c.ts" } }] } },
 			{ type: "message", message: { role: "user", content: "hi" } },
 		];
-		assert.equal(countEditedFiles(entries), 2);
-		assert.equal(countEditedFiles([]), 0);
+		expect(countEditedFiles(entries)).toBe(2);
+		expect(countEditedFiles([])).toBe(0);
 	});
 });
 
@@ -91,25 +90,25 @@ describe("footer rows", () => {
 		state.mode = "plan";
 		state.autoReview = true;
 		const lines = renderFooterRows({ ...base, state });
-		assert.equal(lines.length, 3);
-		assert.equal(strip(lines[0]!), "  Plan (shift+tab to cycle)");
+		expect(lines.length).toBe(3);
+		expect(strip(lines[0]!)).toBe("  Plan (shift+tab to cycle)");
 		const rowB = strip(lines[1]!);
-		assert.ok(rowB.includes("Test Model · 200k"), `left group: ${rowB}`);
-		assert.ok(rowB.includes("42%"), `left group: ${rowB}`);
-		assert.ok(rowB.includes("2 files edited"), `left group: ${rowB}`);
-		assert.ok(rowB.includes("Auto-review"), `right group: ${rowB}`);
-		assert.ok(lines[1]!.includes("\x1b[35m"), "autorun label uses ANSI magenta");
-		assert.ok(rowB.trimEnd().endsWith("-- INSERT --"), `vim label trails: ${rowB}`);
+		expect(rowB.includes("Test Model · 200k")).toBe(true);
+		expect(rowB.includes("42%")).toBe(true);
+		expect(rowB.includes("2 files edited")).toBe(true);
+		expect(rowB.includes("Auto-review")).toBe(true);
+		expect(lines[1]!.includes("\x1b[35m")).toBe(true);
+		expect(rowB.trimEnd().endsWith("-- INSERT --")).toBe(true);
 		const rowC = strip(lines[2]!);
-		assert.equal(rowC, "  ~/proj · main");
+		expect(rowC).toBe("  ~/proj · main");
 	});
 
 	it("hides headline in default mode and empty location bits when absent", () => {
 		const state = createState();
 		const lines = renderFooterRows({ ...base, state, branch: undefined });
-		assert.equal(lines.length, 2);
+		expect(lines.length).toBe(2);
 		const rowC = strip(lines[1]!);
-		assert.equal(rowC, "  ~/proj");
+		expect(rowC).toBe("  ~/proj");
 	});
 
 	it("right-aligns the right group of row B", () => {
@@ -118,17 +117,17 @@ describe("footer rows", () => {
 		const lines = renderFooterRows({ ...base, state, filesEdited: 0 });
 		const rowB = lines[0]!;
 		const stripped = strip(rowB);
-		assert.ok(stripped.includes("Run Everything"));
+		expect(stripped.includes("Run Everything")).toBe(true);
 		const tailStart = rowB.indexOf("\x1b[35mRun Everything");
-		assert.ok(tailStart > 40, `autorun label is right-aligned near column ${tailStart}`);
+		expect(tailStart > 40).toBe(true);
 	});
 });
 
 describe("working indicator", () => {
 	it("colors the eight braille frames green", () => {
 		const frames = spinnerFrames("truecolor", "tui-dark");
-		assert.equal(frames.length, 8);
-		assert.ok(frames.every((f) => f.includes("38;2;88;214;141m")), "green #58D68D");
-		assert.equal(strip(frames[0]!), "⠀⠞");
+		expect(frames.length).toBe(8);
+		expect(frames.every((f) => f.includes("38;2;88;214;141m"))).toBe(true);
+		expect(strip(frames[0]!)).toBe("⠀⠞");
 	});
 });

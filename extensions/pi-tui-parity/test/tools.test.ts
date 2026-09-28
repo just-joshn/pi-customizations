@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, expect } from "vitest";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { registerToolRenderers } from "../src/tools/renderers.ts";
 import type { ToolRowState } from "../src/tools/ui.ts";
@@ -39,7 +38,7 @@ function result(text: string, details?: unknown): unknown {
 
 describe("tui tool renderers", () => {
 	it("registers all seven built-in tool renderers", () => {
-		assert.deepEqual([...capture().keys()].sort(), ["bash", "edit", "find", "grep", "ls", "read", "write"]);
+		expect([...capture().keys()].sort()).toEqual(["bash", "edit", "find", "grep", "ls", "read", "write"]);
 	});
 
 	it("read: progressive verb, path, lines note, then past verb", async () => {
@@ -47,9 +46,9 @@ describe("tui tool renderers", () => {
 		const read = capture().get("read")!;
 		const { ctx, state } = makeContext({ path: "x.ts", offset: 4, limit: 10 });
 		const comp = read.renderCall!({ path: "x.ts", offset: 4, limit: 10 }, theme, ctx);
-		assert.equal(strip(comp.render(200)[0]!), " Reading x.ts lines 5-14");
+		expect(strip(comp.render(200)[0]!)).toBe(" Reading x.ts lines 5-14");
 		read.renderResult!(result("file body"), { expanded: false, isPartial: false }, theme, ctx);
-		assert.equal(state()?.verb, "Read");
+		expect(state()?.verb).toBe("Read");
 	});
 
 	it("edit: +N -M note from the patch and the bordered diff block", async () => {
@@ -60,7 +59,7 @@ describe("tui tool renderers", () => {
 		const patch = ["@@ -1,2 +1,2 @@", "-old line", "+new line", " context"].join("\n");
 		const comp = edit.renderResult!(result("", { diff: "-old line\n+new line\n context", patch }), { expanded: false, isPartial: false }, theme, ctx);
 		const rows = comp.render(120).map(strip);
-		assert.deepEqual(rows.map((r) => r.trimEnd()), ["  ▎ -old line", "  ▎ +new line", "  ▎  context"]);
+		expect(rows.map((r) => r.trimEnd())).toEqual(["  ▎ -old line", "  ▎ +new line", "  ▎  context"]);
 	});
 
 	it("bash: collapsed output shows 2 lines plus the hidden hint", async () => {
@@ -72,11 +71,11 @@ describe("tui tool renderers", () => {
 		const callRow = bash.renderCall!({ command: "echo one" }, theme, ctx) as { render: (w: number) => string[] };
 		bash.renderResult!(result(`${output}\nexit code: 0`), { expanded: false, isPartial: false }, theme, ctx);
 		const header = strip(callRow.render(200)[0]!);
-		assert.ok(header.includes("$ echo one"), `header: ${header}`);
+		expect(header.includes("$ echo one")).toBe(true);
 		const rows = (bash.renderResult!(result(`${output}\nexit code: 0`), { expanded: false, isPartial: false }, theme, ctx) as { render: (w: number) => string[] }).render(200).map(strip);
-		assert.ok(rows.some((r) => r.includes("l1")));
-		assert.ok(rows.some((r) => r.includes("l2")));
-		assert.ok(rows.some((r) => r.includes("… 3 output lines hidden · ctrl+o to expand")), `rows: ${JSON.stringify(rows)}`);
+		expect(rows.some((r) => r.includes("l1"))).toBe(true);
+		expect(rows.some((r) => r.includes("l2"))).toBe(true);
+		expect(rows.some((r) => r.includes("… 3 output lines hidden · ctrl+o to expand"))).toBe(true);
 	});
 
 	it("bash: failure suffix carries the exit code", async () => {
@@ -87,7 +86,7 @@ describe("tui tool renderers", () => {
 		const callRow = bash.renderCall!({ command: "false" }, theme, ctx) as { render: (w: number) => string[] };
 		bash.renderResult!(result("boom\nexit code: 2"), { expanded: false, isPartial: false }, theme, ctx);
 		const header = strip(callRow.render(200)[0]!);
-		assert.ok(header.includes("exit 2"), `header: ${header}`);
+		expect(header.includes("exit 2")).toBe(true);
 	});
 
 	it("grep: 40-char pattern rule and Found N matches", async () => {
@@ -96,9 +95,9 @@ describe("tui tool renderers", () => {
 		const longPattern = "y".repeat(50);
 		const { ctx } = makeContext({ pattern: longPattern });
 		const comp = grep.renderCall!({ pattern: longPattern }, theme, ctx);
-		assert.ok(strip(comp.render(200)[0]!).includes(`"...${"y".repeat(37)}"`), `header: ${strip(comp.render(200)[0]!)}`);
+		expect(strip(comp.render(200)[0]!).includes(`"...${"y".repeat(37)}"`)).toBe(true);
 		const res = grep.renderResult!(result("a:1:x\na:2:y"), { expanded: false, isPartial: false }, theme, ctx);
-		assert.equal(res.render(120).map((r) => strip(r).trimEnd()).join("\n"), "  Found 2 matches");
+		expect(res.render(120).map((r) => strip(r).trimEnd()).join("\n")).toBe("  Found 2 matches");
 	});
 
 	it("find: Found N files with glob phrasing", async () => {
@@ -107,7 +106,7 @@ describe("tui tool renderers", () => {
 		const { ctx } = makeContext({ pattern: "*.ts" });
 		find.renderCall!({ pattern: "*.ts" }, theme, ctx);
 		const res = find.renderResult!(result("a.ts\nb.ts\nc.ts"), { expanded: false, isPartial: false }, theme, ctx);
-		assert.equal(res.render(120).map((r) => strip(r).trimEnd()).join("\n"), "  Found 3 files");
+		expect(res.render(120).map((r) => strip(r).trimEnd()).join("\n")).toBe("  Found 3 files");
 	});
 
 	it("ls: files and directories note", async () => {
@@ -116,7 +115,7 @@ describe("tui tool renderers", () => {
 		const { ctx } = makeContext({});
 		ls.renderCall!({}, theme, ctx);
 		const res = ls.renderResult!(result("a.txt\nsrc/\nREADME.md\ndocs/"), { expanded: false, isPartial: false }, theme, ctx);
-		assert.equal(res.render(120).map((r) => strip(r).trimEnd()).join("\n"), "  2 files, 2 directories");
+		expect(res.render(120).map((r) => strip(r).trimEnd()).join("\n")).toBe("  2 files, 2 directories");
 	});
 
 	it("write: additions-only note from content lines", async () => {
@@ -124,14 +123,14 @@ describe("tui tool renderers", () => {
 		const write = capture().get("write")!;
 		const { ctx, state } = makeContext({ path: "/proj/new.ts", content: "a\nb\nc" });
 		write.renderCall!({ path: "/proj/new.ts", content: "a\nb\nc" }, theme, ctx);
-		assert.equal(state()?.note, "+3");
+		expect(state()?.note).toBe("+3");
 		write.renderResult!(result("ok"), { expanded: false, isPartial: false }, theme, ctx);
-		assert.equal(state()?.verb, "Wrote");
+		expect(state()?.verb).toBe("Wrote");
 	});
 
 	it("executes are delegated: bash runs a real command", async () => {
 		const bash = capture().get("bash")!;
 		const out = (await bash.execute("x", { command: "printf hi" }, undefined, undefined)) as { content: { type: string; text?: string }[] };
-		assert.ok(out.content[0]!.type === "text" && out.content[0]!.text!.includes("hi"));
+		expect(out.content[0]!.type === "text" && out.content[0]!.text!.includes("hi")).toBe(true);
 	});
 });

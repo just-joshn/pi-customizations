@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, expect } from "vitest";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { createAllowlist, isAllowlisted, installDecisionGate } from "../src/decisions/gate.ts";
 import { DecisionSurface, decisionTitle, shellOptions, writeOptions } from "../src/decisions/surface.ts";
@@ -18,7 +17,7 @@ describe("todos tool", () => {
 			{ id: "2", content: "b", status: "completed" },
 			{ id: "3", content: "c", status: "in_progress" },
 		]);
-		assert.deepEqual(sorted.map((t) => t.id), ["2", "3", "1"]);
+		expect(sorted.map((t) => t.id)).toEqual(["2", "3", "1"]);
 	});
 
 	it("renders the Reference TodosUI rows and status line", async () => {
@@ -28,12 +27,12 @@ describe("todos tool", () => {
 			{ id: "2", content: "current thing", status: "in_progress" as const },
 			{ id: "3", content: "later thing", status: "pending" as const },
 		];
-		assert.equal(todoStatusLine(todos, false), "Working on 3 to-do(s) • 1 done");
-		assert.equal(todoStatusLine(todos, true), "All done");
+		expect(todoStatusLine(todos, false)).toBe("Working on 3 to-do(s) • 1 done");
+		expect(todoStatusLine(todos, true)).toBe("All done");
 		const rows = todoRows(theme, todos).map(strip);
-		assert.equal(rows[0], "  ✔ done thing");
-		assert.equal(rows[1], "  ◐ current thing");
-		assert.equal(rows[2], "  ○ later thing");
+		expect(rows[0]).toBe("  ✔ done thing");
+		expect(rows[1]).toBe("  ◐ current thing");
+		expect(rows[2]).toBe("  ○ later thing");
 	});
 
 	it("execute stores todos in details and reports to the model", async () => {
@@ -41,36 +40,36 @@ describe("todos tool", () => {
 		registerTodosTool({ registerTool: (def: { name: string; execute: (id: string, params: unknown) => Promise<{ content: { type: string; text: string }[]; details: unknown }> }) => defs.set(def.name, def) } as unknown as ExtensionAPI);
 		const todo = defs.get("todo_update")!;
 		const out = await todo.execute("t1", { todos: [{ id: "1", content: "x", status: "pending" }] });
-		assert.equal(out.content[0].text, "Updated 1 to-do(s); 0 completed.");
-		assert.deepEqual(out.details, { todos: [{ id: "1", content: "x", status: "pending" }] });
+		expect(out.content[0].text).toBe("Updated 1 to-do(s); 0 completed.");
+		expect(out.details).toEqual({ todos: [{ id: "1", content: "x", status: "pending" }] });
 	});
 });
 
 describe("decision gate", () => {
 	it("allowlists exact shell commands and paths", () => {
 		const allowlist = createAllowlist();
-		assert.equal(isAllowlisted(allowlist, "bash", { command: "ls" }), false);
+		expect(isAllowlisted(allowlist, "bash", { command: "ls" })).toBe(false);
 		allowlist.shells.add("ls");
-		assert.equal(isAllowlisted(allowlist, "bash", { command: "ls" }), true);
-		assert.equal(isAllowlisted(allowlist, "edit", { path: "/a" }), false);
+		expect(isAllowlisted(allowlist, "bash", { command: "ls" })).toBe(true);
+		expect(isAllowlisted(allowlist, "edit", { path: "/a" })).toBe(false);
 		allowlist.paths.add("/a");
-		assert.equal(isAllowlisted(allowlist, "write", { path: "/a" }), true);
+		expect(isAllowlisted(allowlist, "write", { path: "/a" })).toBe(true);
 	});
 
 	it("titles follow the the reference CLI decision table", () => {
-		assert.equal(decisionTitle("bash"), "Run this command?");
-		assert.equal(decisionTitle("write"), "Write to this file?");
-		assert.equal(decisionTitle("edit"), "Write to this file?");
+		expect(decisionTitle("bash")).toBe("Run this command?");
+		expect(decisionTitle("write")).toBe("Write to this file?");
+		expect(decisionTitle("edit")).toBe("Write to this file?");
 	});
 
 	it("option sets carry the the reference CLI labels and keys", () => {
 		const shell = shellOptions("git status");
-		assert.deepEqual(shell.map((o) => o.action), ["approve", "allow", "reject"]);
-		assert.ok(shell[1]!.label.startsWith("Add Shell(git status)"));
-		assert.equal(shell[2]!.hint, "(esc or n)");
+		expect(shell.map((o) => o.action)).toEqual(["approve", "allow", "reject"]);
+		expect(shell[1]!.label.startsWith("Add Shell(git status)")).toBe(true);
+		expect(shell[2]!.hint).toBe("(esc or n)");
 		const write = writeOptions("write(/a/b.ts)");
-		assert.equal(write[0]!.label, "Proceed");
-		assert.equal(write[1]!.label, "Add write(/a/b.ts) to allowlist");
+		expect(write[0]!.label).toBe("Proceed");
+		expect(write[1]!.label).toBe("Add write(/a/b.ts) to allowlist");
 	});
 
 	function driveVia(keys: string[]): ExtensionContext["ui"]["custom"] {
@@ -101,33 +100,33 @@ describe("decision gate", () => {
 	it("y approves through the real surface", async () => {
 		const { handler } = gateFor(tuiCtx(driveVia(["y"])));
 		const result = await handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "echo hi" } }, tuiCtx(driveVia(["y"])));
-		assert.equal(result, undefined);
+		expect(result).toBeUndefined();
 	});
 
 	it("n blocks with a reason", async () => {
 		const { handler } = gateFor(tuiCtx(driveVia(["n"])));
 		const result = await handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "rm -rf /" } }, tuiCtx(driveVia(["n"])));
-		assert.deepEqual(result, { block: true, reason: "The user declined this action." });
+		expect(result).toEqual({ block: true, reason: "The user declined this action." });
 	});
 
 	it("tab allows and records the allowlist entry", async () => {
 		const g = gateFor(tuiCtx(driveVia(["\t"])));
 		const result = await g.handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "npm test" } }, tuiCtx(driveVia(["\t"])));
-		assert.equal(result, undefined);
-		assert.ok(g.allowlist.shells.has("npm test"));
+		expect(result).toBeUndefined();
+		expect(g.allowlist.shells.has("npm test")).toBe(true);
 	});
 
 	it("runEverything bypasses the gate", async () => {
 		const g = gateFor(tuiCtx(driveVia([])));
 		g.state.runEverything = true;
 		const result = await g.handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "anything" } }, g.handler as never as ExtensionContext);
-		assert.equal(result, undefined);
+		expect(result).toBeUndefined();
 	});
 
 	it("non-TUI modes proceed without approval", async () => {
 		const { handler } = gateFor({ mode: "print", hasUI: false, ui: {} } as unknown as ExtensionContext);
 		const result = await handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "ls" } }, { mode: "print", hasUI: false, ui: {} } as unknown as ExtensionContext);
-		assert.equal(result, undefined);
+		expect(result).toBeUndefined();
 	});
 });
 
@@ -136,11 +135,11 @@ describe("decision surface keys", () => {
 		const theme = await makeTheme();
 		const surface = new DecisionSurface({ requestRender: () => {} }, theme, { operation: "bash", title: "Run this command?", preview: ["$ ls", "in /proj"], allowlistLabel: "" }, shellOptions("ls"), () => {});
 		const rows = surface.render(80).map(strip);
-		assert.equal(rows[0], "─".repeat(80));
-		assert.ok(rows.some((r) => r.includes("$ ls")));
-		assert.ok(rows.some((r) => r.includes("Run this command?")));
-		assert.ok(rows.some((r) => r.includes("→ Run (once) (y)")), `rows: ${JSON.stringify(rows)}`);
-		assert.ok(rows.some((r) => r.includes("↑/↓ to navigate")));
+		expect(rows[0]).toBe("─".repeat(80));
+		expect(rows.some((r) => r.includes("$ ls"))).toBe(true);
+		expect(rows.some((r) => r.includes("Run this command?"))).toBe(true);
+		expect(rows.some((r) => r.includes("→ Run (once) (y)"))).toBe(true);
+		expect(rows.some((r) => r.includes("↑/↓ to navigate"))).toBe(true);
 	});
 
 	it("escape rejects", async () => {
@@ -149,7 +148,7 @@ describe("decision surface keys", () => {
 			const surface = new DecisionSurface({ requestRender: () => {} }, theme, { operation: "shell", title: "Run this command?", preview: [], allowlistLabel: "" }, shellOptions("ls"), resolve);
 			surface.handleInput("\x1b");
 		});
-		assert.deepEqual(outcome, { action: "reject", reason: "The user skipped this action." });
+		expect(outcome).toEqual({ action: "reject", reason: "The user skipped this action." });
 	});
 
 	it("truncates all rendered rows to width when command and paths exceed terminal width", async () => {
@@ -170,7 +169,7 @@ describe("decision surface keys", () => {
 		const rows = surface.render(87);
 		for (const [idx, row] of rows.entries()) {
 			const w = visibleWidth(row);
-			assert.ok(w <= 87, `row ${idx} exceeds width: ${w} > 87`);
+			expect(w <= 87).toBe(true);
 		}
 	});
 });
