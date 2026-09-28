@@ -134,3 +134,21 @@ test('registerStatus formats pstack status, argument completions, and todo detai
   const todosList = messages.at(-1) as { content: string };
   assert.match(todosList.content, /Todos:\n\[x\] Step 1 \(completed\)\n\[>\] Step 2 \(in_progress\)/);
 });
+
+test('/pstack todos reports an empty list and an unknown argument shows usage instead of status', async () => {
+  let command: { handler: (args: string, ctx: ExtensionContext) => Promise<void> } | undefined;
+  const messages: Array<{ content: string }> = [];
+  const notices: Array<[string, string]> = [];
+  const pi = {
+    registerCommand: (_name: string, options: typeof command) => { command = options; },
+    sendMessage: (msg: { content: string }) => { messages.push(msg); },
+  } as unknown as ExtensionAPI;
+  const ctx = { ui: { setStatus: () => {}, setWidget: () => {}, notify: (m: string, l: string) => { notices.push([m, l]); } } } as unknown as ExtensionContext;
+  registerStatus(pi, createState({ appendEntry() {} } as unknown as ExtensionAPI));
+  assert.ok(command);
+  await command.handler('todos', ctx);
+  assert.match(messages.at(-1)!.content, /\n\nTodos: none\.$/);
+  await command.handler('bogus', ctx);
+  assert.equal(messages.length, 1);
+  assert.deepEqual(notices, [['Unknown /pstack argument "bogus". Use /pstack, /pstack status, or /pstack todos.', 'error']]);
+});

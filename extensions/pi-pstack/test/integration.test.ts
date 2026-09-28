@@ -602,3 +602,19 @@ test("large question answers retain complete details when the session has no tra
     assert.deepEqual(result.details, [{ id: "scope", answers: [answer], cancelled: false }]);
   } finally { await f.close(); }
 });
+
+test("off is case-insensitive for /poteto-mode and /skill:poteto-mode and spends no inference", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    for (const off of ["/poteto-mode OFF", "/skill:poteto-mode Off"]) {
+      await prompt(session, "/poteto-mode Analyze this task.");
+      const before = f.requests.length;
+      await session.prompt(off);
+      assert.equal(f.requests.length, before, `${off} must not start a turn`);
+      await prompt(session, "Proceed casually.");
+      assert.equal(section(f.requests, "pstack_mode"), null, `${off} must turn the mode off`);
+    }
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
