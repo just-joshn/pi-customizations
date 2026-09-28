@@ -122,6 +122,16 @@ function needsChoice(role: string, values: string[], target: ThinkingLevel | und
 
 const finishPanel = "Finish panel";
 
+async function chooseAction(working: ModelTable, ctx: ExtensionContext): Promise<string | undefined> {
+  const title = "Accept model table or change a role";
+  const roles = [...working.keys()];
+  if (ctx.mode !== "tui") return ctx.ui.select(title, ["Accept as-is", ...roles]);
+  const rows = ["Accept as-is", ...[...working].map(([role, values]) => `${role}: ${values.join(", ")}`)];
+  const chosen = await pick(ctx, title, rows);
+  if (chosen === undefined || chosen === "Accept as-is") return chosen;
+  return roles.find(role => chosen.startsWith(`${role}:`));
+}
+
 async function pickPanel(role: string, choices: string[], target: ThinkingLevel | undefined, ctx: ExtensionContext): Promise<string | undefined> {
   let seats: string[] = [];
   while (true) {
@@ -178,7 +188,7 @@ export async function setupModels(ctx: ExtensionContext): Promise<boolean> {
     const table = [...working].map(([role, values]) => `${role}: ${values.join(", ")}${needsChoice(role, values, target, ctx) ? " [needs a choice]" : ""}`).join("\n");
     ctx.ui.notify(`${table}${parsed.dropped.length ? `\nDropped retired roles:\n${parsed.dropped.join("\n")}` : ""}`, "info");
     const pending = [...working].find(([role, values]) => needsChoice(role, values, target, ctx));
-    const action = pending?.[0] ?? await ctx.ui.select("Accept model table or change a role", ["Accept as-is", ...working.keys()]);
+    const action = pending?.[0] ?? await chooseAction(working, ctx);
     if (action === undefined) return false;
     if (action !== "Accept as-is") {
       const previous = working.get(action);
@@ -188,7 +198,7 @@ export async function setupModels(ctx: ExtensionContext): Promise<boolean> {
       working = new Map([...working, [action, values]]);
       continue;
     }
-    if (!await ctx.ui.confirm("Write pstack model configuration?", `${budget}\n\n${table}\n\n${modelConfigPath()}`)) return false;
+    if (!await ctx.ui.confirm("Write pstack model configuration?", `${budget}\n${modelConfigPath()}`)) return false;
     for (const [role, values] of working) validateRole(role, values, target, ctx);
     await writeConfiguration(working, budget, target);
     ctx.ui.notify(`Wrote ${modelConfigPath()}. Applies from the next prompt; re-run /setup-pstack to update it.`, "info");
