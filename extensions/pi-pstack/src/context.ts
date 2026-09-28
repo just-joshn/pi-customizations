@@ -59,6 +59,9 @@ export function registerContext(pi: ExtensionAPI): void {
 }
 
 export function registerStatus(pi: ExtensionAPI, store: StateStore): void {
+  pi.on('context', event => ({
+    messages: event.messages.filter(message => !(message.role === 'custom' && message.customType === 'pstack-status')),
+  }));
   pi.registerCommand('pstack', {
     description: 'Show pstack status, source version, model rule, and host compatibility limits.',
     getArgumentCompletions: (prefix) => {
