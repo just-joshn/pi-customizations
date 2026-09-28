@@ -171,3 +171,34 @@ test("TUI setup pickers stay within a screen, filter by typing, and build ordere
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("TUI accept list and confirm question fit on a 24-line screen", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
+  const previous = process.env.PI_CODING_AGENT_DIR;
+  process.env.PI_CODING_AGENT_DIR = directory;
+  const frames: string[][] = [];
+  let confirmMessage = "";
+  try {
+    await mkdir(dirname(modelConfigPath()), { recursive: true });
+    await writeFile(modelConfigPath(), allRoles.map((role) => `${role}: inherit-parent`).join("\n"));
+    const ctx = context({ hasUI: true, mode: "tui", ui: ui({
+      select: async (title) => {
+        if (title.startsWith("pstack reasoning budget")) return "small — medium reasoning";
+        throw new Error(`Unexpected select: ${title}`);
+      },
+      confirm: async (_title, message) => { confirmMessage = message ?? ""; return true; },
+      custom: scriptedCustom([["\r"]], frames),
+    }) });
+    assert.equal(await setupModels(ctx), true);
+    const accept = frames[0]!.join("\n");
+    assert.match(accept, /Accept model table or change a role/);
+    assert.match(accept, /bug-fix: inherit-parent/);
+    assert.ok(frames[0]!.length <= 14, `accept picker height ${frames[0]!.length}`);
+    assert.ok(confirmMessage.split("\n").length <= 4, confirmMessage);
+    assert.match(confirmMessage, /models\.mdc/);
+  } finally {
+    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = previous;
+    await rm(directory, { recursive: true, force: true });
+  }
+});
