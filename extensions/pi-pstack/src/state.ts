@@ -1,5 +1,6 @@
 import { Type, type Static } from 'typebox';
 import { Check } from 'typebox/value';
+import { truncateToWidth } from '@earendil-works/pi-tui';
 import { boundedResult } from './results.ts';
 import type { ExtensionAPI, ExtensionContext, Theme, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
 
@@ -43,13 +44,13 @@ function renderTodoResult(result: { details?: unknown }, options: ToolRenderResu
   const header = renderTodoSummary(todos, theme);
   const limit = 8;
   return {
-    render: () => {
+    render: (width: number) => {
       const visible = options.expanded ? todos : todos.slice(0, limit);
       const lines = [header, ...visible.map((t) => renderTodoItem(t, theme))];
       if (!options.expanded && todos.length > limit) {
         lines.push(theme.fg('dim', `  ... ${todos.length - limit} more (expand to view all)`));
       }
-      return lines;
+      return lines.map((line) => truncateToWidth(line, width));
     },
     invalidate() {},
   };
@@ -59,7 +60,7 @@ function renderTodoCall(args: { todos?: Static<typeof Todo>[]; merge?: boolean }
   const count = args.todos?.length ?? 0;
   const mode = args.merge ? ', merge' : '';
   const line = `${theme.fg('toolTitle', theme.bold('TodoWrite'))} ${theme.fg('muted', `${count} item${count === 1 ? '' : 's'}${mode}`)}`;
-  return { render: () => [line], invalidate() {} };
+  return { render: (width: number) => [truncateToWidth(line, width)], invalidate() {} };
 }
 
 export function createState(pi: ExtensionAPI) {
