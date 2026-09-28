@@ -58,9 +58,7 @@ function confirmedContext(confirmed: () => void) {
         return `${model.provider}/${model.id}`;
       },
       input: async () => "auto, inherit-parent, auto",
-      confirm: async (_title, message) => {
-        assert.match(message, /interrogate reviewers/);
-        assert.match(message, /feature, refactoring/);
+      confirm: async () => {
         assert.match(await readModelRule(), /how critics: retired/);
         confirmed();
         return true;
@@ -87,7 +85,7 @@ test("setup confirms before writing all roles, preserves duplicate aliases, and 
     assert.doesNotMatch(result, /how critics/);
     const lines = result.split("\n").filter((line) => line && !line.startsWith("#") && !line.startsWith("---") && !line.startsWith("description:") && !line.startsWith("alwaysApply:"));
     assert.equal(lines.length, 17);
-    assert.ok(notices().some((message) => message.includes("Dropped retired roles:\nhow critics: retired")));
+    assert.match(notices().join("\n"), /feature, refactoring[\s\S]*interrogate reviewers[\s\S]*Dropped retired roles:\nhow critics: retired/);
     assert.match(result, /:medium/);
     await setupModels(context({ hasUI: true, ui: ui({ select: async () => undefined }) }));
     assert.equal(await readModelRule(), result);
@@ -136,13 +134,15 @@ test("TUI setup pickers stay within a screen, filter by typing, and build ordere
   process.env.PI_CODING_AGENT_DIR = directory;
   const many = Array.from({ length: 200 }, (_, index) => ({ ...model, id: `m${index}` }));
   const scripts = [
+    ["b", "u", "g", "-", "f", "i", "x", "\r"],
     ["m", "1", "7", "\r"],
+    ["a", "r", "e", "n", "a", " ", "r", "u", "n", "n", "e", "r", "s", ":", "\r"],
     ["m", "1", "5", "0", "\r"],
     ["m", "4", "2", "\r"],
     ["F", "i", "n", "i", "s", "h", "\r"],
+    ["\r"],
   ];
   const frames: string[][] = [];
-  const roles = ["bug-fix", "arena runners"];
   try {
     await mkdir(dirname(modelConfigPath()), { recursive: true });
     await writeFile(modelConfigPath(), allRoles.map((role) => `${role}: inherit-parent`).join("\n"));
@@ -150,7 +150,6 @@ test("TUI setup pickers stay within a screen, filter by typing, and build ordere
       ui: ui({
         select: async (title) => {
           if (title.startsWith("pstack reasoning budget")) return "small — medium reasoning";
-          if (title.startsWith("Accept model table")) return roles.shift() ?? "Accept as-is";
           throw new Error(`Unexpected select: ${title.slice(0, 60)}`);
         },
         input: async (title) => { throw new Error(`Unexpected input: ${title.slice(0, 60)}`); },
@@ -162,8 +161,9 @@ test("TUI setup pickers stay within a screen, filter by typing, and build ordere
     assert.match(result, /^bug-fix: anthropic\/m17:medium$/m);
     assert.match(result, /^arena runners: anthropic\/m150:medium, anthropic\/m42:medium$/m);
     assert.ok(frames.every((frame) => frame.length <= 20), `picker heights ${frames.map((frame) => frame.length).join(", ")}`);
-    assert.match(frames[0]!.join("\n"), /bug-fix \(current: inherit-parent\)/);
-    assert.match(frames[3]!.join("\n"), /arena runners seat 3\. Selected: anthropic\/m150:medium, anthropic\/m42:medium/);
+    assert.match(frames[0]!.join("\n"), /Accept model table or change a role/);
+    assert.match(frames[1]!.join("\n"), /bug-fix \(current: inherit-parent\)/);
+    assert.match(frames[5]!.join("\n"), /arena runners seat 3\. Selected: anthropic\/m150:medium, anthropic\/m42:medium/);
     assert.deepEqual(scripts, []);
   } finally {
     if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
