@@ -1,11 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
+
 import type { Usage } from '@earendil-works/pi-ai';
 import type { AgentSession, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
-import { restoreTaskRecords, taskEntryType, taskOutputLimit, taskSummary, type TaskRecord, type TaskParameters } from './worker-records.ts';
-import { openWorkerSession, sumUsage } from './worker-support.ts';
-import { workerControl } from './worker-control.ts';
 import { DeferredWakes } from './deferred-wakes.ts';
+import { workerControl } from './worker-control.ts';
+import { restoreTaskRecords, type TaskParameters, type TaskRecord, taskEntryType, taskOutputLimit, taskSummary } from './worker-records.ts';
+import { openWorkerSession, sumUsage } from './worker-support.ts';
 
 type Worker = { readonly session: AgentSession; readonly completion: Promise<TaskRecord>; readonly stop: () => void; readonly drain: () => Promise<string[]> };
 type StartupOutcome = { error: unknown } | undefined;
@@ -21,10 +22,12 @@ export class WorkerRuntime {
   private lifecycle: Lifecycle = { kind: 'stopped' };
   private closing = new WeakMap<AgentSession, Promise<void>>();
   private readonly completions: DeferredWakes;
-  constructor(private readonly pi: ExtensionAPI) { this.completions = new DeferredWakes(pi); }
+  constructor(private readonly pi: ExtensionAPI) {
+    this.completions = new DeferredWakes(pi);
+  }
 
   registerLifecycle(): void {
-    this.pi.on('tool_result', event => {
+    this.pi.on('tool_result', (event) => {
       if (event.toolName !== 'Task') return;
       const usage = this.failedUsage.get(event.toolCallId);
       if (!usage) return;
@@ -41,12 +44,18 @@ export class WorkerRuntime {
     if (pending) return pending;
     const operation = (async () => {
       const failures: unknown[] = [];
-      const unsubscribe = session.extensionRunner.onError(error => failures.push(error.error));
-      try { await session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' }); }
-      catch (error) { failures.push(error); }
-      finally {
+      const unsubscribe = session.extensionRunner.onError((error) => failures.push(error.error));
+      try {
+        await session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' });
+      } catch (error) {
+        failures.push(error);
+      } finally {
         unsubscribe();
-        try { session.dispose(); } catch (error) { failures.push(error); }
+        try {
+          session.dispose();
+        } catch (error) {
+          failures.push(error);
+        }
       }
       if (failures.length) throw new AggregateError(failures, failures.map(String).join('; '));
     })();
@@ -73,20 +82,36 @@ export class WorkerRuntime {
     const current = [...this.workers.values()];
     const starting = [...this.starting.values()];
     this.workers = new Map();
-    const completion = Promise.resolve().then(async () => {
-      for (const worker of current) worker.stop();
-      const outcomes = await Promise.allSettled([
-        ...starting.map(operation => operation.then(outcome => { if (outcome) throw outcome.error; })),
-        ...current.map(async worker => {
-          await worker.completion;
-          const failures = await worker.drain();
-          try { await this.close(worker.session); } catch (error) { failures.push(String(error)); }
-          if (failures.length) throw new AggregateError(failures, failures.join('; '));
-        }),
-      ]);
-      const failures = outcomes.filter(outcome => outcome.status === 'rejected');
-      if (failures.length) throw new AggregateError(failures.map(outcome => outcome.reason), `Worker cleanup failed: ${failures.map(outcome => String(outcome.reason)).join('; ')}`);
-    }).finally(() => { this.lifecycle = { kind: 'stopped' }; });
+    const completion = Promise.resolve()
+      .then(async () => {
+        for (const worker of current) worker.stop();
+        const outcomes = await Promise.allSettled([
+          ...starting.map((operation) =>
+            operation.then((outcome) => {
+              if (outcome) throw outcome.error;
+            }),
+          ),
+          ...current.map(async (worker) => {
+            await worker.completion;
+            const failures = await worker.drain();
+            try {
+              await this.close(worker.session);
+            } catch (error) {
+              failures.push(String(error));
+            }
+            if (failures.length) throw new AggregateError(failures, failures.join('; '));
+          }),
+        ]);
+        const failures = outcomes.filter((outcome) => outcome.status === 'rejected');
+        if (failures.length)
+          throw new AggregateError(
+            failures.map((outcome) => outcome.reason),
+            `Worker cleanup failed: ${failures.map((outcome) => String(outcome.reason)).join('; ')}`,
+          );
+      })
+      .finally(() => {
+        this.lifecycle = { kind: 'stopped' };
+      });
     this.lifecycle = { kind: 'stopping', completion };
     return completion;
   }
@@ -94,8 +119,9 @@ export class WorkerRuntime {
   private async restore(ctx: ExtensionContext): Promise<void> {
     const completion = this.stopAll();
     const owner = this.generation;
-    try { await completion; }
-    finally {
+    try {
+      await completion;
+    } finally {
       if (owner === this.generation) {
         this.records = restoreTaskRecords(ctx.sessionManager.getBranch());
         this.failedUsage = new Map();
@@ -120,10 +146,15 @@ export class WorkerRuntime {
   async start(callId: string, params: TaskParameters, signal: AbortSignal | undefined, ctx: ExtensionContext) {
     const prior = this.priorTask(params);
     const id = prior?.id ?? randomUUID();
-    if (this.starting.has(id) || this.workers.has(id) && this.records.get(id)?.status === 'running') throw new Error(`Task ${id} is running. Use TaskMessage to queue input.`);
+    if (this.starting.has(id) || (this.workers.has(id) && this.records.get(id)?.status === 'running')) throw new Error(`Task ${id} is running. Use TaskMessage to queue input.`);
     let finishStarting = (_outcome: StartupOutcome) => {};
     let startupOutcome: StartupOutcome;
-    this.starting.set(id, new Promise<StartupOutcome>(resolveStart => { finishStarting = resolveStart; }));
+    this.starting.set(
+      id,
+      new Promise<StartupOutcome>((resolveStart) => {
+        finishStarting = resolveStart;
+      }),
+    );
     const owner = this.generation;
     let session: AgentSession | undefined;
     try {
@@ -136,17 +167,21 @@ export class WorkerRuntime {
       if (previous) await this.close(previous.session);
       this.checkStartup(owner, signal);
       const worker = this.launch(opened, params, signal, owner, () => ctx.isIdle());
-      const record = params.run_in_background === false ? await this.foreground(callId, worker) : this.records.get(id)!;
+      const record = params.run_in_background === false ? await this.foreground(callId, worker) : this.records.get(id);
+      if (!record) throw new Error(`Failed to create task record for ${id}`);
       return this.result(record);
     } catch (error) {
-      try { if (session) await this.close(session); }
-      catch (cleanup) {
+      try {
+        if (session) await this.close(session);
+      } catch (cleanup) {
         startupOutcome = { error: cleanup };
         throw new AggregateError([error, cleanup], `${String(error)}; Worker cleanup failed: ${String(cleanup)}`);
       }
       throw error;
+    } finally {
+      this.starting.delete(id);
+      finishStarting(startupOutcome);
     }
-    finally { this.starting.delete(id); finishStarting(startupOutcome); }
   }
 
   private async foreground(callId: string, worker: Worker): Promise<TaskRecord> {
@@ -174,31 +209,42 @@ export class WorkerRuntime {
     try {
       await session.prompt(prompt);
       await session.waitForIdle();
-      const last = session.messages.findLast(message => message.role === 'assistant');
+      const last = session.messages.findLast((message) => message.role === 'assistant');
       const output = session.getLastAssistantText() ?? '';
       if (last?.role === 'assistant' && (last.stopReason === 'error' || last.stopReason === 'aborted')) {
         return { status: last.stopReason === 'aborted' ? 'interrupted' : 'failed', output: last.errorMessage ?? output };
       }
       return { status: 'settled', output };
-    } catch (error) { return { status: 'failed', output: error instanceof Error ? error.message : String(error) }; }
+    } catch (error) {
+      return { status: 'failed', output: error instanceof Error ? error.message : String(error) };
+    }
   }
 
   private async complete(worker: Awaited<ReturnType<typeof openWorkerSession>>, params: TaskParameters, owner: number, control: ReturnType<typeof workerControl>, parentIdle: () => boolean): Promise<TaskRecord> {
     const { session, record } = worker;
     const initialCount = session.messages.length;
     let outcome: Awaited<ReturnType<WorkerRuntime['run']>>;
-    try { outcome = await this.run(session, params.prompt); }
-    finally { control.unsubscribe(); }
-    try { await this.close(session); }
-    catch (error) { outcome = { status: 'failed' as const, output: `${outcome.output}\nWorker shutdown failed: ${String(error)}` }; }
+    try {
+      outcome = await this.run(session, params.prompt);
+    } finally {
+      control.unsubscribe();
+    }
+    try {
+      await this.close(session);
+    } catch (error) {
+      outcome = { status: 'failed' as const, output: `${outcome.output}\nWorker shutdown failed: ${String(error)}` };
+    }
     const abortFailures = await control.drain();
     if (abortFailures.length) outcome = { status: 'failed', output: `${outcome.output}\n${abortFailures.join('\n')}` };
     const status = control.stopped() ? 'interrupted' : outcome.status;
     const pendingUsage = owner === this.generation ? this.records.get(record.id)?.usage : this.claimedUsage.has(record) ? undefined : record.usage;
     const usage = sumUsage(session.messages.slice(initialCount), pendingUsage);
     let finished: TaskRecord = { ...record, status, output: outcome.output.slice(0, taskOutputLimit), usage };
-    try { await writeFile(finished.outputFile, outcome.output); }
-    catch (error) { finished = { ...finished, status: 'failed', output: `${finished.output}\nCould not save full output: ${String(error)}` }; }
+    try {
+      await writeFile(finished.outputFile, outcome.output);
+    } catch (error) {
+      finished = { ...finished, status: 'failed', output: `${finished.output}\nCould not save full output: ${String(error)}` };
+    }
     if (owner !== this.generation) return finished;
     this.records.set(record.id, finished);
     this.pi.appendEntry(taskEntryType, structuredClone(finished));
@@ -222,7 +268,16 @@ export class WorkerRuntime {
       await new Promise<void>((resolveWait, reject) => {
         const abort = () => reject(new Error('Wait cancelled.'));
         signal?.addEventListener('abort', abort, { once: true });
-        void worker.completion.then(() => { signal?.removeEventListener('abort', abort); resolveWait(); }, error => { signal?.removeEventListener('abort', abort); reject(error); });
+        void worker.completion.then(
+          () => {
+            signal?.removeEventListener('abort', abort);
+            resolveWait();
+          },
+          (error) => {
+            signal?.removeEventListener('abort', abort);
+            reject(error);
+          },
+        );
       });
     }
     const record = this.records.get(id);

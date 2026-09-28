@@ -1,15 +1,16 @@
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseFrontmatter, type ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { readModelRule } from './models.ts';
-import { registerWorkers } from './workers.ts';
-import { registerShells } from './shells.ts';
-import { registerQuestions } from './questions.ts';
-import { createState, registerStateTools } from './state.ts';
+
+import { type ExtensionAPI, parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import { registerCommands, registerNativeInput } from './commands.ts';
 import { registerContext, registerStatus } from './context.ts';
 import { hostInstructions } from './host.ts';
+import { readModelRule } from './models.ts';
+import { registerQuestions } from './questions.ts';
+import { registerShells } from './shells.ts';
+import { createState, registerStateTools } from './state.ts';
+import { registerWorkers } from './workers.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
@@ -23,7 +24,10 @@ async function loadSkill(name: string) {
 export default async function pstack(pi: ExtensionAPI) {
   const [mode, setup] = await Promise.all(['poteto-mode', 'setup-pstack'].map(loadSkill));
   if (!mode || !setup) throw new Error('Missing pstack resource. Run bun run generate.');
-  const skills = new Map([['poteto-mode', mode], ['setup-pstack', setup]]);
+  const skills = new Map([
+    ['poteto-mode', mode],
+    ['setup-pstack', setup],
+  ]);
   const store = createState(pi);
   registerCommands(pi, skills, store);
   registerNativeInput(pi, skills, store);

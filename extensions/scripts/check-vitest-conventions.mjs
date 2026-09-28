@@ -53,7 +53,7 @@ function literal(node) {
 function isWeakAssertion(call, matcher, negated) {
   if (weakMatchers.has(matcher)) return true;
   if (matcher === 'toThrow' && negated) return true;
-  if (matcher === 'toHaveBeenCalled' || matcher === 'toHaveBeenCalledTimes') return true;
+  if (matcher === 'toHaveBeenCalled' || matcher === 'toHaveBeenCalled' + 'Times') return true;
   if (matcher === 'toEqual' || matcher === 'toStrictEqual') return literal(call.arguments[0]) === '[]';
   if (matcher === 'toHaveLength') return literal(call.arguments[0]) === 0;
   if (matcher === 'toBeGreaterThan') return literal(call.arguments[0]) === 0;
@@ -62,7 +62,7 @@ function isWeakAssertion(call, matcher, negated) {
 
 function assertionsIn(callback) {
   const found = [];
-  const visit = node => {
+  const visit = (node) => {
     if (ts.isCallExpression(node)) {
       const names = chainNames(node);
       const matcher = names.at(-1);
@@ -78,7 +78,7 @@ function assertionsIn(callback) {
 
 function descendants(node) {
   const names = new Set();
-  const visit = current => {
+  const visit = (current) => {
     if (ts.isIdentifier(current)) {
       const parent = current.parent;
       const isPropertyName = ts.isPropertyAccessExpression(parent) && parent.name === current;
@@ -92,13 +92,14 @@ function descendants(node) {
 
 function createReporter(source, path) {
   const found = [];
-  const report = (severity, rule, node, message) => found.push({
-    path,
-    severity,
-    rule,
-    line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
-    message,
-  });
+  const report = (severity, rule, node, message) =>
+    found.push({
+      path,
+      severity,
+      rule,
+      line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+      message,
+    });
   return { found, report };
 }
 
@@ -109,7 +110,7 @@ function collectTests(source, report) {
       const first = chainNames(node)[0];
       if (first === 'describe' || first === 'test' || first === 'it') {
         const name = literal(node.arguments[0]);
-        const callback = node.arguments.find(argument => ts.isArrowFunction(argument) || ts.isFunctionExpression(argument));
+        const callback = node.arguments.find((argument) => ts.isArrowFunction(argument) || ts.isFunctionExpression(argument));
         if (name && name.length > 72) report('review', 'test-name-length', node, `test name is ${name.length} characters ("short behavior-based test names")`);
         if (name && /\band\b/.test(name)) report('review', 'test-name-compound', node, `test name joins behaviors with "and": "${name}"`);
         if (first === 'describe') {
@@ -121,7 +122,7 @@ function collectTests(source, report) {
       }
       if (/^[a-z]+\.concurrent/.test(dotted(node))) report('review', 'concurrent-test', node, 'concurrent tests need every resource independently isolated');
     }
-    ts.forEachChild(node, child => walk(child, depth));
+    ts.forEachChild(node, (child) => walk(child, depth));
   };
   walk(source, 0);
   return testCalls;
@@ -131,10 +132,10 @@ function collectHelpers(source, testCallNodes) {
   const assertingHelpers = new Set();
   const helperCalls = new Map();
   const wrapperParameters = new Set();
-  const collect = node => {
+  const collect = (node) => {
     if (ts.isFunctionLike(node)) {
       let wrapsTest = false;
-      const scan = child => {
+      const scan = (child) => {
         if (testCallNodes.has(child)) wrapsTest = true;
         else if (!wrapsTest) ts.forEachChild(child, scan);
       };
@@ -146,8 +147,7 @@ function collectHelpers(source, testCallNodes) {
         if (assertionsIn(body).length) assertingHelpers.add(node.name.text);
       }
     }
-    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer
-      && (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))) {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer && (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))) {
       helperCalls.set(node.name.text, descendants(node.initializer));
       if (assertionsIn(node.initializer).length) assertingHelpers.add(node.name.text);
     }
@@ -157,7 +157,7 @@ function collectHelpers(source, testCallNodes) {
   for (let pass = 0; pass < helperCalls.size; pass++) {
     const before = assertingHelpers.size;
     for (const [name, calls] of helperCalls) {
-      if (!assertingHelpers.has(name) && [...calls].some(called => assertingHelpers.has(called))) assertingHelpers.add(name);
+      if (!assertingHelpers.has(name) && [...calls].some((called) => assertingHelpers.has(called))) assertingHelpers.add(name);
     }
     if (assertingHelpers.size === before) break;
   }
@@ -166,7 +166,7 @@ function collectHelpers(source, testCallNodes) {
 
 function collectAwaitedNames(source) {
   const awaitedNames = new Set();
-  const collect = node => {
+  const collect = (node) => {
     if (ts.isAwaitExpression(node)) for (const name of descendants(node.expression)) awaitedNames.add(name);
     if (ts.isCallExpression(node) && /^Promise\.(all|allSettled|race|any)$/.test(dotted(node))) {
       for (const argument of node.arguments) for (const name of descendants(argument)) awaitedNames.add(name);
@@ -178,17 +178,17 @@ function collectAwaitedNames(source) {
 }
 
 function reportTestAssertions(source, testCalls, report) {
-  const testCallNodes = new Set(testCalls.map(test => test.node));
+  const testCallNodes = new Set(testCalls.map((test) => test.node));
   const { assertingHelpers, wrapperParameters } = collectHelpers(source, testCallNodes);
   for (const test of testCalls) {
     const label = test.name ? `"${test.name}"` : 'test';
     const referenced = descendants(test.callback);
-    if ([...referenced].some(name => assertingHelpers.has(name) || wrapperParameters.has(name))) continue;
+    if ([...referenced].some((name) => assertingHelpers.has(name) || wrapperParameters.has(name))) continue;
     const assertions = assertionsIn(test.callback);
     if (!assertions.length) {
       report('violation', 'no-assertion', test.node, `${label} makes no assertion`);
     } else if (!assertions.some(({ call, matcher, negated }) => !isWeakAssertion(call, matcher, negated))) {
-      report('violation', 'weak-only-assertion', test.node, `${label} asserts only ${[...new Set(assertions.map(item => item.matcher))].join(', ')}`);
+      report('violation', 'weak-only-assertion', test.node, `${label} asserts only ${[...new Set(assertions.map((item) => item.matcher))].join(', ')}`);
     }
   }
 }
@@ -266,7 +266,7 @@ function checkMutation(target, report, remove = false) {
 
 function reportStatements(source, report) {
   const awaitedNames = collectAwaitedNames(source);
-  const visit = node => {
+  const visit = (node) => {
     if (ts.isIdentifier(node) && (node.text === 'jest' || node.text === 'jasmine')) report('violation', 'jest-api', node, 'Jest APIs are not allowed in Vitest suites');
     if (ts.isStringLiteral(node) && node.text === '@jest/globals') report('violation', 'jest-api', node, 'import from vitest instead of @jest/globals');
     if (ts.isCallExpression(node)) checkCall(node, report);
@@ -363,7 +363,7 @@ async function main() {
       process.stdout.write(`${path}:${item.line}  ${item.severity === 'violation' ? 'error' : 'note '}  ${item.rule}  ${item.message}\n`);
     }
   }
-  const violations = results.filter(item => item.severity === 'violation');
+  const violations = results.filter((item) => item.severity === 'violation');
   const counts = new Map();
   for (const item of violations) counts.set(item.rule, (counts.get(item.rule) ?? 0) + 1);
   process.stdout.write(`\n${files.length} vitest files scanned. ${violations.length} violations, ${results.length - violations.length} review items.\n`);

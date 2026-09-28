@@ -4,6 +4,7 @@ import { strict as assert } from 'node:assert';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import { analyzeSource, configViolations } from './check-vitest-conventions.mjs';
 
 const bad = `
@@ -110,7 +111,7 @@ test('does nothing at all', () => {
 });
 `;
 
-const badRules = new Set(analyzeSource(bad, 'bad.test.ts').map(item => item.rule));
+const badRules = new Set(analyzeSource(bad, 'bad.test.ts').map((item) => item.rule));
 for (const rule of [
   'unmanaged-env-mutation',
   'unmanaged-global-mutation',
@@ -130,13 +131,13 @@ for (const rule of [
 assert.ok(!badRules.has('no-assertion'), 'expected the bad fixture to make assertions');
 
 const cleanItems = analyzeSource(clean, 'clean.test.ts');
-const cleanViolations = cleanItems.filter(item => item.severity === 'violation');
+const cleanViolations = cleanItems.filter((item) => item.severity === 'violation');
 assert.deepEqual(cleanViolations, [], `clean fixture must produce no violations: ${JSON.stringify(cleanViolations)}`);
 
-const delegatingViolations = analyzeSource(delegating, 'delegating.test.ts').filter(item => item.severity === 'violation');
+const delegatingViolations = analyzeSource(delegating, 'delegating.test.ts').filter((item) => item.severity === 'violation');
 assert.deepEqual(delegatingViolations, [], `delegating fixture must produce no violations: ${JSON.stringify(delegatingViolations)}`);
 
-const noAssertionRules = new Set(analyzeSource(noAssertion, 'silent.test.ts').map(item => item.rule));
+const noAssertionRules = new Set(analyzeSource(noAssertion, 'silent.test.ts').map((item) => item.rule));
 assert.ok(noAssertionRules.has('no-assertion'), 'expected no-assertion to fire on a test with no expectations');
 
 const workspace = await mkdtemp(join(tmpdir(), 'check-vitest-conventions-'));
@@ -146,7 +147,7 @@ try {
   await writeFile(join(workspace, 'bad-extension/vitest.config.ts'), `export default { test: { isolate: false, sequence: { concurrent: true }, coverage: { provider: 'v8' } } }`);
   await mkdir(join(workspace, 'no-config'));
   await writeFile(join(workspace, 'no-config/package.json'), JSON.stringify({ scripts: { test: 'vitest run' } }));
-  const configRules = new Set((await configViolations(workspace)).map(item => item.rule));
+  const configRules = new Set((await configViolations(workspace)).map((item) => item.rule));
   for (const rule of ['watch-mode-script', 'missing-coverage-include', 'disabled-isolation', 'concurrent-sequence', 'missing-coverage-provider', 'missing-config']) {
     assert.ok(configRules.has(rule), `expected ${rule} to fire on the bad config fixture`);
   }
@@ -154,8 +155,10 @@ try {
   await writeFile(join(workspace, 'bad-extension/package.json'), JSON.stringify({ scripts: { test: 'vitest run' }, devDependencies: { '@vitest/coverage-v8': '^5.0.2' } }));
   await writeFile(join(workspace, 'bad-extension/vitest.config.ts'), `export default { test: { coverage: { provider: 'v8', include: ['src/*.ts'] } } }`);
   await rm(join(workspace, 'no-config'), { recursive: true });
-  const cleanConfigs = (await configViolations(workspace)).filter(item => item.severity === 'violation');
+  const cleanConfigs = (await configViolations(workspace)).filter((item) => item.severity === 'violation');
   assert.deepEqual(cleanConfigs, [], `clean config fixture must produce no violations: ${JSON.stringify(cleanConfigs)}`);
-} finally { await rm(workspace, { recursive: true, force: true }); }
+} finally {
+  await rm(workspace, { recursive: true, force: true });
+}
 
 process.stdout.write('check-vitest-conventions self-test: every detector fires and the clean fixture is silent.\n');
