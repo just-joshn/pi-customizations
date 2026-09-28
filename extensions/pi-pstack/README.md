@@ -38,7 +38,7 @@ CLI and UI workflows use the project's existing terminal or browser tools. Bundl
 
 ## Loops
 
-`/loop [interval] <prompt>` runs a prompt on a fixed interval, on a self-paced heartbeat, or when a watched event fires. It ports the local half of Reference's synced loop skill. The skill text in `host/skills/loop` is written for Pi, not copied. `BackgroundShell` starts a shell and wakes the agent on each output line that matches `notify_on_output`. While one wake is queued, later matches from the same shell are counted, not queued, so a slow turn never builds a backlog. `BackgroundShellList` and `BackgroundShellStop` find and stop shells. Shells end when the session quits, reloads, or switches. Cloud timers are not supplied.
+`/loop [interval] <prompt>` runs a prompt on a fixed interval, on a self-paced heartbeat, or when a watched event fires. It ports the local half of Reference's synced loop skill. The skill text in `host/skills/loop` is written for Pi, not copied. `BackgroundShell` starts a shell and wakes the agent on each output line that matches `notify_on_output`. While one wake is queued, later matches from the same shell are counted, not queued, so a slow turn never builds a backlog. A match during a busy parent turn is delivered when that turn ends. `BackgroundShellStop` drops that held wake, and an aborted turn keeps it until a later turn ends. `BackgroundShellList` and `BackgroundShellStop` find and stop shells. Shells end when the session quits, reloads, or switches. Cloud timers are not supplied.
 
 ## Local agents
 

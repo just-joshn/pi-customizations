@@ -57,7 +57,7 @@ A wake message names the output file and the matching line. Put the prompt besid
 
 ## Stop
 
-Call `BackgroundShellStop` for the loop's shell and for any watcher. Do not start another heartbeat. Say the loop stopped and why. If several shells match the purpose and you cannot tell which one the user means, list them and ask.
+Call `BackgroundShellStop` for the loop's shell and for any watcher. Do not start another heartbeat. A match that arrived during that turn is dropped, so do not wait for it. Say the loop stopped and why. If several shells match the purpose and you cannot tell which one the user means, list them and ask.
 
 ## Limits
 

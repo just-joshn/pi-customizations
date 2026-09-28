@@ -5,6 +5,7 @@ import type { AgentSession, ExtensionAPI, ExtensionContext } from '@earendil-wor
 import { restoreTaskRecords, taskEntryType, taskOutputLimit, taskSummary, type TaskRecord, type TaskParameters } from './worker-records.ts';
 import { openWorkerSession, sumUsage } from './worker-support.ts';
 import { workerControl } from './worker-control.ts';
+import { DeferredWakes } from './deferred-wakes.ts';
 
 type Worker = { readonly session: AgentSession; readonly completion: Promise<TaskRecord>; readonly stop: () => void; readonly drain: () => Promise<string[]> };
 type StartupOutcome = { error: unknown } | undefined;
@@ -17,11 +18,10 @@ export class WorkerRuntime {
   private generation = 0;
   private failedUsage = new Map<string, Usage>();
   private claimedUsage = new WeakSet<TaskRecord>();
-  private unreadCompletions = new Map<string, TaskRecord>();
-  private parentEndedCleanly = false;
   private lifecycle: Lifecycle = { kind: 'stopped' };
   private closing = new WeakMap<AgentSession, Promise<void>>();
-  constructor(private readonly pi: ExtensionAPI) {}
+  private readonly completions: DeferredWakes;
+  constructor(private readonly pi: ExtensionAPI) { this.completions = new DeferredWakes(pi); }
 
   registerLifecycle(): void {
     this.pi.on('tool_result', event => {
@@ -31,12 +31,6 @@ export class WorkerRuntime {
       this.failedUsage.delete(event.toolCallId);
       return { usage };
     });
-    this.pi.on('agent_end', event => {
-      const last = event.messages.findLast(message => message.role === 'assistant');
-      this.parentEndedCleanly = !(last?.role === 'assistant' && last.stopReason === 'aborted');
-      if (this.parentEndedCleanly) this.deliverUnread();
-    });
-    this.pi.on('agent_settled', () => { if (this.parentEndedCleanly) this.deliverUnread(); });
     this.pi.on('session_start', async (_event, ctx) => this.restore(ctx));
     this.pi.on('session_tree', async (_event, ctx) => this.restore(ctx));
     this.pi.on('session_shutdown', () => this.stopAll());
@@ -60,16 +54,6 @@ export class WorkerRuntime {
     return operation;
   }
 
-  private deliverUnread(): void {
-    const unread = [...this.unreadCompletions.values()];
-    this.unreadCompletions = new Map();
-    for (const record of unread) this.deliverCompletion(record);
-  }
-
-  private deliverCompletion(record: TaskRecord): void {
-    this.pi.sendMessage({ customType: 'pstack-task-completion', content: taskSummary(record), display: true, details: structuredClone(record) }, { triggerTurn: true, deliverAs: 'followUp' });
-  }
-
   private claimUsage(record: TaskRecord): Usage | undefined {
     if (!record.usage || this.claimedUsage.has(record)) return undefined;
     this.claimedUsage.add(record);
@@ -83,6 +67,7 @@ export class WorkerRuntime {
 
   private stopAll(): Promise<void> {
     this.generation++;
+    this.completions.clear();
     if (this.lifecycle.kind === 'stopping') return this.lifecycle.completion;
     if (this.lifecycle.kind === 'stopped') return Promise.resolve();
     const current = [...this.workers.values()];
@@ -114,7 +99,7 @@ export class WorkerRuntime {
       if (owner === this.generation) {
         this.records = restoreTaskRecords(ctx.sessionManager.getBranch());
         this.failedUsage = new Map();
-        this.unreadCompletions = new Map();
+        this.completions.clear();
         this.lifecycle = { kind: 'active' };
       }
     }
@@ -218,14 +203,13 @@ export class WorkerRuntime {
     this.records.set(record.id, finished);
     this.pi.appendEntry(taskEntryType, structuredClone(finished));
     if (params.run_in_background !== false && !control.stopped()) {
-      if (parentIdle()) this.deliverCompletion(finished);
-      else this.unreadCompletions = new Map([...this.unreadCompletions, [record.id, finished]]);
+      this.completions.send(record.id, parentIdle(), { customType: 'pstack-task-completion', content: taskSummary(finished), display: true, details: structuredClone(finished) });
     }
     return finished;
   }
 
   private result(record: TaskRecord) {
-    this.unreadCompletions = new Map([...this.unreadCompletions].filter(([id]) => id !== record.id));
+    this.completions.drop(record.id);
     const usage = this.claimUsage(record);
     const current = this.records.get(record.id) ?? record;
     return { content: [{ type: 'text' as const, text: taskSummary(current) }], details: structuredClone(current), usage: usage ? structuredClone(usage) : undefined };

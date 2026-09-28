@@ -36,7 +36,7 @@ export function registerShells(pi: ExtensionAPI): void {
     execute: async () => json(runtime.list()),
   });
   pi.registerTool({
-    name: 'BackgroundShellStop', label: 'Stop background shell', description: 'Stop a background shell and its process group. Stopped shells send no exit message.',
+    name: 'BackgroundShellStop', label: 'Stop background shell', description: 'Stop a background shell and its process group. Stopped shells send no exit message. A match wake held for the current turn is dropped.',
     promptSnippet: 'Stop a background shell and its process group',
     parameters: Type.Object({ id: Type.String() }),
     executionMode: 'parallel',
