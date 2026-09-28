@@ -3,6 +3,7 @@ import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { getSupportedThinkingLevels } from "@earendil-works/pi-ai";
 import { getAgentDir, type ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { pick } from "./picker.ts";
 
 type ThinkingLevel = NonNullable<ExtensionContext["thinkingLevel"]>;
 type Selection = { model: NonNullable<ExtensionContext["model"]>; thinkingLevel: ThinkingLevel };
@@ -119,15 +120,27 @@ function needsChoice(role: string, values: string[], target: ThinkingLevel | und
   try { validateRole(role, values, target, ctx); return false; } catch { return true; }
 }
 
+const finishPanel = "Finish panel";
+
+async function pickPanel(role: string, choices: string[], target: ThinkingLevel | undefined, ctx: ExtensionContext): Promise<string | undefined> {
+  let seats: string[] = [];
+  while (true) {
+    const answer = await pick(ctx, `${role} seat ${seats.length + 1}. Selected: ${seats.join(", ") || "none"}`, seats.length ? [finishPanel, ...choices] : choices);
+    if (answer === undefined) return undefined;
+    if (answer === finishPanel) return seats.join(", ");
+    seats = [...seats, applyBudget(answer, target, ctx)];
+  }
+}
+
 async function editRole(role: string, previous: string[], target: ThinkingLevel | undefined, ctx: ExtensionContext): Promise<string[] | undefined> {
   const choices = [...ctx.modelRegistry.getAvailable().flatMap((model) => {
     const name = `${model.provider}/${model.id}`;
     return target ? [name] : [name, ...getSupportedThinkingLevels(model).map((level) => `${name}:${level}`)];
   }), "inherit-parent", "auto"];
   while (true) {
-    const answer = panelRoles.has(role)
-      ? await ctx.ui.input(`${role}: comma-separated models, ordered; duplicate aliases count. Available: ${choices.join(", ")}`, previous.join(", "))
-      : await ctx.ui.select(`${role} (current: ${previous.join(", ")})`, choices);
+    const answer = !panelRoles.has(role) ? await pick(ctx, `${role} (current: ${previous.join(", ")})`, choices)
+      : ctx.mode === "tui" ? await pickPanel(role, choices, target, ctx)
+      : await ctx.ui.input(`${role}: comma-separated models, ordered; duplicate aliases count. Available: ${choices.join(", ")}`, previous.join(", "));
     if (answer === undefined) return undefined;
     try {
       const values = (panelRoles.has(role) ? answer.split(",") : [answer]).map(value => applyBudget(value.trim(), target, ctx));

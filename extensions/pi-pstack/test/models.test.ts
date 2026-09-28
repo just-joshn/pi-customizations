@@ -119,6 +119,17 @@ test("setup confirms before writing all roles, preserves duplicate aliases, and 
   }
 });
 
+const allRoles = ["feature, refactoring", "bug-fix", "perf-issue", "hillclimb", "judgment and prose", "hardest tasks", "how explorer", "how explainer", "why investigators", "why synthesizer", "reflect tooling", "reflect judgment, divergent, synthesizer", "arena runners", "arena cross-judge pool", "swarm workers", "architect runners", "interrogate reviewers"];
+
+function scriptedCustom(scripts: string[][], frames: string[][]) {
+  return (async (factory: Function) => new Promise((resolve) => {
+    const theme = { fg: (_color: string, text: string) => text, bold: (text: string) => text };
+    const component = factory({ requestRender() {} }, theme, undefined, resolve);
+    frames.push(component.render(80));
+    for (const key of scripts.shift() ?? []) component.handleInput(key);
+  })) as unknown as ExtensionContext["ui"]["custom"];
+}
+
 test("TUI setup pickers stay within a screen, filter by typing, and build ordered panels", async () => {
   const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
   const previous = process.env.PI_CODING_AGENT_DIR;
@@ -130,12 +141,10 @@ test("TUI setup pickers stay within a screen, filter by typing, and build ordere
     ["m", "4", "2", "\r"],
     ["F", "i", "n", "i", "s", "h", "\r"],
   ];
-  const heights: number[] = [];
-  const titles: string[] = [];
+  const frames: string[][] = [];
   const roles = ["bug-fix", "arena runners"];
   try {
     await mkdir(dirname(modelConfigPath()), { recursive: true });
-    const allRoles = ["feature, refactoring", "bug-fix", "perf-issue", "hillclimb", "judgment and prose", "hardest tasks", "how explorer", "how explainer", "why investigators", "why synthesizer", "reflect tooling", "reflect judgment, divergent, synthesizer", "arena runners", "arena cross-judge pool", "swarm workers", "architect runners", "interrogate reviewers"];
     await writeFile(modelConfigPath(), allRoles.map((role) => `${role}: inherit-parent`).join("\n"));
     const ctx = context({ hasUI: true, mode: "tui", modelRegistry: { getAvailable: () => many } as ExtensionContext["modelRegistry"],
       ui: ui({
@@ -146,22 +155,15 @@ test("TUI setup pickers stay within a screen, filter by typing, and build ordere
         },
         input: async (title) => { throw new Error(`Unexpected input: ${title.slice(0, 60)}`); },
         confirm: async () => true,
-        custom: (async (factory: Function) => new Promise((resolve) => {
-          const theme = { fg: (_color: string, text: string) => text, bold: (text: string) => text };
-          const component = factory({ requestRender() {} }, theme, undefined, resolve);
-          const first = component.render(80) as string[];
-          heights.push(first.length);
-          titles.push(first.join("\n"));
-          for (const key of scripts.shift() ?? []) component.handleInput(key);
-        })) as unknown as ExtensionContext["ui"]["custom"],
+        custom: scriptedCustom(scripts, frames),
       }) });
     assert.equal(await setupModels(ctx), true);
     const result = await readModelRule();
     assert.match(result, /^bug-fix: anthropic\/m17:medium$/m);
     assert.match(result, /^arena runners: anthropic\/m150:medium, anthropic\/m42:medium$/m);
-    assert.ok(heights.every((height) => height <= 20), `picker heights ${heights.join(", ")}`);
-    assert.match(titles[0]!, /bug-fix \(current: inherit-parent\)/);
-    assert.match(titles[3]!, /arena runners seat 3\. Selected: anthropic\/m150:medium, anthropic\/m42:medium/);
+    assert.ok(frames.every((frame) => frame.length <= 20), `picker heights ${frames.map((frame) => frame.length).join(", ")}`);
+    assert.match(frames[0]!.join("\n"), /bug-fix \(current: inherit-parent\)/);
+    assert.match(frames[3]!.join("\n"), /arena runners seat 3\. Selected: anthropic\/m150:medium, anthropic\/m42:medium/);
     assert.deepEqual(scripts, []);
   } finally {
     if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
