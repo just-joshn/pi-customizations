@@ -1,14 +1,11 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
-
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
-
   "files": {
-    "ignoreUnknown": true,
     "includes": [
       "**",
       "!!**/dist",
@@ -16,39 +13,42 @@
       "!!**/coverage"
     ]
   },
-
   "formatter": {
     "enabled": true
   },
-
   "linter": {
     "enabled": true,
-
     "domains": {
       "project": "recommended",
-      "types": "recommended",
-      "test": "recommended"
+      "types": "recommended"
     },
-
     "rules": {
       "preset": "recommended",
-
       "correctness": {
-        "noProcessGlobal": "error",
         "noUndeclaredDependencies": "error"
       },
-
-      "style": {
-        "useNodejsImportProtocol": "error"
+      "security": {
+        "noSecrets": "warn"
+      },
+      "suspicious": {
+        "noDeprecatedImports": "warn",
+        "noImportCycles": "warn"
       }
     }
   },
-
   "assist": {
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": "on"
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              [":BUN:", ":NODE:"],
+              ":BLANK_LINE:"
+            ]
+          }
+        }
       }
     }
   }

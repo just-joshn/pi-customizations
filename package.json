@@ -1,8 +1,9 @@
 {
   "name": "pi-customizations",
   "engines": {
-    "node": ">=24"
+    "node": ">=22.19.0"
   },
+  "type": "module",
   "version": "0.1.0",
   "private": true,
   "description": "Standalone Pi skills: doctor, run, simplify, reverse-engineer-cli, and implement-cli-from-contract.",
@@ -14,13 +15,14 @@
   "scripts": {
     "test": "npm --prefix extensions/pi-anthropic-oauth test && npm --prefix extensions/pi-antigravity-oauth test && npm --prefix extensions/pi-tui-parity test && npm --prefix extensions/pi-pstack test",
     "test:coverage": "npm --prefix extensions/pi-tui-parity run test:coverage && npm --prefix extensions/pi-pstack run test:coverage",
-    "typecheck": "npm --prefix extensions/pi-anthropic-oauth run typecheck && npm --prefix extensions/pi-antigravity-oauth run typecheck && npm --prefix extensions/pi-tui-parity run typecheck && npm --prefix extensions/pi-pstack run typecheck",
+    "typecheck": "tsc --noEmit",
     "check": "biome check .",
-    "check:fix": "biome check --write .",
-    "ci": "biome ci ."
+    "check:write": "biome check --write .",
+    "ci": "biome ci . --error-on-warnings --max-diagnostics=none"
   },
   "devDependencies": {
-    "@types/node": "^24",
-    "typescript": "^7"
+    "@types/node": "^22.19.0",
+    "typescript": "^7.0.2",
+    "@biomejs/biome": "2.5.14"
   }
 }
