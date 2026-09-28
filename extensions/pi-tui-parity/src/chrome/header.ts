@@ -5,31 +5,30 @@
  * local equivalent, so the tip line is omitted rather than invented.
  */
 
-import { VERSION } from "@earendil-works/pi-coding-agent";
-import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent";
-import { Text } from "@earendil-works/pi-tui";
+import type { ExtensionAPI, Theme } from '@earendil-works/pi-coding-agent';
+import { VERSION } from '@earendil-works/pi-coding-agent';
 
-export function renderHeaderLine(theme: Theme, version: string, title = "pi"): string {
-	return `${theme.bold(title)} ${theme.fg("dim", `v${version}`)}`;
+export function renderHeaderLine(theme: Theme, version: string, title = 'pi'): string {
+  return `${theme.bold(title)} ${theme.fg('dim', `v${version}`)}`;
 }
 
 export function installHeader(pi: ExtensionAPI): void {
-	pi.on("session_start", async (_event, ctx) => {
-		if (ctx.mode !== "tui") return;
-		ctx.ui.setHeader((tui, theme) => {
-			void tui;
-			let cached: { themeName: string | undefined; line: string } | undefined;
-			return {
-				invalidate() {
-					cached = undefined;
-				},
-				render(): string[] {
-					if (!cached || cached.themeName !== theme.name) {
-						cached = { themeName: theme.name, line: renderHeaderLine(theme, VERSION) };
-					}
-					return [cached.line];
-				},
-			};
-		});
-	});
+  pi.on('session_start', async (_event, ctx) => {
+    if (ctx.mode !== 'tui') return;
+    ctx.ui.setHeader((tui, theme) => {
+      void tui;
+      let cached: { themeName: string | undefined; line: string } | undefined;
+      return {
+        invalidate() {
+          cached = undefined;
+        },
+        render(): string[] {
+          if (!cached || cached.themeName !== theme.name) {
+            cached = { themeName: theme.name, line: renderHeaderLine(theme, VERSION) };
+          }
+          return [cached.line];
+        },
+      };
+    });
+  });
 }
