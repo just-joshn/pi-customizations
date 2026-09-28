@@ -173,3 +173,97 @@ export default defineConfig({
 `clearMocks: true` is already the Vitest 5 default, so explicitly repeating it is optional. `restoreMocks`, `unstubEnvs`, and `unstubGlobals` solve different cleanup problems and are not replacements for one another. If you adopt `test.concurrent`, reconsider automatic restoration because Vitest documents shared-state hazards with concurrent tests.
 
 The core rule for a CLI unit suite is: **run the CLI's decision-making code for real; fake only the boundaries that would make the test nondeterministic, slow, or externally side-effectful; and assert the observable contract rather than how the implementation reached it.** That matches Vitest's current testing-in-practice guidance particularly closely.
+
+# Vitest integration-testing best practices for a CLI
+
+Grounded in the current official Vitest v5.0.2 documentation. This excludes unit-testing, component-testing, and browser-testing guidance unless it directly affects a Node CLI integration suite.
+
+1. **Test the CLI's observable contract.** Vitest recommends testing inputs, outputs, side effects, and errors rather than implementation details. For a CLI, map that to arguments, configuration, environment, stdin, and working directory as inputs, then exit behavior, stdout, stderr, filesystem changes, and other externally visible effects as results. A refactor that preserves those behaviors should not break the test.  
+   https://vitest.dev/guide/learn/testing-in-practice
+
+2. **Do not mock the CLI under test.** Vitest explicitly says not to mock the thing being tested and to prefer real implementations when they are fast and reliable. In an integration suite, exercise the real CLI behavior and mock only dependencies that are slow, flaky, or have side effects you cannot control.  
+   https://vitest.dev/guide/learn/testing-in-practice
+
+3. **Keep each test focused on one behavior.** Use descriptive names that state the CLI behavior rather than its implementation. Cover the normal path, realistic boundaries, invalid inputs, and error paths that a real caller can trigger.  
+   https://vitest.dev/guide/learn/testing-in-practice
+
+4. **Give integration tests their own Vitest project.** Use a named project such as `integration` with an explicit pattern such as `**/*.integration.test.ts`, then run it independently with `vitest --project integration`. Vitest's own examples use separate projects for integration tests. In Vitest 5, inline projects inherit the root configuration by default, so use `extends: false` only when the integration project deliberately needs an independent configuration.  
+   https://vitest.dev/guide/projects
+
+5. **Use the Node environment for a Node CLI.** `node` is Vitest's default environment. Do not introduce `jsdom`, `happy-dom`, or Browser Mode for a normal CLI integration suite.  
+   https://vitest.dev/config/environment
+
+6. **Prefer the `forks` pool when tests use process-level Node APIs.** `forks` is the current default. Vitest documents that `process.chdir()` is available under `forks` but unavailable under `threads`, which matters for CLI tests that exercise working-directory behavior.  
+   https://vitest.dev/config/pool
+
+7. **Keep test-file isolation enabled for integration tests.** Vitest defaults `isolate` to `true`, and its integration-specific recipe explicitly keeps integration tests isolated while showing isolation removal only as an optimization for suitable unit tests. Isolation protects against leaked module state, environment changes, process listeners, mocks, and similar cross-file state.  
+   https://vitest.dev/config/isolate
+
+8. **Let independent files run in parallel.** Vitest runs test files in parallel by default and gives each file an isolated environment. Tests inside one file run sequentially by default, which Vitest describes as the safer default when setup or state is shared. Add `test.concurrent` or `describe.concurrent` only when those tests are genuinely independent.  
+   https://vitest.dev/guide/parallelism
+
+9. **Serialize only tests that share an exclusive resource.** Vitest specifically calls out fixed ports, writable temp directories, and databases without per-test isolation as reasons to put affected files in a separate project with `fileParallelism: false`. Do not disable parallelism for the whole integration suite because a few tests require serialization.  
+   https://vitest.dev/guide/recipes/parallel-sequential
+
+10. **Use `sequence.groupOrder` when project-level ordering really matters.** Separate projects normally overlap. If a sequential group must not run while another project still holds the same resource, give the projects different `sequence.groupOrder` values.  
+    https://vitest.dev/guide/recipes/parallel-sequential
+
+11. **Use per-test lifecycle cleanup for per-test resources.** `beforeEach` and `afterEach` are the normal choice when every test needs a known state, and `afterEach` still runs when a test fails. When a resource is created inside the test, Vitest recommends `onTestFinished` so setup and cleanup stay together. A `beforeEach` hook may also return its cleanup function.  
+    https://vitest.dev/guide/learn/setup-teardown
+
+12. **Use `setupFiles` only for setup that belongs to every test file.** They execute before each test file in the same test process and suit global configuration, polyfills, or custom matchers. They are not a substitute for a once-per-run external-service setup.  
+    https://vitest.dev/config/setupfiles
+
+13. **Use `globalSetup` for true once-per-run resources.** It runs before workers are created and supports teardown after the suite. Because it runs in a different global scope from the tests, pass serializable information such as a dynamically allocated port with `project.provide()` and read it with `inject()`. If that resource must be reset on watch reruns, use `onTestsRerun`.  
+    https://vitest.dev/config/globalsetup
+
+14. **Make spawned CLI processes cancellable.** Vitest's current recipe specifically lists `child_process.spawn` as a resource that should receive the test context's `signal`. The signal aborts when the test times out, the run is cancelled, `--bail` cancels it, or the user presses Ctrl+C. This prevents orphaned subprocesses and workers that refuse to exit.  
+    https://vitest.dev/guide/recipes/cancellable
+
+15. **Wait for conditions instead of sleeping for arbitrary durations.** Use `expect.poll` when readiness is an assertion, `vi.waitFor` when an operation may fail until a resource becomes ready, and `vi.waitUntil` when you are waiting for a truthy result and thrown errors should fail immediately. Vitest explicitly identifies fixed `setTimeout` waits as either flaky when too short or wasteful when too long.  
+    https://vitest.dev/guide/recipes/wait-for
+
+16. **Give slow integration operations explicit timeouts.** Node tests default to a 5-second `testTimeout`; Vitest also exposes separate hook and teardown timeouts. Increase the timeout for operations that legitimately take longer rather than allowing an operation to hang without a bound.  
+    https://vitest.dev/guide/learn/async
+
+17. **Await every asynchronous operation and asynchronous assertion.** Vitest treats unhandled promise rejections as test-run errors. In Vitest 5, asynchronous assertions such as `.resolves`, `.rejects`, and `toMatchFileSnapshot()` must be awaited.  
+    https://vitest.dev/guide/learn/async
+
+18. **Use snapshots for stable CLI output, not as an automatic approval mechanism.** `toMatchInlineSnapshot()` is suited to small output that benefits from living beside the test. Use `toMatchFileSnapshot()` for large or file-oriented output. Commit snapshot artifacts, review their diffs like normal assertions, and do not blindly update them. CI does not update snapshots by default; missing, obsolete, or mismatched snapshots fail the run.  
+    https://vitest.dev/guide/snapshot.html
+
+19. **Keep file snapshots outside Vitest's managed snapshot paths.** Do not point `toMatchFileSnapshot()` into paths such as `__snapshots__/foo.test.ts.snap`; Vitest requires a separate path pattern for file snapshots. Always `await` `toMatchFileSnapshot()`.  
+    https://vitest.dev/guide/snapshot.html
+
+20. **Use the test-context `expect` when snapshots run concurrently.** Vitest warns that async concurrent snapshot tests must use the local `expect` supplied by the test context so the snapshot is associated with the correct test.  
+    https://vitest.dev/guide/snapshot.html
+
+21. **Shuffle the suite periodically to expose hidden ordering dependencies.** Vitest specifically recommends repeated shuffled runs when verifying that tests do not depend on state leaked by earlier files. `sequence.shuffle` and `sequence.seed` let you reproduce an ordering when a shuffled run fails.  
+    https://vitest.dev/guide/recipes/disable-isolation
+
+22. **Keep retries targeted.** Vitest defaults retries to `0`. When an integration test genuinely talks to something transient, Vitest 5 supports `{ count, delay, condition }`, including conditions such as connection or timeout errors, so retries can be restricted to the failure modes that warrant them instead of rerunning every failure.  
+    https://vitest.dev/config/retry
+
+23. **Collect subprocess coverage explicitly when the CLI runs in another Node process.** With the V8 coverage provider, Vitest 5's `coverage.autoAttachSubprocess: true` collects coverage from spawned `node:child_process` and `node:worker_threads` processes. It is off by default and adds filesystem and runtime overhead, so enable it when subprocess coverage is required rather than unconditionally.  
+    https://vitest.dev/config/coverage
+
+24. **Remember that coverage is root-level across projects.** Vitest does not support project-specific `coverage` configuration because coverage belongs to the whole Vitest process. Reporters are also root-level rather than individual project options.  
+    https://vitest.dev/guide/projects
+
+25. **Use `hanging-process` only to diagnose process leaks.** The reporter lists processes preventing Vitest from exiting safely, which is especially useful for CLI suites that spawn child processes. Vitest warns that it is resource-intensive and recommends reserving it for debugging suites that consistently fail to exit.  
+    https://vitest.dev/guide/reporters
+
+26. **Do not hide asynchronous failures.** Vitest intentionally reports unhandled promise rejections as errors. Fix missing `await`s or explicitly handle expected rejection paths rather than disabling the protection.  
+    https://vitest.dev/guide/learn/async
+
+27. **Keep CI strict about focused tests.** Vitest's `allowOnly` defaults to `false` in CI, so a committed `test.only` or `describe.only` fails the run. Preserve that behavior rather than enabling `allowOnly` in CI.  
+    https://vitest.dev/config/allowonly
+
+28. **Keep "no tests found" as a failure unless it is intentional.** `passWithNoTests` defaults to `false`. For a dedicated integration project, that default catches broken include patterns or an accidentally empty CLI test suite.  
+    https://vitest.dev/config/passwithnotests
+
+29. **Use run mode for deterministic CI execution.** `vitest` automatically switches to run mode in CI or a non-interactive terminal; `vitest run --project integration` makes that intent explicit when invoking only the CLI integration project. Use `bail` only when stopping after a configured number of failures is useful for CI turnaround.  
+    https://vitest.dev/guide/cli.html
+
+30. **Treat integration-test speed problems as a scheduling problem before removing isolation.** Vitest's documented path is to keep independent files parallel, isolate integration tests, serialize only the files that share exclusive resources, and tune `maxWorkers` when resource usage is too high. Removing integration isolation trades correctness guarantees for speed and should not be the first optimization.  
+    https://vitest.dev/guide/parallelism
