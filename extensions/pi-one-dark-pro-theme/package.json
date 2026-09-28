@@ -1,39 +1,39 @@
 {
-	"name": "pi-one-dark-pro-theme",
-	"version": "0.1.0",
-	"type": "module",
-	"private": true,
-	"description": "One Dark Pro Flat for pi, mapped from the VS Code theme file",
-	"license": "MIT",
-	"keywords": [
-		"pi-package",
-		"theme",
-		"one-dark-pro"
-	],
-	"engines": {
-		"node": ">=22.19.0"
-	},
-	"pi": {
-		"themes": [
-			"./themes/*.json"
-		]
-	},
-	"scripts": {
-		"build:theme": "node scripts/build-theme.mjs",
-		"check:parity": "node scripts/check-parity.mjs",
-		"check:smoke": "node scripts/tmux-smoke.mjs",
-		"typecheck": "tsc --noEmit",
-		"test": "vitest run",
-		"test:coverage": "vitest run --coverage"
-	},
-	"devDependencies": {
-		"@earendil-works/pi-ai": "0.87.1",
-		"@earendil-works/pi-coding-agent": "0.87.1",
-		"@earendil-works/pi-tui": "0.87.1",
-		"@types/node": "^22.19.0",
-		"@vitest/coverage-v8": "^5.0.2",
-		"typebox": "1.3.27",
-		"typescript": "^5.9.3",
-		"vitest": "^5.0.2"
-	}
+  "name": "pi-one-dark-pro-theme",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "One Dark Pro Flat for pi, mapped from the VS Code theme file",
+  "license": "MIT",
+  "keywords": [
+    "pi-package",
+    "theme",
+    "one-dark-pro"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "pi": {
+    "themes": [
+      "./themes/*.json"
+    ]
+  },
+  "scripts": {
+    "build:theme": "node scripts/build-theme.mjs",
+    "check:parity": "node scripts/check-parity.mjs",
+    "check:smoke": "node scripts/tmux-smoke.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "0.87.1",
+    "@earendil-works/pi-coding-agent": "0.87.1",
+    "@earendil-works/pi-tui": "0.87.1",
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "^5.0.2",
+    "typebox": "1.3.27",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.2"
+  }
 }
