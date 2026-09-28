@@ -21,3 +21,27 @@ bun install v1.4.2 (744846f84)
 
 Checked 179 installs across 254 packages (no changes) [7.00ms]
 FROZEN_EXIT=0
+
+=== second run: bun ci from a fresh export of the final tree ===
+ts: 2026-09-28T17:25:02Z
+tree: c732495e
+
+--- export ---
+node_modules in export: no
+lockfiles in export: bun.lock 
+
+--- bun ci ---
+bun install v1.4.2 (744846f84)
+
++ @biomejs/biome@2.5.14
++ @types/node@22.20.4
++ typescript@7.0.2
+
+173 packages installed [243.00ms]
+BUN_CI_EXIT=0
+
+--- bun install --frozen-lockfile ---
+bun install v1.4.2 (744846f84)
+
+Checked 179 installs across 254 packages (no changes) [7.00ms]
+FROZEN_EXIT=0
