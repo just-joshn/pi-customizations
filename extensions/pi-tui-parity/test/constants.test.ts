@@ -1,71 +1,70 @@
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, expect } from "vitest";
 import * as c from "../src/constants.ts";
 
 describe("tui constants", () => {
 	it("carries the shared UI constants", () => {
-		assert.equal(c.DETAIL_ROW_MARGIN, 2);
-		assert.equal(c.SHELL_INPUT_LINES, 2);
-		assert.equal(c.SHELL_TOOL_OUTPUT_LINES, 2);
-		assert.equal(c.SHELL_TURN_OUTPUT_LINES, 6);
-		assert.equal(c.THINKING_LINES, 6);
-		assert.equal(c.EXPANDED_MAX_LINES, 256);
-		assert.equal(c.SHELL_OUTPUT_BYTE_CAP, 1048576);
-		assert.equal(c.MAX_CHARS_PER_LINE, 2000);
-		assert.equal(c.MAX_TOTAL_CHARS, 64000);
-		assert.equal(c.PATH_TRUNCATE_WIDTH, 50);
-		assert.equal(c.CWD_TRUNCATE_WIDTH, 50);
-		assert.equal(c.BACKGROUND_NUDGE_DELAY_MS, 5000);
-		assert.equal(c.TOOL_VERB_STATUS_DELAY_MS, 100);
-		assert.equal(c.MAX_USER_MESSAGE_LINES, 150);
+		expect(c.DETAIL_ROW_MARGIN).toBe(2);
+		expect(c.SHELL_INPUT_LINES).toBe(2);
+		expect(c.SHELL_TOOL_OUTPUT_LINES).toBe(2);
+		expect(c.SHELL_TURN_OUTPUT_LINES).toBe(6);
+		expect(c.THINKING_LINES).toBe(6);
+		expect(c.EXPANDED_MAX_LINES).toBe(256);
+		expect(c.SHELL_OUTPUT_BYTE_CAP).toBe(1048576);
+		expect(c.MAX_CHARS_PER_LINE).toBe(2000);
+		expect(c.MAX_TOTAL_CHARS).toBe(64000);
+		expect(c.PATH_TRUNCATE_WIDTH).toBe(50);
+		expect(c.CWD_TRUNCATE_WIDTH).toBe(50);
+		expect(c.BACKGROUND_NUDGE_DELAY_MS).toBe(5000);
+		expect(c.TOOL_VERB_STATUS_DELAY_MS).toBe(100);
+		expect(c.MAX_USER_MESSAGE_LINES).toBe(150);
 	});
 
 	it("carries the braille spinner frames and interval", () => {
-		assert.deepEqual([...c.SPINNER_FRAMES], ["⠀⠞", "⠠⠜", "⠰⠰", "⠘⠤", "⠘⠆", "⠘⠣", "⠰⠳", "⠠⠛"]);
-		assert.equal(c.SPINNER_FRAMES.length, 8);
-		assert.equal(c.SPINNER_INTERVAL_MS, 250);
+		expect([...c.SPINNER_FRAMES]).toEqual(["⠀⠞", "⠠⠜", "⠰⠰", "⠘⠤", "⠘⠆", "⠘⠣", "⠰⠳", "⠠⠛"]);
+		expect(c.SPINNER_FRAMES.length).toBe(8);
+		expect(c.SPINNER_INTERVAL_MS).toBe(250);
 	});
 
 	it("carries the verb table pairs", () => {
-		assert.deepEqual(c.TOOL_VERBS.read, ["Reading", "Read"]);
-		assert.deepEqual(c.TOOL_VERBS.grep, ["Grepping", "Grepped"]);
-		assert.deepEqual(c.TOOL_VERBS.writeStdin, ["Writing to stdin", "Wrote to stdin"]);
-		assert.deepEqual(c.TOOL_VERBS.subagent, ["Running subagent", "Ran subagent"]);
-		assert.deepEqual(c.TOOL_VERBS.createGoal, ["Creating goal", "Created goal"]);
-		assert.deepEqual(c.TOOL_VERBS.updateGoal, ["Updating goal", "Updated goal"]);
+		expect(c.TOOL_VERBS.read).toEqual(["Reading", "Read"]);
+		expect(c.TOOL_VERBS.grep).toEqual(["Grepping", "Grepped"]);
+		expect(c.TOOL_VERBS.writeStdin).toEqual(["Writing to stdin", "Wrote to stdin"]);
+		expect(c.TOOL_VERBS.subagent).toEqual(["Running subagent", "Ran subagent"]);
+		expect(c.TOOL_VERBS.createGoal).toEqual(["Creating goal", "Created goal"]);
+		expect(c.TOOL_VERBS.updateGoal).toEqual(["Updating goal", "Updated goal"]);
 	});
 
 	it("carries composer placeholders verbatim", () => {
-		assert.equal(c.COMPOSER_PLACEHOLDERS.emptyChat, "Plan, search, build anything");
-		assert.equal(c.COMPOSER_PLACEHOLDERS.followUp, "Add a follow-up");
-		assert.equal(c.COMPOSER_PLACEHOLDERS.followUpWithPlan, "Add a follow-up — /plan to review and build");
-		assert.equal(c.COMPOSER_PLACEHOLDERS.decision, "Waiting for decision (y/n/p)...");
-		assert.equal(c.COMPOSER_PLACEHOLDERS.shellNarrow, "Run a command");
+		expect(c.COMPOSER_PLACEHOLDERS.emptyChat).toBe("Plan, search, build anything");
+		expect(c.COMPOSER_PLACEHOLDERS.followUp).toBe("Add a follow-up");
+		expect(c.COMPOSER_PLACEHOLDERS.followUpWithPlan).toBe("Add a follow-up — /plan to review and build");
+		expect(c.COMPOSER_PLACEHOLDERS.decision).toBe("Waiting for decision (y/n/p)...");
+		expect(c.COMPOSER_PLACEHOLDERS.shellNarrow).toBe("Run a command");
 	});
 
 	it("carries decision titles verbatim", () => {
-		assert.equal(c.DECISION_TITLES.shell, "Run this command?");
-		assert.equal(c.DECISION_TITLES.write, "Write to this file?");
-		assert.equal(c.DECISION_TITLES.delete, "Delete this file?");
-		assert.equal(c.DECISION_TITLES.image, "Proceed with this edit?");
+		expect(c.DECISION_TITLES.shell).toBe("Run this command?");
+		expect(c.DECISION_TITLES.write).toBe("Write to this file?");
+		expect(c.DECISION_TITLES.delete).toBe("Delete this file?");
+		expect(c.DECISION_TITLES.image).toBe("Proceed with this edit?");
 	});
 
 	it("carries key hint abbreviations verbatim", () => {
-		assert.equal(c.KEY_HINT_ABBREVIATIONS.NAV, "↑/↓ to navigate");
-		assert.equal(c.KEY_HINT_ABBREVIATIONS.SEL, "Enter to select");
-		assert.equal(c.KEY_HINT_ABBREVIATIONS.CLOSE, "Esc to close");
-		assert.equal(c.KEY_HINT_ABBREVIATIONS.BACK, "Esc to go back");
-		assert.equal(c.HINT_SEPARATOR, " • ");
+		expect(c.KEY_HINT_ABBREVIATIONS.NAV).toBe("↑/↓ to navigate");
+		expect(c.KEY_HINT_ABBREVIATIONS.SEL).toBe("Enter to select");
+		expect(c.KEY_HINT_ABBREVIATIONS.CLOSE).toBe("Esc to close");
+		expect(c.KEY_HINT_ABBREVIATIONS.BACK).toBe("Esc to go back");
+		expect(c.HINT_SEPARATOR).toBe(" • ");
 	});
 
 	it("carries composer and palette geometry", () => {
-		assert.equal(c.COMPOSER_MAX_VISUAL_LINES, 6);
-		assert.equal(c.COMPOSER_WIDTH_MARGIN, 7);
-		assert.equal(c.PALETTE_LABEL_COLS, 24);
-		assert.equal(c.PALETTE_PAGE_ROWS, 10);
-		assert.equal(c.AT_PALETTE_WINDOW, 6);
-		assert.equal(c.PASTE_COLLAPSE_CHARS, 800);
-		assert.equal(c.SWITCH_MODE_COUNTDOWN_S, 15);
-		assert.equal(c.EPHEMERAL_TIMEOUT_MS, 3000);
+		expect(c.COMPOSER_MAX_VISUAL_LINES).toBe(6);
+		expect(c.COMPOSER_WIDTH_MARGIN).toBe(7);
+		expect(c.PALETTE_LABEL_COLS).toBe(24);
+		expect(c.PALETTE_PAGE_ROWS).toBe(10);
+		expect(c.AT_PALETTE_WINDOW).toBe(6);
+		expect(c.PASTE_COLLAPSE_CHARS).toBe(800);
+		expect(c.SWITCH_MODE_COUNTDOWN_S).toBe(15);
+		expect(c.EPHEMERAL_TIMEOUT_MS).toBe(3000);
 	});
 });

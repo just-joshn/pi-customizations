@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { describe, it } from "node:test";
+import { describe, it, expect } from "vitest";
 import { dirname, join } from "node:path";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -26,14 +25,14 @@ function matrixIds(): string[] {
 
 describe("parity matrix", () => {
 	it("covers every inventory id exactly once", () => {
-		assert.deepEqual(matrixIds().sort(), [...new Set(inventoryIds())].sort());
+		expect(matrixIds().sort()).toEqual([...new Set(inventoryIds())].sort());
 	});
 
 	it("check-parity gate passes with the expected status counts", () => {
 		const out = execFileSync("node", [join(ROOT, "scripts", "check-parity.mjs")], { encoding: "utf8" });
 		const countsLine = out.split("\n").find((l) => l.startsWith("counts: "));
-		assert.ok(countsLine, `counts line missing from gate output: ${out}`);
-		assert.deepEqual(JSON.parse(countsLine.slice("counts: ".length)), {
+		expect(countsLine).toBeDefined();
+		expect(JSON.parse(countsLine!.slice("counts: ".length))).toEqual({
 			implemented: 94,
 			mapped: 104,
 			deviation: 33,

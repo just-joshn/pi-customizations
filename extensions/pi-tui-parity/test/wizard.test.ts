@@ -1,23 +1,22 @@
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, expect, vi } from "vitest";
 import { buildRuleSection, installRuleWizard, slugifyName, wizardResultMessage } from "../src/wizard/rule.ts";
 
 describe("rule wizard", () => {
 	it("slugifies the first four words like the the reference CLI prefill", () => {
-		assert.equal(slugifyName("Always use TypeScript strict mode everywhere"), "always-use-typescript-strict");
-		assert.equal(slugifyName("!!"), "rule");
+		expect(slugifyName("Always use TypeScript strict mode everywhere")).toBe("always-use-typescript-strict");
+		expect(slugifyName("!!")).toBe("rule");
 	});
 
 	it("builds a rule section for AGENTS.md", () => {
 		const section = buildRuleSection("Always use TypeScript strict mode.");
-		assert.ok(section.includes("## Rule: Always use TypeScript strict mode"));
-		assert.ok(section.includes("Always use TypeScript strict mode."));
+		expect(section.includes("## Rule: Always use TypeScript strict mode")).toBe(true);
+		expect(section.includes("Always use TypeScript strict mode.")).toBe(true);
 	});
 
 	it("formats the the reference CLI result states", () => {
-		assert.equal(wizardResultMessage({ status: "created", path: "/p/AGENTS.md", message: "" }), "✓ Rule created! /p/AGENTS.md Edit the file to customize guidelines and examples.");
-		assert.equal(wizardResultMessage({ status: "exists", path: "/p/AGENTS.md", message: "" }), "⚠️ Rule already exists: /p/AGENTS.md");
-		assert.equal(wizardResultMessage({ status: "cancelled", path: "", message: "" }), "Cancelled.");
+		expect(wizardResultMessage({ status: "created", path: "/p/AGENTS.md", message: "" })).toBe("✓ Rule created! /p/AGENTS.md Edit the file to customize guidelines and examples.");
+		expect(wizardResultMessage({ status: "exists", path: "/p/AGENTS.md", message: "" })).toBe("⚠️ Rule already exists: /p/AGENTS.md");
+		expect(wizardResultMessage({ status: "cancelled", path: "", message: "" })).toBe("Cancelled.");
 	});
 
 	it("registers /rule and drives the wizard through pi dialogs", async () => {
@@ -32,7 +31,7 @@ describe("rule wizard", () => {
 			registerCommand: (id: string, def: { handler: (args: string, ctx: unknown) => Promise<void> }) => registered.set(id, def),
 		} as never;
 		installRuleWizard(fakePi);
-		assert.ok(registered.has("rule"));
+		expect(registered.has("rule")).toBe(true);
 		const ctx = {
 			cwd: dirPath,
 			ui: {
@@ -50,16 +49,14 @@ describe("rule wizard", () => {
 			},
 		};
 		const wizardModule = await import("../src/wizard/rule.ts");
-		const originalAgentDir = process.env.HOME;
-		process.env.HOME = dirPath;
+		vi.stubEnv("HOME", dirPath);
 		await registered.get("rule")!.handler("", ctx);
-		process.env.HOME = originalAgentDir;
-		assert.ok(calls[0]!.startsWith("input:What should this rule instruct"), calls.join("|"));
-		assert.ok(calls.some((c) => c.startsWith("select:Where should this rule be saved?:2")));
-		assert.ok(dir.existsSync(target), "project AGENTS.md written");
-		assert.ok(dir.readFileSync(target, "utf8").includes("## Rule: Always use consistent indentation"));
+		expect(calls[0]!.startsWith("input:What should this rule instruct")).toBe(true);
+		expect(calls.some((c) => c.startsWith("select:Where should this rule be saved?:2"))).toBe(true);
+		expect(dir.existsSync(target)).toBe(true);
+		expect(dir.readFileSync(target, "utf8").includes("## Rule: Always use consistent indentation")).toBe(true);
 		const notify = calls.find((c) => c.startsWith("notify:✓"));
-		assert.ok(notify, `notify fired: ${calls.join("|")}`);
+		expect(notify).toBeDefined();
 		void wizardModule;
 	});
 });

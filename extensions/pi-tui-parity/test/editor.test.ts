@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, expect } from "vitest";
 import { composerGlyph, composerPlaceholder, ComposerEditor } from "../src/editor/composer-editor.ts";
 import { createSessionState, nextMode } from "../src/state.ts";
 
@@ -28,36 +27,36 @@ function editorHarness() {
 
 describe("composer editor", () => {
 	it("placeholders follow the conversation state", () => {
-		assert.equal(composerPlaceholder(false), "Plan, search, build anything");
-		assert.equal(composerPlaceholder(true), "Add a follow-up");
+		expect(composerPlaceholder(false)).toBe("Plan, search, build anything");
+		expect(composerPlaceholder(true)).toBe("Add a follow-up");
 	});
 
 	it("glyph is dim by default and active in a mode", () => {
 		const state = createSessionState();
-		assert.deepEqual(composerGlyph(state), { glyph: "→", dim: true });
+		expect(composerGlyph(state)).toEqual({ glyph: "→", dim: true });
 		state.mode = "plan";
-		assert.deepEqual(composerGlyph(state), { glyph: "→", dim: false });
+		expect(composerGlyph(state)).toEqual({ glyph: "→", dim: false });
 	});
 
 	it("shift+tab cycles modes and is not passed to pi", () => {
 		const { editor, state, requests } = editorHarness();
 		editor.handleInput("\x1b[Z");
-		assert.equal(state.mode, "plan");
+		expect(state.mode).toBe("plan");
 		editor.handleInput("\x1b[Z");
-		assert.equal(state.mode, "debug");
+		expect(state.mode).toBe("debug");
 		editor.handleInput("\x1b[Z");
-		assert.equal(state.mode, "ask");
+		expect(state.mode).toBe("ask");
 		editor.handleInput("\x1b[Z");
-		assert.equal(state.mode, "default");
-		assert.ok(requests.length === 0, "mode cycle itself does not force a render");
+		expect(state.mode).toBe("default");
+		expect(requests.length).toBe(0);
 	});
 
 	it("escape on empty input enters vim normal mode; i returns to insert", () => {
 		const { editor, state } = editorHarness();
 		editor.handleInput("\x1b");
-		assert.equal(state.vim, "normal");
+		expect(state.vim).toBe("normal");
 		editor.handleInput("i");
-		assert.equal(state.vim, "insert");
+		expect(state.vim).toBe("insert");
 	});
 
 	it("normal mode swallows printable keys and maps hjkl", () => {
@@ -66,29 +65,29 @@ describe("composer editor", () => {
 		state.vim = "normal";
 		editor.setText("hello");
 		editor.handleInput("x");
-		assert.equal(editor.getText(), "hello", "printable keys do nothing in normal mode");
+		expect(editor.getText()).toBe("hello");
 		editor.handleInput("h");
-		assert.equal(state.vim, "normal");
+		expect(state.vim).toBe("normal");
 		editor.handleInput("i");
-		assert.equal(state.vim, "insert");
+		expect(state.vim).toBe("insert");
 	});
 
 	it("empty-state render draws the half-block frame and inverse placeholder", () => {
 		const { editor } = editorHarness();
 		const rows = editor.render(60);
-		assert.equal(rows.length, 3);
-		assert.match(rows[0]!, /▄{60}/);
-		assert.match(rows[2]!, /▀{60}/);
+		expect(rows.length).toBe(3);
+		expect(rows[0]!).toMatch(/▄{60}/);
+		expect(rows[2]!).toMatch(/▀{60}/);
 		const mid = strip(rows[1]!).split(CURSOR_MARKER).join("");
-		assert.ok(mid.includes("→ Plan, search, build anything"), `mid: ${mid}`);
-		assert.ok(rows[1]!.includes("\x1b[7mP\x1b[0m"), "first placeholder character is inverse");
+		expect(mid.includes("→ Plan, search, build anything")).toBe(true);
+		expect(rows[1]!.includes("\x1b[7mP\x1b[0m")).toBe(true);
 	});
 
 	it("mode cycle order matches the the reference CLI ring", () => {
 		const state = createSessionState();
-		assert.equal(nextMode("default"), "plan");
-		assert.equal(nextMode("plan"), "debug");
-		assert.equal(nextMode("debug"), "ask");
-		assert.equal(nextMode("ask"), "default");
+		expect(nextMode("default")).toBe("plan");
+		expect(nextMode("plan")).toBe("debug");
+		expect(nextMode("debug")).toBe("ask");
+		expect(nextMode("ask")).toBe("default");
 	});
 });
