@@ -1,8 +1,7 @@
-import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import test from 'node:test';
+import { expect, test } from 'vitest';
 import { SessionManager, type ExtensionAPI, type ExtensionContext, type ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { registerContext, registerStatus } from '../src/context.ts';
 import { createState } from '../src/state.ts';
@@ -14,32 +13,33 @@ async function call(manager: SessionManager, options: { history?: boolean; model
   let tool: ToolDefinition | undefined;
   const pi = { registerTool: (value: ToolDefinition) => { tool = value; }, getAllTools: () => options.tools ?? [] } as unknown as ExtensionAPI;
   registerContext(pi);
-  assert.ok(tool);
+  expect(tool).toBeDefined();
   const ctx = { cwd: manager.getCwd(), sessionManager: manager, modelRegistry: { getAvailable: () => options.models ?? [] } } as unknown as ExtensionContext;
-  const result = await tool.execute('context-review', { history: options.history }, undefined, undefined, ctx);
+  const result = await tool!.execute('context-review', { history: options.history }, undefined, undefined, ctx);
   return result.details as Evidence;
 }
 
-for (const id of ['a'.repeat(8186), '🙂'.repeat(2046) + 'ab']) {
-  test(`context accepts the exact serialized byte budget for ${id.startsWith('a') ? 'ASCII' : 'multibyte'} models`, async () => {
-    const manager = SessionManager.inMemory('/tmp/context-review');
-    const exact = await call(manager, { models: [{ provider: 'p', id }] });
-    assert.deepEqual(exact.models, [`p/${id}`]);
-    assert.equal(Buffer.byteLength(JSON.stringify(exact.models)), 8192);
-    assert.equal(exact.omitted.models, 0);
-    const oversized = await call(manager, { models: [{ provider: 'p', id: id + 'a' }] });
-    assert.deepEqual(oversized.models, []);
-    assert.equal(oversized.omitted.models, 1);
-  });
-}
+test.each([
+  ['ASCII', 'a'.repeat(8186)],
+  ['multibyte', '🙂'.repeat(2046) + 'ab'],
+])('context accepts the exact serialized byte budget for %s models', async (_label, id) => {
+  const manager = SessionManager.inMemory('/tmp/context-review');
+  const exact = await call(manager, { models: [{ provider: 'p', id }] });
+  expect(exact.models).toEqual([`p/${id}`]);
+  expect(Buffer.byteLength(JSON.stringify(exact.models))).toBe(8192);
+  expect(exact.omitted.models).toBe(0);
+  const oversized = await call(manager, { models: [{ provider: 'p', id: id + 'a' }] });
+  expect(oversized.models).toEqual([]);
+  expect(oversized.omitted.models).toBe(1);
+});
 
 test('context counts separators at the exact multibyte list boundary', async () => {
   const manager = SessionManager.inMemory('/tmp/context-review');
   const models = [{ provider: 'p', id: 'a' }, { provider: 'p', id: '🙂'.repeat(2045) }, { provider: 'p', id: 'omitted' }];
   const result = await call(manager, { models });
-  assert.deepEqual(result.models, ['p/a', `p/${'🙂'.repeat(2045)}`]);
-  assert.equal(Buffer.byteLength(JSON.stringify(result.models)), 8192);
-  assert.equal(result.omitted.models, 1);
+  expect(result.models).toEqual(['p/a', `p/${'🙂'.repeat(2045)}`]);
+  expect(Buffer.byteLength(JSON.stringify(result.models))).toBe(8192);
+  expect(result.omitted.models).toBe(1);
 });
 
 async function historyFixture() {
@@ -57,27 +57,25 @@ async function historyFixture() {
   } catch (error) { await close(); throw error; }
 }
 
-for (const failure of ['directory', 'session']) {
-  test(`real SDK ${failure} read failures retain unknown history completeness`, async () => {
-    const f = await historyFixture();
-    try {
-      if (failure === 'directory') {
-        await rm(f.directory, { recursive: true });
-        await writeFile(f.directory, 'not a directory');
-        await assert.rejects(readdir(f.directory), /ENOTDIR/);
-      } else {
-        const unreadable = join(f.directory, 'broken.jsonl');
-        await mkdir(unreadable);
-        await assert.rejects(readFile(unreadable), /EISDIR/);
-      }
-      assert.deepEqual(await SessionManager.list(f.root), []);
-      const result = await call(f.manager, { history: true });
-      assert.deepEqual(result.history, []);
-      assert.equal(result.omitted.history, 0);
-      assert.deepEqual(result.historyDiscovery, { mode: 'best-effort', completeness: 'unknown' });
-    } finally { await f.close(); }
-  });
-}
+test.each(['directory', 'session'])('real SDK %s read failures retain unknown history completeness', async failure => {
+  const f = await historyFixture();
+  try {
+    if (failure === 'directory') {
+      await rm(f.directory, { recursive: true });
+      await writeFile(f.directory, 'not a directory');
+      await expect(readdir(f.directory)).rejects.toThrow(/ENOTDIR/);
+    } else {
+      const unreadable = join(f.directory, 'broken.jsonl');
+      await mkdir(unreadable);
+      await expect(readFile(unreadable)).rejects.toThrow(/EISDIR/);
+    }
+    expect(await SessionManager.list(f.root)).toEqual([]);
+    const result = await call(f.manager, { history: true });
+    expect(result.history).toEqual([]);
+    expect(result.omitted.history).toBe(0);
+    expect(result.historyDiscovery).toEqual({ mode: 'best-effort', completeness: 'unknown' });
+  } finally { await f.close(); }
+});
 
 test('context reports budget omissions for every list without claiming history completeness', async () => {
   const f = await historyFixture();
@@ -91,15 +89,15 @@ test('context reports budget omissions for every list without claiming history c
     const models = Array.from({ length: 100 }, (_, index) => ({ provider: 'provider', id: `${index}-${'m'.repeat(100)}` }));
     const result = await call(f.manager, { history: true, tools, models });
     for (const key of ['entries', 'tools', 'models', 'history'] as const) {
-      assert.ok(result[key].length > 0);
-      assert.ok(result.omitted[key]! > 0);
-      assert.equal(result[key].length + result.omitted[key]!, 100);
-      assert.ok(Buffer.byteLength(JSON.stringify(result[key])) <= 8192);
+      expect(result[key].length > 0).toBe(true);
+      expect(result.omitted[key]! > 0).toBe(true);
+      expect(result[key].length + result.omitted[key]!).toBe(100);
+      expect(Buffer.byteLength(JSON.stringify(result[key])) <= 8192).toBe(true);
     }
-    assert.deepEqual(result.historyDiscovery, { mode: 'best-effort', completeness: 'unknown' });
+    expect(result.historyDiscovery).toEqual({ mode: 'best-effort', completeness: 'unknown' });
     const empty = await call(SessionManager.inMemory(f.root));
-    assert.deepEqual(empty.omitted, { entries: 0, tools: 0, models: 0, history: 0 });
-    assert.deepEqual(empty.historyDiscovery, { mode: 'not-requested', completeness: 'unknown' });
+    expect(empty.omitted).toEqual({ entries: 0, tools: 0, models: 0, history: 0 });
+    expect(empty.historyDiscovery).toEqual({ mode: 'not-requested', completeness: 'unknown' });
   } finally { await f.close(); }
 });
 
@@ -114,13 +112,13 @@ test('registerStatus formats pstack status, argument completions, and todo detai
   const store = createState({ appendEntry() {} } as unknown as ExtensionAPI);
   const ctx = { ui: { setStatus: () => {}, setWidget: () => {} } } as unknown as ExtensionContext;
   registerStatus(pi, store);
-  assert.ok(command);
-  const completions = command.getArgumentCompletions?.('to') as Array<{ value: string }>;
-  assert.deepEqual(completions, [{ value: 'todos', label: 'todos', description: 'Show current todos and progress' }]);
-  await command.handler('status', ctx);
+  expect(command).toBeDefined();
+  const completions = command!.getArgumentCompletions?.('to') as Array<{ value: string }>;
+  expect(completions).toEqual([{ value: 'todos', label: 'todos', description: 'Show current todos and progress' }]);
+  await command!.handler('status', ctx);
   const initial = messages.at(-1) as { content: string };
-  assert.match(initial.content, /Poteto mode off/);
-  assert.ok(!initial.content.includes('Todos:'));
+  expect(initial.content).toMatch(/Poteto mode off/);
+  expect(initial.content.includes('Todos:')).toBe(false);
   store.update({
     enabled: true,
     todos: [
@@ -128,12 +126,12 @@ test('registerStatus formats pstack status, argument completions, and todo detai
       { id: '2', content: 'Step 2', status: 'in_progress' },
     ],
   }, ctx);
-  await command.handler('status', ctx);
+  await command!.handler('status', ctx);
   const withTodos = messages.at(-1) as { content: string };
-  assert.match(withTodos.content, /Todos: 1\/2 completed/);
-  await command.handler('todos', ctx);
+  expect(withTodos.content).toMatch(/Todos: 1\/2 completed/);
+  await command!.handler('todos', ctx);
   const todosList = messages.at(-1) as { content: string };
-  assert.match(todosList.content, /Todos:\n\[x\] Step 1 \(completed\)\n\[>\] Step 2 \(in_progress\)/);
+  expect(todosList.content).toMatch(/Todos:\n\[x\] Step 1 \(completed\)\n\[>\] Step 2 \(in_progress\)/);
 });
 
 test('/pstack todos reports an empty list and an unknown argument shows usage instead of status', async () => {
@@ -147,10 +145,26 @@ test('/pstack todos reports an empty list and an unknown argument shows usage in
   } as unknown as ExtensionAPI;
   const ctx = { ui: { setStatus: () => {}, setWidget: () => {}, notify: (m: string, l: string) => { notices.push([m, l]); } } } as unknown as ExtensionContext;
   registerStatus(pi, createState({ appendEntry() {} } as unknown as ExtensionAPI));
-  assert.ok(command);
-  await command.handler('todos', ctx);
-  assert.match(messages.at(-1)!.content, /\n\nTodos: none\.$/);
-  await command.handler('bogus', ctx);
-  assert.equal(messages.length, 1);
-  assert.deepEqual(notices, [['Unknown /pstack argument "bogus". Use /pstack, /pstack status, or /pstack todos.', 'error']]);
+  expect(command).toBeDefined();
+  await command!.handler('todos', ctx);
+  expect(messages.at(-1)!.content).toMatch(/\n\nTodos: none\.$/);
+  await command!.handler('bogus', ctx);
+  expect(messages.length).toBe(1);
+  expect(notices).toEqual([['Unknown /pstack argument "bogus". Use /pstack, /pstack status, or /pstack todos.', 'error']]);
+});
+
+test('context summarizes custom entries and named sessions in history', async () => {
+  const f = await historyFixture();
+  try {
+    const header = { type: 'session', version: 3, id: 'named-1', cwd: f.root, timestamp: new Date(0).toISOString() };
+    const sessionInfo = { type: 'session_info', name: 'My named session', id: 's1', timestamp: new Date(0).toISOString() };
+    await writeFile(join(f.directory, 'named.jsonl'), JSON.stringify(header) + '\n' + JSON.stringify(sessionInfo) + '\n');
+    f.manager.appendCustomEntry('custom-entry', { val: 1 });
+    f.manager.appendMessage({ role: 'assistant', content: [{ type: 'text', text: 'my assistant text' }] } as any);
+    f.manager.appendMessage({ role: 'toolResult', toolName: 'my-tool', content: [] } as any);
+    const result = await call(f.manager, { history: true });
+    expect(result.history.some((h: any) => h.name === 'My named session')).toBe(true);
+    expect(result.entries.some((e: any) => e.type === 'custom')).toBe(true);
+    expect(result.entries.some((e: any) => e.toolName === 'my-tool')).toBe(true);
+  } finally { await f.close(); }
 });

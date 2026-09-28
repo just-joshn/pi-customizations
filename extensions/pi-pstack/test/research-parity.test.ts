@@ -1,10 +1,9 @@
-import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import test from 'node:test';
+import { expect, test } from 'vitest';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const read = (path: string) => readFile(join(root, path), 'utf8');
@@ -36,44 +35,44 @@ const transcriptConsumers = [
 
 test('poteto-mode routes all 23 documented playbooks and 23 principles', async () => {
   const mode = await read('skills/poteto-mode/SKILL.md');
-  assert.deepEqual((await readdir(join(root, 'skills/poteto-mode/playbooks'))).toSorted(), playbooks.map(name => `${name}.md`).toSorted());
-  for (const name of playbooks) assert.ok(mode.includes(`playbooks/${name}.md`), `mode routes ${name}`);
-  assert.deepEqual((await readdir(join(root, 'skills'))).filter(name => name.startsWith('principle-')).toSorted(), principles.map(name => `principle-${name}`).toSorted());
-  for (const name of principles) assert.ok(mode.includes(`**principle-${name}**`), `mode cites ${name}`);
+  expect((await readdir(join(root, 'skills/poteto-mode/playbooks'))).toSorted()).toEqual(playbooks.map(name => `${name}.md`).toSorted());
+  for (const name of playbooks) expect(mode.includes(`playbooks/${name}.md`)).toBe(true);
+  expect((await readdir(join(root, 'skills'))).filter(name => name.startsWith('principle-')).toSorted()).toEqual(principles.map(name => `principle-${name}`).toSorted());
+  for (const name of principles) expect(mode.includes(`**principle-${name}**`)).toBe(true);
 });
 
 test('setup keeps the documented 17 roles and four budget labels', async () => {
   const setup = await read('skills/setup-pstack/SKILL.md');
   const models = await read('src/models.ts');
-  for (const role of roles) assert.ok(setup.includes(`\n${role}: `) && models.includes(`["${role}", `), role);
+  for (const role of roles) expect(setup.includes(`\n${role}: `) && models.includes(`["${role}", `)).toBe(true);
   for (const label of ['unlimited — keep max', 'large — xhigh reasoning', 'medium — high reasoning', 'small — medium reasoning']) {
-    assert.ok(setup.includes(`\`${label}\``) && models.includes(`"${label}"`), label);
+    expect(setup.includes(`\`${label}\``) && models.includes(`"${label}"`)).toBe(true);
   }
 });
 
 test('documented agents, team-kit skills, helper scripts, and Benny pack are shipped', async () => {
   const personas = await read('src/personas.ts');
-  for (const agent of ['poteto-agent', 'comment-sicko', 'ci-watcher', 'thermo-nuclear-code-quality-review']) assert.ok(personas.includes(`['${agent}'`), agent);
+  for (const agent of ['poteto-agent', 'comment-sicko', 'ci-watcher', 'thermo-nuclear-code-quality-review']) expect(personas.includes(`['${agent}'`)).toBe(true);
   const skills = await readdir(join(root, 'skills'));
   for (const skill of ['deslop', 'control-ui', 'control-cli', 'workflow-from-chats', 'unslop', 'how', 'why', 'interrogate', 'arena', 'architect', 'swarm', 'show-me-your-work', 'recall', 'automate-me']) {
-    assert.ok(skills.includes(skill), skill);
+    expect(skills.includes(skill)).toBe(true);
   }
   const scripts = await readdir(join(root, 'skills/poteto-mode/scripts'));
-  for (const script of ['watch-pr', 'orch', 'check-plan.mjs', 'worktree-audit.sh']) assert.ok(scripts.includes(script), script);
-  assert.equal((await readdir(join(root, 'upstream/docs/guide'))).filter(name => /^\d\d-/.test(name)).length, 10);
-  assert.deepEqual((await readdir(join(root, 'upstream/automations/benny/skills'))).toSorted(), ['reproduce-and-fix-issues', 'setup-benny', 'triage-issue-reports']);
-  assert.ok(!skills.some(skill => skill.includes('benny') || skill.includes('triage')));
+  for (const script of ['watch-pr', 'orch', 'check-plan.mjs', 'worktree-audit.sh']) expect(scripts.includes(script)).toBe(true);
+  expect((await readdir(join(root, 'upstream/docs/guide'))).filter(name => /^\d\d-/.test(name)).length).toBe(10);
+  expect((await readdir(join(root, 'upstream/automations/benny/skills'))).toSorted()).toEqual(['reproduce-and-fix-issues', 'setup-benny', 'triage-issue-reports']);
+  expect(skills.some(skill => skill.includes('benny') || skill.includes('triage'))).toBe(false);
 });
 
 test('transcript consumers read the Pi session store, not Reference agent-transcripts', async () => {
   for (const path of transcriptConsumers) {
     const text = await read(path);
-    assert.ok(!text.includes('.upstream/projects') && !text.includes('agent-transcripts'), `${path} names no Reference transcript store`);
+    expect(!text.includes('.upstream/projects') && !text.includes('agent-transcripts')).toBe(true);
   }
   const recall = await read('skills/recall/SKILL.md');
-  assert.ok(recall.includes('`~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`'), 'recall names the Pi layout');
-  assert.ok(recall.includes('`/Users/you/proj` becomes `--Users-you-proj--`'), 'recall names the Pi slug');
-  assert.ok((await read('skills/reflect/SKILL.md')).includes('<session-dir>/pstack-workers/*/*.jsonl'), 'reflect lists Task child transcripts');
+  expect(recall.includes('`~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`')).toBe(true);
+  expect(recall.includes('`/Users/you/proj` becomes `--Users-you-proj--`')).toBe(true);
+  expect((await read('skills/reflect/SKILL.md')).includes('<session-dir>/pstack-workers/*/*.jsonl')).toBe(true);
 });
 
 function git(cwd: string, ...args: string[]): string {
@@ -106,10 +105,10 @@ test('worktree audit dates agent activity from Pi sessions and worker transcript
     });
     const today = execFileSync('date', ['+%Y-%m-%d'], { encoding: 'utf8' }).trim();
     const rows = new Map(output.trim().split('\n').slice(1).map(line => line.split('\t')).map(cells => [cells[8].split('/').at(-1), cells]));
-    assert.deepEqual([...rows.keys()].toSorted(), ['from-main', 'idle', 'own-session']);
-    assert.deepEqual(rows.get('from-main')?.slice(6, 8), [today, 'verify-recent-chat']);
-    assert.deepEqual(rows.get('own-session')?.slice(6, 8), [today, 'verify-recent-chat']);
-    assert.deepEqual(rows.get('idle')?.slice(6, 8), ['-', 'review']);
+    expect([...rows.keys()].toSorted()).toEqual(['from-main', 'idle', 'own-session']);
+    expect(rows.get('from-main')?.slice(6, 8)).toEqual([today, 'verify-recent-chat']);
+    expect(rows.get('own-session')?.slice(6, 8)).toEqual([today, 'verify-recent-chat']);
+    expect(rows.get('idle')?.slice(6, 8)).toEqual(['-', 'review']);
   } finally { await f.close(); }
 });
 
@@ -117,8 +116,8 @@ test('host contract names the workspace session directory the transcript skills 
   const { hostInstructions } = await import('../src/host.ts');
   const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/agent/sessions/--w--', getSessionFile: () => '/agent/sessions/--w--/s.jsonl' } };
   const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '');
-  assert.ok(host.includes('Workspace Pi session directory: /agent/sessions/--w--.'));
-  assert.ok(host.includes('Task child transcripts: /agent/sessions/--w--/pstack-workers/<parent-session-id>.'));
+  expect(host.includes('Workspace Pi session directory: /agent/sessions/--w--.')).toBe(true);
+  expect(host.includes('Task child transcripts: /agent/sessions/--w--/pstack-workers/<parent-session-id>.')).toBe(true);
 });
 
 test('host contract maps upstream Reference facilities and tool names to Pi', async () => {
@@ -126,17 +125,17 @@ test('host contract maps upstream Reference facilities and tool names to Pi', as
   const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
   const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '');
   for (const text of ['A Reference rule becomes an AGENTS.md context file', 'guidance that must apply on every turn belongs in a context file', "where a workflow calls for Reference's create-skill", 'classify the tools that pstack_context returns', 'Glob is find', 'appears in the transcript as a <skill name="..."> block']) {
-    assert.ok(host.includes(text), text);
+    expect(host.includes(text)).toBe(true);
   }
-  assert.match(host, /Pi's format from \/.+\/docs\/skills\.md/);
+  expect(host).toMatch(/Pi's format from \/.+\/docs\/skills\.md/);
 });
 
 test('local /loop ships as a Pi skill and template that the host contract names', async () => {
   const skill = await read('host/skills/loop/SKILL.md');
-  assert.match(skill, /^---\nname: loop\ndescription: .+\ndisable-model-invocation: true\n---\n/);
-  for (const text of ['Usage: /loop [interval] <prompt>', 'notify_on_output: "^AGENT_LOOP_TICK_<purpose>"', 'notify_on_output: "^AGENT_LOOP_WAKE_<purpose>"', 'BackgroundShellStop']) assert.ok(skill.includes(text), text);
-  assert.ok((await read('host/prompts/loop.md')).includes('Read loop/SKILL.md in full under the pstack host skills directory'));
+  expect(skill).toMatch(/^---\nname: loop\ndescription: .+\ndisable-model-invocation: true\n---\n/);
+  for (const text of ['Usage: /loop [interval] <prompt>', 'notify_on_output: "^AGENT_LOOP_TICK_<purpose>"', 'notify_on_output: "^AGENT_LOOP_WAKE_<purpose>"', 'BackgroundShellStop']) expect(skill.includes(text)).toBe(true);
+  expect((await read('host/prompts/loop.md')).includes('Read loop/SKILL.md in full under the pstack host skills directory')).toBe(true);
   const { hostInstructions } = await import('../src/host.ts');
   const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
-  assert.ok(hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '').includes('/loop is a Pi prompt template for the local loop skill at /pkg/host/skills/loop/SKILL.md.'));
+  expect(hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '').includes('/loop is a Pi prompt template for the local loop skill')).toBe(true);
 });

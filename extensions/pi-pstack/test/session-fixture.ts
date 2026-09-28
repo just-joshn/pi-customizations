@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import { expect } from "vitest";
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -84,7 +84,7 @@ export async function fixture({ extensionOnly = false }: { extensionOnly?: boole
       noContextFiles: true, noPromptTemplates: true, noThemes: true,
     });
     await loader.reload();
-    assert.deepEqual(loader.getExtensions().errors, [], "package extension must load without errors");
+    expect(loader.getExtensions().errors).toEqual([]);
     return loader;
   }
   async function open(manager = SessionManager.create(cwd, join(root, "sessions"))) {
@@ -142,10 +142,20 @@ export function section(requests: Context[], name: string) {
 
 export function lastRequest(requests: Context[]) {
   const request = requests.at(-1);
-  assert.ok(request, "the scripted provider must receive a real Pi request");
+  if (!request) throw new Error("the scripted provider must receive a real Pi request");
   return request;
 }
 
-export function toolResults(session: AgentSession, name: string) {
-  return session.messages.filter((message) => message.role === "toolResult" && message.toolName === name);
+export type ToolResultMessage = {
+  role: "toolResult";
+  toolCallId: string;
+  toolName: string;
+  content: Array<{ type: string; text?: string }>;
+  details?: unknown;
+  isError: boolean;
+  usage?: { totalTokens?: number };
+};
+
+export function toolResults(session: AgentSession, name: string): ToolResultMessage[] {
+  return session.messages.filter((message) => message.role === "toolResult" && message.toolName === name) as unknown as ToolResultMessage[];
 }

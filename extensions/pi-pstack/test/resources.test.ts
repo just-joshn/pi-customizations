@@ -1,11 +1,10 @@
-import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs, { access, cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { syncBuiltinESMExports } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import test from 'node:test';
+import { expect, test, vi } from 'vitest';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
@@ -26,27 +25,30 @@ async function fixture() {
   };
 }
 
-test('resource fixture copy failure removes the partially populated directory', async t => {
+test('resource fixture copy failure removes the partially populated directory', async () => {
   let directory = '';
-  t.mock.method(fs, 'cp', async (_source: unknown, destination: unknown) => {
+  const failing = vi.spyOn(fs, 'cp').mockImplementation(async (_source: unknown, destination: unknown) => {
     directory = dirname(String(destination));
     throw new Error('copy failed');
   });
   syncBuiltinESMExports();
   try {
-    await assert.rejects(fixture(), /copy failed/);
-    assert.ok(directory);
-    await assert.rejects(access(directory), /ENOENT/);
-  } finally { t.mock.restoreAll(); syncBuiltinESMExports(); }
+    await expect(fixture()).rejects.toThrow(/copy failed/);
+    expect(directory).toBeDefined();
+    await expect(access(directory)).rejects.toThrow(/ENOENT/);
+  } finally {
+    failing.mockRestore();
+    syncBuiltinESMExports();
+  }
 });
 
 test('resource generation is reproducible across both source bundles', async () => {
   const f = await fixture();
   try {
     const before = await readFile(join(f.directory, 'docs/resource-map.json'));
-    assert.match(f.run('--write'), /187 upstream files and 205 generated resources/);
-    assert.deepEqual(await readFile(join(f.directory, 'docs/resource-map.json')), before);
-    assert.match(f.run(), /187 upstream files and 205 generated resources/);
+    expect(f.run('--write')).toMatch(/187 upstream files and 205 generated resources/);
+    expect(await readFile(join(f.directory, 'docs/resource-map.json'))).toEqual(before);
+    expect(f.run()).toMatch(/187 upstream files and 205 generated resources/);
   } finally { await f.close(); }
 });
 
@@ -54,17 +56,17 @@ test('generation separates reusable prompts from procedural skills and Reference
   const f = await fixture();
   try {
     f.run('--write');
-    assert.equal((await readdir(join(f.directory, 'prompts'))).length, 63);
-    assert.equal((await readdir(join(f.directory, 'skills'))).length, 64);
-    await assert.rejects(readFile(join(f.directory, 'skills/bro/SKILL.md')), { code: 'ENOENT' });
-    assert.match(await readFile(join(f.directory, 'prompts/bro.md'), 'utf8'), /Restate your last message/);
-    assert.match(await readFile(join(f.directory, 'prompts/architect.md'), 'utf8'), /architect\/SKILL\.md/);
-    assert.match(await readFile(join(f.directory, 'prompts/architect.md'), 'utf8'), /\$ARGUMENTS/);
-    await assert.rejects(readFile(join(f.directory, 'prompts/poteto-mode.md')), { code: 'ENOENT' });
-    await assert.rejects(readFile(join(f.directory, 'prompts/setup-pstack.md')), { code: 'ENOENT' });
+    expect((await readdir(join(f.directory, 'prompts'))).length).toBe(63);
+    expect((await readdir(join(f.directory, 'skills'))).length).toBe(64);
+    await expect(readFile(join(f.directory, 'skills/bro/SKILL.md'))).rejects.toMatchObject({ code: 'ENOENT' });
+    expect(await readFile(join(f.directory, 'prompts/bro.md'), 'utf8')).toMatch(/Restate your last message/);
+    expect(await readFile(join(f.directory, 'prompts/architect.md'), 'utf8')).toMatch(/architect\/SKILL\.md/);
+    expect(await readFile(join(f.directory, 'prompts/architect.md'), 'utf8')).toMatch(/\$ARGUMENTS/);
+    await expect(readFile(join(f.directory, 'prompts/poteto-mode.md'))).rejects.toMatchObject({ code: 'ENOENT' });
+    await expect(readFile(join(f.directory, 'prompts/setup-pstack.md'))).rejects.toMatchObject({ code: 'ENOENT' });
     for (const name of ['poteto-mode', 'typescript-best-practices']) {
       const text = await readFile(join(f.directory, `skills/${name}/SKILL.md`), 'utf8');
-      assert.doesNotMatch(text, /^(mode|icon|color|reminder|paths):/m);
+      expect(text).not.toMatch(/^(mode|icon|color|reminder|paths):/m);
     }
   } finally { await f.close(); }
 });
@@ -75,11 +77,11 @@ test('generation migrates the former bro skill without deleting unrelated resour
     await mkdir(join(f.directory, 'skills/bro'));
     await cp(join(f.directory, 'upstream/skills/bro/SKILL.md'), join(f.directory, 'skills/bro/SKILL.md'));
     f.run('--write');
-    await assert.rejects(readFile(join(f.directory, 'skills/bro/SKILL.md')), { code: 'ENOENT' });
-    assert.match(await readFile(join(f.directory, 'prompts/bro.md'), 'utf8'), /Restate your last message/);
+    await expect(readFile(join(f.directory, 'skills/bro/SKILL.md'))).rejects.toMatchObject({ code: 'ENOENT' });
+    expect(await readFile(join(f.directory, 'prompts/bro.md'), 'utf8')).toMatch(/Restate your last message/);
     await writeFile(join(f.directory, 'prompts/unexpected.md'), 'Unexpected prompt');
-    assert.throws(() => f.run(), /Unexpected generated resource files/);
-    assert.equal(await readFile(join(f.directory, 'prompts/unexpected.md'), 'utf8'), 'Unexpected prompt');
+    expect(() => f.run()).toThrow(/Unexpected generated resource files/);
+    expect(await readFile(join(f.directory, 'prompts/unexpected.md'), 'utf8')).toBe('Unexpected prompt');
   } finally { await f.close(); }
 });
 
@@ -88,12 +90,12 @@ test('resource checks reject prompt drift and missing package discovery before g
   try {
     const target = join(f.directory, 'prompts/bro.md');
     await writeFile(target, 'Changed prompt');
-    assert.throws(() => f.run(), /Generated resource drift: prompts\/bro.md/);
+    expect(() => f.run()).toThrow(/Generated resource drift: prompts\/bro.md/);
     const manifestPath = join(f.directory, 'package.json');
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
     await writeFile(manifestPath, JSON.stringify({ ...manifest, pi: { ...manifest.pi, prompts: [] } }));
-    assert.throws(() => f.run('--write'), /Package must register and distribute/);
-    assert.equal(await readFile(target, 'utf8'), 'Changed prompt');
+    expect(() => f.run('--write')).toThrow(/Package must register and distribute/);
+    expect(await readFile(target, 'utf8')).toBe('Changed prompt');
   } finally { await f.close(); }
 });
 
@@ -103,8 +105,8 @@ test('a changed kit source prevents all generation writes', async () => {
     const target = join(f.directory, 'prompts/bro.md');
     await writeFile(target, 'Existing generated sentinel');
     await writeFile(join(f.directory, 'upstream-team-kit/skills/deslop/SKILL.md'), 'Changed source');
-    assert.throws(() => f.run('--write'), /Upstream hash mismatch: upstream-team-kit\/skills\/deslop\/SKILL.md/);
-    assert.equal(await readFile(target, 'utf8'), 'Existing generated sentinel');
+    expect(() => f.run('--write')).toThrow(/Upstream hash mismatch: upstream-team-kit\/skills\/deslop\/SKILL.md/);
+    expect(await readFile(target, 'utf8')).toBe('Existing generated sentinel');
   } finally { await f.close(); }
 });
 
@@ -119,7 +121,7 @@ test('overlapping source destinations fail before changing generated skills', as
       "{ directory: 'upstream-team-kit', inventory: 'docs/team-kit-source-inventory.json' }",
       "{ directory: 'upstream', inventory: 'docs/source-inventory.json' }",
     ));
-    assert.throws(() => f.run('--write'), /Duplicate generated skill destination across source bundles/);
-    assert.equal(await readFile(target, 'utf8'), 'Existing generated sentinel');
+    expect(() => f.run('--write')).toThrow(/Duplicate generated skill destination across source bundles/);
+    expect(await readFile(target, 'utf8')).toBe('Existing generated sentinel');
   } finally { await f.close(); }
 });

@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm, writeFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { test } from "node:test";
+import { expect, test } from "vitest";
 import { anthropicProvider } from "@earendil-works/pi-ai/providers/anthropic";
 import type { ExtensionCommandContext, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { modelConfigPath, readModelRule, resolveModel, setupModels } from "../src/models.ts";
@@ -19,51 +18,51 @@ function ui(handlers: Partial<ExtensionContext["ui"]>): ExtensionContext["ui"] {
 
 test("parent aliases, qualified models, and supported reasoning resolve", () => {
   const ctx = context();
-  for (const alias of [undefined, "auto", "inherit-parent"]) assert.deepEqual(resolveModel(alias, ctx), { model, thinkingLevel: "medium" });
-  assert.equal(resolveModel(model.id, ctx).model, model);
-  assert.equal(resolveModel(`${model.provider}/${model.id}:high`, ctx).thinkingLevel, "high");
+  for (const alias of [undefined, "auto", "inherit-parent"]) expect(resolveModel(alias, ctx)).toEqual({ model, thinkingLevel: "medium" });
+  expect(resolveModel(model.id, ctx).model).toBe(model);
+  expect(resolveModel(`${model.provider}/${model.id}:high`, ctx).thinkingLevel).toBe("high");
 });
 
 test("missing defaults and unsupported reasoning report available choices", () => {
-  assert.throws(() => resolveModel("grok-4.7-xhigh-fast", context()), /Unavailable.*setup-pstack/);
-  assert.throws(() => resolveModel(`${model.id}:garbage`, context()), /Unknown thinking level/);
+  expect(() => resolveModel("grok-4.7-xhigh-fast", context())).toThrow(/Unavailable.*setup-pstack/);
+  expect(() => resolveModel(`${model.id}:garbage`, context())).toThrow(/Unknown thinking level/);
   const limited = { ...model, reasoning: false };
   const ctx = context({ model: limited, modelRegistry: { getAvailable: () => [limited] } as ExtensionContext["modelRegistry"] });
-  assert.throws(() => resolveModel(`${model.id}:high`, ctx), /Supported thinking levels: off/);
-  assert.equal(resolveModel(model.id, ctx).thinkingLevel, "off");
-  assert.throws(() => resolveModel("auto", context({ model: undefined })), /No parent model/);
+  expect(() => resolveModel(`${model.id}:high`, ctx)).toThrow(/Supported thinking levels: off/);
+  expect(resolveModel(model.id, ctx).thinkingLevel).toBe("off");
+  expect(() => resolveModel("auto", context({ model: undefined }))).toThrow(/No parent model/);
 });
 
 test("ambiguous IDs require a provider; exact IDs containing colons are retained", () => {
   const duplicate = { ...model, provider: "other-provider" };
   const colon = { ...model, id: "custom:model" };
   const ctx = context({ modelRegistry: { getAvailable: () => [model, duplicate, colon] } as ExtensionContext["modelRegistry"] });
-  assert.throws(() => resolveModel(model.id, ctx), /Ambiguous/);
-  assert.equal(resolveModel(`other-provider/${model.id}`, ctx).model, duplicate);
-  assert.equal(resolveModel("custom:model", ctx).model, colon);
+  expect(() => resolveModel(model.id, ctx)).toThrow(/Ambiguous/);
+  expect(resolveModel(`other-provider/${model.id}`, ctx).model).toBe(duplicate);
+  expect(resolveModel("custom:model", ctx).model).toBe(colon);
 });
 
 test("headless setup rejects without writes", async () => {
-  await assert.rejects(setupModels(context()), /interactive or RPC dialog UI/);
+  await expect(setupModels(context())).rejects.toThrow(/interactive or RPC dialog UI/);
 });
 
 function confirmedContext(confirmed: () => void) {
-    const notices: string[] = [];
-    const ctx = context({ hasUI: true, ui: ui({
-      notify: (message) => { notices.push(message); },
-      select: async (title, options) => {
-        if (title.startsWith("pstack reasoning budget")) return "small — medium reasoning";
-        if (title.startsWith("Accept model table")) return "Accept as-is";
-        assert.ok(options.includes(`${model.provider}/${model.id}`));
-        return `${model.provider}/${model.id}`;
-      },
-      input: async () => "auto, inherit-parent, auto",
-      confirm: async () => {
-        assert.match(await readModelRule(), /how critics: retired/);
-        confirmed();
-        return true;
-      },
-    }) });
+  const notices: string[] = [];
+  const ctx = context({ hasUI: true, ui: ui({
+    notify: (message) => { notices.push(message); },
+    select: async (title, options) => {
+      if (title.startsWith("pstack reasoning budget")) return "small — medium reasoning";
+      if (title.startsWith("Accept model table")) return "Accept as-is";
+      expect(options.includes(`${model.provider}/${model.id}`)).toBe(true);
+      return `${model.provider}/${model.id}`;
+    },
+    input: async () => "auto, inherit-parent, auto",
+    confirm: async () => {
+      expect(await readModelRule()).toMatch(/how critics: retired/);
+      confirmed();
+      return true;
+    },
+  }) });
   return { ctx, notices: () => notices.slice() };
 }
 
@@ -72,30 +71,30 @@ test("setup confirms before writing all roles, preserves duplicate aliases, and 
   const previous = process.env.PI_CODING_AGENT_DIR;
   process.env.PI_CODING_AGENT_DIR = directory;
   try {
-    assert.equal(await readModelRule(), "");
+    expect(await readModelRule()).toBe("");
     await mkdir(dirname(modelConfigPath()), { recursive: true });
     await writeFile(modelConfigPath(), "---\nalwaysApply: true\n---\n# budget: unlimited (max)\narena runners: auto, auto, inherit-parent\nhow critics: retired\n");
     let confirmations = 0;
     const { ctx, notices } = confirmedContext(() => { confirmations++; });
     await setupModels(ctx);
     const result = await readFile(modelConfigPath(), "utf8");
-    assert.equal(confirmations, 1);
-    assert.match(result, /# budget: small \(medium\)/);
-    assert.match(result, /arena runners: auto, auto, inherit-parent/);
-    assert.doesNotMatch(result, /how critics/);
+    expect(confirmations).toBe(1);
+    expect(result).toMatch(/# budget: small \(medium\)/);
+    expect(result).toMatch(/arena runners: auto, auto, inherit-parent/);
+    expect(result).not.toMatch(/how critics/);
     const lines = result.split("\n").filter((line) => line && !line.startsWith("#") && !line.startsWith("---") && !line.startsWith("description:") && !line.startsWith("alwaysApply:"));
-    assert.equal(lines.length, 17);
-    assert.match(notices().join("\n"), /feature, refactoring[\s\S]*interrogate reviewers[\s\S]*Dropped retired roles:\nhow critics: retired/);
-    assert.match(result, /:medium/);
+    expect(lines.length).toBe(17);
+    expect(notices().join("\n")).toMatch(/feature, refactoring[\s\S]*interrogate reviewers[\s\S]*Dropped retired roles:\nhow critics: retired/);
+    expect(result).toMatch(/:medium/);
     await setupModels(context({ hasUI: true, ui: ui({ select: async () => undefined }) }));
-    assert.equal(await readModelRule(), result);
+    expect(await readModelRule()).toBe(result);
     let denied = false;
     await setupModels(context({ hasUI: true, ui: ui({
       select: async (title) => title.startsWith("pstack reasoning budget") ? "large — xhigh reasoning" : "Accept as-is",
       confirm: async () => { denied = true; return false; },
     }) }));
-    assert.ok(denied);
-    assert.equal(await readModelRule(), result);
+    expect(denied).toBe(true);
+    expect(await readModelRule()).toBe(result);
     const floorModel = { ...model, thinkingLevelMap: { xhigh: null, max: null } };
     const floorContext = context({ hasUI: true, model: floorModel,
       modelRegistry: { getAvailable: () => [floorModel] } as ExtensionContext["modelRegistry"],
@@ -104,12 +103,12 @@ test("setup confirms before writing all roles, preserves duplicate aliases, and 
         confirm: async () => true,
       }),
     });
-    assert.equal(await setupModels(floorContext), true);
+    expect(await setupModels(floorContext)).toBe(true);
     const floored = await readModelRule();
-    assert.match(floored, /# budget: large \(xhigh\)/);
-    assert.match(floored, /:high/);
-    assert.doesNotMatch(floored, /:xhigh/);
-    assert.match(floored, /arena runners: auto, auto, inherit-parent/);
+    expect(floored).toMatch(/# budget: large \(xhigh\)/);
+    expect(floored).toMatch(/:high/);
+    expect(floored).not.toMatch(/:xhigh/);
+    expect(floored).toMatch(/arena runners: auto, auto, inherit-parent/);
   } finally {
     if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
     else process.env.PI_CODING_AGENT_DIR = previous;
@@ -156,15 +155,15 @@ test("TUI setup pickers stay within a screen, filter by typing, and build ordere
         confirm: async () => true,
         custom: scriptedCustom(scripts, frames),
       }) });
-    assert.equal(await setupModels(ctx), true);
+    expect(await setupModels(ctx)).toBe(true);
     const result = await readModelRule();
-    assert.match(result, /^bug-fix: anthropic\/m17:medium$/m);
-    assert.match(result, /^arena runners: anthropic\/m150:medium, anthropic\/m42:medium$/m);
-    assert.ok(frames.every((frame) => frame.length <= 20), `picker heights ${frames.map((frame) => frame.length).join(", ")}`);
-    assert.match(frames[0]!.join("\n"), /Accept model table or change a role/);
-    assert.match(frames[1]!.join("\n"), /bug-fix \(current: inherit-parent\)/);
-    assert.match(frames[5]!.join("\n"), /arena runners seat 3\. Selected: anthropic\/m150:medium, anthropic\/m42:medium/);
-    assert.deepEqual(scripts, []);
+    expect(result).toMatch(/^bug-fix: anthropic\/m17:medium$/m);
+    expect(result).toMatch(/^arena runners: anthropic\/m150:medium, anthropic\/m42:medium$/m);
+    expect(frames.every((frame) => frame.length <= 20)).toBe(true);
+    expect(frames[0]!.join("\n")).toMatch(/Accept model table or change a role/);
+    expect(frames[1]!.join("\n")).toMatch(/bug-fix \(current: inherit-parent\)/);
+    expect(frames[5]!.join("\n")).toMatch(/arena runners seat 3\. Selected: anthropic\/m150:medium, anthropic\/m42:medium/);
+    expect(scripts).toEqual([]);
   } finally {
     if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
     else process.env.PI_CODING_AGENT_DIR = previous;
@@ -189,13 +188,102 @@ test("TUI accept list and confirm question fit on a 24-line screen", async () =>
       confirm: async (_title, message) => { confirmMessage = message ?? ""; return true; },
       custom: scriptedCustom([["\r"]], frames),
     }) });
-    assert.equal(await setupModels(ctx), true);
+    expect(await setupModels(ctx)).toBe(true);
     const accept = frames[0]!.join("\n");
-    assert.match(accept, /Accept model table or change a role/);
-    assert.match(accept, /bug-fix: inherit-parent/);
-    assert.ok(frames[0]!.length <= 14, `accept picker height ${frames[0]!.length}`);
-    assert.ok(confirmMessage.split("\n").length <= 4, confirmMessage);
-    assert.match(confirmMessage, /models\.mdc/);
+    expect(accept).toMatch(/Accept model table or change a role/);
+    expect(accept).toMatch(/bug-fix: inherit-parent/);
+    expect(frames[0]!.length <= 14).toBe(true);
+    expect(confirmMessage.split("\n").length <= 4).toBe(true);
+    expect(confirmMessage).toMatch(/models\.mdc/);
+  } finally {
+    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = previous;
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("pick delegates to ui.select outside of TUI mode", async () => {
+  const { pick } = await import("../src/picker.ts");
+  const ctx = {
+    mode: "print",
+    ui: {
+      select: async (title: string, options: string[]) => `selected:${title}:${options.join(",")}`,
+    },
+  } as unknown as ExtensionContext;
+  const result = await pick(ctx, "Pick model", ["m1", "m2"]);
+  expect(result).toBe("selected:Pick model:m1,m2");
+});
+
+test("pick in TUI mode handles focus, render, and cancellation", async () => {
+  const { pick } = await import("../src/picker.ts");
+  let widgetInstance: { focused: boolean; render: (w: number) => string[]; invalidate: () => void; handleInput: (key: string) => void } | undefined;
+  const ctx = {
+    mode: "tui",
+    ui: {
+      custom: (factory: Function) => new Promise((resolve) => {
+        const theme = { fg: (_c: string, t: string) => t, bold: (t: string) => t };
+        widgetInstance = factory({ requestRender() {} }, theme, undefined, resolve);
+        widgetInstance!.focused = true;
+        expect(widgetInstance!.focused).toBe(true);
+        expect(widgetInstance!.render(80).length > 0).toBe(true);
+        widgetInstance!.invalidate();
+        widgetInstance!.handleInput("\x1b");
+      }),
+    },
+  } as unknown as ExtensionContext;
+  const result = await pick(ctx, "Pick model", ["m1", "m2"]);
+  expect(result).toBeUndefined();
+});
+
+test("setupModels with unlimited budget preserves existing model strings without target", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "pstack-unlimited-"));
+  const previous = process.env.PI_CODING_AGENT_DIR;
+  process.env.PI_CODING_AGENT_DIR = directory;
+  try {
+    await mkdir(dirname(modelConfigPath()), { recursive: true });
+    await writeFile(modelConfigPath(), allRoles.map((role) => `${role}: inherit-parent`).join("\n"));
+    const ctx = context({
+      hasUI: true,
+      ui: ui({
+        select: async (title) => {
+          if (title.startsWith("pstack reasoning budget")) return "unlimited — keep max";
+          return "Accept as-is";
+        },
+        confirm: async () => true,
+      }),
+    });
+    expect(await setupModels(ctx)).toBe(true);
+    const result = await readModelRule();
+    expect(result).toMatch(/# budget: unlimited \(max\)/);
+  } finally {
+    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = previous;
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("setupModels non-TUI mode edits single and panel roles, handles needsChoice and empty model error", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "pstack-nontui-"));
+  const previous = process.env.PI_CODING_AGENT_DIR;
+  process.env.PI_CODING_AGENT_DIR = directory;
+  try {
+    await mkdir(dirname(modelConfigPath()), { recursive: true });
+    await writeFile(modelConfigPath(), allRoles.map((role) => role === "bug-fix" ? `${role}: invalid_model` : `${role}: inherit-parent`).join("\n"));
+    const inputs = ["", "auto, auto"];
+    const selects = ["small — medium reasoning", "auto", "arena runners", "Accept as-is"];
+    const notifiedErrors: string[] = [];
+    const ctx = context({
+      hasUI: true,
+      mode: "rpc",
+      ui: ui({
+        select: async () => selects.shift(),
+        input: async () => inputs.shift(),
+        notify: (msg, level) => { if (level === "error") notifiedErrors.push(msg); },
+        confirm: async () => true,
+      }),
+    });
+    expect(await setupModels(ctx)).toBe(true);
+    expect(notifiedErrors.length > 0).toBe(true);
   } finally {
     if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
     else process.env.PI_CODING_AGENT_DIR = previous;

@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { expect, test } from 'vitest';
 import type { ExtensionAPI, ExtensionContext, Theme, ToolDefinition, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
 import { createState, registerStateTools } from '../src/state.ts';
 
@@ -16,17 +15,17 @@ test('TodoWrite publishes independent todos rather than caller-owned records', a
   const store = createState(pi);
   registerStateTools(pi, store);
   const tool = tools.find(tool => tool.name === 'TodoWrite');
-  assert.ok(tool);
+  expect(tool).toBeDefined();
   const todo = Object.freeze({ id: 'one', content: 'First', status: 'pending' });
   const params = Object.freeze({ todos: Object.freeze([todo]) });
-  const result = await tool.execute('one', params, undefined, undefined, ctx);
+  const result = await tool!.execute('one', params, undefined, undefined, ctx);
   const todos = result.details as typeof params.todos;
-  assert.deepEqual(todos, [{ id: 'one', content: 'First', status: 'pending' }]);
-  assert.notEqual(todos, params.todos);
-  assert.notEqual(todos[0], params.todos[0]);
-  await tool.execute('two', { todos: [{ id: 'one', content: 'Second', status: 'completed' }] }, undefined, undefined, ctx);
-  assert.equal(todos[0]?.content, 'First');
-  assert.equal(store.read().todos[0]?.content, 'Second');
+  expect(todos).toEqual([{ id: 'one', content: 'First', status: 'pending' }]);
+  expect(todos).not.toBe(params.todos);
+  expect(todos[0]).not.toBe(params.todos[0]);
+  await tool!.execute('two', { todos: [{ id: 'one', content: 'Second', status: 'completed' }] }, undefined, undefined, ctx);
+  expect(todos[0]?.content).toBe('First');
+  expect(store.read().todos[0]?.content).toBe('Second');
 });
 
 test('state snapshots never alias caller input, published entries, or previous reads', () => {
@@ -37,14 +36,14 @@ test('state snapshots never alias caller input, published entries, or previous r
   const input = { enabled: true, todos: [{ id: 'one', content: 'First', status: 'pending' as const }] };
   store.update(input, ctx);
   const snapshot = store.read();
-  assert.deepEqual(snapshot, input);
-  assert.notEqual(snapshot, input);
-  assert.notEqual(snapshot.todos[0], input.todos[0]);
-  assert.notEqual(snapshot, published[0]);
-  assert.notEqual(store.read().todos, snapshot.todos);
+  expect(snapshot).toEqual(input);
+  expect(snapshot).not.toBe(input);
+  expect(snapshot.todos[0]).not.toBe(input.todos[0]);
+  expect(snapshot).not.toBe(published[0]);
+  expect(store.read().todos).not.toBe(snapshot.todos);
   store.toggle(false, ctx);
-  assert.equal(snapshot.enabled, true);
-  assert.equal(store.read().enabled, false);
+  expect(snapshot.enabled).toBe(true);
+  expect(store.read().enabled).toBe(false);
 });
 
 test('pstack_mode tool toggles mode and returns bounded confirmation', async () => {
@@ -54,13 +53,13 @@ test('pstack_mode tool toggles mode and returns bounded confirmation', async () 
   const store = createState(pi);
   registerStateTools(pi, store);
   const modeTool = tools.find(t => t.name === 'pstack_mode');
-  assert.ok(modeTool);
-  const on = await modeTool.execute('1', { enabled: true }, undefined, undefined, ctx);
-  assert.match(JSON.stringify(on.content), /Poteto mode is on/);
-  assert.equal(store.read().enabled, true);
-  const off = await modeTool.execute('2', { enabled: false }, undefined, undefined, ctx);
-  assert.match(JSON.stringify(off.content), /Poteto mode is off/);
-  assert.equal(store.read().enabled, false);
+  expect(modeTool).toBeDefined();
+  const on = await modeTool!.execute('1', { enabled: true }, undefined, undefined, ctx);
+  expect(JSON.stringify(on.content)).toMatch(/Poteto mode is on/);
+  expect(store.read().enabled).toBe(true);
+  const off = await modeTool!.execute('2', { enabled: false }, undefined, undefined, ctx);
+  expect(JSON.stringify(off.content)).toMatch(/Poteto mode is off/);
+  expect(store.read().enabled).toBe(false);
 });
 
 test('TodoWrite registers promptSnippet, promptGuidelines, and schema descriptions', () => {
@@ -68,15 +67,15 @@ test('TodoWrite registers promptSnippet, promptGuidelines, and schema descriptio
   const pi = { appendEntry() {}, registerTool: (t: ToolDefinition) => { tools.push(t); } } as unknown as ExtensionAPI;
   registerStateTools(pi, createState(pi));
   const tool = tools.find(t => t.name === 'TodoWrite');
-  assert.ok(tool);
-  assert.equal(tool.promptSnippet, 'Replace or merge the ordered todo list.');
-  assert.deepEqual(tool.promptGuidelines, [
+  expect(tool).toBeDefined();
+  expect(tool!.promptSnippet).toBe('Replace or merge the ordered todo list.');
+  expect(tool!.promptGuidelines).toEqual([
     'Copy the selected playbook steps verbatim before task-specific steps.',
     'Keep skipped steps with a reason.',
   ]);
-  const properties = (tool.parameters as { properties?: Record<string, { description?: string }> }).properties;
-  assert.ok(properties?.todos?.description);
-  assert.ok(properties?.merge?.description);
+  const properties = (tool!.parameters as { properties?: Record<string, { description?: string }> }).properties;
+  expect(properties?.todos?.description).toBeDefined();
+  expect(properties?.merge?.description).toBeDefined();
 });
 
 test('TodoWrite renderCall formats call summaries', () => {
@@ -84,15 +83,15 @@ test('TodoWrite renderCall formats call summaries', () => {
   const pi = { appendEntry() {}, registerTool: (t: ToolDefinition) => { tools.push(t); } } as unknown as ExtensionAPI;
   registerStateTools(pi, createState(pi));
   const tool = tools.find(t => t.name === 'TodoWrite');
-  assert.ok(tool?.renderCall);
-  const empty = tool.renderCall({ todos: [] }, mockTheme, {} as never);
-  assert.deepEqual(empty.render(80), ['*TodoWrite* 0 items']);
+  expect(tool?.renderCall).toBeDefined();
+  const empty = tool!.renderCall!({ todos: [] }, mockTheme, {} as never);
+  expect(empty.render(80)).toEqual(['*TodoWrite* 0 items']);
   empty.invalidate();
-  const single = tool.renderCall({ todos: [{ id: '1', content: 'Task', status: 'pending' }] }, mockTheme, {} as never);
-  assert.deepEqual(single.render(80), ['*TodoWrite* 1 item']);
+  const single = tool!.renderCall!({ todos: [{ id: '1', content: 'Task', status: 'pending' }] }, mockTheme, {} as never);
+  expect(single.render(80)).toEqual(['*TodoWrite* 1 item']);
   single.invalidate();
-  const merged = tool.renderCall({ todos: [{ id: '1', content: 'A', status: 'pending' }, { id: '2', content: 'B', status: 'pending' }], merge: true }, mockTheme, {} as never);
-  assert.deepEqual(merged.render(80), ['*TodoWrite* 2 items, merge']);
+  const merged = tool!.renderCall!({ todos: [{ id: '1', content: 'A', status: 'pending' }, { id: '2', content: 'B', status: 'pending' }], merge: true }, mockTheme, {} as never);
+  expect(merged.render(80)).toEqual(['*TodoWrite* 2 items, merge']);
   merged.invalidate();
 });
 
@@ -101,12 +100,12 @@ test('TodoWrite renderResult formats empty, mixed, completed, and truncated list
   const pi = { appendEntry() {}, registerTool: (t: ToolDefinition) => { tools.push(t); } } as unknown as ExtensionAPI;
   registerStateTools(pi, createState(pi));
   const tool = tools.find(t => t.name === 'TodoWrite');
-  assert.ok(tool?.renderResult);
-  const empty = tool.renderResult({ content: [], details: [] }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
-  assert.deepEqual(empty.render(80), ['No todos']);
+  expect(tool?.renderResult).toBeDefined();
+  const empty = tool!.renderResult!({ content: [], details: [] }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
+  expect(empty.render(80)).toEqual(['No todos']);
   empty.invalidate();
-  const noDetails = tool.renderResult({ content: [], details: undefined }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
-  assert.deepEqual(noDetails.render(80), ['No todos']);
+  const noDetails = tool!.renderResult!({ content: [], details: undefined }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
+  expect(noDetails.render(80)).toEqual(['No todos']);
   noDetails.invalidate();
   const todos = [
     { id: '1', content: 'Done', status: 'completed' as const },
@@ -114,22 +113,22 @@ test('TodoWrite renderResult formats empty, mixed, completed, and truncated list
     { id: '3', content: 'Skip', status: 'cancelled' as const },
     { id: '4', content: 'Wait', status: 'pending' as const },
   ];
-  const mixed = tool.renderResult({ content: [], details: todos }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
+  const mixed = tool!.renderResult!({ content: [], details: todos }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
   mixed.invalidate();
   const mixedLines = mixed.render(80);
-  assert.match(mixedLines[0] ?? '', /1\/4 completed • 1 in progress/);
-  assert.ok(mixedLines.some(l => l.includes('✓ Done')));
-  assert.ok(mixedLines.some(l => l.includes('◐ Active')));
-  assert.ok(mixedLines.some(l => l.includes('⊘ Skip (cancelled)')));
-  assert.ok(mixedLines.some(l => l.includes('○ Wait')));
-  const allDone = tool.renderResult({ content: [], details: [{ id: '1', content: 'All', status: 'completed' as const }] }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
-  assert.match(allDone.render(80)[0] ?? '', /All completed/);
+  expect(mixedLines[0] ?? '').toMatch(/1\/4 completed • 1 in progress/);
+  expect(mixedLines.some(l => l.includes('✓ Done'))).toBe(true);
+  expect(mixedLines.some(l => l.includes('◐ Active'))).toBe(true);
+  expect(mixedLines.some(l => l.includes('⊘ Skip (cancelled)'))).toBe(true);
+  expect(mixedLines.some(l => l.includes('○ Wait'))).toBe(true);
+  const allDone = tool!.renderResult!({ content: [], details: [{ id: '1', content: 'All', status: 'completed' as const }] }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
+  expect(allDone.render(80)[0] ?? '').toMatch(/All completed/);
   const many = Array.from({ length: 10 }, (_, i) => ({ id: `${i}`, content: `Step ${i}`, status: 'pending' as const }));
-  const collapsed = tool.renderResult({ content: [], details: many }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
-  assert.equal(collapsed.render(80).length, 10);
-  assert.match(collapsed.render(80).at(-1) ?? '', /2 more/);
-  const expanded = tool.renderResult({ content: [], details: many }, { expanded: true } as ToolRenderResultOptions, mockTheme, {} as never);
-  assert.equal(expanded.render(80).length, 11);
+  const collapsed = tool!.renderResult!({ content: [], details: many }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
+  expect(collapsed.render(80).length).toBe(10);
+  expect(collapsed.render(80).at(-1) ?? '').toMatch(/2 more/);
+  const expanded = tool!.renderResult!({ content: [], details: many }, { expanded: true } as ToolRenderResultOptions, mockTheme, {} as never);
+  expect(expanded.render(80).length).toBe(11);
 });
 
 type Widget = string[] | (() => { render: (width: number) => string[] });
@@ -151,7 +150,7 @@ test('showState widget uses distinct status markers for each status', () => {
       { id: '4', content: 'D', status: 'pending' },
     ],
   }, ctx);
-  assert.deepEqual(widgetText(widget), [
+  expect(widgetText(widget)).toEqual([
     '[x] A (completed)',
     '[>] B (in_progress)',
     '[-] C (cancelled)',
@@ -164,10 +163,10 @@ test('TodoWrite renderResult keeps every line within the render width', () => {
   const pi = { appendEntry() {}, registerTool: (t: ToolDefinition) => { tools.push(t); } } as unknown as ExtensionAPI;
   registerStateTools(pi, createState(pi));
   const tool = tools.find(t => t.name === 'TodoWrite');
-  assert.ok(tool?.renderResult);
+  expect(tool?.renderResult).toBeDefined();
   const content = 'Branch test/vitest-unit-suites; delete all node:test suites and fixtures (subtract first)';
-  const result = tool.renderResult({ content: [], details: [{ id: '1', content, status: 'pending' as const }] }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
-  assert.deepEqual(result.render(30), [
+  const result = tool!.renderResult!({ content: [], details: [{ id: '1', content, status: 'pending' as const }] }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
+  expect(result.render(30)).toEqual([
     '*Todos* 0/1 completed',
     '  ○ Branch test/vitest-unit\x1b[0m...\x1b[0m',
   ]);
@@ -183,7 +182,7 @@ test('collapsed todo views keep the in-progress step visible in long lists', () 
   const store = createState(pi);
   registerStateTools(pi, store);
   store.update({ enabled: false, todos }, ctx);
-  assert.deepEqual(widgetText(widget), [
+  expect(widgetText(widget)).toEqual([
     '... 7 earlier',
     '[x] Step 8 (completed)', '[x] Step 9 (completed)', '[x] Step 10 (completed)', '[x] Step 11 (completed)',
     '[>] Step 12 (in_progress)',
@@ -191,8 +190,8 @@ test('collapsed todo views keep the in-progress step visible in long lists', () 
   ]);
   const tool = tools.find(t => t.name === 'TodoWrite');
   const collapsed = tool!.renderResult!({ content: [], details: todos }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
-  assert.deepEqual(collapsed.render(80).slice(1, 3), ['  ... 7 earlier', '  ✓ Step 8']);
-  assert.ok(collapsed.render(80).includes('  ◐ Step 12'));
+  expect(collapsed.render(80).slice(1, 3)).toEqual(['  ... 7 earlier', '  ✓ Step 8']);
+  expect(collapsed.render(80).includes('  ◐ Step 12')).toBe(true);
 });
 
 test('todo widget stays one row per step so a normal terminal does not shrink it away', () => {
@@ -204,5 +203,5 @@ test('todo widget stays one row per step so a normal terminal does not shrink it
     todos: [{ id: '1', content, status: 'pending' }],
   }, ctx);
   const lines = widgetText(widget, 40);
-  assert.deepEqual(lines, ['[ ] Pin the behavior contract first. \x1b[0m...\x1b[0m']);
+  expect(lines).toEqual(['[ ] Pin the behavior contract first. \x1b[0m...\x1b[0m']);
 });
