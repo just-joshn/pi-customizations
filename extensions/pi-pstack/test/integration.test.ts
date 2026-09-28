@@ -634,7 +634,9 @@ test("AskQuestion multi-select titles show the choices made so far", async () =>
       { id: "colors", prompt: "Choose colors", allow_multiple: true, options: [{ id: "red", label: "Red" }, { id: "blue", label: "Blue" }] },
     ] } });
     await prompt(session, "Ask for colors.");
-    assert.deepEqual(toolResults(session, "AskQuestion").at(-1)?.details, [{ id: "colors", answers: ["red", "Teal"], cancelled: false }]);
+    const answer = toolResults(session, "AskQuestion").at(-1);
+    assert.ok(answer?.role === "toolResult" && !answer.isError);
+    assert.deepEqual(answer.details, [{ id: "colors", answers: ["red", "Teal"], cancelled: false }]);
     assert.deepEqual(titles, ["Choose colors", "Choose colors (selected: Red)", "Choose colors (selected: Red, Teal)"]);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
