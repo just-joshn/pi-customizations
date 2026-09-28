@@ -12,7 +12,7 @@ const manifest = (extra = {}) => JSON.stringify({ name: 'fixture', private: true
 const clean = {
   'bun.lock': '',
   'package.json': manifest(),
-  'Makefile': 'verify:\n\tnode runner.mjs\n',
+  Makefile: 'verify:\n\tnode runner.mjs\n',
   'README.md': '## Verify\n\n```sh\nnode runner.mjs\n```\n',
   'runner.mjs': `import { execFileSync } from 'node:child_process';
 execFileSync('node', ['--version']);
@@ -38,9 +38,15 @@ const cases = [
   ['npm in a make recipe', { Makefile: 'verify:\n\tnpm run test\n' }, ['runs another package manager']],
   ['npm in a readme fence', { 'README.md': '## Verify\n\n```sh\nnpm install\n```\n' }, ['documents another package manager']],
   ['npm in a guide fence', { 'docs/guide.md': '## Verify\n\n```sh\nnpm install\n```\n' }, ['documents another package manager']],
-  ['npm launched from a script', { 'runner.mjs': `import { execFileSync } from 'node:child_process';
+  [
+    'npm launched from a script',
+    {
+      'runner.mjs': `import { execFileSync } from 'node:child_process';
 execFileSync('npm', ['test']);
-` }, ['launches another package manager']],
+`,
+    },
+    ['launches another package manager'],
+  ],
 ];
 
 for (const [name, overrides, expected] of cases) {
@@ -49,7 +55,10 @@ for (const [name, overrides, expected] of cases) {
     const { violations } = toolchainViolations(directory);
     assert.equal(violations.length, expected.length, `${name}: ${JSON.stringify(violations)}`);
     for (const fragment of expected) {
-      assert.ok(violations.some(violation => violation.includes(fragment)), `${name}: expected ${fragment} in ${JSON.stringify(violations)}`);
+      assert.ok(
+        violations.some((violation) => violation.includes(fragment)),
+        `${name}: expected ${fragment} in ${JSON.stringify(violations)}`,
+      );
     }
   } finally {
     await rm(directory, { recursive: true, force: true });
