@@ -1,7 +1,6 @@
-import assert from "node:assert/strict";
 import { createServer, type IncomingHttpHeaders, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
-import test from "node:test";
+import { expect, test } from "vitest";
 import {
 	isContextOverflow,
 	normalizeContext,
@@ -16,7 +15,7 @@ import extension from "../src/index.ts";
 function register(): Provider {
 	const registered: Provider[] = [];
 	extension({ registerProvider: (provider: Provider) => registered.push(provider) } as unknown as ExtensionAPI);
-	assert.equal(registered.length, 1);
+	expect(registered.length).toBe(1);
 	return registered[0]!;
 }
 
@@ -77,13 +76,13 @@ const readTool = {
 
 test("the provider is a separate Claude subscription login over the Anthropic Messages API", () => {
 	const provider = register();
-	assert.equal(provider.id, "claude-subscription");
-	assert.equal(provider.auth.oauth?.name, "Claude subscription (Claude Code)");
-	assert.equal(provider.auth.oauth?.isSubscription, true);
-	assert.equal(provider.auth.apiKey, undefined);
+	expect(provider.id).toBe("claude-subscription");
+	expect(provider.auth.oauth?.name).toBe("Claude subscription (Claude Code)");
+	expect(provider.auth.oauth?.isSubscription).toBe(true);
+	expect(provider.auth.apiKey).toBeUndefined();
 	const sonnet = provider.getModels().find((model) => model.id === "claude-sonnet-4-6");
-	assert.equal(sonnet?.provider, "claude-subscription");
-	assert.equal(sonnet?.api, "anthropic-messages");
+	expect(sonnet?.provider).toBe("claude-subscription");
+	expect(sonnet?.api).toBe("anthropic-messages");
 });
 
 test("a request identifies as Claude Code and maps tool names both ways", async () => {
@@ -94,23 +93,20 @@ test("a request identifies as Claude Code and maps tool names both ways", async 
 		},
 		{ systemPrompt: "You are helpful.", tools: [readTool], messages: [{ role: "user", content: "read a", timestamp: 1 }] },
 	);
-	assert.equal(headers.authorization, "Bearer sk-ant-oat01-test");
-	assert.equal(headers["x-api-key"], undefined);
-	assert.equal(headers["user-agent"], "claude-cli/2.1.280");
-	assert.equal(headers["x-app"], "cli");
-	assert.equal(headers["anthropic-version"], "2023-06-01");
-	assert.equal(headers["anthropic-beta"], "claude-code-20250219,oauth-2025-04-20");
-	assert.deepEqual(
-		(body.system as Array<{ text: string }>).map((block) => block.text),
-		[
-			"x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;",
-			"You are Claude Code, Anthropic's official CLI for Claude.",
-			"You are helpful.",
-		],
-	);
-	assert.equal((body.tools as Array<{ name: string }>)[0]?.name, "Read");
-	assert.equal(message.stopReason, "toolUse");
-	assert.deepEqual(message.content, [{ type: "toolCall", id: "toolu_1", name: "read", arguments: { path: "a.txt" } }]);
+	expect(headers.authorization).toBe("Bearer sk-ant-oat01-test");
+	expect(headers["x-api-key"]).toBeUndefined();
+	expect(headers["user-agent"]).toBe("claude-cli/2.1.280");
+	expect(headers["x-app"]).toBe("cli");
+	expect(headers["anthropic-version"]).toBe("2023-06-01");
+	expect(headers["anthropic-beta"]).toBe("claude-code-20250219,oauth-2025-04-20");
+	expect((body.system as Array<{ text: string }>).map((block) => block.text)).toEqual([
+		"x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;",
+		"You are Claude Code, Anthropic's official CLI for Claude.",
+		"You are helpful.",
+	]);
+	expect((body.tools as Array<{ name: string }>)[0]?.name).toBe("Read");
+	expect(message.stopReason).toBe("toolUse");
+	expect(message.content).toEqual([{ type: "toolCall", id: "toolu_1", name: "read", arguments: { path: "a.txt" } }]);
 });
 
 test("caller payload hooks see the billing block and CLAUDE_CODE_VERSION sets the user agent", async () => {
@@ -129,12 +125,12 @@ test("caller payload hooks see the billing block and CLAUDE_CODE_VERSION sets th
 			},
 		},
 	);
-	assert.deepEqual(seenFirstBlock, {
+	expect(seenFirstBlock).toEqual({
 		type: "text",
 		text: "x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;",
 	});
-	assert.deepEqual(body.metadata, { user_id: "replaced" });
-	assert.equal(headers["user-agent"], "claude-cli/9.9.9");
+	expect(body.metadata).toEqual({ user_id: "replaced" });
+	expect(headers["user-agent"]).toBe("claude-cli/9.9.9");
 });
 
 test("an overflow response stays recognizable so Pi can compact", async () => {
@@ -145,8 +141,8 @@ test("an overflow response stays recognizable so Pi can compact", async () => {
 		},
 		{ messages: [{ role: "user", content: "hi", timestamp: 1 }] },
 	);
-	assert.equal(message.stopReason, "error");
-	assert.equal(isContextOverflow(message, 200000), true);
+	expect(message.stopReason).toBe("error");
+	expect(isContextOverflow(message, 200000)).toBe(true);
 });
 
 test("an aborted request ends as aborted, not as an error", async () => {
@@ -158,5 +154,5 @@ test("an aborted request ends as aborted, not as an error", async () => {
 		{ messages: [{ role: "user", content: "hi", timestamp: 1 }] },
 		{ signal: AbortSignal.abort() },
 	);
-	assert.equal(message.stopReason, "aborted");
+	expect(message.stopReason).toBe("aborted");
 });

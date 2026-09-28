@@ -4,14 +4,23 @@
   "description": "Use a Claude Pro or Max subscription in Pi. Requests identify as Claude Code.",
   "type": "module",
   "license": "MIT",
-  "keywords": ["pi-package"],
-  "engines": { "node": ">=22.19.0" },
-  "pi": {
-    "extensions": ["./src/index.ts"]
+  "keywords": [
+    "pi-package"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
   },
-  "files": ["src", "README.md"],
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
   "scripts": {
-    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "test": "vitest run",
     "typecheck": "tsc -p ."
   },
   "peerDependencies": {
@@ -22,6 +31,7 @@
     "@earendil-works/pi-ai": "0.87.1",
     "@earendil-works/pi-coding-agent": "0.87.1",
     "@types/node": "^22.19.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.2"
   }
 }
