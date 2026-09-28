@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled new-branch-and-pr workflow."
+argument-hint: "[task]"
 ---
 
 Read new-branch-and-pr/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

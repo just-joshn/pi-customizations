@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled loop-on-ci workflow."
+argument-hint: "[task]"
 ---
 
 Read loop-on-ci/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

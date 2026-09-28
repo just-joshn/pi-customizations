@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-subtract-before-you-add workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-subtract-before-you-add/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

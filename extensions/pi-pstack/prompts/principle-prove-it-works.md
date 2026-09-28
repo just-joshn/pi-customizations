@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-prove-it-works workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-prove-it-works/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

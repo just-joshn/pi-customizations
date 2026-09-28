@@ -1,6 +1,6 @@
 ---
 name: loop
-description: Run a prompt or skill in this Pi session on a fixed or self-paced interval, or on a watched event, through monitored background shell output. Use for /loop, "/loop 5m /foo", "check X every 10 minutes", "loop until done", or a playbook that arms a terminal /loop tick.
+description: Run a prompt or skill in this Pi session on a fixed or self-paced interval, or on a watched event, through monitored background shell output. Use for /loop, such as "/loop 5m /foo", or when a playbook arms a terminal /loop tick.
 disable-model-invocation: true
 ---
 

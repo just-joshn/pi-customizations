@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled workflow-from-chats workflow."
+argument-hint: "[task]"
 ---
 
 Read workflow-from-chats/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

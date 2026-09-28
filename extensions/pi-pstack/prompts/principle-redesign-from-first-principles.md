@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-redesign-from-first-principles workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-redesign-from-first-principles/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

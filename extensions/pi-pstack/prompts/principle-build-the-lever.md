@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-build-the-lever workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-build-the-lever/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.
