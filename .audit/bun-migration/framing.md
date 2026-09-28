@@ -37,7 +37,7 @@ High. Five published packages and the entire toolchain move at once, and the gat
 
 ## The topology fork, measured
 
-Three layouts were probed by exporting the tracked tree to `/tmp` and installing there. The probe script is `/tmp/bun-migration/probe-topology.sh` and its output is `.audit/bun-migration/topology-probe.log`.
+Three layouts were probed by exporting the tracked tree to `/tmp` and installing there. `probe-topology.sh` beside this file reruns the probe without touching the checkout, and its outputs are `topology-probe-default.log` and `topology-probe-hoisted.log`.
 
 | | five installs, no workspace | root workspace, hoisted | root workspace, isolated |
 | --- | --- | --- | --- |
