@@ -11,15 +11,12 @@ const personas = new Map<string, Persona>([
   ['comment-sicko', comment],
   ['Comment Sicko', comment],
   ['ci-watcher', { files: ['upstream-team-kit/agents/ci-watcher.md'] }],
-  ['thermo-nuclear-code-quality-review', { files: [
-    'upstream-team-kit/agents/thermo-nuclear-code-quality-review.md',
-    'skills/thermo-nuclear-code-quality-review/SKILL.md',
-  ] }],
+  ['thermo-nuclear-code-quality-review', { files: ['upstream-team-kit/agents/thermo-nuclear-code-quality-review.md', 'skills/thermo-nuclear-code-quality-review/SKILL.md'] }],
 ]);
 
 export async function readPersona(name: string): Promise<{ instructions: string; defaultModel: string | undefined }> {
   const persona = personas.get(name);
   if (!persona) throw new Error(`Unsupported agent ${name}. Reference built-in roles such as shell and explore are not supplied. Available: ${[...personas.keys()].join(', ')}`);
-  const bodies = await Promise.all(persona.files.map(file => readFile(join(root, file), 'utf8')));
+  const bodies = await Promise.all(persona.files.map((file) => readFile(join(root, file), 'utf8')));
   return { instructions: bodies.join('\n'), defaultModel: persona.defaultModel };
 }

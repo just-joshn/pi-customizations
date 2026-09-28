@@ -9,19 +9,23 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const piDir = join(root, 'extensions/pi-pstack/node_modules/@earendil-works/pi-coding-agent');
 const { loadSkills, parseFrontmatter } = await import(pathToFileURL(join(piDir, 'dist/index.js')).href);
 const virtualModules = await readFile(join(piDir, 'dist/core/extensions/virtual-modules.js'), 'utf8');
-const supplied = new Set([...virtualModules.matchAll(/^\s+"?([^":\s]+)"?: bundled\w+,$/gm)].map(match => match[1]));
+const supplied = new Set([...virtualModules.matchAll(/^\s+"?([^":\s]+)"?: bundled\w+,$/gm)].map((match) => match[1]));
 const skillFields = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools', 'disable-model-invocation']);
 const promptFields = new Set(['description', 'argument-hint']);
 const violations = [];
 const themeNames = new Map();
 const report = (path, message) => violations.push(`${relative(root, path) || '.'}: ${message}`);
 
-const packageName = specifier => specifier.split('/').slice(0, specifier.startsWith('@') ? 2 : 1).join('/');
+const packageName = (specifier) =>
+  specifier
+    .split('/')
+    .slice(0, specifier.startsWith('@') ? 2 : 1)
+    .join('/');
 const suppliedPackages = new Set([...supplied].map(packageName));
 
 function specifiers(source) {
   const found = [...source.matchAll(/(?:^|[\s;])(?:import|export)\s(?:[^'"]*?\sfrom\s)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/gm)];
-  return found.map(match => match[1] ?? match[2]);
+  return found.map((match) => match[1] ?? match[2]);
 }
 
 async function checkImports(manifestPath, manifest, entry) {
@@ -38,7 +42,7 @@ async function checkImports(manifestPath, manifest, entry) {
         const name = packageName(specifier);
         if (manifest.peerDependencies?.[name] !== '*') report(file, `declare ${name} in peerDependencies with "*" (packages.md)`);
         if (manifest.dependencies?.[name]) report(file, `do not bundle Pi-supplied ${name} in dependencies (packages.md)`);
-      } else if (suppliedPackages.has(packageName(specifier))) report(file, `Pi does not supply ${specifier} to extensions; import only ${[...supplied].filter(item => packageName(item) === packageName(specifier)).join(', ')}`);
+      } else if (suppliedPackages.has(packageName(specifier))) report(file, `Pi does not supply ${specifier} to extensions; import only ${[...supplied].filter((item) => packageName(item) === packageName(specifier)).join(', ')}`);
       else if (!manifest.dependencies?.[packageName(specifier)]) report(file, `runtime import ${specifier} is not declared in dependencies (packages.md)`);
     }
   }
@@ -57,7 +61,7 @@ async function checkSkills(directory) {
 }
 
 async function checkPrompts(directory) {
-  const files = (await readdir(directory)).filter(name => name.endsWith('.md'));
+  const files = (await readdir(directory)).filter((name) => name.endsWith('.md'));
   if (!files.length) report(directory, 'declared prompt path has no templates');
   for (const name of files) {
     const { frontmatter } = parseFrontmatter(await readFile(join(directory, name), 'utf8'));
@@ -86,27 +90,40 @@ async function checkTheme(file) {
   return 1;
 }
 
-const manifests = [join(root, 'package.json'), ...(await readdir(join(root, 'extensions'))).map(name => join(root, 'extensions', name, 'package.json'))].filter(existsSync);
+const manifests = [join(root, 'package.json'), ...(await readdir(join(root, 'extensions'))).map((name) => join(root, 'extensions', name, 'package.json'))].filter(existsSync);
 const counts = { packages: manifests.length, extensions: 0, skills: 0, prompts: 0, themes: 0 };
 const themeFiles = [];
 for (const manifestPath of manifests) {
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   if (!manifest.keywords?.includes('pi-package')) report(manifestPath, 'add the pi-package keyword (packages.md)');
-  if (!manifest.pi) { report(manifestPath, 'declare resources under the pi key'); continue; }
+  if (!manifest.pi) {
+    report(manifestPath, 'declare resources under the pi key');
+    continue;
+  }
   for (const [type, entries] of Object.entries(manifest.pi)) {
     for (const entry of entries) {
       const path = resolve(dirname(manifestPath), entry);
       if (/[*?[]/.test(entry)) {
-        const pattern = new RegExp(`${basename(entry).replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*').replace(/\?/g, '[^/]')}$`);
+        const pattern = new RegExp(
+          `${basename(entry)
+            .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+            .replace(/\*/g, '[^/]*')
+            .replace(/\?/g, '[^/]')}$`,
+        );
         const dir = dirname(path);
-        const matches = existsSync(dir) ? readdirSync(dir).filter(name => pattern.test(name)) : [];
+        const matches = existsSync(dir) ? readdirSync(dir).filter((name) => pattern.test(name)) : [];
         if (!matches.length) report(manifestPath, `pi.${type} entry ${entry} matches nothing`);
-        else if (type === 'themes') themeFiles.push(...matches.map(name => join(dir, name)));
+        else if (type === 'themes') themeFiles.push(...matches.map((name) => join(dir, name)));
         continue;
       }
-      if (!existsSync(path)) { report(manifestPath, `pi.${type} entry ${entry} does not exist`); continue; }
-      if (type === 'extensions') { counts.extensions++; await checkImports(manifestPath, manifest, entry); }
-      else if (type === 'skills') counts.skills += await checkSkills(path);
+      if (!existsSync(path)) {
+        report(manifestPath, `pi.${type} entry ${entry} does not exist`);
+        continue;
+      }
+      if (type === 'extensions') {
+        counts.extensions++;
+        await checkImports(manifestPath, manifest, entry);
+      } else if (type === 'skills') counts.skills += await checkSkills(path);
       else if (type === 'prompts') counts.prompts += await checkPrompts(path);
       else if (type === 'themes') themeFiles.push(path);
       else report(manifestPath, `pi.${type} is not checked by this script`);
@@ -114,7 +131,7 @@ for (const manifestPath of manifests) {
   }
 }
 
-for (const file of themeFiles.filter(file => file.endsWith('.json'))) counts.themes += await checkTheme(file);
+for (const file of themeFiles.filter((file) => file.endsWith('.json'))) counts.themes += await checkTheme(file);
 
 process.stdout.write(`Checked ${counts.packages} packages: ${counts.extensions} extensions, ${counts.skills} skills, ${counts.prompts} prompt templates, ${counts.themes} themes. Supplied modules: ${[...supplied].join(', ')}.\n`);
 if (violations.length) {

@@ -45,134 +45,134 @@ export const EPHEMERAL_TIMEOUT_MS = 3000;
 export const CONTEXT_TWO_COL_MIN_WIDTH = 88;
 export const RESUME_FOOTER_TIME_COL = 22;
 
-export const SPINNER_FRAMES = ["⠀⠞", "⠠⠜", "⠰⠰", "⠘⠤", "⠘⠆", "⠘⠣", "⠰⠳", "⠠⠛"] as const;
+export const SPINNER_FRAMES = ['⠀⠞', '⠠⠜', '⠰⠰', '⠘⠤', '⠘⠆', '⠘⠣', '⠰⠳', '⠠⠛'] as const;
 export const SPINNER_INTERVAL_MS = 250;
 
 export type ToolVerb = readonly [progressive: string, past: string];
 
 export const TOOL_VERBS: Record<string, ToolVerb> = {
-	read: ["Reading", "Read"],
-	grep: ["Grepping", "Grepped"],
-	search: ["Searching", "Searched"],
-	glob: ["Globbing", "Globbed"],
-	ls: ["Listing", "Listed"],
-	delete: ["Deleting", "Deleted"],
-	edit: ["Editing", "Edited"],
-	run: ["Running", "Ran"],
-	wait: ["Waiting", "Waited"],
-	call: ["Calling", "Called"],
-	explore: ["Exploring", "Explored"],
-	update: ["Updating", "Updated"],
-	plan: ["Planning", "Planned"],
-	writeStdin: ["Writing to stdin", "Wrote to stdin"],
-	subagent: ["Running subagent", "Ran subagent"],
-	createGoal: ["Creating goal", "Created goal"],
-	updateGoal: ["Updating goal", "Updated goal"],
+  read: ['Reading', 'Read'],
+  grep: ['Grepping', 'Grepped'],
+  search: ['Searching', 'Searched'],
+  glob: ['Globbing', 'Globbed'],
+  ls: ['Listing', 'Listed'],
+  delete: ['Deleting', 'Deleted'],
+  edit: ['Editing', 'Edited'],
+  run: ['Running', 'Ran'],
+  wait: ['Waiting', 'Waited'],
+  call: ['Calling', 'Called'],
+  explore: ['Exploring', 'Explored'],
+  update: ['Updating', 'Updated'],
+  plan: ['Planning', 'Planned'],
+  writeStdin: ['Writing to stdin', 'Wrote to stdin'],
+  subagent: ['Running subagent', 'Ran subagent'],
+  createGoal: ['Creating goal', 'Created goal'],
+  updateGoal: ['Updating goal', 'Updated goal'],
 };
 
 export const ABORT_LABELS = {
-	short: ["Cancelled", "Interrupted by follow-up", "Interrupted"],
-	long: ["Cancelled by user", "Interrupted by follow-up message", "Interrupted"],
+  short: ['Cancelled', 'Interrupted by follow-up', 'Interrupted'],
+  long: ['Cancelled by user', 'Interrupted by follow-up message', 'Interrupted'],
 } as const;
 
 export const COMPOSER_PLACEHOLDERS = {
-	emptyChat: "Plan, search, build anything",
-	followUp: "Add a follow-up",
-	followUpWithPlan: "Add a follow-up — /plan to review and build",
-	shellWide: "Run a command — e.g., git status",
-	shellWideNoRepo: "Run a command — e.g., ls",
-	shellNarrow: "Run a command",
-	askQuestion: "Answer questions (Enter to select/next, Esc to skip)",
-	switchMode: "Approve mode switch (y/n)",
-	decision: "Waiting for decision (y/n/p)...",
-	imageDecision: "Edit the image prompt, then press Enter to generate",
-	rejectionReason: "Tell the agent what to do instead (Enter to send, empty to skip, Esc to cancel)",
-	planRevision: "Describe how to revise the plan (Enter to submit, Esc to cancel)",
+  emptyChat: 'Plan, search, build anything',
+  followUp: 'Add a follow-up',
+  followUpWithPlan: 'Add a follow-up — /plan to review and build',
+  shellWide: 'Run a command — e.g., git status',
+  shellWideNoRepo: 'Run a command — e.g., ls',
+  shellNarrow: 'Run a command',
+  askQuestion: 'Answer questions (Enter to select/next, Esc to skip)',
+  switchMode: 'Approve mode switch (y/n)',
+  decision: 'Waiting for decision (y/n/p)...',
+  imageDecision: 'Edit the image prompt, then press Enter to generate',
+  rejectionReason: 'Tell the agent what to do instead (Enter to send, empty to skip, Esc to cancel)',
+  planRevision: 'Describe how to revise the plan (Enter to submit, Esc to cancel)',
 } as const;
 
 export const FOOTER_HEADLINES = {
-	plan: "Plan (shift+tab to cycle)",
-	ask: "Ask (shift+tab to cycle)",
-	debug: "Debug (shift+tab to cycle)",
-	customSuffix: " (shift+tab to exit)",
-	cloudTransfer: "^ Move to cloud agent",
-	cloudTransferNarrow: "^ Cloud agent",
+  plan: 'Plan (shift+tab to cycle)',
+  ask: 'Ask (shift+tab to cycle)',
+  debug: 'Debug (shift+tab to cycle)',
+  customSuffix: ' (shift+tab to exit)',
+  cloudTransfer: '^ Move to cloud agent',
+  cloudTransferNarrow: '^ Cloud agent',
 } as const;
 
 export const KEY_HINT_ABBREVIATIONS = {
-	NAV: "↑/↓ to navigate",
-	SCROLL: "↑/↓ to scroll",
-	SEL: "Enter to select",
-	CONF: "Enter to confirm",
-	EDIT: "Enter to edit",
-	SAVE: "Enter to save",
-	USE: "Enter to use",
-	DEL: "d to delete",
-	KILL: "k to kill",
-	TABSEC: "Tab to switch sections",
-	TABED: "Tab to edit",
-	CLOSE: "Esc to close",
-	BACK: "Esc to go back",
-	CANCEL: "Esc to cancel",
+  NAV: '↑/↓ to navigate',
+  SCROLL: '↑/↓ to scroll',
+  SEL: 'Enter to select',
+  CONF: 'Enter to confirm',
+  EDIT: 'Enter to edit',
+  SAVE: 'Enter to save',
+  USE: 'Enter to use',
+  DEL: 'd to delete',
+  KILL: 'k to kill',
+  TABSEC: 'Tab to switch sections',
+  TABED: 'Tab to edit',
+  CLOSE: 'Esc to close',
+  BACK: 'Esc to go back',
+  CANCEL: 'Esc to cancel',
 } as const;
 
-export const HINT_SEPARATOR = " • ";
+export const HINT_SEPARATOR = ' • ';
 
 export const HELP_GRID: readonly (readonly [key: string, description: string])[] = [
-	["/", "commands"],
-	["!", "shell"],
-	["@", "files"],
-	["&", "to move to cloud"],
-	["\\ + ⏎ or shift + ⏎", "for new line"],
-	["Ctrl+L", "to clear screen"],
-	["Ctrl+G", "open prompt in $EDITOR"],
-	["shift + tab", "to switch mode"],
-	["/run-everything", "to enable Run Everything"],
+  ['/', 'commands'],
+  ['!', 'shell'],
+  ['@', 'files'],
+  ['&', 'to move to cloud'],
+  ['\\ + ⏎ or shift + ⏎', 'for new line'],
+  ['Ctrl+L', 'to clear screen'],
+  ['Ctrl+G', 'open prompt in $EDITOR'],
+  ['shift + tab', 'to switch mode'],
+  ['/run-everything', 'to enable Run Everything'],
 ];
 
 export const PALETTE_STRINGS = {
-	noMatches: "No matches",
-	moreAbove: "↑ more above",
-	moreBelow: "↓ more below",
-	skillAttachHint: "enter to attach · option+enter to use as mode",
-	selectedPrefix: "→ ",
-	unselectedPrefix: "  ",
+  noMatches: 'No matches',
+  moreAbove: '↑ more above',
+  moreBelow: '↓ more below',
+  skillAttachHint: 'enter to attach · option+enter to use as mode',
+  selectedPrefix: '→ ',
+  unselectedPrefix: '  ',
 } as const;
 
 export const RESUME_EMPTY_ALL = {
-	title: "No sessions found.",
-	hint: "Press Ctrl-D, q or ESC to go back",
+  title: 'No sessions found.',
+  hint: 'Press Ctrl-D, q or ESC to go back',
 } as const;
 
 export const RESUME_EMPTY_WORKSPACE = {
-	title: "No sessions in this workspace.",
-	hint: "Press ← to see all chats, or Ctrl-D / q / ESC to go back",
+  title: 'No sessions in this workspace.',
+  hint: 'Press ← to see all chats, or Ctrl-D / q / ESC to go back',
 } as const;
 
 export const DECISION_TITLES = {
-	shell: "Run this command?",
-	shellOutsideSandbox: "Run this command outside the sandbox?",
-	mcp: "Run this MCP tool?",
-	delete: "Delete this file?",
-	write: "Write to this file?",
-	webSearch: "Allow this web search?",
-	webFetch: "Allow this web fetch?",
-	image: "Proceed with this edit?",
+  shell: 'Run this command?',
+  shellOutsideSandbox: 'Run this command outside the sandbox?',
+  mcp: 'Run this MCP tool?',
+  delete: 'Delete this file?',
+  write: 'Write to this file?',
+  webSearch: 'Allow this web search?',
+  webFetch: 'Allow this web fetch?',
+  image: 'Proceed with this edit?',
 } as const;
 
 export const PAGER_TOKENS = {
-	countdownElapsed: "─",
-	countdownRemaining: "━",
-	optionOn: "● ",
-	optionOff: "○ ",
-	optionOnAlt: "◉ ",
-	optionOffAlt: "◯ ",
-	currentMark: "✓",
-	tabSeparator: " | ",
+  countdownElapsed: '─',
+  countdownRemaining: '━',
+  optionOn: '● ',
+  optionOff: '○ ',
+  optionOnAlt: '◉ ',
+  optionOffAlt: '◯ ',
+  currentMark: '✓',
+  tabSeparator: ' | ',
 } as const;
 
 export const NOTIFY_MESSAGES = {
-	waitingForYou: "pi is waiting for you",
-	needsInput: "the reference CLI needs your input",
-	approveCommand: (cmd: string) => `Approve command: ${cmd}`,
+  waitingForYou: 'pi is waiting for you',
+  needsInput: 'the reference CLI needs your input',
+  approveCommand: (cmd: string) => `Approve command: ${cmd}`,
 } as const;

@@ -1,5 +1,5 @@
 import { existsSync, realpathSync } from 'node:fs';
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,10 +15,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const piAi = realpathSync(join(root, 'node_modules/@earendil-works/pi-ai'));
 const genai = genaiPackageRoot(join(piAi, 'package.json'));
 const target = join(root, 'src/pi-ai');
-const sources = [
-  'api/google-shared', 'api/transform-messages', 'api/constrained-sampling', 'api/simple-options',
-  'utils/estimate', 'utils/provider-retry', 'utils/sanitize-unicode', 'utils/headers',
-];
+const sources = ['api/google-shared', 'api/transform-messages', 'api/constrained-sampling', 'api/simple-options', 'utils/estimate', 'utils/provider-retry', 'utils/sanitize-unicode', 'utils/headers'];
 const rewrites = new Map([
   ['@google/genai', './genai.ts'],
   ['../types.ts', '@earendil-works/pi-ai'],
@@ -79,7 +76,7 @@ async function vendored(source, piAiVersion) {
 
 async function genaiShim() {
   const declarations = await readFile(join(genai, 'dist/genai.d.ts'), 'utf8');
-  const values = enums.map(name => {
+  const values = enums.map((name) => {
     const body = declarations.match(new RegExp(`export declare enum ${name} \\{([\\s\\S]*?)\\n\\}`))?.[1];
     if (!body) throw new Error(`@google/genai does not declare enum ${name}`);
     const members = [...body.matchAll(/^\s+(\w+) = "([^"]+)"/gm)].map(([, key, value]) => `\t${key}: "${value}",`);
@@ -93,10 +90,10 @@ const expected = new Map([['genai.ts', await genaiShim()]]);
 for (const source of sources) expected.set(`${source.split('/').at(-1)}.ts`, await vendored(source, piAiVersion));
 
 if (process.argv.includes('--check')) {
-  const present = new Set((await readdir(target).catch(() => [])).filter(name => name.endsWith('.ts')));
-  const stale = [...expected].filter(([name, text]) => !present.has(name)).map(([name]) => name);
-  for (const [name, text] of expected) if (present.has(name) && await readFile(join(target, name), 'utf8') !== text) stale.push(name);
-  const extra = [...present].filter(name => !expected.has(name));
+  const present = new Set((await readdir(target).catch(() => [])).filter((name) => name.endsWith('.ts')));
+  const stale = [...expected].filter(([name]) => !present.has(name)).map(([name]) => name);
+  for (const [name, text] of expected) if (present.has(name) && (await readFile(join(target, name), 'utf8')) !== text) stale.push(name);
+  const extra = [...present].filter((name) => !expected.has(name));
   if (stale.length || extra.length) {
     process.stderr.write(`Vendored pi-ai modules differ from @earendil-works/pi-ai ${piAiVersion}: ${[...stale, ...extra].join(', ')}. Run bun run vendor.\n`);
     process.exit(1);

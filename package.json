@@ -6,12 +6,18 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "workspaces": ["extensions/*"],
+  "workspaces": [
+    "extensions/*"
+  ],
   "description": "Standalone Pi skills: doctor, run, simplify, reverse-engineer-cli, and implement-cli-from-contract.",
   "license": "MIT",
-  "keywords": ["pi-package"],
+  "keywords": [
+    "pi-package"
+  ],
   "pi": {
-    "skills": ["./skills"]
+    "skills": [
+      "./skills"
+    ]
   },
   "scripts": {
     "test": "bun run --sequential --filter '*' test",

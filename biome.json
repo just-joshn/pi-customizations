@@ -8,6 +8,11 @@
   "files": {
     "includes": [
       "**",
+      "!extensions/pi-antigravity-oauth/src/pi-ai",
+      "!extensions/pi-pstack/upstream",
+      "!extensions/pi-pstack/upstream-team-kit",
+      "!extensions/pi-pstack/skills",
+      "!extensions/pi-pstack/docs",
       "!!**/dist",
       "!!**/build",
       "!!**/coverage",
@@ -16,8 +21,35 @@
     ]
   },
   "formatter": {
-    "enabled": true
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 240
   },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always"
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/personas.ts"],
+      "javascript": {
+        "formatter": {
+          "quoteStyle": "single"
+        }
+      }
+    },
+    {
+      "includes": ["**/models.ts"],
+      "javascript": {
+        "formatter": {
+          "quoteStyle": "double"
+        }
+      }
+    }
+  ],
   "linter": {
     "enabled": true,
     "domains": {
@@ -45,10 +77,7 @@
         "organizeImports": {
           "level": "on",
           "options": {
-            "groups": [
-              [":BUN:", ":NODE:"],
-              ":BLANK_LINE:"
-            ]
+            "groups": [[":BUN:", ":NODE:"], ":BLANK_LINE:"]
           }
         }
       }

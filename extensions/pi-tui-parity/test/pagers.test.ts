@@ -1,138 +1,143 @@
-import { describe, it, expect } from "vitest";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { renderContextScreen } from "../src/pagers/context.ts";
-import { ContextPager, CopyPager, UsagePager, copyRows, installPagers, usageRows } from "../src/pagers/pagers.ts";
-import { makeTheme } from "./theme.ts";
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { describe, expect, it } from 'vitest';
+import { renderContextScreen } from '../src/pagers/context.ts';
+import { ContextPager, CopyPager, copyRows, installPagers, UsagePager, usageRows } from '../src/pagers/pagers.ts';
+import { makeTheme } from './theme.ts';
 
-const ANSI = /\x1b\[[0-9;]*m/g;
-const strip = (s: string) => s.replace(ANSI, "");
+const ESC = '\x1b';
+const ANSI = new RegExp(`${ESC}\\[[0-9;]*m`, 'g');
+const strip = (s: string) => s.replace(ANSI, '');
 const tui = { requestRender: () => {} };
 
 const CONTEXT_OPTS = {
-	modelName: "claude-sonnet-4",
-	contextWindow: 200000,
-	tokens: 84000,
-	percent: 42,
-	categories: [
-		{ label: "System prompt", tokens: 2000 },
-		{ label: "Messages", tokens: 82000 },
-	],
+  modelName: 'claude-sonnet-4',
+  contextWindow: 200000,
+  tokens: 84000,
+  percent: 42,
+  categories: [
+    { label: 'System prompt', tokens: 2000 },
+    { label: 'Messages', tokens: 82000 },
+  ],
 };
 
 function usageEntry(model: string, input: number, output: number, cost: number) {
-	return { type: "message", message: { role: "assistant", model, usage: { input, output, cost: { total: cost } } } };
+  return { type: 'message', message: { role: 'assistant', model, usage: { input, output, cost: { total: cost } } } };
 }
 
 function userEntry(text: string) {
-	return { type: "message", message: { role: "user", content: text } };
+  return { type: 'message', message: { role: 'user', content: text } };
 }
 
-describe("context pager screen", () => {
-	it("renders the Reference header, scale, and free-space rows", async () => {
-		const theme = await makeTheme();
-		const rows = renderContextScreen({ ...CONTEXT_OPTS, width: 80, theme }).map(strip);
-		expect(rows.some((r) => r.includes("Context • claude-sonnet-4"))).toBe(true);
-		expect(rows.some((r) => r.includes("84k / 200k") && r.includes("42%"))).toBe(true);
-		expect(rows.some((r) => r.includes("Current context usage by category."))).toBe(true);
-		const scale = rows.find((r) => r.includes("25") && r.includes("50") && r.includes("75") && r.includes("100%"));
-		expect(scale?.trimStart().startsWith("0")).toBe(true);
-		expect(rows.some((r) => r.includes("System prompt 2k • 1.0%"))).toBe(true);
-		expect(rows.some((r) => r.includes("Messages 82k • 41.0%"))).toBe(true);
-		expect(rows.some((r) => r.includes("Free space 116k • 58.0%"))).toBe(true);
-	});
+describe('context pager screen', () => {
+  it('renders the Reference header, scale, and free-space rows', async () => {
+    const theme = await makeTheme();
+    const rows = renderContextScreen({ ...CONTEXT_OPTS, width: 80, theme }).map(strip);
+    expect(rows.some((r) => r.includes('Context • claude-sonnet-4'))).toBe(true);
+    expect(rows.some((r) => r.includes('84k / 200k') && r.includes('42%'))).toBe(true);
+    expect(rows.some((r) => r.includes('Current context usage by category.'))).toBe(true);
+    const scale = rows.find((r) => r.includes('25') && r.includes('50') && r.includes('75') && r.includes('100%'));
+    expect(scale?.trimStart().startsWith('0')).toBe(true);
+    expect(rows.some((r) => r.includes('System prompt 2k • 1.0%'))).toBe(true);
+    expect(rows.some((r) => r.includes('Messages 82k • 41.0%'))).toBe(true);
+    expect(rows.some((r) => r.includes('Free space 116k • 58.0%'))).toBe(true);
+  });
 
-	it("builds the bar from background-colored space segments", async () => {
-		const theme = await makeTheme();
-		const raw = renderContextScreen({ ...CONTEXT_OPTS, width: 80, theme }).join("\n");
-		expect(raw).toMatch(/\x1b\[48;2;\d+;\d+;\d+m|\x1b\[48;5;\d+m/);
-		const bar = raw.split("\n").find((l) => /48;(2|5);\d+/.test(l) && l.replace(ANSI, "").trim() === "");
-		expect(bar).toBeDefined();
-		expect(strip(bar!)).toBe(" ".repeat(80));
-	});
+  it('builds the bar from background-colored space segments', async () => {
+    const theme = await makeTheme();
+    const raw = renderContextScreen({ ...CONTEXT_OPTS, width: 80, theme }).join('\n');
+    expect(raw).toMatch(new RegExp(`${ESC}\\[48;2;\\d+;\\d+;\\d+m|${ESC}\\[48;5;\\d+m`));
+    const bar = raw.split('\n').find((l) => /48;(2|5);\d+/.test(l) && l.replace(ANSI, '').trim() === '');
+    expect(bar).toBeDefined();
+    expect(strip(bar ?? '')).toBe(' '.repeat(80));
+  });
 
-	it("shows the empty state when tokens are unknown", async () => {
-		const theme = await makeTheme();
-		const rows = renderContextScreen({ ...CONTEXT_OPTS, tokens: null, percent: null, width: 80, theme }).map(strip);
-		expect(rows.some((r) => r.includes("No context usage breakdown to show yet."))).toBe(true);
-		expect(rows.some((r) => r.includes("Free space"))).toBe(false);
-	});
+  it('shows the empty state when tokens are unknown', async () => {
+    const theme = await makeTheme();
+    const rows = renderContextScreen({ ...CONTEXT_OPTS, tokens: null, percent: null, width: 80, theme }).map(strip);
+    expect(rows.some((r) => r.includes('No context usage breakdown to show yet.'))).toBe(true);
+    expect(rows.some((r) => r.includes('Free space'))).toBe(false);
+  });
 });
 
-describe("usage pager", () => {
-	it("totals tokens and cost per model from branch entries", () => {
-		const rows = usageRows([usageEntry("m1", 900, 300, 0.0123), usageEntry("m1", 300, 50, 0.001), usageEntry("m2", 10, 5, 0)]);
-		expect(rows).toEqual([
-			{ model: "m1", input: 1200, output: 350, cost: 0.0133 },
-			{ model: "m2", input: 10, output: 5, cost: 0 },
-		]);
-	});
+describe('usage pager', () => {
+  it('totals tokens and cost per model from branch entries', () => {
+    const rows = usageRows([usageEntry('m1', 900, 300, 0.0123), usageEntry('m1', 300, 50, 0.001), usageEntry('m2', 10, 5, 0)]);
+    expect(rows).toEqual([
+      { model: 'm1', input: 1200, output: 350, cost: 0.0133 },
+      { model: 'm2', input: 10, output: 5, cost: 0 },
+    ]);
+  });
 
-	it("renders model in out cost rows", async () => {
-		const theme = await makeTheme();
-		const pager = new UsagePager(tui, theme, usageRows([usageEntry("claude-sonnet-4", 900, 300, 0.0123), usageEntry("claude-sonnet-4", 300, 0, 0)]), () => {});
-		const rows = pager.render(80).map(strip);
-		expect(rows.find((r) => r.startsWith("claude-sonnet-4"))).toBe("claude-sonnet-4  1.2k  300  $0.012");
-		expect(rows.some((r) => r.includes("Usage"))).toBe(true);
-		expect(rows.some((r) => r.includes("Esc to close"))).toBe(true);
-	});
+  it('renders model in out cost rows', async () => {
+    const theme = await makeTheme();
+    const pager = new UsagePager(tui, theme, usageRows([usageEntry('claude-sonnet-4', 900, 300, 0.0123), usageEntry('claude-sonnet-4', 300, 0, 0)]), () => {});
+    const rows = pager.render(80).map(strip);
+    expect(rows.find((r) => r.startsWith('claude-sonnet-4'))).toBe('claude-sonnet-4  1.2k  300  $0.012');
+    expect(rows.some((r) => r.includes('Usage'))).toBe(true);
+    expect(rows.some((r) => r.includes('Esc to close'))).toBe(true);
+  });
 
-	it("escape resolves the pager while other keys keep it open", async () => {
-		const theme = await makeTheme();
-		const closed: unknown[] = [];
-		const pager = new UsagePager(tui, theme, [], (result) => { closed.push(result); });
-		pager.handleInput("j");
-		expect(closed).toEqual([]);
-		pager.handleInput("\x1b");
-		expect(closed).toEqual([undefined]);
-	});
+  it('escape resolves the pager while other keys keep it open', async () => {
+    const theme = await makeTheme();
+    const closed: unknown[] = [];
+    const pager = new UsagePager(tui, theme, [], (result) => {
+      closed.push(result);
+    });
+    pager.handleInput('j');
+    expect(closed).toEqual([]);
+    pager.handleInput('\x1b');
+    expect(closed).toEqual([undefined]);
+  });
 });
 
-describe("copy pager", () => {
-	it("truncates previews at 60 chars with You/Agent prefixes", async () => {
-		const theme = await makeTheme();
-		const entries = [userEntry("x".repeat(80)), { type: "message", message: { role: "assistant", content: [{ type: "text", text: "y".repeat(70) }] } }];
-		const pager = new CopyPager(tui, theme, copyRows(entries), () => {});
-		const rows = pager.render(80).map(strip);
-		const you = rows.find((r) => r.includes("You"));
-		expect(you?.includes("x".repeat(60)) && !you?.includes("x".repeat(61))).toBe(true);
-		const agent = rows.find((r) => r.includes("Agent"));
-		expect(agent?.includes("y".repeat(60)) && !agent?.includes("y".repeat(61))).toBe(true);
-	});
+describe('copy pager', () => {
+  it('truncates previews at 60 chars with You/Agent prefixes', async () => {
+    const theme = await makeTheme();
+    const entries = [userEntry('x'.repeat(80)), { type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: 'y'.repeat(70) }] } }];
+    const pager = new CopyPager(tui, theme, copyRows(entries), () => {});
+    const rows = pager.render(80).map(strip);
+    const you = rows.find((r) => r.includes('You'));
+    expect(you?.includes('x'.repeat(60)) && !you?.includes('x'.repeat(61))).toBe(true);
+    const agent = rows.find((r) => r.includes('Agent'));
+    expect(agent?.includes('y'.repeat(60)) && !agent?.includes('y'.repeat(61))).toBe(true);
+  });
 
-	it("drops blank messages and keeps the newest up to the limit", () => {
-		expect(copyRows([userEntry("first"), userEntry("second")], 1)).toEqual([{ role: "user", text: "second" }]);
-		expect(copyRows([{ type: "message", message: { role: "assistant", content: [{ type: "text", text: "   " }] } }, userEntry("kept")])).toEqual([{ role: "user", text: "kept" }]);
-	});
+  it('drops blank messages and keeps the newest up to the limit', () => {
+    expect(copyRows([userEntry('first'), userEntry('second')], 1)).toEqual([{ role: 'user', text: 'second' }]);
+    expect(copyRows([{ type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: '   ' }] } }, userEntry('kept')])).toEqual([{ role: 'user', text: 'kept' }]);
+  });
 
-	it("copies the selected message text on Enter and closes on Escape", async () => {
-		const theme = await makeTheme();
-		const rows = copyRows([userEntry("first"), userEntry("second")]);
-		const copied = await new Promise<string | undefined>((resolve) => {
-			const pager = new CopyPager(tui, theme, rows, resolve);
-			pager.handleInput("j");
-			pager.handleInput("\r");
-		});
-		expect(copied).toBe("second");
-		const closed = await new Promise<string | undefined>((resolve) => {
-			new CopyPager(tui, theme, rows, resolve).handleInput("\x1b");
-		});
-		expect(closed).toBeUndefined();
-	});
+  it('copies the selected message text on Enter and closes on Escape', async () => {
+    const theme = await makeTheme();
+    const rows = copyRows([userEntry('first'), userEntry('second')]);
+    const copied = await new Promise<string | undefined>((resolve) => {
+      const pager = new CopyPager(tui, theme, rows, resolve);
+      pager.handleInput('j');
+      pager.handleInput('\r');
+    });
+    expect(copied).toBe('second');
+    const closed = await new Promise<string | undefined>((resolve) => {
+      new CopyPager(tui, theme, rows, resolve).handleInput('\x1b');
+    });
+    expect(closed).toBeUndefined();
+  });
 });
 
-describe("context pager component and install", () => {
-	it("closes on the first key with an undefined result", async () => {
-		const theme = await makeTheme();
-		const closed: unknown[] = [];
-		const pager = new ContextPager(tui, theme, CONTEXT_OPTS, (result) => { closed.push(result); });
-		pager.handleInput("j");
-		pager.handleInput("\x1b");
-		expect(closed).toEqual([undefined]);
-	});
+describe('context pager component and install', () => {
+  it('closes on the first key with an undefined result', async () => {
+    const theme = await makeTheme();
+    const closed: unknown[] = [];
+    const pager = new ContextPager(tui, theme, CONTEXT_OPTS, (result) => {
+      closed.push(result);
+    });
+    pager.handleInput('j');
+    pager.handleInput('\x1b');
+    expect(closed).toEqual([undefined]);
+  });
 
-	it("registers the context and usage commands", () => {
-		const names: string[] = [];
-		installPagers({ registerCommand: (name: string) => names.push(name) } as unknown as ExtensionAPI);
-		expect(names).toEqual(["context", "usage"]);
-	});
+  it('registers the context and usage commands', () => {
+    const names: string[] = [];
+    installPagers({ registerCommand: (name: string) => names.push(name) } as unknown as ExtensionAPI);
+    expect(names).toEqual(['context', 'usage']);
+  });
 });

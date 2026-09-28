@@ -7,8 +7,15 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const PACKAGES = ['pi-anthropic-oauth', 'pi-antigravity-oauth', 'pi-one-dark-pro-theme', 'pi-pstack', 'pi-tui-parity'];
 const dir = '.audit/bun-migration';
 
-const pairs = (file) => readFileSync(file, 'utf8').trim().split('\n').filter(Boolean)
-  .map((line) => { const [name, version] = line.split('\t'); return { name, version }; });
+const pairs = (file) =>
+  readFileSync(file, 'utf8')
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      const [name, version] = line.split('\t');
+      return { name, version };
+    });
 
 const group = (entries) => {
   const map = new Map();
