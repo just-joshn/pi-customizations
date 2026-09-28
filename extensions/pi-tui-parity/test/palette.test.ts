@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
+	basicFg,
 	channelBrightness,
 	effectiveRatio,
 	isLightBackground,
 	mixTint,
 	nearestAnsi256,
-	parseHex,
 	getTokens,
 	TUI_TOKENS,
 } from "../src/palette.ts";
@@ -28,8 +28,8 @@ describe("tint mixing", () => {
 
 	it("clamps the effective ratio at 0.5", () => {
 		expect(effectiveRatio(0.4, 0.5)).toBe(0.5);
-		expect(Math.abs(effectiveRatio(0.82, 0) - 0.64) < 1e-9).toBe(true);
-		expect(Math.abs(effectiveRatio(0.82, 1) - 0.64) < 1e-9).toBe(true);
+		expect(effectiveRatio(0.82, 0)).toBeCloseTo(0.64, 10);
+		expect(effectiveRatio(0.82, 1)).toBeCloseTo(0.64, 10);
 	});
 });
 
@@ -37,7 +37,7 @@ describe("brightness and light/dark", () => {
 	it("computes the weighted channel sum", () => {
 		expect(channelBrightness([0, 0, 0])).toBe(0);
 		expect(channelBrightness([255, 255, 255])).toBe(1);
-		expect(Math.abs(channelBrightness([153, 153, 153]) - 0.6) < 1e-9).toBe(true);
+		expect(channelBrightness([153, 153, 153])).toBeCloseTo(0.6, 10);
 	});
 
 	it("applies the strictly-greater-than-0.6 threshold", () => {
@@ -88,11 +88,12 @@ describe("tui tokens", () => {
 });
 
 describe("palette SGR output", () => {
-	it("emits truecolor and 256-color escapes", async () => {
+	it("emits SGR escapes per color mode", async () => {
 		const { paletteFg, paletteBg } = await import("../src/palette.ts");
 		expect(paletteFg("#F4E7A1", "truecolor", "x")).toBe("\x1b[38;2;244;231;161mx\x1b[0m");
-		const bg = parseHex("#F4E7A1");
-		const idx = nearestAnsi256(bg);
-		expect(paletteBg("#F4E7A1", "256color", "x")).toBe(`\x1b[48;5;${idx}mx\x1b[0m`);
+		expect(paletteFg("#F4E7A1", "256color", "x")).toBe("\x1b[38;5;223mx\x1b[0m");
+		expect(paletteBg("#F4E7A1", "256color", "x")).toBe("\x1b[48;5;223mx\x1b[0m");
+		expect(basicFg(5, "x", "truecolor")).toBe("\x1b[35mx\x1b[0m");
+		expect(basicFg(5, "x", "256color")).toBe("\x1b[95mx\x1b[0m");
 	});
 });

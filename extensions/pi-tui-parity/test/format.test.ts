@@ -16,6 +16,7 @@ describe("path helpers", () => {
 	it("makes paths cwd-relative", () => {
 		expect(cwdRelative("/home/u/proj", "/home/u/proj/a/b.ts")).toBe("a/b.ts");
 		expect(cwdRelative("/home/u/proj", "/elsewhere/x.ts")).toBe("/elsewhere/x.ts");
+		expect(cwdRelative("/home/u/proj", "/home/u/proj2/x.ts")).toBe("/home/u/proj2/x.ts");
 		expect(cwdRelative("/home/u/proj", "/home/u/proj")).toBe(".");
 	});
 
@@ -56,8 +57,8 @@ describe("line range notes", () => {
 describe("pattern truncation", () => {
 	it("keeps short patterns and tails long ones", () => {
 		expect(truncatePatternHead("abc")).toBe("abc");
-		const long = "x".repeat(50);
-		expect(truncatePatternHead(long)).toBe(`...${"x".repeat(37)}`);
+		const long = `${"x".repeat(13)}${"y".repeat(37)}`;
+		expect(truncatePatternHead(long)).toBe(`...${"y".repeat(37)}`);
 	});
 });
 
@@ -90,6 +91,7 @@ describe("session time", () => {
 
 	it("counts days back then falls back to a date", () => {
 		expect(formatSessionTime(new Date(2026, 8, 24, 8, 0), now)).toBe("3 days ago");
+		expect(formatSessionTime(new Date(2026, 8, 20, 8, 0), now)).toBe("Sep 20");
 		expect(formatSessionTime(new Date(2026, 7, 27, 8, 0), now)).toBe("Aug 27");
 	});
 });

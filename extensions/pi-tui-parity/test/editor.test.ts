@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { composerGlyph, composerPlaceholder, ComposerEditor } from "../src/editor/composer-editor.ts";
 import { createSessionState, nextMode } from "../src/state.ts";
 
-process.env.FORCE_COLOR = "3";
 
 const { KeybindingsManager, TUI_KEYBINDINGS, CURSOR_MARKER } = await import("@earendil-works/pi-tui");
 
@@ -51,24 +50,29 @@ describe("composer editor", () => {
 		expect(requests.length).toBe(0);
 	});
 
-	it("escape on empty input enters vim normal mode; i returns to insert", () => {
+	it("escape enters vim normal mode only for empty input", () => {
 		const { editor, state } = editorHarness();
 		editor.handleInput("\x1b");
 		expect(state.vim).toBe("normal");
 		editor.handleInput("i");
 		expect(state.vim).toBe("insert");
+
+		const typed = editorHarness();
+		typed.editor.setText("hello");
+		typed.editor.handleInput("\x1b");
+		expect(typed.state.vim).toBe("insert");
 	});
 
 	it("normal mode swallows printable keys and maps hjkl", () => {
 		const { editor, state } = editorHarness();
 		editor.handleInput("\x1b");
-		state.vim = "normal";
 		editor.setText("hello");
 		editor.handleInput("x");
 		expect(editor.getText()).toBe("hello");
 		editor.handleInput("h");
-		expect(state.vim).toBe("normal");
 		editor.handleInput("i");
+		editor.handleInput("I");
+		expect(editor.getText()).toBe("hellIo");
 		expect(state.vim).toBe("insert");
 	});
 

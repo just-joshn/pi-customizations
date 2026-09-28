@@ -1,4 +1,8 @@
+import { randomUUID } from "node:crypto";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it, expect } from "vitest";
+import { VERSION } from "@earendil-works/pi-coding-agent";
 import type { ExtensionAPI, ExtensionCommandContext, Theme } from "@earendil-works/pi-coding-agent";
 import { TUI_COMMANDS, findCommand, helpLines, porcelainFiles, totalUsage, type CommandEntry } from "../src/commands/registry.ts";
 import { installCommands } from "../src/commands/register.ts";
@@ -24,11 +28,11 @@ interface FakeCtx {
 	shutdowns: number[];
 }
 
-function fakeCtx(opts: { entries?: unknown[]; sessionFile?: string; theme?: Theme } = {}): FakeCtx {
+function fakeCtx(opts: { entries?: unknown[]; sessionFile?: string; theme?: Theme; cwd?: string } = {}): FakeCtx {
 	const notified: Notified[] = [];
 	const shutdowns: number[] = [];
 	const ctx = {
-		cwd: "/tmp/repo",
+		cwd: opts.cwd ?? "/tmp/repo",
 		ui: {
 			notify: (message: string, type = "info") => notified.push({ message, type }),
 			theme: opts.theme,
@@ -149,6 +153,18 @@ describe("commands", () => {
 		expect(strip(second.notified[0]!.message)).toBe("Run Everything: OFF");
 	});
 
+	it("/auto-review toggles state.autoReview", async () => {
+		const state = createSessionState();
+		const commands = captureCommands(state);
+		const fake = fakeCtx();
+		await commands.get("auto-review")!.handler("", fake.ctx);
+		expect(state.autoReview).toBe(true);
+		expect(fake.notified[0]!.message).toBe("Auto-review: ON");
+		await commands.get("auto-review")!.handler("", fake.ctx);
+		expect(state.autoReview).toBe(false);
+		expect(fake.notified[1]!.message).toBe("Auto-review: OFF");
+	});
+
 	it("/plan sets plan mode", async () => {
 		const state = createSessionState();
 		const commands = captureCommands(state);
@@ -177,9 +193,43 @@ describe("commands", () => {
 		await commands.get("zen-mode")!.handler("", fake.ctx);
 		expect(state.compact).toBe(false);
 		expect(fake.notified[0]!.message).toBe("Zen mode: OFF");
+		await commands.get("zen-mode")!.handler("", fake.ctx);
+		expect(state.compact).toBe(true);
+		expect(fake.notified[1]!.message).toBe("Zen mode: ON");
 		await commands.get("vim")!.handler("", fake.ctx);
 		expect(state.vim).toBe("normal");
-		expect(fake.notified[1]!.message).toBe("Vim keys: ON");
+		expect(fake.notified[2]!.message).toBe("Vim keys: ON");
+		await commands.get("vim")!.handler("", fake.ctx);
+		expect(state.vim).toBe("insert");
+		expect(fake.notified[3]!.message).toBe("Vim keys: OFF");
+	});
+
+	it("/about reports the pi version, model, provider, and session", async () => {
+		const commands = captureCommands(createSessionState());
+		const fake = fakeCtx({ sessionFile: "/tmp/.pi/sessions/a.jsonl" });
+		await commands.get("about")!.handler("", fake.ctx);
+		expect(fake.notified[0]!.message.split("\n")).toEqual([
+			`pi v${VERSION}`,
+			"Model: claude-opus-5-5-max",
+			"Provider: anthropic",
+			"Session: /tmp/.pi/sessions/a.jsonl",
+		]);
+	});
+
+	it("/jobs reports no active tasks", async () => {
+		const theme = await makeTheme();
+		const commands = captureCommands(createSessionState());
+		const fake = fakeCtx({ theme });
+		await commands.get("jobs")!.handler("", fake.ctx);
+		expect(strip(fake.notified[0]!.message)).toBe("No active tasks");
+	});
+
+	it("/changes reports a git failure when the cwd is missing", async () => {
+		const commands = captureCommands(createSessionState());
+		const fake = fakeCtx({ cwd: join(tmpdir(), `pi-tui-parity-missing-${randomUUID()}`) });
+		await commands.get("changes")!.handler("", fake.ctx);
+		expect(fake.notified[0]!.type).toBe("error");
+		expect(fake.notified[0]!.message).toMatch(/^git status failed: /);
 	});
 
 	it("/exit shuts pi down", async () => {

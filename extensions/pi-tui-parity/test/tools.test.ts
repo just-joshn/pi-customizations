@@ -21,15 +21,20 @@ function capture(): Map<string, AnyDef> {
 	return defs;
 }
 
-function makeContext(args: unknown): { ctx: unknown; state: () => ToolRowState | undefined } {
+let contextSeq = 0;
+
+function makeContext(args: unknown): { ctx: unknown; invalidations: () => number } {
+	let invalidations = 0;
 	const holder: { toolCallId: string; invalidate: () => void; state: ToolRowState | undefined; args: unknown; cwd: string } = {
-		toolCallId: "t1",
-		invalidate: () => {},
+		toolCallId: `t${++contextSeq}`,
+		invalidate: () => {
+			invalidations += 1;
+		},
 		state: {} as ToolRowState,
 		args,
 		cwd: "/proj",
 	};
-	return { ctx: holder, state: () => holder.state };
+	return { ctx: holder, invalidations: () => invalidations };
 }
 
 function result(text: string, details?: unknown): unknown {
@@ -44,11 +49,23 @@ describe("tui tool renderers", () => {
 	it("read: progressive verb, path, lines note, then past verb", async () => {
 		const theme = await makeTheme();
 		const read = capture().get("read")!;
-		const { ctx, state } = makeContext({ path: "x.ts", offset: 4, limit: 10 });
+		const { ctx } = makeContext({ path: "x.ts", offset: 4, limit: 10 });
 		const comp = read.renderCall!({ path: "x.ts", offset: 4, limit: 10 }, theme, ctx);
 		expect(strip(comp.render(200)[0]!)).toBe(" Reading x.ts lines 5-14");
 		read.renderResult!(result("file body"), { expanded: false, isPartial: false }, theme, ctx);
-		expect(state()?.verb).toBe("Read");
+		expect(strip(comp.render(200)[0]!)).toBe(" Read x.ts lines 5-14");
+	});
+
+	it("invalidates the call row once across repeated result renders", async () => {
+		const theme = await makeTheme();
+		const bash = capture().get("bash")!;
+		const { ctx, invalidations } = makeContext({ command: "echo hi" });
+		bash.renderCall!({ command: "echo hi" }, theme, ctx);
+		const options = { expanded: false, isPartial: false };
+		bash.renderResult!(result("one"), options, theme, ctx);
+		expect(invalidations()).toBe(1);
+		bash.renderResult!(result("two"), options, theme, ctx);
+		expect(invalidations()).toBe(1);
 	});
 
 	it("edit: +N -M note from the patch and the bordered diff block", async () => {
@@ -75,6 +92,7 @@ describe("tui tool renderers", () => {
 		const rows = (bash.renderResult!(result(`${output}\nexit code: 0`), { expanded: false, isPartial: false }, theme, ctx) as { render: (w: number) => string[] }).render(200).map(strip);
 		expect(rows.some((r) => r.includes("l1"))).toBe(true);
 		expect(rows.some((r) => r.includes("l2"))).toBe(true);
+		expect(rows.some((r) => r.includes("l3"))).toBe(false);
 		expect(rows.some((r) => r.includes("… 3 output lines hidden · ctrl+o to expand"))).toBe(true);
 	});
 
@@ -92,10 +110,10 @@ describe("tui tool renderers", () => {
 	it("grep: 40-char pattern rule and Found N matches", async () => {
 		const theme = await makeTheme();
 		const grep = capture().get("grep")!;
-		const longPattern = "y".repeat(50);
+		const longPattern = `${"x".repeat(13)}${"y".repeat(37)}`;
 		const { ctx } = makeContext({ pattern: longPattern });
 		const comp = grep.renderCall!({ pattern: longPattern }, theme, ctx);
-		expect(strip(comp.render(200)[0]!).includes(`"...${"y".repeat(37)}"`)).toBe(true);
+		expect(strip(comp.render(200)[0]!).startsWith(` Grepping "...${"y".repeat(37)}"`)).toBe(true);
 		const res = grep.renderResult!(result("a:1:x\na:2:y"), { expanded: false, isPartial: false }, theme, ctx);
 		expect(res.render(120).map((r) => strip(r).trimEnd()).join("\n")).toBe("  Found 2 matches");
 	});
@@ -121,11 +139,11 @@ describe("tui tool renderers", () => {
 	it("write: additions-only note from content lines", async () => {
 		const theme = await makeTheme();
 		const write = capture().get("write")!;
-		const { ctx, state } = makeContext({ path: "/proj/new.ts", content: "a\nb\nc" });
-		write.renderCall!({ path: "/proj/new.ts", content: "a\nb\nc" }, theme, ctx);
-		expect(state()?.note).toBe("+3");
+		const { ctx } = makeContext({ path: "/proj/new.ts", content: "a\nb\nc" });
+		const comp = write.renderCall!({ path: "/proj/new.ts", content: "a\nb\nc" }, theme, ctx);
+		expect(strip(comp.render(200)[0]!)).toBe(" Writing new.ts +3");
 		write.renderResult!(result("ok"), { expanded: false, isPartial: false }, theme, ctx);
-		expect(state()?.verb).toBe("Wrote");
+		expect(strip(comp.render(200)[0]!)).toBe(" Wrote new.ts +3");
 	});
 
 	it("executes are delegated: bash runs a real command", async () => {
