@@ -1,8 +1,8 @@
-import { readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { type ExtensionAPI, type SessionEntry, SessionManager } from '@earendil-works/pi-coding-agent';
+import { type ExtensionAPI, type SessionEntry, SessionManager, VERSION } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { modelConfigPath } from './models.ts';
 import { boundedResult } from './results.ts';
@@ -11,6 +11,14 @@ import type { StateStore } from './state.ts';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const evidenceListBytes = 8192;
 const summaryCharacters = 160;
+
+async function sourceVersions(): Promise<{ pstack: string; teamKit: string }> {
+  const record = JSON.parse(await readFile(join(root, 'docs/provenance.json'), 'utf8')) as {
+    pstack?: { version?: string };
+    'cursor-team-kit'?: { version?: string };
+  };
+  return { pstack: record.pstack?.version ?? 'unknown', teamKit: record['cursor-team-kit']?.version ?? 'unknown' };
+}
 
 function boundedList<T>(items: readonly T[]): { values: T[]; omitted: number } {
   const values: T[] = [];
@@ -82,12 +90,13 @@ export function registerStatus(pi: ExtensionAPI, store: StateStore): void {
         return;
       }
       const state = store.read();
+      const versions = await sourceVersions();
       const skillCount = (await Promise.all(['skills', 'host/skills'].map((dir) => readdir(join(root, dir), { withFileTypes: true })))).flat().filter((entry) => entry.isDirectory()).length;
       const promptCount = (await Promise.all(['prompts', 'host/prompts'].map((dir) => readdir(join(root, dir))))).flat().filter((name) => name.endsWith('.md')).length;
       const completed = state.todos.filter((t) => t.status === 'completed').length;
       const todoSummary = state.todos.length ? ` Todos: ${completed}/${state.todos.length} completed.` : '';
       const lines = [
-        `pstack 0.15.5 with cursor-team-kit 1.2.0 for Pi 0.87.1. ${skillCount} skills, ${promptCount} prompt templates. Poteto mode ${state.enabled ? 'on' : 'off'}.${todoSummary}`,
+        `pstack ${versions.pstack} with cursor-team-kit ${versions.teamKit} for Pi ${VERSION}. ${skillCount} skills, ${promptCount} prompt templates. Poteto mode ${state.enabled ? 'on' : 'off'}.${todoSummary}`,
         `Model configuration: ${modelConfigPath()}`,
         `Compatibility report: ${join(root, 'docs/parity.md')}`,
         'Partial runtime parity. Cursor cloud agents, hosted automation editor, cloud timers, goals, bot routines, server-synced create-skill and credential isolation are not supplied.',

@@ -46,6 +46,13 @@ test('maintained extension code and tests meet the repository size and logging l
   expect(violations).toEqual([]);
 });
 
+test('runtime source states no dependency version as a literal', async () => {
+  for (const name of await readdir(join(root, 'src'))) {
+    const text = await readFile(join(root, 'src', name), 'utf8');
+    expect({ name, versions: text.match(/\b\d+\.\d+\.\d+\b/g) ?? [] }).toEqual({ name, versions: [] });
+  }
+});
+
 test('size analysis reports a function at the fifty-line limit', () => {
   const long = `function long() {\n${'  void 0;\n'.repeat(48)}}\n`;
   const source = ts.createSourceFile('synthetic-long.ts', long, ts.ScriptTarget.Latest, true);

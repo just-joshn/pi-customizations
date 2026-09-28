@@ -220,6 +220,35 @@ test('pick resolves undefined when the TUI list is cancelled', async () => {
   expect(result).toBeUndefined();
 });
 
+test('a multi-select question offers the typed answer only once', async () => {
+  let toolDef: ToolMock | undefined;
+  const pi = {
+    registerTool: (def: ToolMock) => {
+      toolDef = def;
+    },
+  } as never;
+  registerQuestions(pi);
+
+  const dialogs: string[] = [];
+  const ctx = {
+    hasUI: true,
+    ui: {
+      select: async (_title: string, options: string[]) => {
+        if (dialogs.length > 10) throw new Error('the question never finished');
+        dialogs.push(options.join(' | '));
+        return options[0];
+      },
+      input: async () => 'Typed once',
+    },
+    sessionManager: { getSessionFile: () => '/tmp/file' },
+  } as never;
+
+  const res = (await toolDef?.execute('1', { questions: [{ id: 'q1', prompt: 'Choose', allow_multiple: true, options: [{ id: 'a', label: 'A' }] }] }, undefined, undefined, ctx)) as { details: unknown };
+
+  expect(res.details).toEqual([{ id: 'q1', answers: ['a', 'Typed once'], cancelled: false }]);
+  expect(dialogs.at(-1)).toBe('Done selecting');
+});
+
 test('AskQuestion multi-choice with freeText and completion', async () => {
   let toolDef: ToolMock | undefined;
   const pi = {
