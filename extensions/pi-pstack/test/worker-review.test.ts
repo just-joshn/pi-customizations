@@ -101,3 +101,23 @@ test('a background task awaited by TaskOutput is not delivered again as a comple
     assert.equal(completions(), 1);
   } finally { await f.close(); }
 });
+
+test('a task that settles during a busy parent turn wakes the parent only if its result is still unread', async () => {
+  const f = await workerFixture();
+  try {
+    const completions = () => f.session.messages.filter(message => message.role === 'custom' && message.customType === 'pstack-task-completion').length;
+    const read = await f.call('Task', { prompt: 'WAIT' }, undefined, true);
+    const readId = (read.details as { id: string }).id;
+    await settled(f, readId);
+    assert.equal(completions(), 0, 'completion waits for the busy turn to settle');
+    await f.call('TaskOutput', { task_id: readId });
+    await f.session.extensionRunner.emit({ type: 'agent_before_settle', outcome: 'completed' } as never);
+    await f.session.waitForIdle();
+    assert.equal(completions(), 0, 'a result read during the turn sends no wake');
+    const unread = await f.call('Task', { prompt: 'WAIT' }, undefined, true);
+    await settled(f, (unread.details as { id: string }).id);
+    await f.session.extensionRunner.emit({ type: 'agent_before_settle', outcome: 'completed' } as never);
+    await f.session.waitForIdle();
+    assert.equal(completions(), 1, 'an unread result wakes the parent at settlement');
+  } finally { await f.close(); }
+});

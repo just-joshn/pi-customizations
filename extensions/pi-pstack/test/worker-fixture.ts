@@ -46,10 +46,11 @@ export async function workerFixture() {
     await session.setModel(model);
     const activeSession = session;
     const tools = loader.getExtensions().extensions.flatMap(extension => [...extension.tools.values()]);
-    async function call(name: string, params: Record<string, unknown>, signal?: AbortSignal) {
+    async function call(name: string, params: Record<string, unknown>, signal?: AbortSignal, busy = false) {
       const tool = tools.find(tool => tool.definition.name === name);
       assert.ok(tool);
-      return tool.definition.execute('test-' + name, params, signal, undefined, activeSession.extensionRunner.createContext());
+      const context = activeSession.extensionRunner.createContext();
+      return tool.definition.execute('test-' + name, params, signal, undefined, busy ? { ...context, isIdle: () => false } : context);
     }
     return { dir, session, call, close };
   } catch (error) { await close(); throw error; }
