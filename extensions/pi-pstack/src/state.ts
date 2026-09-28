@@ -7,12 +7,10 @@ import type { ExtensionAPI, ExtensionContext, Theme, ToolRenderResultOptions } f
 const Todo = Type.Object({
   id: Type.String({ minLength: 1, description: 'Stable unique identifier for the todo item' }),
   content: Type.String({ minLength: 1, description: 'Description of the todo step or task' }),
-  status: Type.Union([
-    Type.Literal('pending'),
-    Type.Literal('in_progress'),
-    Type.Literal('completed'),
-    Type.Literal('cancelled'),
-  ], { description: 'Current execution status: pending, in_progress, completed, or cancelled' }),
+  status: Type.String({
+    enum: ['pending', 'in_progress', 'completed', 'cancelled'],
+    description: 'Current execution status: pending, in_progress, completed, or cancelled',
+  }),
 });
 const State = Type.Object({ enabled: Type.Boolean(), todos: Type.Array(Todo), verificationOffered: Type.Optional(Type.Boolean()) });
 type State = Static<typeof State>;
