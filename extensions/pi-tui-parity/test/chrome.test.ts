@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, it, expect } from "vitest";
 
-process.env.FORCE_COLOR = "3";
 
 const ThemeCtor = (await import("@earendil-works/pi-coding-agent")).Theme;
 type Theme = InstanceType<typeof ThemeCtor>;
@@ -63,6 +62,7 @@ describe("footer helpers", () => {
 			{ type: "message", message: { role: "assistant", toolCalls: [{ name: "edit", arguments: { path: "/a.ts" } }, { name: "write", arguments: { path: "/b.ts" } }] } },
 			{ type: "message", message: { role: "assistant", toolCalls: [{ name: "edit", arguments: `{"path":"/a.ts"}` }] } },
 			{ type: "message", message: { role: "assistant", toolCalls: [{ name: "read", arguments: { path: "/c.ts" } }] } },
+			{ type: "message", message: { role: "assistant", toolCalls: [{ name: "edit", arguments: "{not json" }] } },
 			{ type: "message", message: { role: "user", content: "hi" } },
 		];
 		expect(countEditedFiles(entries)).toBe(2);
@@ -116,10 +116,12 @@ describe("footer rows", () => {
 		state.runEverything = true;
 		const lines = renderFooterRows({ ...base, state, filesEdited: 0 });
 		const rowB = lines[0]!;
+		const rightGroup = "Run Everything · -- INSERT --";
 		const stripped = strip(rowB);
-		expect(stripped.includes("Run Everything")).toBe(true);
-		const tailStart = rowB.indexOf("\x1b[35mRun Everything");
-		expect(tailStart > 40).toBe(true);
+		expect(stripped.endsWith(rightGroup)).toBe(true);
+		expect(stripped.length).toBe(79);
+		const rightStart = strip(rowB.slice(0, rowB.indexOf("\x1b[35mRun Everything"))).length;
+		expect(rightStart).toBe(79 - rightGroup.length);
 	});
 });
 

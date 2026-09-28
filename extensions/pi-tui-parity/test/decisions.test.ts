@@ -18,6 +18,7 @@ describe("todos tool", () => {
 			{ id: "3", content: "c", status: "in_progress" },
 		]);
 		expect(sorted.map((t) => t.id)).toEqual(["2", "3", "1"]);
+		expect(sortTodos([])).toEqual([]);
 	});
 
 	it("renders the Reference TodosUI rows and status line", async () => {
@@ -29,10 +30,12 @@ describe("todos tool", () => {
 		];
 		expect(todoStatusLine(todos, false)).toBe("Working on 3 to-do(s) • 1 done");
 		expect(todoStatusLine(todos, true)).toBe("All done");
+		expect(todoStatusLine([], false)).toBe("Working on 0 to-do(s) • 0 done");
 		const rows = todoRows(theme, todos).map(strip);
 		expect(rows[0]).toBe("  ✔ done thing");
 		expect(rows[1]).toBe("  ◐ current thing");
 		expect(rows[2]).toBe("  ○ later thing");
+		expect(todoRows(theme, [])).toEqual([]);
 	});
 
 	it("execute stores todos in details and reports to the model", async () => {
@@ -42,6 +45,9 @@ describe("todos tool", () => {
 		const out = await todo.execute("t1", { todos: [{ id: "1", content: "x", status: "pending" }] });
 		expect(out.content[0].text).toBe("Updated 1 to-do(s); 0 completed.");
 		expect(out.details).toEqual({ todos: [{ id: "1", content: "x", status: "pending" }] });
+		const empty = await todo.execute("t2", { todos: [] });
+		expect(empty.content[0].text).toBe("Updated 0 to-do(s); 0 completed.");
+		expect(empty.details).toEqual({ todos: [] });
 	});
 });
 
@@ -49,11 +55,12 @@ describe("decision gate", () => {
 	it("allowlists exact shell commands and paths", () => {
 		const allowlist = createAllowlist();
 		expect(isAllowlisted(allowlist, "bash", { command: "ls" })).toBe(false);
+		expect(isAllowlisted(allowlist, "bash", {})).toBe(false);
 		allowlist.shells.add("ls");
 		expect(isAllowlisted(allowlist, "bash", { command: "ls" })).toBe(true);
-		expect(isAllowlisted(allowlist, "edit", { path: "/a" })).toBe(false);
 		allowlist.paths.add("/a");
 		expect(isAllowlisted(allowlist, "write", { path: "/a" })).toBe(true);
+		expect(isAllowlisted(allowlist, "edit", { path: "/b" })).toBe(false);
 	});
 
 	it("titles follow the the reference CLI decision table", () => {
@@ -72,12 +79,12 @@ describe("decision gate", () => {
 		expect(write[1]!.label).toBe("Add write(/a/b.ts) to allowlist");
 	});
 
-	function driveVia(keys: string[]): ExtensionContext["ui"]["custom"] {
+	function driveVia(keys: string[], outcomes: unknown[] = []): ExtensionContext["ui"]["custom"] {
 		return (factory) => {
 			return new Promise((resolve) => {
 				void makeTheme().then((theme) => {
 					const tui = { requestRender: () => {} } as never;
-					const surface = factory(tui, theme, {} as never, (outcome) => resolve(outcome)) as DecisionSurface;
+					const surface = factory(tui, theme, {} as never, (outcome) => { outcomes.push(outcome); resolve(outcome); }) as DecisionSurface;
 					for (const k of keys) surface.handleInput(k);
 				});
 			});
@@ -98,8 +105,11 @@ describe("decision gate", () => {
 	}
 
 	it("y approves through the real surface", async () => {
-		const { handler } = gateFor(tuiCtx(driveVia(["y"])));
-		const result = await handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "echo hi" } }, tuiCtx(driveVia(["y"])));
+		const outcomes: unknown[] = [];
+		const ctx = tuiCtx(driveVia(["y"], outcomes));
+		const { handler } = gateFor(ctx);
+		const result = await handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "echo hi" } }, ctx);
+		expect(outcomes).toEqual([{ action: "approve" }]);
 		expect(result).toBeUndefined();
 	});
 
@@ -116,17 +126,34 @@ describe("decision gate", () => {
 		expect(g.allowlist.shells.has("npm test")).toBe(true);
 	});
 
-	it("runEverything bypasses the gate", async () => {
-		const g = gateFor(tuiCtx(driveVia([])));
-		g.state.runEverything = true;
-		const result = await g.handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "anything" } }, g.handler as never as ExtensionContext);
-		expect(result).toBeUndefined();
+	it("runEverything bypasses the gate while the same command still asks otherwise", async () => {
+		const bypassedOutcomes: unknown[] = [];
+		const bypassCtx = tuiCtx(driveVia(["y"], bypassedOutcomes));
+		const bypass = gateFor(bypassCtx);
+		bypass.state.runEverything = true;
+		const bypassed = await bypass.handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "anything" } }, bypassCtx);
+
+		const gatedOutcomes: unknown[] = [];
+		const gatedCtx = tuiCtx(driveVia(["n"], gatedOutcomes));
+		const gated = await gateFor(gatedCtx).handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "anything" } }, gatedCtx);
+
+		expect(bypassed).toBeUndefined();
+		expect(gated).toEqual({ block: true, reason: "The user declined this action." });
+		expect(bypassedOutcomes).toEqual([]);
+		expect(gatedOutcomes).toEqual([{ action: "reject", reason: "The user declined this action." }]);
 	});
 
-	it("non-TUI modes proceed without approval", async () => {
-		const { handler } = gateFor({ mode: "print", hasUI: false, ui: {} } as unknown as ExtensionContext);
-		const result = await handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "ls" } }, { mode: "print", hasUI: false, ui: {} } as unknown as ExtensionContext);
-		expect(result).toBeUndefined();
+	it("non-TUI modes proceed without approval while TUI mode asks", async () => {
+		const printCtx = { mode: "print", hasUI: false, ui: {} } as unknown as ExtensionContext;
+		const printed = await gateFor(printCtx).handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "ls" } }, printCtx);
+
+		const outcomes: unknown[] = [];
+		const tui = tuiCtx(driveVia(["n"], outcomes));
+		const gated = await gateFor(tui).handler({ type: "tool_call", toolCallId: "1", toolName: "bash", input: { command: "ls" } }, tui);
+
+		expect(printed).toBeUndefined();
+		expect(gated).toEqual({ block: true, reason: "The user declined this action." });
+		expect(outcomes).toEqual([{ action: "reject", reason: "The user declined this action." }]);
 	});
 });
 

@@ -47,7 +47,7 @@ describe("context pager screen", () => {
 		expect(raw).toMatch(/\x1b\[48;2;\d+;\d+;\d+m|\x1b\[48;5;\d+m/);
 		const bar = raw.split("\n").find((l) => /48;(2|5);\d+/.test(l) && l.replace(ANSI, "").trim() === "");
 		expect(bar).toBeDefined();
-		expect(bar!.replace(ANSI, "").length >= 80).toBe(true);
+		expect(strip(bar!)).toBe(" ".repeat(80));
 	});
 
 	it("shows the empty state when tokens are unknown", async () => {
@@ -71,18 +71,19 @@ describe("usage pager", () => {
 		const theme = await makeTheme();
 		const pager = new UsagePager(tui, theme, usageRows([usageEntry("claude-sonnet-4", 900, 300, 0.0123), usageEntry("claude-sonnet-4", 300, 0, 0)]), () => {});
 		const rows = pager.render(80).map(strip);
-		const row = rows.find((r) => r.startsWith("claude-sonnet-4"));
-		expect(row?.includes("1.2k") && row?.includes("300") && row?.includes("$0.012")).toBe(true);
+		expect(rows.find((r) => r.startsWith("claude-sonnet-4"))).toBe("claude-sonnet-4  1.2k  300  $0.012");
 		expect(rows.some((r) => r.includes("Usage"))).toBe(true);
 		expect(rows.some((r) => r.includes("Esc to close"))).toBe(true);
 	});
 
-	it("escape resolves the pager", async () => {
+	it("escape resolves the pager while other keys keep it open", async () => {
 		const theme = await makeTheme();
-		const result = await new Promise<undefined>((resolve) => {
-			new UsagePager(tui, theme, [], resolve).handleInput("\x1b");
-		});
-		expect(result).toBeUndefined();
+		const closed: unknown[] = [];
+		const pager = new UsagePager(tui, theme, [], (result) => { closed.push(result); });
+		pager.handleInput("j");
+		expect(closed).toEqual([]);
+		pager.handleInput("\x1b");
+		expect(closed).toEqual([undefined]);
 	});
 });
 
@@ -96,6 +97,11 @@ describe("copy pager", () => {
 		expect(you?.includes("x".repeat(60)) && !you?.includes("x".repeat(61))).toBe(true);
 		const agent = rows.find((r) => r.includes("Agent"));
 		expect(agent?.includes("y".repeat(60)) && !agent?.includes("y".repeat(61))).toBe(true);
+	});
+
+	it("drops blank messages and keeps the newest up to the limit", () => {
+		expect(copyRows([userEntry("first"), userEntry("second")], 1)).toEqual([{ role: "user", text: "second" }]);
+		expect(copyRows([{ type: "message", message: { role: "assistant", content: [{ type: "text", text: "   " }] } }, userEntry("kept")])).toEqual([{ role: "user", text: "kept" }]);
 	});
 
 	it("copies the selected message text on Enter and closes on Escape", async () => {
@@ -115,15 +121,16 @@ describe("copy pager", () => {
 });
 
 describe("context pager component and install", () => {
-	it("escape resolves the custom component promise", async () => {
+	it("closes on the first key with an undefined result", async () => {
 		const theme = await makeTheme();
-		const result = await new Promise<undefined>((resolve) => {
-			new ContextPager(tui, theme, CONTEXT_OPTS, resolve).handleInput("\x1b");
-		});
-		expect(result).toBeUndefined();
+		const closed: unknown[] = [];
+		const pager = new ContextPager(tui, theme, CONTEXT_OPTS, (result) => { closed.push(result); });
+		pager.handleInput("j");
+		pager.handleInput("\x1b");
+		expect(closed).toEqual([undefined]);
 	});
 
-	it("registers the context, usage, and copy commands", () => {
+	it("registers the context and usage commands", () => {
 		const names: string[] = [];
 		installPagers({ registerCommand: (name: string) => names.push(name) } as unknown as ExtensionAPI);
 		expect(names).toEqual(["context", "usage"]);

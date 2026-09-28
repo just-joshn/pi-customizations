@@ -1,6 +1,5 @@
 /** Builds a real pi Theme from the package's tui theme JSON (shared test harness). */
 export async function makeTheme(name = "tui-dark"): Promise<import("@earendil-works/pi-coding-agent").Theme> {
-	process.env.FORCE_COLOR = "3";
 	const { readFileSync } = await import("node:fs");
 	const { fileURLToPath } = await import("node:url");
 	const ThemeCtor = (await import("@earendil-works/pi-coding-agent")).Theme;
