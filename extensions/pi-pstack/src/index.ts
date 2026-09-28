@@ -22,7 +22,7 @@ async function loadSkill(name: string) {
 
 export default async function pstack(pi: ExtensionAPI) {
   const [mode, setup] = await Promise.all(['poteto-mode', 'setup-pstack'].map(loadSkill));
-  if (!mode || !setup) throw new Error('Missing pstack resource. Run npm run generate.');
+  if (!mode || !setup) throw new Error('Missing pstack resource. Run bun run generate.');
   const skills = new Map([['poteto-mode', mode], ['setup-pstack', setup]]);
   const store = createState(pi);
   registerCommands(pi, skills, store);

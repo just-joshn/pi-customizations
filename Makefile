@@ -1,36 +1,39 @@
-.PHONY: verify verify-mechanisms verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
+.PHONY: verify verify-mechanisms verify-toolchain verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
 
-verify: verify-mechanisms verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-install verify-python
+verify: verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-install verify-python
 
 verify-mechanisms:
 	node scripts/check-pi-mechanisms.mjs
 
+verify-toolchain:
+	bun run check:toolchain
+
 verify-test-conventions:
-	npm run check:tests
+	bun run check:tests
 
 verify-extension:
-	npm --prefix extensions/pi-pstack run check:resources
-	npm --prefix extensions/pi-pstack run typecheck
-	npm --prefix extensions/pi-pstack run test:coverage
-	npm --prefix extensions/pi-pstack run check:journeys
+	bun run --filter pi-pstack check:resources
+	bun run --filter pi-pstack typecheck
+	bun run --filter pi-pstack test:coverage
+	bun run --filter pi-pstack check:journeys
 
 verify-oauth:
-	npm --prefix extensions/pi-anthropic-oauth run typecheck
-	npm --prefix extensions/pi-anthropic-oauth test
-	npm --prefix extensions/pi-antigravity-oauth run check:vendor
-	npm --prefix extensions/pi-antigravity-oauth run typecheck
-	npm --prefix extensions/pi-antigravity-oauth test
+	bun run --filter pi-anthropic-oauth typecheck
+	bun run --filter pi-anthropic-oauth test
+	bun run --filter pi-antigravity-oauth check:vendor
+	bun run --filter pi-antigravity-oauth typecheck
+	bun run --filter pi-antigravity-oauth test
 
 verify-tui-parity:
-	npm --prefix extensions/pi-tui-parity run check:docs
-	npm --prefix extensions/pi-tui-parity run check:parity
-	npm --prefix extensions/pi-tui-parity run typecheck
-	npm --prefix extensions/pi-tui-parity run test:coverage
+	bun run --filter pi-tui-parity check:docs
+	bun run --filter pi-tui-parity check:parity
+	bun run --filter pi-tui-parity typecheck
+	bun run --filter pi-tui-parity test:coverage
 
 verify-one-dark-pro-theme:
-	npm --prefix extensions/pi-one-dark-pro-theme run check:parity
-	npm --prefix extensions/pi-one-dark-pro-theme run typecheck
-	npm --prefix extensions/pi-one-dark-pro-theme run test:coverage
+	bun run --filter pi-one-dark-pro-theme check:parity
+	bun run --filter pi-one-dark-pro-theme typecheck
+	bun run --filter pi-one-dark-pro-theme test:coverage
 
 verify-install:
 	node scripts/verify-fresh-install.mjs
