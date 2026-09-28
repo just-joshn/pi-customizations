@@ -12,11 +12,40 @@
 
 import type { Theme, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
 import type { Component } from '@earendil-works/pi-tui';
-import { Text, TruncatedText } from '@earendil-works/pi-tui';
+import { stripTerminalSequences, Text, TruncatedText } from '@earendil-works/pi-tui';
 import { shortenHomePath } from '../format/path.ts';
 
 const ROW_MARKER = '◇';
 const MISSING = '...';
+const TAB_WIDTH = 3;
+
+/**
+ * Drop the characters that let tool output drive the terminal or break the width
+ * measurement: control characters except tab and newline, DEL, and the
+ * interlinear annotation marks that crash string-width. Mirrors Pi's own output
+ * sanitizing, spelled as a filter so no control character sits in a regex.
+ */
+function stripControlChars(text: string): string {
+  return Array.from(text)
+    .filter((char) => {
+      const code = char.codePointAt(0);
+      if (code === undefined) return false;
+      if (code === 0x09 || code === 0x0a) return true;
+      if (code <= 0x1f || code === 0x7f) return false;
+      return !(code >= 0xfff9 && code <= 0xfffb);
+    })
+    .join('');
+}
+
+/**
+ * Normalize untrusted tool output. Pi's own renderers strip terminal sequences,
+ * drop carriage returns, and widen tabs before display. Skipping that lets file
+ * content or command output drive the terminal, and a carriage return from
+ * progress output overwrites the row it was meant to annotate.
+ */
+function normalizeOutputText(text: string): string {
+  return stripControlChars(stripTerminalSequences(text)).replace(/\t/g, ' '.repeat(TAB_WIDTH));
+}
 
 /** The renderer context fields these rows read. The real `ToolRenderContext` is not exported from the package root. */
 export interface ToolRowContext {
@@ -39,10 +68,20 @@ export interface ToolResultLike {
 }
 
 /** Read a string field from untrusted arguments. Never throws. */
-export function argString(source: unknown, key: string): string | undefined {
+function readArgString(source: unknown, key: string): string | undefined {
   if (typeof source !== 'object' || source === null) return undefined;
   const value: unknown = Reflect.get(source, key);
   return typeof value === 'string' ? value : undefined;
+}
+
+/**
+ * Read a string field from untrusted arguments, normalized so a carriage return
+ * or an escape sequence in a path, pattern, command, or diff cannot drive the
+ * terminal. This is the boundary for display text from tool arguments.
+ */
+export function displayArg(source: unknown, key: string): string | undefined {
+  const value = readArgString(source, key);
+  return value === undefined ? undefined : normalizeOutputText(value);
 }
 
 /** Read a finite number field from untrusted arguments. */
@@ -87,13 +126,13 @@ export function emptyResult(): Component {
   return new Text('', 0, 0);
 }
 
-/** Every text content part, in order. */
+/** Every text content part, normalized for display, in order. */
 function textParts(result: ToolResultLike): string[] {
   const texts: string[] = [];
   if (!Array.isArray(result.content)) return texts;
   for (const part of result.content) {
     if (part !== null && typeof part === 'object' && part.type === 'text' && typeof part.text === 'string') {
-      texts.push(part.text);
+      texts.push(normalizeOutputText(part.text));
     }
   }
   return texts;
@@ -101,13 +140,6 @@ function textParts(result: ToolResultLike): string[] {
 
 function firstText(result: ToolResultLike): string | undefined {
   return textParts(result)[0];
-}
-
-/** Whether the result should be presented as an error. */
-export function isErrorResult(result: ToolResultLike, context: ToolRowContext): boolean {
-  if (context.isError) return true;
-  const first = firstText(result);
-  return first?.startsWith('Error') === true;
 }
 
 /** One truncated, error-colored line built from the first text part. */
@@ -119,34 +151,46 @@ export function errorResult(result: ToolResultLike, theme: Theme): Component {
   return new TruncatedText(theme.fg('error', text), 0, 0);
 }
 
+/** A display line and the theme role that colors it. */
+type ResultLine = { text: string; role: 'toolOutput' | 'dim' };
+
 /**
  * The expanded body for a text-result tool: every text line in `toolOutput`,
- * and one dim `[image]` line in place of an image part.
+ * trailing blank lines trimmed, and one dim `[image]` line per image part.
  */
 export function expandedResult(result: ToolResultLike, theme: Theme): Component {
-  const lines: string[] = [];
   if (!Array.isArray(result.content)) return new Text('', 0, 0);
+  const lines: ResultLine[] = [];
   for (const part of result.content) {
     if (part === null || typeof part !== 'object') continue;
     if (part.type === 'text' && typeof part.text === 'string') {
-      for (const line of part.text.split('\n')) lines.push(theme.fg('toolOutput', line));
+      for (const line of normalizeOutputText(part.text).split('\n')) lines.push({ text: line, role: 'toolOutput' });
     } else if (part.type === 'image') {
-      lines.push(theme.fg('dim', '[image]'));
+      lines.push({ text: '[image]', role: 'dim' });
     }
   }
-  return new Text(lines.join('\n'), 0, 0);
+  let end = lines.length;
+  while (end > 0 && lines[end - 1]?.text === '') end--;
+  return new Text(
+    lines
+      .slice(0, end)
+      .map((line) => theme.fg(line.role, line.text))
+      .join('\n'),
+    0,
+    0,
+  );
 }
 
-/** One error line or nothing, for the tools that only ever show text. */
+/** One error line when collapsed, the full body when expanded. */
 export function textToolResult(result: ToolResultLike, options: ToolRenderResultOptions, theme: Theme, context: ToolRowContext): Component {
   if (options.isPartial) return emptyResult();
-  if (isErrorResult(result, context)) return errorResult(result, theme);
-  if (!options.expanded) return emptyResult();
-  return expandedResult(result, theme);
+  if (options.expanded) return expandedResult(result, theme);
+  if (context.isError) return errorResult(result, theme);
+  return emptyResult();
 }
 
 function shellCall(verb: string, args: unknown, theme: Theme, context: ToolRowContext): Component {
-  const command = argString(args, 'command');
+  const command = displayArg(args, 'command');
   const firstLine = command === undefined ? MISSING : (command.split('\n')[0] ?? MISSING);
   const timeout = argNumber(args, 'timeout');
   const suffix = timeout === undefined ? '' : theme.fg('dim', ` (timeout ${timeout}s)`);

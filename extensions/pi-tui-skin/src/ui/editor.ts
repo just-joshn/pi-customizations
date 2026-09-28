@@ -14,7 +14,7 @@
 import type { ExtensionContext, KeybindingsManager, Theme } from '@earendil-works/pi-coding-agent';
 import { CustomEditor } from '@earendil-works/pi-coding-agent';
 import type { EditorComponent, EditorTheme, TUI } from '@earendil-works/pi-tui';
-import { CURSOR_MARKER, truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
+import { CURSOR_MARKER, stripTerminalSequences, truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
 import { padToWidth } from '../format/width.ts';
 import type { PresentationStore } from '../state/presentation-store.ts';
 
@@ -55,13 +55,17 @@ export class SkinStyleEditor extends CustomEditor {
   }
 
   protected renderBottomBorder(width: number, hiddenLineCount: number): string {
-    if (this.store.getSnapshot().phase.kind !== 'running') {
-      return super.renderBottomBorder(width, hiddenLineCount);
-    }
+    const base = super.renderBottomBorder(width, hiddenLineCount);
+    if (this.store.getSnapshot().phase.kind !== 'running') return base;
     const label = this.appTheme.fg('dim', STOP_HINT);
-    const ruleWidth = width - visibleWidth(label) - 1;
-    if (ruleWidth < 1) return super.renderBottomBorder(width, hiddenLineCount);
-    return `${this.borderColor('─'.repeat(ruleWidth))} ${label}`;
+    const budget = visibleWidth(label) + 1;
+    if (width <= budget + 1) return base;
+    const trimmed = truncateToWidth(base, width - budget, '');
+    // Pi centers its own hidden-line label, so a rule tail means the cut took no
+    // label. Anything else leaves Pi's border untouched and skips the hint.
+    if (!stripTerminalSequences(trimmed).endsWith('─')) return base;
+    const line = `${trimmed} ${label}`;
+    return visibleWidth(line) <= width ? line : base;
   }
 
   private placeholderLine(width: number, original: string, running: boolean): string {
