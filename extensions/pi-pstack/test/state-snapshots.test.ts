@@ -188,3 +188,17 @@ test('collapsed todo views keep the in-progress step visible in long lists', () 
   assert.deepEqual(collapsed.render(80).slice(1, 3), ['  ... 7 earlier', '  ✓ Step 8']);
   assert.ok(collapsed.render(80).includes('  ◐ Step 12'));
 });
+
+test('todo widget stays one row per step so a normal terminal does not shrink it away', () => {
+  type Widget = string[] | (() => { render: (width: number) => string[] });
+  let widget: Widget | undefined;
+  const ctx = { ui: { setStatus() {}, setWidget(_key: string, content?: Widget) { widget = content; } } } as unknown as ExtensionContext;
+  const content = 'Pin the behavior contract first. '.repeat(20);
+  createState({ appendEntry() {} } as unknown as ExtensionAPI).update({
+    enabled: true,
+    todos: [{ id: '1', content, status: 'pending' }],
+  }, ctx);
+  const lines = typeof widget === 'function' ? widget().render(40) : widget;
+  assert.equal(lines?.length, 1);
+  assert.equal(lines?.[0], '[ ] Pin the behavior contract first. Pin...');
+});
