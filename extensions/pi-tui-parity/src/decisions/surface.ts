@@ -124,8 +124,8 @@ export class DecisionSurface implements Component {
 		const mode = this.theme.getColorMode();
 		const purple = (text: string) => paletteFg("#A78BFA", mode, text);
 		const rows: string[] = [purple("─".repeat(Math.max(1, width)))];
-		rows.push(...this.preview.map((p) => ` ${this.theme.fg("dim", p)}`));
-		rows.push(` ${purple(this.theme.bold(this.title))}`);
+		rows.push(...this.preview.map((p) => truncateToWidth(` ${this.theme.fg("dim", p)}`, width)));
+		rows.push(truncateToWidth(` ${purple(this.theme.bold(this.title))}`, width));
 		this.options.forEach((option, i) => {
 			const selectedRow = i === this.selected;
 			const prefix = selectedRow ? purple("→ ") : "  ";
@@ -133,7 +133,7 @@ export class DecisionSurface implements Component {
 			const hint = this.theme.fg("dim", ` ${option.hint}`);
 			rows.push(truncateToWidth(` ${prefix}${label}${hint}`, width));
 		});
-		rows.push(` ${this.theme.fg("dim", "↑/↓ to navigate • Enter to select • y approve • tab allowlist • esc reject")}`);
+		rows.push(truncateToWidth(` ${this.theme.fg("dim", "↑/↓ to navigate • Enter to select • y approve • tab allowlist • esc reject")}`, width));
 		return rows;
 	}
 
