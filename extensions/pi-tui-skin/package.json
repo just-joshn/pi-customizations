@@ -1,0 +1,42 @@
+{
+  "name": "pi-tui-skin",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Presentation-only Reference-style TUI skin for pi: theme, chrome, live activity, and built-in tool rows",
+  "keywords": [
+    "pi-package"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "check:skin": "node scripts/check-skin-boundaries.mjs",
+    "check:smoke": "node scripts/tmux-smoke.mjs --all"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-agent-core": "0.87.1",
+    "@earendil-works/pi-coding-agent": "0.87.1",
+    "@earendil-works/pi-tui": "0.87.1",
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "^5.0.2",
+    "typebox": "1.3.27",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.2"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "themes": [
+      "./themes/tui-skin.json"
+    ]
+  }
+}

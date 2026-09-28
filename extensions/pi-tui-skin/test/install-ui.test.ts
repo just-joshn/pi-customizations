@@ -1,0 +1,194 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+import { Theme } from '@earendil-works/pi-coding-agent';
+import { stripTerminalSequences } from '@earendil-works/pi-tui';
+import { describe, expect, test, vi } from 'vitest';
+import { createPresentationStore } from '../src/state/presentation-store.ts';
+import { createUiController } from '../src/ui/install-ui.ts';
+import { installWorkingIndicator } from '../src/ui/working-indicator.ts';
+
+const FG_ROLES = [
+  'accent',
+  'bashMode',
+  'border',
+  'borderAccent',
+  'borderMuted',
+  'customMessageLabel',
+  'customMessageText',
+  'dim',
+  'error',
+  'mdCode',
+  'mdCodeBlock',
+  'mdCodeBlockBorder',
+  'mdHeading',
+  'mdHr',
+  'mdLink',
+  'mdLinkUrl',
+  'mdListBullet',
+  'mdQuote',
+  'mdQuoteBorder',
+  'muted',
+  'success',
+  'syntaxComment',
+  'syntaxFunction',
+  'syntaxKeyword',
+  'syntaxNumber',
+  'syntaxOperator',
+  'syntaxPunctuation',
+  'syntaxString',
+  'syntaxType',
+  'syntaxVariable',
+  'text',
+  'thinkingHigh',
+  'thinkingLow',
+  'thinkingMax',
+  'thinkingMedium',
+  'thinkingMinimal',
+  'thinkingOff',
+  'thinkingText',
+  'thinkingXhigh',
+  'toolDiffAdded',
+  'toolDiffContext',
+  'toolDiffRemoved',
+  'toolOutput',
+  'toolTitle',
+  'userMessageText',
+  'warning',
+];
+const BG_ROLES = ['customMessageBg', 'searchMatchBg', 'selectedBg', 'toolErrorBg', 'toolPendingBg', 'toolSuccessBg', 'userMessageBg'];
+
+/** Real Theme built from this package's theme JSON, matching pi's var resolution. */
+function makeTheme(): Theme {
+  const document: { vars: Record<string, string | number>; colors: Record<string, string | number> } = JSON.parse(readFileSync(fileURLToPath(new URL('../themes/tui-skin.json', import.meta.url)), 'utf8'));
+  const resolve = (value: string | number): string | number => (typeof value === 'string' && value.length > 0 && !value.startsWith('#') ? (document.vars[value] ?? value) : value);
+  const fg = Object.fromEntries(FG_ROLES.map((role) => [role, resolve(document.colors[role] ?? '')]));
+  const bg = Object.fromEntries(BG_ROLES.map((role) => [role, resolve(document.colors[role] ?? '')]));
+  return new Theme(fg as never, bg as never, 'truecolor', { name: 'tui-skin' });
+}
+
+type UiCall = { method: string; args: unknown[] };
+
+const UI_METHODS = ['setTitle', 'setTheme', 'setHeader', 'setFooter', 'setEditorComponent', 'setWidget', 'setWorkingIndicator', 'setWorkingMessage', 'setWorkingVisible', 'setHiddenThinkingLabel'];
+
+const INSTALL_METHODS = ['setTitle', 'setTheme', 'setHeader', 'setFooter', 'setEditorComponent', 'setWorkingIndicator', 'setWorkingMessage', 'setWidget', 'setHiddenThinkingLabel'];
+const UNINSTALL_METHODS = ['setWidget', 'setEditorComponent', 'setFooter', 'setHeader', 'setWorkingMessage', 'setWorkingIndicator', 'setWorkingVisible', 'setHiddenThinkingLabel'];
+
+function fakeContext(mode: string) {
+  const calls: UiCall[] = [];
+  const ui: Record<string, unknown> = { theme: makeTheme() };
+  for (const method of UI_METHODS) {
+    ui[method] = (...args: unknown[]) => {
+      calls.push({ method, args });
+    };
+  }
+  const ctx = {
+    mode,
+    cwd: '/home/u/proj',
+    thinkingLevel: 'high',
+    model: { id: 'gpt-6-sol', name: 'GPT-6 Sol', provider: 'openai' },
+    getContextUsage: () => ({ tokens: 16000, contextWindow: 200000, percent: 8 }),
+    ui,
+  } as never;
+  return { ctx, calls };
+}
+
+function callsFor(calls: readonly UiCall[], method: string): UiCall[] {
+  return calls.filter((call) => call.method === method);
+}
+
+function factoryFor(calls: readonly UiCall[], method: string): (...args: unknown[]) => unknown {
+  const call = callsFor(calls, method)[0];
+  if (call === undefined) throw new Error(`${method} was not recorded`);
+  return call.args[0] as (...args: unknown[]) => unknown;
+}
+
+function fakeTui() {
+  return { requestRender: vi.fn(), terminal: { rows: 40, columns: 120 } };
+}
+
+describe('install-ui controller', () => {
+  test('installs nothing outside tui mode', () => {
+    for (const mode of ['print', 'rpc', 'json']) {
+      const { ctx, calls } = fakeContext(mode);
+      const controller = createUiController(createPresentationStore());
+      controller.install(ctx);
+      controller.uninstall(ctx);
+      expect(calls.length).toBe(0);
+    }
+  });
+
+  test('installs each replacement once in order', () => {
+    const { ctx, calls } = fakeContext('tui');
+    const controller = createUiController(createPresentationStore());
+    controller.install(ctx);
+
+    expect(calls.map((call) => call.method)).toEqual(INSTALL_METHODS);
+    expect(callsFor(calls, 'setTitle')[0]?.args).toEqual(['agent']);
+    expect(callsFor(calls, 'setTheme')[0]?.args).toEqual(['tui-skin']);
+    expect(callsFor(calls, 'setHiddenThinkingLabel')[0]?.args).toEqual(['Thinking']);
+    const widget = callsFor(calls, 'setWidget')[0];
+    expect(widget?.args[0]).toBe('tui-skin.activity');
+    expect(widget?.args[2]).toEqual({ placement: 'aboveEditor' });
+  });
+
+  test('ignores a second install in tui mode', () => {
+    const { ctx, calls } = fakeContext('tui');
+    const controller = createUiController(createPresentationStore());
+    controller.install(ctx);
+    controller.install(ctx);
+
+    expect(calls.length).toBe(INSTALL_METHODS.length);
+  });
+
+  test('restores each replacement in reverse order', () => {
+    const { ctx, calls } = fakeContext('tui');
+    const controller = createUiController(createPresentationStore());
+    controller.install(ctx);
+    controller.uninstall(ctx);
+
+    expect(calls.map((call) => call.method)).toEqual([...INSTALL_METHODS, ...UNINSTALL_METHODS]);
+    expect(callsFor(calls, 'setWorkingVisible').at(-1)?.args).toEqual([true]);
+    expect(callsFor(calls, 'setWidget').at(-1)?.args).toEqual(['tui-skin.activity', undefined]);
+    expect(callsFor(calls, 'setWorkingMessage').at(-1)?.args).toEqual([]);
+  });
+
+  test('ignores a repeated or never-installed removal', () => {
+    const { ctx, calls } = fakeContext('tui');
+    const controller = createUiController(createPresentationStore());
+
+    controller.uninstall(ctx);
+    expect(calls.length).toBe(0);
+
+    controller.install(ctx);
+    controller.uninstall(ctx);
+    controller.uninstall(ctx);
+    expect(calls.length).toBe(INSTALL_METHODS.length + UNINSTALL_METHODS.length);
+  });
+
+  test('requests a render until uninstalled', () => {
+    const store = createPresentationStore();
+    const { ctx, calls } = fakeContext('tui');
+    const controller = createUiController(store);
+    controller.install(ctx);
+
+    const tui = fakeTui();
+    factoryFor(calls, 'setHeader')(tui, makeTheme());
+    store.setAgentRunning(1);
+    expect(tui.requestRender.mock.calls.length).toBe(1);
+
+    controller.uninstall(ctx);
+    store.setAgentRunning(2);
+    expect(tui.requestRender.mock.calls.length).toBe(1);
+  });
+
+  test('installs the working frames when called directly', () => {
+    const { ctx, calls } = fakeContext('tui');
+    installWorkingIndicator(ctx);
+
+    const indicator = callsFor(calls, 'setWorkingIndicator')[0]?.args[0] as { frames: string[]; intervalMs: number };
+    expect(indicator.intervalMs).toBe(120);
+    expect(indicator.frames.map((frame) => stripTerminalSequences(frame))).toEqual(['·', '•', '●', '•']);
+    expect(callsFor(calls, 'setWorkingMessage')[0]?.args).toEqual(['Working']);
+  });
+});
