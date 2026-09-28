@@ -27,6 +27,29 @@ function todoWindow<T extends Static<typeof Todo>>(todos: readonly T[]) {
   return { visible, earlier: start, later: todos.length - start - visible.length };
 }
 
+function marker(todo: Static<typeof Todo>): string {
+  if (todo.status === 'completed') return '[x]';
+  if (todo.status === 'in_progress') return '[>]';
+  if (todo.status === 'cancelled') return '[-]';
+  return '[ ]';
+}
+
+function widgetLines(todos: readonly Static<typeof Todo>[]): string[] {
+  const { visible, earlier, later } = todoWindow(todos);
+  return [
+    ...earlier ? [`... ${earlier} earlier`] : [],
+    ...visible.map(todo => `${marker(todo)} ${todo.content} (${todo.status})`),
+    ...later ? [`... ${later} more`] : [],
+  ];
+}
+
+function todoWidget(lines: string[]) {
+  return () => ({
+    render: (width: number) => lines.map(line => truncateToWidth(line, width)),
+    invalidate() {},
+  });
+}
+
 function renderTodoItem(t: Static<typeof Todo>, theme: Theme): string {
   if (t.status === 'completed') return `  ${theme.fg('success', '✓')} ${theme.fg('dim', t.content)}`;
   if (t.status === 'in_progress') return `  ${theme.fg('warning', '◐')} ${theme.fg('accent', t.content)}`;
@@ -79,16 +102,7 @@ export function createState(pi: ExtensionAPI) {
 
   const showState = (ctx: ExtensionContext) => {
     ctx.ui.setStatus('pstack', state.enabled ? 'poteto-mode' : undefined);
-    const { visible, earlier, later } = todoWindow(state.todos);
-    ctx.ui.setWidget('pstack-todos', state.todos.length
-      ? [...earlier ? [`... ${earlier} earlier`] : [], ...visible.map((todo) => {
-        const marker = todo.status === 'completed' ? '[x]'
-          : todo.status === 'in_progress' ? '[>]'
-          : todo.status === 'cancelled' ? '[-]'
-          : '[ ]';
-        return `${marker} ${todo.content} (${todo.status})`;
-      }), ...later ? [`... ${later} more`] : []]
-      : undefined);
+    ctx.ui.setWidget('pstack-todos', state.todos.length ? todoWidget(widgetLines(state.todos)) : undefined);
   };
   const restore = (ctx: ExtensionContext) => {
     state = { enabled: false, todos: [] };
