@@ -31,6 +31,6 @@ unambiguous identifier. This package pins the `-flat` file.
 2. Replace `upstream/OneDark-Pro-flat.json`.
 3. Update the byte count, SHA-256, and commit hash in this table, and `UPSTREAM_SHA256` in
    `parity/theme.ts`. Those are the two places the pin lives.
-4. Run `npm run build:theme` then `npm run check:parity`.
+4. Run `bun run build:theme` then `bun run check:parity`.
 5. Review the diff in `themes/one-dark-pro-flat.json` before committing. A changed color in the
    output is a real change in what the user sees.

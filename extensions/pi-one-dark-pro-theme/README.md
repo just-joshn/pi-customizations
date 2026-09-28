@@ -8,7 +8,7 @@ A single Pi theme, `one-dark-pro-flat`, mapped from
 [Binaryify/OneDark-Pro](https://github.com/Binaryify/OneDark-Pro)
 `themes/OneDark-Pro-flat.json`. All 56 color roles and the 3 HTML export colors are assigned.
 Every value is derived from the pinned file under `upstream/` by `parity/theme.ts`, and
-`npm run check:parity` fails when the committed theme drifts from a fresh build.
+`bun run check:parity` fails when the committed theme drifts from a fresh build.
 
 ## Install
 
@@ -42,11 +42,11 @@ system appearance.
 ## Verify parity
 
 ```bash
-npm run build:theme    # rewrite themes/one-dark-pro-flat.json from upstream/
-npm run check:parity   # pinned hash, schema coverage, committed theme, value shapes
-npm run typecheck
-npm run test:coverage  # 80% thresholds on parity/*.ts
-npm run check:smoke    # launch pi in tmux and assert the theme's escapes reach the screen
+bun run build:theme    # rewrite themes/one-dark-pro-flat.json from upstream/
+bun run check:parity   # pinned hash, schema coverage, committed theme, value shapes
+bun run typecheck
+bun run test:coverage  # 80% thresholds on parity/*.ts
+bun run check:smoke    # launch pi in tmux and assert the theme's escapes reach the screen
 ```
 
 `check:smoke` needs `tmux` and a `pi` on `PATH`, or `PI_BIN` set to one. It runs two agents with

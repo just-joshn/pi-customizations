@@ -74,22 +74,22 @@ Mode, todo, and task records follow the current session branch. Child transcript
 
 `skills/` contains 142 files and `prompts/` contains 63 templates generated from both snapshots. The generator normalizes two display names, removes unsupported Reference frontmatter, and maps model-rule, skill-authoring, transcript, and repository paths to Pi locations. The generated worktree audit reads Pi session directories. It retains the workflow bodies and supporting resources, with `bro` moved to a prompt template. It rejects overlapping source destinations before writing. [The resource map](docs/resource-map.json) lists every generated file and transformation. It is a maintenance inventory, not a Pi manifest or API.
 
-Development verification requires Node/npm, uv, and Bun. From the repository root, `make verify` runs all maintained checks and the isolated helper suite. Use these commands inside this directory:
+Development verification requires Node, Bun, and uv. From the repository root, `make verify` runs all maintained checks and the isolated helper suite. Use these commands inside this directory:
 
 ```sh
-npm install
-npm run check:resources
-npm run typecheck
-npm test
-npm run test:coverage
-npm run check:cli
-npm run check:upstream
-npm run check:journeys
+bun install
+bun run check:resources
+bun run typecheck
+bun run test
+bun run test:coverage
+bun run check:cli
+bun run check:upstream
+bun run check:journeys
 ```
 
-`npm run check:journeys` starts the real Pi CLI against the package with a deterministic local provider. It loads every skill and prompt template as a user would, drives the mode, status, todo, context, dialog, delegation, shell, setup, helper-script, and worktree journeys, and reports one line per check.
+`bun run check:journeys` starts the real Pi CLI against the package with a deterministic local provider. It loads every skill and prompt template as a user would, drives the mode, status, todo, context, dialog, delegation, shell, setup, helper-script, and worktree journeys, and reports one line per check.
 
-`npm run generate` recreates the operational skills and prompts from the immutable snapshot. The checker rejects changed upstream hashes and generated resource drift. Do not edit generated resources directly.
+`bun run generate` recreates the operational skills and prompts from the immutable snapshot. The checker rejects changed upstream hashes and generated resource drift. Do not edit generated resources directly.
 
 The CLI check starts an isolated local pi process and exercises RPC commands without model calls. Helper scripts may install their locked dependencies into their generated `node_modules` directory. The resource checker excludes that dependency directory and still checks every generated source file.
 
