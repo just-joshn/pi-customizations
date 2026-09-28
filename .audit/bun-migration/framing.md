@@ -83,6 +83,14 @@ Node stays installed and stays the runtime. Pi is a Node program, the gate scrip
 
 ## Verification artifacts
 
-- `baseline-make-verify.log` is the npm baseline, exit 0, captured before any edit.
+Every claim in this document points at one of these files.
+
+- `baseline-make-verify.log` is the npm baseline `make verify`, exit 0, captured before any edit. `baseline-matrix.tsv` is the 19 facts `gate-matrix.mjs` extracts from it.
+- `treatment-make-verify.log` is the final Bun `make verify`, exit 0, after every review fix. `treatment-matrix.tsv` is the same 19 facts from it, and regenerates from the log. An earlier treatment run is not kept: its only difference was the toolchain file count, taken before `skills` joined the gate's skip list.
+- `gate-matrix.mjs` is the extractor both matrices come from. It matches suites in the order `make verify` runs them, so a bare npm log and a `--filter`-prefixed Bun log parse the same way.
+- `probe-topology.sh` reruns the three-layout comparison without touching the checkout. Its outputs are `topology-probe-default.log` and `topology-probe-hoisted.log`.
+- `probe-isolated-gates.log` records the five suites, both repository checkers, and the `check:vendor` failure on the isolated layout. It tails each suite, so it holds coverage and exit status for the three coverage suites rather than their test counts.
+- `lock-inventory.mjs` reads either lockfile format into name and version pairs, and `diff-inventories.mjs` compares two of them. `npm-inventory-*.tsv` holds the five npm lockfiles' resolutions, `bun-inventory.tsv` holds the merged workspace resolution, and `dependency-drift.tsv` is what moved between them.
+- `fresh-clone-bun-ci.log` runs `bun ci` and `bun install --frozen-lockfile` against a fresh export of the tracked tree.
+- `bun-pm-pack-dotfile-repro.log` is the smallest tree that shows `bun pm pack` dropping a file named `.gitignore`, with other dotfiles in the same directory packed.
 - `bun-best-practices.md` is the cited digest of the installed Bun 1.4.2 binary and the current official docs.
-- A gate matrix extractor normalizes a `make verify` log into one fact per line so the two runs can be diffed rather than read.
