@@ -327,7 +327,7 @@ test("pstack tool snippets and guidance follow the active tool set", async () =>
       assert.match(tools, new RegExp(`^- ${name}: `, "m"), `${name} is listed with the available tools`);
     }
     assert.match(section(f.requests, "rules") ?? "", /Cloud Task execution is unavailable/);
-    assert.match(section(f.requests, "rules") ?? "", /AskQuestion is available only with interactive or RPC dialogs/);
+    assert.match(section(f.requests, "rules") ?? "", /AskQuestion works in interactive and RPC sessions/);
     assert.doesNotMatch(section(f.requests, "pstack_host") ?? "", /Cloud Task execution is unavailable|TodoWrite keeps/);
     session.setActiveToolsByName(["read", "bash"]);
     await prompt(session, "Continue with read and bash only.");
