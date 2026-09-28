@@ -7,10 +7,13 @@ artifact. Captures live under `extensions/pi-cursor-ui/artifacts/<scenario>/`.
 
 | Gate | Command | Result |
 |---|---|---|
-| Sweep | `node scripts/ui-sweep.mjs` | `findings: 0` on two consecutive full runs |
+| Sweep | `node scripts/ui-sweep.mjs` | `findings: 0` on two consecutive full runs at `c86d073` |
+| Sweep record | `artifacts/sweep-runs.jsonl` | two full runs, both `findings 0`, `head c86d073`, `dirty false`, 10 of 10 steps passing |
 | Type check | `bun run typecheck` | exit 0, no diagnostics |
-| Unit tests | `bun run test:coverage` | 13 files, 2313 passed, 2 expected fail, 1 skipped |
-| Coverage | same run | statements 92.3, branches 93.28, functions 84, lines 92.43, thresholds 80 |
+| Unit tests | `bun run test:coverage` | 14 files, 2320 passed, 2 expected fail, 1 skipped |
+| Coverage | same run | statements 97.23, branches 93.28, functions 96.66, lines 98.16, thresholds 80 |
+| Entry point | `test/index.test.ts` | installs chrome only in TUI mode, restores every setter on shutdown, a repeated session start does not double-install, and an edit tool's execution reaches the footer counter |
+| Registered rows | `test/tool-registration.test.ts` | every registered definition renders its own call and result row |
 | Behavior boundary | `node scripts/check-skin-boundaries.mjs` | `violations: 0 in 22 source files` |
 | Lint self-test | `node scripts/check-skin-boundaries.mjs --self-test` | `self-test: 4 fixtures passed` |
 | Frame invariant self-test | `node scripts/lib/frame-invariants.mjs --self-test` | `9/9 passed (visibleWidth source: pi-tui)` |
@@ -98,6 +101,17 @@ green. `artifacts/widget/02-widget.ansi.txt` contains `38;2;108;91;157`. That is
 `#6c5b9d`, the theme's `borderAccent`, which is exactly the busy editor border
 measured from the recording at `rgb(108,91,157)`.
 
+## The sweep record
+
+Each run appends one line to `artifacts/sweep-runs.jsonl` before the next run
+clears the per-step logs. The two lines below are the two confirming runs on the
+revision this trail describes.
+
+```
+21:37:31Z findings 0 mode full fuzz 20 steps 10 head c86d073 dirty false
+21:44:41Z findings 0 mode full fuzz 20 steps 10 head c86d073 dirty false
+```
+
 ## The bug sweep
 
 A verify-and-fix loop ran three finders against the first revision: the live
@@ -152,13 +166,12 @@ fix registers the four default-active built-ins and gates the other four behind
   closes the picker without selecting a theme.
 - PowerShell tool rows. `pwsh` is not installed on this machine, so
   `test/execution-equivalence.test.ts` skips it and no live frame exercises it.
-  Its renderer shares `render-shell.ts` with bash, which is covered.
+  Its renderer shares `render-shell.ts` with bash, which is covered. The five
+  functions the coverage report leaves uncovered are the two powershell
+  renderers and their registration block.
 - A 1-column terminal with a 2-cell grapheme. Pi's `Text` cannot fit it and
   Pi's own renderer overflows the same way, so the case is pinned by two
   `test.fails` cases and one test that records the exact 2-cell line.
-- `src/index.ts` function coverage is 0. Its three functions are exercised only
-  through a real pi process, which the tmux matrix does, but the v8 report does
-  not see it. Global thresholds still pass.
 - The eight `execute` delegation wrappers inside `register-tool-renderers.ts`
   run only in a live session. Equivalence is proven for the underlying
   definitions in `test/execution-equivalence.test.ts`, and the settings path is
