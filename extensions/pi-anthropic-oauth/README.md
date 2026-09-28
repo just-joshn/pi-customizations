@@ -2,7 +2,7 @@
 
 This Pi package lets a Claude Pro or Max subscription answer in Pi. Requests identify as Claude Code. It registers a separate provider, `claude-subscription`, so the subscription login stays apart from the credentials of Pi's built-in `anthropic` provider.
 
-The provider reuses Pi's own parts. Pi's Claude Pro/Max OAuth flow handles login and refresh. Pi's Anthropic Messages implementation sends requests through `@anthropic-ai/sdk`, and the model list is Pi's Anthropic catalog. The package adds one thing to each request: the Claude Code billing block.
+The provider reuses Pi's own parts. It takes them from Pi's built-in `anthropic` provider, which `@earendil-works/pi-ai/providers/all` supplies to extensions. Pi's Claude Pro/Max OAuth flow handles login and refresh. Pi's Anthropic Messages implementation sends requests through `@anthropic-ai/sdk`, and the model list is Pi's bundled Anthropic catalog. Catalog updates that Pi downloads from pi.dev apply to Pi's own `anthropic` provider, not to this one. The package adds one thing to each request: the Claude Code billing block.
 
 ## Use it
 
@@ -26,6 +26,9 @@ To send a different version in the user agent, set `CLAUDE_CODE_VERSION`. The bi
 
 ## Verify it
 
+Run `npm install` first. It installs the Pi packages the tests import, pinned to 0.87.1. Pi does not install development dependencies when it loads the package.
+
+- `npm run typecheck` runs `tsc` in strict mode.
 - `npm test` runs the provider against a local Messages server and checks the request and the Pi result.
 - `node --experimental-strip-types scripts/equivalence.ts` prints each captured request and result as JSON. To compare two versions, run it on both and diff the output.
 - `node --experimental-strip-types scripts/prove-pi.ts` loads the extension in `pi`. If you are logged in, it sends one live prompt. If not, it confirms that Pi asks you to log in.
