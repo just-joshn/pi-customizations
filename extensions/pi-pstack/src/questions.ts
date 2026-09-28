@@ -34,8 +34,9 @@ async function ask(question: Question, ctx: ExtensionContext, signal: AbortSigna
   let choices = new Map(question.options.map((option) => [`${option.label} [${option.id}]`, option]));
   let answers: string[] = [];
   let shown: string[] = [];
+  let freeTextUsed = false;
   while (true) {
-    const labels = [...choices.keys(), freeText, ...(question.allow_multiple ? [done] : [])];
+    const labels = [...choices.keys(), ...(freeTextUsed ? [] : [freeText]), ...(question.allow_multiple ? [done] : [])];
     const title = shown.length ? `${question.prompt} (selected: ${shown.join(', ')})` : question.prompt;
     const selected = await ctx.ui.select(title, labels, { signal });
     if (selected === undefined) return { id: question.id, answers, cancelled: true };
@@ -45,6 +46,7 @@ async function ask(question: Question, ctx: ExtensionContext, signal: AbortSigna
     answers = [...answers, answer];
     shown = [...shown, choices.get(selected)?.label ?? answer];
     choices = new Map([...choices].filter(([label]) => label !== selected));
+    if (selected === freeText) freeTextUsed = true;
     if (!question.allow_multiple) return { id: question.id, answers, cancelled: false };
   }
 }

@@ -1,6 +1,6 @@
 # Verification
 
-The [comprehensive audit](comprehensive-audit.md) supersedes the historical results below. Run `make verify` from the repository root for the current runtime, packaged CLI, source-integrity, maintained-code structure, and coverage checks.
+The [comprehensive audit](comprehensive-audit.md) supersedes the historical results below. Run `make verify` from the repository root for the current runtime, packaged CLI, source-integrity, maintained-code structure, formatting and lint, and coverage checks.
 
 ## Verified source and host contracts
 

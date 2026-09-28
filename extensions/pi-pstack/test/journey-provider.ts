@@ -48,8 +48,97 @@ const toolCalls: Record<string, PlannedCall[]> = {
     },
   ],
   'JOURNEY:task': [{ name: 'Task', arguments: { prompt: 'Report the word delegate-ok and nothing else.', subagent_type: 'generalPurpose', run_in_background: false } }],
+  'JOURNEY:readonly': [{ name: 'Task', arguments: { prompt: 'readonly child turn', readonly: true, run_in_background: false } }],
+  'JOURNEY:badcwd': [{ name: 'Task', arguments: { prompt: 'cwd child turn', cwd: 'no/such/directory', run_in_background: false } }],
+  'JOURNEY:localenv': [{ name: 'Task', arguments: { prompt: 'local child turn', environment: 'local', run_in_background: false } }],
   'JOURNEY:subagent': [{ name: 'Task', arguments: { prompt: 'Report the word delegate-ok and nothing else.', subagent_type: 'not-a-persona' } }],
   'JOURNEY:shellexit': [{ name: 'BackgroundShell', arguments: { command: "perl -MPOSIX -e 'POSIX::setsid(); sleep 300' & sleep 0.3", title: 'Escaping shell' } }],
+  'JOURNEY:shellinvalid': [
+    { name: 'BackgroundShell', arguments: { command: 'echo hi', title: 'Bad pattern', notify_on_output: '(' } },
+    { name: 'BackgroundShell', arguments: { command: 'echo hi', title: '   ' } },
+  ],
+  'JOURNEY:shellunknown': [{ name: BG_SHELL_STOP, arguments: { id: 'not-a-shell' } }],
+  'JOURNEY:todomany': [
+    {
+      name: 'TodoWrite',
+      arguments: {
+        todos: Array.from({ length: 12 }, (_value, index) => ({
+          id: `step-${index + 1}`,
+          content: `Step ${index + 1} of the long journey with a descriptive title`,
+          status: index < 2 ? 'completed' : index === 6 ? 'in_progress' : 'pending',
+        })),
+      },
+    },
+  ],
+  'JOURNEY:todocancel': [{ name: 'TodoWrite', arguments: { todos: [{ id: 'gone', content: 'Abandoned step', status: 'cancelled' }] } }],
+  'JOURNEY:tododup': [
+    {
+      name: 'TodoWrite',
+      arguments: {
+        todos: [
+          { id: 'same', content: 'First', status: 'pending' },
+          { id: 'same', content: 'Second', status: 'pending' },
+        ],
+      },
+    },
+  ],
+  'JOURNEY:slowchild': [{ name: 'bash', arguments: { command: 'sleep 3' } }],
+  'JOURNEY:qmulti': [
+    {
+      name: 'AskQuestion',
+      arguments: {
+        questions: [
+          {
+            id: 'toppings',
+            prompt: 'Pick journey toppings',
+            allow_multiple: true,
+            options: [
+              { id: 'basil', label: 'Basil' },
+              { id: 'oregano', label: 'Oregano' },
+              { id: 'thyme', label: 'Thyme' },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+  'JOURNEY:qfree': [
+    {
+      name: 'AskQuestion',
+      arguments: {
+        questions: [
+          {
+            id: 'approval',
+            prompt: 'Approve the free text journey?',
+            options: [
+              { id: 'approve', label: 'Approve' },
+              { id: 'decline', label: 'Decline' },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+  'JOURNEY:qtext': [{ name: 'AskQuestion', arguments: { questions: [{ id: 'release', prompt: 'Name the journey release' }] } }],
+  'JOURNEY:qdup': [
+    {
+      name: 'AskQuestion',
+      arguments: {
+        questions: [
+          { id: 'same', prompt: 'First question' },
+          { id: 'same', prompt: 'Second question' },
+        ],
+      },
+    },
+  ],
+  'JOURNEY:qtoo': [
+    {
+      name: 'AskQuestion',
+      arguments: {
+        questions: Array.from({ length: 5 }, (_value, index) => ({ id: `q-${index + 1}`, prompt: `Question ${index + 1}` })),
+      },
+    },
+  ],
 };
 
 function escapingShellCalls(context: Context) {
@@ -60,6 +149,11 @@ function escapingShellCalls(context: Context) {
 
 function dispatch(requested: string, context: Context): { calls: PlannedCall[] | undefined; sequenced: boolean } {
   if (requested === 'JOURNEY:tasklist') return { calls: backgroundTaskCalls(context), sequenced: true };
+  if (requested === 'JOURNEY:taskresume') return { calls: taskResumeCalls(context), sequenced: true };
+  if (requested === 'JOURNEY:taskpolicy') return { calls: taskPolicyCalls(context), sequenced: true };
+  if (requested === 'JOURNEY:tasksteer') return { calls: taskSteerCalls(context), sequenced: true };
+  if (requested === 'JOURNEY:tasklifecycle') return { calls: taskLifecycleCalls(context), sequenced: true };
+  if (requested === 'JOURNEY:personas') return { calls: personaCalls(), sequenced: false };
   if (requested === 'JOURNEY:shell') return { calls: shellCalls(context), sequenced: true };
   if (requested === 'JOURNEY:shellexitstop') return { calls: escapingShellCalls(context), sequenced: false };
   return { calls: toolCalls[requested], sequenced: false };
@@ -89,6 +183,60 @@ function shellCalls(context: Context) {
   const text = JSON.stringify(started);
   const id = text.match(/Started background shell ([0-9a-f-]{36})/i)?.[1] ?? text.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0];
   return id ? [{ name: BG_SHELL_STOP, arguments: { id } }] : [];
+}
+
+function taskIdOf(message: unknown): string | undefined {
+  return JSON.stringify(message).match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)?.[0];
+}
+
+function toolResults(context: Context) {
+  return context.messages.filter((message) => message.role === 'toolResult');
+}
+
+function taskResumeCalls(context: Context) {
+  const tasks = toolResults(context).filter((message) => message.role === 'toolResult' && message.toolName === 'Task');
+  if (tasks.length === 0) return [{ name: 'Task', arguments: { prompt: 'first child turn for resume', subagent_type: 'generalPurpose', run_in_background: false } }];
+  if (tasks.length > 1) return [];
+  const id = taskIdOf(tasks[0]);
+  return id ? [{ name: 'Task', arguments: { prompt: 'second child turn after resume', subagent_type: 'generalPurpose', run_in_background: false, resume: id } }] : [];
+}
+
+function taskSteerCalls(context: Context) {
+  const results = toolResults(context);
+  const tasks = results.filter((message) => message.role === 'toolResult' && message.toolName === 'Task');
+  if (tasks.length === 0) return [{ name: 'Task', arguments: { prompt: 'JOURNEY:slowchild', subagent_type: 'generalPurpose' } }];
+  const id = taskIdOf(tasks[0]);
+  if (!id) return [];
+  if (!results.some((message) => message.role === 'toolResult' && message.toolName === 'TaskMessage')) return [{ name: 'TaskMessage', arguments: { task_id: id, message: 'steer the running child', mode: 'steer' } }];
+  if (!results.some((message) => message.role === 'toolResult' && message.toolName === 'TaskOutput')) return [{ name: 'TaskOutput', arguments: { task_id: id, block: true } }];
+  return [];
+}
+
+function taskPolicyCalls(context: Context) {
+  const tasks = toolResults(context).filter((message) => message.role === 'toolResult' && message.toolName === 'Task');
+  if (tasks.length === 0) return [{ name: 'Task', arguments: { prompt: 'policy child turn', subagent_type: 'generalPurpose', run_in_background: false } }];
+  if (tasks.length > 1) return [];
+  const id = taskIdOf(tasks[0]);
+  return id ? [{ name: 'Task', arguments: { prompt: 'policy child turn two', subagent_type: 'comment-sicko', run_in_background: false, resume: id } }] : [];
+}
+
+function taskLifecycleCalls(context: Context) {
+  const results = toolResults(context);
+  const tasks = results.filter((message) => message.role === 'toolResult' && message.toolName === 'Task');
+  if (tasks.length === 0) return [{ name: 'Task', arguments: { prompt: 'lifecycle child turn', subagent_type: 'generalPurpose' } }];
+  const id = taskIdOf(tasks[0]);
+  if (!id) return [];
+  if (!results.some((message) => message.role === 'toolResult' && message.toolName === 'TaskOutput')) return [{ name: 'TaskOutput', arguments: { task_id: id, block: true } }];
+  if (!results.some((message) => message.role === 'toolResult' && message.toolName === 'TaskMessage')) return [{ name: 'TaskMessage', arguments: { task_id: id, message: 'steer the settled child', mode: 'steer' } }];
+  if (!results.some((message) => message.role === 'toolResult' && message.toolName === 'TaskStop')) return [{ name: 'TaskStop', arguments: { task_id: id } }];
+  return [];
+}
+
+function personaCalls() {
+  return ['generalPurpose', 'poteto-agent', 'comment-sicko', 'Comment Sicko', 'ci-watcher', 'thermo-nuclear-code-quality-review'].map((persona) => ({
+    name: 'Task',
+    arguments: { prompt: `persona probe for ${persona}`, subagent_type: persona, run_in_background: false },
+  }));
 }
 
 function lastUserText(context: Context): string {
