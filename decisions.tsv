@@ -1,0 +1,8 @@
+ts	phase	decision	why	evidence	result
+2026-09-28T07:31:51Z	frame	defined exit condition and verified upstream references	autonomous run requires clear checkable predicate	~/src/experiments/plugins/pstack, ~/src/experiments/plugins/cursor-team-kit, ~/.cursor/skills-cursor	all sources inspected, ready for test lever
+2026-09-28T07:34:26Z	audit	audited all 47 pstack skills, 18 team kit skills, and cursor built-ins	ensure exact parity across all dimensions	extensions/pi-pstack/skills, prompts, upstream	all 65 skills and 205 resources accounted for
+2026-09-28T07:34:26Z	harness	authored comprehensive test suite in test/skills-parity.test.ts	verify loader discovery metadata prompt templates references scripts subagents	extensions/pi-pstack/test/skills-parity.test.ts	test lever built and running
+2026-09-28T07:34:26Z	verify	executed complete test suite including coverage CLI resources upstream	autonomous run exit predicate check	npm test, npm run test:coverage, check:resources, check:cli, check:upstream, typecheck	173 pass 0 fail 0 violations
+2026-09-28T07:44:25Z	fix	replaced Type.Literal with Type.String enum in tool schemas	Google Code Assist API rejects const in OpenAPI parameter schemas	src/state.ts, src/worker-records.ts, src/workers.ts	Task subagents and TodoWrite compatible across all model providers
+2026-09-28T07:44:25Z	harness	expanded skills parity tests with cursor built-ins and 205 resource checks	address cross-model review findings	test/skills-parity.test.ts	175 tests pass across all skills and resources
+2026-09-28T07:44:25Z	review	cross-model review completed by google-antigravity/claude-sonnet-4-6	independent review of decision trail and test suite	subagent 9f234813-cbb1-4ab1-97c6-4282554fc723	all flags addressed and verified green
