@@ -21,11 +21,14 @@ async function verify(client) {
     assert.equal(commands.commands.find(command => command.name === name)?.source, 'extension', `${name} requires runtime behavior`);
   }
   await client.send({ type: 'prompt', message: '/pstack' });
+  await client.send({ type: 'prompt', message: '/pstack status' });
+  await client.send({ type: 'prompt', message: '/pstack todos' });
   const messages = await client.send({ type: 'get_messages' });
-  const status = messages.messages.find(message => message.role === 'custom' && message.customType === 'pstack-status');
-  assert.ok(status);
-  assert.match(String(status.content), /65 skills, 64 prompt templates/);
-  assert.match(String(status.content), /team-kit 1.2.0/);
+  const statusList = messages.messages.filter(message => message.role === 'custom' && message.customType === 'pstack-status');
+  assert.equal(statusList.length, 3);
+  assert.match(String(statusList[0]?.content), /65 skills, 64 prompt templates/);
+  assert.match(String(statusList[0]?.content), /team-kit 1.2.0/);
+  assert.match(String(statusList[2]?.content), /Todos: none\./);
   await client.send({ type: 'prompt', message: '/poteto-mode off' });
   assert.equal(await client.finish(), 0);
   assert.doesNotMatch(client.stderr, /Failed to load extension|Extension error/);
