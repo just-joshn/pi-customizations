@@ -1,6 +1,6 @@
 import { createServer, type IncomingHttpHeaders, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import {
 	isContextOverflow,
 	normalizeContext,
@@ -131,6 +131,18 @@ test("caller payload hooks see the billing block and CLAUDE_CODE_VERSION sets th
 	});
 	expect(body.metadata).toEqual({ user_id: "replaced" });
 	expect(headers["user-agent"]).toBe("claude-cli/9.9.9");
+});
+
+test("process.env CLAUDE_CODE_VERSION sets the user agent", async () => {
+	vi.stubEnv("CLAUDE_CODE_VERSION", "8.8.8");
+	const { headers } = await exchange(
+		(res) => {
+			res.writeHead(200, { "content-type": "text/event-stream" });
+			res.end(toolUseStream);
+		},
+		{ messages: [{ role: "user", content: "hi", timestamp: 1 }] },
+	);
+	expect(headers["user-agent"]).toBe("claude-cli/8.8.8");
 });
 
 test("an overflow response stays recognizable so Pi can compact", async () => {

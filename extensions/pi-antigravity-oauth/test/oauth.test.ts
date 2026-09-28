@@ -92,7 +92,8 @@ test("login with a pasted redirect exchanges the code with PKCE and discovers th
 		expect(credential.refresh).toBe("1//refresh");
 		expect(credential.projectId).toBe("companion-42");
 		expect(credential.email).toBe("dev@example.com");
-		expect(credential.expires >= before + 3300 * 1000 && credential.expires <= Date.now() + 3300 * 1000).toBe(true);
+		expect(credential.expires).toBeGreaterThanOrEqual(before + 3300 * 1000);
+		expect(credential.expires).toBeLessThanOrEqual(Date.now() + 3300 * 1000);
 	} finally {
 		server.close();
 	}
@@ -177,13 +178,19 @@ test("toAuth encodes the token and project that the stream parses back", async (
 	expect(parseApiKey(auth.apiKey)).toEqual({ token: "ya29.x", projectId: "p1" });
 });
 
-test("credentials without a project ask for a new login", () => {
+test("a credential without a project id asks for a new login", () => {
 	expect(() => parseCredential({ type: "oauth", access: "a", refresh: "r", expires: 0 })).toThrow(
 		"Google Antigravity credentials lack a project. Run /login and choose Google Antigravity.",
 	);
+});
+
+test("an unparseable api key asks for a new login", () => {
 	expect(() => parseApiKey("not json")).toThrow(
 		"Google Antigravity credentials are not readable. Run /login and choose Google Antigravity.",
 	);
+});
+
+test("an api key without a token or project asks for a new login", () => {
 	expect(() => parseApiKey('{"token":"t"}')).toThrow(
 		"Google Antigravity credentials lack a token or project. Run /login and choose Google Antigravity.",
 	);

@@ -12,5 +12,10 @@ export default defineConfig({
 		expect: {
 			requireAssertions: true,
 		},
+
+		coverage: {
+			provider: 'v8',
+			include: ['src/*.ts'],
+		},
 	},
 })
