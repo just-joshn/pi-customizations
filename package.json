@@ -13,9 +13,9 @@
     "skills": ["./skills"]
   },
   "scripts": {
-    "test": "npm --prefix extensions/pi-anthropic-oauth test && npm --prefix extensions/pi-antigravity-oauth test && npm --prefix extensions/pi-tui-parity test && npm --prefix extensions/pi-pstack test",
+    "test": "npm --prefix extensions/pi-anthropic-oauth test && npm --prefix extensions/pi-antigravity-oauth test && npm --prefix extensions/pi-tui-parity test && npm --prefix extensions/pi-pstack test && npm --prefix extensions/pi-one-dark-pro-theme test",
     "check:tests": "node extensions/scripts/check-vitest-conventions.selftest.mjs && node extensions/scripts/check-vitest-conventions.mjs",
-    "test:coverage": "npm --prefix extensions/pi-tui-parity run test:coverage && npm --prefix extensions/pi-pstack run test:coverage",
+    "test:coverage": "npm --prefix extensions/pi-tui-parity run test:coverage && npm --prefix extensions/pi-pstack run test:coverage && npm --prefix extensions/pi-one-dark-pro-theme run test:coverage",
     "typecheck": "tsc --noEmit",
     "check": "biome check .",
     "check:write": "biome check --write .",
