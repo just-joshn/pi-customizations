@@ -1,9 +1,12 @@
-.PHONY: verify verify-mechanisms verify-extension verify-oauth verify-tui-parity verify-install verify-python
+.PHONY: verify verify-mechanisms verify-extension verify-oauth verify-tui-parity verify-test-conventions verify-install verify-python
 
-verify: verify-mechanisms verify-extension verify-oauth verify-tui-parity verify-install verify-python
+verify: verify-mechanisms verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-install verify-python
 
 verify-mechanisms:
 	node scripts/check-pi-mechanisms.mjs
+
+verify-test-conventions:
+	npm run check:tests
 
 verify-extension:
 	npm --prefix extensions/pi-pstack run check:resources
