@@ -618,3 +618,24 @@ test("off is case-insensitive for /poteto-mode and /skill:poteto-mode and spends
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
+
+test("AskQuestion multi-select titles show the choices made so far", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    const selections = ["Red [red]", "Enter a text answer", "Done selecting"];
+    const titles: string[] = [];
+    session.extensionRunner.setUIContext({
+      ...session.extensionRunner.createContext().ui,
+      select: async (title) => { titles.push(title); return selections.shift(); },
+      input: async () => "Teal",
+    }, "rpc");
+    f.calls.push({ type: "toolCall", id: "colors", name: "AskQuestion", arguments: { questions: [
+      { id: "colors", prompt: "Choose colors", allow_multiple: true, options: [{ id: "red", label: "Red" }, { id: "blue", label: "Blue" }] },
+    ] } });
+    await prompt(session, "Ask for colors.");
+    assert.deepEqual(toolResults(session, "AskQuestion").at(-1)?.details, [{ id: "colors", answers: ["red", "Teal"], cancelled: false }]);
+    assert.deepEqual(titles, ["Choose colors", "Choose colors (selected: Red)", "Choose colors (selected: Red, Teal)"]);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
