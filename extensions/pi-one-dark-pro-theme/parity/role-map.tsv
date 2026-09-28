@@ -1,0 +1,60 @@
+role	kind	source	base	why
+accent	color	inlineChatInput.focusBorder		VS Code paints a focused chat input border with the theme accent
+border	color	editorGroup.border		the editor group divider is this theme's normal chrome border
+borderAccent	color	panel.border		the panel outline is the heavier chrome border in this theme
+borderMuted	color	editorIndentGuide.background1		the inactive indent guide is this theme's faintest line color
+success	color	chat.linesAddedForeground		the added-line foreground is this theme's green text for a good result
+error	color	editorError.foreground		editorError.foreground is this theme's error color
+warning	color	editorWarning.foreground		editorWarning.foreground is this theme's warning color
+muted	color	sideBar.foreground		the sidebar foreground is this theme's secondary text tier
+dim	color	titleBar.inactiveForeground		the inactive title bar text is one tier below the sidebar text
+text	color	editor.foreground		editor.foreground is this theme's only body text color
+thinkingText	color	gitDecoration.ignoredResourceForeground		the ignored-resource tier is this theme's quietest readable text
+selectedBg	composite	editor.selectionBackground	editor.background	the editor selection tint, flattened over the surface vs code draws it on
+scrollbarTrack	alpha	scrollbarSlider.background		the idle scrollbar slider, drawn as a glyph so it keeps its declared colour
+scrollbarThumb	alpha	scrollbarSlider.activeBackground		pi draws one thumb, and the active slider is the one the user should see
+searchMatchBg	composite	editor.findMatchBackground	editor.background	the find-match tint, flattened over the editor surface it is drawn on
+searchMatchText	color	editor.foreground		pi inverts this pair, and the body foreground is the readable half
+userMessageBg	color	chat.requestBackground		a chat request card is vs code's own user-turn surface
+userMessageText	color	input.foreground		the chat input foreground
+customMessageBg	composite	chat.requestBubbleBackground	editor.background	a message bubble tint, flattened so an injected message reads as a card
+customMessageText	color	agentsChatInput.foreground		the agents chat input foreground
+customMessageLabel	color	editorBracketHighlight.foreground2		the second bracket-pair accent, matching pi's purple label convention
+toolPendingBg	color	editorWidget.background		the widget surface is where this theme puts a running tool
+toolSuccessBg	composite	inlineChatDiff.inserted	editor.background	teal is this theme's insertion tint, composited over the editor surface
+toolErrorBg	composite	inlineChatDiff.removed	editor.background	red is this theme's removal tint, composited over the editor surface
+toolTitle	color	panelTitle.activeForeground		the active panel title is the brightest chrome text
+toolOutput	color	descriptionForeground		descriptionForeground is this theme's plain descriptive text
+mdHeading	scope	markup.heading		markup.heading.markdown renders headings in this theme's red
+mdLink	scope	string.other.link.title.markdown		string.other.link.title.markdown scopes the visible link text, blue here
+mdLinkUrl	scope	markup.underline.link.markdown		markup.underline.link.markdown scopes the link target, purple here
+mdCode	scope	markup.inline.raw.markdown		markup.inline.raw.markdown renders inline code green
+mdCodeBlock	scope	meta.embedded		a fenced block is embedded content, and meta.embedded is the editor foreground
+mdCodeBlockBorder	scope	punctuation.definition.raw.markdown		the raw-content punctuation covers backticks and fences
+mdQuote	scope	markup.quote.markdown		markup.quote.markdown is this theme's quiet quote grey
+mdQuoteBorder	color	textBlockQuote.border		textBlockQuote.border is VS Code's own blockquote rule color
+mdHr	color	menu.separatorBackground		vs code has no rule for a thematic break, so the separator key stands in
+mdListBullet	scope	punctuation.definition.list.begin.markdown		the list punctuation definition rule colors markdown bullets
+toolDiffAdded	color	chat.linesAddedForeground		chat.linesAddedForeground is this theme's added-line text color
+toolDiffRemoved	color	chat.linesRemovedForeground		chat.linesRemovedForeground is this theme's removed-line text color
+toolDiffContext	color	sideBar.foreground		unchanged diff lines take the secondary text tier
+syntaxComment	scope	comment		the Comments rule, scope comment
+syntaxKeyword	scope	keyword		the Keywords rule, scope keyword
+syntaxFunction	scope	entity.name.function		the Functions rule, scope entity.name.function
+syntaxVariable	scope	variable		the Variables rule, scope variable
+syntaxString	scope	string		the Strings rule, scope string
+syntaxNumber	scope	constant.numeric		the Integers rule, scope constant.numeric
+syntaxType	scope	entity.name.type		the Type Name rule, scope entity.name.type
+syntaxOperator	scope	keyword.operator		the Operators rule, scope keyword.operator
+syntaxPunctuation	scope	punctuation.separator.delimiter		the Punctuation rule, scope punctuation.separator.delimiter
+thinkingOff	color	terminal.ansiBlack		the darkest rung of the theme's terminal accent ladder
+thinkingMinimal	color	terminal.ansiBrightBlack		one shade above the darkest rung of the terminal accent ladder
+thinkingLow	color	terminal.ansiCyan		the terminal cyan, the first chromatic rung
+thinkingMedium	color	terminal.ansiBlue		the terminal blue, one rung up from cyan
+thinkingHigh	color	terminal.ansiMagenta		the terminal magenta, one rung up from blue
+thinkingXhigh	color	terminal.ansiBrightMagenta		the bright terminal magenta, one rung up again
+thinkingMax	color	terminal.ansiBrightRed		the bright terminal red, the loudest rung of the ladder
+bashMode	color	terminal.ansiGreen		shell mode takes the terminal's own green
+export.pageBg	color	editor.background		editor.background is the page surface
+export.cardBg	color	editorWidget.background		the widget surface is the card surface
+export.infoBg	color	editorInlayHint.background		the inlay-hint surface is the notice surface

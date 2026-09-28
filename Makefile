@@ -1,6 +1,6 @@
-.PHONY: verify verify-mechanisms verify-extension verify-oauth verify-tui-parity verify-test-conventions verify-install verify-python
+.PHONY: verify verify-mechanisms verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
 
-verify: verify-mechanisms verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-install verify-python
+verify: verify-mechanisms verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-install verify-python
 
 verify-mechanisms:
 	node scripts/check-pi-mechanisms.mjs
@@ -26,6 +26,11 @@ verify-tui-parity:
 	npm --prefix extensions/pi-tui-parity run check:parity
 	npm --prefix extensions/pi-tui-parity run typecheck
 	npm --prefix extensions/pi-tui-parity run test:coverage
+
+verify-one-dark-pro-theme:
+	npm --prefix extensions/pi-one-dark-pro-theme run check:parity
+	npm --prefix extensions/pi-one-dark-pro-theme run typecheck
+	npm --prefix extensions/pi-one-dark-pro-theme run test:coverage
 
 verify-install:
 	node scripts/verify-fresh-install.mjs

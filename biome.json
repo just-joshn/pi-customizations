@@ -10,7 +10,9 @@
       "**",
       "!!**/dist",
       "!!**/build",
-      "!!**/coverage"
+      "!!**/coverage",
+      "!!**/upstream",
+      "!!**/upstream-team-kit"
     ]
   },
   "formatter": {
