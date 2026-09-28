@@ -1,0 +1,21 @@
+=== bun pm pack drops a file named .gitignore even when files lists it ===
+ts: 2026-09-28T17:18:29Z
+bun: 1.4.2
+
+manifest files: ["upstream",".dotfile-at-root.txt","upstream/.gitignore"]
+on disk:
+./.dotfile-at-root.txt
+./.gitignore
+./upstream/.gitignore
+./upstream/.hidden.txt
+./upstream/keep.txt
+
+--- bun pm pack --quiet --destination out ---
+/tmp/bun-migration/pack-repro/out/packrepro-1.0.0.tgz
+exit=0
+
+--- tar -tzf out/packrepro-1.0.0.tgz ---
+package/.dotfile-at-root.txt
+package/package.json
+package/upstream/.hidden.txt
+package/upstream/keep.txt
