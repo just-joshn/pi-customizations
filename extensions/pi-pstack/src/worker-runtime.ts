@@ -17,6 +17,8 @@ export class WorkerRuntime {
   private generation = 0;
   private failedUsage = new Map<string, Usage>();
   private claimedUsage = new WeakSet<TaskRecord>();
+  private unreadCompletions = new Map<string, TaskRecord>();
+  private parentEndedCleanly = false;
   private lifecycle: Lifecycle = { kind: 'stopped' };
   private closing = new WeakMap<AgentSession, Promise<void>>();
   constructor(private readonly pi: ExtensionAPI) {}
@@ -29,6 +31,12 @@ export class WorkerRuntime {
       this.failedUsage.delete(event.toolCallId);
       return { usage };
     });
+    this.pi.on('agent_end', event => {
+      const last = event.messages.findLast(message => message.role === 'assistant');
+      this.parentEndedCleanly = !(last?.role === 'assistant' && last.stopReason === 'aborted');
+      if (this.parentEndedCleanly) this.deliverUnread();
+    });
+    this.pi.on('agent_settled', () => { if (this.parentEndedCleanly) this.deliverUnread(); });
     this.pi.on('session_start', async (_event, ctx) => this.restore(ctx));
     this.pi.on('session_tree', async (_event, ctx) => this.restore(ctx));
     this.pi.on('session_shutdown', () => this.stopAll());
@@ -50,6 +58,16 @@ export class WorkerRuntime {
     })();
     this.closing.set(session, operation);
     return operation;
+  }
+
+  private deliverUnread(): void {
+    const unread = [...this.unreadCompletions.values()];
+    this.unreadCompletions = new Map();
+    for (const record of unread) this.deliverCompletion(record);
+  }
+
+  private deliverCompletion(record: TaskRecord): void {
+    this.pi.sendMessage({ customType: 'pstack-task-completion', content: taskSummary(record), display: true, details: structuredClone(record) }, { triggerTurn: true, deliverAs: 'followUp' });
   }
 
   private claimUsage(record: TaskRecord): Usage | undefined {
@@ -96,6 +114,7 @@ export class WorkerRuntime {
       if (owner === this.generation) {
         this.records = restoreTaskRecords(ctx.sessionManager.getBranch());
         this.failedUsage = new Map();
+        this.unreadCompletions = new Map();
         this.lifecycle = { kind: 'active' };
       }
     }
@@ -131,7 +150,7 @@ export class WorkerRuntime {
       const previous = this.workers.get(id);
       if (previous) await this.close(previous.session);
       this.checkStartup(owner, signal);
-      const worker = this.launch(opened, params, signal, owner);
+      const worker = this.launch(opened, params, signal, owner, () => ctx.isIdle());
       const record = params.run_in_background === false ? await this.foreground(callId, worker) : this.records.get(id)!;
       return this.result(record);
     } catch (error) {
@@ -153,14 +172,14 @@ export class WorkerRuntime {
     throw new Error(taskSummary(record));
   }
 
-  private launch(opened: Awaited<ReturnType<typeof openWorkerSession>>, params: TaskParameters, signal: AbortSignal | undefined, owner: number): Worker {
+  private launch(opened: Awaited<ReturnType<typeof openWorkerSession>>, params: TaskParameters, signal: AbortSignal | undefined, owner: number, parentIdle: () => boolean): Worker {
     const { session } = opened;
     const usage = this.records.get(opened.record.id)?.usage;
     const record: TaskRecord = { ...opened.record, ...(usage ? { usage } : {}) };
     this.records.set(record.id, record);
     this.pi.appendEntry(taskEntryType, structuredClone(record));
     const control = workerControl(session, signal);
-    const completion = this.complete({ session, record }, params, owner, control);
+    const completion = this.complete({ session, record }, params, owner, control, parentIdle);
     const worker: Worker = { session, completion, stop: control.stop, drain: control.drain };
     this.workers.set(record.id, worker);
     return worker;
@@ -179,7 +198,7 @@ export class WorkerRuntime {
     } catch (error) { return { status: 'failed', output: error instanceof Error ? error.message : String(error) }; }
   }
 
-  private async complete(worker: Awaited<ReturnType<typeof openWorkerSession>>, params: TaskParameters, owner: number, control: ReturnType<typeof workerControl>): Promise<TaskRecord> {
+  private async complete(worker: Awaited<ReturnType<typeof openWorkerSession>>, params: TaskParameters, owner: number, control: ReturnType<typeof workerControl>, parentIdle: () => boolean): Promise<TaskRecord> {
     const { session, record } = worker;
     const initialCount = session.messages.length;
     let outcome: Awaited<ReturnType<WorkerRuntime['run']>>;
@@ -199,12 +218,14 @@ export class WorkerRuntime {
     this.records.set(record.id, finished);
     this.pi.appendEntry(taskEntryType, structuredClone(finished));
     if (params.run_in_background !== false && !control.stopped()) {
-      this.pi.sendMessage({ customType: 'pstack-task-completion', content: taskSummary(finished), display: true, details: structuredClone(finished) }, { triggerTurn: true, deliverAs: 'followUp' });
+      if (parentIdle()) this.deliverCompletion(finished);
+      else this.unreadCompletions = new Map([...this.unreadCompletions, [record.id, finished]]);
     }
     return finished;
   }
 
   private result(record: TaskRecord) {
+    this.unreadCompletions = new Map([...this.unreadCompletions].filter(([id]) => id !== record.id));
     const usage = this.claimUsage(record);
     const current = this.records.get(record.id) ?? record;
     return { content: [{ type: 'text' as const, text: taskSummary(current) }], details: structuredClone(current), usage: usage ? structuredClone(usage) : undefined };

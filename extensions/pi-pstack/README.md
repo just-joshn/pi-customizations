@@ -42,7 +42,7 @@ CLI and UI workflows use the project's existing terminal or browser tools. Bundl
 
 ## Local agents
 
-`Task` starts a local SDK session. Background calls return a task ID and deliver a completion message. `TaskOutput` reads or waits for its result. `TaskMessage` sends steering or follow-up input. `TaskStop` aborts it. `Task` with `resume` continues the same child transcript.
+`Task` starts a local SDK session. Background calls return a task ID and deliver a completion message. `TaskOutput` reads or waits for its result. A task that finishes during a parent turn is announced when that turn ends, unless the turn already read its result with `TaskOutput` or `TaskStop`. After an aborted turn, the announcement waits for the next turn to end. `TaskMessage` sends steering or follow-up input. `TaskStop` aborts it. `Task` with `resume` continues the same child transcript.
 
 Supported personas are `generalPurpose`, `poteto-agent`, `comment-sicko` with alias `Comment Sicko`, `ci-watcher`, and `thermo-nuclear-code-quality-review`. The last includes the complete team-kit rubric. The CI watcher inherits the parent model, matching the observed Cursor plugin loader. An explicit pi model selection overrides inheritance. Resume retains the previously selected model unless the Task call supplies an explicit model. The original persona file still records its author-requested `fast` selector.
 
