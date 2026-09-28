@@ -5,6 +5,7 @@ import { copyFile, mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import { rpcProcess } from '../extensions/pi-pstack/scripts/rpc-process.mjs';
 
 // Pi loads a local package in place without installing dependencies, and it
@@ -37,21 +38,28 @@ async function writeFixtureCredentials(agentDir) {
 
 function listModels(agentDir, packageDir, provider) {
   const output = execFileSync(process.execPath, [cli, '--no-extensions', '-e', packageDir, '--list-models', provider], {
-    cwd: agentDir, env: { ...process.env, PI_CODING_AGENT_DIR: agentDir }, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+    cwd: agentDir,
+    env: { ...process.env, PI_CODING_AGENT_DIR: agentDir },
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
   });
-  return output.split('\n').filter(line => line.startsWith(`${provider} `)).length;
+  return output.split('\n').filter((line) => line.startsWith(`${provider} `)).length;
 }
 
 async function skillCommands(agentDir, packageDir) {
   const child = spawn(process.execPath, [cli, '--mode', 'rpc', '--no-session', '--no-extensions', '-e', packageDir], {
-    cwd: agentDir, env: { ...process.env, PI_CODING_AGENT_DIR: agentDir }, stdio: ['pipe', 'pipe', 'pipe'],
+    cwd: agentDir,
+    env: { ...process.env, PI_CODING_AGENT_DIR: agentDir },
+    stdio: ['pipe', 'pipe', 'pipe'],
   });
   const client = rpcProcess(child);
   try {
     const { commands } = await client.send({ type: 'get_commands' });
     assert.equal(await client.finish(), 0);
-    return commands.filter(command => command.source === 'skill').map(command => command.name);
-  } finally { await client.close(); }
+    return commands.filter((command) => command.source === 'skill').map((command) => command.name);
+  } finally {
+    await client.close();
+  }
 }
 
 const workspace = await mkdtemp(join(tmpdir(), 'pi-fresh-install-'));

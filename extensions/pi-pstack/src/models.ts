@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+
 import { clampThinkingLevel, getSupportedThinkingLevels } from "@earendil-works/pi-ai";
-import { getAgentDir, type ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { type ExtensionContext, getAgentDir } from "@earendil-works/pi-coding-agent";
 import { pick } from "./picker.ts";
 
 type ThinkingLevel = NonNullable<ExtensionContext["thinkingLevel"]>;
@@ -12,18 +13,30 @@ const code = "grok-4.7-xhigh-fast";
 const judgment = "claude-opus-5-5-max";
 const panel = [judgment, "gpt-5.6-sol-max", code];
 const defaults = new Map<string, string[]>([
-  ["feature, refactoring", [code]], ["bug-fix", [code]], ["perf-issue", [code]],
-  ["hillclimb", [code]], ["judgment and prose", [judgment]], ["hardest tasks", [judgment]],
-  ["how explorer", [code]], ["how explainer", [judgment]], ["why investigators", [code]],
-  ["why synthesizer", [judgment]], ["reflect tooling", ["gpt-5.6-sol-max"]],
-  ["reflect judgment, divergent, synthesizer", [judgment]], ["arena runners", panel],
-  ["arena cross-judge pool", panel], ["swarm workers", [code]], ["architect runners", panel],
+  ["feature, refactoring", [code]],
+  ["bug-fix", [code]],
+  ["perf-issue", [code]],
+  ["hillclimb", [code]],
+  ["judgment and prose", [judgment]],
+  ["hardest tasks", [judgment]],
+  ["how explorer", [code]],
+  ["how explainer", [judgment]],
+  ["why investigators", [code]],
+  ["why synthesizer", [judgment]],
+  ["reflect tooling", ["gpt-5.6-sol-max"]],
+  ["reflect judgment, divergent, synthesizer", [judgment]],
+  ["arena runners", panel],
+  ["arena cross-judge pool", panel],
+  ["swarm workers", [code]],
+  ["architect runners", panel],
   ["interrogate reviewers", panel],
 ]);
 const panelRoles = new Set(["arena runners", "arena cross-judge pool", "architect runners", "interrogate reviewers"]);
 const budgets = new Map<string, ThinkingLevel | undefined>([
-  ["unlimited — keep max", undefined], ["large — xhigh reasoning", "xhigh"],
-  ["medium — high reasoning", "high"], ["small — medium reasoning", "medium"],
+  ["unlimited — keep max", undefined],
+  ["large — xhigh reasoning", "xhigh"],
+  ["medium — high reasoning", "high"],
+  ["small — medium reasoning", "medium"],
 ]);
 
 export function modelConfigPath(): string {
@@ -65,7 +78,9 @@ export function resolveModel(request: string | undefined, ctx: ExtensionContext)
   }
   const model = matches.length === 1 ? matches[0] : undefined;
   if (!model) {
-    throw new Error(`${matches.length > 1 ? "Ambiguous" : "Unavailable"} model '${request}'. Use an exact provider/id from: ${choices || "none (configure Pi provider credentials first)"}. Aliases: inherit-parent, auto. Run /setup-pstack to configure roles.`);
+    throw new Error(
+      `${matches.length > 1 ? "Ambiguous" : "Unavailable"} model '${request}'. Use an exact provider/id from: ${choices || "none (configure Pi provider credentials first)"}. Aliases: inherit-parent, auto. Run /setup-pstack to configure roles.`,
+    );
   }
   const supported = getSupportedThinkingLevels(model);
   if (effort && !supported.includes(effort)) {
@@ -81,7 +96,10 @@ function applyBudget(value: string, target: ThinkingLevel | undefined, ctx: Exte
   const base = exact ? value : value.replace(/:(off|minimal|low|medium|high|xhigh|max)$/, "");
   const { model } = resolveModel(base, ctx);
   const supported = getSupportedThinkingLevels(model);
-  const selected = levels.slice(0, levels.indexOf(target) + 1).reverse().find((level) => supported.includes(level));
+  const selected = levels
+    .slice(0, levels.indexOf(target) + 1)
+    .reverse()
+    .find((level) => supported.includes(level));
   if (!selected) throw new Error(`No supported thinking level at or below ${target} for ${base}.`);
   return `${model.provider}/${model.id}:${selected}`;
 }
@@ -93,12 +111,18 @@ function readTable(current: string): { working: ModelTable; dropped: string[] } 
   const dropped: string[] = [];
   let frontmatter = false;
   for (const line of current.split(/\r?\n/)) {
-    if (line.trim() === "---") { frontmatter = !frontmatter; continue; }
+    if (line.trim() === "---") {
+      frontmatter = !frontmatter;
+      continue;
+    }
     if (frontmatter || line.startsWith("#") || !line.trim()) continue;
     const separator = line.indexOf(":");
     if (separator < 0) continue;
     const role = line.slice(0, separator).trim();
-    const values = line.slice(separator + 1).split(",").map((value) => value.trim());
+    const values = line
+      .slice(separator + 1)
+      .split(",")
+      .map((value) => value.trim());
     if (defaults.has(role)) working = new Map([...working, [role, values]]);
     else dropped.push(line);
   }
@@ -117,7 +141,12 @@ function validateRole(role: string, values: string[], target: ThinkingLevel | un
 }
 
 function needsChoice(role: string, values: string[], target: ThinkingLevel | undefined, ctx: ExtensionContext): boolean {
-  try { validateRole(role, values, target, ctx); return false; } catch { return true; }
+  try {
+    validateRole(role, values, target, ctx);
+    return false;
+  } catch {
+    return true;
+  }
 }
 
 const finishPanel = "Finish panel";
@@ -129,7 +158,7 @@ async function chooseAction(working: ModelTable, ctx: ExtensionContext): Promise
   const rows = ["Accept as-is", ...[...working].map(([role, values]) => `${role}: ${values.join(", ")}`)];
   const chosen = await pick(ctx, title, rows);
   if (chosen === undefined || chosen === "Accept as-is") return chosen;
-  return roles.find(role => chosen.startsWith(`${role}:`));
+  return roles.find((role) => chosen.startsWith(`${role}:`));
 }
 
 async function pickPanel(role: string, choices: string[], target: ThinkingLevel | undefined, ctx: ExtensionContext): Promise<string | undefined> {
@@ -143,20 +172,28 @@ async function pickPanel(role: string, choices: string[], target: ThinkingLevel 
 }
 
 async function editRole(role: string, previous: string[], target: ThinkingLevel | undefined, ctx: ExtensionContext): Promise<string[] | undefined> {
-  const choices = [...ctx.modelRegistry.getAvailable().flatMap((model) => {
-    const name = `${model.provider}/${model.id}`;
-    return target ? [name] : [name, ...getSupportedThinkingLevels(model).map((level) => `${name}:${level}`)];
-  }), "inherit-parent", "auto"];
+  const choices = [
+    ...ctx.modelRegistry.getAvailable().flatMap((model) => {
+      const name = `${model.provider}/${model.id}`;
+      return target ? [name] : [name, ...getSupportedThinkingLevels(model).map((level) => `${name}:${level}`)];
+    }),
+    "inherit-parent",
+    "auto",
+  ];
   while (true) {
-    const answer = !panelRoles.has(role) ? await pick(ctx, `${role} (current: ${previous.join(", ")})`, choices)
-      : ctx.mode === "tui" ? await pickPanel(role, choices, target, ctx)
-      : await ctx.ui.input(`${role}: comma-separated models, ordered; duplicate aliases count. Available: ${choices.join(", ")}`, previous.join(", "));
+    const answer = !panelRoles.has(role)
+      ? await pick(ctx, `${role} (current: ${previous.join(", ")})`, choices)
+      : ctx.mode === "tui"
+        ? await pickPanel(role, choices, target, ctx)
+        : await ctx.ui.input(`${role}: comma-separated models, ordered; duplicate aliases count. Available: ${choices.join(", ")}`, previous.join(", "));
     if (answer === undefined) return undefined;
     try {
-      const values = (panelRoles.has(role) ? answer.split(",") : [answer]).map(value => applyBudget(value.trim(), target, ctx));
+      const values = (panelRoles.has(role) ? answer.split(",") : [answer]).map((value) => applyBudget(value.trim(), target, ctx));
       validateRole(role, values, target, ctx);
       return values;
-    } catch (error) { ctx.ui.notify(String(error), "error"); }
+    } catch (error) {
+      ctx.ui.notify(String(error), "error");
+    }
   }
 }
 
@@ -169,7 +206,9 @@ async function writeConfiguration(working: ModelTable, budget: string, target: T
   try {
     await writeFile(temporary, text, { flag: "wx", mode: 0o600 });
     await rename(temporary, destination);
-  } finally { await rm(temporary, { force: true }); }
+  } finally {
+    await rm(temporary, { force: true });
+  }
 }
 
 export async function setupModels(ctx: ExtensionContext): Promise<boolean> {
@@ -181,14 +220,23 @@ export async function setupModels(ctx: ExtensionContext): Promise<boolean> {
   if (budget === undefined) return false;
   if (!budgets.has(budget)) throw new Error(`Unknown budget '${budget}'.`);
   const target = budgets.get(budget);
-  let working: ModelTable = new Map([...parsed.working].map(([role, values]) => [role, values.map((value) => {
-    try { return applyBudget(value, target, ctx); } catch { return value; }
-  })]));
+  let working: ModelTable = new Map(
+    [...parsed.working].map(([role, values]) => [
+      role,
+      values.map((value) => {
+        try {
+          return applyBudget(value, target, ctx);
+        } catch {
+          return value;
+        }
+      }),
+    ]),
+  );
   while (true) {
     const table = [...working].map(([role, values]) => `${role}: ${values.join(", ")}${needsChoice(role, values, target, ctx) ? " [needs a choice]" : ""}`).join("\n");
     ctx.ui.notify(`${table}${parsed.dropped.length ? `\nDropped retired roles:\n${parsed.dropped.join("\n")}` : ""}`, "info");
     const pending = [...working].find(([role, values]) => needsChoice(role, values, target, ctx));
-    const action = pending?.[0] ?? await chooseAction(working, ctx);
+    const action = pending?.[0] ?? (await chooseAction(working, ctx));
     if (action === undefined) return false;
     if (action !== "Accept as-is") {
       const previous = working.get(action);
@@ -198,7 +246,7 @@ export async function setupModels(ctx: ExtensionContext): Promise<boolean> {
       working = new Map([...working, [action, values]]);
       continue;
     }
-    if (!await ctx.ui.confirm("Write pstack model configuration?", `${budget}\n${modelConfigPath()}`)) return false;
+    if (!(await ctx.ui.confirm("Write pstack model configuration?", `${budget}\n${modelConfigPath()}`))) return false;
     for (const [role, values] of working) validateRole(role, values, target, ctx);
     await writeConfiguration(working, budget, target);
     ctx.ui.notify(`Wrote ${modelConfigPath()}. Applies from the next prompt; re-run /setup-pstack to update it.`, "info");

@@ -1,9 +1,10 @@
 import { execFileSync } from 'node:child_process';
-import fs, { access, cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import fs, { access, cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { syncBuiltinESMExports } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { syncBuiltinESMExports } from 'node:module';
 import { fileURLToPath } from 'node:url';
+
 import { expect, test, vi } from 'vitest';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -13,11 +14,12 @@ async function fixture() {
   try {
     await mkdir(join(directory, 'docs'));
     await mkdir(join(directory, 'scripts'));
-    for (const path of [
-      'upstream', 'upstream-team-kit', 'skills', 'prompts', 'package.json', 'scripts/resources.mjs',
-      'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json',
-    ]) await cp(join(root, path), join(directory, path), { recursive: true, filter: source => !source.split('/').includes('node_modules') });
-  } catch (error) { await rm(directory, { recursive: true, force: true }); throw error; }
+    for (const path of ['upstream', 'upstream-team-kit', 'skills', 'prompts', 'package.json', 'scripts/resources.mjs', 'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json'])
+      await cp(join(root, path), join(directory, path), { recursive: true, filter: (source) => !source.split('/').includes('node_modules') });
+  } catch (error) {
+    await rm(directory, { recursive: true, force: true });
+    throw error;
+  }
   return {
     directory,
     run: (...args: string[]) => execFileSync(process.execPath, [join(directory, 'scripts/resources.mjs'), ...args], { encoding: 'utf8', stdio: 'pipe' }),
@@ -49,7 +51,9 @@ test('resource generation is reproducible across both source bundles', async () 
     expect(f.run('--write')).toMatch(/187 upstream files and 205 generated resources/);
     expect(await readFile(join(f.directory, 'docs/resource-map.json'))).toEqual(before);
     expect(f.run()).toMatch(/187 upstream files and 205 generated resources/);
-  } finally { await f.close(); }
+  } finally {
+    await f.close();
+  }
 });
 
 test('generation separates reusable prompts from procedural skills and Cursor metadata', async () => {
@@ -68,7 +72,9 @@ test('generation separates reusable prompts from procedural skills and Cursor me
       const text = await readFile(join(f.directory, `skills/${name}/SKILL.md`), 'utf8');
       expect(text).not.toMatch(/^(mode|icon|color|reminder|paths):/m);
     }
-  } finally { await f.close(); }
+  } finally {
+    await f.close();
+  }
 });
 
 test('generation migrates the former bro skill without deleting unrelated resources', async () => {
@@ -82,7 +88,9 @@ test('generation migrates the former bro skill without deleting unrelated resour
     await writeFile(join(f.directory, 'prompts/unexpected.md'), 'Unexpected prompt');
     expect(() => f.run()).toThrow(/Unexpected generated resource files/);
     expect(await readFile(join(f.directory, 'prompts/unexpected.md'), 'utf8')).toBe('Unexpected prompt');
-  } finally { await f.close(); }
+  } finally {
+    await f.close();
+  }
 });
 
 test('resource checks reject prompt drift and missing package discovery before generation writes', async () => {
@@ -96,7 +104,9 @@ test('resource checks reject prompt drift and missing package discovery before g
     await writeFile(manifestPath, JSON.stringify({ ...manifest, pi: { ...manifest.pi, prompts: [] } }));
     expect(() => f.run('--write')).toThrow(/Package must register and distribute/);
     expect(await readFile(target, 'utf8')).toBe('Changed prompt');
-  } finally { await f.close(); }
+  } finally {
+    await f.close();
+  }
 });
 
 test('a changed kit source prevents all generation writes', async () => {
@@ -107,7 +117,9 @@ test('a changed kit source prevents all generation writes', async () => {
     await writeFile(join(f.directory, 'upstream-team-kit/skills/deslop/SKILL.md'), 'Changed source');
     expect(() => f.run('--write')).toThrow(/Upstream hash mismatch: upstream-team-kit\/skills\/deslop\/SKILL.md/);
     expect(await readFile(target, 'utf8')).toBe('Existing generated sentinel');
-  } finally { await f.close(); }
+  } finally {
+    await f.close();
+  }
 });
 
 test('overlapping source destinations fail before changing generated skills', async () => {
@@ -117,11 +129,10 @@ test('overlapping source destinations fail before changing generated skills', as
     await writeFile(target, 'Existing generated sentinel');
     const script = join(f.directory, 'scripts/resources.mjs');
     const original = await readFile(script, 'utf8');
-    await writeFile(script, original.replace(
-      "{ directory: 'upstream-team-kit', inventory: 'docs/team-kit-source-inventory.json' }",
-      "{ directory: 'upstream', inventory: 'docs/source-inventory.json' }",
-    ));
+    await writeFile(script, original.replace("{ directory: 'upstream-team-kit', inventory: 'docs/team-kit-source-inventory.json' }", "{ directory: 'upstream', inventory: 'docs/source-inventory.json' }"));
     expect(() => f.run('--write')).toThrow(/Duplicate generated skill destination across source bundles/);
     expect(await readFile(target, 'utf8')).toBe('Existing generated sentinel');
-  } finally { await f.close(); }
+  } finally {
+    await f.close();
+  }
 });

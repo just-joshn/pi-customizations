@@ -1,8 +1,8 @@
-import { Type, type Static } from 'typebox';
-import { Check } from 'typebox/value';
-import { truncateToWidth } from '@earendil-works/pi-tui';
-import { boundedResult } from './results.ts';
 import type { ExtensionAPI, ExtensionContext, Theme, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
+import { truncateToWidth } from '@earendil-works/pi-tui';
+import { type Static, Type } from 'typebox';
+import { Check } from 'typebox/value';
+import { boundedResult } from './results.ts';
 
 const Todo = Type.Object({
   id: Type.String({ minLength: 1, description: 'Stable unique identifier for the todo item' }),
@@ -34,16 +34,12 @@ function marker(todo: Static<typeof Todo>): string {
 
 function widgetLines(todos: readonly Static<typeof Todo>[]): string[] {
   const { visible, earlier, later } = todoWindow(todos);
-  return [
-    ...earlier ? [`... ${earlier} earlier`] : [],
-    ...visible.map(todo => `${marker(todo)} ${todo.content} (${todo.status})`),
-    ...later ? [`... ${later} more`] : [],
-  ];
+  return [...(earlier ? [`... ${earlier} earlier`] : []), ...visible.map((todo) => `${marker(todo)} ${todo.content} (${todo.status})`), ...(later ? [`... ${later} more`] : [])];
 }
 
 function todoWidget(lines: string[]) {
   return () => ({
-    render: (width: number) => lines.map(line => truncateToWidth(line, width)),
+    render: (width: number) => lines.map((line) => truncateToWidth(line, width)),
     invalidate() {},
   });
 }
@@ -63,9 +59,7 @@ function renderTodoSummary(todos: readonly Static<typeof Todo>[], theme: Theme):
     else if (t.status === 'in_progress') inProgress++;
   }
   const total = todos.length;
-  const status = completed === total && total > 0
-    ? theme.fg('success', 'All completed')
-    : theme.fg('muted', `${completed}/${total} completed${inProgress ? ` • ${inProgress} in progress` : ''}`);
+  const status = completed === total && total > 0 ? theme.fg('success', 'All completed') : theme.fg('muted', `${completed}/${total} completed${inProgress ? ` • ${inProgress} in progress` : ''}`);
   return `${theme.fg('toolTitle', theme.bold('Todos'))} ${status}`;
 }
 
@@ -76,12 +70,7 @@ function renderTodoResult(result: { details?: unknown }, options: ToolRenderResu
   return {
     render: (width: number) => {
       const { visible, earlier, later } = options.expanded ? { visible: todos, earlier: 0, later: 0 } : todoWindow(todos);
-      const lines = [
-        header,
-        ...earlier ? [theme.fg('dim', `  ... ${earlier} earlier`)] : [],
-        ...visible.map((t) => renderTodoItem(t, theme)),
-        ...later ? [theme.fg('dim', `  ... ${later} more (expand to view all)`)] : [],
-      ];
+      const lines = [header, ...(earlier ? [theme.fg('dim', `  ... ${earlier} earlier`)] : []), ...visible.map((t) => renderTodoItem(t, theme)), ...(later ? [theme.fg('dim', `  ... ${later} more (expand to view all)`)] : [])];
       return lines.map((line) => truncateToWidth(line, width));
     },
     invalidate() {},
@@ -105,8 +94,7 @@ export function createState(pi: ExtensionAPI) {
   const restore = (ctx: ExtensionContext) => {
     state = { enabled: false, todos: [] };
     for (const entry of ctx.sessionManager.getBranch()) {
-      if (entry.type === 'custom' && entry.customType === 'pstack-state' && Check(State, entry.data)
-        && new Set(entry.data.todos.map(todo => todo.id)).size === entry.data.todos.length) state = structuredClone(entry.data);
+      if (entry.type === 'custom' && entry.customType === 'pstack-state' && Check(State, entry.data) && new Set(entry.data.todos.map((todo) => todo.id)).size === entry.data.todos.length) state = structuredClone(entry.data);
     }
     showState(ctx);
   };
@@ -126,7 +114,8 @@ export type StateStore = ReturnType<typeof createState>;
 export function registerStateTools(pi: ExtensionAPI, store: StateStore): void {
   pi.registerTool({
     executionMode: 'sequential',
-    name: 'pstack_mode', label: 'Poteto mode',
+    name: 'pstack_mode',
+    label: 'Poteto mode',
     description: 'Set sticky Poteto mode when the user requests it or opts out. Persists on the active session branch.',
     promptSnippet: 'Turn sticky Poteto mode on or off for this session branch',
     promptGuidelines: ['pstack_mode changes sticky mode on explicit user entry or opt-out. Recognize natural-language user requests through that tool, not quoted examples.'],
@@ -139,13 +128,11 @@ export function registerStateTools(pi: ExtensionAPI, store: StateStore): void {
   });
   pi.registerTool({
     executionMode: 'sequential',
-    name: 'TodoWrite', label: 'Pstack todos',
+    name: 'TodoWrite',
+    label: 'Pstack todos',
     description: 'Replace or merge the ordered todo list. Copy the selected playbook steps verbatim before task-specific steps. Keep skipped steps with a reason.',
     promptSnippet: 'Replace or merge the ordered todo list.',
-    promptGuidelines: [
-      'Copy the selected playbook steps verbatim before task-specific steps.',
-      'Keep skipped steps with a reason.',
-    ],
+    promptGuidelines: ['Copy the selected playbook steps verbatim before task-specific steps.', 'Keep skipped steps with a reason.'],
     parameters: Type.Object({
       todos: Type.Array(Todo, { description: 'The list of todo items to set or merge' }),
       merge: Type.Optional(Type.Boolean({ description: 'If true, merges with existing todos by id while preserving order; if false or omitted, replaces the entire todo list' })),

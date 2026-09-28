@@ -1,8 +1,9 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { expect, test, vi } from 'vitest';
+
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { expect, test, vi } from 'vitest';
 import { registerCommands, registerNativeInput } from '../src/commands.ts';
 import { createState } from '../src/state.ts';
 
@@ -12,8 +13,12 @@ test('/poteto-mode off and /skill:poteto-mode off give the same confirmation', a
   const handlers: Record<string, (args: string, ctx: ExtensionContext) => Promise<void>> = {};
   let input: ((event: { text: string; images?: unknown[] }, ctx: ExtensionContext) => Promise<unknown>) | undefined;
   const pi = {
-    registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => { handlers[name] = options.handler; },
-    on: (_event: string, handler: typeof input) => { input = handler; },
+    registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => {
+      handlers[name] = options.handler;
+    },
+    on: (_event: string, handler: typeof input) => {
+      input = handler;
+    },
     getCommands: () => [{ source: 'skill', name: 'skill:poteto-mode', sourceInfo: { path } }],
     appendEntry() {},
   } as unknown as ExtensionAPI;
@@ -21,11 +26,19 @@ test('/poteto-mode off and /skill:poteto-mode off give the same confirmation', a
   registerCommands(pi, skills, store);
   registerNativeInput(pi, skills, store);
   const notices: string[] = [];
-  const ctx = { ui: { setStatus() {}, setWidget() {}, notify: (message: string) => { notices.push(message); } } } as unknown as ExtensionContext;
+  const ctx = {
+    ui: {
+      setStatus() {},
+      setWidget() {},
+      notify: (message: string) => {
+        notices.push(message);
+      },
+    },
+  } as unknown as ExtensionContext;
   store.toggle(true, ctx);
-  await handlers['poteto-mode']!('off', ctx);
+  await handlers['poteto-mode']?.('off', ctx);
   store.toggle(true, ctx);
-  expect(await input!({ text: '/skill:poteto-mode off' }, ctx)).toEqual({ action: 'handled' });
+  expect(await input?.({ text: '/skill:poteto-mode off' }, ctx)).toEqual({ action: 'handled' });
   expect(store.read().enabled).toBe(false);
   expect(notices).toEqual(['Poteto mode is off.', 'Poteto mode is off.']);
 });
@@ -37,8 +50,12 @@ test('/poteto-mode with task and /skill:poteto-mode transform input', async () =
   let input: ((event: { text: string; images?: unknown[] }, ctx: ExtensionContext) => Promise<unknown>) | undefined;
   const sent: Array<{ text: string; options: unknown }> = [];
   const pi = {
-    registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => { handlers[name] = options.handler; },
-    on: (_event: string, handler: typeof input) => { input = handler; },
+    registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => {
+      handlers[name] = options.handler;
+    },
+    on: (_event: string, handler: typeof input) => {
+      input = handler;
+    },
     getCommands: () => [{ source: 'skill', name: 'skill:poteto-mode', sourceInfo: { path } }],
     sendUserMessage: (text: string, options: unknown) => sent.push({ text, options }),
     appendEntry() {},
@@ -48,16 +65,16 @@ test('/poteto-mode with task and /skill:poteto-mode transform input', async () =
   registerNativeInput(pi, skills, store);
   const ctx = { ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
 
-  await handlers['poteto-mode']!('my task', ctx);
+  await handlers['poteto-mode']?.('my task', ctx);
   expect(store.read().enabled).toBe(true);
   expect(sent.length).toBe(1);
-  expect(sent[0]!.text).toMatch(/my task/);
+  expect(sent[0]?.text).toMatch(/my task/);
 
-  const transformed = await input!({ text: '/skill:poteto-mode investigate', images: [] }, ctx) as { action: string; text: string };
+  const transformed = (await input?.({ text: '/skill:poteto-mode investigate', images: [] }, ctx)) as { action: string; text: string };
   expect(transformed.action).toBe('transform');
   expect(transformed.text).toMatch(/investigate/);
 
-  const bare = await input!({ text: '/skill:poteto-mode' }, ctx) as { action: string; text: string };
+  const bare = (await input?.({ text: '/skill:poteto-mode' }, ctx)) as { action: string; text: string };
   expect(bare.text).toMatch(/Body text\n<\/skill>$/);
 });
 
@@ -68,8 +85,12 @@ test('/setup-pstack and /skill:setup-pstack handle errors without UI', async () 
   let input: ((event: { text: string; images?: unknown[] }, ctx: ExtensionContext) => Promise<unknown>) | undefined;
   const messages: unknown[] = [];
   const pi = {
-    registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => { handlers[name] = options.handler; },
-    on: (_event: string, handler: typeof input) => { input = handler; },
+    registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => {
+      handlers[name] = options.handler;
+    },
+    on: (_event: string, handler: typeof input) => {
+      input = handler;
+    },
     getCommands: () => [{ source: 'skill', name: 'skill:setup-pstack', sourceInfo: { path } }],
     sendMessage: (msg: unknown) => messages.push(msg),
     appendEntry() {},
@@ -80,11 +101,11 @@ test('/setup-pstack and /skill:setup-pstack handle errors without UI', async () 
   const errors: string[] = [];
   const ctx = { hasUI: false, ui: { setStatus() {}, setWidget() {}, notify: (msg: string) => errors.push(msg) } } as unknown as ExtensionContext;
 
-  await handlers['setup-pstack']!('', ctx);
+  await handlers['setup-pstack']?.('', ctx);
   expect(errors.length).toBe(1);
-  expect(errors[0]!).toMatch(/\/setup-pstack requires Pi interactive or RPC dialog UI/);
+  expect(errors[0] ?? '').toMatch(/\/setup-pstack requires Pi interactive or RPC dialog UI/);
 
-  const res = await input!({ text: '/skill:setup-pstack' }, ctx);
+  const res = await input?.({ text: '/skill:setup-pstack' }, ctx);
   expect(res).toEqual({ action: 'handled' });
   expect(errors.length).toBe(2);
 });
@@ -95,7 +116,9 @@ test('native input ignores unrelated input or mismatched skill path', async () =
   let input: ((event: { text: string; images?: unknown[] }, ctx: ExtensionContext) => Promise<unknown>) | undefined;
   const pi = {
     registerCommand() {},
-    on: (_event: string, handler: typeof input) => { input = handler; },
+    on: (_event: string, handler: typeof input) => {
+      input = handler;
+    },
     getCommands: () => [{ source: 'skill', name: 'skill:poteto-mode', sourceInfo: { path: '/wrong/path' } }],
     appendEntry() {},
   } as unknown as ExtensionAPI;
@@ -103,10 +126,10 @@ test('native input ignores unrelated input or mismatched skill path', async () =
   registerNativeInput(pi, skills, store);
   const ctx = { ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
 
-  const res1 = await input!({ text: 'just a normal message' }, ctx);
+  const res1 = await input?.({ text: 'just a normal message' }, ctx);
   expect(res1).toEqual({ action: 'continue' });
 
-  const res2 = await input!({ text: '/skill:poteto-mode' }, ctx);
+  const res2 = await input?.({ text: '/skill:poteto-mode' }, ctx);
   expect(res2).toEqual({ action: 'continue' });
 });
 
@@ -116,16 +139,18 @@ test('registered command handles other skills and expands them', async () => {
   const handlers: Record<string, (args: string, ctx: ExtensionContext) => Promise<void>> = {};
   const sent: Array<{ text: string; options: unknown }> = [];
   const pi = {
-    registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => { handlers[name] = options.handler; },
+    registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => {
+      handlers[name] = options.handler;
+    },
     on() {},
     sendUserMessage: (text: string, options: unknown) => sent.push({ text, options }),
   } as unknown as ExtensionAPI;
   registerCommands(pi, skills, createState(pi));
   const ctx = { ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
-  await handlers['how']!('explore auth', ctx);
+  await handlers.how?.('explore auth', ctx);
   expect(sent.length).toBe(1);
-  expect(sent[0]!.text).toMatch(/How body/);
-  expect(sent[0]!.text).toMatch(/explore auth/);
+  expect(sent[0]?.text).toMatch(/How body/);
+  expect(sent[0]?.text).toMatch(/explore auth/);
 });
 
 test('handleSetup handles non-Error exception and verification offered guard', async () => {
@@ -134,7 +159,9 @@ test('handleSetup handles non-Error exception and verification offered guard', a
   const handlers: Record<string, (args: string, ctx: ExtensionContext) => Promise<void>> = {};
   const messages: unknown[] = [];
   const pi = {
-    registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => { handlers[name] = options.handler; },
+    registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => {
+      handlers[name] = options.handler;
+    },
     on() {},
     sendMessage: (msg: unknown) => messages.push(msg),
     sendUserMessage() {},
@@ -145,12 +172,16 @@ test('handleSetup handles non-Error exception and verification offered guard', a
   const ctx = {
     hasUI: true,
     ui: {
-      setStatus() {}, setWidget() {}, notify: (msg: string) => errors.push(msg),
-      select: () => { throw 'string rejection'; },
+      setStatus() {},
+      setWidget() {},
+      notify: (msg: string) => errors.push(msg),
+      select: () => {
+        throw 'string rejection';
+      },
     },
   } as unknown as ExtensionContext;
 
-  await handlers['setup-pstack']!('', ctx);
+  await handlers['setup-pstack']?.('', ctx);
   expect(errors).toEqual(['string rejection']);
   expect(messages.length).toBe(1);
 });
@@ -162,7 +193,9 @@ test('the verification prompt is offered once per session', async () => {
     const handlers: Record<string, (args: string, ctx: ExtensionContext) => Promise<void>> = {};
     const sent: Array<{ text: string; options: unknown }> = [];
     const pi = {
-      registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => { handlers[name] = options.handler; },
+      registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => {
+        handlers[name] = options.handler;
+      },
       on() {},
       appendEntry() {},
       sendMessage() {},
@@ -172,22 +205,27 @@ test('the verification prompt is offered once per session', async () => {
     const store = createState(pi);
     registerCommands(pi, skills, store);
     const defaults = ['grok-4.7-xhigh-fast', 'claude-opus-5-5-max', 'gpt-5.6-sol-max'].map((id) => ({ provider: 'p', id, reasoning: true }));
-    const fallbackModel = `${defaults[0]!.provider}/${defaults[0]!.id}`;
+    const fallbackModel = `${defaults[0]?.provider}/${defaults[0]?.id}`;
     let confirmations = 0;
     const ctx = {
       hasUI: true,
       modelRegistry: { getAvailable: () => defaults },
       ui: {
-        setStatus() {}, setWidget() {}, notify() {},
-        select: async (title: string) => title.startsWith('pstack reasoning budget') ? 'unlimited — keep max' : title.startsWith('Accept model table') ? 'Accept as-is' : fallbackModel,
+        setStatus() {},
+        setWidget() {},
+        notify() {},
+        select: async (title: string) => (title.startsWith('pstack reasoning budget') ? 'unlimited — keep max' : title.startsWith('Accept model table') ? 'Accept as-is' : fallbackModel),
         input: async () => `${fallbackModel}, ${fallbackModel}`,
-        confirm: async () => { confirmations++; return true; },
+        confirm: async () => {
+          confirmations++;
+          return true;
+        },
       },
     } as unknown as ExtensionContext;
 
-    await handlers['setup-pstack']!('', ctx);
+    await handlers['setup-pstack']?.('', ctx);
     expect(sent).toEqual([{ text: expect.stringContaining('create-verification-skill'), options: { deliverAs: 'followUp' } }]);
-    await handlers['setup-pstack']!('', ctx);
+    await handlers['setup-pstack']?.('', ctx);
     expect(confirmations).toBe(2);
     expect(sent.length).toBe(1);
   } finally {
@@ -196,15 +234,17 @@ test('the verification prompt is offered once per session', async () => {
   }
 });
 
+type GenericListener = (...args: unknown[]) => unknown;
+
 test('pstack index entry point wires extension hooks and registers all tools', async () => {
   const pstackModule = await import('../src/index.ts');
-  const listeners: Record<string, Function[]> = {};
+  const listeners: Record<string, GenericListener[]> = {};
   const tools: string[] = [];
   const commands: string[] = [];
   const pi = {
     registerCommand: (name: string) => commands.push(name),
     registerTool: (t: { name: string }) => tools.push(t.name),
-    on: (event: string, handler: Function) => {
+    on: (event: string, handler: GenericListener) => {
       listeners[event] = listeners[event] ?? [];
       listeners[event].push(handler);
     },
@@ -225,11 +265,11 @@ test('pstack index entry point wires extension hooks and registers all tools', a
     ui: { setStatus() {}, setWidget() {} },
   } as unknown as ExtensionContext;
 
-  for (const fn of listeners['session_start'] ?? []) fn({}, ctx);
-  for (const fn of listeners['session_tree'] ?? []) fn({}, ctx);
+  for (const fn of listeners.session_start ?? []) fn({}, ctx);
+  for (const fn of listeners.session_tree ?? []) fn({}, ctx);
 
   const event1 = { systemPromptOptions: { sections: {} as Record<string, string> } };
-  for (const fn of listeners['before_agent_start'] ?? []) await fn(event1, ctx);
+  for (const fn of listeners.before_agent_start ?? []) await fn(event1, ctx);
   expect(event1.systemPromptOptions.sections.pstack_host).toContain('pstack pi host contract');
   expect(event1.systemPromptOptions.sections).not.toHaveProperty('pstack_mode');
   expect(event1.systemPromptOptions.sections).not.toHaveProperty('pstack_todos');
