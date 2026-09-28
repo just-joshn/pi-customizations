@@ -1,43 +1,69 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+
   "compilerOptions": {
-    // Runtime
-    "target": "ES2025",
-    "lib": ["ES2025"],
+    // ─────────────────────────────────────────────────────────────
+    // Runtime: Pi >= Node 22.19
+    // ─────────────────────────────────────────────────────────────
+    "target": "ES2023",
+    "lib": ["ES2023"],
     "module": "NodeNext",
     "types": ["node"],
 
-    // Project layout
-    "rootDir": "./src",
-    "outDir": "./dist",
+    // Pi/jiti executes the TypeScript source directly.
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
 
+    // ─────────────────────────────────────────────────────────────
     // Type safety
+    // ─────────────────────────────────────────────────────────────
     "strict": true,
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
     "noPropertyAccessFromIndexSignature": true,
-    "noImplicitOverride": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
 
-    // Dead / suspicious code
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    // ─────────────────────────────────────────────────────────────
+    // Control-flow / correctness
+    // ─────────────────────────────────────────────────────────────
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
 
+    // ─────────────────────────────────────────────────────────────
+    // Dead-code hygiene
+    // ─────────────────────────────────────────────────────────────
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    // ─────────────────────────────────────────────────────────────
     // Module correctness
+    // ─────────────────────────────────────────────────────────────
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
+    "moduleDetection": "force",
     "noUncheckedSideEffectImports": true,
 
-    // Build correctness
-    "forceConsistentCasingInFileNames": true,
-    "noEmitOnError": true,
+    // Keep TS syntax compatible with simple erasure.
+    // No enum, namespace runtime code, parameter properties, etc.
+    "erasableSyntaxOnly": true,
 
-    // Debugging
-    "sourceMap": true,
-    "inlineSources": true
+    // ─────────────────────────────────────────────────────────────
+    // Resolution / platform
+    // ─────────────────────────────────────────────────────────────
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Don't type-check third-party declaration implementation details.
+    "skipLibCheck": true
   },
 
-  "include": ["src/**/*.ts"]
+  "include": ["extensions/**/*.ts"],
+
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage"
+  ]
 }
