@@ -157,3 +157,40 @@ Rejected.
   has no thinking-level concept, so no direct source exists.
 - `mdHr` and `customMessageLabel` have no direct upstream key. Both take a named upstream
   substitute, recorded per row.
+
+## Adversarial review corrections
+
+Two independent reviewers read the branch before the PR. Their findings changed the shipped
+palette. The corrections are recorded here because each one is a case where the gate could not
+have caught the defect.
+
+- **`mdLink` and `mdLinkUrl` were crossed.** Both reviewers found it. VS Code's markdown grammar
+  scopes the visible link text with `string.other.link.title.markdown` and the destination with
+  `markup.underline.link.markdown`, so the theme rendered link text purple and the URL blue, the
+  reverse of VS Code. Swapped. The gate passed the wrong pairing once the theme was rebuilt,
+  which is the clearest demonstration that a consistency gate is not a correctness gate.
+- **`userMessageBg` and `customMessageBg` were swapped.** `chat.requestBackground` is VS Code's own
+  user-turn surface, so it belongs on the user message role. `customMessageBg` now flattens
+  `chat.requestBubbleBackground` over `editor.background` to `#2f343f`, a value an independent
+  design runner had also reached.
+- **`success` named a gutter background.** `editorGutter.addedBackground` is a marker strip, not a
+  text color, and pi's `success` role is a foreground. It now takes
+  `chat.linesAddedForeground` `#8cc265`, which also lifts the contrast from 3.81 to 6.68.
+- **The scrollbar pair was taste-driven.** The first version used `editorLineNumber.foreground` and
+  `editor.foreground`, chosen against pi's built-in theme ratios, while the docs claimed no
+  upstream key mapped to those roles. Both halves were wrong. The pair now uses the theme's own
+  `scrollbarSlider.background` and `scrollbarSlider.activeBackground`, with the alpha byte
+  dropped, and the `alpha` derivation kind exists for it. The pair is quieter than pi's built-in
+  theme because One Dark Pro's scrollbar is faint.
+- **`mdHr` took an indent guide.** It now takes `menu.separatorBackground`, a key named for a
+  separator.
+- **The smoke harness claimed isolation it did not implement.** It created a fresh agent directory
+  and never passed it, so the package-discovery run could have passed on a theme the operator had
+  already copied into `~/.pi/agent/themes`. The harness now sets `HOME`, `PI_CODING_AGENT_DIR`,
+  and `PI_OFFLINE`, and a scripted provider drives an offline turn so the user message box and the
+  tool box are asserted on the real screen.
+- **Five gate branches had no test.** `checkParity` moved into `parity/theme.ts` as a pure function
+  over strings, so each problem branch is now a unit test with no CLI and no file mutation.
+  `scripts/check-parity.mjs` is a thin shell that reads files and reports.
+- **`upstream/SOURCE.md` sent a maintainer to the wrong file** for the hash, and the README claim
+  that no extension can select a theme was false. Both corrected.

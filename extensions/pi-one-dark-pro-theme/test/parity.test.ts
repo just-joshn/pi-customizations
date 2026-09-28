@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import type { RoleRow, UpstreamDocument } from "../parity/theme.ts";
 import {
 	buildTheme,
+	checkParity,
 	parseRoleMap,
 	readThemeSchema,
 	resolveRow,
@@ -76,7 +77,7 @@ describe("committed theme", () => {
 	});
 
 	it("names the theme after the package constant", () => {
-		expect(committed.name).toBe(THEME_NAME);
+		expect(committed.name).toBe("one-dark-pro-flat");
 	});
 });
 
@@ -138,5 +139,85 @@ describe("check-parity through the real CLI", () => {
 		expect(result.stderr).toContain(
 			'colors.accent is "#61afee", built "#61afef"',
 		);
+	});
+});
+
+describe("checkParity negative controls", () => {
+	const base = {
+		upstreamText,
+		schema,
+		themeLabel: "themes/one-dark-pro-flat.json",
+	};
+	const built = buildTheme(upstream, rows);
+	const baseline = checkParity({ ...base, rows, committed: built });
+
+	it("passes on the committed artifacts", () => {
+		const built = buildTheme(upstream, rows);
+		expect(baseline).toHaveLength(0);
+		expect(Object.keys(built.colors)).toHaveLength(56);
+	});
+
+	it("reports a tampered upstream file", () => {
+		const problems = checkParity({
+			...base,
+			upstreamText: `${upstreamText} `,
+			rows,
+			committed: built,
+		});
+		expect(problems).toHaveLength(1);
+		expect(problems[0]).toContain("upstream file sha256 is");
+	});
+
+	it("reports a role the pi theme schema does not define", () => {
+		const problems = checkParity({
+			...base,
+			rows: [
+				...rows,
+				{
+					role: "madeUp",
+					kind: "color",
+					source: "editor.background",
+					base: "",
+					why: "fixture",
+				},
+			],
+			committed: built,
+		});
+		expect(problems).toContain(
+			"role map role madeUp is not a color in the pi theme schema",
+		);
+	});
+
+	it("reports a schema role with no role map row", () => {
+		const problems = checkParity({
+			...base,
+			schema: {
+				...schema,
+				required: [...schema.required, "syntheticRole"],
+			},
+			rows,
+			committed: built,
+		});
+		expect(problems).toContain(
+			"theme schema role syntheticRole has no role map row",
+		);
+	});
+
+	it("reports a schema role with two role map rows", () => {
+		const problems = checkParity({
+			...base,
+			rows: [
+				...rows,
+				{
+					role: "text",
+					kind: "color",
+					source: "editor.background",
+					base: "",
+					why: "fixture",
+				},
+			],
+			committed: built,
+		});
+		expect(problems).toContain("theme schema role text has 2 role map rows");
 	});
 });
