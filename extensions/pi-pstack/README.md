@@ -14,7 +14,7 @@ pi install ./extensions/pi-pstack
 
 If you already have a checkout, run only the `pi install` command from its root. Keep the checkout in place. Pi loads local packages from that directory without copying them.
 
-The package lives in `extensions/pi-pstack`, not the repository root. Use the clone-and-install commands above rather than `pi install git:github.com/just-joshn/pi-customizations`.
+The package lives in `extensions/pi-pstack`, not the repository root. Use the clone-and-install commands above rather than `pi install git:github.com/just-joshn/pi-customizations`. The repository root is a separate package that holds only the five standalone skills.
 
 To update, run `git pull --ff-only` from the checkout root, then run `/reload` in pi.
 
@@ -24,13 +24,15 @@ Start a task with `/poteto-mode your task`. The mode persists on that session br
 
 Workflow templates obtain the bundled skill path from the extension's host context. Enable the package extension when using these aliases. Native `/skill:name` invocation remains available when only skills are loaded. Templates do not recursively invoke `/skill:` commands or enforce the skill's instructions.
 
+Pi parses template arguments like a shell command line and joins them with spaces. Quote characters disappear, so `it's` arrives as `its`, and unquoted line breaks become spaces. Use `/skill:name` when the request must arrive exactly as typed.
+
 The runtime uses current `@earendil-works` pi packages. Host dependencies are peers. SDK 0.87.1 is the development and verification target. Other versions have not been verified.
 
 ## Team-kit workflows
 
 Pstack's required `/deslop`, `/control-cli`, and `/control-ui` skills are bundled. The kit also adds `/verify-this`, CI and PR workflows, `/pr-review-canvas` with its HTML, CSS, and renderer, and the complete strict code-review rubric. Every skill supports both its short alias and `/skill:name`.
 
-The kit's two `alwaysApply` rules remain in the source archive. The observed Cursor CLI does not deliver plugin rules to the model, so this port does not inject them. Project rules supplied through pi still apply.
+The kit's two `alwaysApply` rules remain in the source archive. The observed Cursor CLI does not deliver plugin rules to the model, so this port does not inject them. Pi has no rules facility. Context files such as `AGENTS.md`, and `APPEND_SYSTEM.md`, still apply. The host contract maps upstream rule, create-skill, MCP, and tool-name references to their Pi facilities.
 
 CLI and UI workflows use the project's existing terminal or browser tools. Bundling instructions does not install tmux, Playwright, Chromium, or GitHub credentials. `loop-on-ci` watches CI through GitHub CLI.
 
@@ -57,6 +59,8 @@ Readonly tasks copy the selected provider registration into an isolated model ru
 ## Models and state
 
 The model rule lives in `~/.pi/agent/pstack/models.mdc`, or the corresponding directory under `PI_CODING_AGENT_DIR`. It retains all upstream role names and panel ordering. Repeated `auto` or `inherit-parent` entries remain separate seats.
+
+`/setup-pstack` and `/skill:setup-pstack` run the extension's validated dialogs. The setup skill is hidden from automatic model selection so that a natural-language request cannot bypass them. A saved rule applies from the next prompt.
 
 Model selections use pi provider/model IDs, optionally followed by a supported thinking level, such as `provider/model:high`. Cursor model names are preserved in the source defaults. An unavailable name fails with available choices. The adapter does not silently substitute a model family.
 
