@@ -1,0 +1,6 @@
+provider            model                     context  max-out  thinking  images
+google-antigravity  claude-opus-4-6-thinking  200K     64K      yes       yes   
+google-antigravity  claude-sonnet-4-6         200K     64K      yes       yes   
+google-antigravity  gemini-3-flash-agent      1.0M     65.5K    yes       yes   
+google-antigravity  gemini-3.1-pro-low        1.0M     65.5K    yes       yes   
+google-antigravity  gpt-oss-120b-medium       131.1K   32.8K    no        no    
