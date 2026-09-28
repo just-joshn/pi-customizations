@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { expect, test, vi } from 'vitest';
 import { AgentSession, DefaultResourceLoader, SessionManager } from '@earendil-works/pi-coding-agent';
 import { workerFixture } from './worker-fixture.ts';
+import { releasePendingWork } from './worker-gates.ts';
 import { workerTiming } from './worker-timing.ts';
 
 test('stopping a completed task does not abort the disposed session again', async () => {
@@ -25,8 +26,17 @@ test('abort rejection is observed and the child is disposed before stop returns'
     const started = await f.call('Task', { prompt: 'WAIT' });
     const record = started.details as { id: string };
     const abort = vi.spyOn(AgentSession.prototype, 'abort').mockRejectedValue(new Error('abort failure'));
+    const dispose = AgentSession.prototype.dispose;
+    let childDisposals = 0;
+    const disposeSpy = vi.spyOn(AgentSession.prototype, 'dispose').mockImplementation(function (this: AgentSession) {
+      if (this !== f.session) childDisposals += 1;
+      dispose.call(this);
+    });
+    const beforeStop = childDisposals;
     const stopped = await f.call('TaskStop', { task_id: record.id });
     abort.mockRestore();
+    disposeSpy.mockRestore();
+    expect(childDisposals).toBeGreaterThan(beforeStop);
     expect(JSON.stringify(stopped.content)).toMatch(/abort failure/);
     expect(JSON.stringify(stopped.content)).toMatch(/interrupted|failed/);
     expect((await f.call('TaskOutput', { task_id: record.id })).usage).toBeUndefined();
@@ -38,14 +48,9 @@ test('rejected aborts still drain grandchildren without delayed writes', async (
   try {
     const started = await f.call('Task', { prompt: 'NEST_STOP' });
     const record = started.details as { id: string };
-    const deadline = Date.now() + workerTiming.settlementDeadlineMs;
-    let audit = '';
-    while (!audit.includes('grandchild-start')) {
-      expect(Date.now() < deadline).toBe(true);
-      try { audit = await readFile(join(f.dir, 'audit.txt'), 'utf8'); }
-      catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error; }
-      await new Promise(resolve => setTimeout(resolve, workerTiming.pollIntervalMs));
-    }
+    await vi.waitFor(async () => {
+      expect(await readFile(join(f.dir, 'audit.txt'), 'utf8')).toMatch(/grandchild-start/);
+    }, { timeout: workerTiming.settlementDeadlineMs, interval: workerTiming.pollIntervalMs });
     const abort = vi.spyOn(AgentSession.prototype, 'abort').mockRejectedValue(new Error('nested abort failure'));
     const stopped = await f.call('TaskStop', { task_id: record.id });
     abort.mockRestore();
@@ -53,7 +58,7 @@ test('rejected aborts still drain grandchildren without delayed writes', async (
     const afterStop = await readFile(join(f.dir, 'audit.txt'), 'utf8');
     expect(afterStop).toMatch(/grandchild-aborted/);
     expect(afterStop).not.toMatch(/grandchild-finished/);
-    await new Promise(resolve => setTimeout(resolve, workerTiming.descendantRunMs + workerTiming.drainMarginMs));
+    expect(releasePendingWork()).toEqual([]);
     expect(await readFile(join(f.dir, 'audit.txt'), 'utf8')).toBe(afterStop);
   } finally { await f.close(); }
 });
@@ -62,13 +67,9 @@ test('foreground usage is reported once when parent shutdown changes the generat
   const f = await workerFixture();
   try {
     const pending = expect(f.call('Task', { prompt: 'WAIT_BLOCKED', run_in_background: false })).rejects.toThrow(/interrupted/);
-    const deadline = Date.now() + workerTiming.settlementDeadlineMs;
-    while (true) {
-      try { await readFile(join(f.dir, 'child-input.txt')); break; }
-      catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error; }
-      expect(Date.now() < deadline).toBe(true);
-      await new Promise(resolve => setTimeout(resolve, workerTiming.pollIntervalMs));
-    }
+    await vi.waitFor(async () => {
+      await readFile(join(f.dir, 'child-input.txt'));
+    }, { timeout: workerTiming.settlementDeadlineMs, interval: workerTiming.pollIntervalMs });
     await f.session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' });
     await pending;
     const event = { type: 'tool_result' as const, toolName: 'Task', toolCallId: 'test-Task', input: {}, content: [], details: undefined, isError: true };
@@ -98,15 +99,15 @@ test('output write failure remains a failed result with usage and a transcript',
   const f = await workerFixture();
   try {
     const started = await f.call('Task', { prompt: 'WAIT' });
-    const record = started.details as { id: string; outputFile: string; status: string };
+    const record = started.details as { id: string; outputFile: string; sessionFile: string };
     await mkdir(record.outputFile);
     const result = await f.call('TaskOutput', { task_id: record.id, block: true });
-    expect(JSON.stringify(result.content)).toMatch(/Could not save full output/);
-    expect(JSON.stringify(result.content)).toMatch(/failed/);
+    const summary = JSON.parse(result.content.find(block => block.type === 'text')!.text);
+    expect(summary.status).toBe('failed');
+    expect(summary.output).toMatch(/Could not save full output/);
+    expect(summary.transcript).toBe(record.sessionFile);
     expect(result.usage?.totalTokens).toBe(5);
     expect((await f.call('TaskOutput', { task_id: record.id })).usage).toBeUndefined();
-    expect(started.details).toEqual(record);
-    expect(record.status).toBe('running');
   } finally { await f.close(); }
 });
 

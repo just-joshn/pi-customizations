@@ -38,7 +38,7 @@ test('restored task records do not expose caller-owned records or usage', () => 
   const restored = restoreTaskRecords([{ type: 'custom', customType: 'pstack-task', data: record }]).get('one');
   expect(restored).toEqual(record);
   expect(restored).not.toBe(record);
-  expect(restored?.usage).not.toBe(record.usage);
+  expect(restored!.usage).not.toBe(record.usage);
 });
 
 test('result truncation preserves empty and exact-boundary values', () => {
@@ -58,8 +58,8 @@ test('hostInstructions formats defaults without overrides or transcript file', a
     sessionManager: { getSessionDir: () => '/sessions', getSessionFile: () => undefined },
   } as unknown as ExtensionContext;
   const output = hostInstructions('/root', ctx, '');
-  expect(output.includes('No override. Upstream defaults remain requests, not confirmed available models.')).toBe(true);
-  expect(output.includes('This session transcript is in memory.')).toBe(true);
+  expect(output).toContain('No override. Upstream defaults remain requests, not confirmed available models.');
+  expect(output).toContain('This session transcript is in memory.');
 });
 
 test('AskQuestion tool cancellation break and validation checks', async () => {
@@ -67,9 +67,10 @@ test('AskQuestion tool cancellation break and validation checks', async () => {
   let toolDef: any;
   const pi = { registerTool: (def: any) => { toolDef = def; } } as any;
   registerQuestions(pi);
-  expect(toolDef).toBeDefined();
+  expect(toolDef.name).toBe('AskQuestion');
 
   const ctxNoUI = { hasUI: false } as any;
+  await expect(toolDef.execute('duplicate', { questions: [{ id: 'q1', prompt: 'p1' }, { id: 'q1', prompt: 'p2' }] }, undefined, undefined, ctxNoUI)).rejects.toThrow(/Question IDs must be unique/);
   await expect(toolDef.execute('1', { questions: [{ id: 'q1', prompt: 'p1' }] }, undefined, undefined, ctxNoUI)).rejects.toThrow(/requires Pi TUI/);
 
   const ctxUI = {
@@ -111,6 +112,29 @@ test('workerControl handles disposal failure and abort on agent_start when stopp
   ctrl.unsubscribe();
 });
 
+test('aborting the supplied signal stops the worker once', async () => {
+  const { workerControl } = await import('../src/worker-control.ts');
+  const controller = new AbortController();
+  const aborts: string[] = [];
+  const fakeSession = {
+    abort: async () => { aborts.push('abort'); },
+    dispose: () => {},
+    subscribe: () => () => {},
+  } as any;
+  const ctrl = workerControl(fakeSession, controller.signal);
+
+  controller.abort();
+  controller.abort();
+  await ctrl.drain();
+  expect(aborts).toEqual(['abort']);
+  expect(ctrl.stopped()).toBe(true);
+
+  ctrl.unsubscribe();
+  controller.abort();
+  await ctrl.drain();
+  expect(aborts).toEqual(['abort']);
+});
+
 test('registerStatus context event filters pstack-status messages', async () => {
   const { registerStatus } = await import('../src/context.ts');
   let contextHandler: any;
@@ -119,7 +143,7 @@ test('registerStatus context event filters pstack-status messages', async () => 
     registerCommand() {},
   } as any;
   registerStatus(pi, {} as any);
-  expect(contextHandler).toBeDefined();
+  expect(contextHandler).toBeTypeOf('function');
   const filtered = contextHandler({
     messages: [
       { role: 'user', content: 'hi' },
@@ -127,9 +151,7 @@ test('registerStatus context event filters pstack-status messages', async () => 
       { role: 'assistant', content: 'reply' },
     ],
   });
-  expect(filtered.messages.length).toBe(2);
-  expect(filtered.messages[0].role).toBe('user');
-  expect(filtered.messages[1].role).toBe('assistant');
+  expect(filtered.messages).toEqual([{ role: 'user', content: 'hi' }, { role: 'assistant', content: 'reply' }]);
 });
 
 test('resolveModel with empty registry and default thinkingLevel', async () => {

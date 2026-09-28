@@ -44,9 +44,13 @@ test('poteto-mode routes all 23 documented playbooks and 23 principles', async (
 test('setup keeps the documented 17 roles and four budget labels', async () => {
   const setup = await read('skills/setup-pstack/SKILL.md');
   const models = await read('src/models.ts');
-  for (const role of roles) expect(setup.includes(`\n${role}: `) && models.includes(`["${role}", `)).toBe(true);
+  for (const role of roles) {
+    expect(setup.includes(`\n${role}: `)).toBe(true);
+    expect(models.includes(`["${role}", `)).toBe(true);
+  }
   for (const label of ['unlimited — keep max', 'large — xhigh reasoning', 'medium — high reasoning', 'small — medium reasoning']) {
-    expect(setup.includes(`\`${label}\``) && models.includes(`"${label}"`)).toBe(true);
+    expect(setup.includes(`\`${label}\``)).toBe(true);
+    expect(models.includes(`"${label}"`)).toBe(true);
   }
 });
 
@@ -67,7 +71,9 @@ test('documented agents, team-kit skills, helper scripts, and Benny pack are shi
 test('transcript consumers read the Pi session store, not Reference agent-transcripts', async () => {
   for (const path of transcriptConsumers) {
     const text = await read(path);
-    expect(!text.includes('.upstream/projects') && !text.includes('agent-transcripts')).toBe(true);
+    expect(text.includes('Pi session')).toBe(true);
+    expect(text.includes('.upstream/projects')).toBe(false);
+    expect(text.includes('agent-transcripts')).toBe(false);
   }
   const recall = await read('skills/recall/SKILL.md');
   expect(recall.includes('`~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`')).toBe(true);

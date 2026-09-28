@@ -1,4 +1,4 @@
-import { expect } from 'vitest';
+import { expect, vi } from 'vitest';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -12,7 +12,7 @@ async function writeProvider(dir: string): Promise<void> {
   await writeFile(join(dir, 'extensions/provider.ts'), `export { default } from ${JSON.stringify(join(packageRoot, 'test/worker-provider.ts'))};`);
 }
 
-async function closeFixture(session: Awaited<ReturnType<typeof createAgentSession>>['session'] | undefined, dir: string, priorDir: string | undefined) {
+async function closeFixture(session: Awaited<ReturnType<typeof createAgentSession>>['session'] | undefined, dir: string) {
   try {
     if (session) {
       try { await session.abort(); }
@@ -22,18 +22,16 @@ async function closeFixture(session: Awaited<ReturnType<typeof createAgentSessio
       }
     }
   } finally {
-    if (priorDir === undefined) delete process.env.PI_CODING_AGENT_DIR;
-    else process.env.PI_CODING_AGENT_DIR = priorDir;
+    vi.unstubAllEnvs();
     await rm(dir, { recursive: true, force: true });
   }
 }
 
 export async function workerFixture() {
   const dir = await mkdtemp(join(tmpdir(), 'pstack-child-'));
-  const priorDir = process.env.PI_CODING_AGENT_DIR;
-  process.env.PI_CODING_AGENT_DIR = dir;
+  vi.stubEnv('PI_CODING_AGENT_DIR', dir);
   let session: Awaited<ReturnType<typeof createAgentSession>>['session'] | undefined;
-  const close = () => closeFixture(session, dir, priorDir);
+  const close = () => closeFixture(session, dir);
   try {
     await mkdir(join(dir, 'extensions'));
     await writeFile(join(dir, 'settings.json'), JSON.stringify({ retry: { enabled: false }, compaction: { enabled: false } }));

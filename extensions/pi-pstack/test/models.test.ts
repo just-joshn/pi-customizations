@@ -1,7 +1,7 @@
 import { mkdtemp, readFile, rm, writeFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { anthropicProvider } from "@earendil-works/pi-ai/providers/anthropic";
 import type { ExtensionCommandContext, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { modelConfigPath, readModelRule, resolveModel, setupModels } from "../src/models.ts";
@@ -43,7 +43,15 @@ test("ambiguous IDs require a provider; exact IDs containing colons are retained
 });
 
 test("headless setup rejects without writes", async () => {
-  await expect(setupModels(context())).rejects.toThrow(/interactive or RPC dialog UI/);
+  const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
+  vi.stubEnv("PI_CODING_AGENT_DIR", directory);
+  try {
+    await expect(setupModels(context())).rejects.toThrow(/interactive or RPC dialog UI/);
+    await expect(readFile(modelConfigPath(), "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  } finally {
+    vi.unstubAllEnvs();
+    await rm(directory, { recursive: true, force: true });
+  }
 });
 
 function confirmedContext(confirmed: () => void) {
@@ -68,8 +76,7 @@ function confirmedContext(confirmed: () => void) {
 
 test("setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles", async () => {
   const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
-  const previous = process.env.PI_CODING_AGENT_DIR;
-  process.env.PI_CODING_AGENT_DIR = directory;
+  vi.stubEnv("PI_CODING_AGENT_DIR", directory);
   try {
     expect(await readModelRule()).toBe("");
     await mkdir(dirname(modelConfigPath()), { recursive: true });
@@ -86,7 +93,7 @@ test("setup confirms before writing all roles, preserves duplicate aliases, and 
     expect(lines.length).toBe(17);
     expect(notices().join("\n")).toMatch(/feature, refactoring[\s\S]*interrogate reviewers[\s\S]*Dropped retired roles:\nhow critics: retired/);
     expect(result).toMatch(/:medium/);
-    await setupModels(context({ hasUI: true, ui: ui({ select: async () => undefined }) }));
+    expect(await setupModels(context({ hasUI: true, ui: ui({ select: async () => undefined }) }))).toBe(false);
     expect(await readModelRule()).toBe(result);
     let denied = false;
     await setupModels(context({ hasUI: true, ui: ui({
@@ -110,8 +117,7 @@ test("setup confirms before writing all roles, preserves duplicate aliases, and 
     expect(floored).not.toMatch(/:xhigh/);
     expect(floored).toMatch(/arena runners: auto, auto, inherit-parent/);
   } finally {
-    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
-    else process.env.PI_CODING_AGENT_DIR = previous;
+    vi.unstubAllEnvs();
     await rm(directory, { recursive: true, force: true });
   }
 });
@@ -129,8 +135,7 @@ function scriptedCustom(scripts: string[][], frames: string[][]) {
 
 test("TUI setup pickers stay within a screen, filter by typing, and build ordered panels", async () => {
   const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
-  const previous = process.env.PI_CODING_AGENT_DIR;
-  process.env.PI_CODING_AGENT_DIR = directory;
+  vi.stubEnv("PI_CODING_AGENT_DIR", directory);
   const many = Array.from({ length: 200 }, (_, index) => ({ ...model, id: `m${index}` }));
   const scripts = [
     ["b", "u", "g", "-", "f", "i", "x", "\r"],
@@ -165,16 +170,14 @@ test("TUI setup pickers stay within a screen, filter by typing, and build ordere
     expect(frames[5]!.join("\n")).toMatch(/arena runners seat 3\. Selected: anthropic\/m150:medium, anthropic\/m42:medium/);
     expect(scripts).toEqual([]);
   } finally {
-    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
-    else process.env.PI_CODING_AGENT_DIR = previous;
+    vi.unstubAllEnvs();
     await rm(directory, { recursive: true, force: true });
   }
 });
 
 test("TUI accept list and confirm question fit on a 24-line screen", async () => {
   const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
-  const previous = process.env.PI_CODING_AGENT_DIR;
-  process.env.PI_CODING_AGENT_DIR = directory;
+  vi.stubEnv("PI_CODING_AGENT_DIR", directory);
   const frames: string[][] = [];
   let confirmMessage = "";
   try {
@@ -196,8 +199,7 @@ test("TUI accept list and confirm question fit on a 24-line screen", async () =>
     expect(confirmMessage.split("\n").length <= 4).toBe(true);
     expect(confirmMessage).toMatch(/models\.mdc/);
   } finally {
-    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
-    else process.env.PI_CODING_AGENT_DIR = previous;
+    vi.unstubAllEnvs();
     await rm(directory, { recursive: true, force: true });
   }
 });
@@ -225,7 +227,8 @@ test("pick in TUI mode handles focus, render, and cancellation", async () => {
         widgetInstance = factory({ requestRender() {} }, theme, undefined, resolve);
         widgetInstance!.focused = true;
         expect(widgetInstance!.focused).toBe(true);
-        expect(widgetInstance!.render(80).length > 0).toBe(true);
+        expect(widgetInstance!.render(80)[0]).toBe("Pick model");
+        expect(widgetInstance!.render(80).join("\n")).toContain("m1");
         widgetInstance!.invalidate();
         widgetInstance!.handleInput("\x1b");
       }),
@@ -237,8 +240,7 @@ test("pick in TUI mode handles focus, render, and cancellation", async () => {
 
 test("setupModels with unlimited budget preserves existing model strings without target", async () => {
   const directory = await mkdtemp(join(tmpdir(), "pstack-unlimited-"));
-  const previous = process.env.PI_CODING_AGENT_DIR;
-  process.env.PI_CODING_AGENT_DIR = directory;
+  vi.stubEnv("PI_CODING_AGENT_DIR", directory);
   try {
     await mkdir(dirname(modelConfigPath()), { recursive: true });
     await writeFile(modelConfigPath(), allRoles.map((role) => `${role}: inherit-parent`).join("\n"));
@@ -256,16 +258,112 @@ test("setupModels with unlimited budget preserves existing model strings without
     const result = await readModelRule();
     expect(result).toMatch(/# budget: unlimited \(max\)/);
   } finally {
-    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
-    else process.env.PI_CODING_AGENT_DIR = previous;
+    vi.unstubAllEnvs();
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("setupModels replaces a role line that lists more than one model", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
+  vi.stubEnv("PI_CODING_AGENT_DIR", directory);
+  try {
+    await mkdir(dirname(modelConfigPath()), { recursive: true });
+    await writeFile(modelConfigPath(), allRoles.map((role) => role === "bug-fix" ? `${role}: auto, auto` : `${role}: inherit-parent`).join("\n"));
+    const notices: string[] = [];
+    const ctx = context({ hasUI: true, mode: "rpc", ui: ui({
+      select: async (title) => title.startsWith("Accept model table") ? "Accept as-is" : title.startsWith("pstack reasoning budget") ? "small — medium reasoning" : "auto",
+      input: async (title) => { throw new Error(`Unexpected input: ${title}`); },
+      notify: (message) => { notices.push(message); },
+      confirm: async () => true,
+    }) });
+    expect(await setupModels(ctx)).toBe(true);
+    expect(notices[0]).toMatch(/bug-fix: auto, auto \[needs a choice\]/);
+    expect(await readModelRule()).toMatch(/^bug-fix: auto$/m);
+  } finally {
+    vi.unstubAllEnvs();
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("editRole reports an empty model selection under the unlimited budget", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
+  vi.stubEnv("PI_CODING_AGENT_DIR", directory);
+  try {
+    await mkdir(dirname(modelConfigPath()), { recursive: true });
+    await writeFile(modelConfigPath(), allRoles.map((role) => `${role}: inherit-parent`).join("\n"));
+    const inputs = ["", "auto, auto"];
+    const selects = ["unlimited — keep max", "arena runners", "Accept as-is"];
+    const errors: string[] = [];
+    const ctx = context({ hasUI: true, mode: "rpc", ui: ui({
+      select: async () => selects.shift(),
+      input: async () => inputs.shift(),
+      notify: (message, level) => { if (level === "error") errors.push(message); },
+      confirm: async () => true,
+    }) });
+    expect(await setupModels(ctx)).toBe(true);
+    expect(errors).toEqual(["Error: Empty model selection."]);
+    expect(await readModelRule()).toMatch(/^arena runners: auto, auto$/m);
+    expect(selects).toEqual([]);
+    expect(inputs).toEqual([]);
+  } finally {
+    vi.unstubAllEnvs();
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("cancelling the seat picker leaves the model rule unchanged", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
+  vi.stubEnv("PI_CODING_AGENT_DIR", directory);
+  const frames: string[][] = [];
+  try {
+    await mkdir(dirname(modelConfigPath()), { recursive: true });
+    const original = allRoles.map((role) => role === "arena runners" ? `${role}: invalid_model` : `${role}: inherit-parent`).join("\n");
+    await writeFile(modelConfigPath(), original);
+    const ctx = context({ hasUI: true, mode: "tui", ui: ui({
+      select: async (title) => {
+        if (title.startsWith("pstack reasoning budget")) return "small — medium reasoning";
+        throw new Error(`Unexpected select: ${title}`);
+      },
+      confirm: async () => false,
+      custom: scriptedCustom([["\x1b"]], frames),
+    }) });
+    expect(await setupModels(ctx)).toBe(false);
+    expect(frames[0]!.join("\n")).toMatch(/arena runners seat 1/);
+    expect(await readModelRule()).toBe(original);
+  } finally {
+    vi.unstubAllEnvs();
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("a model with no level at or below the target is reported", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
+  vi.stubEnv("PI_CODING_AGENT_DIR", directory);
+  try {
+    const highOnly = { ...model, thinkingLevelMap: { off: null, minimal: null, low: null, medium: null } };
+    await mkdir(dirname(modelConfigPath()), { recursive: true });
+    await writeFile(modelConfigPath(), allRoles.map((role) => role === "bug-fix" ? `${role}: ${highOnly.provider}/${highOnly.id}` : `${role}: inherit-parent`).join("\n"));
+    const selects = ["small — medium reasoning", `${highOnly.provider}/${highOnly.id}`, "inherit-parent", "Accept as-is"];
+    const errors: string[] = [];
+    const ctx = context({ hasUI: true, mode: "rpc", model: highOnly,
+      modelRegistry: { getAvailable: () => [highOnly] } as ExtensionContext["modelRegistry"],
+      ui: ui({
+        select: async () => selects.shift(),
+        notify: (message, level) => { if (level === "error") errors.push(message); },
+        confirm: async () => true,
+      }) });
+    expect(await setupModels(ctx)).toBe(true);
+    expect(errors).toEqual([`Error: No supported thinking level at or below medium for ${highOnly.provider}/${highOnly.id}.`]);
+    expect(await readModelRule()).toMatch(/^bug-fix: inherit-parent$/m);
+  } finally {
+    vi.unstubAllEnvs();
     await rm(directory, { recursive: true, force: true });
   }
 });
 
 test("setupModels non-TUI mode edits single and panel roles, handles needsChoice and empty model error", async () => {
   const directory = await mkdtemp(join(tmpdir(), "pstack-nontui-"));
-  const previous = process.env.PI_CODING_AGENT_DIR;
-  process.env.PI_CODING_AGENT_DIR = directory;
+  vi.stubEnv("PI_CODING_AGENT_DIR", directory);
   try {
     await mkdir(dirname(modelConfigPath()), { recursive: true });
     await writeFile(modelConfigPath(), allRoles.map((role) => role === "bug-fix" ? `${role}: invalid_model` : `${role}: inherit-parent`).join("\n"));
@@ -283,10 +381,10 @@ test("setupModels non-TUI mode edits single and panel roles, handles needsChoice
       }),
     });
     expect(await setupModels(ctx)).toBe(true);
-    expect(notifiedErrors.length > 0).toBe(true);
+    expect(notifiedErrors[0]).toMatch(/Unavailable model ''/);
+    expect(await readModelRule()).toMatch(/^arena runners: auto, auto$/m);
   } finally {
-    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
-    else process.env.PI_CODING_AGENT_DIR = previous;
+    vi.unstubAllEnvs();
     await rm(directory, { recursive: true, force: true });
   }
 });

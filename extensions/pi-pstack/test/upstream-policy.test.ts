@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { expect, test } from 'vitest';
+import { delimiter, join } from 'node:path';
+import { expect, test, vi } from 'vitest';
 import { enforceCoverage, run } from '../scripts/verify-upstream.mjs';
 
 test.each([
@@ -31,6 +31,23 @@ test('coverage policy rejects below-threshold reports and accepts the exact boun
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test('upstream subprocess failure is propagated without running coverage', () => {
-  expect(() => run(['run', '/missing-pstack-script'], tmpdir())).toThrow(/failed with|ENOENT/);
+test('upstream subprocess spawn failure reports the missing executable', async () => {
+  const bin = await mkdtemp(join(tmpdir(), 'pstack-bun-missing-'));
+  try {
+    vi.stubEnv('PATH', bin);
+    expect(() => run(['run', '/missing-pstack-script'], tmpdir())).toThrow(/ENOENT/);
+  } finally {
+    await rm(bin, { recursive: true, force: true });
+  }
+});
+
+test('upstream subprocess failure reports the failing command with its status', async () => {
+  const bin = await mkdtemp(join(tmpdir(), 'pstack-bun-'));
+  try {
+    await writeFile(join(bin, 'bun'), '#!/bin/sh\nexit 3\n', { mode: 0o755 });
+    vi.stubEnv('PATH', `${bin}${delimiter}${process.env.PATH ?? ''}`);
+    expect(() => run(['run', '/missing-pstack-script'], tmpdir())).toThrow(/^bun run \/missing-pstack-script failed with 3$/);
+  } finally {
+    await rm(bin, { recursive: true, force: true });
+  }
 });

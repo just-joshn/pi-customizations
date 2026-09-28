@@ -1,5 +1,4 @@
-import fs, { readFile, readdir } from "node:fs/promises";
-import { syncBuiltinESMExports } from 'node:module';
+import { access, readFile, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { expect, test, vi } from "vitest";
 import { SessionManager } from "@earendil-works/pi-coding-agent";
@@ -7,16 +6,10 @@ import { fixture, lastRequest, packageRoot, prompt, section, toolResults } from 
 
 test('integration fixture setup failure removes its directory', async () => {
   let directory = '';
-  const failing = vi.spyOn(fs, 'mkdir').mockImplementation(async (path: unknown) => {
-    directory = dirname(String(path));
-    throw new Error('mkdir failed');
-  });
-  syncBuiltinESMExports();
-  try {
-    await expect(fixture()).rejects.toThrow(/mkdir failed/);
-    expect(directory).toBeDefined();
-    await expect(fs.access(directory)).rejects.toThrow(/ENOENT/);
-  } finally { failing.mockRestore(); syncBuiltinESMExports(); }
+  const failing = async (path: string) => { directory = dirname(path); throw new Error('mkdir failed'); };
+  await expect(fixture({ createDirectory: failing })).rejects.toThrow(/mkdir failed/);
+  expect(directory).not.toBe('');
+  await expect(access(directory)).rejects.toThrow(/ENOENT/);
 });
 
 test('integration fixture disposes every session and removes files after abort failure', async () => {
@@ -33,7 +26,7 @@ test('integration fixture disposes every session and removes files after abort f
     const abortSpy = vi.spyOn(first.session, 'abort').mockRejectedValue(new Error('abort failure'));
     await expect(f.close()).rejects.toThrow(/Fixture cleanup failed/);
     expect(disposed.toSorted()).toEqual(['first', 'second']);
-    await expect(fs.access(f.root)).rejects.toThrow(/ENOENT/);
+    await expect(access(f.root)).rejects.toThrow(/ENOENT/);
     abortSpy.mockRestore();
     disposeSpies.forEach(s => s.mockRestore());
   } finally { await f.close(); }
@@ -123,7 +116,7 @@ test("Poteto mode survives session reopening and explicit off removes active mod
     await prompt(resumed.session, "Resume the task.");
     const active = section(f.requests, "pstack_mode") ?? "";
     expect(active).toMatch(/Poteto mode|poteto-mode/);
-    await prompt(resumed.session, "/poteto-mode off");
+    await prompt(resumed.session, "/poteto-mode off", { startsRun: false });
     await prompt(resumed.session, "A casual question.");
     const inactive = section(f.requests, "pstack_mode") ?? "";
     expect(inactive).not.toBe(active);
@@ -173,7 +166,7 @@ test("native /skill:poteto-mode enters the same mode and /pstack reports status 
     expect(JSON.stringify(status)).toMatch(/65 skills, 64 prompt templates/);
     expect(JSON.stringify(status)).toMatch(/team-kit 1.2.0/);
     expect(JSON.stringify(status)).toMatch(/Poteto mode on/);
-    await prompt(session, "/poteto-mode off");
+    await prompt(session, "/poteto-mode off", { startsRun: false });
     await prompt(session, "Proceed casually.");
     expect(section(f.requests, "pstack_mode")).toBeNull();
     expect(f.errors).toEqual([]);
@@ -246,8 +239,6 @@ test("native and alias setup fail closed without UI and never fall through to in
 
 test("setup command saves confirmed role choices and offers project verification only once", async () => {
   const f = await fixture();
-  const previous = process.env.PI_CODING_AGENT_DIR;
-  process.env.PI_CODING_AGENT_DIR = join(f.root, "agent");
   try {
     const { session } = await f.open();
     session.extensionRunner.setUIContext({
@@ -268,11 +259,7 @@ test("setup command saves confirmed role choices and offers project verification
     await session.prompt("/setup-pstack");
     expect(f.requests.length).toBe(calls);
     expect(f.errors).toEqual([]);
-  } finally {
-    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
-    else process.env.PI_CODING_AGENT_DIR = previous;
-    await f.close();
-  }
+  } finally { await f.close(); }
 });
 
 test("team-kit templates request skill reading and native skills expand complete instructions", async () => {
@@ -347,7 +334,7 @@ test("team-kit rules stay archival to match observed Reference plugin behavior",
     expect(section(f.requests, "pstack_host") ?? "").toMatch(/rules remain archived/);
     expect(section(f.requests, "pstack_mode")).toBeNull();
     await prompt(session, "/poteto-mode Enter the mode.");
-    await prompt(session, "/poteto-mode off");
+    await prompt(session, "/poteto-mode off", { startsRun: false });
     await prompt(session, "Continue this module.");
     expect(section(f.requests, "pstack_team_kit_rules") ?? "").toBe(rules);
     expect(section(f.requests, "pstack_mode")).toBeNull();
@@ -441,8 +428,6 @@ test("invalid todo replacement leaves progress intact and mode tool can opt out"
 
 test("repeated context calls persist bounded nonrecursive evidence with transcript pointers", async () => {
   const f = await fixture();
-  const previous = process.env.PI_CODING_AGENT_DIR;
-  process.env.PI_CODING_AGENT_DIR = join(f.root, "agent");
   try {
     const { session } = await f.open();
     const evidence = "Transcript evidence ".repeat(3000);
@@ -467,11 +452,7 @@ test("repeated context calls persist bounded nonrecursive evidence with transcri
     expect(Boolean(contexts.at(-1).message.details.omitted.entries > 0)).toBe(true);
     expect(Boolean(persisted.some(entry => entry.message?.role === 'user' && JSON.stringify(entry.message.content).includes(evidence)))).toBe(true);
     expect(f.errors).toEqual([]);
-  } finally {
-    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
-    else process.env.PI_CODING_AGENT_DIR = previous;
-    await f.close();
-  }
+  } finally { await f.close(); }
 });
 
 
@@ -541,19 +522,28 @@ test("a Pi tool batch serializes question dialogs and retains both answers", asy
     const { session } = await f.open();
     let active = 0;
     let maximum = 0;
+    const asked: string[] = [];
+    let release = () => {};
+    const answered = new Promise<void>(resolve => { release = resolve; });
     session.extensionRunner.setUIContext({
       ...session.extensionRunner.createContext().ui,
       input: async (title) => {
         active++;
         maximum = Math.max(maximum, active);
-        await new Promise(resolve => setTimeout(resolve, 10));
+        asked.push(title);
+        if (title === "first") await answered;
         active--;
         return `Answer ${title}`;
       },
     }, "rpc");
     f.calls.push(["first", "second"].map(id => ({ type: "toolCall", id, name: "AskQuestion",
       arguments: { questions: [{ id, prompt: id }] } })));
-    await prompt(session, "Ask both questions.");
+    const batch = prompt(session, "Ask both questions.");
+    await vi.waitFor(() => expect(asked).toEqual(["first"]));
+    expect(maximum).toBe(1);
+    release();
+    await batch;
+    expect(asked).toEqual(["first", "second"]);
     expect(maximum).toBe(1);
     expect(toolResults(session, "AskQuestion").map(message => message.role === "toolResult" ? message.details : undefined)).toEqual([
       [{ id: "first", answers: ["Answer first"], cancelled: false }],

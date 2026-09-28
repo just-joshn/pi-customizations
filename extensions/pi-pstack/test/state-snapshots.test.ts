@@ -55,10 +55,10 @@ test('pstack_mode tool toggles mode and returns bounded confirmation', async () 
   const modeTool = tools.find(t => t.name === 'pstack_mode');
   expect(modeTool).toBeDefined();
   const on = await modeTool!.execute('1', { enabled: true }, undefined, undefined, ctx);
-  expect(JSON.stringify(on.content)).toMatch(/Poteto mode is on/);
+  expect(on.content).toEqual([{ type: 'text', text: 'Poteto mode is on.' }]);
   expect(store.read().enabled).toBe(true);
   const off = await modeTool!.execute('2', { enabled: false }, undefined, undefined, ctx);
-  expect(JSON.stringify(off.content)).toMatch(/Poteto mode is off/);
+  expect(off.content).toEqual([{ type: 'text', text: 'Poteto mode is off.' }]);
   expect(store.read().enabled).toBe(false);
 });
 
@@ -74,8 +74,8 @@ test('TodoWrite registers promptSnippet, promptGuidelines, and schema descriptio
     'Keep skipped steps with a reason.',
   ]);
   const properties = (tool!.parameters as { properties?: Record<string, { description?: string }> }).properties;
-  expect(properties?.todos?.description).toBeDefined();
-  expect(properties?.merge?.description).toBeDefined();
+  expect(properties?.todos?.description).toBe('The list of todo items to set or merge');
+  expect(properties?.merge?.description).toBe('If true, merges with existing todos by id while preserving order; if false or omitted, replaces the entire todo list');
 });
 
 test('TodoWrite renderCall formats call summaries', () => {

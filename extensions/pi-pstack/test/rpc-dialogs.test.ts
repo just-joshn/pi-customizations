@@ -9,7 +9,7 @@ import { Check } from 'typebox/value';
 import type { RpcCommand, RpcExtensionUIResponse } from '@earendil-works/pi-coding-agent';
 
 const packageRoot = fileURLToPath(new URL('../', import.meta.url));
-const dialogDeadlineMs = 15000;
+const dialogDeadlineMs = 4000;
 const Select = Type.Object({ type: Type.Literal('extension_ui_request'), id: Type.String(),
   method: Type.Literal('select'), title: Type.String(), options: Type.Array(Type.String()) });
 const End = Type.Object({ type: Type.Literal('tool_execution_end'), toolName: Type.Literal('AskQuestion'),
@@ -77,14 +77,17 @@ async function runDialog(cancelled: boolean): Promise<Outcome> {
     const child = spawn(process.execPath, [cli, '--mode', 'rpc', '--no-session', '--no-extensions',
       '--no-skills', '--no-prompt-templates', '--no-context-files', '-e', packageRoot,
       '-e', join(packageRoot, 'test/rpc-fixture.ts'), '--provider', 'rpc-test', '--model', 'scripted', '--thinking', 'off'], {
-      cwd: directory, env: { PATH: process.env.PATH, PI_CODING_AGENT_DIR: directory, PI_OFFLINE: '1' },
+      cwd: directory, env: { PATH: process.env.PATH, HOME: directory, PI_CODING_AGENT_DIR: directory, PI_OFFLINE: '1' },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     return await exchange(child, cancelled);
   } finally { await rm(directory, { recursive: true, force: true }); }
 }
 
-test.each([false, true])('installed Pi RPC delivers %s to AskQuestion', async cancelled => {
+test.each([
+  { scenario: 'selected answers', cancelled: false },
+  { scenario: 'cancellation', cancelled: true },
+])('installed Pi RPC delivers $scenario to AskQuestion', async ({ cancelled }) => {
   const outcome = await runDialog(cancelled);
   expect(outcome.settled).toBe(true);
   expect(outcome.dialogs.length).toBe(1);

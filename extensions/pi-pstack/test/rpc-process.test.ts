@@ -31,7 +31,7 @@ test.each([
   'not-json',
   '[]',
   '{"type":"response","id":"check-1"}',
-])('RPC rejects malformed record %s and reaps the process', async payload => {
+])('RPC rejects malformed record %s', async payload => {
   const child = spawn(process.execPath, ['-e', `process.stdin.once('data', () => process.stdout.write(${JSON.stringify(payload + '\n')}));`]);
   const client = rpcProcess(child, { requestDeadlineMs: testRequestDeadlineMs, shutdownDeadlineMs: testShutdownDeadlineMs });
   try { await expect(client.send({ type: 'get_state' })).rejects.toThrow(/Invalid RPC/); }
@@ -50,11 +50,14 @@ test('RPC stdin failures reject pending and future requests without unhandled er
   } finally { await client.close(); }
 });
 
-test('RPC startup and timeout errors still allow independent cleanup', async () => {
+test('RPC startup failure rejects the request', async () => {
   const missing = spawn('/missing-pstack-executable');
-  const failed = rpcProcess(missing, { requestDeadlineMs: testRequestDeadlineMs, shutdownDeadlineMs: testShutdownDeadlineMs });
-  await expect(failed.send({ type: 'get_state' })).rejects.toThrow(/ENOENT/);
-  await failed.close();
+  const client = rpcProcess(missing, { requestDeadlineMs: testRequestDeadlineMs, shutdownDeadlineMs: testShutdownDeadlineMs });
+  try { await expect(client.send({ type: 'get_state' })).rejects.toThrow(/ENOENT/); }
+  finally { await client.close(); }
+});
+
+test('RPC request timeout rejects the request and reaps the process', async () => {
   const child = spawn(process.execPath, ['-e', 'process.stdin.resume()']);
   const client = rpcProcess(child, { requestDeadlineMs: testRequestDeadlineMs, shutdownDeadlineMs: testShutdownDeadlineMs });
   try { await expect(client.send({ type: 'get_state' })).rejects.toThrow(/RPC timed out/); }

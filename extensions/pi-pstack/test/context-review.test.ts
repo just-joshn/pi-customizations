@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { SessionManager, type ExtensionAPI, type ExtensionContext, type ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { registerContext, registerStatus } from '../src/context.ts';
 import { createState } from '../src/state.ts';
@@ -44,11 +44,9 @@ test('context counts separators at the exact multibyte list boundary', async () 
 
 async function historyFixture() {
   const root = await mkdtemp(join(tmpdir(), 'pstack-context-review-'));
-  const prior = process.env.PI_CODING_AGENT_DIR;
-  process.env.PI_CODING_AGENT_DIR = root;
+  vi.stubEnv('PI_CODING_AGENT_DIR', root);
   const close = async () => {
-    if (prior === undefined) delete process.env.PI_CODING_AGENT_DIR;
-    else process.env.PI_CODING_AGENT_DIR = prior;
+    vi.unstubAllEnvs();
     await rm(root, { recursive: true, force: true });
   };
   try {

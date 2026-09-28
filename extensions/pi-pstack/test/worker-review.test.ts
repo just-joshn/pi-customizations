@@ -19,11 +19,9 @@ function pauseReload() {
 }
 
 async function settled(f: Awaited<ReturnType<typeof workerFixture>>, id: string) {
-  const deadline = Date.now() + workerTiming.settlementDeadlineMs;
-  while (restoreTaskRecords(f.session.sessionManager.getBranch()).get(id)?.status !== 'settled') {
-    expect(Date.now() < deadline).toBe(true);
-    await new Promise(resolve => setTimeout(resolve, workerTiming.pollIntervalMs));
-  }
+  await vi.waitFor(() => {
+    expect(restoreTaskRecords(f.session.sessionManager.getBranch()).get(id)?.status).toBe('settled');
+  }, { timeout: workerTiming.settlementDeadlineMs, interval: workerTiming.pollIntervalMs });
   await f.session.waitForIdle();
 }
 

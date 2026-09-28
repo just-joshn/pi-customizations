@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test, vi } from 'vitest';
 import { workerFixture } from './worker-fixture.ts';
+import { releasePendingWork } from './worker-gates.ts';
 import { workerTiming } from './worker-timing.ts';
 import { AgentSession, createAgentSession, DefaultResourceLoader, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { registerWorkers, restoreTaskRecords, taskSummary } from '../src/workers.ts';
@@ -46,7 +47,8 @@ test('official SDK loads all worker tools without spawning children', async () =
     await expect(task!.definition.execute('cloud-test', { prompt: 'test', environment: 'cloud' }, undefined, undefined, context)).rejects.toThrow(/cloud execution is unavailable/);
     await expect(task!.definition.execute('resume-test', { prompt: 'test', resume: 'other-branch' }, undefined, undefined, context)).rejects.toThrow(/Unknown task in this branch/);
     const names = session.getActiveToolNames();
-    for (const name of ['Task', 'TaskOutput', 'TaskStop', 'TaskMessage']) expect(names.includes(name)).toBe(true);
+    expect(names).toEqual(expect.arrayContaining(['Task', 'TaskOutput', 'TaskStop', 'TaskMessage']));
+    expect(session.sessionManager.getBranch().filter(entry => entry.type === 'custom' && entry.customType === 'pstack-task').length).toBe(0);
   } finally { session?.dispose(); await rm(dir, { recursive: true, force: true }); }
 });
 
@@ -58,10 +60,13 @@ function workerTest(name: string, scenario: (fixture: Awaited<ReturnType<typeof 
   });
 }
 
-workerTest('personas inherit their configured models and preserve complete source instructions', async ({ dir, session, call }) => {
+workerTest('unknown task ids are refused by message, output, and stop', async ({ call }) => {
   await expect(call('TaskMessage', { task_id: 'missing', message: 'hello' })).rejects.toThrow(/Task is not running/);
   await expect(call('TaskOutput', { task_id: 'missing' })).rejects.toThrow(/Unknown task in this branch/);
   await expect(call('TaskStop', { task_id: 'missing' })).rejects.toThrow(/No live task/);
+});
+
+workerTest('personas inherit their configured models and preserve complete source instructions', async ({ dir, session, call }) => {
   const inheritedWatcher = await call('Task', { prompt: 'watch', subagent_type: 'ci-watcher', run_in_background: false });
   expect(JSON.stringify(inheritedWatcher.content)).toMatch(/settled/);
   for (const role of ['shell', 'explore']) {
@@ -172,28 +177,25 @@ workerTest('worker messages, cancellation, and usage follow the live child', asy
 
 workerTest('terminal children and explicit stops drain every grandchild', async ({ dir, session, call }) => {
   await call('Task', { prompt: 'NEST_ROOT', model: 'worker-test/deterministic', run_in_background: false });
-  let audit = await readFile(join(dir, 'audit.txt'), 'utf8');
+  const audit = await readFile(join(dir, 'audit.txt'), 'utf8');
   expect(audit).toMatch(/parent-finished/);
   expect(audit).toMatch(/grandchild-start/);
   expect(audit).toMatch(/grandchild-aborted/);
   expect(audit).not.toMatch(/grandchild-finished/);
   const afterTerminal = audit;
-  await new Promise(resolve => setTimeout(resolve, workerTiming.descendantRunMs + workerTiming.drainMarginMs));
+  expect(releasePendingWork()).toEqual([]);
   expect(await readFile(join(dir, 'audit.txt'), 'utf8')).toBe(afterTerminal);
   await writeFile(join(dir, 'audit.txt'), '');
   const nestedRun = await call('Task', { prompt: 'NEST_STOP', model: 'worker-test/deterministic' });
   const nestedId = JSON.parse(nestedRun.content.find(block => block.type === 'text')!.text).task_id;
-  for (let attempt = 0; attempt < workerTiming.settlementDeadlineMs / workerTiming.pollIntervalMs; attempt++) {
-    audit = await readFile(join(dir, 'audit.txt'), 'utf8');
-    if (audit.includes('grandchild-start')) break;
-    await new Promise(resolve => setTimeout(resolve, workerTiming.pollIntervalMs));
-  }
-  expect(audit).toMatch(/grandchild-start/);
+  await vi.waitFor(async () => {
+    expect(await readFile(join(dir, 'audit.txt'), 'utf8')).toMatch(/grandchild-start/);
+  }, { timeout: workerTiming.settlementDeadlineMs, interval: workerTiming.pollIntervalMs });
   await call('TaskStop', { task_id: nestedId });
   const afterStop = await readFile(join(dir, 'audit.txt'), 'utf8');
   expect(afterStop).toMatch(/grandchild-aborted/);
   expect(afterStop).not.toMatch(/grandchild-finished/);
-  await new Promise(resolve => setTimeout(resolve, workerTiming.descendantRunMs + workerTiming.drainMarginMs));
+  expect(releasePendingWork()).toEqual([]);
   expect(await readFile(join(dir, 'audit.txt'), 'utf8')).toBe(afterStop);
 });
 
@@ -279,11 +281,9 @@ workerTest('a blocking output call and stop in one Pi batch cannot deadlock each
 });
 
 async function completedTask(session: AgentSession, id: string): Promise<void> {
-  const deadline = Date.now() + workerTiming.settlementDeadlineMs;
-  while (restoreTaskRecords(session.sessionManager.getBranch()).get(id)?.status !== 'settled') {
-    expect(Date.now() < deadline).toBe(true);
-    await new Promise(resolve => setTimeout(resolve, workerTiming.pollIntervalMs));
-  }
+  await vi.waitFor(() => {
+    expect(restoreTaskRecords(session.sessionManager.getBranch()).get(id)?.status).toBe('settled');
+  }, { timeout: workerTiming.settlementDeadlineMs, interval: workerTiming.pollIntervalMs });
   await session.waitForIdle();
 }
 

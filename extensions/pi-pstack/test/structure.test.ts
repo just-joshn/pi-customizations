@@ -28,10 +28,12 @@ function functions(source: ts.SourceFile): string[] {
 
 test('maintained extension code and tests meet the repository size and logging limits', async () => {
   const violations: string[] = [];
+  const scanned: string[] = [];
   for (const directory of ['src', 'scripts', 'test']) {
     for (const name of await readdir(join(root, directory), { recursive: true })) {
       if (!/\.(ts|mjs)$/.test(name)) continue;
       const path = join(root, directory, name);
+      scanned.push(path);
       const text = await readFile(path, 'utf8');
       const source = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true);
       const count = text.trimEnd().split('\n').length;
@@ -40,5 +42,19 @@ test('maintained extension code and tests meet the repository size and logging l
       expect(text).not.toMatch(/console[.]log\s*\(/);
     }
   }
+  const sources = (await readdir(join(root, 'src'))).filter(name => name.endsWith('.ts'));
+  expect(scanned).toEqual(expect.arrayContaining([...sources.map(name => join(root, 'src', name)), join(root, 'test/structure.test.ts')]));
   expect(violations).toEqual([]);
+});
+
+test('size analysis reports a function at the fifty-line limit', () => {
+  const long = `function long() {\n${'  void 0;\n'.repeat(48)}}\n`;
+  const source = ts.createSourceFile('synthetic-long.ts', long, ts.ScriptTarget.Latest, true);
+  expect(functions(source)).toEqual(['synthetic-long.ts:1 has 50 function lines']);
+});
+
+test('size analysis reports nesting past four control levels', () => {
+  const deep = `function deep() {\n${'if (a) {\n'.repeat(5)}hit()\n${'}\n'.repeat(5)}}\n`;
+  const source = ts.createSourceFile('synthetic-deep.ts', deep, ts.ScriptTarget.Latest, true);
+  expect(functions(source)).toEqual(['synthetic-deep.ts:6 exceeds four control levels']);
 });

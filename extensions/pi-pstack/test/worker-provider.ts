@@ -5,6 +5,7 @@ import { createAssistantMessageEventStream, type AssistantMessage, type ToolCall
 import { getAgentDir, type ExtensionAPI, type ProviderConfig } from '@earendil-works/pi-coding-agent';
 
 import { workerTiming } from './worker-timing.ts';
+import { clearPendingWork, registerPendingWork } from './worker-gates.ts';
 
 type StreamArguments = Parameters<NonNullable<ProviderConfig['streamSimple']>>;
 
@@ -67,9 +68,14 @@ function streamWorker(model: StreamArguments[0], context: StreamArguments[1], op
   };
   if (options?.signal?.aborted) { finish(true); return stream; }
   if (text.includes('WAIT') || (nested && !calls.length)) {
-    const delay = text.includes('WAIT_BLOCKED') ? workerTiming.blockedRunMs : grandchild || text.includes('NEST_STOP') ? workerTiming.descendantRunMs : text.includes('NEST_ROOT') ? workerTiming.parentRunMs : workerTiming.delayedRunMs;
-    const timer = setTimeout(() => finish(), delay);
-    options?.signal?.addEventListener('abort', () => { clearTimeout(timer); finish(true); }, { once: true });
+    if (grandchild) {
+      registerPendingWork('grandchild', () => finish());
+      options?.signal?.addEventListener('abort', () => { clearPendingWork('grandchild'); finish(true); }, { once: true });
+    } else {
+      const delay = text.includes('WAIT_BLOCKED') ? workerTiming.blockedRunMs : text.includes('NEST_STOP') ? workerTiming.descendantRunMs : text.includes('NEST_ROOT') ? workerTiming.parentRunMs : workerTiming.delayedRunMs;
+      const timer = setTimeout(() => finish(), delay);
+      options?.signal?.addEventListener('abort', () => { clearTimeout(timer); finish(true); }, { once: true });
+    }
   } else finish();
   return stream;
 }

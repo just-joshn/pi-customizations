@@ -1,19 +1,16 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test } from 'vitest';
 import { readPersona } from '../src/personas.ts';
 import { referenceToolNames, hostInstructions } from '../src/host.ts';
 import { fixture, packageRoot, prompt } from './session-fixture.ts';
 
-const defaultPstack = '/Users/josh-desktop/src/experiments/plugins/pstack';
-const defaultTeamKit = '/Users/josh-desktop/src/experiments/plugins/team-kit';
-const defaultReferenceSkills = '/Users/josh-desktop/.upstream/skills-reference';
-
-const upstreamPstack = existsSync(defaultPstack) ? defaultPstack : join(packageRoot, 'upstream');
-const upstreamTeamKit = existsSync(defaultTeamKit) ? defaultTeamKit : join(packageRoot, 'upstream-team-kit');
+const upstreamPstack = join(packageRoot, 'upstream');
+const upstreamTeamKit = join(packageRoot, 'upstream-team-kit');
 
 async function getSubdirs(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -46,14 +43,7 @@ test('skills inventory: all pstack, team-kit, and loop skills are accounted for'
   expect(piSkills.length + piHostSkills.length).toBe(65);
 });
 
-test('reference built-in skills: inventory and host mappings are verified', async () => {
-  if (!existsSync(defaultReferenceSkills)) {
-    expect(existsSync(defaultReferenceSkills)).toBe(false);
-    return;
-  }
-  const referenceBuiltins = await getSubdirs(defaultReferenceSkills);
-  expect(referenceBuiltins.length).toBe(22);
-
+test('reference built-in facilities: host mappings are verified', async () => {
   const piHostSkills = await getSubdirs(join(packageRoot, 'host/skills'));
   expect(piHostSkills.includes('loop')).toBe(true);
   expect(existsSync(join(packageRoot, 'host/prompts/loop.md'))).toBe(true);
@@ -230,8 +220,9 @@ test('scripts: permissions are executable, syntax is valid, and helpers execute 
     verifyScriptFile(relPath, type);
   }
 
-  const testLog = join(packageRoot, '.test-decision-log.tsv');
+  const logDirectory = await mkdtemp(join(tmpdir(), 'pstack-decision-log-'));
   try {
+    const testLog = join(logDirectory, 'decisions.tsv');
     const logSh = join(packageRoot, 'skills/show-me-your-work/scripts/log.sh');
     execFileSync('bash', [logSh, testLog, 'phase1', 'decision1', 'why1', '=formula-eval', 'result1']);
     const content = await readFile(testLog, 'utf8');
@@ -239,28 +230,26 @@ test('scripts: permissions are executable, syntax is valid, and helpers execute 
     expect(lines.length).toBe(2);
     expect(lines[0]).toBe('ts\tphase\tdecision\twhy\tevidence\tresult');
     expect(lines[1].includes("'=formula-eval")).toBe(true);
-  } finally {
-    const { rm } = await import('node:fs/promises');
-    await rm(testLog, { force: true });
-  }
+  } finally { await rm(logDirectory, { recursive: true, force: true }); }
 });
 
-test('personas and subagents: all skill-invoked subagent types resolve with complete instructions', async () => {
+test('subagent personas resolve their mapped instruction files', async () => {
   const mappedSubagents = [
-    { type: 'poteto-agent', fileNeedle: 'upstream/agents/poteto-agent.md' },
-    { type: 'comment-sicko', fileNeedle: 'upstream/agents/comment-sicko.md' },
-    { type: 'Comment Sicko', fileNeedle: 'upstream/agents/comment-sicko.md' },
-    { type: 'ci-watcher', fileNeedle: 'upstream-team-kit/agents/ci-watcher.md' },
-    { type: 'thermo-nuclear-code-quality-review', fileNeedle: 'upstream-team-kit/agents/thermo-nuclear-code-quality-review.md' },
-    { type: 'generalPurpose', fileNeedle: '' },
+    { type: 'poteto-agent', files: ['upstream/agents/poteto-agent.md', 'skills/poteto-mode/SKILL.md'] },
+    { type: 'comment-sicko', files: ['upstream/agents/comment-sicko.md'] },
+    { type: 'Comment Sicko', files: ['upstream/agents/comment-sicko.md'] },
+    { type: 'ci-watcher', files: ['upstream-team-kit/agents/ci-watcher.md'] },
+    { type: 'thermo-nuclear-code-quality-review', files: [
+      'upstream-team-kit/agents/thermo-nuclear-code-quality-review.md',
+      'skills/thermo-nuclear-code-quality-review/SKILL.md',
+    ] },
+    { type: 'generalPurpose', files: [] },
   ];
 
-  for (const { type, fileNeedle } of mappedSubagents) {
+  for (const { type, files } of mappedSubagents) {
     const persona = await readPersona(type);
-    expect(persona).toBeDefined();
-    if (fileNeedle) {
-      expect(persona.instructions.length > 50).toBe(true);
-    }
+    const contents = await Promise.all(files.map(file => readFile(join(packageRoot, file), 'utf8')));
+    expect(persona.instructions).toBe(contents.join('\n'));
   }
 
   await expect(readPersona('unsupported-role')).rejects.toThrow(/Unsupported agent unsupported-role/);

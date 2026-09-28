@@ -29,8 +29,8 @@ test('CI watcher preserves its full prompt and inherits the parent model like a 
 test('thermo reviewer receives its complete persona and complete rubric', async () => {
   const profile = await readPersona('thermo-nuclear-code-quality-review');
   expect(profile.defaultModel).toBeUndefined();
-  expect(profile.instructions.includes(await readFile(join(root, 'upstream-team-kit/agents/thermo-nuclear-code-quality-review.md'), 'utf8'))).toBe(true);
-  expect(profile.instructions.includes(await readFile(join(root, 'skills/thermo-nuclear-code-quality-review/SKILL.md'), 'utf8'))).toBe(true);
+  expect(profile.instructions).toContain(await readFile(join(root, 'upstream-team-kit/agents/thermo-nuclear-code-quality-review.md'), 'utf8'));
+  expect(profile.instructions).toContain(await readFile(join(root, 'skills/thermo-nuclear-code-quality-review/SKILL.md'), 'utf8'));
 });
 
 test('unknown or unsupported builtin roles do not silently become general purpose', async () => {

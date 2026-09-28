@@ -34,7 +34,7 @@ test('resource fixture copy failure removes the partially populated directory', 
   syncBuiltinESMExports();
   try {
     await expect(fixture()).rejects.toThrow(/copy failed/);
-    expect(directory).toBeDefined();
+    expect(directory).toMatch(/pstack-resources-/);
     await expect(access(directory)).rejects.toThrow(/ENOENT/);
   } finally {
     failing.mockRestore();

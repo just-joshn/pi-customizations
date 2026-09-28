@@ -1,3 +1,6 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { expect, test } from 'vitest';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { registerShells } from '../src/shells.ts';
@@ -5,29 +8,17 @@ import { pick } from '../src/picker.ts';
 import { registerQuestions } from '../src/questions.ts';
 import pstack from '../src/index.ts';
 
-test('registerShells message_end and list tools', async () => {
+test('registerShells registers the three shell tools', () => {
   const tools = new Map<string, any>();
-  const listeners: Record<string, Function[]> = {};
   const pi = {
     registerTool: (def: any) => tools.set(def.name, def),
-    on: (event: string, handler: Function) => {
-      listeners[event] = listeners[event] ?? [];
-      listeners[event].push(handler);
-    },
-    sendMessage: () => {},
+    on: () => {},
   } as unknown as ExtensionAPI;
   registerShells(pi);
-  expect(tools.has('BackgroundShellList')).toBe(true);
-  const messageEnd = listeners['message_end']?.[0];
-  expect(messageEnd).toBeDefined();
-  messageEnd!({ message: { role: 'user', content: 'hello' } });
-  messageEnd!({ message: { role: 'custom', customType: 'other' } });
-  messageEnd!({ message: { role: 'custom', customType: 'pstack-shell-output', details: { id: 'unknown-id' } } });
-  const listRes = await tools.get('BackgroundShellList').execute();
-  expect(listRes.details).toEqual([]);
+  expect([...tools.keys()].toSorted()).toEqual(['BackgroundShell', 'BackgroundShellList', 'BackgroundShellStop']);
 });
 
-test('registerShells start, stop, and shutdown', async () => {
+test('unknown shell output leaves the started shell list untouched', async () => {
   const tools = new Map<string, any>();
   const listeners: Record<string, Function[]> = {};
   const pi = {
@@ -39,21 +30,92 @@ test('registerShells start, stop, and shutdown', async () => {
     sendMessage: () => {},
   } as unknown as ExtensionAPI;
   registerShells(pi);
+  const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-'));
   const ctx = {
-    cwd: '/tmp',
-    sessionManager: { getSessionFile: () => null, getSessionId: () => 's1', getSessionDir: () => '/tmp' },
+    cwd: scratch,
+    sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch },
   } as unknown as ExtensionContext;
-  const shellTool = tools.get('BackgroundShell');
-  const stopTool = tools.get('BackgroundShellStop');
-  const s1 = await shellTool.execute('1', { command: 'sleep 5', title: 'u' }, undefined, undefined, ctx);
-  expect(s1.details.title).toBe('u');
-  await stopTool.execute('2', { id: s1.details.id });
-  const s2 = await shellTool.execute('3', { command: 'sleep 5', title: 'p', notify_on_output: '^test' }, undefined, undefined, ctx);
-  expect(s2.details.pattern).toBe('^test');
-  await stopTool.execute('4', { id: s2.details.id });
+  const messageEnd = listeners['message_end']?.[0];
+  const shutdown = listeners['session_shutdown']?.[0];
+  expect(messageEnd).toBeDefined();
+  try {
+    const started = await tools.get('BackgroundShell').execute('1', { command: 'sleep 30', title: 'running' }, undefined, undefined, ctx);
+    messageEnd!({ message: { role: 'user', content: 'hello' } });
+    messageEnd!({ message: { role: 'custom', customType: 'other' } });
+    messageEnd!({ message: { role: 'custom', customType: 'pstack-shell-output', details: { id: 'unknown-id' } } });
+    const listed = await tools.get('BackgroundShellList').execute();
+    expect(listed.details.map((record: any) => record.id)).toEqual([started.details.id]);
+  } finally {
+    await shutdown?.();
+    await rm(scratch, { recursive: true, force: true });
+  }
+});
+
+test('registerShells stops a started shell on request', async () => {
+  const tools = new Map<string, any>();
+  const listeners: Record<string, Function[]> = {};
+  const pi = {
+    registerTool: (def: any) => tools.set(def.name, def),
+    on: (event: string, handler: Function) => {
+      listeners[event] = listeners[event] ?? [];
+      listeners[event].push(handler);
+    },
+    sendMessage: () => {},
+  } as unknown as ExtensionAPI;
+  registerShells(pi);
+  const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-'));
+  const ctx = {
+    cwd: scratch,
+    sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch },
+  } as unknown as ExtensionContext;
+  const shutdown = listeners['session_shutdown']?.[0];
+  try {
+    const started = await tools.get('BackgroundShell').execute('1', { command: 'sleep 30', title: 'long-running', notify_on_output: '^tick' }, undefined, undefined, ctx);
+    expect(started.details.title).toBe('long-running');
+    expect(started.details.pattern).toBe('^tick');
+    expect(started.details.status).toEqual({ kind: 'running' });
+    const listed = await tools.get('BackgroundShellList').execute();
+    expect(listed.details.map((record: any) => record.id)).toEqual([started.details.id]);
+    const stopped = await tools.get('BackgroundShellStop').execute('2', { id: started.details.id });
+    expect(stopped.details.status).toEqual({ kind: 'stopped' });
+    expect(() => process.kill(started.details.pid, 0)).toThrow(/ESRCH/);
+  } finally {
+    await shutdown?.();
+    await rm(scratch, { recursive: true, force: true });
+  }
+});
+
+test('session_shutdown stops every running shell', async () => {
+  const tools = new Map<string, any>();
+  const listeners: Record<string, Function[]> = {};
+  const pi = {
+    registerTool: (def: any) => tools.set(def.name, def),
+    on: (event: string, handler: Function) => {
+      listeners[event] = listeners[event] ?? [];
+      listeners[event].push(handler);
+    },
+    sendMessage: () => {},
+  } as unknown as ExtensionAPI;
+  registerShells(pi);
+  const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-'));
+  const ctx = {
+    cwd: scratch,
+    sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch },
+  } as unknown as ExtensionContext;
   const shutdown = listeners['session_shutdown']?.[0];
   expect(shutdown).toBeDefined();
-  await shutdown!();
+  try {
+    const first = await tools.get('BackgroundShell').execute('1', { command: 'sleep 30', title: 'first' }, undefined, undefined, ctx);
+    const second = await tools.get('BackgroundShell').execute('2', { command: 'sleep 30', title: 'second' }, undefined, undefined, ctx);
+    await shutdown!();
+    const listed = await tools.get('BackgroundShellList').execute();
+    expect(listed.details.map((record: any) => record.status)).toEqual([{ kind: 'stopped' }, { kind: 'stopped' }]);
+    expect(() => process.kill(first.details.pid, 0)).toThrow(/ESRCH/);
+    expect(() => process.kill(second.details.pid, 0)).toThrow(/ESRCH/);
+  } finally {
+    await shutdown?.();
+    await rm(scratch, { recursive: true, force: true });
+  }
 });
 
 test('pstack index before_agent_start with enabled and todos', async () => {
@@ -100,7 +162,7 @@ test('pstack index before_agent_start with enabled and todos', async () => {
   expect(event.systemPromptOptions.sections.pstack_todos).toMatch(/Step 1/);
 });
 
-test('pick in TUI mode exercises listTheme and filter changes', async () => {
+test('pick filters the TUI list before resolving the selected choice', async () => {
   const ctx = {
     mode: 'tui',
     ui: {
@@ -110,13 +172,31 @@ test('pick in TUI mode exercises listTheme and filter changes', async () => {
           bold: (text: string) => `*${text}*`,
         };
         const widget = factory({ requestRender() {} }, theme, undefined, resolve);
-        widget.handleInput('a');
-        expect(widget.render(80).length > 0).toBe(true);
-        widget.handleInput('z');
-        widget.handleInput('z');
-        widget.handleInput('z');
-        expect(widget.render(80).length > 0).toBe(true);
+        expect(widget.render(80)).toContainEqual('[→ alpha]');
+        widget.handleInput('b');
+        const filtered = widget.render(80);
+        expect(filtered).toContainEqual('[→ beta]');
+        expect(filtered.some((line: string) => line.includes('alpha'))).toBe(false);
         widget.handleInput('\r');
+      }),
+    },
+  } as unknown as ExtensionContext;
+
+  const result = await pick(ctx, 'Select', ['alpha', 'beta']);
+  expect(result).toBe('beta');
+});
+
+test('pick resolves undefined when the TUI list is cancelled', async () => {
+  const ctx = {
+    mode: 'tui',
+    ui: {
+      custom: (factory: Function) => new Promise((resolve) => {
+        const theme = {
+          fg: (_role: string, text: string) => `[${text}]`,
+          bold: (text: string) => `*${text}*`,
+        };
+        const widget = factory({ requestRender() {} }, theme, undefined, resolve);
+        expect(widget.render(80).at(-1)).toBe('[type to filter  ↑↓ navigate  enter select  escape cancel]');
         widget.handleInput('\x1b');
       }),
     },
@@ -194,11 +274,13 @@ test('AskQuestion single choice and freeText cancel branches', async () => {
   expect(cancelInputRes.details).toEqual([{ id: 'q2', answers: [], cancelled: true }]);
 });
 
-test('models resolveModel fallback to supported thinkingLevel and state renderTodoSummary', async () => {
+test('resolveModel rejects an unavailable model request', async () => {
   const { resolveModel } = await import('../src/models.ts');
   const availableModel = { provider: 'p', id: 'm', reasoning: true } as any;
   expect(() => resolveModel('no_colon_model', { modelRegistry: { getAvailable: () => [availableModel] } } as any)).toThrow(/Unavailable model 'no_colon_model'/);
+});
 
+test('renderTodoSummary reports no in-progress count for pending-only todos', async () => {
   const { registerStateTools, createState } = await import('../src/state.ts');
   let todoTool: any;
   const pi = {
