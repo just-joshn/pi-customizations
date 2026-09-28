@@ -128,7 +128,7 @@ test("Gemini sends bearer auth and the Antigravity user agent without the Claude
 	const { server } = await run((_, res) => stream(res, textAndThinking));
 	const headers = server.requests[0]!.headers;
 	expect(headers.authorization).toBe("Bearer ya29.test");
-	expect(headers["user-agent"]).toBe(userAgent());
+	expect(headers["user-agent"]).toMatch(/^antigravity\/cli\/\d+\.\d+\.\d+ \(aidev_client; os_type=\w+; arch=\w+; cl=\d+; auth_method=consumer\)$/);
 	expect(headers.accept).toBe("text/event-stream");
 	expect(headers["anthropic-beta"]).toBeUndefined();
 });
@@ -155,10 +155,12 @@ test("a reasoning Claude model gets the interleaved-thinking beta and a thinking
 });
 
 test("a non-reasoning Claude model gets no beta header", async () => {
-	const { server } = await run((_, res) => stream(res, textAndThinking), {
+	const { server, message } = await run((_, res) => stream(res, textAndThinking), {
 		modelId: "claude-sonnet-4-6",
 		model: (model) => ({ ...model, id: "claude-sonnet-4-5", reasoning: false }),
 	});
+	expect(body(server.requests[0]).model).toBe("claude-sonnet-4-5");
+	expect(message.content).toContainEqual({ type: "text", text: "Hello" });
 	expect(server.requests[0]!.headers["anthropic-beta"]).toBeUndefined();
 	expect(body(server.requests[0]).request.generationConfig?.thinkingConfig).toBeUndefined();
 });
@@ -250,7 +252,17 @@ test("with retry.provider.maxRetries set, a 429 waits for retry-after and then s
 	);
 	expect(server.requests.length).toBe(2);
 	expect(message.stopReason).toBe("stop");
-	expect(Date.now() - started >= 1000).toBe(true);
+	expect(Date.now() - started).toBeGreaterThanOrEqual(1000);
+});
+
+test("a retry-after above maxRetryDelayMs fails instead of waiting", async () => {
+	const { server, message } = await run(
+		(_, res) => json(res, 429, { error: { message: "Resource has been exhausted" } }, { "retry-after": "3600" }),
+		{ stream: { maxRetries: 1, maxRetryDelayMs: 1000 } },
+	);
+	expect(server.requests.length).toBe(1);
+	expect(message.stopReason).toBe("error");
+	expect(message.errorMessage).toBe("Server requested 3601s retry delay (max: 1s). Resource has been exhausted");
 });
 
 test("a non-retryable error surfaces the Cloud Code message and stays recognizable as overflow", async () => {
@@ -281,6 +293,15 @@ test("a stream that closes before a finish reason is an error Pi retries", async
 	expect(message.stopReason).toBe("error");
 	expect(message.errorMessage).toBe("Cloud Code Assist stream ended without a finish reason");
 	expect(isRetryableAssistantError(message)).toBe(true);
+});
+
+test("a safety finish reason surfaces the raw provider reason", async () => {
+	const blocked = sse([
+		{ response: { candidates: [{ content: { parts: [{ text: "blocked" }] }, finishReason: "SAFETY" }] } },
+	]);
+	const { message } = await run((_, res) => stream(res, blocked));
+	expect(message.stopReason).toBe("error");
+	expect(message.errorMessage).toBe("Provider stopped with: SAFETY");
 });
 
 test("a supplied fetch implementation carries the request", async () => {
@@ -315,7 +336,7 @@ test("onPayload sees the envelope and its replacement is what gets sent", async 
 	expect(body(server.requests[0]).project).toBe("replaced");
 });
 
-test("onResponse sees the status before the body is read", async () => {
+test("onResponse sees the response status", async () => {
 	const statuses: number[] = [];
 	await run((_, res) => stream(res, textAndThinking), {
 		stream: { onResponse: (response) => void statuses.push(response.status) },

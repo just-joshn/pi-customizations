@@ -117,3 +117,17 @@ test("a failed fetchAvailableModels keeps the baseline", async () => {
 		server.close();
 	}
 });
+
+test("refreshing without an OAuth credential asks for a login", async () => {
+	const server = await fakeServer((_, res) => json(res, 200, AVAILABLE));
+	try {
+		const provider = createAntigravityProvider({ endpoints: [server.url], oauth: GOOGLE_OAUTH });
+		await expect(provider.refreshModels!(refreshContext(undefined))).rejects.toThrow(
+			"Google Antigravity is not logged in",
+		);
+		expect(server.requests).toEqual([]);
+		expect(provider.getModels().length).toBe(5);
+	} finally {
+		server.close();
+	}
+});
