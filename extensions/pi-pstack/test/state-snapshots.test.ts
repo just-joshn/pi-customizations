@@ -132,9 +132,15 @@ test('TodoWrite renderResult formats empty, mixed, completed, and truncated list
   assert.equal(expanded.render(80).length, 11);
 });
 
+type Widget = string[] | (() => { render: (width: number) => string[] });
+
+function widgetText(content: Widget | undefined, width = 80): string[] | undefined {
+  return typeof content === 'function' ? content().render(width) : content;
+}
+
 test('showState widget uses distinct status markers for each status', () => {
-  let widgetLines: string[] | undefined;
-  const ctx = { ui: { setStatus: () => {}, setWidget: (_key: string, lines?: string[]) => { widgetLines = lines; } } } as unknown as ExtensionContext;
+  let widget: Widget | undefined;
+  const ctx = { ui: { setStatus: () => {}, setWidget: (_key: string, content?: Widget) => { widget = content; } } } as unknown as ExtensionContext;
   const store = createState({ appendEntry() {} } as unknown as ExtensionAPI);
   store.update({
     enabled: true,
@@ -145,7 +151,7 @@ test('showState widget uses distinct status markers for each status', () => {
       { id: '4', content: 'D', status: 'pending' },
     ],
   }, ctx);
-  assert.deepEqual(widgetLines, [
+  assert.deepEqual(widgetText(widget), [
     '[x] A (completed)',
     '[>] B (in_progress)',
     '[-] C (cancelled)',
@@ -170,14 +176,14 @@ test('TodoWrite renderResult keeps every line within the render width', () => {
 test('collapsed todo views keep the in-progress step visible in long lists', () => {
   const todos = Array.from({ length: 15 }, (_, i) => ({ id: `s${i + 1}`, content: `Step ${i + 1}`,
     status: i < 11 ? 'completed' as const : i === 11 ? 'in_progress' as const : 'pending' as const }));
-  let widgetLines: string[] | undefined;
-  const ctx = { ui: { setStatus: () => {}, setWidget: (_key: string, lines?: string[]) => { widgetLines = lines; } } } as unknown as ExtensionContext;
+  let widget: Widget | undefined;
+  const ctx = { ui: { setStatus: () => {}, setWidget: (_key: string, content?: Widget) => { widget = content; } } } as unknown as ExtensionContext;
   const tools: ToolDefinition[] = [];
   const pi = { appendEntry() {}, registerTool: (t: ToolDefinition) => { tools.push(t); } } as unknown as ExtensionAPI;
   const store = createState(pi);
   registerStateTools(pi, store);
   store.update({ enabled: false, todos }, ctx);
-  assert.deepEqual(widgetLines, [
+  assert.deepEqual(widgetText(widget), [
     '... 7 earlier',
     '[x] Step 8 (completed)', '[x] Step 9 (completed)', '[x] Step 10 (completed)', '[x] Step 11 (completed)',
     '[>] Step 12 (in_progress)',
@@ -190,7 +196,6 @@ test('collapsed todo views keep the in-progress step visible in long lists', () 
 });
 
 test('todo widget stays one row per step so a normal terminal does not shrink it away', () => {
-  type Widget = string[] | (() => { render: (width: number) => string[] });
   let widget: Widget | undefined;
   const ctx = { ui: { setStatus() {}, setWidget(_key: string, content?: Widget) { widget = content; } } } as unknown as ExtensionContext;
   const content = 'Pin the behavior contract first. '.repeat(20);
@@ -198,7 +203,6 @@ test('todo widget stays one row per step so a normal terminal does not shrink it
     enabled: true,
     todos: [{ id: '1', content, status: 'pending' }],
   }, ctx);
-  const lines = typeof widget === 'function' ? widget().render(40) : widget;
-  assert.equal(lines?.length, 1);
-  assert.equal(lines?.[0], '[ ] Pin the behavior contract first. Pin...');
+  const lines = widgetText(widget, 40);
+  assert.deepEqual(lines, ['[ ] Pin the behavior contract first. \x1b[0m...\x1b[0m']);
 });
