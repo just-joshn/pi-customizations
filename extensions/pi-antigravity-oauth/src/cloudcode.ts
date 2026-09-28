@@ -1,6 +1,6 @@
 import { setTimeout as delay } from "node:timers/promises";
 import type { Api, Model, SimpleStreamOptions } from "@earendil-works/pi-ai";
-import { headersToRecord } from "@earendil-works/pi-ai/utils/headers";
+import { headersToRecord } from "./pi-ai/headers.ts";
 
 export const PROVIDER_ID = "google-antigravity";
 
@@ -62,7 +62,6 @@ export function errorText(body: string): string {
 	return body;
 }
 
-const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 1000;
 
 export async function postCloudCode(
@@ -129,14 +128,16 @@ export async function openStream(
 	options: SimpleStreamOptions | undefined,
 ): Promise<Response> {
 	const signal = options?.signal;
+	const request = options?.fetch ?? fetch;
+	const retries = options?.maxRetries ?? 0;
 	let endpoint = 0;
 	let attempt = 0;
 	while (true) {
 		let response: Response;
 		try {
-			response = await fetch(`${endpoints[endpoint]}/v1internal:streamGenerateContent?alt=sse`, init);
+			response = await request(`${endpoints[endpoint]}/v1internal:streamGenerateContent?alt=sse`, init);
 		} catch (error) {
-			if (signal?.aborted || attempt >= MAX_RETRIES) throw error;
+			if (signal?.aborted || attempt >= retries) throw error;
 			await delay(BASE_DELAY_MS * 2 ** attempt++, undefined, { signal });
 			continue;
 		}
@@ -147,7 +148,7 @@ export async function openStream(
 			endpoint++;
 			continue;
 		}
-		if (attempt >= MAX_RETRIES || !isRetryable(response.status, body)) {
+		if (attempt >= retries || !isRetryable(response.status, body)) {
 			throw new Error(`Cloud Code Assist API error (${response.status}): ${errorText(body)}`);
 		}
 		const serverDelay = extractRetryDelay(body, response.headers);

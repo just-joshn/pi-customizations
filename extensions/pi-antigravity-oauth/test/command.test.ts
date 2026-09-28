@@ -41,10 +41,12 @@ test("the account summary shows email, project, paid tier, and per-model quota",
 	}
 });
 
-test("without a UI the command prints plain text using the registry's refreshed credential", async () => {
+test("without a UI the command writes plain text to stderr using the registry's refreshed credential", async () => {
 	const server = await cloudCode();
 	const written: string[] = [];
-	const write = process.stdout.write;
+	const write = process.stderr.write;
+	const stdout = process.stdout.write;
+	const printed: string[] = [];
 	try {
 		let askedFor = "";
 		const ctx = {
@@ -56,17 +58,24 @@ test("without a UI the command prints plain text using the registry's refreshed 
 				},
 			},
 		} as unknown as ExtensionCommandContext;
-		process.stdout.write = ((chunk: string | Uint8Array, ...rest: never[]) =>
+		process.stderr.write = ((chunk: string | Uint8Array, ...rest: never[]) =>
 			typeof chunk === "string" && chunk.startsWith("Account:")
 				? written.push(chunk) > 0
-				: write.call(process.stdout, chunk, ...rest)) as typeof process.stdout.write;
+				: write.call(process.stderr, chunk, ...rest)) as typeof process.stderr.write;
+		process.stdout.write = ((chunk: string | Uint8Array, ...rest: never[]) =>
+			typeof chunk === "string" && chunk.startsWith("Account:")
+				? printed.push(chunk) > 0
+				: stdout.call(process.stdout, chunk, ...rest)) as typeof process.stdout.write;
 		await createAntigravityCommand({ cloudCode: [server.url], userInfoUrl: `${server.url}/userinfo` }).handler("", ctx);
-		process.stdout.write = write;
+		process.stderr.write = write;
+		process.stdout.write = stdout;
 		assert.equal(askedFor, "google-antigravity");
+		assert.deepEqual(printed, [], "stdout stays reserved for Pi's own output");
 		assert.equal(written.length, 1);
 		assert.match(written[0]!, /^Account: dev@example.com\nProject: proj-9\nTier: Google AI Pro \(g1-pro-tier\)\nQuota:\n/);
 	} finally {
-		process.stdout.write = write;
+		process.stderr.write = write;
+		process.stdout.write = stdout;
 		server.close();
 	}
 });

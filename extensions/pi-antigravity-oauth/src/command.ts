@@ -67,7 +67,7 @@ export function formatAccountSummary(summary: AccountSummary, now = Date.now()):
 export function createAntigravityCommand(endpoints: CommandEndpoints) {
 	const report = (ctx: ExtensionCommandContext, text: string, level: "info" | "error") => {
 		if (ctx.hasUI) ctx.ui.notify(text, level);
-		else process.stdout.write(`${text}\n`);
+		else process.stderr.write(`${text}\n`);
 	};
 	return {
 		description: "Show the Google Antigravity account, project, tier, and per-model quota",
