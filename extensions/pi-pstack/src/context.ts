@@ -69,6 +69,11 @@ export function registerStatus(pi: ExtensionAPI, store: StateStore): void {
       return candidates.filter((c) => c.value.startsWith(prefix));
     },
     handler: async (args, ctx) => {
+      const subcommand = args.trim();
+      if (!['', 'status', 'todos'].includes(subcommand)) {
+        ctx.ui.notify(`Unknown /pstack argument "${subcommand}". Use /pstack, /pstack status, or /pstack todos.`, 'error');
+        return;
+      }
       const state = store.read();
       const skillCount = (await Promise.all(['skills', 'host/skills'].map(dir => readdir(join(root, dir), { withFileTypes: true })))).flat().filter((entry) => entry.isDirectory()).length;
       const promptCount = (await Promise.all(['prompts', 'host/prompts'].map(dir => readdir(join(root, dir))))).flat().filter((name) => name.endsWith('.md')).length;
@@ -80,7 +85,8 @@ export function registerStatus(pi: ExtensionAPI, store: StateStore): void {
         `Compatibility report: ${join(root, 'docs/parity.md')}`,
         'Partial runtime parity. Reference cloud agents, hosted automation editor, cloud timers, goals, bot routines, server-synced create-skill and credential isolation are not supplied.',
       ];
-      if (args.trim() === 'todos' && state.todos.length > 0) {
+      if (subcommand === 'todos' && state.todos.length === 0) lines.push('', 'Todos: none.');
+      if (subcommand === 'todos' && state.todos.length > 0) {
         lines.push('', 'Todos:');
         for (const t of state.todos) {
           const mark = t.status === 'completed' ? '[x]' : t.status === 'in_progress' ? '[>]' : t.status === 'cancelled' ? '[-]' : '[ ]';
