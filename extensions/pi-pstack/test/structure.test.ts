@@ -1,8 +1,7 @@
-import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import test from 'node:test';
+import { expect, test } from 'vitest';
 import ts from 'typescript';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -38,8 +37,8 @@ test('maintained extension code and tests meet the repository size and logging l
       const count = text.trimEnd().split('\n').length;
       if (count >= 800) violations.push(`${path} has ${count} lines`);
       violations.push(...functions(source));
-      assert.doesNotMatch(text, /console[.]log\s*\(/, path);
+      expect(text).not.toMatch(/console[.]log\s*\(/);
     }
   }
-  assert.deepEqual(violations, []);
+  expect(violations).toEqual([]);
 });

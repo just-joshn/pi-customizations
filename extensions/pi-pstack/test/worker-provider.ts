@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+
 import { appendFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createAssistantMessageEventStream, type AssistantMessage, type ToolCall } from '@earendil-works/pi-ai';
@@ -21,7 +21,7 @@ function requestedTools(text: string, context: StreamArguments[1]): ToolCall[] {
   }
   if (controls && last?.role === 'toolResult' && last.toolName === 'Task') {
     const content = last.content.find(block => block.type === 'text');
-    assert.ok(content && content.type === 'text');
+    if (!content || content.type !== 'text') throw new Error('missing text block');
     const { task_id } = JSON.parse(content.text);
     return [
       { type: 'toolCall', id: 'wait-child', name: 'TaskOutput', arguments: { task_id, block: true } },

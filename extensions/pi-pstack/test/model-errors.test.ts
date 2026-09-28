@@ -1,9 +1,8 @@
-import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { syncBuiltinESMExports } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import test from 'node:test';
+import { expect, test, vi } from 'vitest';
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { modelConfigPath, readModelRule, setupModels } from '../src/models.ts';
 
@@ -30,37 +29,35 @@ test('model rule reads propagate non-ENOENT errors', async () => {
   const f = await fixture();
   try {
     await fs.mkdir(modelConfigPath(), { recursive: true });
-    await assert.rejects(readModelRule(), /EISDIR/);
+    await expect(readModelRule()).rejects.toThrow(/EISDIR/);
   } finally { await f.close(); }
 });
 
-for (const operation of ['writeFile', 'rename'] as const) {
-  test(`configuration ${operation} failure preserves the old rule and removes temporary files`, async t => {
-    const f = await fixture();
-    try {
-      await setupModels(context());
-      const previous = await readModelRule();
-      const failing = t.mock.method(fs, operation, async () => { throw new Error(`${operation} failure`); });
-      syncBuiltinESMExports();
-      await assert.rejects(setupModels(context()), new RegExp(`${operation} failure`));
-      failing.mock.restore();
-      syncBuiltinESMExports();
-      assert.equal(await readModelRule(), previous);
-      assert.deepEqual(await fs.readdir(dirname(modelConfigPath())), ['models.mdc']);
-    } finally { t.mock.restoreAll(); syncBuiltinESMExports(); await f.close(); }
-  });
-}
+test.each(['writeFile', 'rename'] as const)('configuration %s failure preserves the old rule and removes temporary files', async operation => {
+  const f = await fixture();
+  try {
+    await setupModels(context());
+    const previous = await readModelRule();
+    const failing = vi.spyOn(fs, operation).mockRejectedValue(new Error(`${operation} failure`));
+    syncBuiltinESMExports();
+    await expect(setupModels(context())).rejects.toThrow(new RegExp(`${operation} failure`));
+    failing.mockRestore();
+    syncBuiltinESMExports();
+    expect(await readModelRule()).toBe(previous);
+    expect(await fs.readdir(dirname(modelConfigPath()))).toEqual(['models.mdc']);
+  } finally { syncBuiltinESMExports(); await f.close(); }
+});
 
 test('invalid budgets and roles reject and cancelling a role leaves the rule unchanged', async () => {
   const f = await fixture();
   try {
     await setupModels(context());
     const previous = await readModelRule();
-    await assert.rejects(setupModels(context({ select: async () => 'invalid' })), /Unknown budget/);
-    await assert.rejects(setupModels(context({ select: async title => title.startsWith('pstack reasoning budget') ? 'unlimited — keep max' : 'invalid' })), /Unknown role/);
+    await expect(setupModels(context({ select: async () => 'invalid' }))).rejects.toThrow(/Unknown budget/);
+    await expect(setupModels(context({ select: async title => title.startsWith('pstack reasoning budget') ? 'unlimited — keep max' : 'invalid' }))).rejects.toThrow(/Unknown role/);
     const cancelled = await setupModels(context({ select: async title => title.startsWith('pstack reasoning budget') ? 'unlimited — keep max' : title.startsWith('Accept model table') ? 'bug-fix' : undefined }));
-    assert.equal(cancelled, false);
-    assert.equal(await readModelRule(), previous);
+    expect(cancelled).toBe(false);
+    expect(await readModelRule()).toBe(previous);
   } finally { await f.close(); }
 });
 
@@ -71,7 +68,7 @@ test('many retired model roles remain ordered and are all reported', async () =>
     const retired = Array.from({ length: 2000 }, (_, index) => `retired-${index}: auto`);
     await fs.appendFile(modelConfigPath(), retired.join('\n') + '\n');
     let notice = '';
-    assert.equal(await setupModels(context({ notify: message => { notice = message; }, select: async title => title.startsWith('pstack reasoning budget') ? 'unlimited — keep max' : undefined })), false);
-    assert.ok(notice.endsWith(retired.join('\n')));
+    expect(await setupModels(context({ notify: message => { notice = message; }, select: async title => title.startsWith('pstack reasoning budget') ? 'unlimited — keep max' : undefined }))).toBe(false);
+    expect(notice.endsWith(retired.join('\n'))).toBe(true);
   } finally { await f.close(); }
 });

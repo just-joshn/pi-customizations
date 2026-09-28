@@ -1,10 +1,9 @@
-import assert from 'node:assert/strict';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import test from 'node:test';
+import { expect, test } from 'vitest';
 import { Type, type Static } from 'typebox';
 import { Check } from 'typebox/value';
 import type { RpcCommand, RpcExtensionUIResponse } from '@earendil-works/pi-coding-agent';
@@ -85,19 +84,17 @@ async function runDialog(cancelled: boolean): Promise<Outcome> {
   } finally { await rm(directory, { recursive: true, force: true }); }
 }
 
-for (const cancelled of [false, true]) {
-  test(`installed Pi RPC delivers ${cancelled ? 'cancellation without approval' : 'the selected answer'} to AskQuestion`, async () => {
-    const outcome = await runDialog(cancelled);
-    assert.equal(outcome.settled, true);
-    assert.equal(outcome.dialogs.length, 1);
-    assert.equal(outcome.dialogs[0]?.title, 'Approve the example?');
-    assert.deepEqual(outcome.dialogs[0]?.options, ['Approve [approve]', 'Decline [decline]', 'Enter a text answer']);
-    assert.equal(outcome.results.length, 1);
-    const result = outcome.results[0];
-    assert.ok(result);
-    assert.equal(result.isError, false);
-    const answers = [{ id: 'approval', answers: cancelled ? [] : ['approve'], cancelled }];
-    assert.deepEqual(result.result.details, answers);
-    assert.equal(result.result.content[0]?.text, JSON.stringify(answers));
-  });
-}
+test.each([false, true])('installed Pi RPC delivers %s to AskQuestion', async cancelled => {
+  const outcome = await runDialog(cancelled);
+  expect(outcome.settled).toBe(true);
+  expect(outcome.dialogs.length).toBe(1);
+  expect(outcome.dialogs[0]?.title).toBe('Approve the example?');
+  expect(outcome.dialogs[0]?.options).toEqual(['Approve [approve]', 'Decline [decline]', 'Enter a text answer']);
+  expect(outcome.results.length).toBe(1);
+  const result = outcome.results[0];
+  expect(result).toBeDefined();
+  expect(result!.isError).toBe(false);
+  const answers = [{ id: 'approval', answers: cancelled ? [] : ['approve'], cancelled }];
+  expect(result!.result.details).toEqual(answers);
+  expect(result!.result.content[0]?.text).toBe(JSON.stringify(answers));
+});

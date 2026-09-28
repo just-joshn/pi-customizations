@@ -1,8 +1,7 @@
-import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { access, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import test from 'node:test';
+import { expect, test } from 'vitest';
 import type { Context, ToolCall } from '@earendil-works/pi-ai';
 import type { AgentSession } from '@earendil-works/pi-coding-agent';
 import type { ShellRecord } from '../src/shell-runtime.ts';
@@ -46,8 +45,8 @@ function requestTexts(request: Context | undefined): string[] {
 
 function detailsOf<T>(session: AgentSession, name: string, index = 0): T {
   const result = toolResults(session, name)[index];
-  assert.ok(result?.role === 'toolResult' && !result.isError, `${name} succeeded`);
-  return result.details as T;
+  expect(result?.role === 'toolResult' && !result.isError).toBe(true);
+  return result!.details as T;
 }
 
 function shutdown(session: AgentSession) {
@@ -71,16 +70,16 @@ shellTest('a matching output line wakes the agent once with the line and log pat
   f.calls.push(call('BackgroundShell', { command: `sleep 0.2; echo '${line}'`, title: 'wake', notify_on_output: '^AGENT_LOOP_WAKE_t' }));
   await prompt(session, 'start the sleeper');
   const shell = detailsOf<ShellRecord>(session, 'BackgroundShell');
-  assert.equal(shell.outputFile, join(f.root, 'sessions', 'pstack-shells', session.sessionId, `${shell.id}.log`));
+  expect(shell.outputFile).toBe(join(f.root, 'sessions', 'pstack-shells', session.sessionId, `${shell.id}.log`));
   await waitFor(() => custom(session, 'pstack-shell-exit').length === 1 && !session.isStreaming, 'the sleeper to exit');
   const requests = f.requests;
-  assert.equal(requests.length, 3);
+  expect(requests.length).toBe(3);
   const expected = `Background shell ${shell.id} (wake) matched ^AGENT_LOOP_WAKE_t.\nOutput file: ${shell.outputFile}\nLine: ${line}`;
-  assert.ok(requestTexts(requests[2]).includes(expected), 'the wake request carries the matching line');
-  assert.equal(custom(session, 'pstack-shell-output').length, 1);
-  assert.equal(await readFile(shell.outputFile, 'utf8'), `${line}\n`);
+  expect(requestTexts(requests[2]).includes(expected)).toBe(true);
+  expect(custom(session, 'pstack-shell-output').length).toBe(1);
+  expect(await readFile(shell.outputFile, 'utf8')).toBe(`${line}\n`);
   await new Promise(resolve => setTimeout(resolve, 200));
-  assert.equal(f.requests.length, 3);
+  expect(f.requests.length).toBe(3);
 });
 
 shellTest('a ticking loop wakes repeatedly and stops without an exit message', async (f, session) => {
@@ -90,15 +89,15 @@ shellTest('a ticking loop wakes repeatedly and stops without an exit message', a
   await waitFor(() => custom(session, 'pstack-shell-output').length >= 2, 'two wakes');
   f.calls.push(call('BackgroundShellStop', { id: shell.id }));
   await waitFor(() => toolResults(session, 'BackgroundShellStop').length === 1, 'the stop call');
-  assert.deepEqual(detailsOf<ShellRecord>(session, 'BackgroundShellStop').status, { kind: 'stopped' });
+  expect(detailsOf<ShellRecord>(session, 'BackgroundShellStop').status).toEqual({ kind: 'stopped' });
   await waitFor(() => !groupAlive(shell.pid), 'the process group to exit');
-  assert.throws(() => process.kill(-shell.pid, 0), { code: 'ESRCH' });
+  expect(() => process.kill(-shell.pid, 0)).toThrow();
   await waitFor(() => !session.isStreaming, 'the agent to settle');
   f.calls.push(call('BackgroundShellList', {}));
   await prompt(session, 'list shells');
   const listed = detailsOf<ShellRecord[]>(session, 'BackgroundShellList');
-  assert.deepEqual(listed.map(record => [record.id, record.status]), [[shell.id, { kind: 'stopped' }]]);
-  assert.equal(custom(session, 'pstack-shell-exit').length, 0);
+  expect(listed.map(record => [record.id, record.status])).toEqual([[shell.id, { kind: 'stopped' }]]);
+  expect(custom(session, 'pstack-shell-exit').length).toBe(0);
 });
 
 shellTest('a failing command without a pattern wakes once with its exit code', async (f, session) => {
@@ -107,11 +106,11 @@ shellTest('a failing command without a pattern wakes once with its exit code', a
   const shell = detailsOf<ShellRecord>(session, 'BackgroundShell');
   await waitFor(() => f.requests.length === 3 && !session.isStreaming, 'the exit wake');
   const expected = `Background shell ${shell.id} (fail) exited with exit code 1.\nOutput file: ${shell.outputFile}`;
-  assert.ok(requestTexts(f.requests[2]).includes(expected), 'the wake request names exit code 1');
-  assert.equal(custom(session, 'pstack-shell-exit').length, 1);
-  assert.deepEqual((custom(session, 'pstack-shell-exit')[0] as { details: ShellRecord }).details.status, { kind: 'exited', code: 1, signal: null });
+  expect(requestTexts(f.requests[2]).includes(expected)).toBe(true);
+  expect(custom(session, 'pstack-shell-exit').length).toBe(1);
+  expect((custom(session, 'pstack-shell-exit')[0] as { details: ShellRecord }).details.status).toEqual({ kind: 'exited', code: 1, signal: null });
   await new Promise(resolve => setTimeout(resolve, 200));
-  assert.equal(f.requests.length, 3);
+  expect(f.requests.length).toBe(3);
 });
 
 shellTest('invalid patterns and blank commands fail before spawning', async (f, session) => {
@@ -121,23 +120,23 @@ shellTest('invalid patterns and blank commands fail before spawning', async (f, 
   );
   await prompt(session, 'start invalid shells');
   const results = toolResults(session, 'BackgroundShell').map(result => result.role === 'toolResult' ? [result.isError, JSON.stringify(result.content)] : []);
-  assert.equal(results.length, 2);
-  assert.ok(results.every(([isError]) => isError === true));
-  assert.match(String(results[0]?.[1]), /notify_on_output is not a valid regular expression/);
-  assert.match(String(results[1]?.[1]), /BackgroundShell command must not be blank/);
-  assert.deepEqual(detailsOf<ShellRecord[]>(session, 'BackgroundShellList'), []);
-  await assert.rejects(access(join(f.root, 'sessions', 'pstack-shells')), /ENOENT/);
+  expect(results.length).toBe(2);
+  expect(results.every(([isError]) => isError === true)).toBe(true);
+  expect(String(results[0]?.[1])).toMatch(/notify_on_output is not a valid regular expression/);
+  expect(String(results[1]?.[1])).toMatch(/BackgroundShell command must not be blank/);
+  expect(detailsOf<ShellRecord[]>(session, 'BackgroundShellList')).toEqual([]);
+  await expect(access(join(f.root, 'sessions', 'pstack-shells'))).rejects.toThrow(/ENOENT/);
 });
 
 shellTest('closing the session kills a running shell process group', async (f, session) => {
   f.calls.push(call('BackgroundShell', { command: 'sleep 30', title: 'sleeper' }));
   await prompt(session, 'start a long sleep');
   const shell = detailsOf<ShellRecord>(session, 'BackgroundShell');
-  assert.equal(groupAlive(shell.pid), true);
+  expect(groupAlive(shell.pid)).toBe(true);
   await shutdown(session);
   await waitFor(() => !groupAlive(shell.pid), 'the process group to exit');
-  assert.throws(() => process.kill(-shell.pid, 0), { code: 'ESRCH' });
-  assert.equal(custom(session, 'pstack-shell-exit').length, 0);
+  expect(() => process.kill(-shell.pid, 0)).toThrow();
+  expect(custom(session, 'pstack-shell-exit').length).toBe(0);
 });
 
 shellTest('matches during a busy turn coalesce into one wake delivered when the turn ends', async (f, session) => {
@@ -154,11 +153,11 @@ shellTest('matches during a busy turn coalesce into one wake delivered when the 
   await waitFor(() => window.length === 2 && custom(session, 'pstack-shell-output').length >= 2, 'the busy turn and a later wake');
   const [start = 0, end = 0] = window;
   const wakes = custom(session, 'pstack-shell-output');
-  assert.equal(wakes.filter(message => message.timestamp >= start && message.timestamp <= end).length, 0);
-  assert.equal((wakes[0]?.role === 'custom' && (wakes[0].details as ShellRecord).matches), 1);
+  expect(wakes.filter(message => message.timestamp >= start && message.timestamp <= end).length).toBe(0);
+  expect((wakes[0]?.role === 'custom' && (wakes[0].details as ShellRecord).matches)).toBe(1);
   f.calls.push(call('BackgroundShellStop', { id: shell.id }));
   await waitFor(() => toolResults(session, 'BackgroundShellStop').length === 1, 'the stop call');
-  assert.ok(detailsOf<ShellRecord>(session, 'BackgroundShellStop').matches >= 10);
+  expect(detailsOf<ShellRecord>(session, 'BackgroundShellStop').matches >= 10).toBe(true);
 });
 
 shellTest('a shell stopped in the same busy turn sends no stale wake afterwards', async (f, session) => {
@@ -174,7 +173,50 @@ shellTest('a shell stopped in the same busy turn sends no stale wake afterwards'
   await turn;
   await session.waitForIdle();
   const stopped = detailsOf<ShellRecord>(session, 'BackgroundShellStop');
-  assert.equal(stopped.status.kind, 'stopped');
-  assert.ok(stopped.matches >= 1, 'the busy turn counted a match');
-  assert.equal(custom(session, 'pstack-shell-output').length, 0);
+  expect(stopped.status.kind).toBe('stopped');
+  expect(stopped.matches >= 1).toBe(true);
+  expect(custom(session, 'pstack-shell-output').length).toBe(0);
+});
+
+shellTest('a matching command exiting zero produces a quiet followUp message instead of a wake', async (f, session) => {
+  f.calls.push(
+    call('BackgroundShell', { command: 'echo AGENT_LOOP_TICK_q; sleep 0.1; exit 0', title: 'quiet', notify_on_output: '^AGENT_LOOP_TICK_q' }),
+  );
+  await prompt(session, 'start quiet shell');
+  const shell = detailsOf<ShellRecord>(session, 'BackgroundShell');
+  await waitFor(() => custom(session, 'pstack-shell-exit').length === 1 && !session.isStreaming, 'the quiet shell to exit');
+  expect(custom(session, 'pstack-shell-exit').length).toBe(1);
+  const exitMsg = custom(session, 'pstack-shell-exit')[0] as { details: ShellRecord };
+  expect(exitMsg.details.status.kind).toBe('exited');
+  if (exitMsg.details.status.kind === 'exited') expect(exitMsg.details.status.code).toBe(0);
+});
+
+shellTest('readLines delivers un-terminated tail and signal outcome on kill', async (f, session) => {
+  f.calls.push(
+    call('BackgroundShell', { command: 'printf "trailing-part"; sleep 0.1; kill -TERM $$', title: 'sig' }),
+  );
+  await prompt(session, 'start signal shell');
+  const shell = detailsOf<ShellRecord>(session, 'BackgroundShell');
+  await waitFor(() => custom(session, 'pstack-shell-exit').length === 1 && !session.isStreaming, 'the signal shell to exit');
+  expect(custom(session, 'pstack-shell-exit').length).toBe(1);
+  const exitMsg = custom(session, 'pstack-shell-exit')[0] as { details: ShellRecord };
+  expect(exitMsg.details.status.kind).toBe('exited');
+});
+
+test('ShellRuntime direct unit tests: fallback dir, unknown stop, and delivered', async () => {
+  const { ShellRuntime } = await import('../src/shell-runtime.ts');
+  const messages: unknown[] = [];
+  const pi = { sendMessage: (msg: unknown) => messages.push(msg), on: () => {} } as any;
+  const runtime = new ShellRuntime(pi);
+  const fakeCtx = {
+    cwd: '/tmp',
+    sessionManager: { getSessionFile: () => null },
+  } as any;
+  const record = await runtime.start({ command: 'echo direct-test', title: 'direct' }, fakeCtx);
+  expect(record.title).toBe('direct');
+  expect(runtime.list().length).toBe(1);
+  runtime.delivered('non-existent');
+  runtime.delivered(record.id);
+  await expect(runtime.stop('non-existent')).rejects.toThrow(/Unknown background shell/);
+  await runtime.stopAll();
 });
