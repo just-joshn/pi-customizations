@@ -12,7 +12,7 @@ rendering parity with the reference CLI binary is not achieved and is not achiev
 pi's own TUI owns the render pipeline, and the reference CLI backend services do not
 exist locally. Every research component is classified in
 `parity/matrix.tsv` (362 components) as `implemented`, `mapped`, `deviation`,
-or `unmet`; `npm run check:parity` enforces completeness.
+or `unmet`; `bun run check:parity` enforces completeness.
 
 ## Implemented contracts
 
@@ -76,8 +76,8 @@ rendering is pi's; the extension owns theme colors and tool rows only.
 
 | Gate | Check |
 | --- | --- |
-| P1 matrix completeness | `npm run check:parity` (negative-controlled) |
-| P2 component tests | `npm test` — literal assertions against research values |
-| P3/P4 live smoke | `npm run check:smoke` — real pi under tmux, captures asserted |
-| P5 docs conformance | `npm run check:docs` (negative-controlled) |
-| P6 quality | `npm run typecheck`, `npm run test:coverage` (80/80/80), wired into root `make verify` |
+| P1 matrix completeness | `bun run check:parity` (negative-controlled) |
+| P2 component tests | `bun run test` — literal assertions against research values |
+| P3/P4 live smoke | `bun run check:smoke` — real pi under tmux, captures asserted |
+| P5 docs conformance | `bun run check:docs` (negative-controlled) |
+| P6 quality | `bun run typecheck`, `bun run test:coverage` (80/80/80), wired into root `make verify` |

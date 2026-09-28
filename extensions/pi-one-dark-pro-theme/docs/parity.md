@@ -3,7 +3,7 @@
 Pi package `extensions/pi-one-dark-pro-theme` (pi 0.87.1) reproduces the Visual Studio Code theme
 **One Dark Pro Flat** as a Pi theme. Every value in `themes/one-dark-pro-flat.json` is computed
 from the pinned file in `upstream/`, so the theme cannot drift from the source without failing
-`npm run check:parity`.
+`bun run check:parity`.
 
 ## What a theme file can express
 
@@ -78,7 +78,7 @@ in the map pass silently. The failure mode is a thrown error that names the scop
 ## The 59 rows
 
 Generated from `parity/role-map.tsv`. Every value below is also in
-`themes/one-dark-pro-flat.json`, and `npm run check:parity` rebuilds the theme and compares.
+`themes/one-dark-pro-flat.json`, and `bun run check:parity` rebuilds the theme and compares.
 
 | Role | Kind | Source | Value |
 |---|---|---|---|
@@ -250,10 +250,10 @@ ones.
 ## How to re-verify
 
 ```bash
-npm run build:theme    # rewrite themes/one-dark-pro-flat.json
-npm run check:parity   # pinned hash, role map, schema coverage, committed theme, value shapes
-npm run typecheck
-npm run test:coverage  # 80% thresholds on parity/*.ts
+bun run build:theme    # rewrite themes/one-dark-pro-flat.json
+bun run check:parity   # pinned hash, role map, schema coverage, committed theme, value shapes
+bun run typecheck
+bun run test:coverage  # 80% thresholds on parity/*.ts
 ```
 
 `themeSchemaPath` in `parity/theme.ts` is the only place that knows Pi's install layout, and

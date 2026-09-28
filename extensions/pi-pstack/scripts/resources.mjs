@@ -150,7 +150,7 @@ for (const output of outputs) {
     await writeFile(destination, generated);
     await chmod(destination, output.mode);
   } else if (!(await readFile(destination)).equals(generated)) {
-    throw new Error(`Generated resource drift: ${output.destination}. Run npm run generate.`);
+    throw new Error(`Generated resource drift: ${output.destination}. Run bun run generate.`);
   }
   if ((((await stat(destination)).mode & 0o111) !== 0) !== executable) throw new Error(`Executable mode drift: ${output.destination}`);
 }

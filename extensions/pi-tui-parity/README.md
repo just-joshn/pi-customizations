@@ -41,12 +41,12 @@ manifest key) and pick the `tui-dark` / `tui-light` theme in `/settings`
 ## Verify
 
 ```bash
-npm run typecheck
-npm test
-npm run test:coverage   # 80/80/80 gates
-npm run check:docs      # pi API conformance
-npm run check:parity    # matrix completeness
-npm run check:smoke     # live tmux smoke (needs tmux)
+bun run typecheck
+bun run test
+bun run test:coverage   # 80/80/80 gates
+bun run check:docs      # pi API conformance
+bun run check:parity    # matrix completeness
+bun run check:smoke     # live tmux smoke (needs tmux)
 ```
 
 ## Credits

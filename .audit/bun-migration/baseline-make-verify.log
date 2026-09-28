@@ -1,0 +1,1030 @@
+=== make verify (npm baseline) 2026-09-28T16:50:32Z ===
+node scripts/check-pi-mechanisms.mjs
+Checked 6 packages: 4 extensions, 70 skills, 64 prompt templates, 3 themes. Supplied modules: typebox, typebox/compile, typebox/value, @sinclair/typebox, @sinclair/typebox/compile, @sinclair/typebox/value, @earendil-works/pi-agent-core, @earendil-works/pi-tui, @earendil-works/pi-ai, @earendil-works/pi-ai/compat, @earendil-works/pi-ai/oauth, @earendil-works/pi-ai/providers/all, @earendil-works/pi-coding-agent, @mariozechner/pi-agent-core, @mariozechner/pi-tui, @mariozechner/pi-ai, @mariozechner/pi-ai/compat, @mariozechner/pi-ai/oauth, @mariozechner/pi-ai/providers/all, @mariozechner/pi-coding-agent.
+npm run check:tests
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-customizations@0.1.0 check:tests
+> node extensions/scripts/check-vitest-conventions.selftest.mjs && node extensions/scripts/check-vitest-conventions.mjs
+
+check-vitest-conventions self-test: every detector fires and the clean fixture is silent.
+pi-anthropic-oauth/test/provider.test.ts:77  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/provider.test.ts:88  note   test-name-compound  test name joins behaviors with "and": "a request identifies as Provider CLI and maps tool names both ways"
+pi-anthropic-oauth/test/provider.test.ts:112  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/provider.test.ts:112  note   test-name-compound  test name joins behaviors with "and": "caller payload hooks see the billing block and CLAUDE_CODE_VERSION sets the user agent"
+pi-antigravity-oauth/test/command.test.ts:23  note   test-name-compound  test name joins behaviors with "and": "the account summary shows email, project, paid tier, and per-model quota"
+pi-antigravity-oauth/test/command.test.ts:42  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/command.test.ts:79  note   test-name-compound  test name joins behaviors with "and": "with a UI and no login the command tells the user to log in"
+pi-antigravity-oauth/test/models.test.ts:35  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/models.test.ts:35  note   test-name-compound  test name joins behaviors with "and": "the extension registers the Google Antigravity subscription provider and command"
+pi-antigravity-oauth/test/oauth.test.ts:65  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/oauth.test.ts:65  note   test-name-compound  test name joins behaviors with "and": "login with a pasted redirect exchanges the code with PKCE and discovers the project"
+pi-antigravity-oauth/test/oauth.test.ts:139  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/oauth.test.ts:139  note   test-name-compound  test name joins behaviors with "and": "refresh keeps the refresh token and project when Google omits a new refresh token"
+pi-antigravity-oauth/test/oauth.test.ts:175  note   test-name-compound  test name joins behaviors with "and": "toAuth encodes the token and project that the stream parses back"
+pi-antigravity-oauth/test/stream.test.ts:89  note   test-name-compound  test name joins behaviors with "and": "text and thinking stream into balanced Pi events with usage"
+pi-antigravity-oauth/test/stream.test.ts:113  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:113  note   test-name-compound  test name joins behaviors with "and": "the envelope names the project, model, and Antigravity agent request type"
+pi-antigravity-oauth/test/stream.test.ts:127  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:127  note   test-name-compound  test name joins behaviors with "and": "Gemini sends bearer auth and the Antigravity user agent without the Claude beta header"
+pi-antigravity-oauth/test/stream.test.ts:136  note   test-name-compound  test name joins behaviors with "and": "the user agent names the host in Go's os and arch spelling"
+pi-antigravity-oauth/test/stream.test.ts:145  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:145  note   test-name-compound  test name joins behaviors with "and": "a reasoning Claude model gets the interleaved-thinking beta and a thinking budget"
+pi-antigravity-oauth/test/stream.test.ts:192  note   test-name-length  test name is 89 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:192  note   test-name-compound  test name joins behaviors with "and": "a Gemini tool call round trip uses parametersJsonSchema and returns the function response"
+pi-antigravity-oauth/test/stream.test.ts:207  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:207  note   test-name-compound  test name joins behaviors with "and": "a Claude tool call round trip uses OpenAPI parameters and keeps the tool call id"
+pi-antigravity-oauth/test/stream.test.ts:243  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:243  note   test-name-compound  test name joins behaviors with "and": "with retry.provider.maxRetries set, a 429 waits for retry-after and then succeeds"
+pi-antigravity-oauth/test/stream.test.ts:268  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:268  note   test-name-compound  test name joins behaviors with "and": "a non-retryable error surfaces the Cloud Code message and stays recognizable as overflow"
+pi-antigravity-oauth/test/stream.test.ts:325  note   test-name-compound  test name joins behaviors with "and": "onPayload sees the envelope and its replacement is what gets sent"
+pi-one-dark-pro-theme/test/theme.test.ts:397  note   test-name-compound  test name joins behaviors with "and": "splits export roles out of colors and sorts both"
+pi-pstack/test/cleanup.test.ts:6  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/cleanup.test.ts:6  note   test-name-compound  test name joins behaviors with "and": "fixture cleanup restores environment and removes files even when abort rejects"
+pi-pstack/test/cli.test.ts:14  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-pstack/test/cli.test.ts:14  note   test-name-compound  test name joins behaviors with "and": "the shipped resource checker verifies both source inventories and generated resources"
+pi-pstack/test/cli.test.ts:18  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-pstack/test/cli.test.ts:18  note   test-name-compound  test name joins behaviors with "and": "preserved helper behavior and its aggregate coverage pass without changing source files"
+pi-pstack/test/cli.test.ts:27  note   test-name-compound  test name joins behaviors with "and": "the npm distribution loads in the actual Pi CLI and shuts down cleanly"
+pi-pstack/test/commands.test.ts:9  note   test-name-compound  test name joins behaviors with "and": "/poteto-mode off and /skill:poteto-mode off give the same confirmation"
+pi-pstack/test/commands.test.ts:33  note   test-name-compound  test name joins behaviors with "and": "/poteto-mode with task and /skill:poteto-mode transform input"
+pi-pstack/test/commands.test.ts:64  note   test-name-compound  test name joins behaviors with "and": "/setup-pstack and /skill:setup-pstack handle errors without UI"
+pi-pstack/test/commands.test.ts:113  note   test-name-compound  test name joins behaviors with "and": "registered command handles other skills and expands them"
+pi-pstack/test/commands.test.ts:131  note   test-name-compound  test name joins behaviors with "and": "handleSetup handles non-Error exception and verification offered guard"
+pi-pstack/test/commands.test.ts:199  note   test-name-compound  test name joins behaviors with "and": "pstack index entry point wires extension hooks and registers all tools"
+pi-pstack/test/context-review.test.ts:78  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-pstack/test/context-review.test.ts:102  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/context-review.test.ts:102  note   test-name-compound  test name joins behaviors with "and": "registerStatus formats pstack status, argument completions, and todo details"
+pi-pstack/test/context-review.test.ts:135  note   test-name-length  test name is 89 characters ("short behavior-based test names")
+pi-pstack/test/context-review.test.ts:135  note   test-name-compound  test name joins behaviors with "and": "/pstack todos reports an empty list and an unknown argument shows usage instead of status"
+pi-pstack/test/context-review.test.ts:154  note   test-name-compound  test name joins behaviors with "and": "context summarizes custom entries and named sessions in history"
+pi-pstack/test/integration.test.ts:15  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:15  note   test-name-compound  test name joins behaviors with "and": "integration fixture disposes every session and removes files after abort failure"
+pi-pstack/test/integration.test.ts:35  note   test-name-length  test name is 103 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:35  note   test-name-compound  test name joins behaviors with "and": "official resource loader separates skills, prompt aliases, and runtime commands without Benny discovery"
+pi-pstack/test/integration.test.ts:62  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:62  note   test-name-compound  test name joins behaviors with "and": "/bro expands the shipped instructions and preserves user arguments in a real Pi request"
+pi-pstack/test/integration.test.ts:76  note   test-name-length  test name is 96 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:92  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:92  note   test-name-compound  test name joins behaviors with "and": "pasted skill blocks remain user text and cannot activate runtime commands"
+pi-pstack/test/integration.test.ts:105  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:105  note   test-name-compound  test name joins behaviors with "and": "Poteto mode survives session reopening and explicit off removes active mode instructions"
+pi-pstack/test/integration.test.ts:128  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:128  note   test-name-compound  test name joins behaviors with "and": "model-issued TodoWrite and pstack_mode calls execute through Pi and retain their state"
+pi-pstack/test/integration.test.ts:155  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:155  note   test-name-compound  test name joins behaviors with "and": "native /skill:poteto-mode enters the same mode and /pstack reports status without inference"
+pi-pstack/test/integration.test.ts:176  note   test-name-compound  test name joins behaviors with "and": "TodoWrite merge preserves order and persisted progress after reopening"
+pi-pstack/test/integration.test.ts:206  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:224  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:224  note   test-name-compound  test name joins behaviors with "and": "native and alias setup fail closed without UI and never fall through to inference"
+pi-pstack/test/integration.test.ts:240  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:240  note   test-name-compound  test name joins behaviors with "and": "setup command saves confirmed role choices and offers project verification only once"
+pi-pstack/test/integration.test.ts:265  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:265  note   test-name-compound  test name joins behaviors with "and": "team-kit templates request skill reading and native skills expand complete instructions"
+pi-pstack/test/integration.test.ts:306  note   test-name-compound  test name joins behaviors with "and": "pstack tool snippets and guidance follow the active tool set"
+pi-pstack/test/integration.test.ts:347  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:347  note   test-name-compound  test name joins behaviors with "and": "AskQuestion preserves selected IDs, free text, and cancellation through Pi dialog APIs"
+pi-pstack/test/integration.test.ts:388  note   test-name-compound  test name joins behaviors with "and": "AskQuestion without UI returns an error and never fabricates consent"
+pi-pstack/test/integration.test.ts:401  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:401  note   test-name-compound  test name joins behaviors with "and": "invalid todo replacement leaves progress intact and mode tool can opt out"
+pi-pstack/test/integration.test.ts:429  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:459  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:459  note   test-name-compound  test name joins behaviors with "and": "AskQuestion rejects ambiguous and blank identifiers before opening dialogs"
+pi-pstack/test/integration.test.ts:488  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:501  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:501  note   test-name-compound  test name joins behaviors with "and": "restoration ignores invalid todo snapshots and keeps the latest valid branch state"
+pi-pstack/test/integration.test.ts:519  note   test-name-compound  test name joins behaviors with "and": "a Pi tool batch serializes question dialogs and retains both answers"
+pi-pstack/test/integration.test.ts:555  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:555  note   test-name-compound  test name joins behaviors with "and": "large todo results retain full structured state and point to the durable transcript"
+pi-pstack/test/integration.test.ts:572  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:593  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-pstack/test/integration.test.ts:593  note   test-name-compound  test name joins behaviors with "and": "off is case-insensitive for /poteto-mode and /skill:poteto-mode and spends no inference"
+pi-pstack/test/model-errors.test.ts:34  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/model-errors.test.ts:34  note   test-name-compound  test name joins behaviors with "and": "configuration %s failure preserves the old rule and removes temporary files"
+pi-pstack/test/model-errors.test.ts:49  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-pstack/test/model-errors.test.ts:49  note   test-name-compound  test name joins behaviors with "and": "invalid budgets and roles reject and cancelling a role leaves the rule unchanged"
+pi-pstack/test/model-errors.test.ts:62  note   test-name-compound  test name joins behaviors with "and": "many retired model roles remain ordered and are all reported"
+pi-pstack/test/models.test.ts:19  note   test-name-compound  test name joins behaviors with "and": "parent aliases, qualified models, and supported reasoning resolve"
+pi-pstack/test/models.test.ts:26  note   test-name-compound  test name joins behaviors with "and": "missing defaults and unsupported reasoning report available choices"
+pi-pstack/test/models.test.ts:42  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/models.test.ts:83  note   test-name-length  test name is 93 characters ("short behavior-based test names")
+pi-pstack/test/models.test.ts:83  note   test-name-compound  test name joins behaviors with "and": "setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles"
+pi-pstack/test/models.test.ts:142  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-pstack/test/models.test.ts:142  note   test-name-compound  test name joins behaviors with "and": "TUI setup pickers stay within a screen, filter by typing, and build ordered panels"
+pi-pstack/test/models.test.ts:184  note   test-name-compound  test name joins behaviors with "and": "TUI accept list and confirm question fit on a 24-line screen"
+pi-pstack/test/models.test.ts:225  note   test-name-compound  test name joins behaviors with "and": "pick in TUI mode handles focus, render, and cancellation"
+pi-pstack/test/models.test.ts:247  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-pstack/test/models.test.ts:370  note   test-name-length  test name is 96 characters ("short behavior-based test names")
+pi-pstack/test/models.test.ts:370  note   test-name-compound  test name joins behaviors with "and": "setupModels non-TUI mode edits single and panel roles, handles needsChoice and empty model error"
+pi-pstack/test/personas.test.ts:13  note   test-name-compound  test name joins behaviors with "and": "Poteto and both Comment Sicko names preserve complete existing prompts"
+pi-pstack/test/personas.test.ts:23  note   test-name-length  test name is 93 characters ("short behavior-based test names")
+pi-pstack/test/personas.test.ts:23  note   test-name-compound  test name joins behaviors with "and": "CI watcher preserves its full prompt and inherits the parent model like a Reference plugin agent"
+pi-pstack/test/personas.test.ts:29  note   test-name-compound  test name joins behaviors with "and": "thermo reviewer receives its complete persona and complete rubric"
+pi-pstack/test/personas.test.ts:36  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/research-parity.test.ts:36  note   test-name-compound  test name joins behaviors with "and": "poteto-mode routes all 23 documented playbooks and 23 principles"
+pi-pstack/test/research-parity.test.ts:44  note   test-name-compound  test name joins behaviors with "and": "setup keeps the documented 17 roles and four budget labels"
+pi-pstack/test/research-parity.test.ts:57  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/research-parity.test.ts:57  note   test-name-compound  test name joins behaviors with "and": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped"
+pi-pstack/test/research-parity.test.ts:71  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/research-parity.test.ts:105  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/research-parity.test.ts:105  note   test-name-compound  test name joins behaviors with "and": "worktree audit dates agent activity from Pi sessions and worker transcripts"
+pi-pstack/test/research-parity.test.ts:121  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/research-parity.test.ts:129  note   test-name-compound  test name joins behaviors with "and": "host contract maps upstream Reference facilities and tool names to Pi"
+pi-pstack/test/research-parity.test.ts:139  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/research-parity.test.ts:139  note   test-name-compound  test name joins behaviors with "and": "local /loop ships as a Pi skill and template that the host contract names"
+pi-pstack/test/resources.test.ts:55  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:55  note   test-name-compound  test name joins behaviors with "and": "generation separates reusable prompts from procedural skills and Reference metadata"
+pi-pstack/test/resources.test.ts:74  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:88  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:88  note   test-name-compound  test name joins behaviors with "and": "resource checks reject prompt drift and missing package discovery before generation writes"
+pi-pstack/test/rpc-dialogs.test.ts:48  note   timer-deadline  timer-based deadline: keep it finite and clear it on success
+pi-pstack/test/rpc-process.test.ts:8  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/rpc-process.test.ts:42  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/rpc-process.test.ts:42  note   test-name-compound  test name joins behaviors with "and": "RPC stdin failures reject pending and future requests without unhandled errors"
+pi-pstack/test/rpc-process.test.ts:60  note   test-name-compound  test name joins behaviors with "and": "RPC request timeout rejects the request and reaps the process"
+pi-pstack/test/shells.test.ts:257  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/shells.test.ts:257  note   test-name-compound  test name joins behaviors with "and": "ShellRuntime direct unit tests: fallback dir, unknown stop, and delivered"
+pi-pstack/test/skills-parity.test.ts:20  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/skills-parity.test.ts:20  note   test-name-compound  test name joins behaviors with "and": "skills inventory: all pstack, team-kit, and loop skills are accounted for"
+pi-pstack/test/skills-parity.test.ts:61  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/skills-parity.test.ts:87  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/skills-parity.test.ts:119  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-pstack/test/skills-parity.test.ts:119  note   test-name-compound  test name joins behaviors with "and": "skills loader: all 65 skills discover cleanly with valid metadata and frontmatter"
+pi-pstack/test/skills-parity.test.ts:135  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-pstack/test/skills-parity.test.ts:135  note   test-name-compound  test name joins behaviors with "and": "prompt templates: exist for all skills, preserve arguments, and instruct reading bundled skill"
+pi-pstack/test/skills-parity.test.ts:157  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-pstack/test/skills-parity.test.ts:157  note   test-name-compound  test name joins behaviors with "and": "session prompt execution: prompt templates and native /skill: load complete instructions"
+pi-pstack/test/skills-parity.test.ts:217  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/skills-parity.test.ts:217  note   test-name-compound  test name joins behaviors with "and": "references and markdown links: all internal relative links and files resolve"
+pi-pstack/test/skills-parity.test.ts:235  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-pstack/test/skills-parity.test.ts:235  note   test-name-compound  test name joins behaviors with "and": "scripts: permissions are executable, syntax is valid, and helpers execute correctly"
+pi-pstack/test/skills-parity.test.ts:284  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-pstack/test/skills-parity.test.ts:284  note   test-name-compound  test name joins behaviors with "and": "host contract mappings: tool names, reference facilities, and external dependencies"
+pi-pstack/test/state-snapshots.test.ts:31  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/state-snapshots.test.ts:49  note   test-name-compound  test name joins behaviors with "and": "pstack_mode tool toggles mode and returns bounded confirmation"
+pi-pstack/test/state-snapshots.test.ts:65  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/state-snapshots.test.ts:65  note   test-name-compound  test name joins behaviors with "and": "TodoWrite registers promptSnippet, promptGuidelines, and schema descriptions"
+pi-pstack/test/state-snapshots.test.ts:98  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/state-snapshots.test.ts:98  note   test-name-compound  test name joins behaviors with "and": "TodoWrite renderResult formats empty, mixed, completed, and truncated lists"
+pi-pstack/test/state-snapshots.test.ts:197  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/structure.test.ts:29  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/structure.test.ts:29  note   test-name-compound  test name joins behaviors with "and": "maintained extension code and tests meet the repository size and logging limits"
+pi-pstack/test/support.test.ts:28  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/support.test.ts:28  note   test-name-compound  test name joins behaviors with "and": "extension deduplication preserves the first SDK descriptor and stable order"
+pi-pstack/test/support.test.ts:44  note   test-name-compound  test name joins behaviors with "and": "result truncation preserves empty and exact-boundary values"
+pi-pstack/test/support.test.ts:65  note   test-name-compound  test name joins behaviors with "and": "AskQuestion tool cancellation break and validation checks"
+pi-pstack/test/support.test.ts:93  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/support.test.ts:93  note   test-name-compound  test name joins behaviors with "and": "workerControl handles disposal failure and abort on agent_start when stopped"
+pi-pstack/test/support.test.ts:157  note   test-name-compound  test name joins behaviors with "and": "resolveModel with empty registry and default thinkingLevel"
+pi-pstack/test/unit-coverage.test.ts:121  note   test-name-compound  test name joins behaviors with "and": "pstack index before_agent_start with enabled and todos"
+pi-pstack/test/unit-coverage.test.ts:209  note   test-name-compound  test name joins behaviors with "and": "AskQuestion multi-choice with freeText and completion"
+pi-pstack/test/unit-coverage.test.ts:251  note   test-name-compound  test name joins behaviors with "and": "AskQuestion single choice and freeText cancel branches"
+pi-pstack/test/upstream-policy.test.ts:21  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/upstream-policy.test.ts:21  note   test-name-compound  test name joins behaviors with "and": "coverage policy rejects below-threshold reports and accepts the exact boundary"
+pi-pstack/test/user-perspective.test.ts:41  note   test-name-compound  test name joins behaviors with "and": "user-perspective: loaded skills and prompt templates expose descriptions"
+pi-pstack/test/user-perspective.test.ts:85  note   test-name-compound  test name joins behaviors with "and": "user-perspective: /pstack default, status, and invalid arguments"
+pi-pstack/test/user-perspective.test.ts:108  note   test-name-compound  test name joins behaviors with "and": "user-perspective: /pstack todos with empty and filled list"
+pi-pstack/test/user-perspective.test.ts:143  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-pstack/test/user-perspective.test.ts:143  note   test-name-compound  test name joins behaviors with "and": "user-perspective: /poteto-mode on/off case-insensitivity and prompt injection"
+pi-pstack/test/user-perspective.test.ts:169  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/user-perspective.test.ts:197  note   test-name-compound  test name joins behaviors with "and": "user-perspective: TodoWrite tool replace, merge, and error handling"
+pi-pstack/test/user-perspective.test.ts:268  note   test-name-compound  test name joins behaviors with "and": "user-perspective: pstack_context tool returns valid bounds and metadata"
+pi-pstack/test/user-perspective.test.ts:303  note   timer-deadline  timer-based deadline: keep it finite and clear it on success
+pi-pstack/test/user-perspective.test.ts:379  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/user-perspective.test.ts:379  note   test-name-compound  test name joins behaviors with "and": "user-perspective: Task tool rejects cloud execution and unsupported personas"
+pi-pstack/test/user-perspective.test.ts:407  note   test-name-compound  test name joins behaviors with "and": "user-perspective: BackgroundShell start, list, and stop"
+pi-pstack/test/worker-errors.test.ts:23  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/worker-errors.test.ts:23  note   test-name-compound  test name joins behaviors with "and": "abort rejection is observed and the child is disposed before stop returns"
+pi-pstack/test/worker-errors.test.ts:66  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-pstack/test/worker-errors.test.ts:98  note   test-name-compound  test name joins behaviors with "and": "output write failure remains a failed result with usage and a transcript"
+pi-pstack/test/worker-errors.test.ts:139  note   test-name-compound  test name joins behaviors with "and": "missing durable paths and SDK construction failures never publish a task"
+pi-pstack/test/worker-errors.test.ts:161  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/worker-errors.test.ts:161  note   test-name-compound  test name joins behaviors with "and": "invalid workspace and resource loading errors do not publish a running task"
+pi-pstack/test/worker-review.test.ts:80  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-pstack/test/worker-review.test.ts:105  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-pstack/test/worker-review.test.ts:120  note   test-name-length  test name is 97 characters ("short behavior-based test names")
+pi-pstack/test/workers.test.ts:16  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/workers.test.ts:16  note   test-name-compound  test name joins behaviors with "and": "restore tasks from real Pi branch entries and mark unfinished tasks interrupted"
+pi-pstack/test/workers.test.ts:27  note   test-name-compound  test name joins behaviors with "and": "output bounds retain the durable transcript and complete-output pointer"
+pi-pstack/test/workers.test.ts:328  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-tui-parity/test/chrome.test.ts:37  note   test-name-compound  test name joins behaviors with "and": "renders the bold title and dim version"
+pi-tui-parity/test/chrome.test.ts:88  note   test-name-compound  test name joins behaviors with "and": "renders headline, status row and location row"
+pi-tui-parity/test/chrome.test.ts:106  note   test-name-compound  test name joins behaviors with "and": "hides headline in default mode and empty location bits when absent"
+pi-tui-parity/test/commands.test.ts:66  note   test-name-compound  test name joins behaviors with "and": "keeps the reference CLI ids and aliases"
+pi-tui-parity/test/commands.test.ts:119  note   test-name-compound  test name joins behaviors with "and": "/help prints the Commands header, one line per entry, and the hint"
+pi-tui-parity/test/commands.test.ts:135  note   test-name-compound  test name joins behaviors with "and": "helpLines styles the header and hint through the theme"
+pi-tui-parity/test/commands.test.ts:189  note   test-name-compound  test name joins behaviors with "and": "/zen-mode and /vim toggle their state"
+pi-tui-parity/test/commands.test.ts:207  note   test-name-compound  test name joins behaviors with "and": "/about reports the pi version, model, provider, and session"
+pi-tui-parity/test/commands.test.ts:265  note   test-name-length  test name is 93 characters ("short behavior-based test names")
+pi-tui-parity/test/commands.test.ts:276  note   test-name-compound  test name joins behaviors with "and": "usage and porcelain helpers"
+pi-tui-parity/test/commands.test.ts:277  note   test-name-compound  test name joins behaviors with "and": "totalUsage sums input, output, and cost"
+pi-tui-parity/test/commands.test.ts:288  note   test-name-compound  test name joins behaviors with "and": "porcelainFiles trims and drops blank lines"
+pi-tui-parity/test/constants.test.ts:22  note   test-name-compound  test name joins behaviors with "and": "carries the braille spinner frames and interval"
+pi-tui-parity/test/constants.test.ts:60  note   test-name-compound  test name joins behaviors with "and": "carries composer and palette geometry"
+pi-tui-parity/test/decisions.test.ts:24  note   test-name-compound  test name joins behaviors with "and": "renders the Reference TodosUI rows and status line"
+pi-tui-parity/test/decisions.test.ts:41  note   test-name-compound  test name joins behaviors with "and": "execute stores todos in details and reports to the model"
+pi-tui-parity/test/decisions.test.ts:55  note   test-name-compound  test name joins behaviors with "and": "allowlists exact shell commands and paths"
+pi-tui-parity/test/decisions.test.ts:72  note   test-name-compound  test name joins behaviors with "and": "option sets carry the the reference CLI labels and keys"
+pi-tui-parity/test/decisions.test.ts:122  note   test-name-compound  test name joins behaviors with "and": "tab allows and records the allowlist entry"
+pi-tui-parity/test/decisions.test.ts:129  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-tui-parity/test/decisions.test.ts:161  note   test-name-compound  test name joins behaviors with "and": "renders the purple frame, title, and selected arrow row"
+pi-tui-parity/test/decisions.test.ts:181  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-tui-parity/test/decisions.test.ts:181  note   test-name-compound  test name joins behaviors with "and": "truncates all rendered rows to width when command and paths exceed terminal width"
+pi-tui-parity/test/editor.test.ts:33  note   test-name-compound  test name joins behaviors with "and": "glyph is dim by default and active in a mode"
+pi-tui-parity/test/editor.test.ts:40  note   test-name-compound  test name joins behaviors with "and": "shift+tab cycles modes and is not passed to pi"
+pi-tui-parity/test/editor.test.ts:66  note   test-name-compound  test name joins behaviors with "and": "normal mode swallows printable keys and maps hjkl"
+pi-tui-parity/test/editor.test.ts:79  note   test-name-compound  test name joins behaviors with "and": "empty-state render draws the half-block frame and inverse placeholder"
+pi-tui-parity/test/format.test.ts:49  note   test-name-compound  test name joins behaviors with "and": "formats line and lines notes"
+pi-tui-parity/test/format.test.ts:58  note   test-name-compound  test name joins behaviors with "and": "keeps short patterns and tails long ones"
+pi-tui-parity/test/format.test.ts:87  note   test-name-compound  test name joins behaviors with "and": "labels today and yesterday"
+pi-tui-parity/test/notify.test.ts:31  note   test-name-compound  test name joins behaviors with "and": "notifies while unfocused and stays quiet after a focus report"
+pi-tui-parity/test/pagers.test.ts:31  note   test-name-compound  test name joins behaviors with "and": "renders the Reference header, scale, and free-space rows"
+pi-tui-parity/test/pagers.test.ts:62  note   test-name-compound  test name joins behaviors with "and": "totals tokens and cost per model from branch entries"
+pi-tui-parity/test/pagers.test.ts:102  note   test-name-compound  test name joins behaviors with "and": "drops blank messages and keeps the newest up to the limit"
+pi-tui-parity/test/pagers.test.ts:107  note   test-name-compound  test name joins behaviors with "and": "copies the selected message text on Enter and closes on Escape"
+pi-tui-parity/test/pagers.test.ts:123  note   test-name-compound  test name joins behaviors with "and": "context pager component and install"
+pi-tui-parity/test/pagers.test.ts:133  note   test-name-compound  test name joins behaviors with "and": "registers the context and usage commands"
+pi-tui-parity/test/palette.test.ts:36  note   test-name-compound  test name joins behaviors with "and": "brightness and light/dark"
+pi-tui-parity/test/palette.test.ts:50  note   test-name-compound  test name joins behaviors with "and": "excludes indices 0-15 and finds exact palette entries"
+pi-tui-parity/test/tools.test.ts:71  note   test-name-compound  test name joins behaviors with "and": "edit: +N -M note from the patch and the bordered diff block"
+pi-tui-parity/test/tools.test.ts:110  note   test-name-compound  test name joins behaviors with "and": "grep: 40-char pattern rule and Found N matches"
+pi-tui-parity/test/tools.test.ts:130  note   test-name-compound  test name joins behaviors with "and": "ls: files and directories note"
+pi-tui-parity/test/wizard.test.ts:22  note   test-name-compound  test name joins behaviors with "and": "registers /rule and drives the wizard through pi dialogs"
+
+43 vitest files scanned. 0 violations, 243 review items.
+npm --prefix extensions/pi-pstack run check:resources
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-pstack@0.15.5-pi.2 check:resources
+> node scripts/resources.mjs
+
+Verified 187 upstream files and 205 generated resources.
+npm --prefix extensions/pi-pstack run typecheck
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-pstack@0.15.5-pi.2 typecheck
+> tsc --noEmit
+
+npm --prefix extensions/pi-pstack run test:coverage
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-pstack@0.15.5-pi.2 test:coverage
+> vitest run --coverage
+
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/setup-bun/extensions/pi-pstack
+      Coverage enabled with v8
+
+Upstream coverage includes 1 imported helper files.
+example.ts
+lines: 7/10 (70.00%)
+Upstream coverage includes 1 imported helper files.
+example.ts
+lines: 8/10 (80.00%)
+functions: 7/10 (70.00%)
+Upstream coverage includes 1 imported helper files.
+example.ts
+lines: 8/10 (80.00%)
+functions: 8/10 (80.00%)
+
+ Test Files  23 passed (23)
+      Tests  219 passed (219)
+   Start at  09:50:36
+   Duration  9.50s (tests 73%, import 24%, transform 3%, worker 1%)
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|------------------------------------------------------------------------------------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                              
+-------------------|---------|----------|---------|---------|------------------------------------------------------------------------------------------------
+All files          |   86.51 |    81.78 |   86.85 |   88.94 |                                                                                                
+ commands.ts       |   97.95 |       80 |     100 |     100 | 12-24,68,72,77                                                                                 
+ context.ts        |   93.44 |    89.74 |   94.73 |   91.66 | 43-44,55-56                                                                                    
+ index.ts          |   93.75 |       80 |     100 |     100 | 19-25                                                                                          
+ models.ts         |   84.21 |    79.67 |   83.33 |   88.88 | 24,47,75,92-94,109,123-127,132,177-178,183                                                     
+ personas.ts       |     100 |       50 |     100 |     100 | 22                                                                                             
+ picker.ts         |   67.56 |    66.66 |   72.22 |   60.71 | 4-5,9-11,13,15-18,25-26                                                                        
+ questions.ts      |   98.03 |    83.33 |     100 |     100 | 17,22,31,40,44,61                                                                              
+ shell-runtime.ts  |   76.99 |     43.9 |   80.64 |   81.39 | 29,37,63,80,86,134,144-145,148-149,155-156,162,170-172                                         
+ state.ts          |    91.2 |    86.66 |   88.57 |   91.42 | 25,73,75-79                                                                                    
+ worker-control.ts |   93.33 |      100 |     100 |   94.73 | 11                                                                                             
+ worker-records.ts |    92.3 |      100 |     100 |   91.66 | 19                                                                                             
+ worker-runtime.ts |    78.8 |    83.01 |   69.23 |   82.09 | 15-17,42,45-48,75-76,95-97,132,135,140,153,168,174,178,183,191,193,197,199-200,219-220,222,224 
+ worker-support.ts |      96 |    93.75 |     100 |   97.56 | 46                                                                                             
+-------------------|---------|----------|---------|---------|------------------------------------------------------------------------------------------------
+
+=============================== Coverage summary ===============================
+Statements   : 86.51% ( 847/979 )
+Branches     : 81.78% ( 440/538 )
+Functions    : 86.85% ( 218/251 )
+Lines        : 88.94% ( 668/751 )
+================================================================================
+npm --prefix extensions/pi-pstack run check:journeys
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-pstack@0.15.5-pi.2 check:journeys
+> node scripts/verify-journeys.mjs
+
+ok   load: skill count discovered
+ok   load: every skill directory is a discovered skill command
+ok   load: every prompt template is discovered
+ok   load: poteto-mode is an extension command
+ok   load: setup-pstack is an extension command
+ok   load: pstack is an extension command
+ok   load: the extension reported no load error
+ok   native: /skill:architect delivers the complete skill body
+ok   native: /skill:architect delivers user arguments
+ok   native: /skill:architect names the skill in the skill block
+ok   native: /skill:arena delivers the complete skill body
+ok   native: /skill:arena delivers user arguments
+ok   native: /skill:arena names the skill in the skill block
+ok   native: /skill:automate-me delivers the complete skill body
+ok   native: /skill:automate-me delivers user arguments
+ok   native: /skill:automate-me names the skill in the skill block
+ok   native: /skill:blast-radius delivers the complete skill body
+ok   native: /skill:blast-radius delivers user arguments
+ok   native: /skill:blast-radius names the skill in the skill block
+ok   native: /skill:check-compiler-errors delivers the complete skill body
+ok   native: /skill:check-compiler-errors delivers user arguments
+ok   native: /skill:check-compiler-errors names the skill in the skill block
+ok   native: /skill:control-cli delivers the complete skill body
+ok   native: /skill:control-cli delivers user arguments
+ok   native: /skill:control-cli names the skill in the skill block
+ok   native: /skill:control-ui delivers the complete skill body
+ok   native: /skill:control-ui delivers user arguments
+ok   native: /skill:control-ui names the skill in the skill block
+ok   native: /skill:create-verification-skill delivers the complete skill body
+ok   native: /skill:create-verification-skill delivers user arguments
+ok   native: /skill:create-verification-skill names the skill in the skill block
+ok   native: /skill:deslop delivers the complete skill body
+ok   native: /skill:deslop delivers user arguments
+ok   native: /skill:deslop names the skill in the skill block
+ok   native: /skill:figure-it-out delivers the complete skill body
+ok   native: /skill:figure-it-out delivers user arguments
+ok   native: /skill:figure-it-out names the skill in the skill block
+ok   native: /skill:fix-ci delivers the complete skill body
+ok   native: /skill:fix-ci delivers user arguments
+ok   native: /skill:fix-ci names the skill in the skill block
+ok   native: /skill:fix-merge-conflicts delivers the complete skill body
+ok   native: /skill:fix-merge-conflicts delivers user arguments
+ok   native: /skill:fix-merge-conflicts names the skill in the skill block
+ok   native: /skill:get-pr-comments delivers the complete skill body
+ok   native: /skill:get-pr-comments delivers user arguments
+ok   native: /skill:get-pr-comments names the skill in the skill block
+ok   native: /skill:how delivers the complete skill body
+ok   native: /skill:how delivers user arguments
+ok   native: /skill:how names the skill in the skill block
+ok   native: /skill:interrogate delivers the complete skill body
+ok   native: /skill:interrogate delivers user arguments
+ok   native: /skill:interrogate names the skill in the skill block
+ok   native: /skill:loop delivers the complete skill body
+ok   native: /skill:loop delivers user arguments
+ok   native: /skill:loop names the skill in the skill block
+ok   native: /skill:loop-on-ci delivers the complete skill body
+ok   native: /skill:loop-on-ci delivers user arguments
+ok   native: /skill:loop-on-ci names the skill in the skill block
+ok   native: /skill:maintain-verification-skill delivers the complete skill body
+ok   native: /skill:maintain-verification-skill delivers user arguments
+ok   native: /skill:maintain-verification-skill names the skill in the skill block
+ok   native: /skill:make-bot-ui delivers the complete skill body
+ok   native: /skill:make-bot-ui delivers user arguments
+ok   native: /skill:make-bot-ui names the skill in the skill block
+ok   native: /skill:make-pr-easy-to-review delivers the complete skill body
+ok   native: /skill:make-pr-easy-to-review delivers user arguments
+ok   native: /skill:make-pr-easy-to-review names the skill in the skill block
+ok   native: /skill:new-branch-and-pr delivers the complete skill body
+ok   native: /skill:new-branch-and-pr delivers user arguments
+ok   native: /skill:new-branch-and-pr names the skill in the skill block
+ok   native: /skill:no-comments delivers the complete skill body
+ok   native: /skill:no-comments delivers user arguments
+ok   native: /skill:no-comments names the skill in the skill block
+ok   native: /skill:poteto-mode delivers the complete skill body
+ok   native: /skill:poteto-mode delivers user arguments
+ok   native: /skill:poteto-mode names the skill in the skill block
+ok   native: /skill:pr-review-canvas delivers the complete skill body
+ok   native: /skill:pr-review-canvas delivers user arguments
+ok   native: /skill:pr-review-canvas names the skill in the skill block
+ok   native: /skill:principle-attack-the-premise delivers the complete skill body
+ok   native: /skill:principle-attack-the-premise delivers user arguments
+ok   native: /skill:principle-attack-the-premise names the skill in the skill block
+ok   native: /skill:principle-boundary-discipline delivers the complete skill body
+ok   native: /skill:principle-boundary-discipline delivers user arguments
+ok   native: /skill:principle-boundary-discipline names the skill in the skill block
+ok   native: /skill:principle-build-the-lever delivers the complete skill body
+ok   native: /skill:principle-build-the-lever delivers user arguments
+ok   native: /skill:principle-build-the-lever names the skill in the skill block
+ok   native: /skill:principle-encode-lessons-in-structure delivers the complete skill body
+ok   native: /skill:principle-encode-lessons-in-structure delivers user arguments
+ok   native: /skill:principle-encode-lessons-in-structure names the skill in the skill block
+ok   native: /skill:principle-exhaust-the-design-space delivers the complete skill body
+ok   native: /skill:principle-exhaust-the-design-space delivers user arguments
+ok   native: /skill:principle-exhaust-the-design-space names the skill in the skill block
+ok   native: /skill:principle-experience-first delivers the complete skill body
+ok   native: /skill:principle-experience-first delivers user arguments
+ok   native: /skill:principle-experience-first names the skill in the skill block
+ok   native: /skill:principle-fix-root-causes delivers the complete skill body
+ok   native: /skill:principle-fix-root-causes delivers user arguments
+ok   native: /skill:principle-fix-root-causes names the skill in the skill block
+ok   native: /skill:principle-foundational-thinking delivers the complete skill body
+ok   native: /skill:principle-foundational-thinking delivers user arguments
+ok   native: /skill:principle-foundational-thinking names the skill in the skill block
+ok   native: /skill:principle-guard-the-context-window delivers the complete skill body
+ok   native: /skill:principle-guard-the-context-window delivers user arguments
+ok   native: /skill:principle-guard-the-context-window names the skill in the skill block
+ok   native: /skill:principle-laziness-protocol delivers the complete skill body
+ok   native: /skill:principle-laziness-protocol delivers user arguments
+ok   native: /skill:principle-laziness-protocol names the skill in the skill block
+ok   native: /skill:principle-make-operations-idempotent delivers the complete skill body
+ok   native: /skill:principle-make-operations-idempotent delivers user arguments
+ok   native: /skill:principle-make-operations-idempotent names the skill in the skill block
+ok   native: /skill:principle-migrate-callers-then-delete-legacy-apis delivers the complete skill body
+ok   native: /skill:principle-migrate-callers-then-delete-legacy-apis delivers user arguments
+ok   native: /skill:principle-migrate-callers-then-delete-legacy-apis names the skill in the skill block
+ok   native: /skill:principle-minimize-reader-load delivers the complete skill body
+ok   native: /skill:principle-minimize-reader-load delivers user arguments
+ok   native: /skill:principle-minimize-reader-load names the skill in the skill block
+ok   native: /skill:principle-model-the-domain delivers the complete skill body
+ok   native: /skill:principle-model-the-domain delivers user arguments
+ok   native: /skill:principle-model-the-domain names the skill in the skill block
+ok   native: /skill:principle-never-block-on-the-human delivers the complete skill body
+ok   native: /skill:principle-never-block-on-the-human delivers user arguments
+ok   native: /skill:principle-never-block-on-the-human names the skill in the skill block
+ok   native: /skill:principle-outcome-oriented-execution delivers the complete skill body
+ok   native: /skill:principle-outcome-oriented-execution delivers user arguments
+ok   native: /skill:principle-outcome-oriented-execution names the skill in the skill block
+ok   native: /skill:principle-prove-it-works delivers the complete skill body
+ok   native: /skill:principle-prove-it-works delivers user arguments
+ok   native: /skill:principle-prove-it-works names the skill in the skill block
+ok   native: /skill:principle-redesign-from-first-principles delivers the complete skill body
+ok   native: /skill:principle-redesign-from-first-principles delivers user arguments
+ok   native: /skill:principle-redesign-from-first-principles names the skill in the skill block
+ok   native: /skill:principle-separate-before-serializing-shared-state delivers the complete skill body
+ok   native: /skill:principle-separate-before-serializing-shared-state delivers user arguments
+ok   native: /skill:principle-separate-before-serializing-shared-state names the skill in the skill block
+ok   native: /skill:principle-sequence-verifiable-units delivers the complete skill body
+ok   native: /skill:principle-sequence-verifiable-units delivers user arguments
+ok   native: /skill:principle-sequence-verifiable-units names the skill in the skill block
+ok   native: /skill:principle-subtract-before-you-add delivers the complete skill body
+ok   native: /skill:principle-subtract-before-you-add delivers user arguments
+ok   native: /skill:principle-subtract-before-you-add names the skill in the skill block
+ok   native: /skill:principle-test-behavior-not-implementation delivers the complete skill body
+ok   native: /skill:principle-test-behavior-not-implementation delivers user arguments
+ok   native: /skill:principle-test-behavior-not-implementation names the skill in the skill block
+ok   native: /skill:principle-type-system-discipline delivers the complete skill body
+ok   native: /skill:principle-type-system-discipline delivers user arguments
+ok   native: /skill:principle-type-system-discipline names the skill in the skill block
+ok   native: /skill:recall delivers the complete skill body
+ok   native: /skill:recall delivers user arguments
+ok   native: /skill:recall names the skill in the skill block
+ok   native: /skill:reflect delivers the complete skill body
+ok   native: /skill:reflect delivers user arguments
+ok   native: /skill:reflect names the skill in the skill block
+ok   native: /skill:review-and-ship delivers the complete skill body
+ok   native: /skill:review-and-ship delivers user arguments
+ok   native: /skill:review-and-ship names the skill in the skill block
+ok   native: /skill:run-smoke-tests delivers the complete skill body
+ok   native: /skill:run-smoke-tests delivers user arguments
+ok   native: /skill:run-smoke-tests names the skill in the skill block
+ok   native: /skill:show-me-your-work delivers the complete skill body
+ok   native: /skill:show-me-your-work delivers user arguments
+ok   native: /skill:show-me-your-work names the skill in the skill block
+ok   native: /skill:swarm delivers the complete skill body
+ok   native: /skill:swarm delivers user arguments
+ok   native: /skill:swarm names the skill in the skill block
+ok   native: /skill:tdd delivers the complete skill body
+ok   native: /skill:tdd delivers user arguments
+ok   native: /skill:tdd names the skill in the skill block
+ok   native: /skill:teach delivers the complete skill body
+ok   native: /skill:teach delivers user arguments
+ok   native: /skill:teach names the skill in the skill block
+ok   native: /skill:technical-writing delivers the complete skill body
+ok   native: /skill:technical-writing delivers user arguments
+ok   native: /skill:technical-writing names the skill in the skill block
+ok   native: /skill:thermo-nuclear-code-quality-review delivers the complete skill body
+ok   native: /skill:thermo-nuclear-code-quality-review delivers user arguments
+ok   native: /skill:thermo-nuclear-code-quality-review names the skill in the skill block
+ok   native: /skill:typescript-best-practices delivers the complete skill body
+ok   native: /skill:typescript-best-practices delivers user arguments
+ok   native: /skill:typescript-best-practices names the skill in the skill block
+ok   native: /skill:unslop delivers the complete skill body
+ok   native: /skill:unslop delivers user arguments
+ok   native: /skill:unslop names the skill in the skill block
+ok   native: /skill:verify-this delivers the complete skill body
+ok   native: /skill:verify-this delivers user arguments
+ok   native: /skill:verify-this names the skill in the skill block
+ok   native: /skill:weekly-review delivers the complete skill body
+ok   native: /skill:weekly-review delivers user arguments
+ok   native: /skill:weekly-review names the skill in the skill block
+ok   native: /skill:what-did-i-get-done delivers the complete skill body
+ok   native: /skill:what-did-i-get-done delivers user arguments
+ok   native: /skill:what-did-i-get-done names the skill in the skill block
+ok   native: /skill:why delivers the complete skill body
+ok   native: /skill:why delivers user arguments
+ok   native: /skill:why names the skill in the skill block
+ok   native: /skill:workflow-from-chats delivers the complete skill body
+ok   native: /skill:workflow-from-chats delivers user arguments
+ok   native: /skill:workflow-from-chats names the skill in the skill block
+ok   template: /architect delivers its template body
+ok   template: /architect keeps no unexpanded $ARGUMENTS
+ok   template: /arena delivers its template body
+ok   template: /arena keeps no unexpanded $ARGUMENTS
+ok   template: /automate-me delivers its template body
+ok   template: /automate-me keeps no unexpanded $ARGUMENTS
+ok   template: /blast-radius delivers its template body
+ok   template: /blast-radius keeps no unexpanded $ARGUMENTS
+ok   template: /bro delivers its template body
+ok   template: /bro keeps no unexpanded $ARGUMENTS
+ok   template: /check-compiler-errors delivers its template body
+ok   template: /check-compiler-errors keeps no unexpanded $ARGUMENTS
+ok   template: /control-cli delivers its template body
+ok   template: /control-cli keeps no unexpanded $ARGUMENTS
+ok   template: /control-ui delivers its template body
+ok   template: /control-ui keeps no unexpanded $ARGUMENTS
+ok   template: /create-verification-skill delivers its template body
+ok   template: /create-verification-skill keeps no unexpanded $ARGUMENTS
+ok   template: /deslop delivers its template body
+ok   template: /deslop keeps no unexpanded $ARGUMENTS
+ok   template: /figure-it-out delivers its template body
+ok   template: /figure-it-out keeps no unexpanded $ARGUMENTS
+ok   template: /fix-ci delivers its template body
+ok   template: /fix-ci keeps no unexpanded $ARGUMENTS
+ok   template: /fix-merge-conflicts delivers its template body
+ok   template: /fix-merge-conflicts keeps no unexpanded $ARGUMENTS
+ok   template: /get-pr-comments delivers its template body
+ok   template: /get-pr-comments keeps no unexpanded $ARGUMENTS
+ok   template: /how delivers its template body
+ok   template: /how keeps no unexpanded $ARGUMENTS
+ok   template: /interrogate delivers its template body
+ok   template: /interrogate keeps no unexpanded $ARGUMENTS
+ok   template: /loop-on-ci delivers its template body
+ok   template: /loop-on-ci keeps no unexpanded $ARGUMENTS
+ok   template: /maintain-verification-skill delivers its template body
+ok   template: /maintain-verification-skill keeps no unexpanded $ARGUMENTS
+ok   template: /make-bot-ui delivers its template body
+ok   template: /make-bot-ui keeps no unexpanded $ARGUMENTS
+ok   template: /make-pr-easy-to-review delivers its template body
+ok   template: /make-pr-easy-to-review keeps no unexpanded $ARGUMENTS
+ok   template: /new-branch-and-pr delivers its template body
+ok   template: /new-branch-and-pr keeps no unexpanded $ARGUMENTS
+ok   template: /no-comments delivers its template body
+ok   template: /no-comments keeps no unexpanded $ARGUMENTS
+ok   template: /pr-review-canvas delivers its template body
+ok   template: /pr-review-canvas keeps no unexpanded $ARGUMENTS
+ok   template: /principle-attack-the-premise delivers its template body
+ok   template: /principle-attack-the-premise keeps no unexpanded $ARGUMENTS
+ok   template: /principle-boundary-discipline delivers its template body
+ok   template: /principle-boundary-discipline keeps no unexpanded $ARGUMENTS
+ok   template: /principle-build-the-lever delivers its template body
+ok   template: /principle-build-the-lever keeps no unexpanded $ARGUMENTS
+ok   template: /principle-encode-lessons-in-structure delivers its template body
+ok   template: /principle-encode-lessons-in-structure keeps no unexpanded $ARGUMENTS
+ok   template: /principle-exhaust-the-design-space delivers its template body
+ok   template: /principle-exhaust-the-design-space keeps no unexpanded $ARGUMENTS
+ok   template: /principle-experience-first delivers its template body
+ok   template: /principle-experience-first keeps no unexpanded $ARGUMENTS
+ok   template: /principle-fix-root-causes delivers its template body
+ok   template: /principle-fix-root-causes keeps no unexpanded $ARGUMENTS
+ok   template: /principle-foundational-thinking delivers its template body
+ok   template: /principle-foundational-thinking keeps no unexpanded $ARGUMENTS
+ok   template: /principle-guard-the-context-window delivers its template body
+ok   template: /principle-guard-the-context-window keeps no unexpanded $ARGUMENTS
+ok   template: /principle-laziness-protocol delivers its template body
+ok   template: /principle-laziness-protocol keeps no unexpanded $ARGUMENTS
+ok   template: /principle-make-operations-idempotent delivers its template body
+ok   template: /principle-make-operations-idempotent keeps no unexpanded $ARGUMENTS
+ok   template: /principle-migrate-callers-then-delete-legacy-apis delivers its template body
+ok   template: /principle-migrate-callers-then-delete-legacy-apis keeps no unexpanded $ARGUMENTS
+ok   template: /principle-minimize-reader-load delivers its template body
+ok   template: /principle-minimize-reader-load keeps no unexpanded $ARGUMENTS
+ok   template: /principle-model-the-domain delivers its template body
+ok   template: /principle-model-the-domain keeps no unexpanded $ARGUMENTS
+ok   template: /principle-never-block-on-the-human delivers its template body
+ok   template: /principle-never-block-on-the-human keeps no unexpanded $ARGUMENTS
+ok   template: /principle-outcome-oriented-execution delivers its template body
+ok   template: /principle-outcome-oriented-execution keeps no unexpanded $ARGUMENTS
+ok   template: /principle-prove-it-works delivers its template body
+ok   template: /principle-prove-it-works keeps no unexpanded $ARGUMENTS
+ok   template: /principle-redesign-from-first-principles delivers its template body
+ok   template: /principle-redesign-from-first-principles keeps no unexpanded $ARGUMENTS
+ok   template: /principle-separate-before-serializing-shared-state delivers its template body
+ok   template: /principle-separate-before-serializing-shared-state keeps no unexpanded $ARGUMENTS
+ok   template: /principle-sequence-verifiable-units delivers its template body
+ok   template: /principle-sequence-verifiable-units keeps no unexpanded $ARGUMENTS
+ok   template: /principle-subtract-before-you-add delivers its template body
+ok   template: /principle-subtract-before-you-add keeps no unexpanded $ARGUMENTS
+ok   template: /principle-test-behavior-not-implementation delivers its template body
+ok   template: /principle-test-behavior-not-implementation keeps no unexpanded $ARGUMENTS
+ok   template: /principle-type-system-discipline delivers its template body
+ok   template: /principle-type-system-discipline keeps no unexpanded $ARGUMENTS
+ok   template: /recall delivers its template body
+ok   template: /recall keeps no unexpanded $ARGUMENTS
+ok   template: /reflect delivers its template body
+ok   template: /reflect keeps no unexpanded $ARGUMENTS
+ok   template: /review-and-ship delivers its template body
+ok   template: /review-and-ship keeps no unexpanded $ARGUMENTS
+ok   template: /run-smoke-tests delivers its template body
+ok   template: /run-smoke-tests keeps no unexpanded $ARGUMENTS
+ok   template: /show-me-your-work delivers its template body
+ok   template: /show-me-your-work keeps no unexpanded $ARGUMENTS
+ok   template: /swarm delivers its template body
+ok   template: /swarm keeps no unexpanded $ARGUMENTS
+ok   template: /tdd delivers its template body
+ok   template: /tdd keeps no unexpanded $ARGUMENTS
+ok   template: /teach delivers its template body
+ok   template: /teach keeps no unexpanded $ARGUMENTS
+ok   template: /technical-writing delivers its template body
+ok   template: /technical-writing keeps no unexpanded $ARGUMENTS
+ok   template: /thermo-nuclear-code-quality-review delivers its template body
+ok   template: /thermo-nuclear-code-quality-review keeps no unexpanded $ARGUMENTS
+ok   template: /typescript-best-practices delivers its template body
+ok   template: /typescript-best-practices keeps no unexpanded $ARGUMENTS
+ok   template: /unslop delivers its template body
+ok   template: /unslop keeps no unexpanded $ARGUMENTS
+ok   template: /verify-this delivers its template body
+ok   template: /verify-this keeps no unexpanded $ARGUMENTS
+ok   template: /weekly-review delivers its template body
+ok   template: /weekly-review keeps no unexpanded $ARGUMENTS
+ok   template: /what-did-i-get-done delivers its template body
+ok   template: /what-did-i-get-done keeps no unexpanded $ARGUMENTS
+ok   template: /why delivers its template body
+ok   template: /why keeps no unexpanded $ARGUMENTS
+ok   template: /workflow-from-chats delivers its template body
+ok   template: /workflow-from-chats keeps no unexpanded $ARGUMENTS
+ok   template: /loop delivers its template body
+ok   template: /loop keeps no unexpanded $ARGUMENTS
+ok   template: a quoted argument reaches the model with its quote characters removed
+ok   template: an apostrophe loses its quote character
+ok   template: an unpaired quote swallows the rest of the line
+ok   native: /skill: keeps argument text exactly as typed
+ok   host contract: names the bundled skills directory
+ok   host contract: names the host loop skill
+ok   host contract: names the immutable upstream snapshot
+ok   host contract: names the team-kit snapshot
+ok   host contract: names the session directory
+ok   host contract: maps Reference's Read is the read tool
+ok   host contract: maps Reference's Shell is bash
+ok   host contract: maps Reference's Grep is grep
+ok   host contract: maps Reference's Glob is find
+ok   mode: /poteto-mode injects the complete mode instructions
+ok   mode: injected mode names its own reference directory
+ok   mode: /poteto-mode off removes the mode instructions
+ok   mode: the pstack_mode tool turns the mode on
+ok   mode: a tool-activated mode reaches the next prompt
+ok   status: each accepted form publishes one status message
+ok   status: reports the discovered skill and template counts
+ok   status: an unknown argument notifies the accepted forms
+ok   tool: TodoWrite replaces the list and reports progress
+ok   tool: /pstack todos renders the saved list
+ok   state: a new session starts with an empty todo list
+ok   tool: pstack_context reports branch entries and the available tool set
+ok   tool: pstack_context history lists workspace sessions
+ok   tool: AskQuestion returns the selected answer
+ok   tool: a foreground Task returns the child answer
+ok   tool: a background Task returns a task id
+ok   tool: TaskOutput block waits for the child answer
+ok   tool: Task rejects an unsupported persona by name
+ok   tool: Task refuses cloud execution instead of running locally
+ok   tool: Task reports an unavailable model with the available choices
+ok   tool: BackgroundShell starts a shell and reports its id
+ok   tool: BackgroundShellList finds the running shell
+ok   tool: BackgroundShellStop reports a stopped shell
+ok   tool: BackgroundShellStop returns when a descendant escaped the process group
+ok   helper: check-plan.mjs reports its usage
+ok   helper: check-plan.mjs fails a plan missing the required sections
+ok   helper: log.sh writes the decision row
+ok   helper: orch answers --help
+ok   helper: watch-pr answers --help
+ok   resume: the first session wrote its transcript
+ok   resume: a reopened session keeps the active mode
+ok   resume: a reopened session keeps the saved todos
+ok   resume: the restored mode reaches the next prompt
+ok   setup: no model rule exists before setup
+ok   setup: writes the model rule
+ok   setup: keeps every upstream role
+ok   setup: records the confirmed budget
+ok   setup: confirms the written path
+ok   setup: offers project verification exactly once
+ok   setup: the saved rule applies from the next prompt
+ok   setup: /skill:setup-pstack runs the same validated dialogs
+ok   helper: worktree-audit.sh classifies a linked worktree
+
+382 checks passed, 0 findings
+npm --prefix extensions/pi-anthropic-oauth run typecheck
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-anthropic-oauth@0.1.0 typecheck
+> tsc -p .
+
+npm --prefix extensions/pi-anthropic-oauth test
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-anthropic-oauth@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/setup-bun/extensions/pi-anthropic-oauth
+
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  09:51:12
+   Duration  378ms (import 70%, tests 23%, transform 6%, worker 1%)
+
+npm --prefix extensions/pi-antigravity-oauth run check:vendor
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-antigravity-oauth@0.1.0 check:vendor
+> node scripts/vendor-pi-ai.mjs --check
+
+Vendored modules match @earendil-works/pi-ai 0.87.1.
+npm --prefix extensions/pi-antigravity-oauth run typecheck
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-antigravity-oauth@0.1.0 typecheck
+> tsc -p .
+
+npm --prefix extensions/pi-antigravity-oauth test
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-antigravity-oauth@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/setup-bun/extensions/pi-antigravity-oauth
+
+
+ Test Files  4 passed (4)
+      Tests  38 passed (38)
+   Start at  09:51:14
+   Duration  1.38s (tests 65%, import 24%, transform 11%, worker 1%)
+
+npm --prefix extensions/pi-tui-parity run check:docs
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-tui-parity@0.1.0 check:docs
+> node scripts/check-docs.mjs
+
+check-docs: 21 source files conform to installed pi declarations
+npm --prefix extensions/pi-tui-parity run check:parity
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-tui-parity@0.1.0 check:parity
+> node scripts/check-parity.mjs
+
+parity matrix OK: 362 rows for 362 inventory ids
+counts: {"implemented":94,"mapped":104,"deviation":33,"unmet":131}
+npm --prefix extensions/pi-tui-parity run typecheck
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-tui-parity@0.1.0 typecheck
+> tsc --noEmit
+
+npm --prefix extensions/pi-tui-parity run test:coverage
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-tui-parity@0.1.0 test:coverage
+> vitest run --coverage
+
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/setup-bun/extensions/pi-tui-parity
+      Coverage enabled with v8
+
+
+ Test Files  12 passed (12)
+      Tests  112 passed (112)
+   Start at  09:51:19
+   Duration  767ms (import 54%, tests 25%, transform 18%, worker 4%)
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+--------------|---------|----------|---------|---------|-------------------
+File          | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+--------------|---------|----------|---------|---------|-------------------
+All files     |   89.84 |    89.74 |   94.11 |   90.05 |                   
+ constants.ts |   98.18 |      100 |       0 |   98.18 | 177               
+ format.ts    |   96.77 |    93.18 |     100 |     100 | 29,39,58          
+ index.ts     |       0 |      100 |       0 |       0 | 16-28             
+ state.ts     |   80.95 |    72.22 |     100 |   83.33 | 36,45-47          
+--------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 89.84% ( 177/197 )
+Branches     : 89.74% ( 70/78 )
+Functions    : 94.11% ( 32/34 )
+Lines        : 90.05% ( 154/171 )
+================================================================================
+npm --prefix extensions/pi-one-dark-pro-theme run check:parity
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-one-dark-pro-theme@0.1.0 check:parity
+> node scripts/check-parity.mjs
+
+one-dark-pro-flat parity OK: 59 role map rows, 56 colors, 3 export colors, upstream sha256 verified
+npm --prefix extensions/pi-one-dark-pro-theme run typecheck
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-one-dark-pro-theme@0.1.0 typecheck
+> tsc --noEmit
+
+npm --prefix extensions/pi-one-dark-pro-theme run test:coverage
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> pi-one-dark-pro-theme@0.1.0 test:coverage
+> vitest run --coverage
+
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/setup-bun/extensions/pi-one-dark-pro-theme
+      Coverage enabled with v8
+
+
+ Test Files  3 passed (3)
+      Tests  82 passed (82)
+   Start at  09:51:22
+   Duration  308ms (tests 61%, transform 24%, import 8%, worker 7%)
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+----------|---------|----------|---------|---------|-------------------
+File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+----------|---------|----------|---------|---------|-------------------
+All files |   97.25 |    89.84 |     100 |    97.7 |                   
+ theme.ts |   97.25 |    89.84 |     100 |    97.7 | 226,340,380,397   
+----------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 97.25% ( 177/182 )
+Branches     : 89.84% ( 115/128 )
+Functions    : 100% ( 28/28 )
+Lines        : 97.7% ( 170/174 )
+================================================================================
+node scripts/verify-fresh-install.mjs
+extensions/pi-anthropic-oauth: 15 claude-subscription models from a fresh copy
+extensions/pi-antigravity-oauth: 5 google-antigravity models from a fresh copy
+repository root: 5 skills from a fresh copy
+Verified installed Pi CLI package loading, RPC commands, status, mode off, and orderly shutdown without model calls.
+uv run --no-project --with coverage==7.16.1 coverage erase
+uv run --no-project --with coverage==7.16.1 coverage run -m unittest discover -s skills/doctor/tests -v
+test_cli_bad_package_marks_report_partial (test_boundaries.AdditionalBoundaries.test_cli_bad_package_marks_report_partial) ... ok
+test_invalid_trust_json_is_diagnostic (test_boundaries.AdditionalBoundaries.test_invalid_trust_json_is_diagnostic) ... ok
+test_invalid_trust_paths_are_diagnostics_not_stale (test_boundaries.AdditionalBoundaries.test_invalid_trust_paths_are_diagnostics_not_stale) ... ok
+test_malformed_header_has_explicit_diagnostic (test_boundaries.AdditionalBoundaries.test_malformed_header_has_explicit_diagnostic) ... ok
+test_package_permission_error_is_not_absence (test_boundaries.AdditionalBoundaries.test_package_permission_error_is_not_absence) ... ok
+test_settings_permission_and_encoding_errors_are_explicit (test_boundaries.AdditionalBoundaries.test_settings_permission_and_encoding_errors_are_explicit) ... ok
+test_unreadable_optional_directory_is_not_absence (test_boundaries.AdditionalBoundaries.test_unreadable_optional_directory_is_not_absence) ... ok
+test_day_limits_and_invalid_cli_values (test_boundaries.ContractBoundaries.test_day_limits_and_invalid_cli_values) ... ok
+test_home_isolated_and_empty_inventory_is_complete (test_boundaries.ContractBoundaries.test_home_isolated_and_empty_inventory_is_complete) ... ok
+test_session_scan_stats_each_file_once (test_boundaries.ContractBoundaries.test_session_scan_stats_each_file_once) ... ok
+test_settings_and_prompt_inputs_remain_unchanged (test_boundaries.ContractBoundaries.test_settings_and_prompt_inputs_remain_unchanged) ... ok
+test_valid_npm_sources_preserve_managed_locations (test_boundaries.ContractBoundaries.test_valid_npm_sources_preserve_managed_locations) ... ok
+test_version_failure_through_cli (test_boundaries.ContractBoundaries.test_version_failure_through_cli) ... ok
+test_disappearing_release_preserves_other_releases (test_boundaries.InstallBoundaries.test_disappearing_release_preserves_other_releases) ... ok
+test_executable_resolution_failure_is_reported (test_boundaries.InstallBoundaries.test_executable_resolution_failure_is_reported) ... ok
+test_successful_version_and_absent_optional_directories (test_boundaries.InstallBoundaries.test_successful_version_and_absent_optional_directories) ... ok
+test_unreadable_releases_are_reported (test_boundaries.InstallBoundaries.test_unreadable_releases_are_reported) ... ok
+test_version_nonzero_is_not_accepted (test_boundaries.InstallBoundaries.test_version_nonzero_is_not_accepted) ... ok
+test_version_timeout_and_execution_errors_are_explicit (test_boundaries.InstallBoundaries.test_version_timeout_and_execution_errors_are_explicit) ... ok
+test_cli_reports_unsafe_package (test_boundaries.PackageBoundaries.test_cli_reports_unsafe_package) ... ok
+test_npm_symlink_cannot_escape_managed_directory (test_boundaries.PackageBoundaries.test_npm_symlink_cannot_escape_managed_directory) ... ok
+test_unsafe_npm_sources_are_not_scanned (test_boundaries.PackageBoundaries.test_unsafe_npm_sources_are_not_scanned) ... ok
+test_broken_session_path_preserves_other_inventory (test_boundaries.RemainingScanBoundaries.test_broken_session_path_preserves_other_inventory) ... ok
+test_invalid_skill_encoding_is_reported (test_boundaries.RemainingScanBoundaries.test_invalid_skill_encoding_is_reported) ... ok
+test_missing_optional_roots_are_quiet (test_boundaries.RemainingScanBoundaries.test_missing_optional_roots_are_quiet) ... ok
+test_out_of_range_timestamp_is_reported (test_boundaries.RemainingScanBoundaries.test_out_of_range_timestamp_is_reported) ... ok
+test_repository_boundary_error_is_reported (test_boundaries.RemainingScanBoundaries.test_repository_boundary_error_is_reported) ... ok
+test_session_resolution_error_preserves_other_inventory (test_boundaries.RemainingScanBoundaries.test_session_resolution_error_preserves_other_inventory) ... ok
+test_session_traversal_failure_is_reported (test_boundaries.RemainingScanBoundaries.test_session_traversal_failure_is_reported) ... ok
+test_cli_marks_partial_session_results (test_boundaries.ScanBoundaries.test_cli_marks_partial_session_results) ... ok
+test_extreme_days_rejected_without_traceback (test_boundaries.ScanBoundaries.test_extreme_days_rejected_without_traceback) ... ok
+test_invalid_header_path_is_reported (test_boundaries.ScanBoundaries.test_invalid_header_path_is_reported) ... ok
+test_session_encoding_failure_is_reported (test_boundaries.ScanBoundaries.test_session_encoding_failure_is_reported) ... ok
+test_session_read_and_parse_failures_are_reported (test_boundaries.ScanBoundaries.test_session_read_and_parse_failures_are_reported) ... ok
+test_session_stat_race_is_reported (test_boundaries.ScanBoundaries.test_session_stat_race_is_reported) ... ok
+test_skill_read_and_traversal_errors_are_reported (test_boundaries.ScanBoundaries.test_skill_read_and_traversal_errors_are_reported) ... ok
+test_unreadable_skill_does_not_hide_readable_sibling (test_boundaries.ScanBoundaries.test_unreadable_skill_does_not_hide_readable_sibling) ... ok
+test_frontmatter_missing_invalid_and_folded_fields (test_inventory.InventorySessions.test_frontmatter_missing_invalid_and_folded_fields) ... ok
+test_full_inventory_honors_project_session_directory (test_inventory.InventorySessions.test_full_inventory_honors_project_session_directory) ... ok
+test_git_ssh_sources_map_to_official_managed_directories (test_inventory.InventorySessions.test_git_ssh_sources_map_to_official_managed_directories) ... ok
+test_invalid_settings_are_reported_and_negative_days_rejected (test_inventory.InventorySessions.test_invalid_settings_are_reported_and_negative_days_rejected) ... ok
+test_malformed_records_and_fields_do_not_discard_valid_evidence (test_inventory.InventorySessions.test_malformed_records_and_fields_do_not_discard_valid_evidence) ... ok
+test_managed_packages_use_the_settings_scope (test_inventory.InventorySessions.test_managed_packages_use_the_settings_scope) ... ok
+test_prompt_fallback_matches_header_cwd_and_applies_tool_deltas (test_inventory.InventorySessions.test_prompt_fallback_matches_header_cwd_and_applies_tool_deltas) ... ok
+test_prompt_uses_only_active_branch_ancestry (test_inventory.InventorySessions.test_prompt_uses_only_active_branch_ancestry) ... ok
+test_relative_session_directory_uses_requested_cwd (test_inventory.InventorySessions.test_relative_session_directory_uses_requested_cwd) ... ok
+test_skill_directory_cycles_are_pruned (test_inventory.InventorySessions.test_skill_directory_cycles_are_pruned) ... ok
+test_skill_problems_and_literal_configured_roots (test_inventory.InventorySessions.test_skill_problems_and_literal_configured_roots) ... ok
+test_unsafe_remote_install_paths_are_reported_without_scanning (test_inventory.InventorySessions.test_unsafe_remote_install_paths_are_reported_without_scanning) ... ok
+test_whitespace_json_counts_skill_and_tool_usage (test_inventory.InventorySessions.test_whitespace_json_counts_skill_and_tool_usage) ... ok
+test_existing_file_session_root_has_its_own_diagnostic (test_review_regressions.ReviewRegressions.test_existing_file_session_root_has_its_own_diagnostic) ... ok
+test_explicit_cwd_does_not_evaluate_missing_process_cwd (test_review_regressions.ReviewRegressions.test_explicit_cwd_does_not_evaluate_missing_process_cwd) ... ok
+test_failed_version_stderr_is_not_published (test_review_regressions.ReviewRegressions.test_failed_version_stderr_is_not_published) ... ok
+test_home_failure_is_inside_inventory_boundary (test_review_regressions.ReviewRegressions.test_home_failure_is_inside_inventory_boundary) ... ok
+test_missing_default_cwd_is_an_inventory_diagnostic (test_review_regressions.ReviewRegressions.test_missing_default_cwd_is_an_inventory_diagnostic) ... ok
+test_shallow_prompt_fallback_follows_directory_symlinks (test_review_regressions.ReviewRegressions.test_shallow_prompt_fallback_follows_directory_symlinks) ... ok
+
+----------------------------------------------------------------------
+Ran 56 tests in 2.707s
+
+OK
+uv run --no-project --with coverage==7.16.1 coverage run -m unittest discover -s skills/implement-cli-from-contract/tests -v
+test_absolute_and_parent_ids_cannot_delete_existing_directories (test_differential.DifferentialSafety.test_absolute_and_parent_ids_cannot_delete_existing_directories) ... ok
+test_comparison_reports_mismatches_triage_and_missing_records (test_differential.DifferentialSafety.test_comparison_reports_mismatches_triage_and_missing_records) ... ok
+test_failed_launches_cannot_be_reported_as_matching (test_differential.DifferentialSafety.test_failed_launches_cannot_be_reported_as_matching) ... ok
+test_incomplete_capture_is_rejected_while_older_records_are_supported (test_differential.DifferentialSafety.test_incomplete_capture_is_rejected_while_older_records_are_supported) ... ok
+test_invalid_corpus_is_rejected_before_any_launch (test_differential.DifferentialSafety.test_invalid_corpus_is_rejected_before_any_launch) ... ok
+test_malformed_comparison_records_fail_without_tracebacks (test_differential.DifferentialSafety.test_malformed_comparison_records_fail_without_tracebacks) ... ok
+test_malformed_triage_is_rejected_even_without_comparisons (test_differential.DifferentialSafety.test_malformed_triage_is_rejected_even_without_comparisons) ... ok
+test_output_symlinks_cannot_redirect_artifacts (test_differential.DifferentialSafety.test_output_symlinks_cannot_redirect_artifacts) ... ok
+test_probe_cannot_override_record_identity_or_output (test_differential.DifferentialSafety.test_probe_cannot_override_record_identity_or_output) ... ok
+test_selection_empty_commands_and_invalid_json_fail_cleanly (test_differential.DifferentialSafety.test_selection_empty_commands_and_invalid_json_fail_cleanly) ... ok
+test_valid_repeated_cases_preserve_legacy_and_new_evidence (test_differential.DifferentialSafety.test_valid_repeated_cases_preserve_legacy_and_new_evidence) ... ok
+test_empty_comparison_and_missing_raw_stream_fail_cleanly (test_outcomes.OutcomeComparison.test_empty_comparison_and_missing_raw_stream_fail_cleanly) ... ok
+test_invalid_later_case_options_prevent_all_launches (test_outcomes.OutcomeComparison.test_invalid_later_case_options_prevent_all_launches) ... ok
+test_malformed_output_outcomes_are_rejected (test_outcomes.OutcomeComparison.test_malformed_output_outcomes_are_rejected) ... ok
+test_new_outcome_failures_cannot_match (test_outcomes.OutcomeComparison.test_new_outcome_failures_cannot_match) ... ok
+test_observation_values_reject_invalid_signals_and_paths (test_outcomes.OutcomeComparison.test_observation_values_reject_invalid_signals_and_paths) ... ok
+test_optional_normalization_and_filesystem_diagnostics (test_outcomes.OutcomeComparison.test_optional_normalization_and_filesystem_diagnostics) ... ok
+test_selection_does_not_search_the_list_for_each_case (test_outcomes.OutcomeComparison.test_selection_does_not_search_the_list_for_each_case) ... ok
+test_selection_launches_only_requested_cases_in_corpus_order (test_outcomes.OutcomeComparison.test_selection_launches_only_requested_cases_in_corpus_order) ... ok
+test_stale_triage_is_reported_without_hiding_matches (test_outcomes.OutcomeComparison.test_stale_triage_is_reported_without_hiding_matches) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 10.824s
+
+OK
+uv run --no-project --with coverage==7.16.1 coverage run -m unittest discover -s skills/reverse-engineer-cli/tests -v
+test_expected_pipe_closure_is_not_an_input_error (test_capture.CaptureFailures.test_expected_pipe_closure_is_not_an_input_error) ... ok
+test_invalid_signal_and_missing_stdin_fail_cleanly (test_capture.CaptureFailures.test_invalid_signal_and_missing_stdin_fail_cleanly) ... ok
+test_overlapping_seed_symlink_never_writes_outside_sandbox (test_capture.CaptureFailures.test_overlapping_seed_symlink_never_writes_outside_sandbox) ... ok
+test_pipe_eio_is_an_error_not_a_pty_eof (test_capture.CaptureFailures.test_pipe_eio_is_an_error_not_a_pty_eof) ... ok
+test_pty_cleanup_attempts_both_descriptors_after_close_error (test_capture.CaptureFailures.test_pty_cleanup_attempts_both_descriptors_after_close_error) ... ok
+test_pty_configuration_failure_closes_allocated_descriptors (test_capture.CaptureFailures.test_pty_configuration_failure_closes_allocated_descriptors) ... ok
+test_pty_configuration_io_error_is_not_treated_as_eof (test_capture.CaptureFailures.test_pty_configuration_io_error_is_not_treated_as_eof) ... ok
+test_snapshot_walk_failure_is_not_silent (test_capture.CaptureFailures.test_snapshot_walk_failure_is_not_silent) ... ok
+test_stream_outcome_data_annotation_names_immutable_bytes (test_capture.CaptureFailures.test_stream_outcome_data_annotation_names_immutable_bytes) ... ok
+test_unexpected_read_error_cannot_claim_complete_capture (test_capture.CaptureFailures.test_unexpected_read_error_cannot_claim_complete_capture) ... ok
+test_unexpected_write_error_is_recorded_separately (test_capture.CaptureFailures.test_unexpected_write_error_is_recorded_separately) ... ok
+test_writer_counts_partial_delivery_before_failure (test_capture.CaptureFailures.test_writer_counts_partial_delivery_before_failure) ... ok
+test_zero_progress_write_preserves_confirmed_partial_delivery (test_capture.CaptureFailures.test_zero_progress_write_preserves_confirmed_partial_delivery) ... ok
+test_zero_progress_write_records_partial_delivery_in_evidence (test_capture.CaptureFailures.test_zero_progress_write_records_partial_delivery_in_evidence) ... ok
+test_cancelled_reader_publishes_only_immutable_completed_data (test_lifecycle.CaptureLifecycle.test_cancelled_reader_publishes_only_immutable_completed_data) ... ok
+test_execution_metadata_does_not_expose_mutable_aliases (test_lifecycle.CaptureLifecycle.test_execution_metadata_does_not_expose_mutable_aliases) ... ok
+test_failed_tty_duplication_closes_both_pty_descriptors (test_lifecycle.CaptureLifecycle.test_failed_tty_duplication_closes_both_pty_descriptors) ... ok
+test_launch_setup_exception_closes_every_capture_descriptor (test_lifecycle.CaptureLifecycle.test_launch_setup_exception_closes_every_capture_descriptor) ... ok
+test_partial_capture_allocation_closes_prior_pipe (test_lifecycle.CaptureLifecycle.test_partial_capture_allocation_closes_prior_pipe) ... ok
+test_resistant_target_escalates_and_descendant_output_is_reported (test_lifecycle.CaptureLifecycle.test_resistant_target_escalates_and_descendant_output_is_reported) ... ok
+test_snapshot_failure_has_a_clean_cli_error (test_lifecycle.CaptureLifecycle.test_snapshot_failure_has_a_clean_cli_error) ... ok
+test_stdin_modes_and_confirmed_tty_eof (test_lifecycle.CaptureLifecycle.test_stdin_modes_and_confirmed_tty_eof) ... ok
+test_thread_start_failure_unwinds_started_and_unstarted_workers (test_lifecycle.CaptureLifecycle.test_thread_start_failure_unwinds_started_and_unstarted_workers) ... ok
+test_wait_failure_kills_and_reaps_target (test_lifecycle.CaptureLifecycle.test_wait_failure_kills_and_reaps_target) ... ok
+test_invalid_initialization_does_not_create_a_workspace (test_replay.ReviewedReplay.test_invalid_initialization_does_not_create_a_workspace) ... ok
+test_invalid_reviewed_corpora_fail_before_any_replay_output (test_replay.ReviewedReplay.test_invalid_reviewed_corpora_fail_before_any_replay_output) ... ok
+test_large_finite_timeout_remains_supported (test_replay.ReviewedReplay.test_large_finite_timeout_remains_supported) ... ok
+test_launch_errors_and_timeouts_cannot_pass_an_exit_only_assertion (test_replay.ReviewedReplay.test_launch_errors_and_timeouts_cannot_pass_an_exit_only_assertion) ... ok
+test_malformed_identity_is_rejected_before_output (test_replay.ReviewedReplay.test_malformed_identity_is_rejected_before_output) ... ok
+test_malformed_new_outcomes_do_not_use_legacy_defaults (test_replay.ReviewedReplay.test_malformed_new_outcomes_do_not_use_legacy_defaults) ... ok
+test_modified_copy_and_wrong_first_artifact_stop_replay (test_replay.ReviewedReplay.test_modified_copy_and_wrong_first_artifact_stop_replay) ... ok
+test_nested_enum_assertion_and_timing_errors_are_rejected_before_output (test_replay.ReviewedReplay.test_nested_enum_assertion_and_timing_errors_are_rejected_before_output) ... ok
+test_replay_forwards_stdin_environment_and_seed_inputs (test_replay.ReviewedReplay.test_replay_forwards_stdin_environment_and_seed_inputs) ... ok
+test_replay_reads_only_new_observation_bytes (test_replay.ReviewedReplay.test_replay_reads_only_new_observation_bytes) ... ok
+test_runner_capture_and_input_errors_cannot_pass_exit_only_expectations (test_replay.ReviewedReplay.test_runner_capture_and_input_errors_cannot_pass_exit_only_expectations) ... ok
+test_runner_failure_is_reported_without_fabricated_target_result (test_replay.ReviewedReplay.test_runner_failure_is_reported_without_fabricated_target_result) ... ok
+test_send_signal_accepts_lowercase_with_a_canonical_assertion (test_replay.ReviewedReplay.test_send_signal_accepts_lowercase_with_a_canonical_assertion) ... ok
+test_signal_assertions_require_emitted_names (test_replay.ReviewedReplay.test_signal_assertions_require_emitted_names) ... ok
+test_successful_runner_requires_one_valid_appended_observation (test_replay.ReviewedReplay.test_successful_runner_requires_one_valid_appended_observation) ... ok
+test_maintained_scripts_and_tests_obey_file_and_function_limits (test_structure.PythonStructure.test_maintained_scripts_and_tests_obey_file_and_function_limits) ... ok
+test_maintained_scripts_and_tests_obey_nesting_limit (test_structure.PythonStructure.test_maintained_scripts_and_tests_obey_nesting_limit) ... ok
+test_depth_calculator_distinguishes_four_and_five_control_levels (test_structure_compatibility.StructureCompatibility.test_depth_calculator_distinguishes_four_and_five_control_levels) ... ok
+test_structure_checker_checks_its_own_nesting (test_structure_compatibility.StructureCompatibility.test_structure_checker_checks_its_own_nesting) ... ok
+test_structure_checker_supports_python_without_try_star (test_structure_compatibility.StructureCompatibility.test_structure_checker_supports_python_without_try_star) ... ok
+test_child_closed_stdin_preserves_expected_pipe_closure (test_tools.EvidenceTools.test_child_closed_stdin_preserves_expected_pipe_closure) ... ok
+test_corpus_assertions_empty_cases_hashes_and_replay (test_tools.EvidenceTools.test_corpus_assertions_empty_cases_hashes_and_replay) ... ok
+test_existing_differential_consumer_can_replay_twice (test_tools.EvidenceTools.test_existing_differential_consumer_can_replay_twice) ... ok
+test_invalid_terminal_dimensions_fail_before_creating_output (test_tools.EvidenceTools.test_invalid_terminal_dimensions_fail_before_creating_output) ... ok
+test_launch_failure_is_not_target_exit (test_tools.EvidenceTools.test_launch_failure_is_not_target_exit) ... ok
+test_overlapping_seed_copy_is_rejected_before_target_launch (test_tools.EvidenceTools.test_overlapping_seed_copy_is_rejected_before_target_launch) ... ok
+test_relative_executable_hash_uses_child_cwd (test_tools.EvidenceTools.test_relative_executable_hash_uses_child_cwd) ... ok
+test_seed_copy_uses_the_validated_destination_after_an_earlier_symlink (test_tools.EvidenceTools.test_seed_copy_uses_the_validated_destination_after_an_earlier_symlink) ... ok
+test_seed_escape_and_id_escape_are_rejected (test_tools.EvidenceTools.test_seed_escape_and_id_escape_are_rejected) ... ok
+test_source_only_identity_does_not_claim_runtime (test_tools.EvidenceTools.test_source_only_identity_does_not_claim_runtime) ... ok
+test_streams_stdin_files_and_repeated_ids_preserve_evidence (test_tools.EvidenceTools.test_streams_stdin_files_and_repeated_ids_preserve_evidence) ... ok
+test_terminal_dimensions_accept_unsigned_short_boundaries (test_tools.EvidenceTools.test_terminal_dimensions_accept_unsigned_short_boundaries) ... ok
+test_timeout_and_signal_are_recorded (test_tools.EvidenceTools.test_timeout_and_signal_are_recorded) ... ok
+test_tty_streams_remain_separate (test_tools.EvidenceTools.test_tty_streams_remain_separate) ... ok
+
+----------------------------------------------------------------------
+Ran 58 tests in 26.367s
+
+OK
+uv run --no-project --with coverage==7.16.1 coverage combine
+Combined 171 files, skipped 160
+uv run --no-project --with coverage==7.16.1 coverage report
+Name                                                         Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------------------------------
+skills/doctor/scripts/inventory.py                             438     18    170     14    95%   109->102, 136->134, 139, 146-147, 192, 194-195, 210-213, 225, 270, 274->268, 287-289, 297, 333, 362->364, 379, 399->exit, 455->453, 469->466, 543->542
+skills/implement-cli-from-contract/scripts/differential.py     249      8    142      7    96%   67, 90, 94, 147-148, 157->156, 262->261, 273-275
+skills/reverse-engineer-cli/scripts/investigate.py             291      9    138     10    96%   160, 233, 237, 269, 277, 281, 283, 305, 309, 393->exit
+skills/reverse-engineer-cli/scripts/probe.py                   397     17     84      9    94%   60, 172-173, 282, 286, 288, 290, 295, 297, 369-373, 411->413, 457-458, 460
+--------------------------------------------------------------------------------------------------------
+TOTAL                                                         1375     52    534     40    95%
+uv run --no-project --with coverage==7.16.1 coverage json -o .audit/python-coverage/report.json
+Wrote JSON report to .audit/python-coverage/report.json
+uv run --no-project python -c 'import json; from pathlib import Path; expected = {str(path) for path in Path("skills").glob("*/scripts/*.py")}; measured = set(json.loads(Path(".audit/python-coverage/report.json").read_text())["files"]); assert expected == measured, (expected - measured, measured - expected)'
+MAKE_VERIFY_EXIT=0
