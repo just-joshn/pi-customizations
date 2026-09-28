@@ -58,6 +58,32 @@ test('cursor built-in facilities: host mappings are verified', async () => {
   expect(modeText.includes('references/bugbot-triage.md')).toBe(true);
 });
 
+test('generated resources: repository-relative references resolve in this checkout', async () => {
+  const repositoryRoot = join(packageRoot, '..', '..');
+  const directories = [...(await getSubdirs(join(packageRoot, 'skills'))).map(name => join(packageRoot, 'skills', name)),
+    join(packageRoot, 'host', 'skills', 'loop')];
+  const scanned: string[] = [];
+  for (const directory of directories) {
+    for (const name of await readdir(directory, { recursive: true })) {
+      if (name.endsWith('.md') && !name.includes('node_modules')) scanned.push(join(directory, name));
+    }
+  }
+  expect(scanned.length).toBeGreaterThanOrEqual(directories.length);
+  const pattern = /(?:^|[^-\w])((?:pstack|extensions\/pi-pstack)\/skills\/[A-Za-z0-9._/<>*-]+)/g;
+  const targets: string[] = [];
+  for (const file of scanned) {
+    const text = await readFile(file, 'utf8');
+    for (const match of text.matchAll(pattern)) {
+      const target = match[1].replace(/\/$/, '');
+      expect(target.startsWith('pstack/'), `${file} still names the upstream repository path ${target}`).toBe(false);
+      if (target.includes('<') || target.includes('*')) continue;
+      targets.push(target);
+      expect(existsSync(join(repositoryRoot, target)), `${file} references the missing path ${target}`).toBe(true);
+    }
+  }
+  expect(targets.length).toBeGreaterThanOrEqual(8);
+});
+
 test('resource map: exactly 205 generated resources are verified with matching hashes', async () => {
   const mapPath = join(packageRoot, 'docs/resource-map.json');
   const resources = JSON.parse(await readFile(mapPath, 'utf8')) as { destination: string; sha256: string }[];

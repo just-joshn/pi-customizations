@@ -43,6 +43,7 @@
     "generate": "node scripts/resources.mjs --write",
     "check:resources": "node scripts/resources.mjs",
     "check:cli": "node scripts/verify-cli.mjs",
+    "check:journeys": "node scripts/verify-journeys.mjs",
     "check:upstream": "node scripts/verify-upstream.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

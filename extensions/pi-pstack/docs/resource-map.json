@@ -308,16 +308,20 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/autopilot-full.md",
     "destination": "skills/poteto-mode/playbooks/autopilot-full.md",
-    "sha256": "975439613b9073b637a88c6df762b474dbd745f0e86150bb07d2121e32eb48e7",
+    "sha256": "a6b1cf159b4d68b2ecf24bd8f2f098d407d539c2207ca89b197045967db43cb3",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map the upstream repository path for the bundled skills to this repository layout."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/autopilot-stack.md",
     "destination": "skills/poteto-mode/playbooks/autopilot-stack.md",
-    "sha256": "f626f4ed17725de5ea96ac22597a1c298c46c36015e844bf86a68f6d38d57fbf",
+    "sha256": "b7d5dcab33a0b097951e7b5d3a7dc664d645e0cf102acf3a8cd3b188b29bd53a",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map the upstream repository path for the bundled skills to this repository layout."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/babysit.md",
@@ -366,9 +370,11 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/multi-phase-plan.md",
     "destination": "skills/poteto-mode/playbooks/multi-phase-plan.md",
-    "sha256": "8f8603f97aa57bce07a4c29e83e24e84db62a1fbd1fa5b3f639e1e74ea3c9da9",
+    "sha256": "ed0b4ca25b0fc76d3db03a1f6a2e51fe965cbff5d996f463276ff8191abe072f",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map the upstream repository path for the bundled skills to this repository layout."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/opening-a-pr.md",

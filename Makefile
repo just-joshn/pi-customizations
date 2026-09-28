@@ -12,6 +12,7 @@ verify-extension:
 	npm --prefix extensions/pi-pstack run check:resources
 	npm --prefix extensions/pi-pstack run typecheck
 	npm --prefix extensions/pi-pstack run test:coverage
+	npm --prefix extensions/pi-pstack run check:journeys
 
 verify-oauth:
 	npm --prefix extensions/pi-anthropic-oauth run typecheck

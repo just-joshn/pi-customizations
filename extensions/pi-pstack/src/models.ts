@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { getSupportedThinkingLevels } from "@earendil-works/pi-ai";
+import { clampThinkingLevel, getSupportedThinkingLevels } from "@earendil-works/pi-ai";
 import { getAgentDir, type ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { pick } from "./picker.ts";
 
@@ -72,7 +72,7 @@ export function resolveModel(request: string | undefined, ctx: ExtensionContext)
     throw new Error(`Model '${model.provider}/${model.id}' does not support '${effort}'. Supported thinking levels: ${supported.join(", ")}.`);
   }
   const inherited = ctx.thinkingLevel ?? "off";
-  return { model, thinkingLevel: effort ?? (supported.includes(inherited) ? inherited : supported[0] ?? "off") };
+  return { model, thinkingLevel: effort ?? clampThinkingLevel(model, inherited) };
 }
 
 function applyBudget(value: string, target: ThinkingLevel | undefined, ctx: ExtensionContext): string {

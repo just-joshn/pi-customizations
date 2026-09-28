@@ -49,6 +49,7 @@ const modelRule = 'Map model rule location to Pi agent configuration.';
 const skillDirectories = 'Map user and project skill directories to Pi discovery locations.';
 const transcripts = 'Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.';
 const portableDates = 'Replace BSD-only stat and date calls with Perl so transcript dates survive GNU or uutils coreutils on PATH.';
+const repositorySkills = 'Map the upstream repository path for the bundled skills to this repository layout.';
 const hostPaths = [
   [markdownFiles, 'Look recursively for `.cursor/skills/**/*-mode/SKILL.md` and `~/.cursor/skills/*-mode/SKILL.md`',
     'Look recursively for `.pi/skills/**/*-mode/SKILL.md`, `.agents/skills/**/*-mode/SKILL.md`, `<agent-dir>/skills/*-mode/SKILL.md` (`~/.pi/agent/skills` by default), and `~/.agents/skills/*-mode/SKILL.md`', skillDirectories],
@@ -65,6 +66,7 @@ const hostPaths = [
   [markdownFiles, '`agent-transcripts/` directory', 'Pi session directory', transcripts],
   [markdownFiles, 'under `agent-transcripts/`', 'under the Pi session directory', transcripts],
   [markdownFiles, '`~/.cursor/projects/*/`', '`~/.pi/agent/sessions/*/`', transcripts],
+  [markdownFiles, 'pstack/skills/', 'extensions/pi-pstack/skills/', repositorySkills],
   [worktreeAudit, `# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.\nslug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')\ntranscripts="$HOME/.cursor/projects/$slug/agent-transcripts"`,
     `# Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including pstack-workers.\nsessions="\${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"; sessions="\${sessions/#\\~/$HOME}/sessions"\nsession_dir() { printf '%s/--%s--' "$sessions" "$(printf '%s' "$1" | sed 's#^/##; s#[/:]#-#g')"; }\ntranscripts=$(session_dir "$main_wt")`, transcripts],
   [worktreeAudit, `\tif [ -d "$transcripts" ]; then\n\t\tf=$(rg -l -e "\${wt}/" -e "\${wt}\\"" "$transcripts" 2>/dev/null`,

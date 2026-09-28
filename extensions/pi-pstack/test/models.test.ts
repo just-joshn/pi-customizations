@@ -33,6 +33,12 @@ test("missing defaults and unsupported reasoning report available choices", () =
   expect(() => resolveModel("auto", context({ model: undefined }))).toThrow(/No parent model/);
 });
 
+test("an inherited reasoning level clamps to the nearest supported level", () => {
+  const capped = { ...model, thinkingLevelMap: { high: null, xhigh: null, max: null } };
+  const ctx = context({ model: capped, thinkingLevel: "high", modelRegistry: { getAvailable: () => [capped] } as ExtensionContext["modelRegistry"] });
+  expect(resolveModel(capped.id, ctx).thinkingLevel).toBe("medium");
+});
+
 test("ambiguous IDs require a provider; exact IDs containing colons are retained", () => {
   const duplicate = { ...model, provider: "other-provider" };
   const colon = { ...model, id: "custom:model" };
