@@ -152,3 +152,17 @@ test('showState widget uses distinct status markers for each status', () => {
     '[ ] D (pending)',
   ]);
 });
+
+test('TodoWrite renderResult keeps every line within the render width', () => {
+  const tools: ToolDefinition[] = [];
+  const pi = { appendEntry() {}, registerTool: (t: ToolDefinition) => { tools.push(t); } } as unknown as ExtensionAPI;
+  registerStateTools(pi, createState(pi));
+  const tool = tools.find(t => t.name === 'TodoWrite');
+  assert.ok(tool?.renderResult);
+  const content = 'Branch test/vitest-unit-suites; delete all node:test suites and fixtures (subtract first)';
+  const result = tool.renderResult({ content: [], details: [{ id: '1', content, status: 'pending' as const }] }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
+  assert.deepEqual(result.render(30), [
+    '*Todos* 0/1 completed',
+    '  ○ Branch test/vitest-unit\x1b[0m...\x1b[0m',
+  ]);
+});
