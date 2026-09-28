@@ -42,7 +42,7 @@ Commands and their observed results:
 - `node extensions/scripts/check-vitest-conventions.selftest.mjs` exits 0.
 - `node extensions/scripts/check-vitest-conventions.mjs` reports `0 violations, 241 review items` across 40 vitest files.
 - `npx vitest run` per extension: 6, 38, 112, 215 tests pass. Baseline was 5, 33, 105, 199.
-- `npm run typecheck` per extension exits 0 for all four.
+- `npm run typecheck` inside each extension directory exits 0 for all four. The root `npm run typecheck` is a different command and does not run in this checkout.
 - `npx vitest run --coverage` passes both configured 80% thresholds.
 - After a full run: zero `pstack-*` temporary directories and zero live processes.
 - The pending-work gate was falsified on purpose: deleting the abort-path clear made both worker tests fail, then the change was reverted.
@@ -54,8 +54,14 @@ Commands and their observed results:
 
 The gate scans `*.test.ts` files. Test-support modules (`session-fixture.ts`, `worker-provider.ts`, and the like) are outside its scope, so a future fixture that sleeps or mutates the environment would not be caught by it. That gap is known and unfixed.
 
+## Provenance
+
+Commit `e9355743` (toolchain and rules) carries working-tree changes that predated this run. `biome.json`, `tsconfig.json`, `extensions/AGENTS.md`, and the toolchain fields of the root `package.json` were already modified when the audit started, and this run did not author them. The commit message describes what they contain. Amending a pushed commit needs a force-push to a shared branch, so the disclosure lives here and in the trail.
+
 ## Open items
 
+- The root `npm run typecheck` cannot run in this checkout. There is no root install, so `tsc` is not on the path, and the root tsconfig asks for `types: ["node"]` that no installed package provides.
+- The root `npm run ci` fails. Running Biome 2.5.14 against the tree reports 364 errors and 437 warnings, mostly formatting, and `--error-on-warnings` promotes the warnings. Both scripts landed before this run and neither was made green by it.
 - `pi-antigravity-oauth` branch coverage is 71.15%, below the repository's 80% guideline. It has `coverage.include` but no threshold gate, so the number is visible without failing the build. Raising it means covering roughly 36 branches across `cloudcode.ts`, `command.ts`, `oauth.ts`, and `stream.ts`.
 - Two dead production branches were found and left alone, since production code was fenced out of this pass. `src/notify/osc.ts` returns the same value on both sides of the `insideTmux` branch in `FocusGate.shouldNotify`. `src/models.ts` has an empty-selection arm that no input can reach because `''.split(',')` is `['']`.
 - `skills-parity.test.ts` used to count the 22 Reference built-in skills from `~/.upstream/skills-reference`. That assertion passed only on this machine and nothing in the repository pins those 22 names, so it was removed. Restoring it needs a generated inventory, for example from `scripts/resources.mjs`.

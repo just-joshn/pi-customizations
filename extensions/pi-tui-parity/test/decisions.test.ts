@@ -187,7 +187,7 @@ describe("decision surface keys", () => {
 			{
 				operation: "bash",
 				title: "Run this command?",
-				preview: [`$ ${longCommand}`, "in /Users/josh-desktop/src/personal/pi-customizations"],
+				preview: [`$ ${longCommand}`, "in /home/developer/src/personal/pi-customizations"],
 				allowlistLabel: "",
 			},
 			shellOptions(longCommand),

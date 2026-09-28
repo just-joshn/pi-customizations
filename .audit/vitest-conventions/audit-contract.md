@@ -52,7 +52,7 @@ For each assigned file, check every one of these against the actual test bodies.
 
 ## Verification you must run
 
-From the repository root `/Users/josh-desktop/src/personal/pi-customizations`:
+From the repository root, with the extension directory as the working directory for the suite commands:
 
 1. `node extensions/scripts/check-vitest-conventions.mjs` must report `0 violations` (review notes are advisory).
 2. From `extensions/<extension>`: `npx vitest run <your files>` must pass with every test it had before still present and passing.
