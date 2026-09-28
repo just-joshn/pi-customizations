@@ -4,7 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { SessionManager, type ExtensionAPI, type ExtensionContext, type ToolDefinition } from '@earendil-works/pi-coding-agent';
-import { registerContext } from '../src/context.ts';
+import { registerContext, registerStatus } from '../src/context.ts';
+import { createState } from '../src/state.ts';
 
 type Evidence = { entries: unknown[]; models: string[]; tools: unknown[]; history: unknown[];
   omitted: Record<string, number>; historyDiscovery: { mode: string; completeness: string } };
@@ -100,4 +101,36 @@ test('context reports budget omissions for every list without claiming history c
     assert.deepEqual(empty.omitted, { entries: 0, tools: 0, models: 0, history: 0 });
     assert.deepEqual(empty.historyDiscovery, { mode: 'not-requested', completeness: 'unknown' });
   } finally { await f.close(); }
+});
+
+test('registerStatus formats pstack status, argument completions, and todo details', async () => {
+  let command: { getArgumentCompletions?: (prefix: string) => unknown[]; handler: (args: string, ctx: ExtensionContext) => Promise<void> } | undefined;
+  const messages: unknown[] = [];
+  const pi = {
+    registerCommand: (_name: string, options: typeof command) => { command = options; },
+    sendMessage: (msg: unknown) => { messages.push(msg); },
+  } as unknown as ExtensionAPI;
+  const store = createState({ appendEntry() {} } as unknown as ExtensionAPI);
+  const ctx = { ui: { setStatus: () => {}, setWidget: () => {} } } as unknown as ExtensionContext;
+  registerStatus(pi, store);
+  assert.ok(command);
+  const completions = command.getArgumentCompletions?.('to') as Array<{ value: string }>;
+  assert.deepEqual(completions, [{ value: 'todos', label: 'todos', description: 'Show current todos and progress' }]);
+  await command.handler('status', ctx);
+  const initial = messages.at(-1) as { content: string };
+  assert.match(initial.content, /Poteto mode off/);
+  assert.ok(!initial.content.includes('Todos:'));
+  store.update({
+    enabled: true,
+    todos: [
+      { id: '1', content: 'Step 1', status: 'completed' },
+      { id: '2', content: 'Step 2', status: 'in_progress' },
+    ],
+  }, ctx);
+  await command.handler('status', ctx);
+  const withTodos = messages.at(-1) as { content: string };
+  assert.match(withTodos.content, /Todos: 1\/2 completed/);
+  await command.handler('todos', ctx);
+  const todosList = messages.at(-1) as { content: string };
+  assert.match(todosList.content, /Todos:\n\[x\] Step 1 \(completed\)\n\[>\] Step 2 \(in_progress\)/);
 });

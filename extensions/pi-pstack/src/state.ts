@@ -1,15 +1,66 @@
 import { Type, type Static } from 'typebox';
 import { Check } from 'typebox/value';
 import { boundedResult } from './results.ts';
-import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ExtensionContext, Theme, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
 
 const Todo = Type.Object({
-  id: Type.String({ minLength: 1 }),
-  content: Type.String({ minLength: 1 }),
-  status: Type.Union([Type.Literal('pending'), Type.Literal('in_progress'), Type.Literal('completed'), Type.Literal('cancelled')]),
+  id: Type.String({ minLength: 1, description: 'Stable unique identifier for the todo item' }),
+  content: Type.String({ minLength: 1, description: 'Description of the todo step or task' }),
+  status: Type.Union([
+    Type.Literal('pending'),
+    Type.Literal('in_progress'),
+    Type.Literal('completed'),
+    Type.Literal('cancelled'),
+  ], { description: 'Current execution status: pending, in_progress, completed, or cancelled' }),
 });
 const State = Type.Object({ enabled: Type.Boolean(), todos: Type.Array(Todo), verificationOffered: Type.Optional(Type.Boolean()) });
 type State = Static<typeof State>;
+
+function renderTodoItem(t: Static<typeof Todo>, theme: Theme): string {
+  if (t.status === 'completed') return `  ${theme.fg('success', '✓')} ${theme.fg('dim', t.content)}`;
+  if (t.status === 'in_progress') return `  ${theme.fg('warning', '◐')} ${theme.fg('accent', t.content)}`;
+  if (t.status === 'cancelled') return `  ${theme.fg('dim', '⊘')} ${theme.fg('dim', t.content)} ${theme.fg('muted', '(cancelled)')}`;
+  return `  ${theme.fg('dim', '○')} ${theme.fg('text', t.content)}`;
+}
+
+function renderTodoSummary(todos: readonly Static<typeof Todo>[], theme: Theme): string {
+  let completed = 0;
+  let inProgress = 0;
+  for (const t of todos) {
+    if (t.status === 'completed') completed++;
+    else if (t.status === 'in_progress') inProgress++;
+  }
+  const total = todos.length;
+  const status = completed === total && total > 0
+    ? theme.fg('success', 'All completed')
+    : theme.fg('muted', `${completed}/${total} completed${inProgress ? ` • ${inProgress} in progress` : ''}`);
+  return `${theme.fg('toolTitle', theme.bold('Todos'))} ${status}`;
+}
+
+function renderTodoResult(result: { details?: unknown }, options: ToolRenderResultOptions, theme: Theme) {
+  const todos = result.details as Static<typeof Todo>[] | undefined;
+  if (!todos || todos.length === 0) return { render: () => [theme.fg('dim', 'No todos')], invalidate() {} };
+  const header = renderTodoSummary(todos, theme);
+  const limit = 8;
+  return {
+    render: () => {
+      const visible = options.expanded ? todos : todos.slice(0, limit);
+      const lines = [header, ...visible.map((t) => renderTodoItem(t, theme))];
+      if (!options.expanded && todos.length > limit) {
+        lines.push(theme.fg('dim', `  ... ${todos.length - limit} more (expand to view all)`));
+      }
+      return lines;
+    },
+    invalidate() {},
+  };
+}
+
+function renderTodoCall(args: { todos?: Static<typeof Todo>[]; merge?: boolean }, theme: Theme) {
+  const count = args.todos?.length ?? 0;
+  const mode = args.merge ? ', merge' : '';
+  const line = `${theme.fg('toolTitle', theme.bold('TodoWrite'))} ${theme.fg('muted', `${count} item${count === 1 ? '' : 's'}${mode}`)}`;
+  return { render: () => [line], invalidate() {} };
+}
 
 export function createState(pi: ExtensionAPI) {
   let state: State = { enabled: false, todos: [] };
@@ -17,7 +68,13 @@ export function createState(pi: ExtensionAPI) {
   const showState = (ctx: ExtensionContext) => {
     ctx.ui.setStatus('pstack', state.enabled ? 'poteto-mode' : undefined);
     ctx.ui.setWidget('pstack-todos', state.todos.length
-      ? state.todos.map((todo) => `${todo.status === 'completed' ? '[x]' : '[ ]'} ${todo.content} (${todo.status})`)
+      ? state.todos.map((todo) => {
+        const marker = todo.status === 'completed' ? '[x]'
+          : todo.status === 'in_progress' ? '[>]'
+          : todo.status === 'cancelled' ? '[-]'
+          : '[ ]';
+        return `${marker} ${todo.content} (${todo.status})`;
+      })
       : undefined);
   };
   const restore = (ctx: ExtensionContext) => {
@@ -59,9 +116,15 @@ export function registerStateTools(pi: ExtensionAPI, store: StateStore): void {
     executionMode: 'sequential',
     name: 'TodoWrite', label: 'Pstack todos',
     description: 'Replace or merge the ordered todo list. Copy the selected playbook steps verbatim before task-specific steps. Keep skipped steps with a reason.',
-    promptSnippet: 'Replace or merge the ordered pstack todo list',
-    promptGuidelines: ['TodoWrite keeps the verbatim ordered playbook steps.'],
-    parameters: Type.Object({ todos: Type.Array(Todo), merge: Type.Optional(Type.Boolean()) }),
+    promptSnippet: 'Replace or merge the ordered todo list.',
+    promptGuidelines: [
+      'Copy the selected playbook steps verbatim before task-specific steps.',
+      'Keep skipped steps with a reason.',
+    ],
+    parameters: Type.Object({
+      todos: Type.Array(Todo, { description: 'The list of todo items to set or merge' }),
+      merge: Type.Optional(Type.Boolean({ description: 'If true, merges with existing todos by id while preserving order; if false or omitted, replaces the entire todo list' })),
+    }),
     async execute(_id, params, _signal, _update, ctx) {
       if (new Set(params.todos.map((todo) => todo.id)).size !== params.todos.length) throw new Error('Todo IDs must be unique.');
       const state = store.read();
@@ -71,5 +134,7 @@ export function registerStateTools(pi: ExtensionAPI, store: StateStore): void {
       const published = store.read().todos;
       return boundedResult(JSON.stringify(published), published, ctx);
     },
+    renderCall: renderTodoCall,
+    renderResult: renderTodoResult,
   });
 }
