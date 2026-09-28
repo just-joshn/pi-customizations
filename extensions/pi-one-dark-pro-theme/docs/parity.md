@@ -265,7 +265,16 @@ change what the gate sees.
 The gate compares the theme against the role map and the pinned upstream file. It cannot judge
 whether a row names the right upstream key. Swapping `mdLink` and `mdLinkUrl` would still pass
 once the theme is rebuilt, which is why every row carries a `why` column and why the two role sets
-are read side by side during review. `check:parity` also accepts `--theme <path>`, which the
+are read side by side during review.
+
+The gate is a drift detector, not a correctness detector, and it shares `buildTheme` with the
+generator. A resolver bug therefore produces a self-consistent theme that the gate reports as OK.
+Reproduced by making `resolveScope` return `#000000` for every scope: `check:parity` stayed green
+while all 17 scope-derived colors went black. That half of the theme is pinned separately, in
+`test/theme-loader.test.ts`, which loads the committed theme through pi's own loader and asserts
+the rendered escape for each of the 17 against a literal derived before this package existed. The
+other 42 roles read a workbench key verbatim, so drift is the only way they can go wrong and the
+gate covers them. `check:parity` also accepts `--theme <path>`, which the
 mutation tests use to point the gate at a temporary copy instead of the committed file.
 
 `test/parity.test.ts` reads the same artifacts and asserts the committed theme against a fresh
