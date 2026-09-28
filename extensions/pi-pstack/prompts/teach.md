@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled teach workflow."
+argument-hint: "[task]"
 ---
 
 Read teach/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-attack-the-premise workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-attack-the-premise/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

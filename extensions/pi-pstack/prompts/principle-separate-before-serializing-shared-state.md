@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-separate-before-serializing-shared-state workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-separate-before-serializing-shared-state/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

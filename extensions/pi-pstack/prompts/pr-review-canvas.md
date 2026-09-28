@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled pr-review-canvas workflow."
+argument-hint: "[task]"
 ---
 
 Read pr-review-canvas/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled review-and-ship workflow."
+argument-hint: "[task]"
 ---
 
 Read review-and-ship/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

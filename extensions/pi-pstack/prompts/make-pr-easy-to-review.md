@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled make-pr-easy-to-review workflow."
+argument-hint: "[task]"
 ---
 
 Read make-pr-easy-to-review/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

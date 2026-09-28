@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled no-comments workflow."
+argument-hint: "[task]"
 ---
 
 Read no-comments/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

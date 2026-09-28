@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-exhaust-the-design-space workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-exhaust-the-design-space/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled show-me-your-work workflow."
+argument-hint: "[task]"
 ---
 
 Read show-me-your-work/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

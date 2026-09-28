@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled interrogate workflow."
+argument-hint: "[task]"
 ---
 
 Read interrogate/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

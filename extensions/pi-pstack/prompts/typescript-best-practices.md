@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled typescript-best-practices workflow."
+argument-hint: "[task]"
 ---
 
 Read typescript-best-practices/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

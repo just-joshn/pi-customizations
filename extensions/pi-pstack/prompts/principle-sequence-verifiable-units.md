@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-sequence-verifiable-units workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-sequence-verifiable-units/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-fix-root-causes workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-fix-root-causes/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.
