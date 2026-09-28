@@ -1,17 +1,30 @@
-.PHONY: verify verify-extension verify-python
+.PHONY: verify verify-mechanisms verify-extension verify-oauth verify-tui-parity verify-install verify-python
 
-verify: verify-extension verify-tui-parity verify-python
+verify: verify-mechanisms verify-extension verify-oauth verify-tui-parity verify-install verify-python
+
+verify-mechanisms:
+	node scripts/check-pi-mechanisms.mjs
 
 verify-extension:
 	npm --prefix extensions/pi-pstack run check:resources
 	npm --prefix extensions/pi-pstack run typecheck
 	npm --prefix extensions/pi-pstack run test:coverage
 
+verify-oauth:
+	npm --prefix extensions/pi-anthropic-oauth run typecheck
+	npm --prefix extensions/pi-anthropic-oauth test
+	npm --prefix extensions/pi-antigravity-oauth run check:vendor
+	npm --prefix extensions/pi-antigravity-oauth run typecheck
+	npm --prefix extensions/pi-antigravity-oauth test
+
 verify-tui-parity:
 	npm --prefix extensions/pi-tui-parity run check:docs
 	npm --prefix extensions/pi-tui-parity run check:parity
 	npm --prefix extensions/pi-tui-parity run typecheck
 	npm --prefix extensions/pi-tui-parity run test:coverage
+
+verify-install:
+	node scripts/verify-fresh-install.mjs
 
 verify-python:
 	uv run --no-project --with coverage==7.16.1 coverage erase
