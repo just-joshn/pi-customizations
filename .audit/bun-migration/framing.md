@@ -54,16 +54,14 @@ The explicit-hoisted run moved every package to the root `node_modules` and left
 
 The isolated run kept a per-package `node_modules` of symlinks. It is also what Bun 1.4.2 picks by itself for a workspace with a new lockfile, recorded as `configVersion: 1`. Only the undeclared `@google/genai` breaks, and that is a real bug rather than a layout problem.
 
-Full gate measurement on the isolated probe, with the tree exported to `/tmp/bun-probe-isolated`:
+Full gate measurement on the isolated probe, with the tree exported to `/tmp/bun-probe-isolated`. The probe tails each suite's output, so for the three coverage suites it records the coverage summary and the exit status rather than the test count. Every test count, and its identity with the baseline, is in `treatment-matrix.tsv`.
 
 | suite | npm baseline | Bun isolated |
 | --- | --- | --- |
-| `pi-pstack` tests | 219 | 219 |
 | `pi-pstack` statements / branches | 86.51 / 81.78 | 86.92 / 83.82 |
-| `pi-tui-parity` tests | 112 | 112 |
 | `pi-tui-parity` statements / branches | 89.84 / 89.74 | 89.84 / 89.74 |
-| `pi-one-dark-pro-theme` tests | 82 | 82 |
 | `pi-one-dark-pro-theme` statements / branches | 97.25 / 89.84 | 97.25 / 89.84 |
+| all five suites, exit status | n/a | exit 0 in every suite |
 | `pi-anthropic-oauth` tests | 6 | 6 |
 | `pi-antigravity-oauth` tests | 38 | 38 |
 | `check-pi-mechanisms.mjs` | 6 packages, 0 violations | 6 packages, 0 violations |
