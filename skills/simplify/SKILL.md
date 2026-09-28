@@ -1,7 +1,8 @@
 ---
 name: simplify
-description: "Review the changed code (working tree, branch diff, PR, or a named path) for reuse, simplification, efficiency, and altitude cleanups with four parallel reviewers, then apply the fixes without changing behavior. Quality only; it does not hunt for correctness bugs. Use when the user asks to simplify, clean up, tidy, or polish a diff or recent changes, or runs /skill:simplify."
+description: "Review the changed code (working tree, branch diff, PR, or a named path) for reuse, simplification, efficiency, and altitude cleanups with four parallel reviewers when a subagent tool is available, then apply the fixes without changing behavior. Quality only; it does not hunt for correctness bugs. Use when the user asks to simplify, clean up, tidy, or polish a diff or recent changes, or runs /skill:simplify."
 license: MIT
+compatibility: "Pi coding agent. Parallel review needs a subagent tool such as pstack's Task; without one the review runs as a single pass."
 ---
 
 # Simplify

@@ -20,6 +20,6 @@ Then invoke:
 
 The existing `disable-model-invocation: true` policy is preserved. Explicit invocation loads the skill; text following it supplies the task. Use `/reload` after edits in an active Pi session and inspect diagnostics. Do not pass `--no-skills` when validating discovery across different installed versions.
 
-For persistent discovery, place the directory in `.agents/skills/` or configure its path using Pi's `skills` setting. Do not overwrite existing settings to install this skill. The repository's `skills/` directory by itself is not a standard project discovery location.
+For persistent discovery, install the repository as a [Pi package](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/packages.md). From the checkout root, `pi install .` records the checkout in your Pi settings and loads the five standalone skills in place through the root `package.json` manifest. Pi's `skills` setting also works. A project `.agents/skills/` directory loads only after the user trusts the project. Do not overwrite existing settings to install this skill. The repository's `skills/` directory by itself is not a standard project discovery location.
 
 The skill uses ordinary files and Pi's built-in file/shell tools. It requires no extension, MCP server, custom hook, Codex metadata, or model-specific API. The analysis workflow is this skill's policy; Pi's official documentation defines packaging and loading, not reverse-engineering methodology.
