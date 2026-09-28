@@ -64,7 +64,7 @@ The model rule lives in `~/.pi/agent/pstack/models.mdc`, or the corresponding di
 
 Model selections use pi provider/model IDs, optionally followed by a supported thinking level, such as `provider/model:high`. Reference model names are preserved in the source defaults. An unavailable name fails with available choices. The adapter does not silently substitute a model family.
 
-Mode, todo, and task records follow the current session branch. Child transcripts and complete outputs live under the parent session directory's `pstack-workers` folder. An unfinished restored task is interrupted until resumed. Use `pstack_context` for the active transcript and history scoped to the current workspace.
+Mode, todo, and task records follow the current session branch. Child transcripts and complete outputs live under the parent session directory's `pstack-workers` folder; a session that is not persisted uses a temporary directory instead. An unfinished restored task is interrupted until resumed. Use `pstack_context` for the active transcript and history scoped to the current workspace.
 
 ## Source and maintenance
 

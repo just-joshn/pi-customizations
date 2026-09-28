@@ -200,6 +200,38 @@ test('showState widget uses distinct status markers for each status', () => {
   expect(widgetText(widget)).toEqual(['[x] A (completed)', '[>] B (in_progress)', '[-] C (cancelled)', '[ ] D (pending)']);
 });
 
+test('a non-TUI session receives widget lines instead of a component factory', () => {
+  const widgets: Widget[] = [];
+  const ctx = {
+    mode: 'rpc',
+    ui: {
+      setStatus: () => {},
+      setWidget: (_key: string, content?: Widget) => {
+        widgets.push(content as Widget);
+      },
+    },
+  } as unknown as ExtensionContext;
+  const store = createState({ appendEntry() {} } as unknown as ExtensionAPI);
+  store.update({ enabled: false, todos: [{ id: '1', content: 'A', status: 'pending' }] }, ctx);
+  expect(widgets.at(-1)).toEqual(['[ ] A (pending)']);
+});
+
+test('a TUI session receives a component factory for the todo widget', () => {
+  const widgets: Widget[] = [];
+  const ctx = {
+    mode: 'tui',
+    ui: {
+      setStatus: () => {},
+      setWidget: (_key: string, content?: Widget) => {
+        widgets.push(content as Widget);
+      },
+    },
+  } as unknown as ExtensionContext;
+  const store = createState({ appendEntry() {} } as unknown as ExtensionAPI);
+  store.update({ enabled: false, todos: [{ id: '1', content: 'A', status: 'pending' }] }, ctx);
+  expect(typeof widgets.at(-1)).toBe('function');
+});
+
 test('TodoWrite renderResult keeps every line within the render width', () => {
   const tools: ToolDefinition[] = [];
   const pi = {
@@ -257,6 +289,7 @@ test('collapsed todo views keep the in-progress step visible in long lists', () 
 test('todo widget stays one row per step so a normal terminal does not shrink it away', () => {
   let widget: Widget | undefined;
   const ctx = {
+    mode: 'tui',
     ui: {
       setStatus() {},
       setWidget(_key: string, content?: Widget) {

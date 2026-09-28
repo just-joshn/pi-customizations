@@ -1,6 +1,9 @@
-.PHONY: verify verify-mechanisms verify-toolchain verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
+.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
 
-verify: verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-install verify-python
+verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-one-dark-pro-theme verify-install verify-python
+
+verify-lint:
+	bun run ci
 
 verify-mechanisms:
 	node scripts/check-pi-mechanisms.mjs
