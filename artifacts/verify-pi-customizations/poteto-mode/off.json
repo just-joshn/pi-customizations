@@ -1,0 +1,19 @@
+{
+  "notifications": [
+    {
+      "message": "Poteto mode is off.",
+      "notifyType": "info"
+    }
+  ],
+  "stateEntry": {
+    "type": "custom",
+    "customType": "pstack-state",
+    "data": {
+      "enabled": false,
+      "todos": []
+    },
+    "id": "07826ec2",
+    "parentId": "4138e5a2",
+    "timestamp": "2026-09-28T18:52:39.981Z"
+  }
+}

@@ -1,0 +1,5 @@
+skill:doctor
+skill:implement-cli-from-contract
+skill:reverse-engineer-cli
+skill:run
+skill:simplify
