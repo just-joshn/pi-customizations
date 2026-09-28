@@ -13,6 +13,7 @@ const supplied = new Set([...virtualModules.matchAll(/^\s+"?([^":\s]+)"?: bundle
 const skillFields = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools', 'disable-model-invocation']);
 const promptFields = new Set(['description', 'argument-hint']);
 const violations = [];
+const themeNames = new Map();
 const report = (path, message) => violations.push(`${relative(root, path) || '.'}: ${message}`);
 
 const packageName = specifier => specifier.split('/').slice(0, specifier.startsWith('@') ? 2 : 1).join('/');
@@ -65,8 +66,29 @@ async function checkPrompts(directory) {
   return files.length;
 }
 
+async function checkTheme(file) {
+  const expected = basename(file, '.json');
+  let theme;
+  try {
+    theme = JSON.parse(await readFile(file, 'utf8'));
+  } catch {
+    report(file, 'theme file is not valid JSON');
+    return 1;
+  }
+  if (typeof theme.name !== 'string') report(file, 'theme needs a name string (themes.md)');
+  else {
+    if (theme.name !== expected) report(file, `theme name ${theme.name} differs from its file name (themes.md)`);
+    if (theme.name.includes('/')) report(file, 'theme name cannot contain "/" (themes.md)');
+    if (themeNames.has(theme.name)) report(file, `duplicate theme name ${theme.name}, already declared by ${themeNames.get(theme.name)}`);
+    else themeNames.set(theme.name, relative(root, file));
+  }
+  if (typeof theme.colors !== 'object' || theme.colors === null || Array.isArray(theme.colors)) report(file, 'theme needs a colors object (theme-schema.json)');
+  return 1;
+}
+
 const manifests = [join(root, 'package.json'), ...(await readdir(join(root, 'extensions'))).map(name => join(root, 'extensions', name, 'package.json'))].filter(existsSync);
-const counts = { packages: manifests.length, extensions: 0, skills: 0, prompts: 0 };
+const counts = { packages: manifests.length, extensions: 0, skills: 0, prompts: 0, themes: 0 };
+const themeFiles = [];
 for (const manifestPath of manifests) {
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   if (!manifest.keywords?.includes('pi-package')) report(manifestPath, 'add the pi-package keyword (packages.md)');
@@ -77,19 +99,24 @@ for (const manifestPath of manifests) {
       if (/[*?[]/.test(entry)) {
         const pattern = new RegExp(`${basename(entry).replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*').replace(/\?/g, '[^/]')}$`);
         const dir = dirname(path);
-        if (!existsSync(dir) || !readdirSync(dir).some(name => pattern.test(name))) report(manifestPath, `pi.${type} entry ${entry} matches nothing`);
+        const matches = existsSync(dir) ? readdirSync(dir).filter(name => pattern.test(name)) : [];
+        if (!matches.length) report(manifestPath, `pi.${type} entry ${entry} matches nothing`);
+        else if (type === 'themes') themeFiles.push(...matches.map(name => join(dir, name)));
         continue;
       }
       if (!existsSync(path)) { report(manifestPath, `pi.${type} entry ${entry} does not exist`); continue; }
       if (type === 'extensions') { counts.extensions++; await checkImports(manifestPath, manifest, entry); }
       else if (type === 'skills') counts.skills += await checkSkills(path);
       else if (type === 'prompts') counts.prompts += await checkPrompts(path);
+      else if (type === 'themes') themeFiles.push(path);
       else report(manifestPath, `pi.${type} is not checked by this script`);
     }
   }
 }
 
-process.stdout.write(`Checked ${counts.packages} packages: ${counts.extensions} extensions, ${counts.skills} skills, ${counts.prompts} prompt templates. Supplied modules: ${[...supplied].join(', ')}.\n`);
+for (const file of themeFiles.filter(file => file.endsWith('.json'))) counts.themes += await checkTheme(file);
+
+process.stdout.write(`Checked ${counts.packages} packages: ${counts.extensions} extensions, ${counts.skills} skills, ${counts.prompts} prompt templates, ${counts.themes} themes. Supplied modules: ${[...supplied].join(', ')}.\n`);
 if (violations.length) {
   process.stderr.write(`${violations.join('\n')}\n${violations.length} Pi mechanism violations.\n`);
   process.exit(1);
