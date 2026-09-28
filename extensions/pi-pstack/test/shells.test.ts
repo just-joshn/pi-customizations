@@ -158,3 +158,17 @@ shellTest('matches during a busy turn coalesce into one queued wake', async (f, 
   await waitFor(() => toolResults(session, 'BackgroundShellStop').length === 1, 'the stop call');
   assert.ok(detailsOf<ShellRecord>(session, 'BackgroundShellStop').matches >= 10);
 });
+
+shellTest('a shell stopped in the same busy turn sends no stale wake afterwards', async (f, session) => {
+  f.calls.push(
+    call('BackgroundShell', { command: 'while true; do sleep 0.05; echo AGENT_LOOP_TICK_s; done', title: 'stale', notify_on_output: '^AGENT_LOOP_TICK_s' }),
+    call('bash', { command: 'sleep 0.5' }),
+  );
+  const turn = prompt(session, 'start the ticker, wait, then stop it');
+  await waitFor(() => toolResults(session, 'BackgroundShell').length === 1, 'the shell to start');
+  f.calls.push(call('BackgroundShellStop', { id: detailsOf<ShellRecord>(session, 'BackgroundShell').id }));
+  await turn;
+  await session.waitForIdle();
+  assert.equal(detailsOf<ShellRecord>(session, 'BackgroundShellStop').status.kind, 'stopped');
+  assert.equal(custom(session, 'pstack-shell-output').length, 0);
+});
