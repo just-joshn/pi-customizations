@@ -42,6 +42,27 @@
         "@earendil-works/pi-coding-agent": "*",
       },
     },
+    "extensions/pi-tui-skin": {
+      "name": "pi-tui-skin",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@earendil-works/pi-agent-core": "0.87.1",
+        "@earendil-works/pi-coding-agent": "0.87.1",
+        "@earendil-works/pi-tui": "0.87.1",
+        "@types/node": "^22.19.0",
+        "@vitest/coverage-v8": "^5.0.2",
+        "typebox": "1.3.27",
+        "typescript": "^5.9.3",
+        "vitest": "^5.0.2",
+      },
+      "peerDependencies": {
+        "@earendil-works/pi-agent-core": "*",
+        "@earendil-works/pi-ai": "*",
+        "@earendil-works/pi-coding-agent": "*",
+        "@earendil-works/pi-tui": "*",
+        "typebox": "*",
+      },
+    },
     "extensions/pi-one-dark-pro-theme": {
       "name": "pi-one-dark-pro-theme",
       "version": "0.1.0",
@@ -518,6 +539,8 @@
 
     "pi-antigravity-oauth": ["pi-antigravity-oauth@workspace:extensions/pi-antigravity-oauth"],
 
+    "pi-tui-skin": ["pi-tui-skin@workspace:extensions/pi-tui-skin"],
+
     "pi-one-dark-pro-theme": ["pi-one-dark-pro-theme@workspace:extensions/pi-one-dark-pro-theme"],
 
     "pi-pstack": ["pi-pstack@workspace:extensions/pi-pstack"],
@@ -599,6 +622,8 @@
     "pi-anthropic-oauth/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "pi-antigravity-oauth/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
+
+    "pi-tui-skin/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "pi-one-dark-pro-theme/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
