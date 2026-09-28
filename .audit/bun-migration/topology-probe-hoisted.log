@@ -1,0 +1,45 @@
+=== bun install (linker=hoisted) ===$
+bun install v1.4.2 (744846f84)
+Resolving dependencies
+Resolved, downloaded and extracted [0]
+Saved lockfile
+
++ @biomejs/biome@2.5.14
++ @types/node@22.20.4 (v26.6.3 available)
++ typescript@7.0.2
+
+178 packages installed [405.00ms]
+
+Blocked 2 postinstalls. Run `bun pm untrusted` for details.
+EXIT=0
+=== lockfile ===
+-rw-r--r--   1 josh-desktop wheel 64730 Sep 28 09:52 bun.lock
+=== per-package node_modules presence ===
+PRESENT extensions/pi-anthropic-oauth/node_modules
+PRESENT extensions/pi-antigravity-oauth/node_modules
+PRESENT extensions/pi-one-dark-pro-theme/node_modules
+PRESENT extensions/pi-pstack/node_modules
+PRESENT extensions/pi-tui-parity/node_modules
+=== resolution probes ===
+PRESENT node_modules/@earendil-works/pi-coding-agent
+PRESENT node_modules/@earendil-works/pi-ai
+PRESENT node_modules/@earendil-works/pi-tui
+PRESENT node_modules/typebox
+PRESENT node_modules/vitest
+PRESENT node_modules/typescript
+PRESENT node_modules/@google/genai
+ABSENT  extensions/pi-pstack/node_modules/@earendil-works/pi-coding-agent
+ABSENT  extensions/pi-antigravity-oauth/node_modules/@earendil-works/pi-ai
+ABSENT  extensions/pi-antigravity-oauth/node_modules/@google/genai
+PRESENT extensions/pi-tui-parity/node_modules
+ABSENT  extensions/pi-pstack/node_modules/.bin/vitest
+PRESENT extensions/pi-tui-parity/node_modules/.bin/tsc
+PRESENT extensions/pi-pstack/node_modules/.bin/tsc
+=== tsc version seen from each extension ===
+extensions/pi-anthropic-oauth              typecheck OK
+extensions/pi-antigravity-oauth            typecheck OK
+extensions/pi-one-dark-pro-theme           typecheck OK
+extensions/pi-pstack                       typecheck OK
+extensions/pi-tui-parity                   typecheck OK
+=== hoisted tsc version ===
+Version 7.0.2

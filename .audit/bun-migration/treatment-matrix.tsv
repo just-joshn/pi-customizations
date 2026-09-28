@@ -1,0 +1,19 @@
+toolchain: lockfile/files/foreign managers	1 lockfile, 212 files, 0 foreign package managers
+mechanisms: packages/extensions/skills/prompts/themes	6 packages: 4 extensions, 70 skills, 64 prompt templates, 3 themes
+vitest-conventions: scanned/violations/review	43 vitest files scanned. 0 violations, 244 review items
+pstack: resources	Verified 187 upstream files and 205 generated resources
+pstack: journeys	382 checks passed, 0 findings
+pstack: tests	23 files / 220 tests
+anthropic: tests	1 files / 6 tests
+antigravity: tests	4 files / 38 tests
+tui-parity: tests	12 files / 112 tests
+one-dark-pro: tests	3 files / 82 tests
+pstack: coverage stmt/branch/func/line	{"statements":87.94,"branches":84.01,"functions":86.85,"lines":89.88}
+tui-parity: coverage stmt/branch/func/line	{"statements":89.84,"branches":89.74,"functions":94.11,"lines":90.05}
+one-dark-pro: coverage stmt/branch/func/line	{"statements":97.25,"branches":89.84,"functions":100,"lines":97.7}
+fresh-install: anthropic models	15
+fresh-install: antigravity models	5
+fresh-install: root skills	5
+fresh-install: cli verify	true
+python: tests run	134
+python: coverage	95%
