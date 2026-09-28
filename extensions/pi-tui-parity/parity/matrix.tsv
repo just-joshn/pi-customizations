@@ -1,0 +1,362 @@
+renderer.ink-render⇥deviation⇥⇥tui.md forbids a second terminal renderer; pi-tui owns the render loop and frame cadence
+renderer.layout-dimensions⇥deviation⇥⇥pi-tui owns root layout and terminal dimension hooks; no second renderer may be shipped
+renderer.box-defaults⇥deviation⇥⇥pi-tui Box/Yoga layout owns box defaults and content width; a second renderer is forbidden
+renderer.text-styles⇥deviation⇥⇥pi-tui Text owns text styles and color strings; colors come from the pi theme schema
+renderer.wrap-truncate⇥mapped⇥pi-tui truncateToWidth/wrap utilities⇥extension pagers truncate rows via pi-tui truncateToWidth (src/pagers/pagers.ts)
+renderer.output-compositor⇥deviation⇥⇥pi-tui owns the output compositor, paint order and clipping; second renderer forbidden
+renderer.log-update⇥deviation⇥⇥pi-tui owns terminal updating; log-update-style frame diffs are pi internals
+renderer.static-history⇥deviation⇥⇥pi owns the static transcript history primitive; no hook to replace it
+renderer.text-layout⇥mapped⇥pi CustomEditor text-input viewport⇥composer delegates to the pi editor render when text is present (src/editor/composer-editor.ts)
+renderer.raw-block⇥deviation⇥⇥raw terminal output blocks would bypass pi-tui, and a second renderer is forbidden; extensions only write the documented notify escapes
+renderer.border-styles⇥deviation⇥⇥pi-tui owns border style sets; the theme schema fixes border roles
+renderer.pager-tokens⇥implemented⇥test/constants.test.ts⇥key-hint glyphs and separators carried verbatim (KEY_HINT_ABBREVIATIONS, HINT_SEPARATOR)
+renderer.pager-shell⇥implemented⇥test/pagers.test.ts⇥accent title + body + Esc-to-close footer reproduced by UsagePager/CopyPager/ContextPager
+renderer.pager-list-row⇥implemented⇥test/pagers.test.ts⇥CopyPager rows with You/Agent prefixes and the selected-row arrow are asserted
+renderer.pager-options⇥implemented⇥test/decisions.test.ts⇥option rows with arrow prefix, hints and the nav hint asserted on the DecisionSurface dropdown
+renderer.pager-title⇥implemented⇥test/pagers.test.ts⇥accent Usage title asserted; CopyPager title carries the (N messages) count
+renderer.pager-section-header⇥implemented⇥test/pagers.test.ts⇥context screen renders the 'Current context usage by category.' section header
+renderer.pager-footer⇥implemented⇥test/pagers.test.ts⇥shared key-hint footer 'Esc to close' asserted; hint strings carried in constants
+renderer.scroll-indicator⇥mapped⇥pi-tui editor viewport hidden-line borders⇥scroll and hidden-line indication is pi's viewport primitive; ComposerEditor delegates the borders when hiddenLineCount > 0
+renderer.countdown-bar⇥unmet⇥⇥pi runtime has no mid-turn countdown surface; the SwitchMode flow is not built
+theme.detection⇥mapped⇥pi automatic theme setting tui-light/tui-dark⇥pi detects the terminal background and picks the matching package theme
+theme.mode-2031⇥mapped⇥pi theme background sync⇥pi theme system owns terminal theme-change notifications; package ships both themes
+theme.color-depth-mixing⇥implemented⇥test/palette.test.ts⇥mixTint matches the reference formula; truecolor and 256-color SGR output asserted
+theme.ansi256-approx⇥implemented⇥test/palette.test.ts⇥nearestAnsi256 excludes indices 0-15 and finds exact palette entries
+theme.tint-table⇥implemented⇥test/palette.test.ts⇥TUI_TOKENS tint/ratio/fallback/ansi256 values asserted for dark and light
+theme.diff-palette⇥implemented⇥test/palette.test.ts⇥diff added/removed row backgrounds and sign foregrounds asserted to the research hexes
+theme.markdown-palette⇥mapped⇥pi Markdown md* theme roles⇥mdHeading/mdCode/mdQuote roles ship in themes/tui-dark.json and tui-light.json
+theme.accent-r3⇥mapped⇥pi theme accent role⇥dark accent carried in themes/tui-dark.json; pi theme system consumes it
+theme.accent-tokens⇥mapped⇥pi theme accent roles⇥light accents carried in themes/tui-light.json within pi's role set
+theme.shared-palette⇥mapped⇥pi theme schema fixed roles⇥remaining palette declarations live in the package theme files using pi's fixed roles
+theme.light-runtime⇥mapped⇥pi runtime theme switching⇥tui-light activates through pi's automatic theme setting at runtime
+markdown.parser⇥mapped⇥pi Markdown block parser⇥pi renders transcript markdown; extensions control theme colors and Markdown transforms only
+markdown.inline⇥mapped⇥pi Markdown inline markup⇥pi owns inline rendering in transcript text
+markdown.links⇥mapped⇥pi Markdown links (mdLink/mdLinkUrl roles)⇥pi owns hyperlink rendering; roles colored in the package themes
+markdown.headings⇥mapped⇥pi Markdown headings (mdHeading role)⇥pi owns heading rendering
+markdown.lists⇥mapped⇥pi Markdown lists (mdListBullet role)⇥pi owns list rendering
+markdown.blockquote⇥mapped⇥pi Markdown blockquote (mdQuote/mdQuoteBorder roles)⇥pi owns blockquote rendering
+markdown.rule⇥mapped⇥pi Markdown horizontal rule (mdHr role)⇥pi owns rule rendering
+markdown.math⇥mapped⇥pi Markdown latex support (pi-tui markdown)⇥pi-tui's markdown component includes latex/math rendering (verified in the installed 0.87.1 package)
+markdown.root⇥mapped⇥pi Markdown root and paragraph flow⇥pi owns root composition and paragraph breaks
+markdown.table⇥mapped⇥pi Markdown table support (pi-tui markdown)⇥pi-tui's markdown component renders tables (verified in the installed 0.87.1 package)
+markdown.mermaid⇥unmet⇥⇥pi Markdown has no mermaid renderer
+markdown.throttled⇥mapped⇥pi streaming transcript renderer⇥pi owns streaming assistant rendering; no ThrottledMarkdown hook to replace
+markdown.overflow⇥mapped⇥pi transcript overflow handling⇥pi owns tail truncation and overflow of long transcript content
+code.highlighted⇥mapped⇥pi Markdown code blocks (mdCodeBlock/mdCodeBlockBorder roles)⇥the reference CLI's HighlightedCode maps to pi's code-block rendering with package theme roles
+code.shiki⇥mapped⇥pi syntax highlighter + syntax* theme roles⇥Shiki itself is not reproducible; pi owns highlighting and the themes carry syntax roles
+code.truncation-label⇥mapped⇥pi-tui truncation primitives⇥pi-tui owns width truncation of code lines; package constants carry the caps
+code.markdown-fence⇥mapped⇥pi Markdown code-fence handling⇥pi parses and renders fenced code in transcript text
+diff.unified-parser⇥implemented⇥test/tools.test.ts⇥edit renderer consumes the unified diff into the bordered block; diffCounts sums +/- lines
+diff.inline-emphasis⇥deviation⇥⇥the reference CLI's char-level emphasis lives in its diff renderer internals; pi-tui rows carry whole-line styles and a second renderer is forbidden, so the package renders row signs
+diff.row-render⇥implemented⇥test/tools.test.ts⇥'▎' signs and border color asserted; added/removed row background tokens asserted in test/palette.test.ts (full-row background painting not wired)
+review.screen⇥deviation⇥⇥pi has no hook for a full-screen interactive review surface; the package /changes reports git status and its own output names the deviation
+review.terminal-modes⇥deviation⇥⇥pi runner owns terminal modes; the reference CLI's raw escape paint transactions are out of reach for extensions
+review.scope-tabs⇥deviation⇥⇥part of the reference CLI's interactive review screen, which pi has no hook to host
+review.header⇥deviation⇥⇥part of the reference CLI's interactive review screen, which pi has no hook to host
+review.prompt⇥deviation⇥⇥pi editor owns the prompt; the review prompt box cannot replace it
+review.help-overlay⇥deviation⇥⇥part of the reference CLI's interactive review screen; pi owns help surfaces
+review.diff-body⇥deviation⇥⇥pi has no hook to host the whole-repo review diff body; per-tool diffs render through the edit tool UI instead
+review.diff-prep⇥deviation⇥⇥the reference CLI's review diff gating prepares its interactive screen; pi has no hook to host it
+transcript.item-wrapper⇥mapped⇥pi transcript renderer⇥pi owns transcript item composition
+transcript.debug-info⇥mapped⇥pi /debug diagnostics⇥pi owns debug surfacing; no the reference CLI-style debug info transcript item exists
+transcript.summary⇥mapped⇥pi compaction summary rendering⇥pi renders summary/compaction items itself
+transcript.agent-text⇥mapped⇥pi Markdown assistant text + theme roles⇥pi renders assistant text; the themes carry the message roles
+transcript.user-message⇥mapped⇥pi user message rendering (userMessageBg/userMessageText roles)⇥pi renders user messages; package themes carry the tints
+transcript.thinking-block⇥mapped⇥pi thinking rendering (thinking* roles + hidden-thinking label)⇥pi owns thinking display and its toggle
+transcript.plan-execution⇥unmet⇥⇥pi transcript has no plan-execution item type; the plan flow is carried by prompt sections
+transcript.background-task-completion⇥unmet⇥⇥pi runtime has no background shells or subagents to complete
+transcript.goal-continuation⇥unmet⇥⇥needs the reference CLI's goal service (cloud-agents, statsig-gated)
+transcript.shell-turn⇥mapped⇥pi bash mode⇥pi renders ! command turns itself
+transcript.subagent-view⇥unmet⇥⇥pi runtime has no subagents
+transcript.tool-calls-ladder⇥deviation⇥⇥cross-row tool grouping has no hook in pi (framing constraint), so the reference CLI ladder cannot be reproduced
+transcript.static-dynamic⇥mapped⇥pi static/dynamic transcript split⇥pi owns which items freeze into static history
+transcript.render-truncation-notice⇥deviation⇥⇥pi always renders the full conversation, so the reference CLI's redraw-truncation notice never applies
+transcript.cleared-notice⇥mapped⇥pi /new and compaction notices⇥pi renders its own clear and compaction notices
+transcript.compact-toggle⇥mapped⇥pi transcript item expansion (ctrl+o)⇥expansion is pi's; the package zen toggle covers tool-row compact state (test/commands.test.ts)
+transcript.zen-mode⇥unmet⇥⇥needs the reference CLI's Statsig-gated zen display mode
+transcript.live-thinking-overflow⇥mapped⇥pi thinking streaming/overflow rendering⇥pi owns live thinking display and its overflow
+composer.layout-order⇥mapped⇥pi app layout slots⇥pi owns the main screen order; the extension fills header/editor/footer
+composer.prompt-bar-order⇥mapped⇥pi CustomEditor composition⇥prompt-bar fragment order is pi editor internals
+composer.container⇥implemented⇥test/editor.test.ts⇥empty-state render draws the 3-row frame at the requested width
+composer.background⇥implemented⇥test/editor.test.ts⇥half-block rows painted with the composerBg palette; token values asserted in test/palette.test.ts
+composer.half-block⇥implemented⇥test/editor.test.ts⇥'▄' top and '▀' bottom padding rows asserted
+composer.glyph⇥implemented⇥test/editor.test.ts⇥'→' glyph dim by default and active-colored in a mode
+composer.text-input⇥mapped⇥pi CustomEditor text row⇥editor render delegates to pi's CustomEditor once text is present
+composer.wrap-width⇥mapped⇥pi editor wrap/viewport⇥wrapping and viewport height are pi's; COMPOSER_MAX_VISUAL_LINES carried and asserted in test/constants.test.ts
+composer.placeholder⇥implemented⇥test/editor.test.ts⇥'Plan, search, build anything'/'Add a follow-up' with the inverse first character asserted
+composer.image-notice⇥unmet⇥⇥needs the reference CLI's image-generation service
+composer.paste-token⇥mapped⇥pi editor paste handling⇥pi-tui editor tracks pasted content; PASTE_COLLAPSE_CHARS carried and asserted in test/constants.test.ts
+composer.slash-token⇥mapped⇥pi editor slash handling⇥pi owns slash token styling in the input
+composer.image-token⇥mapped⇥pi editor attachment/paste handling⇥pi owns image attachment input in the editor
+composer.cursor⇥mapped⇥pi editor cursor rendering (CURSOR_MARKER)⇥pi owns cursor styles
+composer.goal-status-line⇥unmet⇥⇥needs the reference CLI's goal service (cloud-agents)
+composer.ephemeral-lines⇥mapped⇥ctx.ui.notify ephemeral messages + setWidget⇥pi owns transient lines above the composer
+composer.side-question-overlay⇥unmet⇥⇥needs the reference CLI's side-chat backend (/btw)
+composer.transfer-overlay⇥unmet⇥⇥needs the reference CLI's cloud-agents transfer
+footer.container⇥implemented⇥test/chrome.test.ts⇥renderFooterRows conditions asserted: 3 rows with a headline, 2 without
+footer.exit-armed⇥mapped⇥pi exit flow (runner ctrl+c)⇥package omits the exit-armed line; pi owns the exit confirmation flow
+footer.headline⇥implemented⇥test/chrome.test.ts⇥'Plan (shift+tab to cycle)' headline asserted; the reference CLI's cloud-agent headline variant is not rendered
+footer.headline-jobs⇥unmet⇥⇥pi runtime has no background-jobs surface for the headline to count
+footer.status-row⇥implemented⇥test/chrome.test.ts⇥model · window · context% · files edited, vim label and the right-aligned group asserted
+footer.autorun-label⇥implemented⇥test/chrome.test.ts⇥Run Everything/Auto-review labels in ANSI magenta, right-aligned; sandbox variants reduce to these state labels
+footer.location-row⇥implemented⇥test/chrome.test.ts⇥'~/proj · main' location row asserted
+footer.custom-status-line⇥mapped⇥ctx.ui.setFooter⇥pi owns footer composition; the package renders fixed rows with no custom status-line command
+footer.help-grid⇥mapped⇥pi keybinding help⇥pi owns the keybinding help surface
+footer.composer-keys⇥mapped⇥pi editor key hints⇥pi documents composer keys itself; no persistent-session or background-shell keys exist to list
+footer.inline-hints⇥mapped⇥pi editor/palette inline hints⇥pi owns inline hint rendering
+footer.tips⇥unmet⇥⇥needs the reference CLI's Statsig tips
+palette.row-layout⇥mapped⇥pi-tui select-list/palette row layout⇥pi's palette components own list geometry
+palette.highlight-color⇥mapped⇥theme selectedBg role⇥selection highlight comes from the package theme's selectedBg role
+palette.slash⇥mapped⇥pi slash-command palette⇥pi lists built-ins first, then extension commands; built-ins resolve before extension commands
+palette.slash-filtering⇥mapped⇥pi palette filtering and sorting⇥pi owns palette filtering, sorting and pagination
+palette.skill-hint⇥mapped⇥pi skill palette entries⇥pi skills surface through resources_discover into the palette with hints
+palette.navigation⇥mapped⇥pi palette navigation windows⇥pi owns palette open/navigate/close windows
+palette.at⇥mapped⇥pi editor @ file search⇥pi docs: typing @ searches for a file and adds it to the prompt
+decision.surface-frame⇥implemented⇥test/decisions.test.ts⇥rule frame, title and selected arrow row asserted on the real surface
+decision.classifier-notice⇥unmet⇥⇥needs the reference CLI's sandbox-runtime auto-review classifier
+decision.dropdown⇥implemented⇥test/decisions.test.ts⇥'→ Run (once) (y)' rows and the nav hint asserted
+decision.keys⇥implemented⇥test/decisions.test.ts⇥y/n/tab/Esc driven through the real surface; the reference CLI's sandbox autorun key reduces to the tab allowlist
+decision.preview-shell⇥implemented⇥test/decisions.test.ts⇥surface test asserts the exact shell preview rows ('$ cmd', 'in cwd') that previewFor builds
+decision.preview-write⇥implemented⇥test/decisions.test.ts⇥previewFor builds '+N -M path' for write/edit; the shared surface render path is tested via the shell branch
+decision.preview-delete⇥unmet⇥⇥pi runtime has no delete tool, so a delete decision never fires
+decision.preview-web-search⇥unmet⇥⇥needs the reference CLI's web-search backend
+decision.preview-web-fetch⇥unmet⇥⇥pi has no web-fetch tool and none is registered
+decision.preview-image⇥unmet⇥⇥needs the reference CLI's image-generation service
+decision.title-shell⇥implemented⇥test/decisions.test.ts⇥decisionTitle('bash') = 'Run this command?' asserted; full table asserted in test/constants.test.ts
+decision.title-mcp⇥unmet⇥⇥needs the reference CLI's MCP service
+decision.title-delete⇥unmet⇥⇥pi runtime has no delete tool; the title constant is carried and asserted in test/constants.test.ts but unreachable
+decision.title-write⇥implemented⇥test/decisions.test.ts⇥decisionTitle('write'/'edit') = 'Write to this file?' asserted
+decision.title-web-search⇥unmet⇥⇥needs the reference CLI's web-search backend
+decision.title-web-fetch⇥unmet⇥⇥pi has no web-fetch tool and none is registered
+decision.title-image⇥unmet⇥⇥needs the reference CLI's image-generation service
+decision.options-shell⇥implemented⇥test/decisions.test.ts⇥exact labels, hints and actions asserted for the shell option set
+decision.options-mcp⇥unmet⇥⇥needs the reference CLI's MCP service
+decision.options-delete⇥unmet⇥⇥pi runtime has no delete tool
+decision.options-write⇥implemented⇥test/decisions.test.ts⇥writeOptions labels asserted; sandbox variants reduce to approve/allow/reject
+decision.options-web-search⇥unmet⇥⇥needs the reference CLI's web-search backend
+decision.options-web-fetch⇥unmet⇥⇥pi has no web-fetch tool and none is registered
+decision.autorun-option⇥unmet⇥⇥needs the reference CLI's sandbox runtime for per-decision autorun; the global Run Everything bypass is implemented and tested (test/decisions.test.ts)
+decision.pending-banner⇥mapped⇥pi tool_call decision flow⇥pi serializes pending tool calls; ctx.ui.custom owns the pending surface
+decision.switch-mode-surface⇥unmet⇥⇥pi runtime has no mid-turn mode-switch hook; state changes apply between turns
+decision.plan-suggestion⇥unmet⇥⇥needs the reference CLI's cloud-agents plan suggestion
+decision.debug-suggestion⇥unmet⇥⇥pi has no error-classifier runtime; the suggestion surface is not built
+decision.ask-question-form⇥unmet⇥⇥pi has no interactive question-tool runtime; the form is not built
+decision.sudo-prompt⇥unmet⇥⇥pi has no sudo password-prompt runtime; not built
+decision.confirm-overlay⇥unmet⇥⇥needs the reference CLI's sandbox runtime
+decision.sandbox-intro⇥unmet⇥⇥needs the reference CLI's sandbox runtime execution-mode approval
+banner.follow-ups⇥unmet⇥⇥pi runtime has no queued follow-up banner mechanism
+banner.working-status⇥implemented⇥test/chrome.test.ts⇥spinner frames and working message wired via ctx.ui.setWorkingIndicator/setWorkingMessage
+banner.warnings⇥unmet⇥⇥needs the reference CLI's sandbox runtime for allowlist fallback banners; the gate blocks via the decision surface instead
+mode.shift-tab-cycle⇥implemented⇥test/editor.test.ts⇥'\x1b[Z' cycles default-plan-debug-ask and is not passed to pi; runner.js reserves shift+tab so the CustomEditor owns the key
+mode.headline-colors⇥implemented⇥test/chrome.test.ts⇥headline rendered in the footer; Plan #F4E7A1 / Debug #E34671 tokens asserted in test/palette.test.ts
+mode.shell⇥mapped⇥pi bash mode via the ! keybinding⇥pi owns shell mode visuals and its keybinding; the /shell command itself is unmet
+mode.cloud⇥unmet⇥⇥needs the reference CLI's cloud-agents
+mode.autorun-indicators⇥implemented⇥test/chrome.test.ts⇥Run Everything/Auto-review footer indicators asserted
+mode.yolo⇥implemented⇥test/chrome.test.ts⇥the reference CLI's YOLO indicator realized as the Run Everything footer label; no --yolo flag is registered
+mode.switch-tool-row⇥unmet⇥⇥pi runtime has no mid-turn switch_mode tool hook
+vim.state⇥implemented⇥test/editor.test.ts⇥Esc on empty input enters normal, i/a returns to insert, printables swallowed; /vim toggle asserted in test/commands.test.ts
+vim.footer-label⇥implemented⇥test/chrome.test.ts⇥'-- INSERT --' trails footer row B; labels carried in state.ts
+vim.cursor⇥mapped⇥pi editor cursor rendering⇥pi owns cursor styles; no vim-specific cursor shapes are drawn
+vim.navigation⇥implemented⇥test/editor.test.ts⇥hjkl map to arrow keys in normal mode and printables do nothing; full vim motions (w/b/dd) are not implemented - partial by plan
+vim.esc-behavior⇥implemented⇥test/editor.test.ts⇥Esc with empty input enters normal mode; pi keeps Esc semantics elsewhere
+command.registry-lookup⇥implemented⇥test/commands.test.ts⇥findCommand resolves ids, aliases and case-insensitively; unknown ids return undefined
+command.list-order⇥implemented⇥test/commands.test.ts⇥/help lists every registry entry in the reference CLI's built-ins-then-dynamic order with a fixed header and hint
+command.model⇥mapped⇥pi /model builtin⇥built-in slash commands resolve before extension commands
+command.goal⇥unmet⇥⇥needs the reference CLI's goal service (agent goal backend)
+command.add-dir⇥unmet⇥⇥needs the reference CLI's workspace manager
+command.save-workspace⇥unmet⇥⇥needs the reference CLI's workspace manager
+command.load-workspace⇥unmet⇥⇥needs the reference CLI's workspace manager
+command.detach⇥unmet⇥⇥needs the reference CLI's persistent-session backend
+command.run-everything⇥implemented⇥test/commands.test.ts⇥toggles state.runEverything with the reference CLI's ON/OFF messages asserted
+command.auto-review⇥implemented⇥test/commands.test.ts⇥registered toggle with the reference CLI description asserted
+command.plan⇥implemented⇥test/commands.test.ts⇥sets plan mode and notifies 'Plan mode enabled', asserted
+command.ask⇥implemented⇥test/commands.test.ts⇥toggles ask mode with enabled/disabled messages asserted
+command.debug⇥deviation⇥⇥built-in slash commands resolve before extension commands (framing): pi /debug is diagnostics and the extension cannot re-register it for the reference CLI's mode toggle
+command.logs⇥unmet⇥⇥pi owns its debug log; no log-path reporting command surface
+command.update⇥unmet⇥⇥needs the reference CLI's updater
+command.max-mode⇥unmet⇥⇥needs the reference CLI's max-mode backend
+command.fast⇥unmet⇥⇥needs the reference CLI's fast-mode backend
+command.rename⇥mapped⇥pi /name builtin⇥aliases /name and /title resolve to pi's rename
+command.clear⇥mapped⇥pi /new builtin⇥aliases /new-chat and /newchat resolve to pi's new-session
+command.resume⇥mapped⇥pi /resume builtin⇥aliases /continue, /recent, /history resolve to pi's resume
+command.fork⇥mapped⇥pi /fork and /clone builtins⇥aliases /duplicate, /clone, /branch resolve to pi's forking
+command.summarize⇥mapped⇥pi /compact builtin⇥aliases /compress and /compact resolve to pi's summarization
+command.rewind⇥mapped⇥pi /tree builtin⇥aliases /restore and /undo resolve to pi's session-restore navigation
+command.vim⇥implemented⇥test/commands.test.ts⇥toggles state.vim with 'Vim keys: ON/OFF' asserted
+command.zen-mode⇥implemented⇥test/commands.test.ts⇥toggles state.compact with 'Zen mode: ON/OFF' asserted
+command.line-numbers⇥unmet⇥⇥pi renderer has no line-number toggle
+command.show-thinking⇥mapped⇥pi /thinking builtin⇥pi owns the thinking toggle; the package /show-thinking redirects to it
+command.status-indicators⇥mapped⇥pi terminal-title handling⇥pi owns the terminal title; no toggle surface exists
+command.shell⇥mapped⇥pi bash mode via the ! keybinding⇥pi owns shell mode entry (reserved ! keybinding); no /shell command is registered
+command.about⇥implemented⇥test/commands.test.ts⇥registered with handler showing pi version, model, provider and session; the reference CLI account fields need reference-auth
+command.setup-terminal⇥mapped⇥pi terminal-setup flow⇥pi owns terminal setup itself (docs/terminal-setup.md)
+command.help⇥implemented⇥test/commands.test.ts⇥Commands header, one line per entry, hint line and styled variants asserted
+command.feedback⇥unmet⇥⇥needs the reference CLI's feedback service
+command.open⇥unmet⇥⇥needs the reference CLI editor binary
+command.open-alias⇥unmet⇥⇥needs the reference CLI editor binary
+command.copy-request-id⇥unmet⇥⇥needs the reference CLI's request telemetry
+command.open-in-prompt-quality⇥unmet⇥⇥needs the reference CLI's Prompt Quality dashboard
+command.copy-conversation-id⇥implemented⇥test/commands.test.ts⇥session file path or 'No session' asserted
+command.team⇥unmet⇥⇥needs the reference CLI's team backend
+command.logout⇥mapped⇥pi /logout builtin⇥pi owns sign-out
+command.quit⇥mapped⇥pi /quit builtin⇥pi owns quit
+command.exit⇥implemented⇥test/commands.test.ts⇥handler calls ctx.shutdown; shutdown asserted
+command.mcp⇥unmet⇥⇥needs the reference CLI's MCP service; pi manages MCP servers via settings instead
+command.plugin⇥unmet⇥⇥needs the reference CLI's plugin marketplace
+command.config⇥mapped⇥pi /settings builtin⇥aliases /settings, /preferences, /cli-config resolve to pi's settings
+command.copy⇥implemented⇥test/pagers.test.ts⇥CopyPager copies the selected message on Enter and closes on Escape, asserted
+command.sandbox⇥unmet⇥⇥needs the reference CLI's sandbox runtime
+command.bedrock⇥unmet⇥⇥needs the reference CLI's Bedrock setup service
+command.debug-test⇥unmet⇥⇥needs the reference CLI's dev-build runtime
+command.throw⇥unmet⇥⇥needs the reference CLI's dev-build runtime
+command.pq⇥unmet⇥⇥needs the reference CLI's Prompt Quality dashboard
+command.dev-score-recent-commits⇥unmet⇥⇥needs the reference CLI's dev-build runtime
+command.dev-score-commit⇥unmet⇥⇥needs the reference CLI's dev-build runtime
+command.dev-classify-conversation⇥unmet⇥⇥needs the reference CLI's dev-build runtime
+command.changes⇥implemented⇥test/commands.test.ts⇥registered git-status handler; porcelain parsing tested; the output names the deviation from the reference CLI's interactive review
+command.commit⇥mapped⇥pi prompt template /commit (prompts/commit.md)⇥the package prompt template owns the id through pi
+command.jobs⇥implemented⇥test/commands.test.ts⇥registered handler; pi lacks a jobs runtime so the list reports 'No active tasks'
+command.rule⇥implemented⇥test/wizard.test.ts⇥/rule registered by the wizard and driven end to end
+command.command⇥unmet⇥⇥pi loads prompt templates but has no manager command
+command.usage⇥implemented⇥test/commands.test.ts⇥'Usage: 11 input · 7 output tokens · $0.7500' asserted; the /usage pager is asserted in test/pagers.test.ts
+command.skills⇥unmet⇥⇥pi has no skills menu command
+command.btw⇥unmet⇥⇥needs the reference CLI's side-chat backend
+command.static-indicator⇥unmet⇥⇥needs the reference CLI's dev-build runtime; debug-only command
+command.full-conversation⇥mapped⇥pi transcript renderer⇥pi always renders the full conversation, so the toggle is inapplicable
+command.sync-theme⇥mapped⇥pi automatic theme setting⇥pi detects the theme at startup; no re-detect command exists
+command.context⇥implemented⇥test/pagers.test.ts⇥context command registered by installPagers; the screen rows are asserted
+command.per-model⇥unmet⇥⇥pi prompt templates have no per-model gating
+command.subagent⇥unmet⇥⇥pi runtime has no subagents
+command.custom-loading⇥mapped⇥pi prompt templates via resources_discover⇥pi loads reference config dir/commands and .claude/commands as prompt templates
+command.custom-format⇥mapped⇥pi prompt template format⇥the reference CLI command frontmatter maps onto pi's template metadata
+command.palette-labels⇥mapped⇥pi slash-command palette⇥registered descriptions surface as pi palette labels
+pager.placement⇥mapped⇥ctx.ui.custom overlays⇥pi owns overlay placement over the main screen
+pager.config-header⇥mapped⇥pi /settings builtin⇥pi owns the settings pager chrome
+pager.config-list⇥mapped⇥pi /settings builtin⇥pi owns the settings list view
+pager.config-enum⇥mapped⇥pi /settings builtin⇥pi owns enum setting editors
+pager.config-editor⇥mapped⇥pi /settings builtin⇥pi owns text/JSON setting editors
+pager.config-model-picker⇥mapped⇥pi /model builtin⇥pi owns model selection including subagent models
+pager.config-about⇥implemented⇥test/commands.test.ts⇥/about registered and listed implemented; shows pi version/model/session since the reference CLI account fields need reference-auth
+pager.context-header⇥implemented⇥test/pagers.test.ts⇥'Context • claude-sonnet-4' header asserted
+pager.context-bar⇥implemented⇥test/pagers.test.ts⇥segmented bar built from background-colored spaces asserted
+pager.context-rows⇥implemented⇥test/pagers.test.ts⇥category rows and the free-space row asserted
+pager.context-empty⇥implemented⇥test/pagers.test.ts⇥'No context usage breakdown to show yet.' asserted
+pager.copy-message⇥implemented⇥test/pagers.test.ts⇥60-char previews with You/Agent prefixes, selection, copy and close asserted
+pager.copy-part⇥unmet⇥⇥pi lacks a part-level copy mechanism and none is built; CopyPager copies whole messages
+pager.model-picker⇥mapped⇥pi /model builtin⇥pi owns the model picker
+pager.model-picker-params⇥mapped⇥pi /model builtin parameter editing⇥pi owns model parameter editing
+pager.mcp-servers-list⇥unmet⇥⇥needs the reference CLI's MCP service
+pager.mcp-servers-error⇥unmet⇥⇥needs the reference CLI's MCP service
+pager.mcp-servers-detail⇥unmet⇥⇥needs the reference CLI's MCP service
+pager.mcp-servers-tabs⇥unmet⇥⇥needs the reference CLI's MCP service
+pager.mcp-servers-empty⇥unmet⇥⇥needs the reference CLI's MCP service
+pager.plugins-installed⇥unmet⇥⇥needs the reference CLI's plugin marketplace
+pager.plugins-marketplace⇥unmet⇥⇥needs the reference CLI's plugin marketplace
+pager.plugins-detail⇥unmet⇥⇥needs the reference CLI's plugin marketplace
+pager.plugins-empty⇥unmet⇥⇥needs the reference CLI's plugin marketplace
+pager.marketplaces-list⇥unmet⇥⇥needs the reference CLI's plugin marketplace
+pager.marketplaces-detail⇥unmet⇥⇥needs the reference CLI's plugin marketplace
+pager.marketplaces-remove⇥unmet⇥⇥needs the reference CLI's plugin marketplace
+pager.tasks⇥implemented⇥test/commands.test.ts⇥/jobs registered; pi lacks a background-jobs runtime so the list reports 'No active tasks'
+pager.job-log⇥unmet⇥⇥pi runtime has no background-jobs log surface
+pager.job-log-subagent⇥unmet⇥⇥pi runtime has no subagents or background jobs
+pager.rewind-list⇥mapped⇥pi /tree builtin⇥pi owns the restore-point list
+pager.rewind-detail⇥mapped⇥pi /tree builtin⇥pi restores conversation state; the reference CLI's file checkpoint restore needs git snapshots plus the reference CLI editor binary
+pager.sandbox⇥unmet⇥⇥needs the reference CLI's sandbox runtime
+pager.usage-header⇥implemented⇥test/pagers.test.ts⇥accent 'Usage' header asserted; totals come from the local session branch, not usage-billing (documented adaptation)
+pager.usage-rows⇥implemented⇥test/pagers.test.ts⇥per-model input/output/cost rows asserted
+pager.usage-spend⇥unmet⇥⇥needs the reference CLI's usage-billing service; the session pager has no spend variant
+pager.items-list⇥unmet⇥⇥needs the reference CLI's lints/rules service; the /rule wizard covers rule creation only
+pager.items-view⇥unmet⇥⇥needs the reference CLI's lints/rules service
+pager.items-edit⇥unmet⇥⇥needs the reference CLI's lints/rules service
+pager.items-delete⇥unmet⇥⇥needs the reference CLI's lints/rules service
+pager.items-create⇥unmet⇥⇥needs the reference CLI's lints/rules service; rule creation is covered by the /rule wizard
+pager.unified-list-header⇥mapped⇥pi /resume builtin session list⇥pi owns the resume list chrome; the reference CLI's persistent-session previews have no local backend
+pager.unified-list-rows⇥mapped⇥pi /resume builtin session rows⇥pi renders its own session rows
+pager.unified-list-empty⇥mapped⇥pi /resume builtin⇥pi owns the empty/loading states
+pager.unified-list-footer⇥mapped⇥pi /resume builtin⇥pi owns the list footer and delete confirmation
+pager.team-picker⇥unmet⇥⇥needs the reference CLI's team-account service
+chrome.provider-stack⇥deviation⇥⇥the reference CLI's React provider stack is Ink renderer internals; pi owns the app shell and a second renderer is forbidden
+chrome.keyboard-protocol⇥deviation⇥⇥pi runner owns terminal and keyboard setup; extensions only write the documented notify escapes
+chrome.layout-order⇥mapped⇥ctx.ui header/editor/transcript/footer slots⇥pi owns app composition; the extension fills the slots (header, editor, footer installed in src/index.ts)
+chrome.chat-stack⇥mapped⇥pi transcript column stack⇥pi owns chat column layout and stacking
+chrome.altscreen⇥deviation⇥⇥pi runner owns screen modes including altscreen; extensions must not flip terminal screen state
+chrome.app-header⇥implemented⇥test/chrome.test.ts⇥bold 'the reference CLI Agent' + dim version rendered via ctx.ui.setHeader; persistent-session bits not rendered
+chrome.app-header-border⇥deviation⇥⇥the reference CLI's borderLeft is Ink box chrome; pi setHeader takes rendered lines because pi owns the app shell
+chrome.theme-sync-blanking⇥deviation⇥⇥pi owns theme transitions and screen refresh; no hook to blank during a theme sync
+chrome.capture-reconciliation⇥deviation⇥⇥the reference CLI's capture reconciliation is its persistent-session (unified-list) screenshot machinery; pi owns rendering and capture
+chrome.capture-theme-color⇥deviation⇥⇥same capture machinery; pi owns rendering, so the reference CLI's capture-time color reconciliation has no hook
+startup.welcome⇥unmet⇥⇥needs the reference CLI's reference-auth backend
+startup.wordmark-gating⇥unmet⇥⇥needs the reference CLI's reference-auth to gate the rich wordmark
+startup.wordmark-rich⇥unmet⇥⇥needs the reference CLI's reference-auth backend
+startup.welcome-fallback⇥unmet⇥⇥needs the reference CLI's reference-auth backend
+startup.login-browser⇥unmet⇥⇥needs the reference CLI's reference-auth browser login
+startup.login-waiting⇥unmet⇥⇥needs the reference CLI's reference-auth login polling
+startup.login-success⇥unmet⇥⇥needs the reference CLI's reference-auth backend
+startup.login-error⇥unmet⇥⇥needs the reference CLI's reference-auth backend
+startup.agent-login⇥unmet⇥⇥needs the reference CLI's reference-auth and reference-api services
+startup.login-offline⇥unmet⇥⇥needs the reference CLI's reference-api service
+startup.approval-dialog⇥implemented⇥test/decisions.test.ts⇥approval gate + surface tested end to end; the reference CLI's sandbox approval realized as the DecisionSurface
+startup.workspace-trust⇥unmet⇥⇥needs the reference CLI's workspace trust scan (MCP inventory); the package registers no project_trust handler
+startup.mcp-approval⇥unmet⇥⇥needs the reference CLI's MCP service
+startup.resume-standalone⇥mapped⇥pi /resume builtin⇥pi owns the standalone session picker
+wizard.shell⇥implemented⇥test/wizard.test.ts⇥the wizard flow is driven through pi dialogs (input/select/notify) and writes AGENTS.md
+wizard.step-description⇥implemented⇥test/wizard.test.ts⇥'What should this rule instruct' input asserted
+wizard.step-scope⇥implemented⇥test/wizard.test.ts⇥'Where should this rule be saved?' select with 2 options asserted
+wizard.step-name⇥implemented⇥test/wizard.test.ts⇥slugifyName prefill matches the reference CLI slug rule
+wizard.result⇥implemented⇥test/wizard.test.ts⇥created/exists/cancelled result strings asserted
+notification.gating⇥implemented⇥test/notify.test.ts⇥FocusGate notify/suppress behavior asserted, including the tmux report rule
+notification.focus⇥implemented⇥test/notify.test.ts⇥FOCUS_IN/FOCUS_OUT reporting transitions asserted
+notification.escapes⇥implemented⇥test/notify.test.ts⇥OSC 9/777/99 + BEL per terminal and tmux DCS passthrough asserted
+notification.messages⇥implemented⇥test/notify.test.ts⇥the message slot is asserted with literal payloads; the production NOTIFY_MESSAGES constant flows through the same sequence builder
+toast.block⇥mapped⇥ctx.ui.notify ephemeral messages⇥pi owns ephemeral toast rendering and lifetime; extension call sites asserted in test/commands.test.ts
+toast.auto-color⇥mapped⇥ctx.ui.notify message types⇥pi colors notify output by type (info/warning/error)
+toast.segments⇥deviation⇥⇥ctx.ui.notify takes plain text, not the reference CLI's segment arrays; segment-level styling is not representable in the pi mechanism
+tool-ui.constants⇥implemented⇥test/constants.test.ts⇥shared UI constants (margins, caps, delays, geometry) asserted to the research values
+tool-ui.verb-table⇥implemented⇥test/constants.test.ts⇥TOOL_VERBS progressive/past pairs asserted (read, grep, writeStdin, subagent, goal)
+tool-ui.tool-call-header⇥implemented⇥test/tools.test.ts⇥' Reading x.ts lines 5-14' header layout asserted: bold verb, dim primary and note
+tool-ui.tool-row-box⇥implemented⇥test/tools.test.ts⇥gutter row + '▎' bordered diff block asserted; the reference CLI's full box chrome reduces to these rows in the pi port
+tool-ui.path-helpers⇥implemented⇥test/format.test.ts⇥cwd-relative display, left-truncation and basename helpers asserted
+tool-ui.skill-reads⇥unmet⇥⇥pi lacks a skill-path relabeling surface and none is built; pi skills discover via resources_discover and reads render plain paths
+tool-ui.abort-labels⇥mapped⇥pi renderer abort states⇥pi owns aborted tool row status; package verbs cover run/done pairs
+tool-ui.compact-expand⇥implemented⇥test/tools.test.ts⇥collapsed bash output with '… 3 output lines hidden · ctrl+o to expand' asserted
+tool-ui.tool-call-dispatch⇥implemented⇥test/tools.test.ts⇥all seven built-in renderers registered and dispatched through pi's renderCall/renderResult
+tool-ui.shell⇥implemented⇥test/tools.test.ts⇥bash renderer: $ command echo, collapsed output, exit-code failure suffix asserted
+tool-ui.edit⇥implemented⇥test/tools.test.ts⇥+N -M note from the patch and the bordered diff block asserted
+tool-ui.delete⇥unmet⇥⇥pi runtime has no delete tool to render
+tool-ui.read⇥implemented⇥test/tools.test.ts⇥progressive verb, path and lines note asserted
+tool-ui.grep⇥implemented⇥test/tools.test.ts⇥40-char pattern truncation rule and Found N matches asserted
+tool-ui.glob⇥implemented⇥test/tools.test.ts⇥find renderer Found N files phrasing asserted
+tool-ui.ls⇥implemented⇥test/tools.test.ts⇥files/directories summary note asserted
+tool-ui.sem-search⇥unmet⇥⇥needs the reference CLI's semantic-index service
+tool-ui.read-lints⇥unmet⇥⇥needs the reference CLI's lints service
+tool-ui.web-fetch⇥unmet⇥⇥pi has no web-fetch tool and none is registered
+tool-ui.web-search⇥unmet⇥⇥needs the reference CLI's web-search backend
+tool-ui.mcp⇥unmet⇥⇥needs the reference CLI's MCP service
+tool-ui.fetch-mcp-resource⇥unmet⇥⇥needs the reference CLI's MCP service
+tool-ui.list-mcp-resources⇥unmet⇥⇥needs the reference CLI's MCP service
+tool-ui.get-mcp-tools⇥unmet⇥⇥needs the reference CLI's MCP service
+tool-ui.generate-image⇥unmet⇥⇥needs the reference CLI's image-generation service
+tool-ui.inline-image-preview⇥unmet⇥⇥needs the reference CLI's Statsig-gated inline previews
+tool-ui.goal⇥unmet⇥⇥needs the reference CLI's goal service (cloud-agents)
+tool-ui.ai-attribution⇥unmet⇥⇥needs the reference CLI's ai-attribution (CodeLineage) service
+tool-ui.switch-mode⇥unmet⇥⇥pi runtime has no mid-turn mode-switch hook
+tool-ui.ask-question⇥unmet⇥⇥pi has no interactive question-tool runtime; not built
+tool-ui.await⇥unmet⇥⇥pi runtime has no background shells or subagents to await
+tool-ui.write-shell-stdin⇥unmet⇥⇥pi runtime has no background shells; the writeStdin verb pair is carried and asserted in test/constants.test.ts
+tool-ui.todos⇥implemented⇥test/decisions.test.ts⇥TodosUI rows, status line and todo_update execute asserted
+tool-ui.create-plan⇥unmet⇥⇥needs the reference CLI's cloud-agents service
+tool-ui.plan-file-block⇥unmet⇥⇥pi lacks a plan-file block surface and none is built; the plan flow is carried by prompt sections
+tool-ui.task⇥unmet⇥⇥pi runtime has no subagents
+tool-ui.task-group⇥deviation⇥⇥cross-row task grouping has no hook in pi (framing constraint)
+tool-ui.running-agents⇥unmet⇥⇥pi runtime has no subagents
+tool-ui.merged-read-search⇥deviation⇥⇥cross-row merged read/search grouping has no hook in pi (framing constraint)
+tool-ui.merged-await⇥deviation⇥⇥cross-row merged await grouping has no hook in pi (framing constraint)
+tool-ui.zen-tool-calls⇥deviation⇥⇥cross-row zen grouping has no hook in pi (framing constraint); also Statsig-gated in the reference CLI
+tool-ui.static-path-inline-previews⇥unmet⇥⇥needs the reference CLI's Statsig-gated static-path previews
+spinner.frames⇥implemented⇥test/chrome.test.ts⇥8 braille frames colored green #58D68D asserted; wired via ctx.ui.setWorkingIndicator
+spinner.animated-dots⇥mapped⇥pi working message animation⇥pi owns animated working text; the package sets the indicator frames and message
+spinner.main-label⇥mapped⇥ctx.ui.setWorkingMessage⇥extension sets the static 'Working' label; the row composition is pi's
+spinner.prompt-working-status⇥mapped⇥pi working-status row⇥pi owns the per-prompt working status composition
+spinner.tip-line⇥unmet⇥⇥needs the reference CLI's Statsig tip pool; header comment documents the omission rather than inventing tips
+spinner.subagent-working⇥unmet⇥⇥pi runtime has no subagents, so no subagent view spinner exists

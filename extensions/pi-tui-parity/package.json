@@ -1,0 +1,36 @@
+{
+  "name": "pi-tui-parity",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "TUI parity layer for pi: themes, chrome, tool renderers, decisions, commands, pagers",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/*.test.ts",
+    "test:coverage": "c8 --all --include='src/*.ts' --check-coverage --lines=80 --branches=80 --functions=80 --statements=80 node --import tsx --test test/*.test.ts",
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:parity": "node scripts/check-parity.mjs",
+    "check:smoke": "node scripts/tmux-smoke.mjs"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "0.87.1",
+    "@earendil-works/pi-tui": "0.87.1",
+    "@types/node": "^22.19.0",
+    "typescript": "^5.9.3",
+    "tsx": "^4.20.0",
+    "c8": "12.0.0",
+    "typebox": "1.3.27",
+    "@earendil-works/pi-ai": "0.87.1"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "themes": [
+      "./themes/*.json"
+    ],
+    "prompts": [
+      "./prompts/*.md"
+    ]
+  }
+}

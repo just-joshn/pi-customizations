@@ -1,17 +1,17 @@
 .PHONY: verify verify-extension verify-python
 
-verify: verify-extension verify-cursor-cli verify-python
+verify: verify-extension verify-tui-parity verify-python
 
 verify-extension:
 	npm --prefix extensions/pi-pstack run check:resources
 	npm --prefix extensions/pi-pstack run typecheck
 	npm --prefix extensions/pi-pstack run test:coverage
 
-verify-cursor-cli:
-	npm --prefix extensions/pi-cursor-cli run check:docs
-	npm --prefix extensions/pi-cursor-cli run check:parity
-	npm --prefix extensions/pi-cursor-cli run typecheck
-	npm --prefix extensions/pi-cursor-cli run test:coverage
+verify-tui-parity:
+	npm --prefix extensions/pi-tui-parity run check:docs
+	npm --prefix extensions/pi-tui-parity run check:parity
+	npm --prefix extensions/pi-tui-parity run typecheck
+	npm --prefix extensions/pi-tui-parity run test:coverage
 
 verify-python:
 	uv run --no-project --with coverage==7.16.1 coverage erase
