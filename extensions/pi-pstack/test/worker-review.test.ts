@@ -86,3 +86,18 @@ test('restoration reports cleanup failure but activates the requested branch aft
     assert.equal((next.details as { status: string }).status, 'settled');
   } finally { unsubscribe(); t.mock.restoreAll(); await f.close(); }
 });
+
+test('a background task awaited by TaskOutput is not delivered again as a completion message', async () => {
+  const f = await workerFixture();
+  try {
+    const completions = () => f.session.messages.filter(message => message.role === 'custom' && message.customType === 'pstack-task-completion').length;
+    const awaited = await f.call('Task', { prompt: 'WAIT' });
+    const awaitedId = (awaited.details as { id: string }).id;
+    assert.equal(((await f.call('TaskOutput', { task_id: awaitedId, block: true })).details as { status: string }).status, 'settled');
+    await f.session.waitForIdle();
+    assert.equal(completions(), 0);
+    const unattended = await f.call('Task', { prompt: 'WAIT' });
+    await settled(f, (unattended.details as { id: string }).id);
+    assert.equal(completions(), 1);
+  } finally { await f.close(); }
+});
