@@ -32,7 +32,7 @@ async function loadVendoredTheme(): Promise<LoadedTheme> {
 describe.skipIf(!vendored)("theme loader through the vendored pi copy", () => {
 	it("loads the committed theme by name", async () => {
 		const theme = await loadVendoredTheme();
-		expect(theme.name).toBe(THEME_NAME);
+		expect(theme.name).toBe("one-dark-pro-flat");
 	});
 
 	it("renders the syntax keyword role", async () => {

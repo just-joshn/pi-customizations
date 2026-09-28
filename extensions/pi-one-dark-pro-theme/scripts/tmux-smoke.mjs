@@ -30,8 +30,8 @@ const SOCKET = `pi-theme-smoke-${process.pid}`;
 
 const ACCENT = "\u001b[38;2;97;175;239m";
 const DIM = "\u001b[38;2;107;113;125m";
-const USER_MESSAGE_BG = "\u001b[48;2;33;37;43m";
-const THINKING_BORDER = "\u001b[38;2;74;165;240m";
+const TOOL_SUCCESS_BG = "\u001b[48;2;32;61;73m";
+const USER_MESSAGE_BG = "\u001b[48;2;44;49;60m";
 const BUILT_IN_DARK_ACCENT = "\u001b[38;2;138;190;183m";
 
 const results = [];
@@ -55,8 +55,24 @@ function piBinary() {
 function makeWorkspace(label) {
 	const dir = mkdtempSync(path.join(tmpdir(), `pi-theme-smoke-${label}-`));
 	temporaryPaths.push(dir);
-	mkdirSync(path.join(dir, "agent"), { recursive: true });
+	for (const name of ["agent", "home", "workspace"]) {
+		mkdirSync(path.join(dir, name), { recursive: true });
+	}
 	return dir;
+}
+
+/**
+ * Pin the environment so a run cannot pick up the operator's own agent directory,
+ * themes, extensions, or settings. Without this, `-e <package>` proving `pi.themes`
+ * discovery could pass on a theme the operator had already copied into
+ * ~/.pi/agent/themes, which is exactly what the README tells users to do.
+ */
+function isolatedEnv(workspace) {
+	return [
+		`HOME=${shquote(path.join(workspace, "home"))}`,
+		`PI_CODING_AGENT_DIR=${shquote(path.join(workspace, "agent"))}`,
+		"PI_OFFLINE=1",
+	].join(" ");
 }
 
 function record(name, ok, captureName) {
@@ -76,7 +92,7 @@ function sleep(seconds) {
 	execFileSync("sleep", [String(seconds)]);
 }
 
-const FOOTER = "$0.000 (sub)";
+const THEME_SECTION = "[Themes]";
 
 function readUntilIdle(session) {
 	let text = "";
@@ -85,16 +101,28 @@ function readUntilIdle(session) {
 		text = capture(session);
 		// The footer only paints once startup finished, and it repaints on every tick,
 		// so a second identical sample means the screen has settled.
-		if (text.includes(FOOTER) && text === capture(session)) return text;
+		if (text.includes(THEME_SECTION) && text === capture(session)) return text;
 	}
 	return text;
 }
 
 /** Launch pi in its own session and return the capture once the editor is idle. */
+const PROVIDER_EXTENSION = path.join(
+	PACKAGE_ROOT,
+	"test",
+	"harness",
+	"scripted-provider.ts",
+);
+
 function runPi(label, extraArgs, session) {
 	const workspace = makeWorkspace(label);
 	const command = [
+		isolatedEnv(workspace),
 		shquote(piBinary()),
+		"--extension",
+		shquote(PROVIDER_EXTENSION),
+		"--model",
+		"smoke/scripted",
 		"--use-theme",
 		"one-dark-pro-flat",
 		...extraArgs.map(shquote),
@@ -117,7 +145,7 @@ function runPi(label, extraArgs, session) {
 		"-s",
 		session,
 		"-c",
-		workspace,
+		path.join(workspace, "workspace"),
 		`${command}; echo PI-EXITED-$?; sleep 600`,
 	]);
 	return readUntilIdle(session);
@@ -134,12 +162,12 @@ function exerciseThemePath() {
 
 	record(
 		"pi reaches an idle TUI without exiting",
-		idle.includes(FOOTER) && !idle.includes("PI-EXITED"),
+		idle.includes(THEME_SECTION) && !idle.includes("PI-EXITED"),
 		"01-theme-path-idle",
 	);
 	record(
-		"verbose listing names the package theme file",
-		idle.includes("themes/one-dark-pro-flat.json"),
+		"verbose resource listing names the package theme",
+		idle.includes("[Themes]") && idle.includes("one-dark-pro-flat"),
 		"01-theme-path-idle",
 	);
 	record(
@@ -150,11 +178,6 @@ function exerciseThemePath() {
 	record(
 		"dim tier #6b717d reaches the terminal",
 		idle.includes(DIM),
-		"01-theme-path-idle",
-	);
-	record(
-		"thinking border #4aa5f0 reaches the terminal",
-		idle.includes(THINKING_BORDER),
 		"01-theme-path-idle",
 	);
 	record(
@@ -169,13 +192,18 @@ function exerciseThemePath() {
 	const busy = capture(session);
 	saveCapture("02-theme-path-composing", busy);
 	record(
-		"user message box paints #21252b behind the message",
+		"user message box paints #2c313c behind the message",
 		busy.includes(USER_MESSAGE_BG),
 		"02-theme-path-composing",
 	);
 	record(
 		"user message box keeps the built-in dark accent away",
 		!busy.includes(BUILT_IN_DARK_ACCENT),
+		"02-theme-path-composing",
+	);
+	record(
+		"tool box paints the success surface #203d49",
+		busy.includes(TOOL_SUCCESS_BG),
 		"02-theme-path-composing",
 	);
 }

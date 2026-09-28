@@ -49,14 +49,19 @@ npm run test:coverage  # 80% thresholds on parity/*.ts
 npm run check:smoke    # launch pi in tmux and assert the theme's escapes reach the screen
 ```
 
-`check:smoke` needs `tmux` and a `pi` on `PATH`, or `PI_BIN` set to one. It runs two isolated
-agents with a fresh `HOME` and agent directory, captures the pane with escape sequences intact,
-and loads the theme twice: once through `--theme` and once through the package manifest. It fails
-if the built-in `dark` theme's accent appears, so a silent fallback cannot pass.
+`check:smoke` needs `tmux` and a `pi` on `PATH`, or `PI_BIN` set to one. It runs two agents with
+a fresh `HOME`, agent directory, and workspace, so nothing from your own pi configuration can
+leak in. Each run captures the pane with escape sequences intact and loads the theme, once
+through `--theme` and once through the package manifest. A scripted provider in
+`test/harness/scripted-provider.ts` drives one offline turn, which paints the user message box,
+the tool box, and the final text, so no credentials or network are needed. The load-bearing
+assertion is that the built-in `dark` theme's accent never appears, which fails a silent fallback
+to `dark`.
 
 ## No extension code
 
 This package ships a theme JSON and nothing that runs inside Pi. Pi discovers themes through the
-`pi.themes` manifest entry, so no extension can add a color or select a theme that the file and
-`/settings` do not already own. `docs/parity.md` has the role-by-role evidence trail, the
+`pi.themes` manifest entry, so no extension is needed to load it. An extension can call
+`ctx.ui.setTheme` to select a loaded theme, but that selects what the file already defines, and
+nothing in this package needs to run inside pi. `docs/parity.md` has the role-by-role evidence trail, the
 derivation rules, and the measured contrast table.

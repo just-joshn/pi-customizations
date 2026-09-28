@@ -6,8 +6,6 @@ import {
 	readThemeSchema,
 	resolveRow,
 	resolveScope,
-	THEME_NAME,
-	THEME_SCHEMA_URL,
 	themeSchemaPath,
 } from "../parity/theme.ts";
 
@@ -219,15 +217,28 @@ describe("parseRoleMap", () => {
 		);
 	});
 
+	it("rejects a translucent composite base", () => {
+		expect(() =>
+			buildTheme(document, [
+				row({
+					role: "selectedBg",
+					kind: "composite",
+					source: "tint",
+					base: "tint",
+				}),
+			]),
+		).toThrow('role selectedBg: composite base "#7F848E60" must be #rrggbb');
+	});
+
 	it("rejects an empty role", () => {
 		expect(() => parseRoleMap("\tcolor\tkey\t\twhy")).toThrow(
 			"role map line 1: empty role",
 		);
 	});
 
-	it("rejects the removed alpha kind", () => {
-		expect(() => parseRoleMap("accent\talpha\tkey\t\twhy")).toThrow(
-			'role map line 1 (accent): "alpha" is not a role kind',
+	it("rejects an unknown kind", () => {
+		expect(() => parseRoleMap("accent\thue\tkey\t\twhy")).toThrow(
+			'role map line 1 (accent): "hue" is not a role kind',
 		);
 	});
 
@@ -363,8 +374,9 @@ describe("buildTheme", () => {
 	it("splits export roles out of colors and sorts both", () => {
 		const theme = buildTheme(document, rows);
 		expect(theme).toEqual({
-			$schema: THEME_SCHEMA_URL,
-			name: THEME_NAME,
+			$schema:
+				"https://raw.githubusercontent.com/earendil-works/pi/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json",
+			name: "one-dark-pro-flat",
 			colors: { selectedBg: "#3a3c3f", text: "#aabbcc" },
 			export: { cardBg: "#aabbcc", pageBg: "#101010" },
 		});
@@ -380,6 +392,19 @@ describe("buildTheme", () => {
 		expect(() => buildTheme(document, duplicate)).toThrow(
 			'role text: duplicate target key "text"',
 		);
+	});
+
+	it("rejects a translucent composite base", () => {
+		expect(() =>
+			buildTheme(document, [
+				row({
+					role: "selectedBg",
+					kind: "composite",
+					source: "tint",
+					base: "tint",
+				}),
+			]),
+		).toThrow('role selectedBg: composite base "#7F848E60" must be #rrggbb');
 	});
 
 	it("rejects an empty role", () => {
