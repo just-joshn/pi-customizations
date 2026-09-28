@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { access, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -139,7 +140,7 @@ shellTest('closing the session kills a running shell process group', async (f, s
   assert.equal(custom(session, 'pstack-shell-exit').length, 0);
 });
 
-shellTest('matches during a busy turn coalesce into one queued wake', async (f, session) => {
+shellTest('matches during a busy turn coalesce into one wake delivered when the turn ends', async (f, session) => {
   const window: number[] = [];
   session.subscribe(event => {
     if ((event.type === 'tool_execution_start' || event.type === 'tool_execution_end') && event.toolName === 'bash') window.push(Date.now());
@@ -152,8 +153,9 @@ shellTest('matches during a busy turn coalesce into one queued wake', async (f, 
   const shell = detailsOf<ShellRecord>(session, 'BackgroundShell');
   await waitFor(() => window.length === 2 && custom(session, 'pstack-shell-output').length >= 2, 'the busy turn and a later wake');
   const [start = 0, end = 0] = window;
-  const during = custom(session, 'pstack-shell-output').filter(message => message.timestamp >= start && message.timestamp <= end);
-  assert.equal(during.length, 1);
+  const wakes = custom(session, 'pstack-shell-output');
+  assert.equal(wakes.filter(message => message.timestamp >= start && message.timestamp <= end).length, 0);
+  assert.equal((wakes[0]?.role === 'custom' && (wakes[0].details as ShellRecord).matches), 1);
   f.calls.push(call('BackgroundShellStop', { id: shell.id }));
   await waitFor(() => toolResults(session, 'BackgroundShellStop').length === 1, 'the stop call');
   assert.ok(detailsOf<ShellRecord>(session, 'BackgroundShellStop').matches >= 10);
@@ -166,9 +168,13 @@ shellTest('a shell stopped in the same busy turn sends no stale wake afterwards'
   );
   const turn = prompt(session, 'start the ticker, wait, then stop it');
   await waitFor(() => toolResults(session, 'BackgroundShell').length === 1, 'the shell to start');
-  f.calls.push(call('BackgroundShellStop', { id: detailsOf<ShellRecord>(session, 'BackgroundShell').id }));
+  const shell = detailsOf<ShellRecord>(session, 'BackgroundShell');
+  await waitFor(() => readFileSync(shell.outputFile, 'utf8').includes('AGENT_LOOP_TICK_s'), 'a match while the parent is busy');
+  f.calls.push(call('BackgroundShellStop', { id: shell.id }));
   await turn;
   await session.waitForIdle();
-  assert.equal(detailsOf<ShellRecord>(session, 'BackgroundShellStop').status.kind, 'stopped');
+  const stopped = detailsOf<ShellRecord>(session, 'BackgroundShellStop');
+  assert.equal(stopped.status.kind, 'stopped');
+  assert.ok(stopped.matches >= 1, 'the busy turn counted a match');
   assert.equal(custom(session, 'pstack-shell-output').length, 0);
 });

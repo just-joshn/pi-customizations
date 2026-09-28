@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Readable } from 'node:stream';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { DeferredWakes } from './deferred-wakes.ts';
 
 export type ShellStatus =
   | { kind: 'running' }
@@ -17,11 +18,10 @@ export type ShellRecord = Readonly<{
   status: ShellStatus; matches: number;
 }>;
 export type ShellParameters = { command: string; title: string; notify_on_output?: string };
-type Shell = { record: ShellRecord; child: ChildProcess; exited: Promise<void>; wakePending: boolean };
+type Shell = { record: ShellRecord; child: ChildProcess; exited: Promise<void>; wakePending: boolean; parentIdle: () => boolean };
 
 const lineLimit = 2000;
 const stopGraceMs = 2000;
-const wake = { triggerTurn: true, deliverAs: 'followUp' } as const;
 
 function parsePattern(pattern: string | undefined): RegExp | undefined {
   if (pattern === undefined) return undefined;
@@ -59,7 +59,8 @@ function describe(record: ShellRecord): string {
 
 export class ShellRuntime {
   private shells = new Map<string, Shell>();
-  constructor(private readonly pi: ExtensionAPI) {}
+  private readonly wakes: DeferredWakes;
+  constructor(private readonly pi: ExtensionAPI) { this.wakes = new DeferredWakes(pi); }
 
   async start(params: ShellParameters, ctx: ExtensionContext): Promise<ShellRecord> {
     requireText(params.command, 'command');
@@ -76,7 +77,7 @@ export class ShellRuntime {
       status: { kind: 'running' }, matches: 0,
     };
     const exited = this.watch(record, child, pattern);
-    this.shells.set(id, { record, child, exited, wakePending: false });
+    this.shells.set(id, { record, child, exited, wakePending: false, parentIdle: () => ctx.isIdle() });
     return record;
   }
 
@@ -89,6 +90,7 @@ export class ShellRuntime {
     if (!shell) throw new Error(`Unknown background shell: ${id}`);
     if (shell.record.status.kind === 'running') {
       this.update(id, { status: { kind: 'stopped' } });
+      this.wakes.drop(`output:${id}`);
       signalGroup(shell.record.pid, 'SIGTERM');
       if (!await settlesWithin(shell.exited, stopGraceMs)) signalGroup(shell.record.pid, 'SIGKILL');
     }
@@ -97,6 +99,7 @@ export class ShellRuntime {
   }
 
   async stopAll(): Promise<void> {
+    this.wakes.clear();
     await Promise.all([...this.shells.keys()].map(id => this.stop(id)));
   }
 
@@ -134,7 +137,7 @@ export class ShellRuntime {
     if (shell.wakePending) return;
     this.shells.set(id, { ...this.shells.get(id)!, wakePending: true });
     const content = `${describe(record)} matched ${record.pattern}.\nOutput file: ${record.outputFile}\nLine: ${line.slice(0, lineLimit)}`;
-    this.pi.sendMessage({ customType: 'pstack-shell-output', display: true, details: record, content }, wake);
+    this.wakes.send(`output:${id}`, shell.parentIdle(), { customType: 'pstack-shell-output', display: true, details: record, content });
   }
 
   private exit(id: string, code: number | null, signal: NodeJS.Signals | null, writeFailure: string | undefined): void {
@@ -145,7 +148,9 @@ export class ShellRuntime {
     const failure = writeFailure ? `\nOutput file write failed: ${writeFailure}` : '';
     const content = `${describe(record)} exited with ${outcome}.\nOutput file: ${record.outputFile}${failure}`;
     const quiet = record.matches > 0 && code === 0;
-    this.pi.sendMessage({ customType: 'pstack-shell-exit', display: true, details: record, content }, quiet ? { triggerTurn: false, deliverAs: 'followUp' } : wake);
+    const message = { customType: 'pstack-shell-exit', display: true, details: record, content };
+    if (quiet) this.pi.sendMessage(message, { triggerTurn: false, deliverAs: 'followUp' });
+    else this.wakes.send(`exit:${id}`, shell.parentIdle(), message);
   }
 }
 
