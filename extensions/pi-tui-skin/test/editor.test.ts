@@ -10,13 +10,16 @@ const ANSI = {
   dim: '\u001b[90m',
 } as const;
 
+const ESC = '\x1b';
+const ANSI_PATTERN = new RegExp(`${ESC}\\[[0-9;]*m`, 'g');
+
 function styled(color: keyof typeof ANSI, text: string): string {
   return `${ANSI[color]}${text}\u001b[0m`;
 }
 
-function editorHarness(options: { borderColor?: (text: string) => string } = {}) {
+function editorHarness(options: { borderColor?: (text: string) => string; rows?: number } = {}) {
   const store = createPresentationStore();
-  const tui = { requestRender: () => {}, terminal: { rows: 40, columns: 120 } } as never;
+  const tui = { requestRender: () => {}, terminal: { rows: options.rows ?? 40, columns: 120 } } as never;
   const editorTheme = { borderColor: options.borderColor ?? ((text: string) => text) } as never;
   const appTheme = { fg: (color: keyof typeof ANSI, text: string) => styled(color, text) } as never;
   const keybindings = new KeybindingsManager(TUI_KEYBINDINGS as never) as never;
@@ -57,6 +60,27 @@ describe('SkinStyleEditor', () => {
     expect(editor.getText()).toBe('');
     editor.setText('a\nb');
     expect(editor.getText()).toBe('a\nb');
+  });
+
+  test('running editor keeps the hidden-line indicator in the bottom border', () => {
+    const { editor, store } = editorHarness({ rows: 20 });
+    const text = Array.from({ length: 12 }, (_, index) => `line ${index}`).join('\n');
+    (editor as unknown as { setTextInternal(text: string, reference: 'start' | 'end'): void }).setTextInternal(text, 'start');
+    const strip = (line: string): string => line.replace(ANSI_PATTERN, '');
+
+    const bottom = (): string => {
+      const lines = editor.render(60);
+      return strip(lines[lines.length - 1] ?? '');
+    };
+    const idle = bottom();
+    expect(idle).toContain('more');
+
+    store.setAgentRunning(1);
+    const running = bottom();
+    expect(running).toContain('more');
+    expect(running).toContain('esc to stop');
+    const rendered = editor.render(60);
+    expect(visibleWidth(rendered[rendered.length - 1] ?? '')).toBe(60);
   });
 
   test('inherits the pi input handler', () => {
