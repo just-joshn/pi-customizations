@@ -27,14 +27,22 @@ d=$PWD; while :; do
   [ -e "$d/.git" ] || [ "$d" = / ] && break
   d=$(dirname "$d")
 done
+find . \( -name node_modules -o -name .git \) -prune -o \( -path '*/.pi/skills/*/SKILL.md' \
+  -o -path '*/.agents/skills/*/SKILL.md' -o -path '*/.claude/skills/*/SKILL.md' \) \
+  -exec grep -Hm1 '^description:' {} + 2>/dev/null
 ```
+
+Pi loads `.pi/skills` only from its working directory and `.agents/skills`
+from the working directory upward, so a nested package's skill loads only
+when Pi starts in that package. Read a match here directly.
 
 - **One describes launching or driving this app.** Read that SKILL.md
   and follow it verbatim. Don't paraphrase, and don't skip the patches.
 - **Mega-repo, several plausible, no clear match.** Ask the user which
   unit to run.
 - **Stale** (fails on mechanics unrelated to your task). Tell the user,
-  and offer to refresh it with `/skill:create-skill`.
+  and offer to rewrite its SKILL.md in Pi's skill format (Pi's
+  `docs/skills.md`).
 - **Nothing about running.** Fall back to the patterns below.
 
 ## Otherwise: match the shape, use the pattern
@@ -82,6 +90,7 @@ screenshot path), and whether the change behaved as intended.
 
 If the fallback pattern didn't work out of the box (you had to install
 packages, set env vars, patch config, or write a driver), recommend
-capturing that work as a project `run-<unit>` skill with
-`/skill:create-skill`, using the matching example's "write the skill"
+capturing that work as a project `run-<unit>` skill. Write it to
+`.pi/skills/run-<unit>/SKILL.md` in Pi's skill format (Pi's
+`docs/skills.md`), using the matching example's "write the skill"
 section as the outline. If it just worked, don't.
