@@ -1,12 +1,13 @@
-import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import { expect, test } from 'vitest';
-import { readPersona } from '../src/personas.ts';
 import { cursorToolNames, hostInstructions } from '../src/host.ts';
+import { readPersona } from '../src/personas.ts';
 import { fixture, packageRoot, prompt } from './session-fixture.ts';
 
 const upstreamPstack = join(packageRoot, 'upstream');
@@ -14,7 +15,10 @@ const upstreamTeamKit = join(packageRoot, 'upstream-team-kit');
 
 async function getSubdirs(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
-  return entries.filter(e => !e.name.startsWith('.') && e.isDirectory()).map(e => e.name).toSorted();
+  return entries
+    .filter((e) => !e.name.startsWith('.') && e.isDirectory())
+    .map((e) => e.name)
+    .toSorted();
 }
 
 test('skills inventory: all pstack, team-kit, and loop skills are accounted for', async () => {
@@ -60,8 +64,7 @@ test('cursor built-in facilities: host mappings are verified', async () => {
 
 test('generated resources: repository-relative references resolve in this checkout', async () => {
   const repositoryRoot = join(packageRoot, '..', '..');
-  const directories = [...(await getSubdirs(join(packageRoot, 'skills'))).map(name => join(packageRoot, 'skills', name)),
-    join(packageRoot, 'host', 'skills', 'loop')];
+  const directories = [...(await getSubdirs(join(packageRoot, 'skills'))).map((name) => join(packageRoot, 'skills', name)), join(packageRoot, 'host', 'skills', 'loop')];
   const scanned: string[] = [];
   for (const directory of directories) {
     for (const name of await readdir(directory, { recursive: true })) {
@@ -106,7 +109,7 @@ async function validateSkillMetadata(skill: { name: string; description: string;
   const raw = await readFile(skill.filePath, 'utf8');
   const fmMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   expect(fmMatch).toBeDefined();
-  const fm = fmMatch![1];
+  const fm = fmMatch?.[1] ?? '';
 
   for (const forbidden of ['mode:', 'icon:', 'color:', 'reminder:', 'paths:']) {
     expect(new RegExp(`^${forbidden}`, 'm').test(fm)).toBe(false);
@@ -134,7 +137,7 @@ test('skills loader: all 65 skills discover cleanly with valid metadata and fron
 
 test('prompt templates: exist for all skills, preserve arguments, and instruct reading bundled skill', async () => {
   const piSkills = await getSubdirs(join(packageRoot, 'skills'));
-  const promptFiles = (await readdir(join(packageRoot, 'prompts'))).filter(f => f.endsWith('.md'));
+  const promptFiles = (await readdir(join(packageRoot, 'prompts'))).filter((f) => f.endsWith('.md'));
 
   for (const slug of piSkills) {
     if (slug === 'poteto-mode' || slug === 'setup-pstack') {
@@ -166,10 +169,10 @@ test('session prompt execution: prompt templates and native /skill: load complet
     ];
 
     for (const { name, needle, arg } of sampleSkills) {
-      const skill = loader.getSkills().skills.find(s => s.name === name);
+      const skill = loader.getSkills().skills.find((s) => s.name === name);
       expect(skill).toBeDefined();
 
-      f.calls.push({ type: 'toolCall', id: `read-${name}`, name: 'read', arguments: { path: skill!.filePath } });
+      f.calls.push({ type: 'toolCall', id: `read-${name}`, name: 'read', arguments: { path: skill?.filePath ?? '' } });
       await prompt(session, `/${name} ${arg}`);
       const reqJson = JSON.stringify(f.requests[f.requests.length - 1].messages);
       expect(reqJson.includes(needle)).toBe(true);
@@ -187,17 +190,26 @@ test('session prompt execution: prompt templates and native /skill: load complet
 async function checkMarkdownLinks(file: string, dir: string) {
   const text = await readFile(file, 'utf8');
   const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-  let match: RegExpExecArray | null;
-  while ((match = linkRegex.exec(text)) !== null) {
-    const target = match[2].trim();
-    const isIgnored = target.startsWith('http://') || target.startsWith('https://')
-      || target.startsWith('#') || target.startsWith('mailto:') || target === 'url';
-    if (isIgnored) continue;
-    const clean = target.split('#')[0].split('?')[0];
-    if (!clean) continue;
+  let match = linkRegex.exec(text);
+  while (match !== null) {
+    const target = match[2]?.trim() ?? '';
+    const isIgnored = target.startsWith('http://') || target.startsWith('https://') || target.startsWith('#') || target.startsWith('mailto:') || target === 'url';
+    if (isIgnored) {
+      match = linkRegex.exec(text);
+      continue;
+    }
+    const clean = target.split('#')[0]?.split('?')[0] ?? '';
+    if (!clean) {
+      match = linkRegex.exec(text);
+      continue;
+    }
     const resolved = join(dir, clean);
-    const exists = await stat(resolved).then(() => true, () => false);
+    const exists = await stat(resolved).then(
+      () => true,
+      () => false,
+    );
     expect(exists).toBe(true);
+    match = linkRegex.exec(text);
   }
 }
 
@@ -216,7 +228,7 @@ async function verifyDirectoryLinks(dir: string): Promise<void> {
 
 test('references and markdown links: all internal relative links and files resolve', async () => {
   const piSkills = await getSubdirs(join(packageRoot, 'skills'));
-  const allDirs = [...piSkills.map(s => join(packageRoot, 'skills', s)), join(packageRoot, 'host/skills/loop')];
+  const allDirs = [...piSkills.map((s) => join(packageRoot, 'skills', s)), join(packageRoot, 'host/skills/loop')];
 
   for (const dir of allDirs) {
     await verifyDirectoryLinks(dir);
@@ -254,9 +266,11 @@ test('scripts: permissions are executable, syntax is valid, and helpers execute 
     const content = await readFile(testLog, 'utf8');
     const lines = content.trim().split('\n');
     expect(lines.length).toBe(2);
-    expect(lines[0]).toBe('ts\tphase\tdecision\twhy\tevidence\tresult');
+    expect(lines[0]).toBe(['ts', 'phase', 'decision', 'why', 'evidence', 'result'].join('\t'));
     expect(lines[1].includes("'=formula-eval")).toBe(true);
-  } finally { await rm(logDirectory, { recursive: true, force: true }); }
+  } finally {
+    await rm(logDirectory, { recursive: true, force: true });
+  }
 });
 
 test('subagent personas resolve their mapped instruction files', async () => {
@@ -265,16 +279,13 @@ test('subagent personas resolve their mapped instruction files', async () => {
     { type: 'comment-sicko', files: ['upstream/agents/comment-sicko.md'] },
     { type: 'Comment Sicko', files: ['upstream/agents/comment-sicko.md'] },
     { type: 'ci-watcher', files: ['upstream-team-kit/agents/ci-watcher.md'] },
-    { type: 'thermo-nuclear-code-quality-review', files: [
-      'upstream-team-kit/agents/thermo-nuclear-code-quality-review.md',
-      'skills/thermo-nuclear-code-quality-review/SKILL.md',
-    ] },
+    { type: 'thermo-nuclear-code-quality-review', files: ['upstream-team-kit/agents/thermo-nuclear-code-quality-review.md', 'skills/thermo-nuclear-code-quality-review/SKILL.md'] },
     { type: 'generalPurpose', files: [] },
   ];
 
   for (const { type, files } of mappedSubagents) {
     const persona = await readPersona(type);
-    const contents = await Promise.all(files.map(file => readFile(join(packageRoot, file), 'utf8')));
+    const contents = await Promise.all(files.map((file) => readFile(join(packageRoot, file), 'utf8')));
     expect(persona.instructions).toBe(contents.join('\n'));
   }
 
@@ -294,7 +305,7 @@ test('host contract mappings: tool names, cursor facilities, and external depend
       getSessionFile: () => '/test/sessions/current.jsonl',
     },
   };
-  const instructions = hostInstructions('/pkg', fakeCtx as any, 'rule-content');
+  const instructions = hostInstructions('/pkg', fakeCtx as never, 'rule-content');
   expect(instructions.includes('pstack pi host contract')).toBe(true);
   expect(instructions.includes('/loop is a Pi prompt template')).toBe(true);
   expect(instructions.includes('create-skill')).toBe(true);

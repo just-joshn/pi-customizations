@@ -1,11 +1,10 @@
-import { expect, test } from 'vitest';
 import type { AgentSession, ExtensionContext } from '@earendil-works/pi-coding-agent';
-import { sumUsage, deduplicateExtensions } from '../src/worker-support.ts';
-import { restoreTaskRecords } from '../src/worker-records.ts';
+import { expect, test } from 'vitest';
 import { boundedResult } from '../src/results.ts';
+import { restoreTaskRecords } from '../src/worker-records.ts';
+import { deduplicateExtensions, sumUsage } from '../src/worker-support.ts';
 
-const usage = { input: 2, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 5,
-  cost: { input: 1, output: 2, cacheRead: 0, cacheWrite: 0, total: 3 } };
+const usage = { input: 2, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 5, cost: { input: 1, output: 2, cacheRead: 0, cacheWrite: 0, total: 3 } };
 
 test('usage aggregation snapshots the previous total even without new usage', () => {
   const previous = structuredClone(usage);
@@ -16,20 +15,33 @@ test('usage aggregation snapshots the previous total even without new usage', ()
   expect(result).not.toBe(previous);
   expect(result.cost).not.toBe(previous.cost);
   expect(sumUsage([]).totalTokens).toBe(0);
-  const messages = [{ role: 'user', content: 'hello', timestamp: 0 },
+  const messages = [
+    { role: 'user', content: 'hello', timestamp: 0 },
     { role: 'toolResult', toolName: 'test', toolCallId: 'one', content: [], isError: false, timestamp: 0 },
-    { role: 'toolResult', toolName: 'test', toolCallId: 'two', content: [], isError: false, timestamp: 0, usage }];
+    { role: 'toolResult', toolName: 'test', toolCallId: 'two', content: [], isError: false, timestamp: 0, usage },
+  ];
   expect(sumUsage(messages as AgentSession['messages'], previous)).toEqual({
-    input: 4, output: 6, cacheRead: 0, cacheWrite: 0, totalTokens: 10,
+    input: 4,
+    output: 6,
+    cacheRead: 0,
+    cacheWrite: 0,
+    totalTokens: 10,
     cost: { input: 2, output: 4, cacheRead: 0, cacheWrite: 0, total: 6 },
   });
 });
 
 test('extension deduplication preserves the first SDK descriptor and stable order', () => {
   expect(deduplicateExtensions([])).toEqual([]);
-  const input = [{ resolvedPath: 'z', label: 'first' }, { resolvedPath: 'a', label: 'second' }, { resolvedPath: 'z', label: 'discard' }];
+  const input = [
+    { resolvedPath: 'z', label: 'first' },
+    { resolvedPath: 'a', label: 'second' },
+    { resolvedPath: 'z', label: 'discard' },
+  ];
   const snapshot = structuredClone(input);
-  expect(deduplicateExtensions(input)).toEqual([{ resolvedPath: 'z', label: 'first' }, { resolvedPath: 'a', label: 'second' }]);
+  expect(deduplicateExtensions(input)).toEqual([
+    { resolvedPath: 'z', label: 'first' },
+    { resolvedPath: 'a', label: 'second' },
+  ]);
   expect(input).toEqual(snapshot);
 });
 
@@ -38,7 +50,7 @@ test('restored task records do not expose caller-owned records or usage', () => 
   const restored = restoreTaskRecords([{ type: 'custom', customType: 'pstack-task', data: record }]).get('one');
   expect(restored).toEqual(record);
   expect(restored).not.toBe(record);
-  expect(restored!.usage).not.toBe(record.usage);
+  expect(restored?.usage).not.toBe(record.usage);
 });
 
 test('result truncation preserves empty and exact-boundary values', () => {
@@ -48,7 +60,7 @@ test('result truncation preserves empty and exact-boundary values', () => {
     expect(boundedResult(text, {}, ctx).content[0]?.text).toBe(text);
   }
   const result = boundedResult('a'.repeat(48001), {}, ctx);
-  expect(result.content[0]?.text).toBe('a'.repeat(48000) + '\n[Truncated. Full current transcript: /tmp/transcript]');
+  expect(result.content[0]?.text).toBe(`${'a'.repeat(48000)}\n[Truncated. Full current transcript: /tmp/transcript]`);
 });
 
 test('hostInstructions formats defaults without overrides or transcript file', async () => {
@@ -62,45 +74,66 @@ test('hostInstructions formats defaults without overrides or transcript file', a
   expect(output).toContain('This session transcript is in memory.');
 });
 
+function mockQuestionTool(registerQuestions: (pi: never) => void) {
+  let toolDef: { name: string; execute: (id: string, params: unknown, signal: unknown, update: unknown, ctx: unknown) => Promise<{ details: unknown }> } | undefined;
+  registerQuestions({
+    registerTool: (def: unknown) => {
+      toolDef = def as typeof toolDef;
+    },
+  } as never);
+  return toolDef;
+}
+
 test('AskQuestion tool cancellation break and validation checks', async () => {
   const { registerQuestions } = await import('../src/questions.ts');
-  let toolDef: any;
-  const pi = { registerTool: (def: any) => { toolDef = def; } } as any;
-  registerQuestions(pi);
-  expect(toolDef.name).toBe('AskQuestion');
+  const toolDef = mockQuestionTool(registerQuestions);
+  expect(toolDef?.name).toBe('AskQuestion');
 
-  const ctxNoUI = { hasUI: false } as any;
-  await expect(toolDef.execute('duplicate', { questions: [{ id: 'q1', prompt: 'p1' }, { id: 'q1', prompt: 'p2' }] }, undefined, undefined, ctxNoUI)).rejects.toThrow(/Question IDs must be unique/);
-  await expect(toolDef.execute('1', { questions: [{ id: 'q1', prompt: 'p1' }] }, undefined, undefined, ctxNoUI)).rejects.toThrow(/requires Pi TUI/);
+  const ctxNoUI = { hasUI: false } as never;
+  const duplicate = {
+    questions: [
+      { id: 'q1', prompt: 'p1' },
+      { id: 'q1', prompt: 'p2' },
+    ],
+  };
+  await expect(toolDef?.execute('duplicate', duplicate, undefined, undefined, ctxNoUI)).rejects.toThrow(/Question IDs must be unique/);
+  await expect(toolDef?.execute('1', { questions: [{ id: 'q1', prompt: 'p1' }] }, undefined, undefined, ctxNoUI)).rejects.toThrow(/requires Pi TUI/);
 
   const ctxUI = {
     hasUI: true,
-    ui: {
-      input: async () => undefined,
-      select: async () => undefined,
-    },
+    ui: { input: async () => undefined, select: async () => undefined },
     sessionManager: { getSessionFile: () => null },
-  } as any;
-  const cancelledRes = await toolDef.execute('2', {
-    questions: [
-      { id: 'q1', prompt: 'p1' },
-      { id: 'q2', prompt: 'p2' },
-    ],
-  }, undefined, undefined, ctxUI);
-  expect(cancelledRes.details).toEqual([{ id: 'q1', answers: [], cancelled: true }]);
+  } as never;
+  const cancelledRes = await toolDef?.execute(
+    '2',
+    {
+      questions: [
+        { id: 'q1', prompt: 'p1' },
+        { id: 'q2', prompt: 'p2' },
+      ],
+    },
+    undefined,
+    undefined,
+    ctxUI,
+  );
+  expect(cancelledRes?.details).toEqual([{ id: 'q1', answers: [], cancelled: true }]);
 });
 
 test('workerControl handles disposal failure and abort on agent_start when stopped', async () => {
   const { workerControl } = await import('../src/worker-control.ts');
   let listener: ((event: { type: string }) => void) | undefined;
   const fakeSession = {
-    abort: async () => { throw new Error('abort fail'); },
-    dispose: () => { throw new Error('dispose fail'); },
+    abort: async () => {
+      throw new Error('abort fail');
+    },
+    dispose: () => {
+      throw new Error('dispose fail');
+    },
     subscribe: (fn: (event: { type: string }) => void) => {
       listener = fn;
       return () => {};
     },
-  } as any;
+  } as never;
   const ctrl = workerControl(fakeSession, undefined);
   ctrl.stop();
   listener?.({ type: 'agent_start' });
@@ -117,10 +150,12 @@ test('aborting the supplied signal stops the worker once', async () => {
   const controller = new AbortController();
   const aborts: string[] = [];
   const fakeSession = {
-    abort: async () => { aborts.push('abort'); },
+    abort: async () => {
+      aborts.push('abort');
+    },
     dispose: () => {},
     subscribe: () => () => {},
-  } as any;
+  } as never;
   const ctrl = workerControl(fakeSession, controller.signal);
 
   controller.abort();
@@ -137,30 +172,33 @@ test('aborting the supplied signal stops the worker once', async () => {
 
 test('registerStatus context event filters pstack-status messages', async () => {
   const { registerStatus } = await import('../src/context.ts');
-  let contextHandler: any;
+  let contextHandler: ((event: { messages: unknown[] }) => { messages: unknown[] }) | undefined;
   const pi = {
-    on: (event: string, handler: any) => { if (event === 'context') contextHandler = handler; },
+    on: (event: string, handler: unknown) => {
+      if (event === 'context') contextHandler = handler as typeof contextHandler;
+    },
     registerCommand() {},
-  } as any;
-  registerStatus(pi, {} as any);
+  } as never;
+  registerStatus(pi, {} as never);
   expect(contextHandler).toBeTypeOf('function');
-  const filtered = contextHandler({
+  const filtered = contextHandler?.({
     messages: [
       { role: 'user', content: 'hi' },
       { role: 'custom', customType: 'pstack-status', content: 'status' },
       { role: 'assistant', content: 'reply' },
     ],
   });
-  expect(filtered.messages).toEqual([{ role: 'user', content: 'hi' }, { role: 'assistant', content: 'reply' }]);
+  expect(filtered?.messages).toEqual([
+    { role: 'user', content: 'hi' },
+    { role: 'assistant', content: 'reply' },
+  ]);
 });
 
 test('resolveModel with empty registry and default thinkingLevel', async () => {
   const { resolveModel } = await import('../src/models.ts');
-  expect(() => resolveModel("m", { modelRegistry: { getAvailable: () => [] } } as any)).toThrow(
-    /none \(configure Pi provider credentials first\)/,
-  );
-  const mockModel = { provider: 'test', id: 'm', reasoning: false, input: ['text'] } as any;
-  const resolved = resolveModel(undefined, { model: mockModel } as any);
+  expect(() => resolveModel('m', { modelRegistry: { getAvailable: () => [] } } as never)).toThrow(/none \(configure Pi provider credentials first\)/);
+  const mockModel = { provider: 'test', id: 'm', reasoning: false, input: ['text'] } as never;
+  const resolved = resolveModel(undefined, { model: mockModel } as never);
   expect(resolved.thinkingLevel).toBe('off');
 });
 

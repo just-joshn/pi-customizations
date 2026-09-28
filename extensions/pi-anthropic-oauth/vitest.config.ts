@@ -1,21 +1,21 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-	test: {
-		environment: 'node',
+  test: {
+    environment: 'node',
 
-		// Vitest 5 already defaults clearMocks to true.
-		restoreMocks: true,
-		unstubEnvs: true,
-		unstubGlobals: true,
+    // Vitest 5 already defaults clearMocks to true.
+    restoreMocks: true,
+    unstubEnvs: true,
+    unstubGlobals: true,
 
-		expect: {
-			requireAssertions: true,
-		},
+    expect: {
+      requireAssertions: true,
+    },
 
-		coverage: {
-			provider: 'v8',
-			include: ['src/*.ts'],
-		},
-	},
-})
+    coverage: {
+      provider: 'v8',
+      include: ['src/*.ts'],
+    },
+  },
+});

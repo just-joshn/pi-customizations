@@ -23,7 +23,7 @@ function walk(root, directory = root, found = []) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name);
     const relativePath = relative(root, path);
-    if (SKIP_SEGMENTS.has(entry.name) || SKIP_PREFIXES.some(prefix => relativePath === prefix || relativePath.startsWith(`${prefix}/`))) continue;
+    if (SKIP_SEGMENTS.has(entry.name) || SKIP_PREFIXES.some((prefix) => relativePath === prefix || relativePath.startsWith(`${prefix}/`))) continue;
     if (entry.isDirectory()) walk(root, path, found);
     else found.push(relativePath);
   }
@@ -34,14 +34,17 @@ function fencedCommands(source) {
   const commands = [];
   let inFence = false;
   for (const line of source.split('\n')) {
-    if (/^\s*(?:```|~~~)/.test(line)) { inFence = !inFence; continue; }
+    if (/^\s*(?:```|~~~)/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
     if (inFence && FOREIGN_COMMAND_LINE.test(line.trim())) commands.push(line.trim());
   }
   return commands;
 }
 
 function recipes(source) {
-  return source.split('\n').filter(line => line.startsWith('\t'));
+  return source.split('\n').filter((line) => line.startsWith('\t'));
 }
 
 export function toolchainViolations(root) {
@@ -49,9 +52,9 @@ export function toolchainViolations(root) {
   const files = walk(root);
   const report = (path, message) => violations.push(`${path}: ${message}`);
 
-  const lockfiles = files.filter(path => path.endsWith('bun.lock'));
+  const lockfiles = files.filter((path) => path.endsWith('bun.lock'));
   if (!lockfiles.includes('bun.lock')) report('bun.lock', 'the workspace root needs one Bun lockfile');
-  for (const path of files.filter(path => FOREIGN_LOCKFILES.includes(path.split('/').at(-1)))) {
+  for (const path of files.filter((path) => FOREIGN_LOCKFILES.includes(path.split('/').at(-1)))) {
     report(path, 'a second package manager lockfile silences the Bun workspace');
   }
 
@@ -63,9 +66,7 @@ export function toolchainViolations(root) {
   for (const path of files) {
     if (['package.json', 'Makefile'].includes(path.split('/').at(-1))) {
       const source = readFileSync(join(root, path), 'utf8');
-      const lines = path.endsWith('package.json')
-        ? Object.entries(JSON.parse(source).scripts ?? {}).map(([name, body]) => `${name}: ${body}`)
-        : recipes(source);
+      const lines = path.endsWith('package.json') ? Object.entries(JSON.parse(source).scripts ?? {}).map(([name, body]) => `${name}: ${body}`) : recipes(source);
       for (const line of lines) if (FOREIGN_COMMAND.test(line)) report(path, `runs another package manager: ${line.trim()}`);
       continue;
     }

@@ -7,12 +7,14 @@ export class DeferredWakes {
   private endedCleanly = false;
 
   constructor(private readonly pi: ExtensionAPI) {
-    pi.on('agent_end', event => {
-      const last = event.messages.findLast(message => message.role === 'assistant');
+    pi.on('agent_end', (event) => {
+      const last = event.messages.findLast((message) => message.role === 'assistant');
       this.endedCleanly = !(last?.role === 'assistant' && last.stopReason === 'aborted');
       if (this.endedCleanly) this.flush();
     });
-    pi.on('agent_settled', () => { if (this.endedCleanly) this.flush(); });
+    pi.on('agent_settled', () => {
+      if (this.endedCleanly) this.flush();
+    });
   }
 
   send(key: string, parentIdle: boolean, message: Wake): void {

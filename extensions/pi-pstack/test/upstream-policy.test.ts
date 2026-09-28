@@ -1,21 +1,19 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
+
 import { expect, test, vi } from 'vitest';
 import { enforceCoverage, run } from '../scripts/verify-upstream.mjs';
 
-test.each([
-  '',
-  'invalid',
-  'SF:example.ts\nLF:0\nLH:0\nFNF:0\nFNH:0\n',
-  'SF:example.ts\nLF:1\nLH:2\nFNF:1\nFNH:1\n',
-])('coverage policy rejects invalid report %j', async report => {
+test.each(['', 'invalid', 'SF:example.ts\nLF:0\nLH:0\nFNF:0\nFNH:0\n', 'SF:example.ts\nLF:1\nLH:2\nFNF:1\nFNH:1\n'])('coverage policy rejects invalid report %j', async (report) => {
   const dir = await mkdtemp(join(tmpdir(), 'pstack-coverage-policy-'));
   try {
     await mkdir(join(dir, 'coverage'));
     await writeFile(join(dir, 'coverage/lcov.info'), report);
     await expect(enforceCoverage(dir)).rejects.toThrow(/empty or invalid/);
-  } finally { await rm(dir, { recursive: true, force: true }); }
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });
 
 test('coverage policy rejects below-threshold reports and accepts the exact boundary', async () => {
@@ -28,7 +26,9 @@ test('coverage policy rejects below-threshold reports and accepts the exact boun
     await expect(enforceCoverage(dir)).rejects.toThrow(/functions coverage is below 80%/);
     await writeFile(join(dir, 'coverage/lcov.info'), 'SF:example.ts\nLF:10\nLH:8\nFNF:10\nFNH:8\n');
     await enforceCoverage(dir);
-  } finally { await rm(dir, { recursive: true, force: true }); }
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });
 
 test('upstream subprocess spawn failure reports the missing executable', async () => {
