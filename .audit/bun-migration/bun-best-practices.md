@@ -1,7 +1,7 @@
 # Bun 1.4.2 migration best practices — cited digest
 
 Binary: `/Users/josh-desktop/.local/share/mise/installs/bun/1.4.2/bin/bun`, `bun --version` → `1.4.2`, revision `744846f84`.
-Docs snapshot: `/tmp/bun-llms-full.txt` (2,136,096 bytes, fetched from `https://bun.sh/llms-full.txt`, which serves the `bun.com` corpus).
+Docs snapshot: `/tmp/bun-llms-full.txt`, 2,136,096 bytes, fetched 2026-09-28 from `https://bun.sh/llms-full.txt`, which serves the `bun.com` corpus. The byte count describes that day's snapshot, so the URL is the durable pointer and the size is not.
 Docs quotes carry the exact `Source:` URL the file prints. Binary quotes carry the exact command that printed them.
 Local experiments ran in `/tmp/bunscratch`, `/tmp/buns2` … `/tmp/buns9`. No project files touched.
 
