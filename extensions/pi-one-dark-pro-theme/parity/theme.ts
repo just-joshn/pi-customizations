@@ -145,15 +145,22 @@ export function resolveScope(
 		throw new Error(
 			`resolveScope: scope path "${scopePath}" must be one scope name, not a parent-scope selector`,
 		);
+	const named = new Set<string>();
 	for (const rule of document.tokenColors) {
 		const foreground = rule.settings.foreground;
 		if (foreground === undefined) continue;
 		if (toSelectors(rule.scope).includes(scopePath))
-			return foreground.toLowerCase();
+			named.add(foreground.toLowerCase());
 	}
-	throw new Error(
-		`resolveScope: no upstream token rule names the scope "${scopePath}"`,
-	);
+	if (named.size === 0)
+		throw new Error(
+			`resolveScope: no upstream token rule names the scope "${scopePath}"`,
+		);
+	if (named.size > 1)
+		throw new Error(
+			`resolveScope: upstream names the scope "${scopePath}" more than once with different colors (${[...named].join(", ")}), so the map row has no single answer`,
+		);
+	return [...named][0] as string;
 }
 
 export function resolveRow(document: UpstreamDocument, row: RoleRow): string {

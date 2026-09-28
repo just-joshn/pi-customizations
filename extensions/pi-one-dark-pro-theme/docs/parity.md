@@ -57,6 +57,10 @@ each of the 59 roles: 35 `color`, 17 `scope`, 5 `composite`, and 2 `alpha`.
    and each entry may be a comma-separated list of names.
 3. Return the foreground of the first rule whose name list contains `scopePath` exactly.
 4. Throw when no rule names the scope. There is no fallback to `editor.foreground`.
+5. Throw when two foreground-carrying rules name the same scope with different colors. The row has
+   no single answer at that point, and returning whichever rule came first would hide an upstream
+   change behind a plausible color. Two rules that agree on the color are fine, which is how
+   `entity.name.function` resolves at two separate points in the file.
 
 **Why `keyword.operator` wins over `keyword`.** The upstream file declares the rule for
 `keyword.operator` at index 71 with foreground `#abb2bf`, then the rule for `keyword` at index 74

@@ -20,7 +20,6 @@ const document: UpstreamDocument = {
 	},
 	tokenColors: [
 		{ scope: "keyword", settings: { foreground: "#111111" } },
-		{ scope: "keyword", settings: { foreground: "#222222" } },
 		{ scope: "string", settings: {} },
 		{
 			scope: ["meta.embedded", "markup.raw"],
@@ -56,7 +55,7 @@ const row = (
 });
 
 describe("resolveScope", () => {
-	it("takes the first rule that names the scope", () => {
+	it("returns the color the rule names", () => {
 		expect(resolveScope(document, "keyword")).toBe("#111111");
 	});
 
@@ -102,6 +101,30 @@ describe("resolveScope", () => {
 		expect(() =>
 			resolveScope(document, "markup.heading punctuation.definition.heading"),
 		).toThrow("must be one scope name");
+	});
+
+	it("refuses a scope two rules color differently", () => {
+		const contested: UpstreamDocument = {
+			...document,
+			tokenColors: [
+				{ scope: "keyword", settings: { foreground: "#111111" } },
+				{ scope: "keyword", settings: { foreground: "#222222" } },
+			],
+		};
+		expect(() => resolveScope(contested, "keyword")).toThrow(
+			'upstream names the scope "keyword" more than once with different colors (#111111, #222222)',
+		);
+	});
+
+	it("accepts a scope two rules color the same way", () => {
+		const agreeing: UpstreamDocument = {
+			...document,
+			tokenColors: [
+				{ scope: "keyword", settings: { foreground: "#111111" } },
+				{ scope: "keyword", settings: { foreground: "#111111" } },
+			],
+		};
+		expect(resolveScope(agreeing, "keyword")).toBe("#111111");
 	});
 
 	it("names the missing scope in the error", () => {

@@ -194,3 +194,32 @@ have caught the defect.
   `scripts/check-parity.mjs` is a thin shell that reads files and reports.
 - **`upstream/SOURCE.md` sent a maintainer to the wrong file** for the hash, and the README claim
   that no extension can select a theme was false. Both corrected.
+
+## Late arena input, and what it did not earn
+
+The third design arena runner settled after the PR opened. Two of its proposals were tested
+rather than argued.
+
+**Taken: scope ambiguity fails closed.** The resolver used to take the first rule naming a scope.
+That silently returns a plausible color if upstream ever colors one scope from two rules. It now
+collects every foreground-carrying rule that names the scope and throws when they disagree. Two
+rules that agree are fine, which is how `entity.name.function` resolves today.
+
+**Rejected: a closed `Basis` enum beside each mapping row.** The runner proposed classifying every
+row as one of `counterpart`, `content-scope`, `declared-ramp`, `base-text`, or `pi-convention`,
+with the enum constrained by the selector kind. The stated purpose was to make a wrong selector
+visible in review, which is the defect class that shipped. Tested against that defect:
+
+- `mdLink` and `mdLinkUrl` are both `scope` rows, so `content-scope` is a legal basis for each.
+- The defect was choosing the wrong scope for each role, not the wrong kind of basis.
+- A kind-constrained enum accepts both crossed rows, so it would have passed the shipped bug.
+
+It is metadata that restates the selector kind without catching the defect that motivated it.
+The defense that did work is the one already in the package: a human reading `parity/role-map.tsv`
+beside the upstream file. `docs/parity.md` now says plainly that the gate cannot judge which key a
+row should name, so a reviewer knows that read is theirs.
+
+**Rejected: a compile-time `satisfies Record<PiColorRole, Provenance>` map.** The role union would
+be a hand-maintained copy of Pi's schema, and `checkParity` already compares the map against the
+installed schema at runtime. Two gates on one invariant, one of them restating the source of
+truth, costs more than it catches.
