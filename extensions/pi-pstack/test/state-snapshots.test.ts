@@ -166,3 +166,25 @@ test('TodoWrite renderResult keeps every line within the render width', () => {
     '  ○ Branch test/vitest-unit\x1b[0m...\x1b[0m',
   ]);
 });
+
+test('collapsed todo views keep the in-progress step visible in long lists', () => {
+  const todos = Array.from({ length: 15 }, (_, i) => ({ id: `s${i + 1}`, content: `Step ${i + 1}`,
+    status: i < 11 ? 'completed' as const : i === 11 ? 'in_progress' as const : 'pending' as const }));
+  let widgetLines: string[] | undefined;
+  const ctx = { ui: { setStatus: () => {}, setWidget: (_key: string, lines?: string[]) => { widgetLines = lines; } } } as unknown as ExtensionContext;
+  const tools: ToolDefinition[] = [];
+  const pi = { appendEntry() {}, registerTool: (t: ToolDefinition) => { tools.push(t); } } as unknown as ExtensionAPI;
+  const store = createState(pi);
+  registerStateTools(pi, store);
+  store.update({ enabled: false, todos }, ctx);
+  assert.deepEqual(widgetLines, [
+    '... 7 earlier',
+    '[x] Step 8 (completed)', '[x] Step 9 (completed)', '[x] Step 10 (completed)', '[x] Step 11 (completed)',
+    '[>] Step 12 (in_progress)',
+    '[ ] Step 13 (pending)', '[ ] Step 14 (pending)', '[ ] Step 15 (pending)',
+  ]);
+  const tool = tools.find(t => t.name === 'TodoWrite');
+  const collapsed = tool!.renderResult!({ content: [], details: todos }, { expanded: false } as ToolRenderResultOptions, mockTheme, {} as never);
+  assert.deepEqual(collapsed.render(80).slice(1, 3), ['  ... 7 earlier', '  ✓ Step 8']);
+  assert.ok(collapsed.render(80).includes('  ◐ Step 12'));
+});
