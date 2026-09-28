@@ -89,7 +89,10 @@ export function createState(pi: ExtensionAPI) {
 
   const showState = (ctx: ExtensionContext) => {
     ctx.ui.setStatus('pstack', state.enabled ? 'poteto-mode' : undefined);
-    ctx.ui.setWidget('pstack-todos', state.todos.length ? todoWidget(widgetLines(state.todos)) : undefined);
+    const lines = state.todos.length ? widgetLines(state.todos) : undefined;
+    // RPC clients receive widget text only; component factories are ignored outside the TUI.
+    if (!lines || ctx.mode === 'tui') ctx.ui.setWidget('pstack-todos', lines ? todoWidget(lines) : undefined);
+    else ctx.ui.setWidget('pstack-todos', lines);
   };
   const restore = (ctx: ExtensionContext) => {
     state = { enabled: false, todos: [] };

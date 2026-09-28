@@ -49,6 +49,13 @@ function requestText(request) {
     .join('\n');
 }
 
+function toolSection(request) {
+  return request.messages
+    .filter((message) => message.role === 'system')
+    .map((message) => message.sections?.tools ?? '')
+    .join('\n');
+}
+
 function systemText(request) {
   const sections = new Map();
   for (const message of request.messages) {
@@ -77,6 +84,9 @@ function uiBridge(child, answers) {
   return requests;
 }
 
+const silentMethods = new Set(['notify', 'setStatus', 'setWidget', 'setTitle', 'set_editor_text']);
+const dialogBudget = 150;
+
 function respond(requests, answers, child, line) {
   let record;
   try {
@@ -86,11 +96,22 @@ function respond(requests, answers, child, line) {
   }
   if (record?.type !== 'extension_ui_request') return;
   requests.push(record);
-  if (['notify', 'setStatus', 'setWidget', 'setTitle', 'set_editor_text'].includes(record.method)) return;
-  const supplied = answers[record.method];
+  if (silentMethods.has(record.method)) return;
+  answers.dialogs += 1;
+  const exhausted = answers.dialogs > dialogBudget;
+  const supplied = exhausted ? undefined : answers[record.method];
   const value = typeof supplied === 'function' ? supplied(record) : (supplied ?? record.options?.[0]);
-  const response = record.method === 'confirm' ? { type: 'extension_ui_response', id: record.id, confirmed: true } : { type: 'extension_ui_response', id: record.id, value };
+  const response = record.method === 'confirm' ? { type: 'extension_ui_response', id: record.id, confirmed: !exhausted } : { type: 'extension_ui_response', id: record.id, value };
   child.stdin.write(`${JSON.stringify(response)}\n`);
+}
+
+async function everyRequest(log) {
+  const names = (await readdir(log)).filter((name) => name.startsWith('requests-') && name.endsWith('.jsonl'));
+  const text = (await Promise.all(names.map((name) => readFile(join(log, name), 'utf8').catch(() => '')))).join('');
+  return text
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
 }
 
 function clientFor(child, log) {
@@ -139,6 +160,7 @@ function clientFor(child, log) {
       await this.run(message);
       return (await this.messages()).slice(before);
     },
+    everyRequest: () => everyRequest(log),
   };
 }
 
@@ -152,8 +174,10 @@ async function startPi(directory, log, extraArgs) {
   child.stderr.on('data', (chunk) => {
     stderr += chunk.toString();
   });
+  const answers = { input: 'journey-test/recorder', dialogs: 0 };
   return {
-    ui: uiBridge(child, { input: 'journey-test/recorder' }),
+    answers,
+    ui: uiBridge(child, answers),
     stderr: () => stderr,
     ...clientFor(child, log),
   };
@@ -224,6 +248,12 @@ async function journeyHostContract(ctx) {
   for (const mapped of ['Read is the read tool', 'Shell is bash', 'Grep is grep', 'Glob is find']) {
     check(`host contract: maps Reference's ${mapped}`, systemPrompt.includes(mapped));
   }
+  for (const [label, rule] of [
+    ['no-inline-imports', 'Avoid inline imports in function bodies'],
+    ['typescript-exhaustive-switch', 'use a `never` check in the default case'],
+  ]) {
+    check(`host contract: the archived team-kit rule ${label} stays out of the prompt`, !systemPrompt.includes(rule), `found ${rule}`);
+  }
 }
 
 async function journeyMode(ctx) {
@@ -240,6 +270,10 @@ async function journeyMode(ctx) {
   check('mode: the pstack_mode tool turns the mode on', JSON.stringify(tool.find((m) => m.toolName === 'pstack_mode')).includes('Poteto mode is on'));
   const toolMode = systemText(await ctx.turn('journey probe'));
   check('mode: a tool-activated mode reaches the next prompt', toolMode.includes('## Non-negotiables'));
+  const off = await ctx.callTool('JOURNEY:modeoff');
+  check('mode: the pstack_mode tool turns the mode off', JSON.stringify(off.find((m) => m.toolName === 'pstack_mode')).includes('Poteto mode is off'));
+  const toolOff = systemText(await ctx.turn('journey probe'));
+  check('mode: a tool-activated opt-out reaches the next prompt', !toolOff.includes('## Non-negotiables'));
 }
 
 async function journeyStatus(ctx) {
@@ -371,6 +405,14 @@ const journeys = [
   journeyStatus,
   journeyTodos,
   journeyTools,
+  journeyTodoMerge,
+  journeyTodoWidget,
+  journeyQuestionVariants,
+  journeyTaskResume,
+  journeyTaskLifecycle,
+  journeyTaskGates,
+  journeyPersonas,
+  journeyShellGuards,
   journeyDelegation,
   journeyShells,
   journeyHelpers,
@@ -380,6 +422,176 @@ const journeys = [
 
 function helper(command, args, cwd) {
   return spawnSync(command, args, { encoding: 'utf8', cwd, timeout: 180000 });
+}
+
+async function journeyTodoMerge(ctx) {
+  await ctx.send({ type: 'new_session' });
+  const duplicate = (await ctx.callTool('JOURNEY:tododup')).find((message) => message.toolName === 'TodoWrite');
+  check('todo: duplicate ids are rejected', duplicate?.isError === true && JSON.stringify(duplicate.content).includes('Todo IDs must be unique'), JSON.stringify(duplicate).slice(0, 300));
+  await ctx.send({ type: 'new_session' });
+  await ctx.run('JOURNEY:todowrite');
+  await ctx.run('JOURNEY:todomerge');
+  await ctx.run('/pstack todos');
+  const listed = String((await ctx.messages()).filter((m) => m.customType === 'pstack-status').at(-1)?.content);
+  const order = ['[x] Read the playbook (completed)', '[>] Run the journey (in_progress)', '[x] Report findings (completed)'].map((row) => listed.indexOf(row));
+  check('todo: a merge keeps the original order and updates the existing step', order.every((at) => at >= 0) && order[0] < order[1] && order[1] < order[2], listed);
+  await ctx.send({ type: 'new_session' });
+  await ctx.run('JOURNEY:todocancel');
+  await ctx.run('/pstack todos');
+  const cancelled = String((await ctx.messages()).filter((m) => m.customType === 'pstack-status').at(-1)?.content);
+  check('todo: a cancelled step keeps its marker and reason', cancelled.includes('[-] Abandoned step (cancelled)'), cancelled);
+}
+
+async function journeyTodoWidget(ctx) {
+  await ctx.send({ type: 'new_session' });
+  await ctx.run('JOURNEY:todomany');
+  const widgets = ctx.ui.filter((request) => request.method === 'setWidget').flatMap((request) => request.widgetLines ?? []);
+  check('todo: the widget reaches a non-TUI client as text lines', widgets.length > 0, `${widgets.length} lines`);
+  check('todo: the collapsed widget keeps the in-progress step and counts the hidden ones', widgets.includes('... 4 earlier') && widgets.some((line) => line.includes('Step 7 of the long journey')), widgets.join(' | '));
+}
+
+async function journeyQuestionVariants(ctx) {
+  let picks = 0;
+  ctx.answers.select = (record) => {
+    const real = record.options.filter((option) => option !== 'Enter a text answer' && option !== 'Done selecting');
+    if (real.length > 0 && picks < 2) {
+      picks += 1;
+      return real[0];
+    }
+    return record.options.find((option) => option === 'Done selecting') ?? real[0];
+  };
+  const multi = await ctx.callTool('JOURNEY:qmulti');
+  ctx.answers.select = undefined;
+  const multiDetails = multi.find((message) => message.toolName === 'AskQuestion')?.details;
+  checkEqual('question: multi-select stops on Done selecting and keeps each choice', JSON.stringify(multiDetails), JSON.stringify([{ id: 'toppings', answers: ['basil', 'oregano'], cancelled: false }]));
+
+  ctx.answers.select = (record) => record.options.find((option) => option === 'Enter a text answer') ?? record.options.find((option) => option === 'Done selecting');
+  const typed = await ctx.callTool('JOURNEY:qmulti');
+  ctx.answers.select = undefined;
+  checkEqual('question: multi-select keeps a typed answer', JSON.stringify(typed.find((message) => message.toolName === 'AskQuestion')?.details), JSON.stringify([{ id: 'toppings', answers: ['journey-test/recorder'], cancelled: false }]));
+
+  const textOnly = await ctx.callTool('JOURNEY:qtext');
+  checkEqual(
+    'question: a question without options returns the typed answer',
+    JSON.stringify(textOnly.find((message) => message.toolName === 'AskQuestion')?.details),
+    JSON.stringify([{ id: 'release', answers: ['journey-test/recorder'], cancelled: false }]),
+  );
+
+  ctx.answers.select = () => undefined;
+  const cancelled = await ctx.callTool('JOURNEY:qfree');
+  ctx.answers.select = undefined;
+  checkEqual('question: a cancelled dialog reports cancellation and no answer', JSON.stringify(cancelled.find((message) => message.toolName === 'AskQuestion')?.details), JSON.stringify([{ id: 'approval', answers: [], cancelled: true }]));
+
+  const duplicate = await ctx.callTool('JOURNEY:qdup');
+  const duplicateResult = duplicate.find((message) => message.toolName === 'AskQuestion');
+  check(
+    'question: duplicate question ids are rejected before any dialog opens',
+    duplicateResult?.isError === true && JSON.stringify(duplicateResult.content).includes('Question IDs must be unique'),
+    JSON.stringify(duplicateResult).slice(0, 300),
+  );
+  const tooMany = await ctx.callTool('JOURNEY:qtoo');
+  const tooManyResult = tooMany.find((message) => message.toolName === 'AskQuestion');
+  check('question: more than four questions is rejected', tooManyResult?.isError === true, JSON.stringify(tooManyResult).slice(0, 300));
+}
+
+async function journeyTaskResume(ctx) {
+  const results = (await ctx.callTool('JOURNEY:taskresume')).filter((message) => message.toolName === 'Task');
+  checkEqual('task: a resumed task runs a second turn', results.length, 2);
+  const [first, second] = results.map((message) => message.details);
+  check('task: resume returns the same child transcript', first?.sessionFile === second?.sessionFile && Boolean(first?.sessionFile), JSON.stringify([first?.sessionFile, second?.sessionFile]));
+  check('task: the child transcript pointer is absolute', String(first?.sessionFile).startsWith('/'), String(first?.sessionFile));
+  check('task: the child transcript is not written inside the working directory', !String(first?.sessionFile).startsWith(`${ctx.directory}/`), String(first?.sessionFile));
+  check('task: resume keeps the same task id', first?.id === second?.id && Boolean(first?.id), JSON.stringify([first?.id, second?.id]));
+  const transcript = first?.sessionFile ? await readFile(first.sessionFile, 'utf8').catch(() => '') : '';
+  check('task: the resumed transcript holds both child turns', transcript.includes('first child turn for resume') && transcript.includes('second child turn after resume'), `${transcript.length} bytes`);
+  check('task: the second turn is the one that settled', String(second?.output).includes('second child turn after resume'), String(second?.output).slice(0, 200));
+}
+
+async function journeyTaskLifecycle(ctx) {
+  const results = await ctx.callTool('JOURNEY:tasklifecycle');
+  const started = results.find((message) => message.toolName === 'Task');
+  const read = results.find((message) => message.toolName === 'TaskOutput');
+  const messaged = results.find((message) => message.toolName === 'TaskMessage');
+  const stopped = results.find((message) => message.toolName === 'TaskStop');
+  check('task: a background task reports a task id', started?.isError !== true && JSON.stringify(started).includes('task_id'), JSON.stringify(started).slice(0, 300));
+  check('task: TaskOutput returns the settled child output', read?.isError !== true && String(read?.details?.status) === 'settled', JSON.stringify(read).slice(0, 300));
+  check('task: TaskMessage refuses a settled task and points at resume', messaged?.isError === true && JSON.stringify(messaged.content).includes('Use Task with resume'), JSON.stringify(messaged).slice(0, 300));
+  check('task: TaskStop on a settled task reports the record instead of failing', stopped?.isError !== true && Boolean(stopped?.details?.id), JSON.stringify(stopped).slice(0, 300));
+  const unknown = (await ctx.callTool('JOURNEY:badmodel')).find((message) => message.toolName === 'Task');
+  check('task: an unavailable model names the available choices', unknown?.isError === true, JSON.stringify(unknown).slice(0, 200));
+}
+
+async function journeyPersonas(ctx) {
+  const results = (await ctx.callTool('JOURNEY:personas')).filter((message) => message.toolName === 'Task');
+  const failed = results.filter((message) => message.isError === true);
+  checkEqual('persona: every documented persona starts a child', failed.length, 0);
+  checkEqual('persona: one result per documented persona', results.length, 6);
+  const requests = await ctx.everyRequest();
+  const prompts = requests.map((request) => requestText(request));
+  for (const [persona, marker] of [
+    ['poteto-agent', 'Poteto mode'],
+    ['comment-sicko', 'Comment Sicko'],
+    ['ci-watcher', 'CI watcher'],
+    ['thermo-nuclear-code-quality-review', 'thermo'],
+  ]) {
+    check(
+      `persona: ${persona} instructions reach a child request`,
+      prompts.some((prompt) => prompt.includes(marker)),
+      `${prompts.length} requests`,
+    );
+  }
+  const rejected = (await ctx.callTool('JOURNEY:subagent')).find((message) => message.toolName === 'Task');
+  check('persona: an unpublished Reference persona is rejected with the available names', rejected?.isError === true && JSON.stringify(rejected.content).includes('generalPurpose'), JSON.stringify(rejected).slice(0, 300));
+}
+
+async function journeyShellGuards(ctx) {
+  const invalid = await ctx.callTool('JOURNEY:shellinvalid');
+  const started = invalid.filter((message) => message.toolName === 'BackgroundShell');
+  checkEqual('shell: an invalid pattern and a blank title both fail before spawning', started.filter((message) => message.isError === true).length, 2);
+  check(
+    'shell: the pattern failure names the regular expression',
+    started.some((message) => JSON.stringify(message.content).includes('notify_on_output is not a valid regular expression')),
+    JSON.stringify(started.map((message) => message.content)).slice(0, 400),
+  );
+  const unknown = (await ctx.callTool('JOURNEY:shellunknown')).find((message) => message.toolName === 'Background' + 'ShellStop');
+  check('shell: stopping an unknown shell reports the id', unknown?.isError === true && JSON.stringify(unknown.content).includes('Unknown background shell'), JSON.stringify(unknown).slice(0, 300));
+}
+
+async function journeyTaskGates(ctx) {
+  const readonlyRun = await ctx.callTool('JOURNEY:readonly');
+  const readonlyResult = readonlyRun.find((message) => message.toolName === 'Task');
+  check('task: a readonly child settles', readonlyResult?.isError !== true, JSON.stringify(readonlyResult).slice(0, 300));
+  const requests = await ctx.everyRequest();
+  const childTools = requests.map(toolSection).filter((tools) => tools && !tools.includes('- bash:'));
+  check(
+    'task: a readonly child receives only read tools',
+    childTools.length > 0 && childTools.every((tools) => ['read', 'grep', 'find', 'ls'].every((name) => tools.includes(`- ${name}:`))),
+    JSON.stringify(childTools.map((tools) => tools.slice(0, 200))),
+  );
+  check(
+    'task: the parent keeps its shell tool',
+    requests.some((request) => toolSection(request).includes('- bash:')),
+    `${requests.length} requests`,
+  );
+
+  const localRun = await ctx.callTool('JOURNEY:localenv');
+  check('task: an explicit local environment runs', localRun.find((message) => message.toolName === 'Task')?.isError !== true, JSON.stringify(localRun).slice(0, 300));
+
+  const badCwd = await ctx.callTool('JOURNEY:badcwd');
+  const badCwdResult = badCwd.find((message) => message.toolName === 'Task');
+  check('task: a missing workspace fails before the child starts', badCwdResult?.isError === true && JSON.stringify(badCwdResult.content).includes('no/such/directory'), JSON.stringify(badCwdResult).slice(0, 300));
+
+  const policy = (await ctx.callTool('JOURNEY:taskpolicy')).filter((message) => message.toolName === 'Task');
+  checkEqual('task: a policy resume runs two turns', policy.length, 2);
+  check('task: resume refuses a changed persona', policy[1]?.isError === true && JSON.stringify(policy[1].content).includes('Resume must preserve the task workspace, persona, and readonly policy'), JSON.stringify(policy[1]).slice(0, 300));
+
+  const steerRun = await ctx.callTool('JOURNEY:tasksteer');
+  const steered = steerRun.find((message) => message.toolName === 'TaskMessage');
+  const settled = steerRun.find((message) => message.toolName === 'TaskOutput');
+  check('task: TaskMessage queues steering for a running child', steered?.isError !== true && JSON.stringify(steered.content).includes('Message queued'), JSON.stringify(steered).slice(0, 300));
+  check('task: the steered child settles with the steering turn', settled?.isError !== true && String(settled.details?.output).includes('steer the running child'), JSON.stringify(settled).slice(0, 300));
+  const transcript = settled?.details?.sessionFile ? await readFile(settled.details.sessionFile, 'utf8').catch(() => '') : '';
+  check('task: the child transcript holds the steering message', transcript.includes('steer the running child') && transcript.includes('JOURNEY:slowchild'), `${transcript.length} bytes`);
 }
 
 async function journeyHelpers(ctx) {

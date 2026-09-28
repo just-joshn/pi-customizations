@@ -1,4 +1,5 @@
-import { mkdir, readFile, realpath } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -55,6 +56,16 @@ export function sumUsage(messages: AgentSession['messages'], previous?: Usage): 
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
+async function workerDirectory(ctx: ExtensionContext): Promise<string> {
+  const manager = ctx.sessionManager;
+  // An unpersisted parent has no session directory, and a relative one would scatter
+  // child transcripts into the working directory.
+  if (!manager.getSessionFile()) return mkdtemp(join(tmpdir(), 'pstack-workers-'));
+  const dir = resolve(manager.getSessionDir(), 'pstack-workers', manager.getSessionId());
+  await mkdir(dir, { recursive: true });
+  return dir;
+}
+
 type OpenWorker = { id: string; params: TaskParameters; prior: TaskRecord | undefined; ctx: ExtensionContext };
 
 export async function openWorkerSession({ id, params, prior, ctx }: OpenWorker): Promise<{ session: AgentSession; record: TaskRecord }> {
@@ -87,8 +98,7 @@ export async function openWorkerSession({ id, params, prior, ctx }: OpenWorker):
         .errors.map((error) => error.error)
         .join('; ')}`,
     );
-  const dir = join(ctx.sessionManager.getSessionDir(), 'pstack-workers', ctx.sessionManager.getSessionId());
-  await mkdir(dir, { recursive: true });
+  const dir = await workerDirectory(ctx);
   const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
   const sessionFile = manager.getSessionFile();
   if (!sessionFile) throw new Error('Worker session did not provide a durable transcript path.');
