@@ -19,7 +19,8 @@ test('preserved helper behavior and its aggregate coverage pass without changing
   const output = run('verify-upstream.mjs');
   expect(output).toMatch(/Upstream coverage includes 7 imported helper files/);
   expect(output).toMatch(/watch-pr\/render.ts/);
-  expect(output).toMatch(/lines: \d+\/\d+ \(/);
+  const linesCoverage = Number(output.match(/lines: \d+\/\d+ \(([\d.]+)%\)/)?.[1]);
+  expect(linesCoverage).toBeGreaterThanOrEqual(80);
   expect(run('resources.mjs')).toBe('Verified 187 upstream files and 205 generated resources.\n');
 });
 

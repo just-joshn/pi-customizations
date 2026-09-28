@@ -1,4 +1,7 @@
-import { expect, test } from 'vitest';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { expect, test, vi } from 'vitest';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { registerCommands, registerNativeInput } from '../src/commands.ts';
 import { createState } from '../src/state.ts';
@@ -53,6 +56,9 @@ test('/poteto-mode with task and /skill:poteto-mode transform input', async () =
   const transformed = await input!({ text: '/skill:poteto-mode investigate', images: [] }, ctx) as { action: string; text: string };
   expect(transformed.action).toBe('transform');
   expect(transformed.text).toMatch(/investigate/);
+
+  const bare = await input!({ text: '/skill:poteto-mode' }, ctx) as { action: string; text: string };
+  expect(bare.text).toMatch(/Body text\n<\/skill>$/);
 });
 
 test('/setup-pstack and /skill:setup-pstack handle errors without UI', async () => {
@@ -149,6 +155,47 @@ test('handleSetup handles non-Error exception and verification offered guard', a
   expect(messages.length).toBe(1);
 });
 
+test('the verification prompt is offered once per session', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-commands-'));
+  vi.stubEnv('PI_CODING_AGENT_DIR', directory);
+  try {
+    const handlers: Record<string, (args: string, ctx: ExtensionContext) => Promise<void>> = {};
+    const sent: Array<{ text: string; options: unknown }> = [];
+    const pi = {
+      registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => { handlers[name] = options.handler; },
+      on() {},
+      appendEntry() {},
+      sendMessage() {},
+      sendUserMessage: (text: string, options: unknown) => sent.push({ text, options }),
+    } as unknown as ExtensionAPI;
+    const skills = new Map([['setup-pstack', { path: '/pkg/skills/setup-pstack/SKILL.md', body: 'Body', description: 'Setup' }]]);
+    const store = createState(pi);
+    registerCommands(pi, skills, store);
+    const defaults = ['grok-4.7-xhigh-fast', 'claude-opus-5-5-max', 'gpt-5.6-sol-max'].map((id) => ({ provider: 'p', id, reasoning: true }));
+    const fallbackModel = `${defaults[0]!.provider}/${defaults[0]!.id}`;
+    let confirmations = 0;
+    const ctx = {
+      hasUI: true,
+      modelRegistry: { getAvailable: () => defaults },
+      ui: {
+        setStatus() {}, setWidget() {}, notify() {},
+        select: async (title: string) => title.startsWith('pstack reasoning budget') ? 'unlimited — keep max' : title.startsWith('Accept model table') ? 'Accept as-is' : fallbackModel,
+        input: async () => `${fallbackModel}, ${fallbackModel}`,
+        confirm: async () => { confirmations++; return true; },
+      },
+    } as unknown as ExtensionContext;
+
+    await handlers['setup-pstack']!('', ctx);
+    expect(sent).toEqual([{ text: expect.stringContaining('create-verification-skill'), options: { deliverAs: 'followUp' } }]);
+    await handlers['setup-pstack']!('', ctx);
+    expect(confirmations).toBe(2);
+    expect(sent.length).toBe(1);
+  } finally {
+    vi.unstubAllEnvs();
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test('pstack index entry point wires extension hooks and registers all tools', async () => {
   const pstackModule = await import('../src/index.ts');
   const listeners: Record<string, Function[]> = {};
@@ -166,11 +213,11 @@ test('pstack index entry point wires extension hooks and registers all tools', a
     getAllTools: () => [],
   } as unknown as ExtensionAPI;
   await pstackModule.default(pi);
-  expect(commands.includes('poteto-mode')).toBe(true);
-  expect(commands.includes('setup-pstack')).toBe(true);
-  expect(tools.includes('TodoWrite')).toBe(true);
-  expect(tools.includes('pstack_mode')).toBe(true);
-  expect(tools.includes('Task')).toBe(true);
+  expect(commands).toContain('poteto-mode');
+  expect(commands).toContain('setup-pstack');
+  expect(tools).toContain('TodoWrite');
+  expect(tools).toContain('pstack_mode');
+  expect(tools).toContain('Task');
 
   const ctx = {
     cwd: '/test/cwd',
@@ -183,7 +230,7 @@ test('pstack index entry point wires extension hooks and registers all tools', a
 
   const event1 = { systemPromptOptions: { sections: {} as Record<string, string> } };
   for (const fn of listeners['before_agent_start'] ?? []) await fn(event1, ctx);
-  expect(event1.systemPromptOptions.sections.pstack_host).toBeDefined();
-  expect(event1.systemPromptOptions.sections.pstack_mode).toBeUndefined();
-  expect(event1.systemPromptOptions.sections.pstack_todos).toBeUndefined();
+  expect(event1.systemPromptOptions.sections.pstack_host).toContain('pstack pi host contract');
+  expect(event1.systemPromptOptions.sections).not.toHaveProperty('pstack_mode');
+  expect(event1.systemPromptOptions.sections).not.toHaveProperty('pstack_todos');
 });

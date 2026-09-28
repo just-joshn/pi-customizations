@@ -16,11 +16,9 @@ function context(overrides: Partial<ExtensionContext['ui']> = {}): ExtensionCont
 
 async function fixture() {
   const dir = await fs.mkdtemp(join(tmpdir(), 'pstack-model-errors-'));
-  const prior = process.env.PI_CODING_AGENT_DIR;
-  process.env.PI_CODING_AGENT_DIR = dir;
+  vi.stubEnv('PI_CODING_AGENT_DIR', dir);
   return { dir, async close() {
-    if (prior === undefined) delete process.env.PI_CODING_AGENT_DIR;
-    else process.env.PI_CODING_AGENT_DIR = prior;
+    vi.unstubAllEnvs();
     await fs.rm(dir, { recursive: true, force: true });
   } };
 }

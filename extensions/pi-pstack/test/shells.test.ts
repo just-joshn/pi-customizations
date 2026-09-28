@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
-import { access, readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { expect, test } from 'vitest';
+import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { expect, test, vi } from 'vitest';
 import type { Context, ToolCall } from '@earendil-works/pi-ai';
 import type { AgentSession } from '@earendil-works/pi-coding-agent';
 import type { ShellRecord } from '../src/shell-runtime.ts';
@@ -16,11 +17,9 @@ function call(name: string, args: ToolCall['arguments']): ToolCall {
 }
 
 async function waitFor(predicate: () => boolean, label: string, deadlineMs = 5000): Promise<void> {
-  const deadline = Date.now() + deadlineMs;
-  while (!predicate()) {
-    if (Date.now() > deadline) throw new Error(`Timed out waiting for ${label}`);
-    await new Promise(resolve => setTimeout(resolve, 20));
-  }
+  await vi.waitFor(() => {
+    if (!predicate()) throw new Error(`Timed out waiting for ${label}`);
+  }, { timeout: deadlineMs, interval: 20 });
 }
 
 function groupAlive(pid: number): boolean {
@@ -78,7 +77,7 @@ shellTest('a matching output line wakes the agent once with the line and log pat
   expect(requestTexts(requests[2]).includes(expected)).toBe(true);
   expect(custom(session, 'pstack-shell-output').length).toBe(1);
   expect(await readFile(shell.outputFile, 'utf8')).toBe(`${line}\n`);
-  await new Promise(resolve => setTimeout(resolve, 200));
+  await waitFor(() => !groupAlive(shell.pid), 'the shell process group to exit');
   expect(f.requests.length).toBe(3);
 });
 
@@ -109,7 +108,7 @@ shellTest('a failing command without a pattern wakes once with its exit code', a
   expect(requestTexts(f.requests[2]).includes(expected)).toBe(true);
   expect(custom(session, 'pstack-shell-exit').length).toBe(1);
   expect((custom(session, 'pstack-shell-exit')[0] as { details: ShellRecord }).details.status).toEqual({ kind: 'exited', code: 1, signal: null });
-  await new Promise(resolve => setTimeout(resolve, 200));
+  await waitFor(() => !groupAlive(shell.pid), 'the shell process group to exit');
   expect(f.requests.length).toBe(3);
 });
 
@@ -187,8 +186,11 @@ shellTest('a matching command exiting zero produces a quiet followUp message ins
   await waitFor(() => custom(session, 'pstack-shell-exit').length === 1 && !session.isStreaming, 'the quiet shell to exit');
   expect(custom(session, 'pstack-shell-exit').length).toBe(1);
   const exitMsg = custom(session, 'pstack-shell-exit')[0] as { details: ShellRecord };
-  expect(exitMsg.details.status.kind).toBe('exited');
-  if (exitMsg.details.status.kind === 'exited') expect(exitMsg.details.status.code).toBe(0);
+  expect(exitMsg.details.status).toEqual({ kind: 'exited', code: 0, signal: null });
+  expect(custom(session, 'pstack-shell-output').length).toBe(1);
+  await session.waitForIdle();
+  // The initial turn costs two requests and the match wake costs one; a quiet exit adds no turn.
+  expect(f.requests.length).toBe(3);
 });
 
 shellTest('readLines delivers un-terminated tail and signal outcome on kill', async (f, session) => {
@@ -200,7 +202,8 @@ shellTest('readLines delivers un-terminated tail and signal outcome on kill', as
   await waitFor(() => custom(session, 'pstack-shell-exit').length === 1 && !session.isStreaming, 'the signal shell to exit');
   expect(custom(session, 'pstack-shell-exit').length).toBe(1);
   const exitMsg = custom(session, 'pstack-shell-exit')[0] as { details: ShellRecord };
-  expect(exitMsg.details.status.kind).toBe('exited');
+  expect(exitMsg.details.status).toEqual({ kind: 'exited', code: null, signal: 'SIGTERM' });
+  expect(await readFile(shell.outputFile, 'utf8')).toBe('trailing-part');
 });
 
 test('ShellRuntime direct unit tests: fallback dir, unknown stop, and delivered', async () => {
@@ -208,15 +211,23 @@ test('ShellRuntime direct unit tests: fallback dir, unknown stop, and delivered'
   const messages: unknown[] = [];
   const pi = { sendMessage: (msg: unknown) => messages.push(msg), on: () => {} } as any;
   const runtime = new ShellRuntime(pi);
+  const cwd = await mkdtemp(join(tmpdir(), 'pstack-shell-cwd-'));
   const fakeCtx = {
-    cwd: '/tmp',
+    cwd,
     sessionManager: { getSessionFile: () => null },
   } as any;
   const record = await runtime.start({ command: 'echo direct-test', title: 'direct' }, fakeCtx);
-  expect(record.title).toBe('direct');
-  expect(runtime.list().length).toBe(1);
-  runtime.delivered('non-existent');
-  runtime.delivered(record.id);
-  await expect(runtime.stop('non-existent')).rejects.toThrow(/Unknown background shell/);
-  await runtime.stopAll();
+  const fallbackDir = dirname(record.outputFile);
+  try {
+    expect(record.title).toBe('direct');
+    expect(dirname(fallbackDir)).toBe(tmpdir());
+    expect(runtime.list().length).toBe(1);
+    runtime.delivered('non-existent');
+    runtime.delivered(record.id);
+    await expect(runtime.stop('non-existent')).rejects.toThrow(/Unknown background shell/);
+  } finally {
+    await runtime.stopAll();
+    await rm(fallbackDir, { recursive: true, force: true });
+    await rm(cwd, { recursive: true, force: true });
+  }
 });

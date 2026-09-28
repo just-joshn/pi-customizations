@@ -1,6 +1,8 @@
 import { spawn } from "node:child_process";
-import { readdir, readFile, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { expect, test } from "vitest";
 import { parseFrontmatter } from "@earendil-works/pi-coding-agent";
 import {
@@ -36,14 +38,10 @@ function customMessagesOf(session: { messages: unknown[] }, customType: string):
   return (session.messages as CustomMsg[]).filter((m) => m.role === "custom" && m.customType === customType);
 }
 
-test("user-perspective: package settings, skills, and prompt templates", async () => {
-  const settingsPath = join(process.env.HOME!, ".pi/agent/settings.json");
-  const settings = JSON.parse(await readFile(settingsPath, "utf8"));
-  expect(Boolean(settings.packages?.some((p: string) => p.includes("pi-pstack")))).toBe(true);
-
+test("user-perspective: loaded skills and prompt templates expose descriptions", async () => {
   const f = await fixture();
   try {
-    const { session, loader } = await f.open();
+    const { loader } = await f.open();
     const skills = loader.getSkills().skills;
     const prompts = loader.getPrompts().prompts;
     expect(skills.length).toBe(65);
@@ -55,6 +53,15 @@ test("user-perspective: package settings, skills, and prompt templates", async (
       const { frontmatter } = parseFrontmatter<Record<string, unknown>>(skillFile);
       expect(Boolean(frontmatter.description)).toBe(true);
     }
+  } finally {
+    await f.close();
+  }
+});
+
+test("user-perspective: loaded extension registers its runtime commands", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
     const commands = new Set(session.extensionRunner.getRegisteredCommands().map((c) => c.name));
     for (const name of ["pstack", "poteto-mode", "setup-pstack"]) {
       expect(commands.has(name)).toBe(true);
@@ -281,34 +288,51 @@ test("user-perspective: pstack_context tool returns valid bounds and metadata", 
   }
 });
 
-test("user-perspective: real Pi CLI execution (e2e without flags)", async () => {
-  const run = (args: string[]): Promise<{ stdout: string; stderr: string; code: number | null }> => {
-    return new Promise((resolve, reject) => {
-      const child = spawn("pi", args, { cwd: packageRoot, stdio: ["ignore", "pipe", "pipe"] });
-      let stdout = "";
-      let stderr = "";
-      child.stdout.on("data", (d) => (stdout += d.toString()));
-      child.stderr.on("data", (d) => (stderr += d.toString()));
-      const timer = setTimeout(() => {
-        child.kill("SIGKILL");
-        reject(new Error(`pi ${args.join(" ")} timed out after 3000ms. Stderr: ${stderr}`));
-      }, 3000);
-      child.on("close", (code) => {
-        clearTimeout(timer);
-        resolve({ stdout, stderr, code });
-      });
+const cliPath = join(dirname(fileURLToPath(import.meta.resolve("@earendil-works/pi-coding-agent"))), "bundle/cli.js");
+const cliDeadlineMs = 3000;
+
+function runCli(args: string[], options: { cwd: string; agentDir: string }): Promise<{ stdout: string; stderr: string; code: number | null }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [cliPath, ...args], {
+      cwd: options.cwd,
+      env: { PATH: process.env.PATH, HOME: options.cwd, PI_CODING_AGENT_DIR: options.agentDir, PI_OFFLINE: "1" },
+      stdio: ["ignore", "pipe", "pipe"],
     });
-  };
+    let stdout = "";
+    let stderr = "";
+    const timer = setTimeout(() => child.kill("SIGKILL"), cliDeadlineMs);
+    child.stdout.on("data", (data) => (stdout += data.toString()));
+    child.stderr.on("data", (data) => (stderr += data.toString()));
+    child.once("error", (error) => { clearTimeout(timer); reject(error); });
+    child.once("close", (code) => {
+      clearTimeout(timer);
+      if (code === null) reject(new Error(`pi ${args.join(" ")} was killed after ${cliDeadlineMs}ms. Stderr: ${stderr}`));
+      else resolve({ stdout, stderr, code });
+    });
+  });
+}
 
-  const pstackRes = await run(["--mode", "json", "-p", "--no-session", "/pstack"]);
-  expect(pstackRes.code).toBe(0);
-  const lines = pstackRes.stdout.trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
-  const statusMsg = lines.find((l) => l.message?.customType === "pstack-status");
-  expect(Boolean(statusMsg)).toBe(true);
-  expect(statusMsg.message.content).toMatch(/pstack 0\.15\.5 with cursor-team-kit 1\.2\.0/);
+test("user-perspective: installed CLI loads the package declared in settings", async () => {
+  const root = await mkdtemp(join(tmpdir(), "pstack-cli-"));
+  const agentDir = join(root, "agent");
+  const workspace = join(root, "workspace");
+  try {
+    await mkdir(agentDir);
+    await mkdir(workspace);
+    await writeFile(join(agentDir, "settings.json"), JSON.stringify({ packages: [packageRoot], defaultProjectTrust: "never" }));
 
-  const modeOffRes = await run(["--mode", "json", "-p", "--no-session", "/poteto-mode off"]);
-  expect(modeOffRes.code).toBe(0);
+    const status = await runCli(["--mode", "json", "-p", "--no-session", "/pstack"], { cwd: workspace, agentDir });
+    expect(status.code).toBe(0);
+    const lines = status.stdout.trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
+    const statusMsg = lines.find((l) => l.message?.customType === "pstack-status");
+    expect(Boolean(statusMsg)).toBe(true);
+    expect(statusMsg.message.content).toMatch(/pstack 0\.15\.5 with cursor-team-kit 1\.2\.0/);
+
+    const modeOff = await runCli(["--mode", "json", "-p", "--no-session", "/poteto-mode off"], { cwd: workspace, agentDir });
+    expect(modeOff.code).toBe(0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("user-perspective: AskQuestion tool headless error", async () => {

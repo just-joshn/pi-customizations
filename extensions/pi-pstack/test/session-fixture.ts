@@ -1,4 +1,4 @@
-import { expect } from "vitest";
+import { expect, vi } from "vitest";
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -21,7 +21,8 @@ import {
 } from "@earendil-works/pi-coding-agent";
 
 export const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const settlementDeadlineMs = 5000;
+// Below vitest's 5s test timeout so a stuck settle reports itself before the runner aborts the test.
+const settlementDeadlineMs = 4000;
 export const model: Model<"openai-completions"> = {
   id: "scripted", name: "Scripted integration provider", provider: "pstack-integration",
   api: "openai-completions", baseUrl: "https://integration.invalid", reasoning: false,
@@ -60,15 +61,18 @@ export async function closeSessions(sessions: AgentSession[], root: string) {
     }));
     const failures = results.filter(result => result.status === 'rejected');
     if (failures.length) throw new AggregateError(failures.map(result => result.reason), 'Fixture cleanup failed');
-  } finally { await rm(root, { recursive: true, force: true }); }
+  } finally { vi.unstubAllEnvs(); await rm(root, { recursive: true, force: true }); }
 }
 
-export async function fixture({ extensionOnly = false }: { extensionOnly?: boolean } = {}) {
+type FixtureOptions = { extensionOnly?: boolean; createDirectory?: (path: string) => Promise<unknown> };
+
+export async function fixture({ extensionOnly = false, createDirectory = mkdir }: FixtureOptions = {}) {
   const root = await mkdtemp(join(tmpdir(), "pstack-integration-"));
   const cwd = join(root, "workspace");
   const agentDir = join(root, "agent");
-  try { await mkdir(cwd); await mkdir(agentDir); }
+  try { await createDirectory(cwd); await createDirectory(agentDir); }
   catch (error) { await rm(root, { recursive: true, force: true }); throw error; }
+  vi.stubEnv("PI_CODING_AGENT_DIR", agentDir);
   const requests: Context[] = [];
   const calls: (ToolCall | ToolCall[])[] = [];
   const sessions: AgentSession[] = [];
@@ -108,13 +112,14 @@ export async function fixture({ extensionOnly = false }: { extensionOnly?: boole
   };
 }
 
-export async function prompt(session: AgentSession, text: string) {
-  if (text === "/poteto-mode off") {
+export async function prompt(session: AgentSession, text: string, { startsRun = true }: { startsRun?: boolean } = {}) {
+  if (!startsRun) {
     await session.prompt(text);
     return;
   }
   let unsubscribe = () => {};
   let timer: ReturnType<typeof setTimeout> | undefined;
+  // Pi resolves prompt() before a command's queued follow-up run starts, so the run is awaited through its event.
   const settled = new Promise<void>((resolve, reject) => {
     timer = setTimeout(() => reject(new Error("Pi did not settle the scripted request")), settlementDeadlineMs);
     unsubscribe = session.subscribe((event) => {
