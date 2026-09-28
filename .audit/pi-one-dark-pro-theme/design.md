@@ -223,3 +223,28 @@ row should name, so a reviewer knows that read is theirs.
 be a hand-maintained copy of Pi's schema, and `checkParity` already compares the map against the
 installed schema at runtime. Two gates on one invariant, one of them restating the source of
 truth, costs more than it catches.
+
+## The generated-versus-annotated shape fork, tested
+
+The first design arena runner proposed the opposite shape to the one shipped: a hand-authored
+theme JSON plus a checker that re-resolves every selector, instead of a generated theme. Both
+shapes catch a drifted value, and neither catches a wrong selector, so the fork came down to
+failure modes. Tested rather than argued.
+
+Under generation, the gate and the generator share `buildTheme`. A resolver bug changes the
+shipped theme and the gate reports OK, because it compares the committed file against a fresh
+build from the same broken resolver. Reproduced: with `resolveScope` forced to return `#000000`,
+`check:parity` printed OK while all 17 scope-derived roles went black. Under annotation the same
+bug is a red build, because the hand-written theme is the fixed side of the comparison.
+
+The generated shape is kept anyway. Authoring is one edit instead of two that must agree, drift
+between map and theme is impossible rather than merely detected, and the runner's shape still
+relies on the same resolver to check the same selectors.
+
+The self-reference is closed at the boundary it actually matters. Every one of the 17
+scope-derived roles is now pinned in `test/theme-loader.test.ts` to the escape it renders,
+asserted through pi's own `loadThemeFromPath`, with the expected values taken from the separate
+implementation used to derive the palette before this package existed. With the resolver bug
+re-injected, 29 tests fail including all 17 pins, while the gate stays green and is documented as
+the drift detector it is. The other 42 roles read a workbench key verbatim, so the gate is the
+right cover for them.
