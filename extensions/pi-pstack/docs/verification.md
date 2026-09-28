@@ -12,20 +12,20 @@ The real installed pi CLI also passes `scripts/verify-cli.mjs`. That check start
 
 The upstream helper suite passed 52 tests with 206 assertions across orchestration and PR watcher tests. It ran from a temporary copy with the original frozen Bun lockfile so the vendored tree remained unchanged.
 
-The npm dry-run package inventory contains every upstream file. An initial check caught npm omitting `.gitignore`; the manifest now explicitly includes that file.
+The packed inventory contains every tracked file the manifest declares except `upstream/.gitignore`. `bun pm pack` drops a file with that name even though `files` lists it explicitly, so the published tarball is one entry short. `test/cli.test.ts` asserts the omission is exactly that one entry, so a wider loss fails the suite.
 
 ## Reproduce local checks
 
 Run from `extensions/pi-pstack`:
 
 ```sh
-npm install
-npm run check:resources
-npm run typecheck
-npm test
-npm run test:coverage
-npm run check:cli
-npm pack --dry-run --json
+bun install
+bun run check:resources
+bun run typecheck
+bun run test
+bun run test:coverage
+bun run check:cli
+bun pm pack --dry-run
 ```
 
 To run the preserved helper tests without changing the snapshot, copy `upstream/skills/poteto-mode/scripts` to a temporary directory. In that copy, run `bun install --frozen-lockfile` and `bun test orch watch-pr`.
@@ -67,6 +67,6 @@ Coverage command:
 node --import tsx --test --experimental-test-coverage --test-coverage-include='src/*.ts' test/*.test.ts
 ```
 
-To check an extracted package through the real CLI, run `npm run check:cli -- /absolute/path/to/extracted/package` from this development directory. The script uses the installed official CLI with the extracted package as its extension source. It does not install the package globally.
+To check an extracted package through the real CLI, run `bun run check:cli -- /absolute/path/to/extracted/package` from this development directory. The script uses the installed official CLI with the extracted package as its extension source. It does not install the package globally.
 
 The source's local control-cli workflow informed this reuse of the existing isolated RPC harness. Interactive terminal rendering, actual GitHub CI, browser automation, and stochastic workflow compliance were not exercised. Full parity remains unverified.

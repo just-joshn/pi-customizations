@@ -6,6 +6,7 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
+  "workspaces": ["extensions/*"],
   "description": "Standalone Pi skills: doctor, run, simplify, reverse-engineer-cli, and implement-cli-from-contract.",
   "license": "MIT",
   "keywords": ["pi-package"],
@@ -13,9 +14,10 @@
     "skills": ["./skills"]
   },
   "scripts": {
-    "test": "npm --prefix extensions/pi-anthropic-oauth test && npm --prefix extensions/pi-antigravity-oauth test && npm --prefix extensions/pi-tui-parity test && npm --prefix extensions/pi-pstack test && npm --prefix extensions/pi-one-dark-pro-theme test",
+    "test": "bun run --sequential --filter '*' test",
     "check:tests": "node extensions/scripts/check-vitest-conventions.selftest.mjs && node extensions/scripts/check-vitest-conventions.mjs",
-    "test:coverage": "npm --prefix extensions/pi-tui-parity run test:coverage && npm --prefix extensions/pi-pstack run test:coverage && npm --prefix extensions/pi-one-dark-pro-theme run test:coverage",
+    "check:toolchain": "node scripts/check-bun-toolchain.selftest.mjs && node scripts/check-bun-toolchain.mjs",
+    "test:coverage": "bun run --sequential --filter pi-pstack --filter pi-tui-parity --filter pi-one-dark-pro-theme test:coverage",
     "typecheck": "tsc --noEmit",
     "check": "biome check .",
     "check:write": "biome check --write .",

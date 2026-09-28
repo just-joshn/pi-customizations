@@ -67,7 +67,7 @@ No paid model calls, live cloud deployments, external messages, or business-serv
 
 ## Reproduction
 
-The checks require Node/npm, uv, and Bun. Install the extension development dependencies first. From the repository root, run `make verify`. It checks source and resource integrity, TypeScript, maintained-code structure, runtime/integration/package CLI tests, and both coverage gates. Python coverage includes all four maintained scripts and maps copied replay scripts back to their original implementation. The coverage configuration excludes no production lines.
+The checks require Node, Bun, and uv. Install the workspace dependencies first with `bun install` at the repository root. From the repository root, run `make verify`. It checks source and resource integrity, TypeScript, maintained-code structure, runtime/integration/package CLI tests, and both coverage gates. Python coverage includes all four maintained scripts and maps copied replay scripts back to their original implementation. The coverage configuration excludes no production lines.
 
 The archived Bun helpers are verified in a temporary copy with their frozen lockfile. The original 52 tests cover 2,328 of 2,908 measured lines, or 80.06%. Six supplemental output tests raise that to 2,450 of 2,909 lines, or 84.22%, with 89.97% function coverage. This LCOV denominator contains seven imported files, including the test helper. It does not include unimported executable entry points. Bun's text file averages differ and are not the gate. A controlled 70% LCOV report was rejected, and cleanup ran on failure. The source remains unchanged. The source-preservation conflicts above remain visible regardless of test results.
 
