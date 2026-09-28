@@ -13,6 +13,8 @@ function expand(skills: Skills, name: string, args: string) {
   return `<skill name="${name}" location="${skill.path}">\nReferences are relative to ${dirname(skill.path)}.\n\n${skill.body}\n</skill>${args ? `\n\n${args}` : ''}`;
 }
 
+const isOff = (args: string) => args.trim().toLowerCase() === 'off';
+
 async function setup(pi: ExtensionAPI, ctx: ExtensionContext, store: StateStore) {
   if (!await setupModels(ctx)) return;
   if (store.read().verificationOffered) return;
@@ -43,7 +45,7 @@ export function registerCommands(pi: ExtensionAPI, skills: Skills, store: StateS
           return;
         }
         if (name === 'poteto-mode') {
-          if (args.trim() === 'off') {
+          if (isOff(args)) {
             store.toggle(false, ctx);
             ctx.ui.notify('Poteto mode is off.', 'info');
             return;
@@ -68,8 +70,8 @@ export function registerNativeInput(pi: ExtensionAPI, skills: Skills, store: Sta
         await handleSetup(pi, ctx, store);
         return { action: 'handled' };
       }
-      store.toggle(args.trim() !== 'off', ctx);
-      if (args.trim() === 'off') return { action: 'handled' };
+      store.toggle(!isOff(args), ctx);
+      if (isOff(args)) return { action: 'handled' };
       return { action: 'transform', text: expand(skills, name, args), images: event.images };
     }
     return { action: 'continue' };
