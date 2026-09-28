@@ -641,3 +641,15 @@ test("AskQuestion multi-select titles show the choices made so far", async () =>
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
+
+test("/pstack status is shown in the transcript but never sent to the model", async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    await session.prompt("/pstack status");
+    await prompt(session, "Restate your last message.");
+    assert.ok(session.messages.some((message) => message.role === "custom" && message.customType === "pstack-status"));
+    assert.doesNotMatch(JSON.stringify(lastRequest(f.requests).messages), /Compatibility report/);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
