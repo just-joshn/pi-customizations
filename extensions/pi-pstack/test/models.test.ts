@@ -118,3 +118,54 @@ test("setup confirms before writing all roles, preserves duplicate aliases, and 
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("TUI setup pickers stay within a screen, filter by typing, and build ordered panels", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "pstack-models-"));
+  const previous = process.env.PI_CODING_AGENT_DIR;
+  process.env.PI_CODING_AGENT_DIR = directory;
+  const many = Array.from({ length: 200 }, (_, index) => ({ ...model, id: `m${index}` }));
+  const scripts = [
+    ["m", "1", "7", "\r"],
+    ["m", "1", "5", "0", "\r"],
+    ["m", "4", "2", "\r"],
+    ["F", "i", "n", "i", "s", "h", "\r"],
+  ];
+  const heights: number[] = [];
+  const titles: string[] = [];
+  const roles = ["bug-fix", "arena runners"];
+  try {
+    await mkdir(dirname(modelConfigPath()), { recursive: true });
+    const allRoles = ["feature, refactoring", "bug-fix", "perf-issue", "hillclimb", "judgment and prose", "hardest tasks", "how explorer", "how explainer", "why investigators", "why synthesizer", "reflect tooling", "reflect judgment, divergent, synthesizer", "arena runners", "arena cross-judge pool", "swarm workers", "architect runners", "interrogate reviewers"];
+    await writeFile(modelConfigPath(), allRoles.map((role) => `${role}: inherit-parent`).join("\n"));
+    const ctx = context({ hasUI: true, mode: "tui", modelRegistry: { getAvailable: () => many } as ExtensionContext["modelRegistry"],
+      ui: ui({
+        select: async (title) => {
+          if (title.startsWith("pstack reasoning budget")) return "small — medium reasoning";
+          if (title.startsWith("Accept model table")) return roles.shift() ?? "Accept as-is";
+          throw new Error(`Unexpected select: ${title.slice(0, 60)}`);
+        },
+        input: async (title) => { throw new Error(`Unexpected input: ${title.slice(0, 60)}`); },
+        confirm: async () => true,
+        custom: (async (factory: Function) => new Promise((resolve) => {
+          const theme = { fg: (_color: string, text: string) => text, bold: (text: string) => text };
+          const component = factory({ requestRender() {} }, theme, undefined, resolve);
+          const first = component.render(80) as string[];
+          heights.push(first.length);
+          titles.push(first.join("\n"));
+          for (const key of scripts.shift() ?? []) component.handleInput(key);
+        })) as unknown as ExtensionContext["ui"]["custom"],
+      }) });
+    assert.equal(await setupModels(ctx), true);
+    const result = await readModelRule();
+    assert.match(result, /^bug-fix: anthropic\/m17:medium$/m);
+    assert.match(result, /^arena runners: anthropic\/m150:medium, anthropic\/m42:medium$/m);
+    assert.ok(heights.every((height) => height <= 20), `picker heights ${heights.join(", ")}`);
+    assert.match(titles[0]!, /bug-fix \(current: inherit-parent\)/);
+    assert.match(titles[3]!, /arena runners seat 3\. Selected: anthropic\/m150:medium, anthropic\/m42:medium/);
+    assert.deepEqual(scripts, []);
+  } finally {
+    if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = previous;
+    await rm(directory, { recursive: true, force: true });
+  }
+});
