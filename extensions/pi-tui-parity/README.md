@@ -49,6 +49,12 @@ npm run check:parity    # matrix completeness
 npm run check:smoke     # live tmux smoke (needs tmux)
 ```
 
+## Credits
+
+Visual reference: the Cursor Agent CLI. This package recreates its terminal
+look and interaction patterns on pi; credit for the original design belongs
+to the Cursor CLI team.
+
 ## Parity status
 
 See `docs/parity.md` and `parity/matrix.tsv`: every component in the
