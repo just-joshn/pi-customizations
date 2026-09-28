@@ -1,11 +1,15 @@
 /**
- * Official built-in tool definitions, cached per working directory.
+ * Official built-in tool definitions, built the way Pi builds them.
  *
  * Pi registers the built-ins before extensions load, so a same-name
- * `pi.registerTool()` replaces the original. This module hands the wrapper the
- * original definition to spread for its behavior-affecting metadata and to
- * delegate execution to. Definitions are cwd-sensitive, so they are built and
- * cached per cwd.
+ * `pi.registerTool()` replaces the original wholesale. This module hands the
+ * wrapper a definition to spread for its behavior-affecting metadata and to
+ * delegate execution to. Pi builds its own with options read from settings, so
+ * building ours without them silently drops the user's `shellPath`,
+ * `shellCommandPrefix`, and `images.autoResize`.
+ *
+ * Definitions are built per call instead of cached, so a settings change
+ * reaches the next tool call rather than freezing at load time.
  */
 
 import {
@@ -17,14 +21,31 @@ import {
   createPowerShellToolDefinition,
   createReadToolDefinition,
   createWriteToolDefinition,
+  SettingsManager,
 } from '@earendil-works/pi-coding-agent';
 
 export type BuiltinName = 'read' | 'bash' | 'powershell' | 'edit' | 'write' | 'grep' | 'find' | 'ls';
 
+let settingsFailureReported = false;
+
+/** Settings-backed options. A settings failure falls back to Pi's defaults and reports once. */
+function settingsManager(cwd: string): SettingsManager {
+  try {
+    return SettingsManager.create(cwd);
+  } catch (error) {
+    if (!settingsFailureReported) {
+      settingsFailureReported = true;
+      console.error('[cursor-ui] falling back to default tool settings', error);
+    }
+    return SettingsManager.inMemory();
+  }
+}
+
 function createBuiltins(cwd: string) {
+  const settings = settingsManager(cwd);
   return {
-    read: createReadToolDefinition(cwd),
-    bash: createBashToolDefinition(cwd),
+    read: createReadToolDefinition(cwd, { autoResizeImages: settings.getImageAutoResize() }),
+    bash: createBashToolDefinition(cwd, { commandPrefix: settings.getShellCommandPrefix(), shellPath: settings.getShellPath() }),
     powershell: createPowerShellToolDefinition(cwd),
     edit: createEditToolDefinition(cwd),
     write: createWriteToolDefinition(cwd),
@@ -36,14 +57,8 @@ function createBuiltins(cwd: string) {
 
 export type Builtins = ReturnType<typeof createBuiltins>;
 
-const cache = new Map<string, Builtins>();
-
 export function getBuiltins(cwd: string): Builtins {
-  const cached = cache.get(cwd);
-  if (cached) return cached;
-  const built = createBuiltins(cwd);
-  cache.set(cwd, built);
-  return built;
+  return createBuiltins(cwd);
 }
 
 export function getBuiltin<K extends BuiltinName>(cwd: string, name: K): Builtins[K] {

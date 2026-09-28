@@ -2,7 +2,7 @@ import type { Theme, ToolRenderResultOptions } from '@earendil-works/pi-coding-a
 import type { Component } from '@earendil-works/pi-tui';
 import { Text } from '@earendil-works/pi-tui';
 import type { ToolResultLike, ToolRowContext } from './render-shell.ts';
-import { argString, callRow, currentHome, displayPath, emptyResult, errorResult, expandedResult, isErrorResult } from './render-shell.ts';
+import { callRow, currentHome, displayArg, displayPath, emptyResult, errorResult, expandedResult } from './render-shell.ts';
 
 const MISSING = '...';
 
@@ -19,17 +19,17 @@ function diffResult(diff: string, theme: Theme): Component {
 }
 
 export function renderEditCall(args: unknown, theme: Theme, context: ToolRowContext): Component {
-  const path = argString(args, 'path');
+  const path = displayArg(args, 'path');
   const target = path === undefined ? MISSING : displayPath(path, currentHome());
   return callRow(theme, context, 'Edit', target);
 }
 
 export function renderEditResult(result: ToolResultLike, options: ToolRenderResultOptions, theme: Theme, context: ToolRowContext): Component {
   if (options.isPartial) return emptyResult();
-  if (isErrorResult(result, context)) return errorResult(result, theme);
+  if (context.isError) return errorResult(result, theme);
   if (!options.expanded) return emptyResult();
 
-  const diff = argString(result.details, 'diff');
+  const diff = displayArg(result.details, 'diff');
   if (diff !== undefined) return diffResult(diff, theme);
   return expandedResult(result, theme);
 }
