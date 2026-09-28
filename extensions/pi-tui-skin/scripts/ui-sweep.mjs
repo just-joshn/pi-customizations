@@ -13,13 +13,14 @@
  *   node scripts/ui-sweep.mjs --fuzz 20 --seed 7
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = resolve(PKG_ROOT, '..', '..');
 const OUT_DIR = join(PKG_ROOT, 'artifacts', 'sweep');
+const RUNS_FILE = join(PKG_ROOT, 'artifacts', 'sweep-runs.jsonl');
 
 function parseArgs(argv) {
   const fuzzIndex = argv.indexOf('--fuzz');
@@ -87,6 +88,19 @@ function runStep(step, index) {
   return { name: step.name, code, seconds: Number(seconds), findings, logFile, failed: failed || findings.length > 0 };
 }
 
+/** One line per run, appended outside the per-run log directory so it survives. */
+function recordRun(summary) {
+  let head = 'unknown';
+  let dirty = true;
+  try {
+    head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+    dirty = execFileSync('git', ['status', '--porcelain'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim().length > 0;
+  } catch {
+    // A missing git binary must not fail a sweep whose real work already ran.
+  }
+  appendFileSync(RUNS_FILE, `${JSON.stringify({ ...summary, head, dirty, finishedAt: new Date().toISOString() })}\n`);
+}
+
 function main() {
   const options = parseArgs(process.argv.slice(2));
   rmSync(OUT_DIR, { recursive: true, force: true });
@@ -105,6 +119,7 @@ function main() {
     findings: failures.length,
   };
   writeFileSync(join(OUT_DIR, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
+  recordRun(summary);
   process.stdout.write(`findings: ${summary.findings}\n`);
   process.exitCode = summary.findings === 0 ? 0 : 1;
 }
