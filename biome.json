@@ -1,0 +1,55 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!!**/dist",
+      "!!**/build",
+      "!!**/coverage"
+    ]
+  },
+
+  "formatter": {
+    "enabled": true
+  },
+
+  "linter": {
+    "enabled": true,
+
+    "domains": {
+      "project": "recommended",
+      "types": "recommended",
+      "test": "recommended"
+    },
+
+    "rules": {
+      "preset": "recommended",
+
+      "correctness": {
+        "noProcessGlobal": "error",
+        "noUndeclaredDependencies": "error"
+      },
+
+      "style": {
+        "useNodejsImportProtocol": "error"
+      }
+    }
+  },
+
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  }
+}
