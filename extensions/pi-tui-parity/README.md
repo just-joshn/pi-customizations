@@ -49,6 +49,12 @@ npm run check:parity    # matrix completeness
 npm run check:smoke     # live tmux smoke (needs tmux)
 ```
 
+## Credits
+
+Visual reference: the Reference Agent CLI. This package recreates its terminal
+look and interaction patterns on pi; credit for the original design belongs
+to the Reference CLI team.
+
 ## Parity status
 
 See `docs/parity.md` and `parity/matrix.tsv`: every component in the
