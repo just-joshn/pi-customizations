@@ -37,8 +37,8 @@ export function registerWorkers(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'TaskMessage', label: 'Message task', description: 'Queue a message to a running child. Resume completed children using Task.resume.',
     promptSnippet: 'Queue steering or follow-up input for a running subagent',
-    parameters: Type.Object({ task_id: Type.String(), message: Type.String(), mode: Type.Optional(Type.Union([Type.Literal('steer'), Type.Literal('followUp')])) }),
+    parameters: Type.Object({ task_id: Type.String(), message: Type.String(), mode: Type.Optional(Type.String({ enum: ['steer', 'followUp'] })) }),
     executionMode: 'parallel',
-    execute: (_id, params) => runtime.message(params.task_id, params.message, params.mode),
+    execute: (_id, params) => runtime.message(params.task_id, params.message, params.mode as 'steer' | 'followUp' | undefined),
   });
 }

@@ -18,7 +18,7 @@ const TaskRecordSchema = Type.Object({
 export type TaskRecord = Static<typeof TaskRecordSchema>;
 export const TaskParameters = Type.Object({
   prompt: Type.String(), subagent_type: Type.Optional(Type.String()), model: Type.Optional(Type.String()),
-  cwd: Type.Optional(Type.String()), environment: Type.Optional(Type.Union([Type.Literal('local'), Type.Literal('cloud')])),
+  cwd: Type.Optional(Type.String()), environment: Type.Optional(Type.String({ enum: ['local', 'cloud'] })),
   readonly: Type.Optional(Type.Boolean()), run_in_background: Type.Optional(Type.Boolean()), resume: Type.Optional(Type.String()),
 });
 export type TaskParameters = Static<typeof TaskParameters>;
