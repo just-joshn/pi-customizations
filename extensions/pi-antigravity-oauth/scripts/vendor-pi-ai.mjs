@@ -1,5 +1,7 @@
+import { existsSync, realpathSync } from 'node:fs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Pi supplies extensions with only the pi-ai root, compat, oauth, and
@@ -7,8 +9,11 @@ import { fileURLToPath } from 'node:url';
 // conversion modules, so this copies their TypeScript sources out of the pinned
 // devDependency's source maps and rewrites only import specifiers.
 const root = fileURLToPath(new URL('..', import.meta.url));
-const piAi = join(root, 'node_modules/@earendil-works/pi-ai');
-const genai = join(root, 'node_modules/@google/genai');
+// The package manager may link the Pi install instead of copying it. Resolving
+// through the link's real location finds the @google/genai version Pi pins,
+// which is the one the vendored enums have to match.
+const piAi = realpathSync(join(root, 'node_modules/@earendil-works/pi-ai'));
+const genai = genaiPackageRoot(join(piAi, 'package.json'));
 const target = join(root, 'src/pi-ai');
 const sources = [
   'api/google-shared', 'api/transform-messages', 'api/constrained-sampling', 'api/simple-options',
@@ -52,6 +57,15 @@ async function version(dir) {
   return JSON.parse(await readFile(join(dir, 'package.json'), 'utf8')).version;
 }
 
+// @google/genai does not export its package.json, so walk up from its entry
+// point to the directory that owns the manifest. Resolving from the Pi install's
+// manifest is what ties the version to Pi rather than to this package.
+function genaiPackageRoot(piAiManifest) {
+  let directory = dirname(createRequire(piAiManifest).resolve('@google/genai'));
+  while (!existsSync(join(directory, 'package.json'))) directory = dirname(directory);
+  return directory;
+}
+
 async function vendored(source, piAiVersion) {
   const map = JSON.parse(await readFile(join(piAi, 'dist', `${source}.js.map`), 'utf8'));
   const text = map.sourcesContent[0].replace(/(from |import\()"([^"]+)"/g, (match, prefix, specifier) => {
@@ -84,7 +98,7 @@ if (process.argv.includes('--check')) {
   for (const [name, text] of expected) if (present.has(name) && await readFile(join(target, name), 'utf8') !== text) stale.push(name);
   const extra = [...present].filter(name => !expected.has(name));
   if (stale.length || extra.length) {
-    process.stderr.write(`Vendored pi-ai modules differ from @earendil-works/pi-ai ${piAiVersion}: ${[...stale, ...extra].join(', ')}. Run npm run vendor.\n`);
+    process.stderr.write(`Vendored pi-ai modules differ from @earendil-works/pi-ai ${piAiVersion}: ${[...stale, ...extra].join(', ')}. Run bun run vendor.\n`);
     process.exit(1);
   }
   process.stdout.write(`Vendored modules match @earendil-works/pi-ai ${piAiVersion}.\n`);
