@@ -178,7 +178,7 @@ export async function setupModels(ctx: ExtensionContext): Promise<boolean> {
     if (!await ctx.ui.confirm("Write pstack model configuration?", `${budget}\n\n${table}\n\n${modelConfigPath()}`)) return false;
     for (const [role, values] of working) validateRole(role, values, target, ctx);
     await writeConfiguration(working, budget, target);
-    ctx.ui.notify(`Wrote ${modelConfigPath()}. Applies to new sessions; re-run /setup-pstack to update it.`, "info");
+    ctx.ui.notify(`Wrote ${modelConfigPath()}. Applies from the next prompt; re-run /setup-pstack to update it.`, "info");
     return true;
   }
 }
