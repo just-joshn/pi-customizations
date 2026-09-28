@@ -1,0 +1,57 @@
+[
+  {
+    "name": "skill:doctor",
+    "description": "Health-check the user's Pi setup and fix what's wrong: installation and settings health, broken or colliding skills and packages, unused skills, extensions, prompts, and packages versus their context cost, duplicated or contradictory AGENTS.md/CLAUDE.md files, checked-in context files bloated with derivable content, always-loaded guidance that belongs in lazy skills, context-heavy system prompt sections, stale project trust entries, and an outdated Pi version. Reports first, then applies only confirmed fixes. Use when the user runs /skill:doctor.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/skills/doctor/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:implement-cli-from-contract",
+    "description": "Implement, extend, port, replace, or repair CLI features in TypeScript, Python, or Rust so observable behavior matches a reverse-engineered contract. Builds an executable compatibility corpus, captures immutable reference results before coding, designs a clean typed internal model, and proves the packaged candidate against the reference with differential tests. Use when implementing from reverse-engineer-cli evidence, a probe corpus, or a reference executable. Invoke with /skill:implement-cli-from-contract.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/skills/implement-cli-from-contract/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:reverse-engineer-cli",
+    "description": "Reverse engineer TypeScript/JavaScript, Python, or Rust CLI tools from an installed command, a repository, or both. Use for authorized behavior reconstruction, architecture analysis, configuration precedence, release comparisons, or preparation for a compatible implementation. Produces reproducible probes and evidence-linked behavior and architecture reports. Invoke with /skill:reverse-engineer-cli followed by the target and investigation scope.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/skills/reverse-engineer-cli/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:run",
+    "description": "Launch and drive this project's app to see a change working in the real app, not just the tests. Use when asked to run, start, launch, try, or screenshot the app, or to confirm a change works end to end. First looks for a project run skill that already covers launching the app, otherwise falls back to bundled recipes per project type (CLI, server, TUI, Electron, browser-driven web app, library). Use when the user runs /skill:run.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/skills/run/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:simplify",
+    "description": "Review the changed code (working tree, branch diff, PR, or a named path) for reuse, simplification, efficiency, and altitude cleanups with four parallel reviewers when a subagent tool is available, then apply the fixes without changing behavior. Quality only; it does not hunt for correctness bugs. Use when the user asks to simplify, clean up, tidy, or polish a diff or recent changes, or runs /skill:simplify.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/skills/simplify/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  }
+]
