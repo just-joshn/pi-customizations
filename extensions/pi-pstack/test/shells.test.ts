@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -28,6 +29,14 @@ function groupAlive(pid: number): boolean {
     if ((error as NodeJS.ErrnoException).code === 'ESRCH') return false;
     throw error;
   }
+}
+
+function escapedDescendant(leaderPid: number): number | undefined {
+  try {
+    const pid = Number(execFileSync('pgrep', ['-f', 'POSIX::setsid']).toString().trim().split('\n')[0]);
+    if (!pid) return undefined;
+    return execFileSync('ps', ['-o', 'pgid=', '-p', String(pid)]).toString().trim() === String(leaderPid) ? undefined : pid;
+  } catch { return undefined; }
 }
 
 function custom(session: AgentSession, type: string) {
@@ -204,6 +213,45 @@ shellTest('readLines delivers un-terminated tail and signal outcome on kill', as
   const exitMsg = custom(session, 'pstack-shell-exit')[0] as { details: ShellRecord };
   expect(exitMsg.details.status).toEqual({ kind: 'exited', code: null, signal: 'SIGTERM' });
   expect(await readFile(shell.outputFile, 'utf8')).toBe('trailing-part');
+});
+
+test('a descendant that escaped the process group does not block the stop', async () => {
+  const { ShellRuntime } = await import('../src/shell-runtime.ts');
+  const runtime = new ShellRuntime({ sendMessage: () => {}, on: () => {} } as any);
+  const cwd = await mkdtemp(join(tmpdir(), 'pstack-shell-cwd-'));
+  const ctx = { cwd, sessionManager: { getSessionFile: () => null }, isIdle: () => true } as any;
+  const record = await runtime.start({ command: `perl -MPOSIX -e 'POSIX::setsid(); sleep 300' & sleep 0.3`, title: 'escape' }, ctx);
+  try {
+    await vi.waitFor(() => {
+      if (escapedDescendant(record.pid) === undefined) throw new Error('the descendant has not left the process group yet');
+    }, { timeout: 5000, interval: 50 });
+    expect((await runtime.stop(record.id)).status).toEqual({ kind: 'stopped' });
+  } finally {
+    try { execFileSync('pkill', ['-f', 'POSIX::setsid']); } catch { /* the escaped descendant may already be gone */ }
+    await rm(dirname(record.outputFile), { recursive: true, force: true });
+    await rm(cwd, { recursive: true, force: true });
+  }
+}, 40000);
+
+test('a process group that refuses the signal does not fail the stop', async () => {
+  const { ShellRuntime } = await import('../src/shell-runtime.ts');
+  const runtime = new ShellRuntime({ sendMessage: () => {}, on: () => {} } as any);
+  const cwd = await mkdtemp(join(tmpdir(), 'pstack-shell-cwd-'));
+  const ctx = { cwd, sessionManager: { getSessionFile: () => null }, isIdle: () => true } as any;
+  const record = await runtime.start({ command: 'sleep 0.6', title: 'unsignallable' }, ctx);
+  const realKill = process.kill.bind(process);
+  const groupSignal = vi.spyOn(process, 'kill').mockImplementation((pid: number, signal?: string | number) => {
+    if (typeof pid === 'number' && pid < 0) throw Object.assign(new Error('kill EPERM'), { code: 'EPERM' });
+    return realKill(pid, signal as NodeJS.Signals);
+  });
+  try {
+    expect((await runtime.stop(record.id)).status).toEqual({ kind: 'stopped' });
+  } finally {
+    groupSignal.mockRestore();
+    await runtime.stopAll();
+    await rm(dirname(record.outputFile), { recursive: true, force: true });
+    await rm(cwd, { recursive: true, force: true });
+  }
 });
 
 test('ShellRuntime direct unit tests: fallback dir, unknown stop, and delivered', async () => {

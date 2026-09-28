@@ -43,7 +43,13 @@ async function outputDirectory(ctx: ExtensionContext): Promise<string> {
 
 function signalGroup(pid: number, signal: NodeJS.Signals): void {
   try { process.kill(-pid, signal); }
-  catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error; }
+  catch (error) {
+    // macOS answers EPERM when the only member left in the group is an unreaped zombie
+    // leader; a group holding a live member accepts the signal. Neither code can be a
+    // process this call could have reached, so there is nothing left to signal.
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code !== 'ESRCH' && code !== 'EPERM') throw error;
+  }
 }
 
 async function settlesWithin(promise: Promise<void>, ms: number): Promise<boolean> {
@@ -94,7 +100,10 @@ export class ShellRuntime {
       signalGroup(shell.record.pid, 'SIGTERM');
       if (!await settlesWithin(shell.exited, stopGraceMs)) signalGroup(shell.record.pid, 'SIGKILL');
     }
-    await shell.exited;
+    // A descendant that left the process group keeps the inherited pipes open, so Node
+    // never emits close and the exit watch never settles. The record already holds the
+    // outcome, so wait a bounded time for the exit instead of blocking the caller forever.
+    await settlesWithin(shell.exited, stopGraceMs);
     return this.shells.get(id)!.record;
   }
 

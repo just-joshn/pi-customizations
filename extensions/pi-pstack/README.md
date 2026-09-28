@@ -24,7 +24,7 @@ Start a task with `/poteto-mode your task`. The mode persists on that session br
 
 Workflow templates obtain the bundled skill path from the extension's host context. Enable the package extension when using these aliases. Native `/skill:name` invocation remains available when only skills are loaded. Templates do not recursively invoke `/skill:` commands or enforce the skill's instructions.
 
-Pi parses template arguments like a shell command line and joins them with spaces. Quote characters disappear, so `it's` arrives as `its`, and unquoted line breaks become spaces. Use `/skill:name` when the request must arrive exactly as typed.
+Pi parses template arguments with shell-like quoting and joins them with spaces. Quote characters are delimiters and are removed, so `it's` arrives as `its`. An unpaired quote swallows the rest of the line into the same argument, and unquoted line breaks become spaces. Use `/skill:name` when the request must arrive exactly as typed.
 
 The runtime uses current `@earendil-works` pi packages. Host dependencies are peers. SDK 0.87.1 is the development and verification target. Other versions have not been verified.
 
@@ -38,7 +38,7 @@ CLI and UI workflows use the project's existing terminal or browser tools. Bundl
 
 ## Loops
 
-`/loop [interval] <prompt>` runs a prompt on a fixed interval, on a self-paced heartbeat, or when a watched event fires. It ports the local half of Reference's synced loop skill. The skill text in `host/skills/loop` is written for Pi, not copied. `BackgroundShell` starts a shell and wakes the agent on each output line that matches `notify_on_output`. While one wake is queued, later matches from the same shell are counted, not queued, so a slow turn never builds a backlog. A match during a busy parent turn is delivered when that turn ends. `BackgroundShellStop` drops that held wake, and an aborted turn keeps it until a later turn ends. `BackgroundShellList` and `BackgroundShellStop` find and stop shells. Shells end when the session quits, reloads, or switches. Cloud timers are not supplied.
+`/loop [interval] <prompt>` runs a prompt on a fixed interval, on a self-paced heartbeat, or when a watched event fires. It ports the local half of Reference's synced loop skill. The skill text in `host/skills/loop` is written for Pi, not copied. `BackgroundShell` starts a shell and wakes the agent on each output line that matches `notify_on_output`. While one wake is queued, later matches from the same shell are counted, not queued, so a slow turn never builds a backlog. A match during a busy parent turn is delivered when that turn ends. `BackgroundShellStop` drops that held wake, and an aborted turn keeps it until a later turn ends. `BackgroundShellList` and `BackgroundShellStop` find and stop shells. Stopping signals the shell's process group and returns within a bounded wait even when a descendant escaped that group, and a descendant that calls `setsid` and inherits the pipes outlives the session. Shells end when the session quits, reloads, or switches. Cloud timers are not supplied.
 
 ## Local agents
 
@@ -72,7 +72,7 @@ Mode, todo, and task records follow the current session branch. Child transcript
 
 `upstream-team-kit/` contains all 29 files from the pinned team-kit plugin, with its license, manifest, agents, rules, and canvas assets. The original pstack snapshot remains unchanged.
 
-`skills/` contains 142 files and `prompts/` contains 63 templates generated from both snapshots. The generator normalizes two display names, removes unsupported Reference frontmatter, and maps model-rule, skill-authoring, and transcript paths to Pi locations. The generated worktree audit reads Pi session directories. It retains the workflow bodies and supporting resources, with `bro` moved to a prompt template. It rejects overlapping source destinations before writing. [The resource map](docs/resource-map.json) lists every generated file and transformation. It is a maintenance inventory, not a Pi manifest or API.
+`skills/` contains 142 files and `prompts/` contains 63 templates generated from both snapshots. The generator normalizes two display names, removes unsupported Reference frontmatter, and maps model-rule, skill-authoring, transcript, and repository paths to Pi locations. The generated worktree audit reads Pi session directories. It retains the workflow bodies and supporting resources, with `bro` moved to a prompt template. It rejects overlapping source destinations before writing. [The resource map](docs/resource-map.json) lists every generated file and transformation. It is a maintenance inventory, not a Pi manifest or API.
 
 Development verification requires Node/npm, uv, and Bun. From the repository root, `make verify` runs all maintained checks and the isolated helper suite. Use these commands inside this directory:
 
@@ -84,7 +84,10 @@ npm test
 npm run test:coverage
 npm run check:cli
 npm run check:upstream
+npm run check:journeys
 ```
+
+`npm run check:journeys` starts the real Pi CLI against the package with a deterministic local provider. It loads every skill and prompt template as a user would, drives the mode, status, todo, context, dialog, delegation, shell, setup, helper-script, and worktree journeys, and reports one line per check.
 
 `npm run generate` recreates the operational skills and prompts from the immutable snapshot. The checker rejects changed upstream hashes and generated resource drift. Do not edit generated resources directly.
 
