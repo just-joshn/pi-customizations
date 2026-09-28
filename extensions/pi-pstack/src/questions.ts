@@ -50,6 +50,8 @@ export function registerQuestions(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'AskQuestion', label: 'Ask question', executionMode: 'sequential',
     description: 'Ask the user a preference or required approval. No UI means no answer. Never infer consent from cancellation.',
+    promptSnippet: 'Ask the user a preference or approval question through Pi dialogs',
+    promptGuidelines: ['AskQuestion is available only with interactive or RPC dialogs. Cancellation is not approval.'],
     parameters: Type.Object({ questions: Type.Array(Question, { minItems: 1, maxItems: 4 }) }),
     async execute(_id, params, signal, _update, ctx) {
       validateQuestions(params.questions);

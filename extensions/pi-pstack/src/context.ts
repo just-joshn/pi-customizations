@@ -36,6 +36,8 @@ export function registerContext(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'pstack_context', label: 'Pstack context',
     description: 'Return current Pi transcript location, active branch entries, tools, available models, and optional history scoped to the current workspace. Use file pointers for delegation.',
+    promptSnippet: 'Report this session\'s transcript location, branch entries, tools, models, and workspace history',
+    promptGuidelines: ['Use pstack_context for this Pi session and workspace history.'],
     parameters: Type.Object({ history: Type.Optional(Type.Boolean()) }),
     async execute(_id, params, signal, _update, ctx) {
       const branch = ctx.sessionManager.getBranch();
