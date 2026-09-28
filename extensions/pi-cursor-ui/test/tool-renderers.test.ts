@@ -331,3 +331,66 @@ describe('cursor-ui tool renderers', () => {
     expect(plainLine(component, 80)).toBe('◇ Read src/server.ts');
   });
 });
+
+describe('cursor-ui tool row fidelity', () => {
+  const ESC = '\x1b';
+  const plainLines = (component: Component, width: number): string[] => renderLines(component, width).map((line) => strip(line).trimEnd());
+  const expanded = { expanded: true, isPartial: false };
+  const collapsed = { expanded: false, isPartial: false };
+  const body = (text: string) => ({ content: [{ type: 'text', text }], details: undefined });
+
+  test('write row counts the lines a file has', () => {
+    const cases: [string, string][] = [
+      ['x', '(1 line)'],
+      ['x\n', '(1 line)'],
+      ['a\nb', '(2 lines)'],
+      ['a\n\n', '(2 lines)'],
+      ['', '(0 lines)'],
+    ];
+    for (const [content, expected] of cases) {
+      expect(plainLine(renderWriteCall({ path: 'note.txt', content }, theme, rowContext()), 80)).toBe(`◇ Write note.txt ${expected}`);
+    }
+  });
+
+  test('expanded output drops trailing blank lines and carriage returns', () => {
+    expect(plainLines(renderBashResult(body('a\nb\n'), expanded, theme, rowContext()), 80)).toEqual(['a', 'b']);
+    expect(plainLines(renderBashResult(body('a\r\nb\r\n'), expanded, theme, rowContext()), 80)).toEqual(['a', 'b']);
+  });
+
+  test('expanded output cannot carry terminal control sequences', () => {
+    expect(plainLines(renderBashResult(body(`${ESC}[31mred${ESC}[0m`), expanded, theme, rowContext()), 80)).toEqual(['red']);
+    expect(plainLines(renderBashResult(body(`${ESC}[2Jx`), expanded, theme, rowContext()), 80)).toEqual(['x']);
+    expect(plainLines(renderBashResult(body('a\u0007b'), expanded, theme, rowContext()), 80)).toEqual(['ab']);
+    expect(plainLines(renderBashResult(body('a\tb'), expanded, theme, rowContext()), 80)).toEqual(['a   b']);
+    expect(renderLines(renderBashResult(body(`${ESC}[2Jx`), expanded, theme, rowContext()), 80).join('')).not.toContain(`${ESC}[2J`);
+  });
+
+  test('call rows and diffs carry no carriage returns or terminal escapes', () => {
+    const crlf = renderBashCall({ command: 'echo one\r\necho two' }, theme, rowContext());
+    expect(plainLines(crlf, 80)).toEqual(['◇ Bash echo one']);
+    expect(renderLines(crlf, 80).join('')).not.toContain('\r');
+
+    const bare = renderBashCall({ command: 'echo one\rsecond' }, theme, rowContext());
+    expect(plainLines(bare, 80)).toEqual(['◇ Bash echo onesecond']);
+
+    const clear = renderReadCall({ path: `notes${ESC}[2Jx.txt` }, theme, rowContext());
+    expect(plainLines(clear, 80)).toEqual(['◇ Read notesx.txt']);
+    expect(renderLines(clear, 80).join('')).not.toContain(`${ESC}[2J`);
+
+    const diff = renderEditResult({ content: [{ type: 'text', text: 'ok' }], details: { diff: '+one\r\n-two' } }, expanded, theme, rowContext());
+    expect(plainLines(diff, 80)).toEqual(['+one', '-two']);
+    expect(renderLines(diff, 80).join('')).not.toContain('\r');
+  });
+
+  test('a successful result whose text starts with Error stays a success', () => {
+    const text = 'Error: nothing bad\nsecond line';
+    expect(plainLines(renderBashResult(body(text), collapsed, theme, rowContext()), 80)).toEqual([]);
+    expect(plainLines(renderBashResult(body(text), expanded, theme, rowContext()), 80)).toEqual(['Error: nothing bad', 'second line']);
+  });
+
+  test('expanded errors show the whole body', () => {
+    const result = body('boom\nstack line\n');
+    expect(plainLines(renderBashResult(result, collapsed, theme, rowContext({ isError: true })), 80)).toEqual(['Error: boom']);
+    expect(plainLines(renderBashResult(result, expanded, theme, rowContext({ isError: true })), 80)).toEqual(['boom', 'stack line']);
+  });
+});

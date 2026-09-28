@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -243,6 +243,31 @@ describe('built-in execution equivalence', () => {
     const wrappedError = await errorOf(() => wrapped.execute('wrapped-fail', { command: 'exit 3' }, undefined, undefined, ctx));
     expect(wrappedError).toContain('Command exited with code 3');
     expect(wrappedError).toBe(originalError);
+  });
+
+  test('bash runs commands in the configured shell', async () => {
+    const home = await tempDir();
+    const shellLog = join(home, 'shell-invocations.log');
+    const fakeShell = join(home, 'fakesh');
+    await writeFile(fakeShell, `#!/bin/sh\necho invoked >> ${shellLog}\nexec /bin/bash "$@"\n`);
+    await chmod(fakeShell, 0o755);
+    await mkdir(join(home, '.pi', 'agent'), { recursive: true });
+    await writeFile(join(home, '.pi', 'agent', 'settings.json'), `${JSON.stringify({ shellPath: fakeShell, shellCommandPrefix: 'export CUI_PREFIX=SET && ' })}\n`);
+
+    const directory = await tempDir();
+    vi.stubEnv('HOME', home);
+    try {
+      const ctx = await makeContext(directory);
+      const result = await captured('bash').execute('settings-bash', { command: 'echo "CUI_PREFIX=[$CUI_PREFIX]"' }, undefined, undefined, ctx);
+      const text = result.content
+        .filter((part) => part.type === 'text')
+        .map((part) => part.text)
+        .join('\n');
+      expect(text).toContain('CUI_PREFIX=[SET]');
+      expect((await readFile(shellLog, 'utf8')).trim().split('\n')).toHaveLength(1);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   test('edit execution matches the built-in', async () => {
