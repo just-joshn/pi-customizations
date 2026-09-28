@@ -24,7 +24,8 @@ const SUITES = ['pstack', 'anthropic', 'antigravity', 'tui-parity', 'one-dark-pr
 // Only three of the five suites run a coverage gate under `make verify`.
 const COVERED = ['pstack', 'tui-parity', 'one-dark-pro'];
 
-const summaryPattern = /Statements\s+:\s+([\d.]+)%\s+\(\s*(\d+)\/(\d+)\s*\)[\s\S]{0,140}?Branches\s+:\s+([\d.]+)%\s+\(\s*(\d+)\/(\d+)\s*\)[\s\S]{0,140}?Functions\s+:\s+([\d.]+)%\s+\(\s*(\d+)\/(\d+)\s*\)[\s\S]{0,140}?Lines\s+:\s+([\d.]+)%\s+\(\s*(\d+)\/(\d+)\s*\)/g;
+const summaryPattern =
+  /Statements\s+:\s+([\d.]+)%\s+\(\s*(\d+)\/(\d+)\s*\)[\s\S]{0,140}?Branches\s+:\s+([\d.]+)%\s+\(\s*(\d+)\/(\d+)\s*\)[\s\S]{0,140}?Functions\s+:\s+([\d.]+)%\s+\(\s*(\d+)\/(\d+)\s*\)[\s\S]{0,140}?Lines\s+:\s+([\d.]+)%\s+\(\s*(\d+)\/(\d+)\s*\)/g;
 const suiteCoverage = all(summaryPattern);
 if (suiteCoverage.length !== COVERED.length) {
   throw new Error(`expected ${COVERED.length} coverage summaries, found ${suiteCoverage.length}`);
@@ -36,10 +37,10 @@ if (suiteTests.length !== SUITES.length) {
   throw new Error(`expected ${SUITES.length} test summaries, found ${suiteTests.length}`);
 }
 
-const pythonRuns = all(/Ran (\d+) tests? in/g).map(match => Number(match[1]));
+const pythonRuns = all(/Ran (\d+) tests? in/g).map((match) => Number(match[1]));
 if (pythonRuns.length !== 3) throw new Error(`expected 3 python runs, found ${pythonRuns.length}`);
 
-const coverageRow = (name, index) => {
+const coverageRow = (_name, index) => {
   const row = suiteCoverage[index];
   return {
     statements: Number(row[1]),

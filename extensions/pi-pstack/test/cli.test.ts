@@ -16,9 +16,7 @@ const run = (script: string, args: string[] = []) => execFileSync(process.execPa
 // and carries every other tracked file the manifest declares.
 const packerOmissions = ['upstream/.gitignore'];
 
-const pack = (directory: string) => basename(execFileSync('bun',
-  ['pm', 'pack', '--quiet', '--destination', directory],
-  { cwd: root, encoding: 'utf8', timeout: archiveDeadlineMs }).trim());
+const pack = (directory: string) => basename(execFileSync('bun', ['pm', 'pack', '--quiet', '--destination', directory], { cwd: root, encoding: 'utf8', timeout: archiveDeadlineMs }).trim());
 
 const packedPaths = (directory: string, archive: string) =>
   new Set(
