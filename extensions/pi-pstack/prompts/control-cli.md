@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled control-cli workflow."
+argument-hint: "[task]"
 ---
 
 Read control-cli/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

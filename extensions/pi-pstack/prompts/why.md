@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled why workflow."
+argument-hint: "[task]"
 ---
 
 Read why/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

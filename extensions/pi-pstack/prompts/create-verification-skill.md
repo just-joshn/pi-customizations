@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled create-verification-skill workflow."
+argument-hint: "[task]"
 ---
 
 Read create-verification-skill/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

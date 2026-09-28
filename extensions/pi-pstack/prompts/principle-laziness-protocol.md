@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-laziness-protocol workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-laziness-protocol/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

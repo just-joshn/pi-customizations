@@ -34,7 +34,7 @@ Record implementation mode, target repository, reference executable, reference v
 
 ## 2. Import reverse-engineering evidence
 
-Start from `reverse-engineer-cli` outputs under `.re/` (behavior, architecture, evidence, command tree, probes, repro). Older trees may use `re/REPORT.md` and numbered folders. If the contract is missing, run `/skill:reverse-engineer-cli` first.
+Start from `reverse-engineer-cli` outputs under `.re/` (behavior, architecture, evidence, command tree, probes, repro). Older trees may use `re/REPORT.md` and numbered folders. If the contract is missing, stop and ask the user to run `/skill:reverse-engineer-cli <target>` first. Only the user can invoke that explicit-only skill.
 
 Expect command tree, arguments, options, defaults, environment, configuration precedence, stdout, stderr, exit codes, filesystem, network, child processes, TTY, signals, errors, edge cases, traces, source locations, versions, and hypotheses.
 

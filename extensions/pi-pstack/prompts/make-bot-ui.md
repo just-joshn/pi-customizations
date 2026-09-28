@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled make-bot-ui workflow."
+argument-hint: "[task]"
 ---
 
 Read make-bot-ui/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

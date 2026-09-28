@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-encode-lessons-in-structure workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-encode-lessons-in-structure/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

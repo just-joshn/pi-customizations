@@ -1,6 +1,5 @@
 import { createProvider, type StreamOptions } from "@earendil-works/pi-ai";
-import { anthropicMessagesApi } from "@earendil-works/pi-ai/api/anthropic-messages.lazy";
-import { anthropicProvider } from "@earendil-works/pi-ai/providers/anthropic";
+import { builtinProviders } from "@earendil-works/pi-ai/providers/all";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const PROVIDER_ID = "claude-subscription";
@@ -27,19 +26,20 @@ function withClaudeCodeBilling<T extends StreamOptions>(options: T | undefined):
 }
 
 export default function (pi: ExtensionAPI) {
-	const anthropic = anthropicProvider();
-	const messages = anthropicMessagesApi();
+	const anthropic = builtinProviders().find((provider) => provider.id === "anthropic");
+	const oauth = anthropic?.auth.oauth;
+	if (!anthropic || !oauth) throw new Error("Pi's built-in anthropic provider with Claude Pro/Max OAuth is not available.");
 	pi.registerProvider(
 		createProvider({
 			id: PROVIDER_ID,
 			name: "Claude subscription",
 			baseUrl: anthropic.baseUrl,
-			auth: { oauth: { ...anthropic.auth.oauth!, name: "Claude subscription (Claude Code)" } },
+			auth: { oauth: { ...oauth, name: "Claude subscription (Claude Code)" } },
 			models: anthropic.getModels().map((model) => ({ ...model, provider: PROVIDER_ID })),
 			api: {
-				stream: (model, context, options) => messages.stream(model, context, withClaudeCodeBilling(options)),
+				stream: (model, context, options) => anthropic.stream(model, context, withClaudeCodeBilling(options)),
 				streamSimple: (model, context, options) =>
-					messages.streamSimple(model, context, withClaudeCodeBilling(options)),
+					anthropic.streamSimple(model, context, withClaudeCodeBilling(options)),
 			},
 		}),
 	);

@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled weekly-review workflow."
+argument-hint: "[task]"
 ---
 
 Read weekly-review/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

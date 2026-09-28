@@ -12,10 +12,18 @@
   "files": ["src", "README.md"],
   "scripts": {
     "test": "node --experimental-strip-types --test test/*.test.ts",
-    "typecheck": "npx -y -p typescript tsc -p ."
+    "typecheck": "tsc -p .",
+    "vendor": "node scripts/vendor-pi-ai.mjs",
+    "check:vendor": "node scripts/vendor-pi-ai.mjs --check"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
     "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "0.87.1",
+    "@earendil-works/pi-coding-agent": "0.87.1",
+    "@types/node": "^22.19.0",
+    "typescript": "^5.9.3"
   }
 }

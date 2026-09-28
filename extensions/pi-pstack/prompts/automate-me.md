@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled automate-me workflow."
+argument-hint: "[task]"
 ---
 
 Read automate-me/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

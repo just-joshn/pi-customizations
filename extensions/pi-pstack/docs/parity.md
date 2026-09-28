@@ -46,7 +46,7 @@ The runtime tells the model to retain source gates and identify missing dependen
 
 ## Mechanism migration
 
-All 65 original workflow names remain callable. The 63 text-only aliases now use Pi prompt templates, and the three runtime commands remain extension registrations. There are 66 short commands including `/pstack` status. The original instructions and all 23 playbooks remain available. No tool, persona, model role, or branch-state capability was removed by that migration. The comprehensive audit later corrected plugin rule delivery and CI watcher model inheritance against the supplied runtime observations.
+All 65 original workflow names remain callable. The 63 text-only aliases now use Pi prompt templates, and the three runtime commands remain extension registrations. There are 67 short commands, including `/pstack` status and the later `/loop` template. The original instructions and all 23 playbooks remain available. No tool, persona, model role, or branch-state capability was removed by that migration. The comprehensive audit later corrected plugin rule delivery and CI watcher model inheritance against the supplied runtime observations.
 
 Prompt aliases ask the model to read the full skill instead of injecting it from an extension command. Native `/skill:name` still expands it directly. This introduces a model-mediated read for aliases, so deterministic tests prove availability and the real read path, not universal model compliance. `/skill:bro` is intentionally removed; `/bro` preserves its complete prompt. Workflow templates need the extension's host context to locate bundled skills. `/bro` and native skills do not need that alias context.
 
@@ -58,7 +58,7 @@ The team-kit increment closes three named skill-distribution dependencies. Its r
 
 The test suite exercises the actual pi resource loader and SDK with a deterministic provider. It does not contact paid model providers or deploy external automations. Source helper test results and final verification counts are recorded in `verification.md`.
 
-The generated worktree audit searches the Pi session directories of the main worktree and of each worktree, including `pstack-workers`. It uses Perl for file dates, so GNU or uutils coreutils on PATH do not blank the LAST_CHAT column. It cannot see sessions stored under a custom `--session-dir`. The source `orch` CLI maintains an orchestration store; it does not itself provide the missing cloud scheduler.
+The generated worktree audit searches the Pi session directories of the main worktree and of each worktree, including `pstack-workers`. It uses Perl for file dates, so GNU or uutils coreutils on PATH do not blank the LAST_CHAT column. It cannot see sessions moved by the `sessionDir` setting, `PI_CODING_AGENT_SESSION_DIR`, or `--session-dir`. The source `orch` CLI maintains an orchestration store; it does not itself provide the missing cloud scheduler.
 
 ## Reference behavior audit
 

@@ -121,6 +121,16 @@ test('host contract names the workspace session directory the transcript skills 
   assert.ok(host.includes('Task child transcripts: /agent/sessions/--w--/pstack-workers/<parent-session-id>.'));
 });
 
+test('host contract maps upstream Cursor facilities and tool names to Pi', async () => {
+  const { hostInstructions } = await import('../src/host.ts');
+  const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
+  const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '');
+  for (const text of ['A Cursor rule becomes an AGENTS.md context file', 'guidance that must apply on every turn belongs in a context file', "where a workflow calls for Cursor's create-skill", 'classify the tools that pstack_context returns', 'Glob is find', 'appears in the transcript as a <skill name="..."> block']) {
+    assert.ok(host.includes(text), text);
+  }
+  assert.match(host, /Pi's format from \/.+\/docs\/skills\.md/);
+});
+
 test('local /loop ships as a Pi skill and template that the host contract names', async () => {
   const skill = await read('host/skills/loop/SKILL.md');
   assert.match(skill, /^---\nname: loop\ndescription: .+\ndisable-model-invocation: true\n---\n/);

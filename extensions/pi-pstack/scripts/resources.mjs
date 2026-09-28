@@ -50,16 +50,18 @@ const skillDirectories = 'Map user and project skill directories to Pi discovery
 const transcripts = 'Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.';
 const portableDates = 'Replace BSD-only stat and date calls with Perl so transcript dates survive GNU or uutils coreutils on PATH.';
 const hostPaths = [
+  [markdownFiles, 'Look recursively for `.cursor/skills/**/*-mode/SKILL.md` and `~/.cursor/skills/*-mode/SKILL.md`',
+    'Look recursively for `.pi/skills/**/*-mode/SKILL.md`, `.agents/skills/**/*-mode/SKILL.md`, `<agent-dir>/skills/*-mode/SKILL.md` (`~/.pi/agent/skills` by default), and `~/.agents/skills/*-mode/SKILL.md`', skillDirectories],
   [markdownFiles, '~/.cursor/rules/pstack-models.mdc', '~/.pi/agent/pstack/models.mdc', modelRule],
   [markdownFiles, '~/.cursor/skills', '~/.pi/agent/skills', skillDirectories],
   [markdownFiles, '.cursor/skills', '.pi/skills', skillDirectories],
   [markdownFiles, 'or plugin-installed paths under `~/.cursor/plugins/`', 'or Pi package skill paths such as the bundled pstack skills directory named by the host contract', skillDirectories],
   [markdownFiles, 'Transcripts live at `~/.cursor/projects/<slug>/agent-transcripts/<uuid>/<uuid>.jsonl`, where `<slug>` is the workspace path with the leading slash dropped and each "/" turned into "-" (so `/Users/you/proj` becomes `Users-you-proj`). Every line is one chat message.',
-    'Transcripts live at `~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`, with Task subagent transcripts under `<slug>/pstack-workers/<parent-uuid>/`. `<slug>` is the workspace path with the leading slash dropped, each "/" turned into "-", and `--` added at both ends (so `/Users/you/proj` becomes `--Users-you-proj--`). Every line is one session entry.', transcripts],
+    'Transcripts live in the workspace Pi session directory that the pstack host contract names. Read that path. Pi\'s `sessionDir` setting, `PI_CODING_AGENT_SESSION_DIR`, and `--session-dir` can move it. By default transcripts live at `~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`, with Task subagent transcripts under `<slug>/pstack-workers/<parent-uuid>/`. `<slug>` is the workspace path with the leading slash dropped, each "/", "\\", and ":" turned into "-", and `--` added at both ends (so `/Users/you/proj` becomes `--Users-you-proj--`). Every line is one session entry.', transcripts],
   [markdownFiles, 'ls -t <agent-transcripts>/*.jsonl <agent-transcripts>/*/*.jsonl <agent-transcripts>/*/subagents/*.jsonl', 'ls -t <session-dir>/*.jsonl <session-dir>/pstack-workers/*/*.jsonl', transcripts],
   [markdownFiles, 'Three transcript layouts: legacy flat (`<id>.jsonl`), current nested (`<id>/<id>.jsonl`), and subagent (`<parent>/subagents/<child>.jsonl`).',
     'Two transcript layouts: session (`<timestamp>_<id>.jsonl`) and Task subagent (`pstack-workers/<parent>/<timestamp>_<child>.jsonl`).', transcripts],
-  [markdownFiles, 'read the first JSONL line and check that `message.content[0].text`', 'read the first JSONL line whose `message.role` is `user` and check that its `message.content[0].text`', transcripts],
+  [markdownFiles, 'read the first JSONL line and check that `message.content[0].text`', 'read the first JSONL line whose `message.role` is `user` and check that its `message.content` (a string, or the `text` of its first text block)', transcripts],
   [markdownFiles, '`agent-transcripts/` directory', 'Pi session directory', transcripts],
   [markdownFiles, 'under `agent-transcripts/`', 'under the Pi session directory', transcripts],
   [markdownFiles, '`~/.cursor/projects/*/`', '`~/.pi/agent/sessions/*/`', transcripts],
@@ -88,10 +90,19 @@ function markdown(entry) {
     const updated = text.replace(/^name: .+$/m, `name: ${slug}`);
     if (text !== updated) transformations = [...transformations, 'Normalize skill name to its directory slug for Pi discovery.'];
     text = updated;
+    const pathTriggered = /^---\r?\n[\s\S]*?^paths:/m.test(text);
     const portable = text.replace(/^(---\r?\n)([\s\S]*?)(\r?\n---)/, (_match, start, frontmatter, end) =>
       start + frontmatter.replace(/^(?:mode|icon|color|reminder|paths):[^\n]*(?:\n|$)/gm, '') + end);
     if (text !== portable) transformations = [...transformations, 'Remove Cursor-only frontmatter; Pi runtime behavior belongs to the extension.'];
     text = portable;
+    if (pathTriggered) {
+      text = text.replace(/^disable-model-invocation: true\r?\n/m, '');
+      transformations = [...transformations, 'Pi has no file-path skill trigger, so let the description route the skill instead of hiding it.'];
+    }
+    if (slug === 'setup-pstack') {
+      text = text.replace(/^(---\r?\n[\s\S]*?)(\r?\n---)/, '$1\ndisable-model-invocation: true$2');
+      transformations = [...transformations, 'Hide the skill from automatic selection; the extension\'s /setup-pstack and /skill:setup-pstack handlers own the validated dialogs.'];
+    }
   }
   const mapped = mapHostPaths(entry, text);
   return { generated: Buffer.from(mapped.text), transformations: [...transformations, ...mapped.transformations] };
@@ -115,7 +126,7 @@ function promptOutput(entry, generated) {
   ].join('\n');
   return [{
     source: entry.source, destination: `prompts/${slug}.md`,
-    generated: Buffer.from(`---\ndescription: ${JSON.stringify(slug === 'bro' ? 'Restate the last message in plain human language, with no jargon.' : `Invoke the bundled ${slug} workflow.`)}\n---\n\n${prompt}\n\n$ARGUMENTS\n`),
+    generated: Buffer.from(`---\ndescription: ${JSON.stringify(slug === 'bro' ? 'Restate the last message in plain human language, with no jargon.' : `Invoke the bundled ${slug} workflow.`)}\nargument-hint: ${JSON.stringify(slug === 'bro' ? '[focus]' : '[task]')}\n---\n\n${prompt}\n\n$ARGUMENTS\n`),
     mode: 0o644, executable: false,
     transformations: [slug === 'bro' ? 'Classify reusable restatement text as a Pi prompt template.' : 'Expose the skill entry point as a native Pi prompt template with user arguments.'],
   }];

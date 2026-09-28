@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-test-behavior-not-implementation workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-test-behavior-not-implementation/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

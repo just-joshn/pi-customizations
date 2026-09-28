@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-model-the-domain workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-model-the-domain/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

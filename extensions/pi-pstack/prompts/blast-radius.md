@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled blast-radius workflow."
+argument-hint: "[task]"
 ---
 
 Read blast-radius/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

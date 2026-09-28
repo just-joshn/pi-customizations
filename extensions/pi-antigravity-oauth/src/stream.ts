@@ -2,7 +2,11 @@ import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import {
 	calculateCost,
+	collapseSystemMessages,
 	createAssistantMessageEventStream,
+	getCurrentTools,
+	getInitialSystemMessage,
+	getSystemMessageText,
 	type AssistantMessageEventStream,
 	clampThinkingLevel,
 	type Api,
@@ -19,6 +23,8 @@ import {
 	type TranscriptContext,
 	type Usage,
 } from "@earendil-works/pi-ai";
+import { cloudCodeHeaders, openStream, parseApiKey } from "./cloudcode.ts";
+import { FAMILY, familyOf } from "./models.ts";
 import {
 	convertMessages,
 	convertTools,
@@ -28,13 +34,9 @@ import {
 	resolveGoogleThinkingLevel,
 	retainThoughtSignature,
 	toGoogleThinkingLevel,
-} from "@earendil-works/pi-ai/api/google-shared";
-import { adjustMaxTokensForThinking, buildBaseOptions } from "@earendil-works/pi-ai/api/simple-options";
-import { sanitizeSurrogates } from "@earendil-works/pi-ai/utils/sanitize-unicode";
-import { getSystemMessageText } from "@earendil-works/pi-ai/utils/text";
-import { collapseSystemMessages, getCurrentTools, getInitialSystemMessage } from "@earendil-works/pi-ai/utils/transcript";
-import { cloudCodeHeaders, openStream, parseApiKey } from "./cloudcode.ts";
-import { FAMILY, familyOf } from "./models.ts";
+} from "./pi-ai/google-shared.ts";
+import { sanitizeSurrogates } from "./pi-ai/sanitize-unicode.ts";
+import { adjustMaxTokensForThinking, buildBaseOptions } from "./pi-ai/simple-options.ts";
 
 // google-shared is typed for the Gemini and Vertex APIs. It reads only the id,
 // provider, api, input, and thinkingLevelMap fields, which Cloud Code models share.
@@ -347,7 +349,7 @@ async function run(
 			await delay(EMPTY_STREAM_BASE_DELAY_MS * 2 ** empty, undefined, { signal: options?.signal });
 		}
 		if (options?.signal?.aborted) throw new Error("Request was aborted");
-		if (output.stopReason === "pending") output.stopReason = "stop";
+		if (output.stopReason === "pending") throw new Error("Cloud Code Assist stream ended without a finish reason");
 		if (output.stopReason === "error" || output.stopReason === "aborted") {
 			throw new Error(`Provider stopped with: ${output.rawStopReason ?? "an unknown reason"}`);
 		}

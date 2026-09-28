@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled reflect workflow."
+argument-hint: "[task]"
 ---
 
 Read reflect/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

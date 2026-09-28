@@ -1,5 +1,6 @@
 ---
 description: "Invoke the bundled principle-experience-first workflow."
+argument-hint: "[task]"
 ---
 
 Read principle-experience-first/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.

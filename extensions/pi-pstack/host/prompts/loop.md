@@ -1,5 +1,6 @@
 ---
 description: "Run a prompt on a recurring, self-paced, or event-driven wake in this Pi session."
+argument-hint: "[interval] <prompt>"
 ---
 
 Read loop/SKILL.md in full under the pstack host skills directory identified by the pstack host contract.
