@@ -44,9 +44,12 @@ describe('todos tool', () => {
     registerTodosTool({ registerTool: (def: { name: string; execute: (id: string, params: unknown) => Promise<{ content: { type: string; text: string }[]; details: unknown }> }) => defs.set(def.name, def) } as unknown as ExtensionAPI);
     const todo = defs.get('todo_update');
     if (!todo) throw new Error('todo_update tool not registered');
+    expect((todo as unknown as { outputSchema?: unknown }).outputSchema).toBeDefined();
+    expect((todo as unknown as { annotations?: unknown }).annotations).toEqual({ idempotentHint: true, openWorldHint: false, destructiveHint: false });
     const out = await todo.execute('t1', { todos: [{ id: '1', content: 'x', status: 'pending' }] });
     expect(out.content[0].text).toBe('Updated 1 to-do(s); 0 completed.');
     expect(out.details).toEqual({ todos: [{ id: '1', content: 'x', status: 'pending' }] });
+    expect((out as unknown as { structuredContent?: unknown }).structuredContent).toEqual({ todos: [{ id: '1', content: 'x', status: 'pending' }] });
     const empty = await todo.execute('t2', { todos: [] });
     expect(empty.content[0].text).toBe('Updated 0 to-do(s); 0 completed.');
     expect(empty.details).toEqual({ todos: [] });
