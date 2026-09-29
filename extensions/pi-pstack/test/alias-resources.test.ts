@@ -99,3 +99,23 @@ test('a template loaded without the package extension keeps native argument pars
     await f.close();
   }
 });
+
+test('extension messages keep literal delivery and opt-in native grouping', async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    await session.sendUserMessage('/unslop literal "quotes" and apostrophe\'s');
+    expect(userRequestText(f.requests)).toBe('/unslop literal "quotes" and apostrophe\'s');
+    await session.sendUserMessage('/skill:poteto-mode off');
+    expect(userRequestText(f.requests)).toBe('/skill:poteto-mode off');
+    await session.sendUserMessage('/skill:setup-pstack');
+    expect(userRequestText(f.requests)).toBe('/skill:setup-pstack');
+    await session.sendUserMessage('/unslop "hello world"', { expandPromptTemplates: true });
+    expect(userRequestText(f.requests).endsWith('hello world')).toBe(true);
+    expect(userRequestText(f.requests).endsWith('"hello world"')).toBe(false);
+    await prompt(session, '/unslop "hello world"');
+    expect(userRequestText(f.requests).endsWith('"hello world"')).toBe(true);
+  } finally {
+    await f.close();
+  }
+});
