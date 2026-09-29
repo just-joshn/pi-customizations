@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 
-import type { Usage } from '@earendil-works/pi-ai';
+import type { JsonValue, Usage } from '@earendil-works/pi-ai';
 import type { AgentSession, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from './deferred-wakes.ts';
 import { workerControl } from './worker-control.ts';
@@ -258,7 +258,13 @@ export class WorkerRuntime {
     this.completions.drop(record.id);
     const usage = this.claimUsage(record);
     const current = this.records.get(record.id) ?? record;
-    return { content: [{ type: 'text' as const, text: taskSummary(current) }], details: structuredClone(current), usage: usage ? structuredClone(usage) : undefined };
+    return {
+      content: [{ type: 'text' as const, text: taskSummary(current) }],
+      details: structuredClone(current),
+      structuredContent: structuredClone(current) as unknown as JsonValue,
+      isError: current.status === 'failed',
+      usage: usage ? structuredClone(usage) : undefined,
+    };
   }
 
   async output(id: string, block: boolean | undefined, signal: AbortSignal | undefined) {
@@ -298,6 +304,7 @@ export class WorkerRuntime {
     if (!worker || this.records.get(id)?.status !== 'running') throw new Error('Task is not running. Use Task with resume.');
     if (mode === 'steer') await worker.session.steer(message);
     else await worker.session.followUp(message);
-    return { content: [{ type: 'text' as const, text: `Message queued for ${id}` }], details: { task_id: id } };
+    const details = { task_id: id };
+    return { content: [{ type: 'text' as const, text: `Message queued for ${id}` }], details, structuredContent: details as unknown as JsonValue };
   }
 }
