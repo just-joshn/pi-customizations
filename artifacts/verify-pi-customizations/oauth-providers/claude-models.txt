@@ -14,3 +14,4 @@ claude-subscription  claude-sonnet-4-5           1M       64K      yes       yes
 claude-subscription  claude-sonnet-4-5-20250929  1M       64K      yes       yes   
 claude-subscription  claude-sonnet-4-6           1M       128K     yes       yes   
 claude-subscription  claude-sonnet-5             1M       128K     yes       yes   
+claude-subscription  claude-sonnet-5-5           1M       128K     yes       yes   
