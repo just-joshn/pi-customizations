@@ -1,6 +1,6 @@
 # Parity report: pi-tui-parity
 
-Pi package `extensions/pi-tui-parity` (pi 0.87.1) recreating the TUI of
+Pi package `extensions/pi-tui-parity` (pi 0.99.1) recreating the TUI of
 the reference agent CLI studied in the repository audit trail
 (`.audit/pi-tui-parity`).
 
