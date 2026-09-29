@@ -39,6 +39,17 @@ function entryEvidence(entry: SessionEntry) {
   return { id: entry.id, parentId: entry.parentId, type: entry.type, timestamp: entry.timestamp, role: message?.role, toolName: message?.role === 'toolResult' ? message.toolName : undefined, summary: text?.slice(0, summaryCharacters) };
 }
 
+const ContextOutput = Type.Object({
+  cwd: Type.String(),
+  sessionFile: Type.Union([Type.String(), Type.Null()]),
+  entries: Type.Array(Type.Any()),
+  tools: Type.Array(Type.Object({ name: Type.String(), description: Type.String() })),
+  models: Type.Array(Type.String()),
+  history: Type.Array(Type.Object({ id: Type.String(), path: Type.String(), name: Type.Optional(Type.String()) })),
+  omitted: Type.Object({ entries: Type.Number(), tools: Type.Number(), models: Type.Number(), history: Type.Number() }),
+  historyDiscovery: Type.Object({ mode: Type.String(), completeness: Type.String() }),
+});
+
 export function registerContext(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'pstack_context',
@@ -47,6 +58,9 @@ export function registerContext(pi: ExtensionAPI): void {
     promptSnippet: "Report this session's transcript location, branch entries, tools, models, and workspace history",
     promptGuidelines: ['Use pstack_context for this Pi session and workspace history.'],
     parameters: Type.Object({ history: Type.Optional(Type.Boolean()) }),
+    outputSchema: ContextOutput,
+    exposure: 'direct',
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
     async execute(_id, params, signal, _update, ctx) {
       const branch = ctx.sessionManager.getBranch();
       const entries = boundedList(branch.toReversed().map(entryEvidence));

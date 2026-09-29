@@ -14,6 +14,13 @@ type Answer = { id: string; answers: string[]; cancelled: boolean };
 const freeText = 'Enter a text answer';
 const done = 'Done selecting';
 
+const AnswerSchema = Type.Object({
+  id: Type.String(),
+  answers: Type.Array(Type.String()),
+  cancelled: Type.Boolean(),
+});
+const AnswersOutput = Type.Array(AnswerSchema);
+
 function validateQuestions(questions: Question[]): void {
   if (new Set(questions.map((question) => question.id)).size !== questions.length) {
     throw new Error('Question IDs must be unique.');
@@ -60,6 +67,9 @@ export function registerQuestions(pi: ExtensionAPI): void {
     promptSnippet: 'Ask the user a preference or approval question through Pi dialogs',
     promptGuidelines: ['AskQuestion works in interactive and RPC sessions; in print mode it errors, so ask in conversation instead. Cancellation is not approval.'],
     parameters: Type.Object({ questions: Type.Array(Question, { minItems: 1, maxItems: 4 }) }),
+    outputSchema: AnswersOutput,
+    exposure: 'model-only',
+    annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     async execute(_id, params, signal, _update, ctx) {
       validateQuestions(params.questions);
       if (!ctx.hasUI) throw new Error('AskQuestion requires Pi TUI or an RPC client supporting extension dialogs. Ask in the conversation and wait for a user reply.');

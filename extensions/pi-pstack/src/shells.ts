@@ -1,15 +1,35 @@
+import type { JsonValue } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { type ShellRecord, ShellRuntime } from './shell-runtime.ts';
 
+const ShellStatusSchema = Type.Union([
+  Type.Object({ kind: Type.Literal('running') }),
+  Type.Object({ kind: Type.Literal('exited'), code: Type.Union([Type.Number(), Type.Null()]), signal: Type.Union([Type.String(), Type.Null()]) }),
+  Type.Object({ kind: Type.Literal('stopped') }),
+]);
+
+const ShellRecordSchema = Type.Object({
+  id: Type.String(),
+  title: Type.String(),
+  command: Type.String(),
+  pid: Type.Number(),
+  cwd: Type.String(),
+  outputFile: Type.String(),
+  pattern: Type.Optional(Type.String()),
+  startedAt: Type.String(),
+  status: ShellStatusSchema,
+  matches: Type.Number(),
+});
+
 function started(record: ShellRecord) {
   const pattern = record.pattern === undefined ? 'none; wakes only on exit' : record.pattern;
   const text = `Started background shell ${record.id} (pid ${record.pid}).\nOutput file: ${record.outputFile}\nPattern: ${pattern}`;
-  return { content: [{ type: 'text' as const, text }], details: record };
+  return { content: [{ type: 'text' as const, text }], details: record, structuredContent: record as unknown as JsonValue };
 }
 
 function json<T>(details: T) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(details, null, 2) }], details };
+  return { content: [{ type: 'text' as const, text: JSON.stringify(details, null, 2) }], details, structuredContent: details as unknown as JsonValue };
 }
 
 export function registerShells(pi: ExtensionAPI): void {
@@ -28,6 +48,9 @@ export function registerShells(pi: ExtensionAPI): void {
     promptSnippet: 'Run a bash command in the background and wake on matching output lines',
     promptGuidelines: ['BackgroundShell with notify_on_output wakes you on each matching output line; BackgroundShellList and BackgroundShellStop manage those shells, which end with this session.'],
     parameters: Type.Object({ command: Type.String(), title: Type.String(), notify_on_output: Type.Optional(Type.String()) }),
+    outputSchema: ShellRecordSchema,
+    exposure: 'direct',
+    annotations: { openWorldHint: true },
     executionMode: 'parallel',
     execute: async (_id, params, _signal, _update, ctx) => started(await runtime.start(params, ctx)),
   });
@@ -37,6 +60,9 @@ export function registerShells(pi: ExtensionAPI): void {
     description: "List this session's background shells, newest first.",
     promptSnippet: "List this session's background shells",
     parameters: Type.Object({}),
+    outputSchema: Type.Array(ShellRecordSchema),
+    exposure: 'direct',
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
     executionMode: 'parallel',
     execute: async () => json(runtime.list()),
   });
@@ -46,6 +72,9 @@ export function registerShells(pi: ExtensionAPI): void {
     description: 'Stop a background shell and its process group. Stopped shells send no exit message. A match wake held for the current turn is dropped.',
     promptSnippet: 'Stop a background shell and its process group',
     parameters: Type.Object({ id: Type.String() }),
+    outputSchema: ShellRecordSchema,
+    exposure: 'direct',
+    annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: false },
     executionMode: 'parallel',
     execute: async (_id, params) => json(await runtime.stop(params.id)),
   });
