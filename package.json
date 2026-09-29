@@ -25,7 +25,7 @@
     "check:tests": "node extensions/scripts/check-vitest-conventions.selftest.mjs && node extensions/scripts/check-vitest-conventions.mjs",
     "check:toolchain": "node scripts/check-bun-toolchain.selftest.mjs && node scripts/check-bun-toolchain.mjs",
     "test:coverage": "bun run --sequential --filter pi-pstack --filter pi-tui-parity --filter pi-one-dark-pro-theme test:coverage",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "bun run --sequential --filter '*' typecheck",
     "check": "biome check .",
     "check:write": "biome check --write .",
     "ci": "biome ci . --error-on-warnings --max-diagnostics=none"
