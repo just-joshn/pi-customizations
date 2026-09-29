@@ -287,24 +287,24 @@ export function analyzeSource(text, path) {
   return found;
 }
 
-export async function testFiles(base = root) {
+async function collectTestFiles(directory) {
   const files = [];
-  for (const entry of await readdir(base, { withFileTypes: true })) {
-    if (!entry.isDirectory() || skipDirectories.has(entry.name)) continue;
-    const pending = [join(base, entry.name)];
-    while (pending.length) {
-      const directory = pending.pop();
-      for (const child of await readdir(directory, { withFileTypes: true })) {
-        const path = join(directory, child.name);
-        if (child.isDirectory()) {
-          if (!skipDirectories.has(child.name)) pending.push(path);
-        } else if (child.name.endsWith('.test.ts')) {
-          const text = await readFile(path, 'utf8');
-          if (/from\s+['"]vitest['"]/.test(text)) files.push({ path, text });
-        }
-      }
+  for (const child of await readdir(directory, { withFileTypes: true })) {
+    const path = join(directory, child.name);
+    if (child.isDirectory()) {
+      if (!skipDirectories.has(child.name)) files.push(...(await collectTestFiles(path)));
+    } else if (child.name.endsWith('.test.ts')) {
+      const text = await readFile(path, 'utf8');
+      if (/from\s+['"]vitest['"]/.test(text)) files.push({ path, text });
     }
   }
+  return files;
+}
+
+export async function testFiles(base = root) {
+  const entries = await readdir(base, { withFileTypes: true });
+  const directories = entries.filter((entry) => entry.isDirectory() && !skipDirectories.has(entry.name));
+  const files = (await Promise.all(directories.map((entry) => collectTestFiles(join(base, entry.name))))).flat();
   return files.sort((left, right) => left.path.localeCompare(right.path));
 }
 
