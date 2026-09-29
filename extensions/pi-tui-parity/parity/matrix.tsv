@@ -36,9 +36,9 @@ markdown.headings⇥mapped⇥pi Markdown headings (mdHeading role)⇥pi owns hea
 markdown.lists⇥mapped⇥pi Markdown lists (mdListBullet role)⇥pi owns list rendering
 markdown.blockquote⇥mapped⇥pi Markdown blockquote (mdQuote/mdQuoteBorder roles)⇥pi owns blockquote rendering
 markdown.rule⇥mapped⇥pi Markdown horizontal rule (mdHr role)⇥pi owns rule rendering
-markdown.math⇥mapped⇥pi Markdown latex support (pi-tui markdown)⇥pi-tui's markdown component includes latex/math rendering (verified in the installed 0.87.1 package)
+markdown.math⇥mapped⇥pi Markdown latex support (pi-tui markdown)⇥pi-tui's markdown component includes latex/math rendering (verified in the installed 0.99.1 package)
 markdown.root⇥mapped⇥pi Markdown root and paragraph flow⇥pi owns root composition and paragraph breaks
-markdown.table⇥mapped⇥pi Markdown table support (pi-tui markdown)⇥pi-tui's markdown component renders tables (verified in the installed 0.87.1 package)
+markdown.table⇥mapped⇥pi Markdown table support (pi-tui markdown)⇥pi-tui's markdown component renders tables (verified in the installed 0.99.1 package)
 markdown.mermaid⇥unmet⇥⇥pi Markdown has no mermaid renderer
 markdown.throttled⇥mapped⇥pi streaming transcript renderer⇥pi owns streaming assistant rendering; no ThrottledMarkdown hook to replace
 markdown.overflow⇥mapped⇥pi transcript overflow handling⇥pi owns tail truncation and overflow of long transcript content
