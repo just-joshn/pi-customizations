@@ -48,7 +48,7 @@ test('official SDK loads all worker tools without spawning children', async () =
     expect(loader.getExtensions().errors).toEqual([]);
     session = (await createAgentSession({ cwd: dir, agentDir: dir, settingsManager, resourceLoader: loader, sessionManager: SessionManager.inMemory(dir) })).session;
     await session.bindExtensions({ mode: 'print' });
-    const context = session.extensionRunner.createContext();
+    const context = session.extensionRunner.createToolContext('init-test', undefined);
     const task = loader
       .getExtensions()
       .extensions.flatMap((extension) => [...extension.tools.values()])

@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext, Theme, ToolDefinition, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ExtensionContext, ExtensionToolContext, Theme, ToolDefinition, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
 import { createState, registerStateTools } from '../src/state.ts';
 
@@ -16,7 +16,7 @@ test('TodoWrite publishes independent todos rather than caller-owned records', a
       tools.push(tool);
     },
   } as unknown as ExtensionAPI;
-  const ctx = { ui: { setStatus() {}, setWidget() {} } } as unknown as ExtensionContext;
+  const ctx = { ui: { setStatus() {}, setWidget() {} } } as unknown as ExtensionToolContext;
   const store = createState(pi);
   registerStateTools(pi, store);
   const tool = tools.find((tool) => tool.name === 'TodoWrite');
@@ -64,7 +64,7 @@ test('pstack_mode tool toggles mode and returns bounded confirmation', async () 
       tools.push(t);
     },
   } as unknown as ExtensionAPI;
-  const ctx = { ui: { setStatus: () => {}, setWidget: () => {} } } as unknown as ExtensionContext;
+  const ctx = { ui: { setStatus: () => {}, setWidget: () => {} } } as unknown as ExtensionToolContext;
   const store = createState(pi);
   registerStateTools(pi, store);
   const modeTool = tools.find((t) => t.name === 'pstack_mode');
