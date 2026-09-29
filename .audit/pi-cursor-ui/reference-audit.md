@@ -120,21 +120,23 @@ The live invariants encoded the old design, so they now encode the reference.
 
 ## Verification
 
-Every number below is from a command run on this machine at this revision.
+Every number below is from a command run on this machine against the code at
+`fc6bc149`, the merge of #22. This branch adds only documents to that revision,
+so the same numbers hold for the branch tip.
 
 | Gate | Command | Result |
 |---|---|---|
-| Sweep | `node scripts/ui-sweep.mjs` | `findings: 0`, all 11 steps pass |
+| Sweep | `node scripts/ui-sweep.mjs` | 10 of 11 steps pass. The `reference-parity` step reports the declared `location PR segment` gap because it runs without `--known`; the reference-parity row below carries the flag |
 | Type check | `bun run typecheck` | exit 0 |
-| Unit tests | `bun run test:coverage` | 14 files, 2331 passed, 2 expected fail, 1 skipped |
-| Coverage | same run | statements 96.87, branches 90.65, functions 96.93, lines 98.38, thresholds 80 |
-| Style boundaries | `node scripts/check-skin-boundaries.mjs` | `violations: 0 in 22 source files` |
+| Unit tests | `bun run test:coverage` | 14 files, 2328 passed, 2 expected fail, 1 skipped (2331) |
+| Coverage | same run | statements 96.86, branches 90.44, functions 96.93, lines 98.37, thresholds 80 |
+| Style boundaries | `node scripts/check-skin-boundaries.mjs` | `violations: 0 in 22 source files`, `self-test: 4 fixtures passed` |
 | Frame invariants | `node scripts/lib/frame-invariants.mjs --self-test` | `15/15 passed` |
 | Prompt parity | `node scripts/check-prompt-parity.mjs` | system prompt, 4 tool definitions, and reply identical |
-| Live matrix | `node scripts/tmux-smoke.mjs --all` | 46 scenarios, 0 failures, `invariants: 0 findings, 1165 passed` |
-| Live fuzz | `node scripts/tmux-smoke.mjs --fuzz 20 --seed 1` | 20 sessions, `invariants: 0 findings, 1610 skipped` |
-| Reference parity | `node scripts/compare-reference.mjs` | `failures: 0` |
-| Repository lint | `bunx biome ci . --error-on-warnings` | clean |
+| Live matrix | `node scripts/tmux-smoke.mjs --all` | 46 scenarios, 128 steps, 0 failures, `invariants: 0 findings, 454 skipped, 923 passed` |
+| Live fuzz | `node scripts/tmux-smoke.mjs --fuzz 20 --seed 1` | 20 sessions, `invariants: 0 findings, 1814 skipped` |
+| Reference parity | `node scripts/compare-reference.mjs --known "location PR segment"` | `failures: 0 (declared gaps: 1)` |
+| Repository lint | `bunx biome ci . --error-on-warnings` | clean, 200 files checked |
 
 ## Not verified
 
