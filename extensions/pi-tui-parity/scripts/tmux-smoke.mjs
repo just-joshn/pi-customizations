@@ -17,7 +17,7 @@
  * Exits 0 only if every required assertion passes.
  */
 
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -170,12 +170,13 @@ function mkdtemp(prefix) {
   return dir;
 }
 
+/** Stops the throwaway server. A server that is already gone is the normal case at teardown. */
+function stopServer() {
+  spawnSync('tmux', ['-L', SOCKET, 'kill-server'], { stdio: 'ignore' });
+}
+
 function cleanup() {
-  try {
-    tmux(['kill-server']);
-  } catch {
-    // Server may already be gone.
-  }
+  stopServer();
   for (const dir of tmpPaths) {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -222,8 +223,9 @@ try {
   exitError = error;
   try {
     saveCapture('99-failure', `${diagnose()}\n${capturePane()}`);
-  } catch {
-    // Pane already gone; the original error matters more.
+  } catch (captureError) {
+    // The pane is gone too, so the capture is lost. The original error still decides the exit code.
+    process.stderr.write(`failure capture unavailable: ${captureError.message}\n`);
   }
 } finally {
   cleanup();

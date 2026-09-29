@@ -183,9 +183,8 @@ try {
   await captureNarrow(outDir);
   if (process.argv.includes('--transcript')) await captureTranscript(join(outDir, 'transcript'));
 } finally {
-  try {
-    press('C-u', 'C-c', 'C-c');
-  } catch {}
+  // Teardown is best-effort: the session is usually already gone by now.
+  for (const key of ['C-u', 'C-c', 'C-c']) spawnSync('tmux', ['-L', SOCKET, 'send-keys', '-t', SESSION, key]);
   await sleep(400);
   spawnSync('tmux', ['-L', SOCKET, 'kill-server']);
 }

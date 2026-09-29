@@ -12,7 +12,7 @@
  *   node scripts/ui-sweep.mjs --live-only  live scenarios and fuzz only
  *   node scripts/ui-sweep.mjs --fuzz 20 --seed 7
  */
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { appendFileSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -91,15 +91,15 @@ function runStep(step, index) {
 
 /** One line per run, appended outside the per-run log directory so it survives. */
 function recordRun(summary) {
-  let head = 'unknown';
-  let dirty = true;
-  try {
-    head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
-    dirty = execFileSync('git', ['status', '--porcelain'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim().length > 0;
-  } catch {
-    // A missing git binary must not fail a sweep whose real work already ran.
-  }
-  appendFileSync(RUNS_FILE, `${JSON.stringify({ ...summary, head, dirty, finishedAt: new Date().toISOString() })}\n`);
+  const status = gitOutput(['status', '--porcelain']);
+  appendFileSync(RUNS_FILE, `${JSON.stringify({ ...summary, head: gitOutput(['rev-parse', 'HEAD']) ?? 'unknown', dirty: status === undefined || status.length > 0, finishedAt: new Date().toISOString() })}\n`);
+}
+
+/** Reads a git fact for the sweep record. A missing git reports `undefined` rather than failing a sweep whose real work already ran. */
+function gitOutput(args) {
+  const result = spawnSync('git', args, { cwd: REPO_ROOT, encoding: 'utf8' });
+  if (result.error || result.status !== 0) return undefined;
+  return result.stdout.trim();
 }
 
 function main() {
