@@ -1,0 +1,39 @@
+{
+  "build": "2026.09.28-64d2043",
+  "size": {
+    "cols": 110,
+    "rows": 34
+  },
+  "states": [
+    "01-idle.ansi.txt",
+    "01-idle.txt",
+    "02-typed.ansi.txt",
+    "02-typed.txt",
+    "03-cleared.ansi.txt",
+    "03-cleared.txt",
+    "04-slash-menu.ansi.txt",
+    "04-slash-menu.txt",
+    "05-slash-closed.ansi.txt",
+    "05-slash-closed.txt",
+    "06-at-menu.ansi.txt",
+    "06-at-menu.txt",
+    "07-at-closed.ansi.txt",
+    "07-at-closed.txt",
+    "08-bang-mode.ansi.txt",
+    "08-bang-mode.txt",
+    "09-bang-cleared.ansi.txt",
+    "09-bang-cleared.txt",
+    "10-mode-plan.ansi.txt",
+    "10-mode-plan.txt",
+    "11-mode-debug.ansi.txt",
+    "11-mode-debug.txt",
+    "12-mode-ask.ansi.txt",
+    "12-mode-ask.txt",
+    "13-mode-agent.ansi.txt",
+    "13-mode-agent.txt",
+    "20-narrow-40x12.ansi.txt",
+    "20-narrow-40x12.txt",
+    "21-mid-72x22.ansi.txt",
+    "21-mid-72x22.txt"
+  ]
+}

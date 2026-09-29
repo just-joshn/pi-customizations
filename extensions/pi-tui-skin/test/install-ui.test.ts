@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { Theme } from '@earendil-works/pi-coding-agent';
-import { stripTerminalSequences } from '@earendil-works/pi-tui';
+import { KeybindingsManager, stripTerminalSequences, TUI_KEYBINDINGS } from '@earendil-works/pi-tui';
 import { describe, expect, test, vi } from 'vitest';
 import { createPresentationStore } from '../src/state/presentation-store.ts';
 import { createUiController } from '../src/ui/install-ui.ts';
@@ -59,10 +59,10 @@ const FG_ROLES = [
 const BG_ROLES = ['customMessageBg', 'searchMatchBg', 'selectedBg', 'toolErrorBg', 'toolPendingBg', 'toolSuccessBg', 'userMessageBg'];
 
 /** Real Theme built from this package's theme JSON, matching pi's var resolution. */
-function makeTheme(): Theme {
+function makeTheme(overrides: Record<string, string> = {}): Theme {
   const document: { vars: Record<string, string | number>; colors: Record<string, string | number> } = JSON.parse(readFileSync(fileURLToPath(new URL('../themes/tui-skin.json', import.meta.url)), 'utf8'));
   const resolve = (value: string | number): string | number => (typeof value === 'string' && value.length > 0 && !value.startsWith('#') ? (document.vars[value] ?? value) : value);
-  const fg = Object.fromEntries(FG_ROLES.map((role) => [role, resolve(document.colors[role] ?? '')]));
+  const fg = Object.fromEntries(FG_ROLES.map((role) => [role, overrides[role] ?? resolve(document.colors[role] ?? '')]));
   const bg = Object.fromEntries(BG_ROLES.map((role) => [role, resolve(document.colors[role] ?? '')]));
   return new Theme(fg as never, bg as never, 'truecolor', { name: 'tui-skin' });
 }
@@ -101,6 +101,15 @@ function factoryFor(calls: readonly UiCall[], method: string): (...args: unknown
   const call = callsFor(calls, method)[0];
   if (call === undefined) throw new Error(`${method} was not recorded`);
   return call.args[0] as (...args: unknown[]) => unknown;
+}
+
+function buildEditor(calls: readonly UiCall[]): { render(width: number): string[] } {
+  const build = factoryFor(calls, 'setEditorComponent');
+  return build(fakeTui(), { borderColor: (text: string) => text }, new KeybindingsManager(TUI_KEYBINDINGS as never)) as { render(width: number): string[] };
+}
+
+function setTheme(ctx: unknown, theme: Theme): void {
+  (ctx as { ui: { theme: Theme } }).ui.theme = theme;
 }
 
 function fakeTui() {
@@ -189,6 +198,55 @@ describe('install-ui controller', () => {
     const indicator = callsFor(calls, 'setWorkingIndicator')[0]?.args[0] as { frames: string[]; intervalMs: number };
     expect(indicator.intervalMs).toBe(120);
     expect(indicator.frames.map((frame) => stripTerminalSequences(frame))).toEqual(['·', '•', '●', '•']);
+    // biome-ignore lint/security/noSecrets: the escape a terminal shows for the theme's success role
+    expect(indicator.frames[2]).toBe('\u001b[38;2;62;208;122m●\u001b[39m');
     expect(callsFor(calls, 'setWorkingMessage')[0]?.args).toEqual(['Working']);
+  });
+
+  test('a render with an unchanged theme leaves the frames alone', () => {
+    const { ctx, calls } = fakeContext('tui');
+    const controller = createUiController(createPresentationStore());
+    controller.install(ctx);
+    const editor = buildEditor(calls);
+
+    editor.render(60);
+    editor.render(60);
+
+    expect(callsFor(calls, 'setWorkingIndicator').length).toBe(1);
+  });
+
+  test('a render after a theme change re-derives the working frames', () => {
+    const { ctx, calls } = fakeContext('tui');
+    const controller = createUiController(createPresentationStore());
+    controller.install(ctx);
+    const editor = buildEditor(calls);
+
+    const odd = makeTheme({ success: '#8cc265' });
+    setTheme(ctx, odd);
+    editor.render(60);
+
+    const installed = callsFor(calls, 'setWorkingIndicator');
+    expect(installed.length).toBe(2);
+    const reinstalled = installed[1];
+    if (reinstalled === undefined) throw new Error('the frames were not reinstalled');
+    const frames = (reinstalled.args[0] as { frames: string[] }).frames;
+    // biome-ignore lint/security/noSecrets: the escape a terminal shows for the switched theme's success role
+    expect(frames[2]).toBe('\u001b[38;2;140;194;101m●\u001b[39m');
+    expect(frames[0]).toBe(odd.fg('dim', '·'));
+  });
+
+  test('a render after uninstall does not reinstate the working frames', () => {
+    const { ctx, calls } = fakeContext('tui');
+    const controller = createUiController(createPresentationStore());
+    controller.install(ctx);
+    const editor = buildEditor(calls);
+
+    controller.uninstall(ctx);
+    setTheme(ctx, makeTheme({ success: '#8cc265' }));
+    editor.render(60);
+
+    expect(callsFor(calls, 'setWorkingIndicator').length).toBe(2);
+    const reset = callsFor(calls, 'setWorkingIndicator')[1];
+    expect(reset?.args).toEqual([]);
   });
 });

@@ -12,7 +12,6 @@ export type RunningToolActivity = {
 export type PresentationState = {
   phase: AgentPhase;
   activeTools: ReadonlyMap<string, RunningToolActivity>;
-  editedFiles: ReadonlySet<string>;
 };
 
 /** Read the display target from untrusted tool arguments. Never throws. */

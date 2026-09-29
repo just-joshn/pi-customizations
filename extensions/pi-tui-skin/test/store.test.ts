@@ -53,43 +53,6 @@ describe('presentation store', () => {
     expect(listener.mock.calls.length).toBe(0);
   });
 
-  test('counts one successful edit', () => {
-    const store = createPresentationStore();
-    start(store, 'a', 'edit', { path: 'src/a.ts' });
-    finish(store, 'a', 'edit', false);
-    expect([...store.getSnapshot().editedFiles]).toEqual(['src/a.ts']);
-  });
-
-  test('counts nothing for a failed edit', () => {
-    const store = createPresentationStore();
-    start(store, 'a', 'edit', { path: 'src/a.ts' });
-    finish(store, 'a', 'edit', true);
-    expect(store.getSnapshot().editedFiles.size).toBe(0);
-  });
-
-  test('counts a successful write', () => {
-    const store = createPresentationStore();
-    start(store, 'a', 'write', { path: 'out.txt' });
-    finish(store, 'a', 'write', false);
-    expect([...store.getSnapshot().editedFiles]).toEqual(['out.txt']);
-  });
-
-  test('never counts a read', () => {
-    const store = createPresentationStore();
-    start(store, 'a', 'read', { path: 'src/a.ts' });
-    finish(store, 'a', 'read', false);
-    expect(store.getSnapshot().editedFiles.size).toBe(0);
-  });
-
-  test('deduplicates repeated edits of one path', () => {
-    const store = createPresentationStore();
-    start(store, 'a', 'edit', { path: 'src/a.ts' });
-    finish(store, 'a', 'edit', false);
-    start(store, 'b', 'edit', { path: 'src/a.ts' });
-    finish(store, 'b', 'edit', false);
-    expect([...store.getSnapshot().editedFiles]).toEqual(['src/a.ts']);
-  });
-
   test('reset returns the idle presentation state', () => {
     const store = createPresentationStore();
     start(store, 'a', 'edit', { path: 'src/a.ts' });
@@ -99,7 +62,6 @@ describe('presentation store', () => {
     const snapshot = store.getSnapshot();
     expect(snapshot.phase).toEqual({ kind: 'idle' });
     expect(snapshot.activeTools.size).toBe(0);
-    expect(snapshot.editedFiles.size).toBe(0);
   });
 
   test('notifies once per state-changing mutation', () => {

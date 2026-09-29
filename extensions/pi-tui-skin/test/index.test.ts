@@ -68,7 +68,11 @@ describe('tui-skin extension entry point', () => {
     const headerFactory = tui.ui.setHeader.mock.calls[0]?.[0] as ((tui: unknown, theme: unknown) => { render(width: number): string[] }) | undefined;
     if (headerFactory === undefined) throw new Error('no header factory was installed');
     const lines = headerFactory({}, themeStub).render(40);
-    expect(lines.map((line) => stripTerminalSequences(line).trimEnd())).toEqual(['> agent', 'Pi Coding Agent', '/tmp/workspace']);
+    const plain = lines.map((line) => stripTerminalSequences(line).trimEnd());
+    expect(plain).toHaveLength(3);
+    expect(plain[0]).toBe('  Pi Coding Agent');
+    expect(plain[1]).toMatch(/^ {2}v\S+$/);
+    expect(plain[2]).toMatch(/^ {2}Tip: \S/);
   });
 
   test('a TUI session installs chrome and shutdown restores every setter', () => {
@@ -109,10 +113,27 @@ describe('tui-skin extension entry point', () => {
     const footerFactory = ui.setFooter.mock.calls[0]?.[0] as ((tui: unknown, theme: unknown, data: unknown) => { render(width: number): string[] }) | undefined;
     if (footerFactory === undefined) throw new Error('no footer factory was installed');
     const lines = footerFactory({ requestRender: () => {} }, themeStub, footerDataStub).render(80);
-    expect(stripTerminalSequences(lines[2] ?? '').trimEnd()).toBe('/ commands · @ files · ! shell');
+    expect(stripTerminalSequences(lines[1] ?? '').trimEnd()).toBe('  /tmp/workspace · main');
   });
 
-  test('an edit tool finishing reaches the footer counter', () => {
+  test('the mode row appears only after the thinking level moves off its starting value', () => {
+    const { pi, handlers } = fakePi();
+    tuiSkin(pi);
+    const { ctx, ui } = sessionContext('tui');
+    handlers.get('session_start')?.({}, ctx);
+
+    const footerFactory = ui.setFooter.mock.calls[0]?.[0] as ((tui: unknown, theme: unknown, data: unknown) => { render(width: number): string[] }) | undefined;
+    if (footerFactory === undefined) throw new Error('no footer factory was installed');
+    const footer = footerFactory({ requestRender: () => {} }, themeStub, footerDataStub);
+    expect(footer.render(80)).toHaveLength(2);
+
+    ctx.thinkingLevel = 'max';
+    const rows = footer.render(80).map((line) => stripTerminalSequences(line).trimEnd());
+    expect(rows[0]).toBe('  Max (shift+tab to cycle)');
+    expect(rows[2]).toBe('  /tmp/workspace · main');
+  });
+
+  test('an edit tool finishing leaves the footer rows unchanged', () => {
     const { pi, handlers } = fakePi();
     tuiSkin(pi);
     const { ctx, ui } = sessionContext('tui');
@@ -126,6 +147,7 @@ describe('tui-skin extension entry point', () => {
     const footerFactory = ui.setFooter.mock.calls[0]?.[0] as ((tui: unknown, theme: unknown, data: unknown) => { render(width: number): string[] }) | undefined;
     if (footerFactory === undefined) throw new Error('no footer factory was installed');
     const lines = footerFactory({ requestRender: () => {} }, themeStub, footerDataStub).render(80);
-    expect(stripTerminalSequences(lines[1] ?? '')).toContain('1 file edited');
+    expect(lines).toHaveLength(2);
+    expect(stripTerminalSequences(lines[1] ?? '')).not.toContain('edited');
   });
 });

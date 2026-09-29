@@ -10,7 +10,7 @@ import { ACTIVITY_WIDGET_KEY, installActivityWidget } from './activity-widget.ts
 import { createEditorFactory } from './editor.ts';
 import { createFooter } from './footer.ts';
 import { createHeader } from './header.ts';
-import { installWorkingIndicator } from './working-indicator.ts';
+import { installWorkingIndicator, refreshWorkingIndicator } from './working-indicator.ts';
 
 export type UiController = {
   install(ctx: ExtensionContext): void;
@@ -28,6 +28,7 @@ function safely(action: () => void): void {
 export function createUiController(store: PresentationStore): UiController {
   let activeTui: TUI | undefined;
   let unsubscribeStore: (() => void) | undefined;
+  let indicatorKey = '';
   let installed = false;
 
   const capture = (tui: TUI): void => {
@@ -54,13 +55,18 @@ export function createUiController(store: PresentationStore): UiController {
         return footer(tui, theme, footerData);
       });
 
-      const editor = createEditorFactory(ctx, store);
+      const editor = createEditorFactory(ctx, store, () => {
+        // The frames carry baked theme colors and this editor paints the band
+        // they sit in, so re-derive them from the live theme before every frame.
+        if (!installed) return;
+        indicatorKey = refreshWorkingIndicator(ctx, indicatorKey);
+      });
       ctx.ui.setEditorComponent((tui, theme, keybindings) => {
         capture(tui);
         return editor(tui, theme, keybindings);
       });
 
-      installWorkingIndicator(ctx);
+      indicatorKey = installWorkingIndicator(ctx);
       installActivityWidget(ctx, store, capture);
       ctx.ui.setHiddenThinkingLabel('Thinking');
 

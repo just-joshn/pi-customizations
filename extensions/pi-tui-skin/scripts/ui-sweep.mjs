@@ -38,6 +38,7 @@ const UNIT_STEPS = [
   { name: 'skin-boundaries', cwd: PKG_ROOT, command: ['bun', 'run', 'check:skin'] },
   { name: 'skin-boundaries-self-test', cwd: PKG_ROOT, command: ['node', 'scripts/check-skin-boundaries.mjs', '--self-test'] },
   { name: 'frame-invariants-self-test', cwd: PKG_ROOT, command: ['node', 'scripts/lib/frame-invariants.mjs', '--self-test'] },
+  { name: 'reference-parity', cwd: PKG_ROOT, command: ['node', 'scripts/compare-reference.mjs'] },
   { name: 'test-coverage', cwd: PKG_ROOT, command: ['bun', 'run', 'test:coverage'] },
   { name: 'prompt-parity', cwd: PKG_ROOT, command: ['node', 'scripts/check-prompt-parity.mjs'] },
   { name: 'biome', cwd: REPO_ROOT, command: ['bunx', 'biome', 'ci', '.', '--error-on-warnings', '--max-diagnostics=none'] },
