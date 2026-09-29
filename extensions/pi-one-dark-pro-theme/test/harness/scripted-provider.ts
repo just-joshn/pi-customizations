@@ -19,6 +19,7 @@ export const SMOKE_COMMAND = 'echo theme-smoke';
 export const FINAL_TEXT = 'Theme smoke complete.';
 
 type ScriptStep = { readonly kind: 'tool'; readonly call: ToolCall } | { readonly kind: 'text'; readonly text: string };
+type TerminalReason = Extract<AssistantMessage['stopReason'], 'stop' | 'toolUse'>;
 
 const SCRIPT: readonly ScriptStep[] = [
   {
@@ -44,60 +45,48 @@ const zeroedUsage = (): AssistantMessage['usage'] => ({
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
 });
 
+function scriptedMessage(model: Model<string>): AssistantMessage {
+  return {
+    role: 'assistant',
+    content: [],
+    api: model.api,
+    provider: model.provider,
+    model: model.id,
+    usage: zeroedUsage(),
+    stopReason: 'pending',
+    timestamp: Date.now(),
+  };
+}
+
+function pushToolTurn(message: AssistantMessage, call: ToolCall, stream: AssistantMessageEventStream): TerminalReason {
+  const toolCall = { ...call, id: `${call.id}-${Date.now()}` };
+  message.content.push({ ...toolCall });
+  stream.push({ type: 'toolcall_start', contentIndex: 0, partial: message });
+  stream.push({ type: 'toolcall_end', contentIndex: 0, toolCall, partial: message });
+  return 'toolUse';
+}
+
+function pushTextTurn(message: AssistantMessage, text: string, stream: AssistantMessageEventStream): TerminalReason {
+  message.content.push({ type: 'text', text });
+  stream.push({ type: 'text_start', contentIndex: 0, partial: message });
+  stream.push({ type: 'text_delta', contentIndex: 0, delta: text, partial: message });
+  stream.push({ type: 'text_end', contentIndex: 0, content: text, partial: message });
+  return 'stop';
+}
+
 function streamScripted(model: Model<string>, context: TranscriptContext, options?: SimpleStreamOptions): AssistantMessageEventStream {
   const stream = createAssistantMessageEventStream();
   const step = SCRIPT[Math.min(countToolResults(context.messages), SCRIPT.length - 1)];
 
   (async () => {
-    const message: AssistantMessage = {
-      role: 'assistant',
-      content: [],
-      api: model.api,
-      provider: model.provider,
-      model: model.id,
-      usage: zeroedUsage(),
-      stopReason: 'pending',
-      timestamp: Date.now(),
-    };
+    const message = scriptedMessage(model);
     try {
       if (!step) throw new Error('scripted provider has no step for this turn');
       if (options?.signal?.aborted) throw new Error('Request was aborted');
       await options?.onPayload?.({ provider: 'smoke-scripted', step: step.kind }, model);
       stream.push({ type: 'start', partial: message });
 
-      let stopReason: AssistantMessage['stopReason'];
-      if (step.kind === 'tool') {
-        const call = { ...step.call, id: `${step.call.id}-${Date.now()}` };
-        message.content.push({ ...call });
-        stream.push({
-          type: 'toolcall_start',
-          contentIndex: 0,
-          partial: message,
-        });
-        stream.push({
-          type: 'toolcall_end',
-          contentIndex: 0,
-          toolCall: call,
-          partial: message,
-        });
-        stopReason = 'toolUse';
-      } else {
-        message.content.push({ type: 'text', text: step.text });
-        stream.push({ type: 'text_start', contentIndex: 0, partial: message });
-        stream.push({
-          type: 'text_delta',
-          contentIndex: 0,
-          delta: step.text,
-          partial: message,
-        });
-        stream.push({
-          type: 'text_end',
-          contentIndex: 0,
-          content: step.text,
-          partial: message,
-        });
-        stopReason = 'stop';
-      }
+      const stopReason = step.kind === 'tool' ? pushToolTurn(message, step.call, stream) : pushTextTurn(message, step.text, stream);
 
       await options?.onResponse?.({ status: 200, headers: { 'x-scripted-provider': 'smoke' } }, model);
       message.stopReason = stopReason;
@@ -106,11 +95,7 @@ function streamScripted(model: Model<string>, context: TranscriptContext, option
     } catch (error) {
       message.stopReason = options?.signal?.aborted ? 'aborted' : 'error';
       message.errorMessage = error instanceof Error ? error.message : String(error);
-      stream.push({
-        type: 'error',
-        reason: message.stopReason,
-        error: message,
-      });
+      stream.push({ type: 'error', reason: message.stopReason, error: message });
       stream.end();
     }
   })();
