@@ -83,7 +83,7 @@ describe('decision gate', () => {
 
   function driveVia(keys: string[], outcomes: unknown[] = []): ExtensionContext['ui']['custom'] {
     return (factory) => {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         void makeTheme().then((theme) => {
           const tui = { requestRender: () => {} } as never;
           const surface = factory(tui, theme, {} as never, (outcome) => {
@@ -91,7 +91,7 @@ describe('decision gate', () => {
             resolve(outcome);
           }) as DecisionSurface;
           for (const k of keys) surface.handleInput(k);
-        });
+        }, reject);
       });
     };
   }
