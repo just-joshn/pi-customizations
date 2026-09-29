@@ -1,0 +1,18 @@
+  Cursor Agent
+  v2026.09.28-64d2043
+  Tip: Use /mcp to connect Cursor to your tools and data sources.
+
+
+ ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+  → /
+ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+   → /model [filter]           Select model (Tab to edit)
+     /goal [objective]         Start a durable goal that continues while idle
+     /add-dir [path]           Add a directory to the current workspace
+     /save-workspace <name>    Persist the current workspace directories
+     /load-workspace <name>    Load a saved workspace by name
+     /run-everything           Toggle Run Everything (currently disabled)
+     /auto-review              Toggle Auto-review (currently disabled)
+     /plan [prompt]            Create a plan or show existing plan with options
+     /ask                      Toggle ask mode (Q&A, read-only; no edits or command execution)
+     ↓ more below

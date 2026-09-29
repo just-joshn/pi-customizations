@@ -1,13 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+import type { ThinkingLevel } from '@earendil-works/pi-agent-core';
 import type { ExtensionContext, ReadonlyFooterDataProvider } from '@earendil-works/pi-coding-agent';
 import { Theme } from '@earendil-works/pi-coding-agent';
 import { stripTerminalSequences, visibleWidth } from '@earendil-works/pi-tui';
 import { describe, expect, test, vi } from 'vitest';
 import { createPresentationStore } from '../src/state/presentation-store.ts';
 import { createFooter } from '../src/ui/footer.ts';
-import { createHeader } from '../src/ui/header.ts';
+import { createHeader, TIPS } from '../src/ui/header.ts';
 
 const FG_ROLES = [
   'accent',
@@ -68,18 +69,32 @@ function makeTheme(): Theme {
   return new Theme(fg as never, bg as never, 'truecolor', { name: 'cursor-ui' });
 }
 
-function expectedLine(left: string, right: string, width: number): string {
-  return `${left}${' '.repeat(width - visibleWidth(left) - visibleWidth(right))}${right}`;
-}
-
-function footerContext(): ExtensionContext {
+function footerContext(level: ThinkingLevel | undefined = 'high'): ExtensionContext {
   return {
     cwd: '/home/u/proj',
     model: { id: 'gpt-6-sol', name: 'GPT-6 Sol', provider: 'openai' },
-    thinkingLevel: 'high',
+    thinkingLevel: level,
     getContextUsage: () => ({ tokens: 16000, contextWindow: 200000, percent: 8 }),
     ui: { theme: makeTheme() },
   } as never;
+}
+
+/** A context whose thinking level can change after the footer captures its starting level. */
+function mutableLevelContext(): { ctx: ExtensionContext; set(level: ThinkingLevel): void } {
+  let level: ThinkingLevel = 'high';
+  const base = footerContext();
+  const ctx = {
+    ...base,
+    get thinkingLevel() {
+      return level;
+    },
+  } as never;
+  return {
+    ctx,
+    set: (next) => {
+      level = next;
+    },
+  };
 }
 
 function footerData(branch: string | null): ReadonlyFooterDataProvider {
@@ -93,45 +108,69 @@ function storeWithOneEdit(): ReturnType<typeof createPresentationStore> {
   return store;
 }
 
+function headerFor(cwd: string): ReturnType<ReturnType<typeof createHeader>> {
+  return createHeader({ cwd } as never)({} as never, makeTheme());
+}
+
+/** The banner the installed reference prints: title, build, and one tip, indented two columns. */
+const REFERENCE_IDLE_BANNER = readFileSync(fileURLToPath(new URL('../reference/cursor-agent-2026.09.28-64d2043/01-idle.txt', import.meta.url)), 'utf8').split('\n');
+
+/** Read pi's version from its own installed manifest, not from the constant the code under test uses. */
+function installedPiVersion(): string {
+  const manifest = JSON.parse(readFileSync(fileURLToPath(new URL('../node_modules/@earendil-works/pi-coding-agent/package.json', import.meta.url)), 'utf8')) as { version: string };
+  return manifest.version;
+}
+
 describe('header', () => {
-  test('renders the startup block', () => {
+  test('renders the reference banner shape', () => {
     vi.stubEnv('HOME', '/home/u');
-    const theme = makeTheme();
-    const header = createHeader({ cwd: '/home/u/proj' } as never)({} as never, theme);
-    const lines = header.render(80);
-    expect(lines.length).toBe(3);
-    expect(stripTerminalSequences(lines[0] ?? '')).toBe('> agent');
-    expect(stripTerminalSequences(lines[1] ?? '')).toBe('Pi Coding Agent');
-    expect(stripTerminalSequences(lines[2] ?? '')).toBe('~/proj');
+    // The reference frame is the spec, so assert its own shape before the match.
+    expect(REFERENCE_IDLE_BANNER[0]).toBe('  Cursor Agent');
+    expect(REFERENCE_IDLE_BANNER[1]).toMatch(/^ {2}v\d/);
+    expect(REFERENCE_IDLE_BANNER[2]).toMatch(/^ {2}Tip: \S/);
+
+    const plain = headerFor('/home/u/proj')
+      .render(80)
+      .map((line) => stripTerminalSequences(line));
+    expect(plain).toHaveLength(3);
+    expect(plain[0]).toBe('  Pi Coding Agent');
+    expect(plain[1]).toBe(`  v${installedPiVersion()}`);
+    expect(TIPS.map((tip) => `  Tip: ${tip}`)).toContain(plain[2]);
   });
 
-  test('fits a long directory into a narrow width', () => {
+  test('drops the old `> agent` and working-directory rows', () => {
     vi.stubEnv('HOME', '/home/u');
-    const theme = makeTheme();
-    const header = createHeader({ cwd: '/home/u/very/long/project/directory' } as never)({} as never, theme);
-    const lines = header.render(20);
-    expect(stripTerminalSequences(lines[2] ?? '')).toBe('~/very/long/project…');
+    const plain = headerFor('/home/u/proj')
+      .render(80)
+      .map((line) => stripTerminalSequences(line));
+    expect(plain.some((line) => line.includes('> agent'))).toBe(false);
+    expect(plain.some((line) => line.includes('~/proj'))).toBe(false);
+  });
+
+  test('keeps the banner indent from the reference at a narrow width', () => {
+    const lines = headerFor('/home/u/very/long/project/directory').render(20);
+    expect(stripTerminalSequences(lines[0] ?? '').startsWith('  ')).toBe(true);
     expect(lines.every((line) => visibleWidth(line) <= 20)).toBe(true);
   });
 });
 
 describe('footer', () => {
-  test('renders the three footer lines', () => {
-    const store = storeWithOneEdit();
-    const footer = createFooter(footerContext(), store)({ requestRender: () => {} } as never, makeTheme(), footerData('main'));
-    const lines = footer.render(80);
-    expect(lines.length).toBe(3);
-    expect(stripTerminalSequences(lines[0] ?? '')).toBe(expectedLine('● High', 'shift+tab to cycle', 80));
-    expect(stripTerminalSequences(lines[1] ?? '')).toBe(expectedLine('GPT-6 Sol · 8% · 1 file edited', 'main', 80));
-    expect(stripTerminalSequences(lines[2] ?? '')).toBe('/ commands · @ files · ! shell');
+  test('hides the mode row until the thinking level leaves the session default', () => {
+    vi.stubEnv('HOME', '/home/u');
+    const { ctx, set } = mutableLevelContext();
+    const footer = createFooter(ctx, createPresentationStore())({ requestRender: () => {} } as never, makeTheme(), footerData('main'));
+
+    expect(footer.render(80).map(stripTerminalSequences)).toEqual(['  GPT-6 Sol · 8%', '  ~/proj · main']);
+
+    set('max');
+    expect(footer.render(80).map(stripTerminalSequences)).toEqual(['  Max (shift+tab to cycle)', '  GPT-6 Sol · 8%', '  ~/proj · main']);
   });
 
-  test('omits the thinking label when the level is unknown', () => {
-    const store = createPresentationStore();
-    const ctx = { ...footerContext(), thinkingLevel: undefined } as never;
-    const footer = createFooter(ctx, store)({ requestRender: () => {} } as never, makeTheme(), footerData(null));
-    const line = footer.render(80)[0] ?? '';
-    expect(stripTerminalSequences(line)).toBe(expectedLine('', 'shift+tab to cycle', 80));
+  test('hides the context percentage while context is unused', () => {
+    vi.stubEnv('HOME', '/home/u');
+    const ctx = { ...footerContext(), getContextUsage: () => ({ tokens: 0, contextWindow: 200000, percent: 0 }) } as never;
+    const footer = createFooter(ctx, createPresentationStore())({ requestRender: () => {} } as never, makeTheme(), footerData(null));
+    expect(stripTerminalSequences(footer.render(80)[0] ?? '')).toBe('  GPT-6 Sol');
   });
 
   test('stops requesting renders after dispose', () => {
@@ -145,28 +184,21 @@ describe('footer', () => {
   });
 
   test('omits every optional footer segment', () => {
+    vi.stubEnv('HOME', '/home/u');
     const ctx = { cwd: '/home/u/proj', model: undefined, thinkingLevel: undefined, getContextUsage: () => undefined, ui: { theme: makeTheme() } } as never;
     const footer = createFooter(ctx, createPresentationStore())({ requestRender: () => {} } as never, makeTheme(), footerData(null));
-
-    const lines = footer.render(80);
-    expect(stripTerminalSequences(lines[0] ?? '')).toBe(expectedLine('', 'shift+tab to cycle', 80));
-    expect(stripTerminalSequences(lines[1] ?? '')).toBe(' '.repeat(80));
-    expect(stripTerminalSequences(lines[2] ?? '')).toBe('/ commands · @ files · ! shell');
+    expect(footer.render(80).map(stripTerminalSequences)).toEqual(['  ', '  ~/proj']);
   });
 
-  test('uses the model id with a plural edit count', () => {
-    const store = createPresentationStore();
-    store.startTool({ toolCallId: 'a', toolName: 'edit', args: { path: 'src/a.ts' }, startedAt: 1 });
-    store.finishTool({ toolCallId: 'a', toolName: 'edit', isError: false, finishedAt: 2 });
-    store.startTool({ toolCallId: 'b', toolName: 'edit', args: { path: 'src/b.ts' }, startedAt: 3 });
-    store.finishTool({ toolCallId: 'b', toolName: 'edit', isError: false, finishedAt: 4 });
+  test('uses the model id when the model has no display name', () => {
+    vi.stubEnv('HOME', '/home/u');
     const ctx = { ...footerContext(), model: { id: 'gpt-6-sol', provider: 'openai' } } as never;
-
-    const footer = createFooter(ctx, store)({ requestRender: () => {} } as never, makeTheme(), footerData('main'));
-    expect(stripTerminalSequences(footer.render(80)[1] ?? '')).toBe(expectedLine('gpt-6-sol · 8% · 2 files edited', 'main', 80));
+    const footer = createFooter(ctx, storeWithOneEdit())({ requestRender: () => {} } as never, makeTheme(), footerData('main'));
+    expect(stripTerminalSequences(footer.render(80)[0] ?? '')).toBe('  gpt-6-sol · 8%');
   });
 
   test('survives a deactivated session runtime', () => {
+    vi.stubEnv('HOME', '/home/u');
     const deactivated = () => {
       throw new Error('session runtime is gone');
     };
@@ -183,9 +215,7 @@ describe('footer', () => {
     } as never;
 
     const footer = createFooter(ctx, createPresentationStore())({ requestRender: () => {} } as never, makeTheme(), footerData(null));
-    const lines = footer.render(80);
-    expect(stripTerminalSequences(lines[0] ?? '')).toBe(expectedLine('', 'shift+tab to cycle', 80));
-    expect(stripTerminalSequences(lines[1] ?? '')).toBe(' '.repeat(80));
+    expect(footer.render(80).map(stripTerminalSequences)).toEqual(['  ', '  ~/proj']);
   });
 
   test('requests a render from both subscriptions', () => {

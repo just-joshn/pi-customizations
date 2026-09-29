@@ -1,4 +1,4 @@
-import { type PresentationState, type RunningToolActivity, toolTarget } from './presentation-state.ts';
+import type { PresentationState, RunningToolActivity } from './presentation-state.ts';
 
 export interface PresentationStore {
   getSnapshot(): PresentationState;
@@ -11,10 +11,8 @@ export interface PresentationStore {
   subscribe(listener: () => void): () => void;
 }
 
-const EDIT_TOOLS = new Set(['edit', 'write']);
-
 function idleState(): PresentationState {
-  return { phase: { kind: 'idle' }, activeTools: new Map(), editedFiles: new Set() };
+  return { phase: { kind: 'idle' }, activeTools: new Map() };
 }
 
 export function createPresentationStore(): PresentationStore {
@@ -60,14 +58,6 @@ export function createPresentationStore(): PresentationStore {
       if (activity === undefined) return;
       const activeTools = new Map(snapshot.activeTools);
       activeTools.delete(input.toolCallId);
-
-      const target = input.isError ? undefined : toolTarget(activity.args);
-      if (target !== undefined && EDIT_TOOLS.has(input.toolName) && !snapshot.editedFiles.has(target)) {
-        const editedFiles = new Set(snapshot.editedFiles);
-        editedFiles.add(target);
-        publish({ ...snapshot, activeTools, editedFiles });
-        return;
-      }
       publish({ ...snapshot, activeTools });
     },
 
