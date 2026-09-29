@@ -73,6 +73,7 @@ export function registerCommands(pi: ExtensionAPI, skills: Skills, store: StateS
 
 export function registerNativeInput(pi: ExtensionAPI, skills: Skills, store: StateStore): void {
   pi.on('input', async (event, ctx) => {
+    if (event.source === 'extension') return { action: 'continue' };
     const native = event.text.match(/^\/skill:(poteto-mode|setup-pstack)(?:\s+([\s\S]*))?$/);
     if (native) {
       const name = native[1];
