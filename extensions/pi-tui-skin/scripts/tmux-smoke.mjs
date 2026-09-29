@@ -37,7 +37,7 @@ const POLL_MS = 250;
 const STEP_TIMEOUT_MS = 60_000;
 const FUZZ_BUDGET_MS = 90_000;
 
-const IDLE_EXPECT = ['> agent', 'Pi Coding Agent', 'shift+tab to cycle', '/ commands', '@ files', '! shell'];
+const IDLE_EXPECT = ['> agent', 'Pi Coding Agent', 'shift+tab to cycle', 'Plan, search, build anything'];
 const idle = { name: 'idle frame', capture: '01-idle', expect: IDLE_EXPECT, chrome: 'top' };
 const runTools = { kind: 'send', text: 'run tools' };
 const slowTurn = { kind: 'send', text: 'SLOW reply' };
@@ -72,7 +72,7 @@ const SCENARIOS = new Map([
           name: 'cancelled',
           capture: '03-cancelled',
           actions: [keys('Escape')],
-          expect: ['Ask, build, or change anything'],
+          expect: ['Plan, search, build anything'],
           reject: ['TUI_SKIN_REPLY_OK', 'esc to stop'],
           chrome: true,
           check: ({ plain }) => {
@@ -121,7 +121,7 @@ const SCENARIOS = new Map([
         {
           name: 'submitted',
           capture: '04-followup-submitted',
-          expect: ['TUI_SKIN_FOLLOWUP_DONE', '→ Ask, build, or change anything'],
+          expect: ['TUI_SKIN_FOLLOWUP_DONE', '→ Plan, search, build anything'],
           reject: ['esc to stop'],
           chrome: true,
         },
@@ -226,8 +226,8 @@ const SCENARIOS = new Map([
       description: 'a resize keeps the frame intact',
       steps: [
         idle,
-        { name: 'narrow', capture: '02-narrow', actions: [resize(72, 22)], expect: ['Pi Coding Agent', '/ commands'], chrome: 'top' },
-        { name: 'wide', capture: '03-wide', actions: [resize(140, 44)], expect: ['Pi Coding Agent', '@ files'], chrome: 'top' },
+        { name: 'narrow', capture: '02-narrow', actions: [resize(72, 22)], expect: ['Pi Coding Agent', 'shift+tab to cycle'], chrome: 'top' },
+        { name: 'wide', capture: '03-wide', actions: [resize(140, 44)], expect: ['Pi Coding Agent', 'Plan, search, build anything'], chrome: 'top' },
       ],
     },
   ],
@@ -243,7 +243,7 @@ const SCENARIOS = new Map([
     {
       description: 'the skin loads in fullscreen TUI mode',
       fullscreen: true,
-      steps: [{ name: 'fullscreen frame', capture: '01-fullscreen', expect: ['> agent', 'Pi Coding Agent', '/ commands'], chrome: 'top' }],
+      steps: [{ name: 'fullscreen frame', capture: '01-fullscreen', expect: ['> agent', 'Pi Coding Agent', 'shift+tab to cycle'], chrome: 'top' }],
     },
   ],
   ['print-mode', { description: 'non-TUI print mode loads the extension safely', mode: 'print' }],
@@ -265,9 +265,9 @@ const SCENARIOS = new Map([
       description: 'a 40x12 idle frame, a tool row, and the resize back to 110x36',
       steps: [
         idle,
-        { name: 'narrow idle', capture: '02-narrow', actions: [resize(40, 12)], expect: ['> agent', 'Pi Coding Agent', '/ commands'], chrome: true },
+        { name: 'narrow idle', capture: '02-narrow', actions: [resize(40, 12)], expect: ['> agent', 'Pi Coding Agent', 'shift+tab to cycle'], chrome: true },
         { name: 'narrow tool row', capture: '03-narrow-tool', actions: [send('one tool')], expect: ['◇ Read README.md', 'TUI_SKIN_ONE_DONE'], chrome: true },
-        { name: 'restored', capture: '04-restored', actions: [resize(110, 36)], expect: ['Pi Coding Agent', '→ Ask, build, or change anything'], chrome: 'top' },
+        { name: 'restored', capture: '04-restored', actions: [resize(110, 36)], expect: ['Pi Coding Agent', '→ Plan, search, build anything'], chrome: 'top' },
       ],
     },
   ],
@@ -275,7 +275,7 @@ const SCENARIOS = new Map([
     'tiny',
     {
       description: 'a 24x8 idle frame renders its chrome',
-      steps: [idle, { name: 'tiny idle', capture: '02-tiny', actions: [resize(24, 8)], expect: ['/ commands', '→ Ask'], chrome: true }],
+      steps: [idle, { name: 'tiny idle', capture: '02-tiny', actions: [resize(24, 8)], expect: ['→ Plan', 'Medium (shift+tab'], chrome: true }],
     },
   ],
   [
@@ -284,7 +284,7 @@ const SCENARIOS = new Map([
       description: 'a 200x60 idle frame and a tool row',
       steps: [
         idle,
-        { name: 'colossus idle', capture: '02-colossus', actions: [resize(200, 60)], expect: ['Pi Coding Agent', '→ Ask, build, or change anything'], chrome: 'top' },
+        { name: 'colossus idle', capture: '02-colossus', actions: [resize(200, 60)], expect: ['Pi Coding Agent', '→ Plan, search, build anything'], chrome: 'top' },
         { name: 'colossus tool row', capture: '03-colossus-tool', actions: [send('one tool')], expect: ['◇ Read README.md', 'TUI_SKIN_ONE_DONE'], chrome: true },
       ],
     },
@@ -296,9 +296,9 @@ const SCENARIOS = new Map([
       steps: [
         idle,
         { name: 'streaming', capture: '02-storm-streaming', actions: [slowTurn], expect: ['SLOW ', 'esc to stop'], reject: ['TUI_SKIN_REPLY_OK'], chrome: true },
-        { name: 'storm 40x12', capture: '03-storm-40x12', actions: [resize(40, 12)], expect: ['/ commands'], reject: ['Pi Coding Agent'], chrome: true },
+        { name: 'storm 40x12', capture: '03-storm-40x12', actions: [resize(40, 12)], expect: ['shift+tab to cycle'], reject: ['Pi Coding Agent'], chrome: true },
         { name: 'storm 200x60', capture: '04-storm-200x60', actions: [resize(200, 60)], expect: ['Pi Coding Agent'], chrome: 'top' },
-        { name: 'storm 30x6', capture: '05-storm-30x6', actions: [resize(30, 6)], expect: ['/ commands'], reject: ['Pi Coding Agent'], chrome: true },
+        { name: 'storm 30x6', capture: '05-storm-30x6', actions: [resize(30, 6)], expect: ['shift+tab to cycle'], reject: ['Pi Coding Agent'], chrome: true },
         { name: 'storm 110x36', capture: '06-storm-110x36', actions: [resize(110, 36)], expect: ['Pi Coding Agent'], chrome: 'top' },
       ],
     },
@@ -325,7 +325,7 @@ const SCENARIOS = new Map([
             if (!ansiLine.includes('[38;2;224;108;117m')) throw new Error(`Error row is not error red: ${JSON.stringify(ansiLine)}`);
           },
         },
-        { name: 'recovered', capture: '03-error-recovered', expect: ['TUI_SKIN_ERROR_RECOVERED', '→ Ask, build, or change anything'], reject: ['Running', 'esc to stop'], chrome: true },
+        { name: 'recovered', capture: '03-error-recovered', expect: ['TUI_SKIN_ERROR_RECOVERED', '→ Plan, search, build anything'], reject: ['Running', 'esc to stop'], chrome: true },
       ],
     },
   ],
@@ -343,22 +343,21 @@ const SCENARIOS = new Map([
           reject: ['TUI_SKIN_SLOW_DONE'],
           chrome: true,
           check: ({ ansi }) => {
-            const ruleRow = (ansi ?? '').split('\n').find((line) => stripAnsi(line).includes(' esc to stop'));
-            if (ruleRow === undefined) throw new Error('running editor has no "esc to stop" border');
-            if (!ruleRow.includes('[38;2;108;91;157m')) throw new Error(`running border is not borderAccent: ${JSON.stringify(ruleRow)}`);
+            const row = (ansi ?? '').split('\n').find((line) => stripAnsi(line).includes('esc to stop'));
+            if (row === undefined) throw new Error('running editor has no "esc to stop" hint');
           },
         },
         {
           name: 'aborted',
           capture: '03-aborted',
           actions: [keys('Escape')],
-          expect: ['→ Ask, build, or change anything'],
+          expect: ['→ Plan, search, build anything'],
           reject: ['Running sleep 4', 'esc to stop'],
           chrome: true,
           check: ({ ansi }) => {
-            const ruleRow = (ansi ?? '').split('\n').find((line) => line.includes('────'));
-            if (ruleRow === undefined) throw new Error('no editor rule row after abort');
-            if (!ruleRow.includes('[38;2;62;208;122m')) throw new Error(`idle border is not success green: ${JSON.stringify(ruleRow)}`);
+            const bandRow = (ansi ?? '').split('\n').find((line) => stripAnsi(line).includes('▄▄▄'));
+            if (bandRow === undefined) throw new Error('no composer band row after abort');
+            if (!bandRow.includes('[38;2;21;21;21m')) throw new Error(`composer band is not the fill role: ${JSON.stringify(bandRow)}`);
           },
         },
       ],
@@ -424,7 +423,7 @@ const SCENARIOS = new Map([
       steps: [
         idle,
         { name: 'picker open', capture: '02-model-picker', actions: [send('/model')], expect: ['Reference UI Scripted'], chrome: true },
-        { name: 'picker closed', capture: '03-model-closed', actions: [keys('Escape')], expect: ['> agent', 'Pi Coding Agent', '→ Ask, build, or change anything'], chrome: 'top' },
+        { name: 'picker closed', capture: '03-model-closed', actions: [keys('Escape')], expect: ['> agent', 'Pi Coding Agent', '→ Plan, search, build anything'], chrome: 'top' },
       ],
     },
   ],
@@ -435,7 +434,7 @@ const SCENARIOS = new Map([
       steps: [
         idle,
         { name: 'picker open', capture: '02-theme-picker', actions: [send('/theme')], expect: ['tui-skin'], chrome: true },
-        { name: 'picker closed', capture: '03-theme-closed', actions: [keys('Escape')], expect: ['> agent', 'Pi Coding Agent', '→ Ask, build, or change anything'], chrome: 'top' },
+        { name: 'picker closed', capture: '03-theme-closed', actions: [keys('Escape')], expect: ['> agent', 'Pi Coding Agent', '→ Plan, search, build anything'], chrome: 'top' },
       ],
     },
   ],
@@ -446,7 +445,7 @@ const SCENARIOS = new Map([
       steps: [
         idle,
         { name: 'prompted', capture: '02-compact-prompt', actions: [send('say hello')], expect: ['TUI_SKIN_REPLY_OK'], chrome: true },
-        { name: 'compacted', capture: '03-compacted', actions: [send('/compact')], expect: ['> agent', 'Pi Coding Agent', '→ Ask, build, or change anything'], chrome: true, reject: ['TypeError', 'Unhandled'] },
+        { name: 'compacted', capture: '03-compacted', actions: [send('/compact')], expect: ['> agent', 'Pi Coding Agent', '→ Plan, search, build anything'], chrome: true, reject: ['TypeError', 'Unhandled'] },
       ],
     },
   ],
@@ -518,7 +517,7 @@ const SCENARIOS = new Map([
     {
       description: 'NO_COLOR renders the frame with no escape leak',
       env: { NO_COLOR: '1' },
-      steps: [idle, { name: 'no color idle', capture: '02-no-color', expect: ['Pi Coding Agent', '→ Ask, build, or change anything'], chrome: true }],
+      steps: [idle, { name: 'no color idle', capture: '02-no-color', expect: ['Pi Coding Agent', '→ Plan, search, build anything'], chrome: true }],
     },
   ],
   [
@@ -526,7 +525,7 @@ const SCENARIOS = new Map([
     {
       description: 'TERM=tmux-256color renders the same frame',
       env: { TERM: 'tmux-256color' },
-      steps: [idle, { name: 'term 256 idle', capture: '02-term-256', expect: ['> agent', 'Pi Coding Agent', '→ Ask, build, or change anything'], chrome: true }],
+      steps: [idle, { name: 'term 256 idle', capture: '02-term-256', expect: ['> agent', 'Pi Coding Agent', '→ Plan, search, build anything'], chrome: true }],
     },
   ],
   [
@@ -534,7 +533,7 @@ const SCENARIOS = new Map([
     {
       description: 'a cwd outside git renders the frame',
       git: false,
-      steps: [idle, { name: 'non-git idle', capture: '02-non-git', expect: ['Pi Coding Agent', '→ Ask, build, or change anything'], chrome: true }],
+      steps: [idle, { name: 'non-git idle', capture: '02-non-git', expect: ['Pi Coding Agent', '→ Plan, search, build anything'], chrome: true }],
     },
   ],
   [
@@ -591,11 +590,11 @@ const SCENARIOS = new Map([
           name: 'bash mode',
           capture: '02-bash-mode',
           actions: [{ kind: 'type', text: '!' }],
-          expect: ['Pi Coding Agent', '! shell'],
+          expect: ['Pi Coding Agent', 'shift+tab to cycle'],
           chrome: true,
           check: ({ plain }) => {
-            const editor = editorBlock(plain);
-            if (!editor.some((line) => line.trim() === '!')) throw new Error(`editor did not enter bash mode: ${JSON.stringify(editor)}`);
+            const editor = editorBlock(plain).map((line) => line.trim());
+            if (!editor.includes('!')) throw new Error(`editor did not enter bash mode: ${JSON.stringify(editor)}`);
           },
         },
       ],
@@ -669,7 +668,7 @@ const SCENARIOS = new Map([
         {
           name: 'turn finished',
           capture: '04-reload-mid-done',
-          expect: ['TUI_SKIN_SLOW_DONE', '→ Ask, build, or change anything'],
+          expect: ['TUI_SKIN_SLOW_DONE', '→ Plan, search, build anything'],
           chrome: 'top',
           check: ({ plain }) => {
             const lines = plain.split('\n');
@@ -894,8 +893,18 @@ function footerLine(text) {
   return lines[lines.length - 3] ?? '';
 }
 
+/** A composer band row: one column of margin each side, then half-block glyphs. */
+function isBandRow(line) {
+  // tmux trims the trailing margin column, so only the leading margin is required.
+  if (line.length < 6 || !line.startsWith(' ')) return false;
+  const body = line.slice(1, -1).replace(/(Working|[↑↓] \d+ more)/g, '');
+  if (!/^[▄▀ •·]*$/.test(body)) return false;
+  return (body.match(/[▄▀]/g) ?? []).length >= 4;
+}
+
+/** A composer band row, or Pi's own borderless transcript rule where one belongs. */
 function isRuleRow(line) {
-  return /^─+$/.test(line) || /^─+ esc to stop$/.test(line);
+  return isBandRow(line) || /^─{6,}$/.test(line.trim());
 }
 
 function stripAnsi(text) {

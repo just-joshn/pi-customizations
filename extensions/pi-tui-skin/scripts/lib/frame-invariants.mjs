@@ -28,9 +28,11 @@
  *   capture, which means the pane was not stripped.
  * - `double-header` rejects a second `Pi Coding Agent` header, the signature of
  *   a failed `/reload`.
- * - `hint-flush-right` requires the `shift+tab to cycle` footer line to fill
- *   exactly `cols` visible columns. The left-aligned hints line is deliberately
- *   unpadded and is excluded from every check.
+ * - `mode-line-left-aligned` requires the `shift+tab to cycle` mode line to be
+ *   `  <label> (shift+tab to cycle)` with the footer's two-column indent and
+ *   no trailing padding, which is how the reference draws it.
+ * - `prompt-band` requires a `▄` band above the composer with a `▀` band below
+ *   it, one column of margin on each side and on every row between them.
  * - `footer-position` requires the footer hint line within the last three
  *   non-empty pane rows and an editor rule row within the last five, which
  *   catches a layout shift or a wrap.
@@ -93,9 +95,7 @@ function charWidth(codePoint) {
 const CRASH_TOKENS = ['PI-EXITED-', 'TypeError', 'ReferenceError', 'SyntaxError', 'Cannot read propert', 'undefined is not', '[object Object]', 'NaN', 'Unhandled'];
 const STACK_FRAME = '    at ';
 const HINT_LITERAL = 'shift+tab to cycle';
-const HINTS_LITERAL = '/ commands';
 const HEADER_LITERAL = 'Pi Coding Agent';
-const PLACEHOLDERS = new Set(['→ Ask, build, or change anything', '→ Add a follow-up']);
 
 function lines(text) {
   return String(text ?? '').split('\n');
@@ -117,19 +117,33 @@ function skip(invariant, reason) {
 export function modalOpen(plain) {
   return lines(plain).some((line) => {
     const trimmed = line.trim();
-    if (trimmed === '' || PLACEHOLDERS.has(trimmed)) return false;
+    if (trimmed === '') return false;
+    // Every composer placeholder starts with the prompt glyph.
+    if (trimmed.startsWith('→ ')) return false;
     if (/\(\d+\/\d+\)/.test(trimmed)) return true;
     return /^[→›❯]/.test(trimmed) && / {2,}/.test(trimmed);
   });
 }
 
-/**
- * An editor border row: a bare rule, Pi's centered `↓ N more` label, the skin's
- * `esc to stop` hint, or a combination of the last two. Any other label shape is
- * left unrecognized so the dependent checks report a skip instead of a pass.
- */
-function isEditorRule(line) {
-  return /^─+(?: ↓ \d+ more ─+)?(?: esc to stop)?$/.test(line);
+/** Labels the skin and Pi place inside a band row. */
+const RULE_LABELS = /(Working|[↑↓] \d+ more)/g;
+
+/** A band row: one column of margin each side, then block glyphs in between. */
+function isBandRow(line) {
+  // tmux trims the trailing margin column, so only the leading margin is required.
+  if (line.length < 6 || !line.startsWith(' ')) return false;
+  const body = line.slice(1, -1).replace(RULE_LABELS, '');
+  if (!/^[▄▀ •·]*$/.test(body)) return false;
+  return (body.match(/[▄▀]/g) ?? []).length >= 4;
+}
+
+/** The block glyphs a band row carries, ignoring any label. */
+function bandGlyphs(line) {
+  return new Set(line.slice(1, -1).replace(RULE_LABELS, '').match(/[▄▀]/g) ?? []);
+}
+
+function isEditorRow(line) {
+  return isBandRow(line) || (line.length >= 2 && line.startsWith(' '));
 }
 
 function hasSgrColor(line) {
@@ -137,7 +151,7 @@ function hasSgrColor(line) {
 }
 
 /** Every invariant name this module can evaluate. */
-export const ALL_INVARIANTS = ['overflow', 'crash-marker', 'footer-missing', 'header-missing', 'orphan-row', 'escape-leak', 'double-header', 'hint-flush-right', 'footer-position', 'color-missing'];
+export const ALL_INVARIANTS = ['overflow', 'crash-marker', 'footer-missing', 'header-missing', 'orphan-row', 'escape-leak', 'double-header', 'mode-line-left-aligned', 'prompt-band', 'footer-position', 'color-missing'];
 
 /**
  * Check one captured frame.
@@ -179,8 +193,15 @@ export function checkFrame(frame) {
   // footer-missing
   if (!expectChrome) results.push(skip('footer-missing', 'frame not marked expectChrome'));
   else if (modal) results.push(skip('footer-missing', 'modal menu open'));
-  else if (!paneLines.some((line) => line.includes(HINTS_LITERAL))) {
-    results.push(finding('footer-missing', `footer hint ${quote(HINTS_LITERAL)} is absent`, paneLines[paneLines.length - 1] ?? '', paneLines.length - 1));
+  else {
+    // The footer is whatever Pi draws below the composer, so a band row with
+    // nothing but blanks under it is a missing footer at any pane width.
+    const bands = paneLines.flatMap((line, index) => (isBandRow(line) ? [index] : []));
+    const lastBand = bands[bands.length - 1];
+    if (lastBand === undefined) results.push(skip('footer-missing', 'no composer band row in frame'));
+    else if (!paneLines.slice(lastBand + 1).some((line) => line.trim() !== '')) {
+      results.push(finding('footer-missing', 'nothing renders below the composer', paneLines[lastBand], lastBand));
+    }
   }
 
   // header-missing
@@ -209,14 +230,33 @@ export function checkFrame(frame) {
   const headers = paneLines.flatMap((line, index) => (line.includes(HEADER_LITERAL) ? [index] : []));
   if (headers.length > 1) results.push(finding('double-header', `header appears ${headers.length} times`, paneLines[headers[1]] ?? '', headers[1]));
 
-  // hint-flush-right
+  // mode-line-left-aligned: the reference keeps the cycle hint in parentheses
+  // on the mode line itself and left-aligns it. Only `esc to stop` is ever
+  // right-aligned, and it sits on the composer's input row.
   const hintRows = paneLines.flatMap((line, index) => (line.includes(HINT_LITERAL) ? [index] : []));
-  if (hintRows.length === 0) results.push(skip('hint-flush-right', `no line contains ${quote(HINT_LITERAL)}`));
+  if (hintRows.length === 0) results.push(skip('mode-line-left-aligned', `no line contains ${quote(HINT_LITERAL)}`));
   else {
     for (const index of hintRows) {
-      const width = visibleWidth(paneLines[index]);
-      if (Number.isFinite(cols) && width !== cols) results.push(finding('hint-flush-right', `visible width ${width} is not cols ${cols}`, paneLines[index], index));
+      const line = paneLines[index];
+      if (!/^ {2}\S.* \(shift\+tab to cycle\)$/.test(line.trimEnd())) results.push(finding('mode-line-left-aligned', 'mode line is not `  <label> (shift+tab to cycle)`', line, index));
     }
+  }
+
+  // prompt-band: the composer is a `▄` band above the input and a `▀` band
+  // below, one column of margin each side. Only the composer draws those
+  // glyphs, so the bands are unambiguous; when none are present the composer is
+  // either off screen or replaced by a picker.
+  const bandRows = paneLines.flatMap((line, index) => (isBandRow(line) ? [index] : []));
+  if (bandRows.length < 2) results.push(skip('prompt-band', `${bandRows.length} band rows in frame`));
+  else if (modal) results.push(skip('prompt-band', 'modal menu open'));
+  else {
+    const [topIndex, bottomIndex] = bandRows.slice(-2);
+    const topGlyphs = bandGlyphs(paneLines[topIndex]);
+    const bottomGlyphs = bandGlyphs(paneLines[bottomIndex]);
+    if (!topGlyphs.has('▄') || topGlyphs.has('▀')) results.push(finding('prompt-band', 'top band is not a `▄` row', paneLines[topIndex], topIndex));
+    if (!bottomGlyphs.has('▀') || bottomGlyphs.has('▄')) results.push(finding('prompt-band', 'bottom band is not a `▀` row', paneLines[bottomIndex], bottomIndex));
+    const unframed = paneLines.slice(topIndex + 1, bottomIndex).filter((line) => line.trim() !== '' && !isEditorRow(line));
+    if (unframed.length > 0) results.push(finding('prompt-band', 'a row inside the band has no side margin', unframed[0], paneLines.indexOf(unframed[0])));
   }
 
   // footer-position
@@ -224,22 +264,22 @@ export function checkFrame(frame) {
   else if (modal) results.push(skip('footer-position', 'modal menu open'));
   else {
     const lastThree = new Set(nonEmpty.slice(-3));
-    const lastFive = new Set(nonEmpty.slice(-5));
+    const lastSix = new Set(nonEmpty.slice(-6));
     if (hintRows.length === 0) results.push(skip('footer-position', `no line contains ${quote(HINT_LITERAL)}`));
     else if (!hintRows.some((index) => lastThree.has(index))) results.push(finding('footer-position', `footer hint is not within the last 3 non-empty rows (${nonEmpty.slice(-3).join(', ')})`, paneLines[hintRows[0]], hintRows[0]));
-    const ruleRow = paneLines.findIndex((line) => isEditorRule(line));
-    if (ruleRow === -1) results.push(skip('footer-position', 'no editor rule row in frame'));
-    else if (!paneLines.some((line, index) => isEditorRule(line) && lastFive.has(index)))
-      results.push(finding('footer-position', `editor rule row is not within the last 5 non-empty rows (${nonEmpty.slice(-5).join(', ')})`, paneLines[ruleRow], ruleRow));
+    const bandRow = paneLines.findIndex((line) => isBandRow(line));
+    if (bandRow === -1) results.push(skip('footer-position', 'no editor band row in frame'));
+    else if (!paneLines.some((line, index) => isBandRow(line) && lastSix.has(index)))
+      results.push(finding('footer-position', `editor band row is not within the last 6 non-empty rows (${nonEmpty.slice(-6).join(', ')})`, paneLines[bandRow], bandRow));
   }
 
   // color-missing
-  const topRule = paneLines.findIndex((line) => isEditorRule(line));
+  const topRule = paneLines.findIndex((line) => isBandRow(line));
   if (ansi === undefined || ansi === null) results.push(skip('color-missing', 'no ANSI capture'));
-  else if (topRule === -1) results.push(skip('color-missing', 'no editor rule row in frame'));
+  else if (topRule === -1) results.push(skip('color-missing', 'no editor band row in frame'));
   else {
     const ansiLine = lines(ansi)[topRule] ?? '';
-    if (!hasSgrColor(ansiLine)) results.push(finding('color-missing', 'editor top rule row carries no SGR color', paneLines[topRule], topRule));
+    if (!hasSgrColor(ansiLine)) results.push(finding('color-missing', 'editor band row carries no SGR color', paneLines[topRule], topRule));
   }
 
   return results;
@@ -261,47 +301,49 @@ export function splitFrameResults(results) {
   return { findings, skips };
 }
 
-const RULE = '─'.repeat(36);
-const CLEAN_FRAME = [
-  '> agent',
-  'Pi Coding Agent',
-  '/tmp/workspace',
-  '',
-  RULE,
-  '→ Ask, build, or change anything',
-  RULE,
-  `● Medium${' '.repeat(9)}shift+tab to cycle`,
-  'Reference UI Scripted · 0%       smoke-main',
-  '/ commands · @ files · ! shell',
-].join('\n');
+const BAND_COLS = 48;
+const TOP_BAND = ` ${'▄'.repeat(BAND_COLS - 2)} `;
+const BOTTOM_BAND = ` ${'▀'.repeat(BAND_COLS - 2)} `;
+const INPUT_ROW = '  → Plan, search, build anything';
+
+const CLEAN_FRAME = ['> agent', 'Pi Coding Agent', '/tmp/workspace', '', TOP_BAND, INPUT_ROW, BOTTOM_BAND, '  Medium (shift+tab to cycle)', 'Reference UI Scripted · 0%', '~/workspace · main'].join('\n');
 
 const WIDE_FRAME = ['> agent', 'Pi Coding Agent', 'x'.repeat(40)].join('\n');
 
 const CRASH_FRAME = ['> agent', 'Pi Coding Agent', '', 'TypeError: cannot read properties of undefined', '    at render (src/ui/header.ts:14:9)'].join('\n');
 
-const NO_CHROME_FRAME = ['> agent', '', RULE, '→ Ask, build, or change anything', RULE].join('\n');
+const NO_CHROME_FRAME = ['> agent', '', TOP_BAND, INPUT_ROW, BOTTOM_BAND].join('\n');
 
 const NO_HEADER_FRAME = CLEAN_FRAME.replace('Pi Coding Agent\n', '');
 
-const ORPHAN_FRAME = ['Pi Coding Agent', '◇', '', '/ commands · @ files · ! shell'].join('\n');
+const ORPHAN_FRAME = ['Pi Coding Agent', '◇', '', '~/workspace'].join('\n');
 
-const LEAK_FRAME = ['Pi Coding Agent', `\u001b[38;2;1;2;3mplain leak`, '/ commands · @ files · ! shell'].join('\n');
+const LEAK_FRAME = ['Pi Coding Agent', `\u001b[38;2;1;2;3mplain leak`, '~/workspace'].join('\n');
 
-/** Build a realistic ANSI capture: rule rows carry the idle green SGR. */
+const RIGHT_ALIGNED_MODE_FRAME = CLEAN_FRAME.replace('  Medium (shift+tab to cycle)', `${' '.repeat(60)}Medium (shift+tab to cycle)`);
+
+const BARE_MODE_FRAME = CLEAN_FRAME.replace('  Medium (shift+tab to cycle)', '● Medium         shift+tab to cycle');
+
+const OPEN_BAND_FRAME = CLEAN_FRAME.replace(TOP_BAND, ` ${'▀'.repeat(BAND_COLS - 2)} `);
+
+const WORKING_STATUS_FRAME = CLEAN_FRAME.replace(TOP_BAND, ` ▄ ▄ Working ${'▄'.repeat(BAND_COLS - 14)} `);
+
+const TRANSCRIPT_RULE_FRAME = ['> agent', 'Pi Coding Agent', '─'.repeat(BAND_COLS), 'free text', ...CLEAN_FRAME.split('\n').slice(4)].join('\n');
+
+const UNFRAMED_ROW_FRAME = CLEAN_FRAME.replace(INPUT_ROW, INPUT_ROW.trimStart());
+
+/** Build a realistic ANSI capture: band rows carry the composer fill SGR. */
 function ansiFor(plain) {
   return lines(plain)
-    .map((line) => (isEditorRule(line) ? `${ESC}[38;2;62;208;122m${line}${ESC}[39m` : line))
+    .map((line) => (isBandRow(line) ? `${ESC}[38;2;21;21;21m${line}${ESC}[39m` : line))
     .join('\n');
 }
 
 function frame(plain, overrides = {}) {
   const cols = overrides.cols ?? 48;
+  // A tmux capture always pads every row out to the pane width.
   const fitted = lines(plain)
-    .map((line) => {
-      if (!line.includes(HINT_LITERAL)) return line;
-      const width = visibleWidth(line);
-      return width >= cols ? line : line + ' '.repeat(cols - width);
-    })
+    .map((line) => (visibleWidth(line) >= cols ? line : line + ' '.repeat(cols - visibleWidth(line))))
     .join('\n');
   return { plain: fitted, ansi: ansiFor(fitted), cols, rows: lines(fitted).length, paneClipped: false, ...overrides };
 }
@@ -315,6 +357,12 @@ const FIXTURES = [
   { name: 'scrolled frame with footer passes', frame: frame(NO_HEADER_FRAME, { expectChrome: true }), findings: [] },
   { name: 'orphan row', frame: frame(ORPHAN_FRAME, { paneClipped: false }), findings: ['orphan-row'] },
   { name: 'escape leak', frame: frame(LEAK_FRAME, { paneClipped: false }), findings: ['escape-leak'] },
+  { name: 'right-aligned mode line', frame: frame(RIGHT_ALIGNED_MODE_FRAME, { paneClipped: false }), findings: ['mode-line-left-aligned', 'overflow'] },
+  { name: 'bare mode line', frame: frame(BARE_MODE_FRAME), findings: ['mode-line-left-aligned'] },
+  { name: 'open band', frame: frame(OPEN_BAND_FRAME), findings: ['prompt-band'] },
+  { name: 'working status label in the top band', frame: frame(WORKING_STATUS_FRAME, { expectChrome: true }), findings: [] },
+  { name: 'pi transcript rule above the band', frame: frame(TRANSCRIPT_RULE_FRAME, { expectChrome: true }), findings: [] },
+  { name: 'unframed row inside the band', frame: frame(UNFRAMED_ROW_FRAME), findings: ['prompt-band'] },
   { name: 'pane-clipped overflow is skipped', frame: frame(CLEAN_FRAME, { paneClipped: true }), findings: [], skips: ['overflow'] },
 ];
 
