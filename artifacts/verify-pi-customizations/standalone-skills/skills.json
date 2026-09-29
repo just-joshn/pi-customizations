@@ -53,5 +53,305 @@
       "scope": "temporary",
       "origin": "top-level"
     }
+  },
+  {
+    "name": "skill:benchmarking",
+    "description": "Benchmark commands and verify performance changes with hyperfine. Use for before/after performance comparisons, command benchmarks, parameter sweeps, or investigating performance regressions.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/benchmarking/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:bruno-ci-setup",
+    "description": "create and review ci/cd automation for bruno api tests. use when a user asks to run bruno collections in github actions, gitlab ci, jenkins, azure pipelines, bitbucket, kubernetes, or other pipelines; set up the official bruno github action or the official bruno cli docker image; generate junit, json, or html reports; configure environments, tags, secrets, safe mode, developer sandbox mode, workspace paths, or pull request api-test gates for bruno collections.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/bruno-ci-setup/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:bruno-collection-generator",
+    "description": "generate bruno api collections, request files, environments, and request documentation from backend source code, route definitions, openapi snippets, pasted api docs, curl commands, or endpoint lists. use when a user asks to create, scaffold, convert, organize, or improve bruno collections, opencollection yaml files, .bru files, folders, request docs, request metadata, environments, or api-client collections for bruno.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/bruno-collection-generator/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:bruno-test-writer",
+    "description": "write, review, and improve bruno api tests, assertions, pre-request scripts, post-response scripts, request chaining, schema checks, response visualizers, and edge-case coverage. use when working with bruno collections, opencollection yaml, .bru files, bruno runtime scripts, chai expect tests, request variables, environment variables, response validation, or api regression testing.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/bruno-test-writer/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:disk-usage",
+    "description": "Investigate filesystem disk usage with dust. Use when finding large directories/files, diagnosing disk consumption, or producing structured disk-usage data.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/disk-usage/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:file-search",
+    "description": "Search repository contents and filesystem paths using ripgrep (rg) and fd. Use when locating symbols, references, text, files, directories, configs, or narrowing files before inspection or editing.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/file-search/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:find-docs",
+    "description": "Retrieves up-to-date documentation, API references, and code examples for any developer technology. Use this skill whenever the user asks about a specific library, framework, SDK, CLI tool, or cloud service — even for well-known ones like React, Next.js, Prisma, Express, Tailwind, Django, or Spring Boot. Your training data may not reflect recent API changes or version updates.\nAlways use for: API syntax questions, configuration options, version migration issues, \"how do I\" questions mentioning a library name, debugging that involves library-specific behavior, setup instructions, and CLI tool usage.\nUse even when you think you know the answer — do not rely on training data for API details, signatures, or configuration options as they are frequently outdated. Always verify against current docs. Prefer this over web search for library documentation and API details.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/find-docs/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:gh",
+    "description": "Patterns for invoking the GitHub CLI (gh) from agents. Covers structured output, pagination, repo targeting, search vs list, gh api fallback.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/gh/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:gh-stack",
+    "description": "Manages stacked PRs and splits multi-part work into reviewable branches with gh-stack. Use for stack creation, viewing, edits, push, submit, sync, rebase, merge, or checkout; when asked to split or isolate work for review; whenever a user mentions a stack, branch layers, dependent PRs, or gh stack; or when a stack is checked out.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/gh-stack/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:git-workflow-and-versioning",
+    "description": "Structures git workflow practices. Use when making any code change. Use when committing, branching, resolving conflicts, opening or reviewing a pull request (PR), pushing to a remote, or when you need to organize work across multiple parallel streams. Use when cutting a release, choosing a semantic version bump, tagging, or writing a changelog.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/git-workflow-and-versioning/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:implementing-secret-scanning-with-gitleaks",
+    "description": "This skill covers implementing Gitleaks for detecting and preventing hardcoded secrets in git repositories. It addresses configuring pre-commit hooks, CI/CD pipeline integration, custom rule authoring for organization-specific secrets, baseline management for existing repositories, and remediation workflows for exposed credentials.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/implementing-secret-scanning-with-gitleaks/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:jq",
+    "description": "Expert jq usage for JSON querying, filtering, transformation, and pipeline integration. Practical patterns for real shell workflows.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/jq/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:orbstack-machines",
+    "description": "Guide for interacting with OrbStack Linux machines via `orb` CLI and SSH. Use when the user needs to: (1) create, manage, or configure OrbStack Linux machines, (2) run commands or scripts inside Linux machines, (3) SSH into machines or set up remote development, (4) transfer files between Mac and Linux, (5) configure networking, port forwarding, or proxies for machines, (6) set up dev environments with specific distros, (7) automate machine provisioning with cloud-init, (8) debug machine connectivity or boot issues. Triggers on: \"orb\", \"orbstack\", \"linux machine\", \"orb create\", \"orb ssh\", \"ssh orb\", \"orb push\", \"orb pull\", \"cloud-init orbstack\".",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/orbstack-machines/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:playwright-best-practices",
+    "description": "Use when writing Playwright tests, fixing flaky tests, debugging failures, implementing Page Object Model, configuring CI/CD, optimizing performance, mocking APIs, handling authentication or OAuth, testing accessibility (axe-core), file uploads/downloads, date/time mocking, WebSockets, geolocation, permissions, multi-tab/popup flows, mobile/responsive layouts, touch gestures, GraphQL, error handling, offline mode, multi-user collaboration, third-party services (payments, email verification), console error monitoring, global setup/teardown, test annotations (skip, fixme, slow), test tags (@smoke, @fast, @critical, filtering with --grep), project dependencies, security testing (XSS, CSRF, auth), performance budgets (Web Vitals, Lighthouse), iframes, component testing, canvas/WebGL, service workers/PWA, test coverage, i18n/localization, Electron apps, or browser extension testing. Covers E2E, component, API, visual, accessibility, security, Electron, and extension testing.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/playwright-best-practices/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:playwright-cli",
+    "description": "Automate browser interactions, test web pages and work with Playwright tests.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/playwright-cli/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:project-runtime",
+    "description": "Inspect and use project runtimes, developer tools, environment configuration, and project tasks through mise. Use when a project contains mise configuration, when choosing runtime/tool versions, or when running declared project tasks.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/project-runtime/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:shellcheck-configuration",
+    "description": "Master ShellCheck static analysis configuration and usage for shell script quality. Use when setting up linting infrastructure, fixing code issues, or ensuring script portability.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/shellcheck-configuration/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:slack-cli",
+    "description": "Use when a developer works with the Slack CLI (slack command) to create, run, or manage a Slack app from the terminal: logging in or authenticating (slack login), adding a team or switching workspaces, running locally (slack run), deploying, editing the app manifest, calling Web API methods (slack api), or searching Slack docs (slack docs search).",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/slack-cli/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:structured-data",
+    "description": "Inspect, query, validate, transform, and update structured data with jq for JSON and Mike Farah yq for YAML/config formats. Use for JSON, YAML, XML, TOML, properties, CSV, and structured configuration work.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/structured-data/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:terminal-inspection",
+    "description": "Inspect and present files, directories, Git diffs, and search results with bat, eza, and delta. Use when human-readable terminal presentation, directory structure/metadata, or enhanced diff rendering is useful.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/terminal-inspection/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg",
+    "description": "Use TWG whenever Atlassian or company context would help: Jira workitems and issues; Confluence pages and PRDs; Bitbucket PRs; project or goal status and launch readiness; owners, SMEs, approvers, or escalation; personal, org, or leadership work rollups and out-of-office catch-ups; dependency maps; code search, repository, or PR discovery; incidents, on-call, or reliability; and deep internal research across connected sources, docs, work, and people.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-confluence",
+    "description": "Use with root `twg` for Confluence content, spaces, hierarchy, authoring, editing, comments, versions, permissions, exports, and CQL. Applies Confluence semantics and safe write rules.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-confluence/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-jira",
+    "description": "Use with root `twg` for Jira workitems, similar issue discovery, duplicate detection, projects, boards, sprints, fields, transitions, comments, links, and administration. Applies Jira semantics and safe mutation rules.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-jira/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-jira-resolve-merged-work",
+    "description": "Clean up stale or unresolved Jira workitems. Dry-run single items, lists, boards, sprints, epics, or projects by matching Jira keys/titles to merged PRs, repos, Rovo/search-code hits, and assignee activity.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-jira-resolve-merged-work/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:uv",
+    "description": "Guide for using uv, the Python package and project manager. Use this when working with Python projects, scripts, packages, or tools.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/uv/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
   }
 ]

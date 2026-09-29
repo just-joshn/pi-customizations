@@ -1,6 +1,6 @@
 # pi-tui-parity
 
-TUI parity layer for [pi](https://pi.dev) 0.87.1. Recreates the look and
+TUI parity layer for [pi](https://pi.dev) 0.99.1. Recreates the look and
 behavior of the reference agent CLI studied in the repository audit trail,
 using only pi's official extension mechanisms: a pi package with one
 extension, two themes, and a prompt template.

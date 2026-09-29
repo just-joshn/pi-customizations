@@ -2,7 +2,7 @@ import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import type { ExtensionAPI, ExtensionContext, ExtensionUIContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ExtensionToolContext, ExtensionUIContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { ModelRegistry, ModelRuntime, SessionManager } from '@earendil-works/pi-coding-agent';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { BuiltinName } from '../src/tools/builtins.ts';
@@ -50,7 +50,7 @@ const uiContext: ExtensionUIContext = {
 };
 
 /** The built-ins read `cwd` (all of them) plus `model`, `sessionManager`, and `thinkingLevel` (bash). */
-async function makeContext(cwd: string): Promise<ExtensionContext> {
+async function makeContext(cwd: string): Promise<ExtensionToolContext> {
   return {
     ui: uiContext,
     mode: 'print',
@@ -69,6 +69,10 @@ async function makeContext(cwd: string): Promise<ExtensionContext> {
     getContextUsage: () => undefined,
     compact: () => {},
     getSystemPrompt: () => '',
+    tools: [],
+    executeTool: async () => {
+      throw new Error('executeTool not implemented in test');
+    },
   };
 }
 
@@ -169,10 +173,11 @@ describe('built-in execution equivalence', () => {
     expect(actual.content).toEqual(expected.content);
     expect(actual.details).toEqual(expected.details);
 
-    const originalError = await errorOf(() => original.execute('original-fail', { command: 'exit 3' }, undefined, undefined, ctx));
-    const wrappedError = await errorOf(() => wrapped.execute('wrapped-fail', { command: 'exit 3' }, undefined, undefined, ctx));
-    expect(wrappedError).toContain('Command exited with code 3');
-    expect(wrappedError).toBe(originalError);
+    const originalResult = await original.execute('original-fail', { command: 'exit 3' }, undefined, undefined, ctx);
+    const wrappedResult = await wrapped.execute('wrapped-fail', { command: 'exit 3' }, undefined, undefined, ctx);
+    expect(wrappedResult.isError).toBe(true);
+    expect(JSON.stringify(wrappedResult.content)).toContain('Command exited with code 3');
+    expect(wrappedResult).toEqual(originalResult);
   });
 
   test('bash runs commands in the configured shell', async () => {

@@ -1,6 +1,6 @@
 # pstack for pi
 
-This Pi package ports pstack 0.15.5 and cursor-team-kit 1.2.0 workflows to Pi 0.87.1. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. It does **not** provide 100% behavior parity with Cursor. Required Cursor services and external integrations remain unavailable. Read the [compatibility report](docs/parity.md) before using those workflows.
+This Pi package ports pstack 0.15.5 and cursor-team-kit 1.2.0 workflows to Pi 0.99.1. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. It does **not** provide 100% behavior parity with Cursor. Required Cursor services and external integrations remain unavailable. Read the [compatibility report](docs/parity.md) before using those workflows.
 
 ## Install
 
@@ -26,7 +26,7 @@ Workflow templates obtain the bundled skill path from the extension's host conte
 
 Pi parses template arguments with shell-like quoting and joins them with spaces. Quote characters are delimiters and are removed, so `it's` arrives as `its`. An unpaired quote swallows the rest of the line into the same argument, and unquoted line breaks become spaces. Use `/skill:name` when the request must arrive exactly as typed.
 
-The runtime uses current `@earendil-works` pi packages. Host dependencies are peers. SDK 0.87.1 is the development and verification target. Other versions have not been verified.
+The runtime uses current `@earendil-works` pi packages. Host dependencies are peers. SDK 0.99.1 is the development and verification target. Other versions have not been verified.
 
 ## Team-kit workflows
 
