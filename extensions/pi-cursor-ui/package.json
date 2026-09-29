@@ -14,7 +14,8 @@
     "check:skin": "node scripts/check-skin-boundaries.mjs",
     "check:smoke": "node scripts/tmux-smoke.mjs --all",
     "sweep": "node scripts/ui-sweep.mjs",
-    "sweep:fast": "node scripts/ui-sweep.mjs --fast"
+    "sweep:fast": "node scripts/ui-sweep.mjs --fast",
+    "check:reference": "node scripts/compare-reference.mjs"
   },
   "devDependencies": {
     "@earendil-works/pi-agent-core": "0.87.1",
