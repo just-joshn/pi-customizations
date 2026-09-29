@@ -1,0 +1,34 @@
+cd "/tmp/cc-ref" && /Users/josh-desktop/.local/bin/reference-agent --trust
+
+/tmp/cc-ref via  v24.20.0
+❯ cd "/tmp/cc-ref" && /Users/josh-desktop/.local/bin/reference-agent --trust
+
+
+  Reference Agent
+  v2026.09.28-64d2043
+  Tip: Use /plan to plan execution and reach the right outcome faster.
+
+
+ ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+  → Plan, search, build anything
+ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+  Auto
+  /private/tmp/cc-ref
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
