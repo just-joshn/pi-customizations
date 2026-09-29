@@ -134,9 +134,7 @@ describe('footer rows', () => {
   };
 
   it('renders headline, status row and location row', () => {
-    const state = createState();
-    state.mode = 'plan';
-    state.autoReview = true;
+    const state = createState({ mode: 'plan', autoReview: true });
     const lines = renderFooterRows({ ...base, state });
     expect(lines.length).toBe(3);
     expect(strip(lines[0] ?? '')).toBe('  Plan (shift+tab to cycle)');
@@ -160,8 +158,7 @@ describe('footer rows', () => {
   });
 
   it('right-aligns the right group of row B', () => {
-    const state = createState();
-    state.runEverything = true;
+    const state = createState({ runEverything: true });
     const lines = renderFooterRows({ ...base, state, filesEdited: 0 });
     const rowB = lines[0] ?? '';
     const rightGroup = 'Run Everything · -- INSERT --';

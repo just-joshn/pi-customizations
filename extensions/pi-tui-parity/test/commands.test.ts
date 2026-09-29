@@ -7,7 +7,7 @@ import { VERSION } from '@earendil-works/pi-coding-agent';
 import { describe, expect, it } from 'vitest';
 import { installCommands } from '../src/commands/register.ts';
 import { type CommandEntry, findCommand, helpLines, porcelainFiles, TUI_COMMANDS, totalUsage } from '../src/commands/registry.ts';
-import { createSessionState, type TuiSessionState } from '../src/state.ts';
+import { createSession, type TuiSession } from '../src/state.ts';
 import { makeTheme } from './theme.ts';
 
 const ESC = '\x1b';
@@ -49,12 +49,12 @@ function fakeCtx(opts: { entries?: unknown[]; sessionFile?: string; theme?: Them
   return { ctx, notified, shutdowns };
 }
 
-function captureCommands(state: TuiSessionState): Map<string, RegisteredCommand> {
+function captureCommands(session: TuiSession): Map<string, RegisteredCommand> {
   const commands = new Map<string, RegisteredCommand>();
   const pi = {
     registerCommand: (name: string, options: RegisteredCommand) => commands.set(name, options),
   } as unknown as ExtensionAPI;
-  installCommands(pi, state);
+  installCommands(pi, session);
   return commands;
 }
 
@@ -122,7 +122,7 @@ describe('command registry', () => {
 describe('commands', () => {
   it('/help prints the Commands header, one line per entry, and the hint', async () => {
     const theme = await makeTheme();
-    const state = createSessionState();
+    const state = createSession();
     const fake = fakeCtx({ theme });
     const commands = captureCommands(state);
     await commands.get('help')?.handler('', fake.ctx);
@@ -145,71 +145,71 @@ describe('commands', () => {
   });
 
   it('/run-everything toggles state.runEverything', async () => {
-    const state = createSessionState();
+    const state = createSession();
     const commands = captureCommands(state);
     const first = fakeCtx();
     await commands.get('run-everything')?.handler('', first.ctx);
-    expect(state.runEverything).toBe(true);
+    expect(state.read().runEverything).toBe(true);
     expect(strip(first.notified[0]?.message)).toBe('Run Everything: ON (all commands run without approval)');
     const second = fakeCtx();
     await commands.get('run-everything')?.handler('', second.ctx);
-    expect(state.runEverything).toBe(false);
+    expect(state.read().runEverything).toBe(false);
     expect(strip(second.notified[0]?.message)).toBe('Run Everything: OFF');
   });
 
   it('/auto-review toggles state.autoReview', async () => {
-    const state = createSessionState();
+    const state = createSession();
     const commands = captureCommands(state);
     const fake = fakeCtx();
     await commands.get('auto-review')?.handler('', fake.ctx);
-    expect(state.autoReview).toBe(true);
+    expect(state.read().autoReview).toBe(true);
     expect(fake.notified[0]?.message).toBe('Auto-review: ON');
     await commands.get('auto-review')?.handler('', fake.ctx);
-    expect(state.autoReview).toBe(false);
+    expect(state.read().autoReview).toBe(false);
     expect(fake.notified[1]?.message).toBe('Auto-review: OFF');
   });
 
   it('/plan sets plan mode', async () => {
-    const state = createSessionState();
+    const state = createSession();
     const commands = captureCommands(state);
     const fake = fakeCtx();
     await commands.get('plan')?.handler('', fake.ctx);
-    expect(state.mode).toBe('plan');
+    expect(state.read().mode).toBe('plan');
     expect(fake.notified[0]?.message).toBe('Plan mode enabled');
   });
 
   it('/ask toggles ask mode', async () => {
-    const state = createSessionState();
+    const state = createSession();
     const commands = captureCommands(state);
     const fake = fakeCtx();
     await commands.get('ask')?.handler('', fake.ctx);
-    expect(state.mode).toBe('ask');
+    expect(state.read().mode).toBe('ask');
     expect(fake.notified[0]?.message).toBe('Ask mode enabled');
     await commands.get('ask')?.handler('', fake.ctx);
-    expect(state.mode).toBe('default');
+    expect(state.read().mode).toBe('default');
     expect(fake.notified[1]?.message).toBe('Ask mode disabled');
   });
 
   it('/zen-mode and /vim toggle their state', async () => {
-    const state = createSessionState();
+    const state = createSession();
     const commands = captureCommands(state);
     const fake = fakeCtx();
     await commands.get('zen-mode')?.handler('', fake.ctx);
-    expect(state.compact).toBe(false);
+    expect(state.read().compact).toBe(false);
     expect(fake.notified[0]?.message).toBe('Zen mode: OFF');
     await commands.get('zen-mode')?.handler('', fake.ctx);
-    expect(state.compact).toBe(true);
+    expect(state.read().compact).toBe(true);
     expect(fake.notified[1]?.message).toBe('Zen mode: ON');
     await commands.get('vim')?.handler('', fake.ctx);
-    expect(state.vim).toBe('normal');
+    expect(state.read().vim).toBe('normal');
     expect(fake.notified[2]?.message).toBe('Vim keys: ON');
     await commands.get('vim')?.handler('', fake.ctx);
-    expect(state.vim).toBe('insert');
+    expect(state.read().vim).toBe('insert');
     expect(fake.notified[3]?.message).toBe('Vim keys: OFF');
   });
 
   it('/about reports the pi version, model, provider, and session', async () => {
-    const commands = captureCommands(createSessionState());
+    const commands = captureCommands(createSession());
     const fake = fakeCtx({ sessionFile: '/tmp/.pi/sessions/a.jsonl' });
     await commands.get('about')?.handler('', fake.ctx);
     expect(fake.notified[0]?.message.split('\n')).toEqual([`pi v${VERSION}`, 'Model: claude-opus-5-5-max', 'Provider: anthropic', 'Session: /tmp/.pi/sessions/a.jsonl']);
@@ -217,14 +217,14 @@ describe('commands', () => {
 
   it('/jobs reports no active tasks', async () => {
     const theme = await makeTheme();
-    const commands = captureCommands(createSessionState());
+    const commands = captureCommands(createSession());
     const fake = fakeCtx({ theme });
     await commands.get('jobs')?.handler('', fake.ctx);
     expect(strip(fake.notified[0]?.message)).toBe('No active tasks');
   });
 
   it('/changes reports a git failure when the cwd is missing', async () => {
-    const commands = captureCommands(createSessionState());
+    const commands = captureCommands(createSession());
     const fake = fakeCtx({ cwd: join(tmpdir(), `pi-tui-parity-missing-${randomUUID()}`) });
     await commands.get('changes')?.handler('', fake.ctx);
     expect(fake.notified[0]?.type).toBe('error');
@@ -232,14 +232,14 @@ describe('commands', () => {
   });
 
   it('/exit shuts pi down', async () => {
-    const commands = captureCommands(createSessionState());
+    const commands = captureCommands(createSession());
     const fake = fakeCtx();
     await commands.get('exit')?.handler('', fake.ctx);
     expect(fake.shutdowns.length).toBe(1);
   });
 
   it('/usage totals assistant usage from the branch', async () => {
-    const state = createSessionState();
+    const state = createSession();
     const entries = [
       { type: 'message', message: { role: 'assistant', usage: { input: 10, output: 5, cost: { total: 0.5 } } } },
       { type: 'message', message: { role: 'user' } },
@@ -251,7 +251,7 @@ describe('commands', () => {
   });
 
   it('/copy-conversation-id prints the session file or No session', async () => {
-    const state = createSessionState();
+    const state = createSession();
     const commands = captureCommands(state);
     const withFile = fakeCtx({ sessionFile: '/tmp/.pi/sessions/a.jsonl' });
     await commands.get('copy-conversation-id')?.handler('', withFile.ctx);
@@ -262,7 +262,7 @@ describe('commands', () => {
   });
 
   it('installCommands registers exactly the implemented entries with the reference CLI descriptions', () => {
-    const commands = captureCommands(createSessionState());
+    const commands = captureCommands(createSession());
     const implemented = TUI_COMMANDS.filter((c) => c.status === 'implemented' && !c.registeredBy);
     expect(commands.size).toBe(implemented.length);
     expect(commands.get('run-everything')?.description).toBe('Toggle Run Everything (currently …)');

@@ -3,7 +3,7 @@ import { visibleWidth } from '@earendil-works/pi-tui';
 import { describe, expect, it } from 'vitest';
 import { createAllowlist, installDecisionGate, isAllowlisted } from '../src/decisions/gate.ts';
 import { DecisionSurface, decisionTitle, shellOptions, writeOptions } from '../src/decisions/surface.ts';
-import { createSessionState } from '../src/state.ts';
+import { createSession, createSessionState, type TuiSessionState } from '../src/state.ts';
 import { registerTodosTool, sortTodos, todoRows, todoStatusLine } from '../src/tools/todos.ts';
 import { makeTheme } from './theme.ts';
 
@@ -96,18 +96,21 @@ describe('decision gate', () => {
     };
   }
 
-  function gateFor(_ctx: ExtensionContext): { handler: (event: unknown, ctx2: ExtensionContext) => Promise<unknown>; state: ReturnType<typeof createSessionState>; allowlist: ReturnType<typeof createAllowlist> } {
+  function gateFor(
+    _ctx: ExtensionContext,
+    initial: Partial<TuiSessionState> = {},
+  ): { handler: (event: unknown, ctx2: ExtensionContext) => Promise<unknown>; session: ReturnType<typeof createSession>; allowlist: ReturnType<typeof createAllowlist> } {
     let captured: ((event: unknown, ctx: ExtensionContext) => Promise<unknown>) | undefined;
     const pi = {
       on: (event: string, handler: never) => {
         if (event === 'tool_call') captured = handler;
       },
     } as unknown as ExtensionAPI;
-    const state = createSessionState();
+    const session = createSession(createSessionState(initial));
     const allowlist = createAllowlist();
-    installDecisionGate(pi, state, allowlist);
+    installDecisionGate(pi, session, allowlist);
     if (!captured) throw new Error('tool_call handler not captured');
-    return { handler: captured, state, allowlist };
+    return { handler: captured, session, allowlist };
   }
 
   function tuiCtx(uiCustom: ExtensionContext['ui']['custom']): ExtensionContext {
@@ -139,8 +142,7 @@ describe('decision gate', () => {
   it('runEverything bypasses the gate while the same command still asks otherwise', async () => {
     const bypassedOutcomes: unknown[] = [];
     const bypassCtx = tuiCtx(driveVia(['y'], bypassedOutcomes));
-    const bypass = gateFor(bypassCtx);
-    bypass.state.runEverything = true;
+    const bypass = gateFor(bypassCtx, { runEverything: true });
     const bypassed = await bypass.handler({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'anything' } }, bypassCtx);
 
     const gatedOutcomes: unknown[] = [];

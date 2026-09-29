@@ -18,11 +18,11 @@ type EditorCtorArgs = ConstructorParameters<typeof CustomEditor>;
 
 import { COMPOSER_PLACEHOLDERS } from '../constants.ts';
 import { getTokens, paletteBg } from '../palette.ts';
-import { nextMode, type TuiSessionState } from '../state.ts';
+import type { TuiSession, TuiSessionState } from '../state.ts';
 
 export interface ComposerEditorHooks {
   readonly theme: { name?: string; getColorMode(): 'truecolor' | '256color' };
-  readonly state: TuiSessionState;
+  readonly session: TuiSession;
   /** True when the session already has messages, for the follow-up placeholder. */
   readonly hasConversation: () => boolean;
 }
@@ -49,12 +49,12 @@ export class ComposerEditor extends CustomEditor {
   /** Shift+Tab cycles the the reference CLI mode; the runner reserves it for shortcuts. */
   handleInput(data: string): void {
     if (data === '\x1b[Z') {
-      this.hooks.state.mode = nextMode(this.hooks.state.mode);
+      this.hooks.session.dispatch({ type: 'cycleMode' });
       return;
     }
-    if (this.hooks.state.vim === 'normal') {
+    if (this.hooks.session.read().vim === 'normal') {
       if (data === 'i' || data === 'a') {
-        this.hooks.state.vim = 'insert';
+        this.hooks.session.dispatch({ type: 'setVim', vim: 'insert' });
         return;
       }
       const map: Record<string, string> = { h: '\x1b[D', j: '\x1b[B', k: '\x1b[A', l: '\x1b[C' };
@@ -68,7 +68,7 @@ export class ComposerEditor extends CustomEditor {
       return;
     }
     if (data === '\x1b' && this.getText().length === 0) {
-      this.hooks.state.vim = 'normal';
+      this.hooks.session.dispatch({ type: 'setVim', vim: 'normal' });
       return;
     }
     super.handleInput(data);
@@ -93,7 +93,7 @@ export class ComposerEditor extends CustomEditor {
     const placeholder = composerPlaceholder(this.hooks.hasConversation());
     const first = placeholder.slice(0, 1);
     const rest = placeholder.slice(1);
-    const glyph = composerGlyph(this.hooks.state);
+    const glyph = composerGlyph(this.hooks.session.read());
     const content = ` ${glyph.glyph} ${CURSOR_MARKER}\x1b[7m${first}\x1b[0m\x1b[2m${rest}\x1b[0m `;
     const pad = width - 1 - placeholder.length - 4;
     const padded = pad > 0 ? content + ' '.repeat(pad) : content;

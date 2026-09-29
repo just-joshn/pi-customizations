@@ -7,22 +7,22 @@ import { createAllowlist, installDecisionGate } from './decisions/gate.ts';
 import { installEditor } from './editor/install.ts';
 import { installNotifications } from './notify/osc.ts';
 import { installPagers } from './pagers/pagers.ts';
-import { createSessionState } from './state.ts';
+import { createSession } from './state.ts';
 import { registerToolRenderers } from './tools/renderers.ts';
 import { registerTodosTool } from './tools/todos.ts';
 import { installRuleWizard } from './wizard/rule.ts';
 
 export default function (pi: ExtensionAPI) {
-  const state = createSessionState();
+  const session = createSession();
   const allowlist = createAllowlist();
   installHeader(pi);
-  installFooter(pi, state);
+  installFooter(pi, session);
   installWorkingIndicator(pi);
-  installEditor(pi, state);
+  installEditor(pi, session);
   registerToolRenderers(pi);
   registerTodosTool(pi);
-  installDecisionGate(pi, state, allowlist);
-  installCommands(pi, state);
+  installDecisionGate(pi, session, allowlist);
+  installCommands(pi, session);
   installPagers(pi);
   installNotifications(pi);
   installRuleWizard(pi);
