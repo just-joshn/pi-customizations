@@ -12,9 +12,12 @@
  * - grep   -> grepToolCall UI: "pattern" 40-char rule, Found N matches (truncated).
  * - find   -> globToolCall UI: Globbing/Globbed, Found N file(s).
  * - ls     -> lsToolCall UI: Listing/Listed, files/directories note.
+ *
+ * Each tool registers through its own function; TOOL_RENDERER_REGISTRARS drives the
+ * order. Registration order is the reference CLI's tool order and must not change.
  */
 
-import type { ExtensionAPI, Theme } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, Theme, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
 import {
   type BashToolDetails,
   createBashTool,
@@ -30,15 +33,21 @@ import {
   type LsToolDetails,
   type ReadToolDetails,
 } from '@earendil-works/pi-coding-agent';
-import { Text, truncateToWidth } from '@earendil-works/pi-tui';
+import { type Component, Text, truncateToWidth } from '@earendil-works/pi-tui';
 import { CWD_TRUNCATE_WIDTH, EDIT_DIFF_MAX_LINES, MAX_CHARS_PER_LINE, MAX_TOTAL_CHARS, PATH_TRUNCATE_WIDTH, SHELL_EXPANDED_OUTPUT_LINES, SHELL_INPUT_LINES, SHELL_TOOL_OUTPUT_LINES } from '../constants.ts';
 import { basename, cwdRelative, displayPath, lineRange, truncatePatternHead } from '../format.ts';
 import { getTokens, paletteFg } from '../palette.ts';
 import { countNewLines, diffCounts, editDiffBlock, ensureState, invalidateOnce, measureDuration, renderTextBlock, seedState, statefulCallRow, type ToolRenderContextLike, truncateStart } from './ui.ts';
 
-type AnyToolRenderContext = ToolRenderContextLike;
+/** Shared per-registration state: the working directory and each bash call's start time. */
+interface RendererDeps {
+  cwd: string;
+  starts: Map<string, number>;
+}
 
-function outputText(result: { content: { type: string; text?: string }[] }): string {
+type ToolResultLike = { content: { type: string; text?: string }[]; details?: unknown };
+
+function outputText(result: ToolResultLike): string {
   const first = result.content[0];
   return first && first.type === 'text' && typeof first.text === 'string' ? first.text : '';
 }
@@ -56,67 +65,66 @@ function collapsedWithHint(lines: string[], visible: number, theme: Theme): stri
   return shown;
 }
 
-export function registerToolRenderers(pi: ExtensionAPI): void {
-  const cwd = process.cwd();
-  const starts = new Map<string, number>();
+function renderBashResult(result: ToolResultLike, options: ToolRenderResultOptions, theme: Theme, context: ToolRenderContextLike, starts: Map<string, number>): Component {
+  const c = context;
+  const raw = outputText(result);
+  const exit = exitCodeOf(raw);
+  const output = raw.replace(/\n?exit code: \d+$/, '');
+  const outputLines = output.length > 0 ? output.split('\n') : [];
+  const start = starts.get(c.toolCallId);
+  const dur = start === undefined ? '' : measureDuration(start);
+  const suffix = exit !== undefined && exit !== 0 ? `exit ${exit}${dur ? ` • ${dur}` : ''}` : dur;
+  const command = String((c.args as { command?: string })?.command ?? '');
+  const state0 = ensureState(c);
+  state0.suffix = suffix ? theme.fg('dim', ` ${suffix}`) : undefined;
+  invalidateOnce(c);
+  const rows: string[] = [];
+  let body: string[];
+  if (options.expanded) {
+    body = outputLines.slice(0, SHELL_EXPANDED_OUTPUT_LINES).map((l) => theme.fg('dim', l));
+    const details = result.details as BashToolDetails | undefined;
+    if (details?.truncation?.truncated) {
+      body.push(theme.fg('dim', `Output truncated for display (max ${MAX_CHARS_PER_LINE} chars/line, ${MAX_TOTAL_CHARS} chars total)`));
+    }
+    body.push(theme.fg('dim', 'ctrl+o to collapse'));
+  } else {
+    body = collapsedWithHint(outputLines, SHELL_TOOL_OUTPUT_LINES, theme);
+  }
+  const commandLines = command.split('\n');
+  if (commandLines.length > SHELL_INPUT_LINES && !options.expanded) {
+    rows.push(theme.fg('dim', `… ${commandLines.length - SHELL_INPUT_LINES} input lines hidden`));
+  }
+  return renderTextBlock(c, [...rows, ...body].join('\n'));
+}
 
-  // --- bash -> reference shell UI ---
-  const originalBash = createBashTool(cwd);
+function registerBashRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
+  const originalBash = createBashTool(deps.cwd);
   pi.registerTool({
     name: 'bash',
     label: originalBash.label,
     description: originalBash.description,
     parameters: originalBash.parameters,
     async execute(toolCallId, params, signal, onUpdate) {
-      starts.set(toolCallId, Date.now());
+      deps.starts.set(toolCallId, Date.now());
       return originalBash.execute(toolCallId, params, signal, onUpdate);
     },
     renderCall(args, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       seedState(c, { verb: 'Ran', primary: '', suffix: undefined });
       return {
         invalidate() {},
         render(width: number): string[] {
           const suffix = (c.state as { suffix?: string } | undefined)?.suffix ?? '';
-          return [truncateToWidth(`$ ${args.command}${suffix}${theme.fg('dim', ` in ${displayPath(cwd, c.cwd, CWD_TRUNCATE_WIDTH)}`)}`, width)];
+          return [truncateToWidth(`$ ${args.command}${suffix}${theme.fg('dim', ` in ${displayPath(deps.cwd, c.cwd, CWD_TRUNCATE_WIDTH)}`)}`, width)];
         },
       };
     },
-    renderResult(result, { expanded }, theme, context) {
-      const c = context as AnyToolRenderContext;
-      const raw = outputText(result);
-      const exit = exitCodeOf(raw);
-      const output = raw.replace(/\n?exit code: \d+$/, '');
-      const outputLines = output.length > 0 ? output.split('\n') : [];
-      const start = starts.get(c.toolCallId);
-      const dur = start === undefined ? '' : measureDuration(start);
-      const suffix = exit !== undefined && exit !== 0 ? `exit ${exit}${dur ? ` • ${dur}` : ''}` : dur;
-      const command = String((c.args as { command?: string })?.command ?? '');
-      const state0 = ensureState(c);
-      state0.suffix = suffix ? theme.fg('dim', ` ${suffix}`) : undefined;
-      invalidateOnce(c);
-      const rows: string[] = [];
-      let body: string[];
-      if (expanded) {
-        body = outputLines.slice(0, SHELL_EXPANDED_OUTPUT_LINES).map((l) => theme.fg('dim', l));
-        const details = result.details as BashToolDetails | undefined;
-        if (details?.truncation?.truncated) {
-          body.push(theme.fg('dim', `Output truncated for display (max ${MAX_CHARS_PER_LINE} chars/line, ${MAX_TOTAL_CHARS} chars total)`));
-        }
-        body.push(theme.fg('dim', 'ctrl+o to collapse'));
-      } else {
-        body = collapsedWithHint(outputLines, SHELL_TOOL_OUTPUT_LINES, theme);
-      }
-      const commandLines = command.split('\n');
-      if (commandLines.length > SHELL_INPUT_LINES && !expanded) {
-        rows.push(theme.fg('dim', `… ${commandLines.length - SHELL_INPUT_LINES} input lines hidden`));
-      }
-      return renderTextBlock(c, [...rows, ...body].join('\n'));
-    },
+    renderResult: (result, options, theme, context) => renderBashResult(result, options, theme, context, deps.starts),
   });
+}
 
-  // --- read -> reference read UI ---
-  const originalRead = createReadTool(cwd);
+function registerReadRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
+  const originalRead = createReadTool(deps.cwd);
   pi.registerTool({
     name: 'read',
     label: originalRead.label,
@@ -126,7 +134,7 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return originalRead.execute(toolCallId, params, signal, onUpdate);
     },
     renderCall(args, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       seedState(c, {
         verb: 'Reading',
         primary: truncateStart(String(args.path), 96),
@@ -135,7 +143,7 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return statefulCallRow(c, theme);
     },
     renderResult(result, { isPartial }, _theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       const state0 = ensureState(c);
       const details = result.details as ReadToolDetails | undefined;
       state0.note = [lineRange((Number((c.args as { offset?: number }).offset) || 0) + 1, (c.args as { limit?: number }).limit), details?.truncation?.truncated ? '(truncated)' : undefined].filter(Boolean).join(' ') || undefined;
@@ -148,9 +156,10 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return renderTextBlock(c, '');
     },
   });
+}
 
-  // --- edit -> reference edit UI ---
-  const originalEdit = createEditTool(cwd);
+function registerEditRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
+  const originalEdit = createEditTool(deps.cwd);
   pi.registerTool({
     name: 'edit',
     label: originalEdit.label,
@@ -160,7 +169,7 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return originalEdit.execute(toolCallId, params, signal, onUpdate);
     },
     renderCall(args, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       seedState(c, {
         verb: 'Editing',
         primary: truncateStart(basename(String(args.path)), 64),
@@ -169,7 +178,7 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return statefulCallRow(c, theme, (state) => (state.added === undefined ? [] : [theme.fg('dim', ` ${state.added} changed line(s) · ctrl+r to review`)]));
     },
     renderResult(result, { isPartial }, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       const state0 = ensureState(c);
       if (isPartial) return renderTextBlock(c, theme.fg('dim', 'Editing...'));
       const details = result.details as EditToolDetails | undefined;
@@ -194,9 +203,10 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return new Text(rows.join('\n'), 2, 0);
     },
   });
+}
 
-  // --- write -> reference edit UI, additions only ---
-  const originalWrite = createWriteTool(cwd);
+function registerWriteRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
+  const originalWrite = createWriteTool(deps.cwd);
   pi.registerTool({
     name: 'write',
     label: originalWrite.label,
@@ -206,7 +216,7 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return originalWrite.execute(toolCallId, params, signal, onUpdate);
     },
     renderCall(args, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       seedState(c, {
         verb: 'Writing',
         primary: truncateStart(basename(String(args.path)), 64),
@@ -215,17 +225,18 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return statefulCallRow(c, theme);
     },
     renderResult(_result, { isPartial }, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       const state0 = ensureState(c);
       if (isPartial) return renderTextBlock(c, theme.fg('dim', 'Writing...'));
       state0.verb = 'Wrote';
       invalidateOnce(c);
-      return renderTextBlock(c, theme.fg('dim', truncateStart(cwdRelative(cwd, String((c.args as { path?: string }).path ?? '')), PATH_TRUNCATE_WIDTH)));
+      return renderTextBlock(c, theme.fg('dim', truncateStart(cwdRelative(deps.cwd, String((c.args as { path?: string }).path ?? '')), PATH_TRUNCATE_WIDTH)));
     },
   });
+}
 
-  // --- grep -> reference grep UI ---
-  const originalGrep = createGrepTool(cwd);
+function registerGrepRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
+  const originalGrep = createGrepTool(deps.cwd);
   pi.registerTool({
     name: 'grep',
     label: originalGrep.label,
@@ -235,16 +246,16 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return originalGrep.execute(toolCallId, params, signal, onUpdate);
     },
     renderCall(args, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       seedState(c, {
         verb: 'Grepping',
         primary: `"${truncatePatternHead(String(args.pattern))}"`,
-        note: `in ${displayPath(cwd, String(args.path ?? cwd), PATH_TRUNCATE_WIDTH)}`,
+        note: `in ${displayPath(deps.cwd, String(args.path ?? deps.cwd), PATH_TRUNCATE_WIDTH)}`,
       });
       return statefulCallRow(c, theme);
     },
     renderResult(result, { isPartial }, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       const state0 = ensureState(c);
       if (isPartial) return renderTextBlock(c, theme.fg('dim', 'Searching...'));
       state0.verb = 'Grepped';
@@ -256,9 +267,10 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return renderTextBlock(c, theme.fg('dim', `Found ${matches} match${matches === 1 ? '' : 'es'}${truncated}`));
     },
   });
+}
 
-  // --- find -> reference glob UI ---
-  const originalFind = createFindTool(cwd);
+function registerFindRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
+  const originalFind = createFindTool(deps.cwd);
   pi.registerTool({
     name: 'find',
     label: originalFind.label,
@@ -268,16 +280,16 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return originalFind.execute(toolCallId, params, signal, onUpdate);
     },
     renderCall(args, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       seedState(c, {
         verb: 'Globbing',
         primary: `"${truncatePatternHead(String(args.pattern))}"`,
-        note: `in ${displayPath(cwd, String(args.path ?? cwd), PATH_TRUNCATE_WIDTH)}`,
+        note: `in ${displayPath(deps.cwd, String(args.path ?? deps.cwd), PATH_TRUNCATE_WIDTH)}`,
       });
       return statefulCallRow(c, theme);
     },
     renderResult(result, { isPartial }, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       const state0 = ensureState(c);
       if (isPartial) return renderTextBlock(c, theme.fg('dim', 'Searching...'));
       state0.verb = 'Globbed';
@@ -289,9 +301,10 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return renderTextBlock(c, theme.fg('dim', `Found ${files} file${files === 1 ? '' : 's'}${truncated}`));
     },
   });
+}
 
-  // --- ls -> reference ls UI ---
-  const originalLs = createLsTool(cwd);
+function registerLsRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
+  const originalLs = createLsTool(deps.cwd);
   pi.registerTool({
     name: 'ls',
     label: originalLs.label,
@@ -301,15 +314,15 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return originalLs.execute(toolCallId, params, signal, onUpdate);
     },
     renderCall(args, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       seedState(c, {
         verb: 'Listing',
-        primary: displayPath(cwd, String(args.path ?? cwd), PATH_TRUNCATE_WIDTH),
+        primary: displayPath(deps.cwd, String(args.path ?? deps.cwd), PATH_TRUNCATE_WIDTH),
       });
       return statefulCallRow(c, theme);
     },
     renderResult(result, { isPartial }, theme, context) {
-      const c = context as AnyToolRenderContext;
+      const c = context as ToolRenderContextLike;
       const state0 = ensureState(c);
       if (isPartial) return renderTextBlock(c, theme.fg('dim', 'Listing...'));
       state0.verb = 'Listed';
@@ -324,6 +337,23 @@ export function registerToolRenderers(pi: ExtensionAPI): void {
       return renderTextBlock(c, theme.fg('dim', `${files} files, ${dirs} directories${truncated}`));
     },
   });
+}
+
+type ToolRendererRegistrar = (pi: ExtensionAPI, deps: RendererDeps) => void;
+
+const TOOL_RENDERER_REGISTRARS: readonly ToolRendererRegistrar[] = [
+  registerBashRenderer,
+  registerReadRenderer,
+  registerEditRenderer,
+  registerWriteRenderer,
+  registerGrepRenderer,
+  registerFindRenderer,
+  registerLsRenderer,
+];
+
+export function registerToolRenderers(pi: ExtensionAPI): void {
+  const deps: RendererDeps = { cwd: process.cwd(), starts: new Map<string, number>() };
+  for (const register of TOOL_RENDERER_REGISTRARS) register(pi, deps);
 }
 
 export type { Theme };

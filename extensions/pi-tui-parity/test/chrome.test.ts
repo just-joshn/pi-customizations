@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import { splitThemeColors } from './theme-colors.ts';
+
 const ThemeCtor = (await import('@earendil-works/pi-coding-agent')).Theme;
 type Theme = InstanceType<typeof ThemeCtor>;
 const { renderHeaderLine } = await import('../src/chrome/header.ts');
@@ -13,58 +15,7 @@ const { createSessionState: createState } = await import('../src/state.ts');
 const themeJson = JSON.parse(readFileSync(fileURLToPath(new URL('../themes/tui-dark.json', import.meta.url)), 'utf8'));
 
 function darkTheme(): Theme {
-  const colors = themeJson.colors as Record<string, string>;
-  const fgRoles = [
-    'accent',
-    'bashMode',
-    'border',
-    'borderAccent',
-    'borderMuted',
-    'customMessageLabel',
-    'customMessageText',
-    'dim',
-    'error',
-    'mdCode',
-    'mdCodeBlock',
-    'mdCodeBlockBorder',
-    'mdHeading',
-    'mdHr',
-    'mdLink',
-    'mdLinkUrl',
-    'mdListBullet',
-    'mdQuote',
-    'mdQuoteBorder',
-    'muted',
-    'success',
-    'syntaxComment',
-    'syntaxFunction',
-    'syntaxKeyword',
-    'syntaxNumber',
-    'syntaxOperator',
-    'syntaxPunctuation',
-    'syntaxString',
-    'syntaxType',
-    'syntaxVariable',
-    'text',
-    'thinkingHigh',
-    'thinkingLow',
-    'thinkingMax',
-    'thinkingMedium',
-    'thinkingMinimal',
-    'thinkingOff',
-    'thinkingText',
-    'thinkingXhigh',
-    'toolDiffAdded',
-    'toolDiffContext',
-    'toolDiffRemoved',
-    'toolOutput',
-    'toolTitle',
-    'userMessageText',
-    'warning',
-  ];
-  const bgRoles = ['customMessageBg', 'searchMatchBg', 'selectedBg', 'toolErrorBg', 'toolPendingBg', 'toolSuccessBg', 'userMessageBg'];
-  const fg = Object.fromEntries(fgRoles.map((r) => [r, colors[r] ?? '']));
-  const bg = Object.fromEntries(bgRoles.map((r) => [r, colors[r] ?? '']));
+  const { fg, bg } = splitThemeColors(themeJson.colors as Record<string, string>);
   return new ThemeCtor(fg as never, bg as never, 'truecolor', { name: 'tui-dark' });
 }
 
