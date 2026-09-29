@@ -137,6 +137,15 @@ export class ShellRuntime {
     await Promise.all([...this.shells.keys()].map((id) => this.stop(id)));
   }
 
+  /**
+   * Drops records left by an earlier session. Shutdown keeps them so a caller can still read what
+   * was stopped, but they point at the previous session's log paths and hold its child processes,
+   * so the next session must start from an empty list.
+   */
+  forgetPreviousSession(): void {
+    this.shells.clear();
+  }
+
   delivered(id: string): void {
     const shell = this.shells.get(id);
     if (shell) this.shells.set(id, { ...shell, wakePending: false });

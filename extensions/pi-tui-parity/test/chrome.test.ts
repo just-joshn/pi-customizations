@@ -2,7 +2,6 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
-
 import { splitThemeColors } from './theme-colors.ts';
 
 const ThemeCtor = (await import('@earendil-works/pi-coding-agent')).Theme;
