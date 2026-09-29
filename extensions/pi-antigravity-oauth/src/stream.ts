@@ -268,23 +268,23 @@ function parseLine(line: string): CloudCodeChunk | undefined {
   }
 }
 
-async function readChunks(response: Response, onChunk: (chunk: CloudCodeChunk) => void): Promise<void> {
+async function readChunks(response: Response, onChunk: (chunk: CloudCodeChunk) => Promise<void>): Promise<void> {
   if (!response.body) throw new Error('Cloud Code Assist returned no response body');
   const decoder = new TextDecoder();
   let buffer = '';
-  const flush = (lines: string[]) => {
+  const flush = async (lines: string[]) => {
     for (const line of lines) {
       const chunk = parseLine(line);
-      if (chunk) onChunk(chunk);
+      if (chunk) await onChunk(chunk);
     }
   };
   for await (const bytes of response.body) {
     buffer += decoder.decode(bytes, { stream: true });
     const lines = buffer.split('\n');
     buffer = lines.pop() ?? '';
-    flush(lines);
+    await flush(lines);
   }
-  flush([buffer + decoder.decode()]);
+  await flush([buffer + decoder.decode()]);
 }
 
 function emptyUsage(): Usage {
@@ -319,12 +319,14 @@ async function buildRequestInit(model: Model<Api>, context: TranscriptContext, o
 }
 
 async function run(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined, endpoints: readonly string[], stream: AssistantMessageEventStream): Promise<void> {
+  const thinkingLevel = options?.reasoning ? clampThinkingLevel(model, options.reasoning) : undefined;
   const output: AssistantMessage = {
     role: 'assistant',
     content: [],
     api: model.api,
     provider: model.provider,
     model: model.id,
+    ...(thinkingLevel && { thinkingLevel }),
     usage: emptyUsage(),
     stopReason: 'pending',
     timestamp: Date.now(),
@@ -334,7 +336,10 @@ async function run(model: Model<Api>, context: TranscriptContext, options: Simpl
     for (let empty = 0; ; empty++) {
       const response = await openStream(endpoints, init, model, options);
       const reducer = createReducer(output, stream);
-      await readChunks(response, (chunk) => reducer.chunk(model, chunk));
+      await readChunks(response, async (chunk) => {
+        await options?.onProviderStreamEvent?.(chunk, model);
+        reducer.chunk(model, chunk);
+      });
       reducer.finish();
       if (reducer.hasContent) break;
       if (empty >= MAX_EMPTY_STREAM_RETRIES) throw new Error('Cloud Code Assist API returned an empty response');

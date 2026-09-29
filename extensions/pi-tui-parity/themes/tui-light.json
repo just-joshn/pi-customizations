@@ -1,6 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/earendil-works/pi/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json",
   "name": "tui-light",
+  "appearance": "light",
   "colors": {
     "accent": "#7A5A00",
     "bashMode": "#167A47",

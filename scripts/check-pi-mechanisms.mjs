@@ -83,8 +83,12 @@ async function checkTheme(file) {
   else {
     if (theme.name !== expected) report(file, `theme name ${theme.name} differs from its file name (themes.md)`);
     if (theme.name.includes('/')) report(file, 'theme name cannot contain "/" (themes.md)');
+    if (theme.name === 'system') report(file, 'theme name cannot be "system" (themes.md)');
     if (themeNames.has(theme.name)) report(file, `duplicate theme name ${theme.name}, already declared by ${themeNames.get(theme.name)}`);
     else themeNames.set(theme.name, relative(root, file));
+  }
+  if (theme.appearance !== undefined && theme.appearance !== 'dark' && theme.appearance !== 'light') {
+    report(file, 'theme appearance must be "dark" or "light" (themes.md)');
   }
   if (typeof theme.colors !== 'object' || theme.colors === null || Array.isArray(theme.colors)) report(file, 'theme needs a colors object (theme-schema.json)');
   return 1;

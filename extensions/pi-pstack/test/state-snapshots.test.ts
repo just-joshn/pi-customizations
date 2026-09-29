@@ -1,6 +1,10 @@
 import type { ExtensionAPI, ExtensionContext, ExtensionToolContext, Theme, ToolDefinition, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
+import { registerContext } from '../src/context.ts';
+import { registerQuestions } from '../src/questions.ts';
+import { registerShells } from '../src/shells.ts';
 import { createState, registerStateTools } from '../src/state.ts';
+import { registerWorkers } from '../src/workers.ts';
 
 const mockTheme = {
   fg: (_role: string, text: string) => text,
@@ -69,11 +73,16 @@ test('pstack_mode tool toggles mode and returns bounded confirmation', async () 
   registerStateTools(pi, store);
   const modeTool = tools.find((t) => t.name === 'pstack_mode');
   expect(modeTool).toBeDefined();
+  expect(modeTool?.outputSchema).toBeDefined();
+  expect(modeTool?.exposure).toBe('direct');
+  expect(modeTool?.annotations).toEqual({ idempotentHint: true, openWorldHint: false, destructiveHint: false });
   const on = await modeTool?.execute('1', { enabled: true }, undefined, undefined, ctx);
   expect(on?.content).toEqual([{ type: 'text', text: 'Poteto mode is on.' }]);
+  expect(on?.structuredContent).toEqual({ enabled: true, todos: [] });
   expect(store.read().enabled).toBe(true);
   const off = await modeTool?.execute('2', { enabled: false }, undefined, undefined, ctx);
   expect(off?.content).toEqual([{ type: 'text', text: 'Poteto mode is off.' }]);
+  expect(off?.structuredContent).toEqual({ enabled: false, todos: [] });
   expect(store.read().enabled).toBe(false);
 });
 
@@ -307,4 +316,28 @@ test('todo widget stays one row per step so a normal terminal does not shrink it
   );
   const lines = widgetText(widget, 40);
   expect(lines).toEqual(['[ ] Pin the behavior contract first. \x1b[0m...\x1b[0m']);
+});
+
+test('all pstack tools declare outputSchema, exposure, and annotations conforming to Pi 0.99 mechanisms', () => {
+  const tools: ToolDefinition[] = [];
+  const pi = {
+    appendEntry() {},
+    registerTool: (t: ToolDefinition) => {
+      tools.push(t);
+    },
+    on() {},
+  } as unknown as ExtensionAPI;
+  registerStateTools(pi, createState(pi));
+  registerContext(pi);
+  registerQuestions(pi);
+  registerShells(pi);
+  registerWorkers(pi);
+  expect(tools.length).toBe(11);
+  for (const tool of tools) {
+    expect(tool.outputSchema).toBeDefined();
+    expect(tool.exposure).toBeDefined();
+    expect(tool.annotations).toBeDefined();
+  }
+  const questionTool = tools.find((t) => t.name === 'AskQuestion');
+  expect(questionTool?.exposure).toBe('model-only');
 });
