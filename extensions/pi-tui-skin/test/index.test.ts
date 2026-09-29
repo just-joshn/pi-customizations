@@ -109,7 +109,7 @@ describe('tui-skin extension entry point', () => {
     const footerFactory = ui.setFooter.mock.calls[0]?.[0] as ((tui: unknown, theme: unknown, data: unknown) => { render(width: number): string[] }) | undefined;
     if (footerFactory === undefined) throw new Error('no footer factory was installed');
     const lines = footerFactory({ requestRender: () => {} }, themeStub, footerDataStub).render(80);
-    expect(stripTerminalSequences(lines[2] ?? '').trimEnd()).toBe('/ commands · @ files · ! shell');
+    expect(stripTerminalSequences(lines[2] ?? '').trimEnd()).toBe('  /tmp/workspace · main');
   });
 
   test('an edit tool finishing reaches the footer counter', () => {

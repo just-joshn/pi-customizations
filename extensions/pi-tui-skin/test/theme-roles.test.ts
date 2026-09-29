@@ -60,7 +60,7 @@ const EXTRACTED_ROLES = [...extractThemeRoles(SOURCE)].sort();
 /** Roles every current src surface reads. A drop here means the extractor regressed. */
 const REQUIRED_ROLES = [
   'accent',
-  'borderAccent',
+  'borderMuted',
   'dim',
   'error',
   'muted',

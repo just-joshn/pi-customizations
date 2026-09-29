@@ -554,10 +554,9 @@ describe('literal result rows', () => {
     const footer = createFooter(footerContext(), storeWithEditedFile('src/a.ts'))(requestRenderOnly(), theme, footerData('main'));
     try {
       const lines = plainLines(footer, 80);
-      expect(lines[0]).toContain('High');
-      expect(lines[0]).toContain('shift+tab to cycle');
-      expect(lines[1]).toBe(`${'GPT-6 Sol · 8% · 1 file edited'}${' '.repeat(80 - 'GPT-6 Sol · 8% · 1 file edited'.length - 'main'.length)}main`);
-      expect(lines[2]).toBe('/ commands · @ files · ! shell');
+      expect(lines[0]).toBe('  High (shift+tab to cycle)');
+      expect(lines[1]).toBe('  GPT-6 Sol · 8% · 1 file edited');
+      expect(lines[2]).toBe('  ~/proj · main');
     } finally {
       footer.dispose();
     }
