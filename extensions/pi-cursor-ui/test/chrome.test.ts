@@ -68,10 +68,6 @@ function makeTheme(): Theme {
   return new Theme(fg as never, bg as never, 'truecolor', { name: 'cursor-ui' });
 }
 
-function expectedLine(left: string, right: string, width: number): string {
-  return `${left}${' '.repeat(width - visibleWidth(left) - visibleWidth(right))}${right}`;
-}
-
 function footerContext(): ExtensionContext {
   return {
     cwd: '/home/u/proj',
@@ -93,11 +89,14 @@ function storeWithOneEdit(): ReturnType<typeof createPresentationStore> {
   return store;
 }
 
+function headerFor(cwd: string): ReturnType<ReturnType<typeof createHeader>> {
+  return createHeader({ cwd } as never)({} as never, makeTheme());
+}
+
 describe('header', () => {
   test('renders the startup block', () => {
     vi.stubEnv('HOME', '/home/u');
-    const theme = makeTheme();
-    const header = createHeader({ cwd: '/home/u/proj' } as never)({} as never, theme);
+    const header = headerFor('/home/u/proj');
     const lines = header.render(80);
     expect(lines.length).toBe(3);
     expect(stripTerminalSequences(lines[0] ?? '')).toBe('> agent');
@@ -107,8 +106,7 @@ describe('header', () => {
 
   test('fits a long directory into a narrow width', () => {
     vi.stubEnv('HOME', '/home/u');
-    const theme = makeTheme();
-    const header = createHeader({ cwd: '/home/u/very/long/project/directory' } as never)({} as never, theme);
+    const header = headerFor('/home/u/very/long/project/directory');
     const lines = header.render(20);
     expect(stripTerminalSequences(lines[2] ?? '')).toBe('~/very/long/project…');
     expect(lines.every((line) => visibleWidth(line) <= 20)).toBe(true);
@@ -117,21 +115,21 @@ describe('header', () => {
 
 describe('footer', () => {
   test('renders the three footer lines', () => {
+    vi.stubEnv('HOME', '/home/u');
     const store = storeWithOneEdit();
     const footer = createFooter(footerContext(), store)({ requestRender: () => {} } as never, makeTheme(), footerData('main'));
     const lines = footer.render(80);
     expect(lines.length).toBe(3);
-    expect(stripTerminalSequences(lines[0] ?? '')).toBe(expectedLine('● High', 'shift+tab to cycle', 80));
-    expect(stripTerminalSequences(lines[1] ?? '')).toBe(expectedLine('GPT-6 Sol · 8% · 1 file edited', 'main', 80));
-    expect(stripTerminalSequences(lines[2] ?? '')).toBe('/ commands · @ files · ! shell');
+    expect(stripTerminalSequences(lines[0] ?? '')).toBe('  High (shift+tab to cycle)');
+    expect(stripTerminalSequences(lines[1] ?? '')).toBe('  GPT-6 Sol · 8% · 1 file edited');
+    expect(stripTerminalSequences(lines[2] ?? '')).toBe('  ~/proj · main');
   });
 
   test('omits the thinking label when the level is unknown', () => {
     const store = createPresentationStore();
     const ctx = { ...footerContext(), thinkingLevel: undefined } as never;
     const footer = createFooter(ctx, store)({ requestRender: () => {} } as never, makeTheme(), footerData(null));
-    const line = footer.render(80)[0] ?? '';
-    expect(stripTerminalSequences(line)).toBe(expectedLine('', 'shift+tab to cycle', 80));
+    expect(stripTerminalSequences(footer.render(80)[0] ?? '')).toBe('  ');
   });
 
   test('stops requesting renders after dispose', () => {
@@ -145,16 +143,18 @@ describe('footer', () => {
   });
 
   test('omits every optional footer segment', () => {
+    vi.stubEnv('HOME', '/home/u');
     const ctx = { cwd: '/home/u/proj', model: undefined, thinkingLevel: undefined, getContextUsage: () => undefined, ui: { theme: makeTheme() } } as never;
     const footer = createFooter(ctx, createPresentationStore())({ requestRender: () => {} } as never, makeTheme(), footerData(null));
 
     const lines = footer.render(80);
-    expect(stripTerminalSequences(lines[0] ?? '')).toBe(expectedLine('', 'shift+tab to cycle', 80));
-    expect(stripTerminalSequences(lines[1] ?? '')).toBe(' '.repeat(80));
-    expect(stripTerminalSequences(lines[2] ?? '')).toBe('/ commands · @ files · ! shell');
+    expect(stripTerminalSequences(lines[0] ?? '')).toBe('  ');
+    expect(stripTerminalSequences(lines[1] ?? '')).toBe('  ');
+    expect(stripTerminalSequences(lines[2] ?? '')).toBe('  ~/proj');
   });
 
   test('uses the model id with a plural edit count', () => {
+    vi.stubEnv('HOME', '/home/u');
     const store = createPresentationStore();
     store.startTool({ toolCallId: 'a', toolName: 'edit', args: { path: 'src/a.ts' }, startedAt: 1 });
     store.finishTool({ toolCallId: 'a', toolName: 'edit', isError: false, finishedAt: 2 });
@@ -163,10 +163,11 @@ describe('footer', () => {
     const ctx = { ...footerContext(), model: { id: 'gpt-6-sol', provider: 'openai' } } as never;
 
     const footer = createFooter(ctx, store)({ requestRender: () => {} } as never, makeTheme(), footerData('main'));
-    expect(stripTerminalSequences(footer.render(80)[1] ?? '')).toBe(expectedLine('gpt-6-sol · 8% · 2 files edited', 'main', 80));
+    expect(stripTerminalSequences(footer.render(80)[1] ?? '')).toBe('  gpt-6-sol · 8% · 2 files edited');
   });
 
   test('survives a deactivated session runtime', () => {
+    vi.stubEnv('HOME', '/home/u');
     const deactivated = () => {
       throw new Error('session runtime is gone');
     };
@@ -184,8 +185,9 @@ describe('footer', () => {
 
     const footer = createFooter(ctx, createPresentationStore())({ requestRender: () => {} } as never, makeTheme(), footerData(null));
     const lines = footer.render(80);
-    expect(stripTerminalSequences(lines[0] ?? '')).toBe(expectedLine('', 'shift+tab to cycle', 80));
-    expect(stripTerminalSequences(lines[1] ?? '')).toBe(' '.repeat(80));
+    expect(stripTerminalSequences(lines[0] ?? '')).toBe('  ');
+    expect(stripTerminalSequences(lines[1] ?? '')).toBe('  ');
+    expect(stripTerminalSequences(lines[2] ?? '')).toBe('  ~/proj');
   });
 
   test('requests a render from both subscriptions', () => {
