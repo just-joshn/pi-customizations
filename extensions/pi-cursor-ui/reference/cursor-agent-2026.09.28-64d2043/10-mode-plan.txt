@@ -1,34 +1,11 @@
-cd "/tmp/cc-ref" && /Users/josh-desktop/.local/bin/cursor-agent --trust
-
-/tmp/cc-ref via  v24.20.0
-❯ cd "/tmp/cc-ref" && /Users/josh-desktop/.local/bin/cursor-agent --trust
-
-
   Cursor Agent
   v2026.09.28-64d2043
-  Tip: Use /plan to plan execution and reach the right outcome faster.
+  Tip: Use /mcp to connect Cursor to your tools and data sources.
 
 
  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
   → Plan, search, build anything
  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+  Plan (shift+tab to cycle)
   Auto
-  /private/tmp/cc-ref
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  ~/src/personal/pi-customizations · feat/improve-cursor-ui · #22

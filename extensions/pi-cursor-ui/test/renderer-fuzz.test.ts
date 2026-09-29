@@ -462,7 +462,10 @@ describe('width-taking UI components', () => {
         }
         expect(violations, formatViolations(violations)).toEqual([]);
         if (uiCase.name === 'header/home-relative') {
-          expect(plainLines(component, 80)).toEqual(['> agent', 'Pi Coding Agent', '~/proj']);
+          const plain = plainLines(component, 80);
+          expect(plain[0]).toBe('  Pi Coding Agent');
+          expect(plain[1]).toMatch(/^ {2}v\S+$/);
+          expect(plain[2]).toMatch(/^ {2}Tip: \S/);
         }
       } finally {
         dispose?.();
@@ -549,14 +552,14 @@ describe('literal result rows', () => {
   test('renders the header and footer literal rows', () => {
     vi.stubEnv('HOME', HOME);
     const header = createHeader({ cwd: `${HOME}/proj` } as unknown as ExtensionContext)(requestRenderOnly(), theme);
-    expect(plainLines(header, 80)).toEqual(['> agent', 'Pi Coding Agent', '~/proj']);
+    const banner = plainLines(header, 80);
+    expect(banner[0]).toBe('  Pi Coding Agent');
+    expect(banner[1]).toMatch(/^ {2}v\S+$/);
+    expect(banner[2]).toMatch(/^ {2}Tip: \S/);
 
     const footer = createFooter(footerContext(), storeWithEditedFile('src/a.ts'))(requestRenderOnly(), theme, footerData('main'));
     try {
-      const lines = plainLines(footer, 80);
-      expect(lines[0]).toBe('  High (shift+tab to cycle)');
-      expect(lines[1]).toBe('  GPT-6 Sol · 8% · 1 file edited');
-      expect(lines[2]).toBe('  ~/proj · main');
+      expect(plainLines(footer, 80)).toEqual(['  GPT-6 Sol · 8%', '  ~/proj · main']);
     } finally {
       footer.dispose();
     }

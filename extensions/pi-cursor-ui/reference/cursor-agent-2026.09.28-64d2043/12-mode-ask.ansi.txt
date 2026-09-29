@@ -1,0 +1,35 @@
+cd "/Users/josh-desktop/src/personal/pi-customizations" && cursor-agent --trust
+
+[1m[36mpi-customizations/extensions/pi-cursor-ui[0m on [1m[35m feat/improve-cursor-ui[0m [1m[31m[✘!?][0m via [1m[32m v24.20.0 [0m
+[1m[32m❯[0m cd "/Users/josh-desktop/src/personal/pi-customizations" && cursor-agent --trust
+
+
+  Cursor Agent
+  [2mv2026.09.28-64d2043[0m
+  [2mTip: Use /mcp to connect Cursor to your tools and data sources.[0m
+
+
+ [38;2;21;21;21m▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄[39m
+ [48;2;21;21;21m [2m→ [0;7m[48;2;21;21;21mP[0;2m[48;2;21;21;21mlan, search, build anything[0m[48;2;21;21;21m                                                                             [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+  [32mAsk (shift+tab to cycle)[39m
+  [2mAuto[0m
+  [2m~/src/personal/pi-customizations · feat/improve-cursor-ui · ]8;;https://github.com/just-joshn/pi-customizations/pull/22\#22[0m]8;;\
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -58,6 +58,32 @@ Two reference behaviors are deliberately not reproduced.
   only the two half-block bars carry the fill. The input row sits on the terminal
   background.
 
+## Revision 2026-09-29: banner, footer, and the reference harness
+
+A second hand-driven pass compared the skin against `cursor-agent` frame by
+frame. It supersedes rows 2, 5, 7, and 8 above and adds the banner.
+
+| # | Element | Reference | Before | Now | Evidence |
+|---|---|---|---|---|---|
+| 12 | Banner | three rows at two-column indent: title, build, one rotating tip | three rows at column 0: `> agent`, `Pi Coding Agent`, `<cwd>` | `  Pi Coding Agent`, `  v<pi VERSION>`, `  Tip: <one of five>`, at two columns | frame `01-idle.txt` rows 0-2 |
+| 13 | Footer at rest | two rows | three rows | two rows: model, location | frame `01-idle.txt` rows 6-7 |
+| 14 | Mode row | present only after the mode leaves its startup value | always present | present only once pi's thinking level leaves its session-start value | frame `10-mode-plan.txt`; recording at 00:00, right pane |
+| 15 | Model row | `Auto`, or `Auto · 8%` once context is in use | always carried ` · <percent>%` and ` · N files edited` | `<model>`, with ` · <n>%` only above zero | frame `01-idle.txt`; recording at 00:25 |
+| 16 | User-message band | `#242428`, one column of left margin | `#1b1b22`, no margin | `#242428`; the margin is gap G3 | `transcript/replay.ansi.txt:13`; pixel run at y=360 of frame 00:03 |
+| 17 | Composer text column | glyph at column 2, text at column 4, glyph kept while typing | text at column 2, glyph only on the placeholder row | `paddingX` 4 with the leading padding repainted as `  → ` | frame `02-typed.txt` |
+| 18 | Reference harness | a named failure per difference, derived from the reference frame | eight checks, one of which compared the reference to itself | skeleton diff over a committed corpus, plus `--known` for declared gaps | `scripts/compare-reference.mjs` |
+
+The palette section above is also superseded: the band is `borderMuted`
+(`composerFill` `#151515`) in the idle, busy, and aborted captures, not a green
+border with a `borderAccent` busy state. `README.md` states this.
+
+The open differences are enumerated with their reasons in
+`parity-inventory.md`. The largest is the tool-row layout, which needs a
+completed call row that appends its duration, a hidden-line summary built from
+`BashToolDetails.truncation`, and a group heading that pi's per-entry renderer
+cannot draw. None of it shipped here.
+
+
 ## Defects found in the shipped implementation
 
 These were live bugs, not reference mismatches.
