@@ -6,7 +6,8 @@ import { CursorStyleEditor, createEditorFactory } from '../src/ui/editor.ts';
 
 const ANSI = {
   success: '\u001b[32m',
-  borderAccent: '\u001b[35m',
+  borderMuted: '\u001b[36m',
+  bashMode: '\u001b[33m',
   dim: '\u001b[90m',
 } as const;
 
@@ -15,6 +16,10 @@ const ANSI_PATTERN = new RegExp(`${ESC}\\[[0-9;]*m`, 'g');
 
 function styled(color: keyof typeof ANSI, text: string): string {
   return `${ANSI[color]}${text}\u001b[0m`;
+}
+
+function strip(line: string): string {
+  return line.replace(CURSOR_MARKER, '').replace(ANSI_PATTERN, '');
 }
 
 function editorHarness(options: { borderColor?: (text: string) => string; rows?: number } = {}) {
@@ -28,31 +33,55 @@ function editorHarness(options: { borderColor?: (text: string) => string; rows?:
   return { editor, store };
 }
 
+function bandText(lines: readonly string[], glyph: string): string[] {
+  return lines.filter((line) => strip(line).includes(glyph)).map(strip);
+}
+
 describe('CursorStyleEditor', () => {
-  test('idle empty editor shows the idle placeholder', () => {
+  test('idle empty editor shows the reference placeholder behind a half-block band', () => {
     const { editor } = editorHarness();
     const lines = editor.render(60);
     expect(lines.length).toBe(3);
-    expect(lines[1]?.includes('→ Ask, build, or change anything')).toBe(true);
-    expect(lines[1]?.includes(CURSOR_MARKER)).toBe(true);
-    expect(visibleWidth(lines[1] ?? '')).toBe(60);
+    expect(strip(lines[0] ?? '')).toBe(` ${'▄'.repeat(58)} `);
+    expect(strip(lines[1] ?? '')).toContain('→ Plan, search, build anything');
+    expect(strip(lines[2] ?? '')).toBe(` ${'▀'.repeat(58)} `);
+    expect(lines[1]?.includes(CURSOR_MARKER), 'focused row carries the hardware cursor marker').toBe(true);
+    expect(lines.every((line) => visibleWidth(line) === 60)).toBe(true);
   });
 
-  test('running empty editor shows the follow-up placeholder', () => {
+  test('running empty editor switches the placeholder and adds the flush-right stop hint', () => {
     const { editor, store } = editorHarness();
     store.setAgentRunning(1);
     const lines = editor.render(60);
-    expect(lines[1]?.includes('→ Add a follow-up')).toBe(true);
-    expect(lines[2]?.includes('esc to stop')).toBe(true);
-    expect(visibleWidth(lines[2] ?? '')).toBe(60);
+    const row = strip(lines[1] ?? '');
+    expect(strip(row)).toContain('→ Add a follow-up');
+    expect(row).toContain('esc to stop');
+    expect(row.trimEnd().endsWith('esc to stop')).toBe(true);
+    expect(lines[2]?.includes('esc to stop')).toBe(false);
   });
 
-  test('typed text replaces the placeholder', () => {
+  test('typed text replaces the placeholder and keeps the idle glyph', () => {
     const { editor } = editorHarness();
     editor.setText('hello world');
     const content = editor.render(60)[1] ?? '';
     expect(content.includes('hello world')).toBe(true);
-    expect(content.includes('Ask, build, or change anything')).toBe(false);
+    expect(content.includes('Plan, search, build anything')).toBe(false);
+  });
+
+  test('leaves the band in whatever accent Pi set for a shell prefix', () => {
+    const { editor } = editorHarness();
+    editor.setText('!ls');
+    // Pi repaints the editor border in its bash accent once the text starts with `!`.
+    editor.borderColor = (text) => `X${text}`;
+    const shellLine = editor.render(60)[0] ?? '';
+    expect(shellLine.startsWith(` ${'X'}`)).toBe(true);
+    expect(strip(shellLine).trim().startsWith('X')).toBe(true);
+    expect(strip(shellLine)).toContain('▄');
+
+    editor.setText('plain');
+    const idleLine = editor.render(60)[0] ?? '';
+    expect(idleLine.includes('X')).toBe(false);
+    expect(strip(idleLine).trim()).toBe('▄'.repeat(58));
   });
 
   test('text accessors round trip', () => {
@@ -62,23 +91,21 @@ describe('CursorStyleEditor', () => {
     expect(editor.getText()).toBe('a\nb');
   });
 
-  test('running editor keeps the hidden-line indicator in the bottom border', () => {
+  test('running editor keeps the hidden-line indicator in the bottom band', () => {
     const { editor, store } = editorHarness({ rows: 20 });
     const text = Array.from({ length: 12 }, (_, index) => `line ${index}`).join('\n');
     (editor as unknown as { setTextInternal(text: string, cursor: 'start' | 'end'): void }).setTextInternal(text, 'start');
-    const strip = (line: string): string => line.replace(ANSI_PATTERN, '');
 
     const bottom = (): string => {
       const lines = editor.render(60);
       return strip(lines[lines.length - 1] ?? '');
     };
-    const idle = bottom();
-    expect(idle).toContain('more');
+    expect(bottom()).toContain('more');
 
     store.setAgentRunning(1);
-    const running = bottom();
-    expect(running).toContain('more');
-    expect(running).toContain('esc to stop');
+    // The reference shows its right placeholder only while the input is empty.
+    expect(bottom()).toContain('more');
+    expect(bottom()).not.toContain('esc to stop');
     const rendered = editor.render(60);
     expect(visibleWidth(rendered[rendered.length - 1] ?? '')).toBe(60);
   });
@@ -100,40 +127,68 @@ describe('CursorStyleEditor', () => {
     editor.focused = false;
     const content = editor.render(60)[1] ?? '';
     expect(content.includes(CURSOR_MARKER)).toBe(false);
-    expect(content.includes('→ Ask, build, or change anything')).toBe(true);
+    expect(strip(content)).toContain('→ Plan, search, build anything');
     expect(visibleWidth(content)).toBe(60);
   });
 
-  test('drops the stop hint when the rule cannot fit', () => {
+  test('drops the stop hint when the row cannot fit it', () => {
     const { editor, store } = editorHarness();
     store.setAgentRunning(1);
-    const lines = editor.render(10);
-    expect(lines[2]).toBe(styled('borderAccent', '──────────'));
+    const lines = editor.render(12);
     expect(lines.some((line) => line.includes('esc to stop'))).toBe(false);
+    expect(lines.every((line) => visibleWidth(line) === 12)).toBe(true);
   });
 
-  test('idle editor draws both borders in the success green', () => {
+  test('idle band is drawn in the composer fill role', () => {
     const { editor } = editorHarness();
     const lines = editor.render(60);
-    expect(lines[0]?.startsWith(ANSI.success)).toBe(true);
-    expect(lines[2]?.startsWith(ANSI.success)).toBe(true);
+    expect(lines[0]?.includes(`${ANSI.borderMuted}▄`)).toBe(true);
+    expect(lines[2]?.includes(`${ANSI.borderMuted}▀`)).toBe(true);
   });
 
-  test('running editor draws both borders in the accent color', () => {
+  test('keeps the text column aligned with the padding Pi subtracts for mouse hits', () => {
+    const { editor } = editorHarness();
+    editor.setText('hello world');
+    expect(editor.getPaddingX()).toBe(2);
+    expect(strip(editor.render(60)[1] ?? '').indexOf('hello world')).toBe(editor.getPaddingX());
+  });
+
+  test('turns a host setPaddingX into indent the text column still matches', () => {
+    for (const userPadding of [0, 1, 3]) {
+      const { editor } = editorHarness();
+      editor.setText('hello world');
+      // Pi re-applies the editorPaddingX setting to whichever editor is mounted.
+      editor.setPaddingX(userPadding);
+      expect(editor.getPaddingX()).toBe(2 + userPadding);
+      expect(strip(editor.render(40)[1] ?? '').indexOf('hello world')).toBe(editor.getPaddingX());
+    }
+  });
+
+  test('every row is exactly the requested width across a width sweep', () => {
     const { editor, store } = editorHarness();
-    store.setAgentRunning(1);
-    const lines = editor.render(60);
-    expect(lines[0]?.startsWith(ANSI.borderAccent)).toBe(true);
-    expect(lines[2]?.startsWith(ANSI.borderAccent)).toBe(true);
+    for (const width of [6, 8, 12, 20, 40, 79, 120, 200]) {
+      for (const running of [false, true]) {
+        if (running) store.setAgentRunning(1);
+        else store.setAgentIdle();
+        const lines = editor.render(width);
+        expect(
+          lines.every((line) => visibleWidth(line) === width),
+          `width ${width} running ${running}`,
+        ).toBe(true);
+      }
+    }
   });
 
-  test('bash mode keeps the border color the editor was given', () => {
-    const bashBorder = (text: string) => `BASH${text}`;
-    const { editor } = editorHarness({ borderColor: bashBorder });
-    editor.setText('!ls');
-    const lines = editor.render(60);
-    expect(lines[0]?.startsWith('BASH')).toBe(true);
-    expect(lines[2]?.startsWith('BASH')).toBe(true);
+  test('leaves one column of margin each side of the band', () => {
+    const { editor } = editorHarness();
+    const lines = editor.render(40).map(strip);
+    const [top, bottom] = [lines[0] ?? '', lines[lines.length - 1] ?? ''];
+    expect(top.startsWith(' ')).toBe(true);
+    expect(top.endsWith(' ')).toBe(true);
+    expect(top.trim()).toBe('▄'.repeat(38));
+    expect(bottom.trim()).toBe('▀'.repeat(38));
+    expect(bandText(lines, '▄').length).toBe(1);
+    expect(bandText(lines, '▀').length).toBe(1);
   });
 
   test('factory builds an editor bound to the store', () => {
@@ -143,6 +198,6 @@ describe('CursorStyleEditor', () => {
     const tui = { requestRender: () => {}, terminal: { rows: 40, columns: 120 } } as never;
     const editor = build(tui, { borderColor: (text: string) => text } as never, new KeybindingsManager(TUI_KEYBINDINGS as never) as never);
     store.setAgentRunning(1);
-    expect(editor.render(60)[1]?.includes('→ Add a follow-up')).toBe(true);
+    expect(editor.render(60)[1]?.includes('Add a follow-up')).toBe(true);
   });
 });
