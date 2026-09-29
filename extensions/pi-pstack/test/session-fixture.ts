@@ -75,7 +75,7 @@ export async function closeSessions(sessions: AgentSession[], root: string) {
   }
 }
 
-type FixtureOptions = { extensionOnly?: boolean; createDirectory?: (path: string) => Promise<unknown> };
+type FixtureOptions = { extensionOnly?: boolean; extensionDisabled?: boolean; createDirectory?: (path: string) => Promise<unknown>; includeNativePromptTemplates?: boolean };
 
 async function setupDirs(root: string, cwd: string, agentDir: string, createDirectory: (path: string) => Promise<unknown>) {
   try {
@@ -87,17 +87,17 @@ async function setupDirs(root: string, cwd: string, agentDir: string, createDire
   }
 }
 
-async function loadFixtureLoader(cwd: string, agentDir: string, settingsManager: SettingsManager, provider: (pi: never) => void, extensionOnly: boolean) {
+async function loadFixtureLoader(cwd: string, agentDir: string, settingsManager: SettingsManager, provider: (pi: never) => void, extensionOnly: boolean, includeNativePromptTemplates: boolean, extensionDisabled: boolean) {
   const loader = new DefaultResourceLoader({
     cwd,
     agentDir,
     settingsManager,
     extensionFactories: [provider as never],
-    additionalExtensionPaths: [extensionOnly ? join(packageRoot, 'src/index.ts') : packageRoot],
+    additionalExtensionPaths: extensionDisabled ? [] : [extensionOnly || includeNativePromptTemplates ? join(packageRoot, 'src/index.ts') : packageRoot],
     noExtensions: true,
     noSkills: true,
     noContextFiles: true,
-    noPromptTemplates: true,
+    noPromptTemplates: !includeNativePromptTemplates,
     noThemes: true,
   });
   await loader.reload();
@@ -127,7 +127,7 @@ async function openFixtureSession(opts: { cwd: string; agentDir: string; setting
   return { session, manager: opts.manager, loader: opts.loader };
 }
 
-export async function fixture({ extensionOnly = false, createDirectory = mkdir }: FixtureOptions = {}) {
+export async function fixture({ extensionOnly = false, extensionDisabled = false, createDirectory = mkdir, includeNativePromptTemplates = false }: FixtureOptions = {}) {
   const root = await mkdtemp(join(tmpdir(), 'pstack-integration-'));
   const cwd = join(root, 'workspace');
   const agentDir = join(root, 'agent');
@@ -146,7 +146,8 @@ export async function fixture({ extensionOnly = false, createDirectory = mkdir }
     compaction: { enabled: false },
     retry: { enabled: false },
   });
-  const load = () => loadFixtureLoader(cwd, agentDir, settingsManager, provider, extensionOnly);
+  settingsManager.setProjectTrusted(includeNativePromptTemplates);
+  const load = () => loadFixtureLoader(cwd, agentDir, settingsManager, provider, extensionOnly, includeNativePromptTemplates, extensionDisabled);
   const open = async (manager = SessionManager.create(cwd, join(root, 'sessions'))) => {
     const loader = await load();
     return openFixtureSession({ cwd, agentDir, settingsManager, loader, manager, sessions, errors });

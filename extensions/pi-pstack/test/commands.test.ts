@@ -78,6 +78,55 @@ test('/poteto-mode with task and /skill:poteto-mode transform input', async () =
   expect(bare.text).toMatch(/Body text\n<\/skill>$/);
 });
 
+test('owned prompt aliases preserve attached images on transformed input', async () => {
+  const promptPath = join(process.cwd(), 'prompts/how.md');
+  let input: ((event: { text: string; images?: unknown[] }, ctx: ExtensionContext) => Promise<unknown>) | undefined;
+  const pi = {
+    on: (_event: string, handler: typeof input) => {
+      input = handler;
+    },
+    getCommands: () => [{ source: 'prompt', name: 'how', sourceInfo: { path: promptPath } }],
+  } as unknown as ExtensionAPI;
+  registerNativeInput(pi, new Map(), createState(pi));
+  const ctx = { ui: { notify() {} } } as unknown as ExtensionContext;
+
+  expect(await input?.({ text: '/how describe this image', images: [{ type: 'image', data: 'abc' }] }, ctx)).toMatchObject({
+    action: 'transform',
+    images: [{ type: 'image', data: 'abc' }],
+  });
+});
+
+test('aliases require a native prompt and preserve standalone /bro', async () => {
+  let input: ((event: { text: string }, ctx: ExtensionContext) => Promise<unknown>) | undefined;
+  const pi = {
+    on: (_event: string, handler: typeof input) => {
+      input = handler;
+    },
+    getCommands: () => [
+      { source: 'extension', name: 'how', sourceInfo: { path: join(process.cwd(), 'prompts/how.md') } },
+      { source: 'prompt', name: 'bro', sourceInfo: { path: join(process.cwd(), 'prompts/bro.md') } },
+    ],
+  } as unknown as ExtensionAPI;
+  registerNativeInput(pi, new Map(), createState(pi));
+  const ctx = { ui: { notify() {} } } as unknown as ExtensionContext;
+  expect(await input?.({ text: '/how keep' }, ctx)).toEqual({ action: 'continue' });
+  expect(await input?.({ text: '/bro keep' }, ctx)).toEqual({ action: 'continue' });
+});
+
+test('a same-name user prompt is not rewritten', async () => {
+  let input: ((event: { text: string }, ctx: ExtensionContext) => Promise<unknown>) | undefined;
+  const pi = {
+    on: (_event: string, handler: typeof input) => {
+      input = handler;
+    },
+    getCommands: () => [{ source: 'prompt', name: 'how', sourceInfo: { path: '/user/prompts/how.md' } }],
+  } as unknown as ExtensionAPI;
+  registerNativeInput(pi, new Map(), createState(pi));
+  const ctx = { ui: { notify() {} } } as unknown as ExtensionContext;
+
+  expect(await input?.({ text: '/how "keep me"' }, ctx)).toEqual({ action: 'continue' });
+});
+
 test('/setup-pstack and /skill:setup-pstack handle errors without UI', async () => {
   const path = '/pkg/skills/setup-pstack/SKILL.md';
   const skills = new Map([['setup-pstack', { path, body: 'Body', description: 'Setup' }]]);
