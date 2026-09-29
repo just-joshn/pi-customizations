@@ -43,7 +43,7 @@ const directory = await mkdtemp(join(tmpdir(), 'pi-pstack-cli-'));
 try {
   const child = spawn(process.execPath, [cli, '--mode', 'rpc', '--no-session', '-e', root], {
     cwd: directory,
-    env: { ...process.env, PI_CODING_AGENT_DIR: directory },
+    env: { ...process.env, HOME: directory, PI_CODING_AGENT_DIR: directory },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
   const client = rpcProcess(child);
