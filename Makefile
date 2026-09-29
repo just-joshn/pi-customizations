@@ -25,10 +25,10 @@ verify-extension:
 
 verify-oauth:
 	bun run --filter pi-anthropic-oauth typecheck
-	bun run --filter pi-anthropic-oauth test
+	bun run --filter pi-anthropic-oauth test:coverage
 	bun run --filter pi-antigravity-oauth check:vendor
 	bun run --filter pi-antigravity-oauth typecheck
-	bun run --filter pi-antigravity-oauth test
+	bun run --filter pi-antigravity-oauth test:coverage
 
 verify-tui-parity:
 	bun run --filter pi-tui-parity check:docs

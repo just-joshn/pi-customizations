@@ -2,7 +2,7 @@ import type { ModelsPublication, Provider, RefreshModelsContext } from '@earendi
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
 import extension, { createAntigravityProvider } from '../src/index.ts';
-import { FAMILY, familyOf } from '../src/models.ts';
+import { FAMILY, familyOf, catalogFromAvailable, parseAvailableModels } from '../src/models.ts';
 import { GOOGLE_OAUTH } from '../src/oauth.ts';
 import { fakeServer, json } from './fake-server.ts';
 
@@ -109,4 +109,34 @@ test('refreshing without an OAuth credential asks for a login', async () => {
   } finally {
     server.close();
   }
+});
+
+test('an empty endpoint list falls back to the default endpoint', () => {
+  const provider = createAntigravityProvider({ endpoints: [], oauth: GOOGLE_OAUTH });
+  expect(provider.getModels()[0]?.baseUrl).toBe('https://daily-cloudcode-pa.googleapis.com');
+});
+
+test('parseAvailableModels ignores a response without a model map', () => {
+  const parsed = parseAvailableModels({ models: { 'gemini-3.9-flash': { displayName: 'F' } } });
+  expect(parsed.map((model) => [model.id, model.displayName, model.supportsThinking, model.supportsImages, model.remainingFraction, model.resetTime])).toEqual([['gemini-3.9-flash', 'F', undefined, undefined, undefined, undefined]]);
+  expect(parseAvailableModels({})).toEqual([]);
+  expect(parseAvailableModels(null)).toEqual([]);
+});
+
+test('catalogFromAvailable infers wire defaults for unknown models', () => {
+  const models = catalogFromAvailable(
+    [
+      { id: 'gemini-3.9-pro', supportsThinking: true, supportsImages: true },
+      { id: 'gemini-3.9-flash', supportsThinking: false, supportsImages: false },
+      { id: 'gpt-oss-300b' },
+      { id: 'claude-4-9' },
+    ],
+    'http://base',
+  );
+  expect(models.map((model) => [model.id, model.name, model.reasoning, model.thinkingLevelMap, model.input])).toEqual([
+    ['gemini-3.9-pro', 'gemini-3.9-pro (Antigravity)', true, { minimal: 'low', low: 'low', medium: 'high', high: 'high' }, ['text', 'image']],
+    ['gemini-3.9-flash', 'gemini-3.9-flash (Antigravity)', false, undefined, ['text']],
+    ['gpt-oss-300b', 'gpt-oss-300b (Antigravity)', false, undefined, ['text', 'image']],
+    ['claude-4-9', 'claude-4-9 (Antigravity)', true, undefined, ['text', 'image']],
+  ]);
 });
