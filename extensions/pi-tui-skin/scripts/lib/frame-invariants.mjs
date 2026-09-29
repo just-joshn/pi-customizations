@@ -30,12 +30,16 @@
  *   a failed `/reload`.
  * - `mode-line-left-aligned` requires the `shift+tab to cycle` mode line to be
  *   `  <label> (shift+tab to cycle)` with the footer's two-column indent and
- *   no trailing padding, which is how the reference draws it.
+ *   no trailing padding, which is how the reference draws it. The reference
+ *   shows that row only once the mode has left its startup value, so this
+ *   invariant skips on an idle frame, and the `thinking` scenario is what makes
+ *   it run.
  * - `prompt-band` requires a `▄` band above the composer with a `▀` band below
  *   it, one column of margin on each side and on every row between them.
  * - `footer-position` requires the footer hint line within the last three
  *   non-empty pane rows and an editor rule row within the last five, which
- *   catches a layout shift or a wrap.
+ *   catches a layout shift or a wrap. It skips when no line carries the hint,
+ *   which is the idle footer; the composer band is the check that still runs.
  * - `color-missing` requires the editor's top rule row to carry an SGR color in
  *   the ANSI capture.
  *
@@ -95,6 +99,10 @@ function charWidth(codePoint) {
 const CRASH_TOKENS = ['PI-EXITED-', 'TypeError', 'ReferenceError', 'SyntaxError', 'Cannot read propert', 'undefined is not', '[object Object]', 'NaN', 'Unhandled'];
 const STACK_FRAME = '    at ';
 const HINT_LITERAL = 'shift+tab to cycle';
+/** The reference's mode row, and the only shape the hint is allowed to take. */
+const MODE_ROW = /^ {2}\S.* \(shift\+tab to cycle\)$/;
+/** The composer's closing band row; the footer starts on the row after it. */
+const BAND_BOTTOM = /^ *▀{4,}$/;
 const HEADER_LITERAL = 'Pi Coding Agent';
 
 function lines(text) {
@@ -232,13 +240,16 @@ export function checkFrame(frame) {
 
   // mode-line-left-aligned: the reference keeps the cycle hint in parentheses
   // on the mode line itself and left-aligns it. Only `esc to stop` is ever
-  // right-aligned, and it sits on the composer's input row.
-  const hintRows = paneLines.flatMap((line, index) => (line.includes(HINT_LITERAL) ? [index] : []));
-  if (hintRows.length === 0) results.push(skip('mode-line-left-aligned', `no line contains ${quote(HINT_LITERAL)}`));
+  // right-aligned, and it sits on the composer's input row. The search is
+  // bounded to the footer, because a rotating banner tip may mention the same
+  // key, and a bare literal match in the banner is not a mode row.
+  const footerStart = paneLines.reduce((last, line, index) => (BAND_BOTTOM.test(line.trimEnd()) ? index + 1 : last), 0);
+  const hintRows = paneLines.flatMap((line, index) => (index >= footerStart && line.includes(HINT_LITERAL) ? [index] : []));
+  if (hintRows.length === 0) results.push(skip('mode-line-left-aligned', `no line below the composer contains ${quote(HINT_LITERAL)}`));
   else {
     for (const index of hintRows) {
       const line = paneLines[index];
-      if (!/^ {2}\S.* \(shift\+tab to cycle\)$/.test(line.trimEnd())) results.push(finding('mode-line-left-aligned', 'mode line is not `  <label> (shift+tab to cycle)`', line, index));
+      if (!MODE_ROW.test(line.trimEnd())) results.push(finding('mode-line-left-aligned', 'mode line is not `  <label> (shift+tab to cycle)`', line, index));
     }
   }
 
@@ -265,9 +276,16 @@ export function checkFrame(frame) {
   else {
     const lastThree = new Set(nonEmpty.slice(-3));
     const lastSix = new Set(nonEmpty.slice(-6));
-    if (hintRows.length === 0) results.push(skip('footer-position', `no line contains ${quote(HINT_LITERAL)}`));
-    else if (!hintRows.some((index) => lastThree.has(index))) results.push(finding('footer-position', `footer hint is not within the last 3 non-empty rows (${nonEmpty.slice(-3).join(', ')})`, paneLines[hintRows[0]], hintRows[0]));
     const bandRow = paneLines.findIndex((line) => isBandRow(line));
+    // The mode row is absent at the session's default thinking level, so the
+    // footer is anchored on the rows below the composer instead. A picker
+    // replaces the composer, so the anchor only applies when a band is present.
+    if (bandRow !== -1) {
+      const belowComposer = nonEmpty.filter((index) => paneLines.slice(0, index + 1).some((line) => BAND_BOTTOM.test(line.trimEnd())));
+      if (belowComposer.length === 0) results.push(finding('footer-position', 'nothing renders below the composer band', paneLines[nonEmpty.at(-1) ?? 0] ?? '', nonEmpty.at(-1) ?? 0));
+    }
+    if (hintRows.length === 0) results.push(skip('footer-position', `no line below the composer contains ${quote(HINT_LITERAL)}`));
+    else if (!hintRows.some((index) => lastThree.has(index))) results.push(finding('footer-position', `footer hint is not within the last 3 non-empty rows (${nonEmpty.slice(-3).join(', ')})`, paneLines[hintRows[0]], hintRows[0]));
     if (bandRow === -1) results.push(skip('footer-position', 'no editor band row in frame'));
     else if (!paneLines.some((line, index) => isBandRow(line) && lastSix.has(index)))
       results.push(finding('footer-position', `editor band row is not within the last 6 non-empty rows (${nonEmpty.slice(-6).join(', ')})`, paneLines[bandRow], bandRow));

@@ -1,12 +1,6 @@
-cd "/tmp/cc-ref" && /Users/josh-desktop/.local/bin/reference-agent --trust
-
-/tmp/cc-ref via  v24.20.0
-❯ cd "/tmp/cc-ref" && /Users/josh-desktop/.local/bin/reference-agent --trust
-
-
   Reference Agent
   v2026.09.28-64d2043
-  Tip: Use /plan to plan execution and reach the right outcome faster.
+  Tip: Use /mcp to connect Reference to your tools and data sources.
 
 
  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
@@ -22,13 +16,3 @@ cd "/tmp/cc-ref" && /Users/josh-desktop/.local/bin/reference-agent --trust
      /plan [prompt]            Create a plan or show existing plan with options
      /ask                      Toggle ask mode (Q&A, read-only; no edits or command execution)
      ↓ more below
-
-
-
-
-
-
-
-
-
-

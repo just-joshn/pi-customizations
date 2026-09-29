@@ -43,6 +43,13 @@ PI_TUI_SKIN_TOOL_OVERRIDES=grep,find,ls,powershell pi -e ./extensions/pi-tui-ski
   `src/state/presentation-store.ts` publishes immutable snapshots.
 - `src/ui/` holds the header, footer, custom editor, working indicator, and the
   live activity widget, plus `install-ui.ts`, which installs and restores them.
+  The composer paints the reference's `→` glyph inside Pi's `paddingX` on the
+  first input row, so the text column, mouse hits, and the hardware reference all
+  agree with what Pi subtracts.
+  The header prints a title, pi's `VERSION`, and one rotating tip, indented two
+  columns the way the reference indents its own banner. The footer shows a mode
+  row only once the thinking level leaves its session-start value, then the
+  model row, then the location row.
 - `src/tools/` registers the same-name built-in renderer overrides and
   delegates execution to the official definitions in `builtins.ts`.
 - `src/format/` holds pure formatting. `duration.ts` renders elapsed time,
@@ -55,12 +62,32 @@ PI_TUI_SKIN_TOOL_OVERRIDES=grep,find,ls,powershell pi -e ./extensions/pi-tui-ski
 - `scripts/tmux-smoke.mjs` drives a real pi in tmux with a scripted local
   provider and writes captures under `artifacts/`.
 
+## Compare against the installed reference
+
+The baseline under `reference/reference-agent-<build>/` is captured from the
+installed `reference-agent` with `tmux capture-pane`, so parity is a text diff and
+not an eyeball. `scripts/compare-reference.mjs` derives its expectations from
+the reference frame and reports each difference by name.
+
+```sh
+node scripts/capture-reference.mjs            # re-capture the baseline for the installed build
+node scripts/capture-reference.mjs --check    # fail when the installed build drifted from the baseline
+node scripts/compare-reference.mjs --known "location PR segment"
+```
+
+`.audit/pi-tui-skin/parity-inventory.md` lists every known difference, what
+closed it, and the ones left open with the reason.
+
 ## Palette
 
-The theme reads `#3ed07a` as `success`. The editor border is green while the
-agent is idle and `borderAccent` while it runs. Pi keeps its own border color in
-`!` shell mode. The footer shows the real thinking level with a dot colored from
-the `thinking*` roles, which travel green, violet, magenta across the levels.
+The composer is a two-row half-block band drawn in `borderMuted`, which this theme maps to
+`composerFill` (`#151515`, the fill measured from the installed reference). The band keeps
+that color in every phase, including while the agent runs, where the state shows up as the
+animated `Working` label inside the top band instead. Pi keeps its own `bashMode` accent
+for a `!` shell prefix. The activity widget's dot and the peak frame of the working
+indicator read `success` (`#3ed07a`). The footer's mode line prints the real thinking level
+with its `(shift+tab to cycle)` hint in that level's `thinking*` role, which travels from
+green through violet to magenta.
 
 ## Verify
 
@@ -70,6 +97,8 @@ bun run test:coverage
 bun run check:skin
 node scripts/check-skin-boundaries.mjs --self-test
 node scripts/check-prompt-parity.mjs
+node scripts/lib/frame-invariants.mjs --self-test
+bun run check:reference
 bun run check:smoke
 ```
 

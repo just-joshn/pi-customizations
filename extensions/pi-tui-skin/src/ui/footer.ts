@@ -1,4 +1,10 @@
 /**
+ * The footer. The reference draws a mode row only once the mode leaves its
+ * startup state, then a model row carrying the context percentage, then a
+ * location row. The mode row's label is pi's thinking level, which is the only
+ * "how hard should this think" state pi has, and `shift+tab` really does cycle
+ * it.
+ *
  * Both subscriptions are released by `dispose()`, which the host calls for
  * footer components.
  */
@@ -13,9 +19,9 @@ import type { PresentationStore } from '../state/presentation-store.ts';
 /** The reference indents every footer row by two columns. */
 const INDENT = '  ';
 
-type ThinkingDisplay = { label: string; role: ThemeColor };
+type ThinkingDisplay = { level: ThinkingLevel; label: string; role: ThemeColor };
 
-const THINKING_DISPLAY: Record<ThinkingLevel, ThinkingDisplay> = {
+const THINKING_DISPLAY: Record<ThinkingLevel, Omit<ThinkingDisplay, 'level'>> = {
   off: { label: 'Off', role: 'thinkingOff' },
   minimal: { label: 'Minimal', role: 'thinkingMinimal' },
   low: { label: 'Low', role: 'thinkingLow' },
@@ -34,7 +40,8 @@ function readThinking(ctx: ExtensionContext): ThinkingDisplay | undefined {
   } catch {
     return undefined;
   }
-  return level === undefined ? undefined : THINKING_DISPLAY[level];
+  if (level === undefined) return undefined;
+  return { level, ...THINKING_DISPLAY[level] };
 }
 
 function readUsage(ctx: ExtensionContext): ContextUsage | undefined {
@@ -58,11 +65,17 @@ function readModel(ctx: ExtensionContext): string | undefined {
  * `branch` is read on every render, not cached, because the footer data provider
  * only exists once Pi mounts the footer. The home-relative directory is computed
  * once at factory time, so `render()` never touches the filesystem or Git.
+ *
+ * The thinking level read at factory time is the session's starting level, which
+ * is what the mode row compares against: the reference shows its mode row only
+ * when the mode has been changed.
  */
 
 export function createFooter(ctx: ExtensionContext, store: PresentationStore): (tui: TUI, theme: Theme, footerData: ReadonlyFooterDataProvider) => Component & { dispose(): void } {
   const home = typeof process.env.HOME === 'string' ? process.env.HOME : '';
   const directory = shortenHomePath(ctx.cwd, home);
+  const startingLevel = readThinking(ctx)?.level;
+
   return (tui, theme, footerData) => {
     const unsubscribeBranch = footerData.onBranchChange(() => {
       tui.requestRender();
@@ -74,27 +87,27 @@ export function createFooter(ctx: ExtensionContext, store: PresentationStore): (
 
     return {
       render(width: number): string[] {
-        // The reference indents the footer, puts the cycle hint in parentheses
-        // on the mode line, and right-aligns nothing. Every row is fitted after
-        // the indent, so a one-column pane cannot overflow.
+        const rows: string[] = [];
+
         const thinking = readThinking(ctx);
-        const modeLine = fitWidth(thinking === undefined ? INDENT : `${INDENT}${theme.fg(thinking.role, `${thinking.label} (shift+tab to cycle)`)}`, width);
+        if (thinking !== undefined && thinking.level !== startingLevel) {
+          rows.push(fitWidth(`${INDENT}${theme.fg(thinking.role, `${thinking.label} (shift+tab to cycle)`)}`, width));
+        }
 
-        const usage = readUsage(ctx);
-        const model = readModel(ctx);
-        const edited = store.getSnapshot().editedFiles.size;
+        // The reference prints the percentage only once context is in use, and
+        // an unknown model still gets its row so the footer keeps its height.
         const segments: string[] = [];
+        const model = readModel(ctx);
         if (model !== undefined) segments.push(theme.fg('text', model));
-        if (typeof usage?.percent === 'number') segments.push(theme.fg('dim', `${Math.round(usage.percent)}%`));
-        if (edited > 0) segments.push(theme.fg('dim', `${edited} file${edited === 1 ? '' : 's'} edited`));
-        const modelLine = fitWidth(`${INDENT}${segments.join(theme.fg('dim', ' · '))}`, width);
+        const percent = readUsage(ctx)?.percent;
+        if (typeof percent === 'number' && percent > 0) segments.push(theme.fg('dim', `${Math.round(percent)}%`));
+        rows.push(fitWidth(`${INDENT}${segments.join(theme.fg('dim', ' · '))}`, width));
 
-        // The reference puts `<directory> · <branch>` on the last footer row.
         const branch = footerData.getGitBranch();
         const hasBranch = typeof branch === 'string' && branch.length > 0;
-        const location = fitWidth(`${INDENT}${theme.fg('dim', hasBranch ? `${directory}${theme.fg('dim', ' · ')}${branch}` : directory)}`, width);
+        rows.push(fitWidth(`${INDENT}${theme.fg('dim', hasBranch ? `${directory}${theme.fg('dim', ' · ')}${branch}` : directory)}`, width));
 
-        return [modeLine, modelLine, location];
+        return rows;
       },
       invalidate(): void {},
       dispose(): void {

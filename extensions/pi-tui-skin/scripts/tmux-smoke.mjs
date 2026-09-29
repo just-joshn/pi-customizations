@@ -37,7 +37,9 @@ const POLL_MS = 250;
 const STEP_TIMEOUT_MS = 60_000;
 const FUZZ_BUDGET_MS = 90_000;
 
-const IDLE_EXPECT = ['> agent', 'Pi Coding Agent', 'shift+tab to cycle', 'Plan, search, build anything'];
+/** The footer model row the scripted provider always prints; the mode row is absent at the session default. */
+const FOOTER_LITERAL = 'Reference UI Scripted';
+const IDLE_EXPECT = ['Pi Coding Agent', 'Tip: ', 'Plan, search, build anything'];
 const idle = { name: 'idle frame', capture: '01-idle', expect: IDLE_EXPECT, chrome: 'top' };
 const runTools = { kind: 'send', text: 'run tools' };
 const slowTurn = { kind: 'send', text: 'SLOW reply' };
@@ -47,6 +49,27 @@ const resize = (width, height) => ({ kind: 'resize', size: [width, height] });
 
 const SCENARIOS = new Map([
   ['idle', { description: 'boot the skin and confirm the idle frame', steps: [idle] }],
+  [
+    'typed-composer',
+    {
+      description: 'typed input keeps the reference prompt glyph and text column',
+      steps: [
+        idle,
+        {
+          name: 'typed composer',
+          capture: '02-typed',
+          actions: [{ kind: 'type', text: 'hello world' }],
+          expect: ['→ hello world'],
+          chrome: true,
+          check: ({ plain }) => {
+            const row = plain.split('\n').find((line) => line.includes('hello world')) ?? '';
+            if (!/^ {2}→ hello world$/.test(row.trimEnd())) throw new Error(`typed row is ${JSON.stringify(row)}`);
+            if (plain.includes('Plan, search, build anything')) throw new Error('the placeholder is still visible over typed text');
+          },
+        },
+      ],
+    },
+  ],
   [
     'prompt',
     {
@@ -226,7 +249,7 @@ const SCENARIOS = new Map([
       description: 'a resize keeps the frame intact',
       steps: [
         idle,
-        { name: 'narrow', capture: '02-narrow', actions: [resize(72, 22)], expect: ['Pi Coding Agent', 'shift+tab to cycle'], chrome: 'top' },
+        { name: 'narrow', capture: '02-narrow', actions: [resize(72, 22)], expect: ['Pi Coding Agent', FOOTER_LITERAL], chrome: 'top' },
         { name: 'wide', capture: '03-wide', actions: [resize(140, 44)], expect: ['Pi Coding Agent', 'Plan, search, build anything'], chrome: 'top' },
       ],
     },
@@ -235,7 +258,7 @@ const SCENARIOS = new Map([
     'reload',
     {
       description: 'slash reload re-installs the skin',
-      steps: [idle, { name: 'reloaded', capture: '02-reloaded', actions: [send('/reload')], expect: ['> agent', 'shift+tab to cycle'], chrome: 'top' }],
+      steps: [idle, { name: 'reloaded', capture: '02-reloaded', actions: [send('/reload')], expect: ['Pi Coding Agent', FOOTER_LITERAL], chrome: 'top' }],
     },
   ],
   [
@@ -243,7 +266,7 @@ const SCENARIOS = new Map([
     {
       description: 'the skin loads in fullscreen TUI mode',
       fullscreen: true,
-      steps: [{ name: 'fullscreen frame', capture: '01-fullscreen', expect: ['> agent', 'Pi Coding Agent', 'shift+tab to cycle'], chrome: 'top' }],
+      steps: [{ name: 'fullscreen frame', capture: '01-fullscreen', expect: ['Pi Coding Agent', FOOTER_LITERAL], chrome: 'top' }],
     },
   ],
   ['print-mode', { description: 'non-TUI print mode loads the extension safely', mode: 'print' }],
@@ -265,7 +288,7 @@ const SCENARIOS = new Map([
       description: 'a 40x12 idle frame, a tool row, and the resize back to 110x36',
       steps: [
         idle,
-        { name: 'narrow idle', capture: '02-narrow', actions: [resize(40, 12)], expect: ['> agent', 'Pi Coding Agent', 'shift+tab to cycle'], chrome: true },
+        { name: 'narrow idle', capture: '02-narrow', actions: [resize(40, 12)], expect: ['Pi Coding Agent', FOOTER_LITERAL], chrome: true },
         { name: 'narrow tool row', capture: '03-narrow-tool', actions: [send('one tool')], expect: ['◇ Read README.md', 'TUI_SKIN_ONE_DONE'], chrome: true },
         { name: 'restored', capture: '04-restored', actions: [resize(110, 36)], expect: ['Pi Coding Agent', '→ Plan, search, build anything'], chrome: 'top' },
       ],
@@ -275,7 +298,7 @@ const SCENARIOS = new Map([
     'tiny',
     {
       description: 'a 24x8 idle frame renders its chrome',
-      steps: [idle, { name: 'tiny idle', capture: '02-tiny', actions: [resize(24, 8)], expect: ['→ Plan', 'Medium (shift+tab'], chrome: true }],
+      steps: [idle, { name: 'tiny idle', capture: '02-tiny', actions: [resize(24, 8)], expect: ['→ Plan', FOOTER_LITERAL], chrome: true }],
     },
   ],
   [
@@ -296,9 +319,9 @@ const SCENARIOS = new Map([
       steps: [
         idle,
         { name: 'streaming', capture: '02-storm-streaming', actions: [slowTurn], expect: ['SLOW ', 'esc to stop'], reject: ['TUI_SKIN_REPLY_OK'], chrome: true },
-        { name: 'storm 40x12', capture: '03-storm-40x12', actions: [resize(40, 12)], expect: ['shift+tab to cycle'], reject: ['Pi Coding Agent'], chrome: true },
+        { name: 'storm 40x12', capture: '03-storm-40x12', actions: [resize(40, 12)], expect: [FOOTER_LITERAL], reject: ['Pi Coding Agent'], chrome: true },
         { name: 'storm 200x60', capture: '04-storm-200x60', actions: [resize(200, 60)], expect: ['Pi Coding Agent'], chrome: 'top' },
-        { name: 'storm 30x6', capture: '05-storm-30x6', actions: [resize(30, 6)], expect: ['shift+tab to cycle'], reject: ['Pi Coding Agent'], chrome: true },
+        { name: 'storm 30x6', capture: '05-storm-30x6', actions: [resize(30, 6)], expect: [FOOTER_LITERAL], reject: ['Pi Coding Agent'], chrome: true },
         { name: 'storm 110x36', capture: '06-storm-110x36', actions: [resize(110, 36)], expect: ['Pi Coding Agent'], chrome: 'top' },
       ],
     },
@@ -423,7 +446,7 @@ const SCENARIOS = new Map([
       steps: [
         idle,
         { name: 'picker open', capture: '02-model-picker', actions: [send('/model')], expect: ['Reference UI Scripted'], chrome: true },
-        { name: 'picker closed', capture: '03-model-closed', actions: [keys('Escape')], expect: ['> agent', 'Pi Coding Agent', '→ Plan, search, build anything'], chrome: 'top' },
+        { name: 'picker closed', capture: '03-model-closed', actions: [keys('Escape')], expect: ['Pi Coding Agent', '→ Plan, search, build anything'], chrome: 'top' },
       ],
     },
   ],
@@ -433,8 +456,46 @@ const SCENARIOS = new Map([
       description: 'the theme picker opens and closes with the frame intact',
       steps: [
         idle,
-        { name: 'picker open', capture: '02-theme-picker', actions: [send('/theme')], expect: ['tui-skin'], chrome: true },
-        { name: 'picker closed', capture: '03-theme-closed', actions: [keys('Escape')], expect: ['> agent', 'Pi Coding Agent', '→ Plan, search, build anything'], chrome: 'top' },
+        {
+          name: 'picker open',
+          capture: '02-theme-picker',
+          actions: [send('/settings'), { kind: 'type', text: 'theme' }, keys('Enter')],
+          expect: ['Select a theme', 'Automatic'],
+          chrome: true,
+        },
+        { name: 'picker closed', capture: '03-theme-closed', actions: [keys('Escape'), keys('Escape')], expect: ['Pi Coding Agent', '→ Plan, search, build anything'], chrome: 'top' },
+      ],
+    },
+  ],
+  [
+    'theme-switch-spinner',
+    {
+      description: 'the working frames follow a theme chosen in the settings modal',
+      env: { PI_TUI_SKIN_SMOKE_TURN_MS: '700' },
+      steps: [
+        idle,
+        {
+          name: 'dark theme selected',
+          capture: '02-theme-dark',
+          actions: [send('/settings'), { kind: 'type', text: 'theme' }, keys('Enter'), keys('Down'), keys('Enter'), keys('Escape')],
+          expect: ['Pi Coding Agent'],
+          chrome: 'top',
+        },
+        {
+          name: 'running frames repainted',
+          capture: '03-running',
+          actions: [send('run slow')],
+          expect: ['Working', '● Running sleep 4'],
+          chrome: true,
+          check: ({ ansi }) => {
+            const band = ansi.split('\n').find((line) => line.includes('Working')) ?? '';
+            const frame = /38;2;(\d+;\d+;\d+)m[·•●]/.exec(band)?.[1];
+            if (frame === undefined) throw new Error(`no spinner frame inside the band row: ${band}`);
+            // The built-in dark theme's dim, muted, and success roles.
+            const darkFrames = ['102;102;102', '128;128;128', '181;189;104'];
+            if (!darkFrames.includes(frame)) throw new Error(`the spinner kept another theme's color: ${frame}`);
+          },
+        },
       ],
     },
   ],
@@ -445,7 +506,7 @@ const SCENARIOS = new Map([
       steps: [
         idle,
         { name: 'prompted', capture: '02-compact-prompt', actions: [send('say hello')], expect: ['TUI_SKIN_REPLY_OK'], chrome: true },
-        { name: 'compacted', capture: '03-compacted', actions: [send('/compact')], expect: ['> agent', 'Pi Coding Agent', '→ Plan, search, build anything'], chrome: true, reject: ['TypeError', 'Unhandled'] },
+        { name: 'compacted', capture: '03-compacted', actions: [send('/compact')], expect: ['Pi Coding Agent', '→ Plan, search, build anything'], chrome: true, reject: ['TypeError', 'Unhandled'] },
       ],
     },
   ],
@@ -455,12 +516,12 @@ const SCENARIOS = new Map([
       description: 'two reloads leave exactly one header and no stale rows',
       steps: [
         idle,
-        { name: 'reload one', capture: '02-reload-1', actions: [send('/reload')], expect: ['> agent', 'Pi Coding Agent'], chrome: 'top' },
+        { name: 'reload one', capture: '02-reload-1', actions: [send('/reload')], expect: ['Pi Coding Agent'], chrome: 'top' },
         {
           name: 'reload two',
           capture: '03-reload-2',
           actions: [send('/reload')],
-          expect: ['> agent', 'Pi Coding Agent'],
+          expect: ['Pi Coding Agent'],
           chrome: 'top',
           check: ({ plain }) => {
             const count = plain.split('\n').filter((line) => line.includes('Pi Coding Agent')).length;
@@ -525,7 +586,7 @@ const SCENARIOS = new Map([
     {
       description: 'TERM=tmux-256color renders the same frame',
       env: { TERM: 'tmux-256color' },
-      steps: [idle, { name: 'term 256 idle', capture: '02-term-256', expect: ['> agent', 'Pi Coding Agent', '→ Plan, search, build anything'], chrome: true }],
+      steps: [idle, { name: 'term 256 idle', capture: '02-term-256', expect: ['Pi Coding Agent', '→ Plan, search, build anything'], chrome: true }],
     },
   ],
   [
@@ -590,11 +651,13 @@ const SCENARIOS = new Map([
           name: 'bash mode',
           capture: '02-bash-mode',
           actions: [{ kind: 'type', text: '!' }],
-          expect: ['Pi Coding Agent', 'shift+tab to cycle'],
+          expect: ['Pi Coding Agent', FOOTER_LITERAL],
           chrome: true,
-          check: ({ plain }) => {
+          check: ({ ansi, plain }) => {
             const editor = editorBlock(plain).map((line) => line.trim());
-            if (!editor.includes('!')) throw new Error(`editor did not enter bash mode: ${JSON.stringify(editor)}`);
+            if (!editor.includes('→ !')) throw new Error(`editor did not keep the prompt glyph over the bang prefix: ${JSON.stringify(editor)}`);
+            const bandColors = [...ansi.matchAll(/38;2;(\d+;\d+;\d+)m[▄▀]/g)].map((match) => match[1]);
+            if (!bandColors.includes('215;175;95')) throw new Error(`the band is not in the bash accent: ${[...new Set(bandColors)].join(', ')}`);
           },
         },
       ],
@@ -609,8 +672,8 @@ const SCENARIOS = new Map([
         idle,
         { name: 'journey read', capture: '02-journey-read', actions: [send('journey')], expect: ['◇ Read README.md'], reject: ['◇ Edit note.txt'], chrome: true },
         { name: 'journey edit', capture: '03-journey-edit', expect: ['◇ Edit note.txt'], reject: ['◇ Search "TUI_SKIN"'], chrome: true },
-        { name: 'journey grep', capture: '04-journey-grep', expect: ['◇ Search "TUI_SKIN"', '1 file edited'], reject: ['◇ Bash echo TUI_SKIN_JOURNEY_BASH'], chrome: true },
-        { name: 'journey bash', capture: '05-journey-bash', expect: ['◇ Bash echo TUI_SKIN_JOURNEY_BASH', '1 file edited'], reject: ['TUI_SKIN_JOURNEY_DONE'], chrome: true },
+        { name: 'journey grep', capture: '04-journey-grep', expect: ['◇ Search "TUI_SKIN"', 'Reference UI Scripted'], reject: ['◇ Bash echo TUI_SKIN_JOURNEY_BASH'], chrome: true },
+        { name: 'journey bash', capture: '05-journey-bash', expect: ['◇ Bash echo TUI_SKIN_JOURNEY_BASH', 'Reference UI Scripted'], reject: ['TUI_SKIN_JOURNEY_DONE'], chrome: true },
         { name: 'journey done', capture: '06-journey-done', expect: ['TUI_SKIN_JOURNEY_DONE'], chrome: true },
         { name: 'journey expanded', capture: '07-journey-expanded', actions: [keys('CtrlO')], expect: ['TUI_SKIN_PLAINTEXT'], chrome: true },
       ],
@@ -657,7 +720,7 @@ const SCENARIOS = new Map([
           name: 'reloaded mid turn',
           capture: '03-reload-mid',
           actions: [send('/reload')],
-          expect: ['Pi Coding Agent', 'shift+tab to cycle'],
+          expect: ['Pi Coding Agent', FOOTER_LITERAL],
           reject: ['TypeError', 'Unhandled'],
           chrome: 'top',
           check: ({ plain }) => {
@@ -674,7 +737,7 @@ const SCENARIOS = new Map([
             const lines = plain.split('\n');
             const headers = lines.filter((line) => line.includes('Pi Coding Agent')).length;
             if (headers !== 1) throw new Error(`header count after the mid-turn reload finished is ${headers}, want 1`);
-            const footers = lines.filter((line) => line.includes('shift+tab to cycle')).length;
+            const footers = lines.filter((line) => line.includes(FOOTER_LITERAL)).length;
             if (footers !== 1) throw new Error(`footer count after the mid-turn reload finished is ${footers}, want 1`);
             if (lines.some((line) => line.includes('● Running'))) throw new Error('a stale activity widget survived the mid-turn reload');
           },
@@ -814,6 +877,7 @@ const KEY_SEQUENCES = new Map([
   ['CtrlO', ['0f']],
   ['Enter', ['0d']],
   ['Up', ['1b', '5b', '41']],
+  ['Down', ['1b', '5b', '42']],
   ['Tab', ['09']],
   ['CtrlC', ['03']],
 ]);

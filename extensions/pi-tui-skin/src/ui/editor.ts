@@ -8,9 +8,13 @@
  * no composer surface background, so the two bands carry the fill and the input
  * row stays on the terminal background.
  *
- * A dim `→` and a space precede the input text, putting the text at column 2.
- * Pi's mouse and reference arithmetic subtract `paddingX` from the column, so the
- * padding is 2 and the glyph lives in the padding rather than outside it.
+ * The reference puts a dim `→` at column 2 and the input text at column 4, and
+ * keeps both while the user types. Pi positions the text at its `paddingX` and
+ * subtracts the same value for mouse hits and the hardware reference, so the glyph
+ * lives inside that padding: `PADDING_X` is 4 and the leading padding of the
+ * first input row is repainted as `  → `. Narrow terminals make Pi clamp the
+ * padding, and the prefix shrinks with it, so the text column always equals
+ * whatever Pi will subtract.
  */
 
 import type { ExtensionContext, KeybindingsManager, Theme } from '@earendil-works/pi-coding-agent';
@@ -23,32 +27,38 @@ import type { PresentationStore } from '../state/presentation-store.ts';
 const IDLE_PLACEHOLDER = 'Plan, search, build anything';
 const RUNNING_PLACEHOLDER = 'Add a follow-up';
 const STOP_HINT = 'esc to stop';
+const PROMPT_GLYPH = '→';
 
 /** Columns taken before the input text, so Pi's column arithmetic matches the text. */
-const PADDING_X = 2;
+const PADDING_X = 4;
+/** Pi clamps the padding below this width, so a narrower pane falls back to Pi's own editor. */
+const MIN_BAR_WIDTH = 5;
 const MARGIN = 1;
 const TOP_BLOCK = '▄';
 const BOTTOM_BLOCK = '▀';
-const MIN_BAR_WIDTH = PADDING_X + MARGIN + 2;
 
-export function createEditorFactory(ctx: ExtensionContext, store: PresentationStore): (tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager) => EditorComponent {
+export function createEditorFactory(ctx: ExtensionContext, store: PresentationStore, syncWorkingIndicator: () => void): (tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager) => EditorComponent {
   const appTheme = ctx.ui.theme;
-  return (tui, theme, keybindings) => new SkinStyleEditor(tui, theme, keybindings, store, appTheme);
+  return (tui, theme, keybindings) => new SkinStyleEditor(tui, theme, keybindings, store, appTheme, syncWorkingIndicator);
 }
 
 export class SkinStyleEditor extends CustomEditor {
   private readonly store: PresentationStore;
   private readonly appTheme: Theme;
+  private readonly syncWorkingIndicator: () => void;
   /** True only while `render` is running, so the two rule rows can recognise themselves. */
   private drawingBar = false;
   private hintInRow = false;
   private topBarLine: string | undefined;
   private bottomBarLine: string | undefined;
+  /** Set by the top band, which Pi hands the number of input rows hidden above it. */
+  private hiddenAbove = false;
 
-  constructor(tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager, store: PresentationStore, appTheme: Theme) {
+  constructor(tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager, store: PresentationStore, appTheme: Theme, syncWorkingIndicator: () => void) {
     super(tui, theme, keybindings, { embedWorkingStatus: true, paddingX: PADDING_X });
     this.store = store;
     this.appTheme = appTheme;
+    this.syncWorkingIndicator = syncWorkingIndicator;
     // Pi paints both band rows through this, so the fill needs no second path.
     this.borderColor = (text) => this.appTheme.fg('borderMuted', text);
   }
@@ -66,6 +76,10 @@ export class SkinStyleEditor extends CustomEditor {
   render(width: number): string[] {
     const text = this.getText();
     const running = this.store.getSnapshot().phase.kind === 'running';
+    // The frames carry baked theme colors and Pi renders them verbatim, so this
+    // editor, which paints the band they sit in, re-derives them before drawing.
+    // Pi detaches this editor while a modal is open, then repaints it on close.
+    this.syncWorkingIndicator();
     // Pi repaints this in the bash accent once the text starts with `!`, and
     // that accent is what the reference gives its own prefix. Every other state
     // restores the fill, because Pi may have set the accent on an earlier render.
@@ -80,16 +94,18 @@ export class SkinStyleEditor extends CustomEditor {
     this.hintInRow = running && text.length === 0;
     this.topBarLine = undefined;
     this.bottomBarLine = undefined;
+    this.hiddenAbove = false;
     const lines = super.render(width);
     const topIndex = this.topBarLine === undefined ? -1 : lines.indexOf(this.topBarLine);
     const bottomIndex = this.bottomBarLine === undefined ? -1 : lines.lastIndexOf(this.bottomBarLine);
     this.drawingBar = false;
 
-    if (lines.length >= 2 && text.length === 0) {
-      lines[1] = this.promptRow(width, lines[1] ?? '', running);
-    }
+    const firstInput = topIndex === -1 ? -1 : topIndex + 1;
     for (let index = 0; index < lines.length; index += 1) {
       if (index === topIndex || index === bottomIndex) continue;
+      if (index === firstInput && !this.hiddenAbove) {
+        lines[index] = text.length === 0 ? this.promptRow(width, lines[index] ?? '', running) : this.decorateInputRow(width, lines[index] ?? '');
+      }
       lines[index] = this.rightMargin(width, lines[index] ?? '');
     }
     return lines;
@@ -97,6 +113,7 @@ export class SkinStyleEditor extends CustomEditor {
 
   /** A band row. Pi hands over a rule, so the rule glyphs become half blocks in place. */
   protected renderTopBorder(width: number, hiddenLineCount: number): string {
+    this.hiddenAbove = hiddenLineCount > 0;
     if (!this.drawingBar) return super.renderTopBorder(width, hiddenLineCount);
     this.topBarLine = this.band(super.renderTopBorder(this.bandWidth(width), hiddenLineCount), TOP_BLOCK, width);
     return this.topBarLine;
@@ -118,6 +135,34 @@ export class SkinStyleEditor extends CustomEditor {
     return padToWidth(`${' '.repeat(MARGIN)}${body}${' '.repeat(MARGIN)}`, Math.max(0, width));
   }
 
+  /** The padding Pi itself will use for this width, which is what its mouse and reference maths subtract. */
+  private effectivePaddingX(width: number): number {
+    return Math.min(this.getPaddingX(), Math.max(0, Math.floor((width - 1) / 2)));
+  }
+
+  /**
+   * Exactly `effectivePaddingX(width)` columns, with the glyph as close to the
+   * reference's column 2 as the width allows.
+   */
+  private promptPrefix(width: number): string {
+    const padding = this.effectivePaddingX(width);
+    if (padding <= 0) return '';
+    const glyph = this.appTheme.fg('dim', PROMPT_GLYPH);
+    if (padding === 1) return glyph;
+    if (padding === 2) return `${glyph} `;
+    if (padding === 3) return ` ${glyph} `;
+    return `  ${glyph}${' '.repeat(padding - 3)}`;
+  }
+
+  /** Repaint the leading padding of the first input row so the glyph replaces the indent. */
+  private decorateInputRow(width: number, row: string): string {
+    const padding = this.effectivePaddingX(width);
+    if (padding <= 0) return row;
+    const leading = ' '.repeat(padding);
+    if (!row.startsWith(leading)) return row;
+    return `${this.promptPrefix(width)}${row.slice(padding)}`;
+  }
+
   /**
    * Build the empty-input row: the dim `→` glyph, then the placeholder, with the
    * stop hint flush right. Pi's content rows carry `paddingX` leading spaces, so
@@ -127,8 +172,8 @@ export class SkinStyleEditor extends CustomEditor {
     const marker = original.includes(CURSOR_MARKER) ? CURSOR_MARKER : '';
     const text = this.appTheme.fg('dim', running ? RUNNING_PLACEHOLDER : IDLE_PLACEHOLDER);
     const hint = this.hintInRow ? this.appTheme.fg('dim', STOP_HINT) : '';
-    const budget = Math.max(0, width - PADDING_X - MARGIN * 2 - 2);
-    return `${' '.repeat(PADDING_X)}${this.appTheme.fg('dim', '→')} ${marker}${fitLeftRight(text, hint, budget)}`;
+    const budget = Math.max(0, width - this.effectivePaddingX(width) - MARGIN * 2);
+    return `${this.promptPrefix(width)}${marker}${fitLeftRight(text, hint, budget)}`;
   }
 
   /** The reference leaves one column of margin on each side of the band. */
