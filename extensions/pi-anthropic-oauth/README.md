@@ -26,7 +26,7 @@ To send a different version in the user agent, set `CLAUDE_CODE_VERSION`. The bi
 
 ## Verify it
 
-Run `bun install` first. It installs the Pi packages the tests import, pinned to 0.87.1. Pi does not install development dependencies when it loads the package.
+Run `bun install` first. It installs the Pi packages the tests import, pinned to 0.99.1. Pi does not install development dependencies when it loads the package.
 
 - `bun run typecheck` runs `tsc` in strict mode.
 - `bun run test` runs the provider against a local Messages server and checks the request and the Pi result.
