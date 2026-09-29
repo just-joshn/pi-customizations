@@ -52,11 +52,14 @@ export function cloudCodeHeaders(token: string): Record<string, string> {
 }
 
 export function errorText(body: string): string {
+  let parsed: { error?: { message?: unknown } };
   try {
-    const message = (JSON.parse(body) as { error?: { message?: unknown } }).error?.message;
-    if (typeof message === 'string') return message;
-  } catch {}
-  return body;
+    parsed = JSON.parse(body) as { error?: { message?: unknown } };
+  } catch {
+    return body;
+  }
+  const message = parsed.error?.message;
+  return typeof message === 'string' ? message : body;
 }
 
 const BASE_DELAY_MS = 1000;

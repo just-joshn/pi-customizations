@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -233,13 +233,11 @@ test('a descendant that escaped the process group does not block the stop', asyn
     );
     expect((await runtime.stop(record.id)).status).toEqual({ kind: 'stopped' });
   } finally {
-    try {
-      execFileSync('pkill', ['-f', 'POSIX::setsid']);
-    } catch {
-      /* the escaped descendant may already be gone */
-    }
+    // pkill exits 1 when the escaped descendant already left; a missing binary is a real failure.
+    const killed = spawnSync('pkill', ['-f', 'POSIX::setsid']);
     await rm(dirname(record.outputFile), { recursive: true, force: true });
     await rm(cwd, { recursive: true, force: true });
+    expect(killed.error).toBeUndefined();
   }
 }, 40000);
 

@@ -17,7 +17,7 @@
  * to appear and every `reject` literal to be absent, then saves the pane. When
  * invariants are on, every capture also runs through `scripts/lib/frame-invariants.mjs`.
  */
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -1064,12 +1064,13 @@ function runAction(action) {
   pause(180);
 }
 
+/** Stops the throwaway server. A server that is already gone is the normal case at teardown. */
+function stopServer() {
+  spawnSync('tmux', ['-L', SOCKET, '-f', tmuxConfig, 'kill-server'], { stdio: 'ignore' });
+}
+
 function cleanup() {
-  try {
-    tmux(['kill-server']);
-  } catch {
-    // The server may already be gone.
-  }
+  stopServer();
   for (const dir of tempPaths) rmSync(dir, { recursive: true, force: true });
   tempPaths.length = 0;
 }
@@ -1082,11 +1083,9 @@ function seedWorkspace(workspace, scenario) {
   mkdirSync(join(workspace, 'nested'), { recursive: true });
   writeFileSync(join(workspace, 'nested', 'child.txt'), 'TUI_SKIN_NESTED\n');
   if (scenario.git === false) return;
-  try {
-    execFileSync('git', ['init', '-q', '-b', 'smoke-main', workspace]);
-  } catch {
-    // Branch display is best-effort evidence; a missing git binary is not a failure.
-  }
+  // Branch display is best-effort evidence, but a missing or failing git has to be visible.
+  const initialized = spawnSync('git', ['init', '-q', '-b', 'smoke-main', workspace], { stdio: 'ignore' });
+  if (initialized.error || initialized.status !== 0) process.stderr.write(`git init unavailable: ${initialized.error?.message ?? `exit ${initialized.status}`}\n`);
 }
 
 function piArgs(scenario, provider) {
