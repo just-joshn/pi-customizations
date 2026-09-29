@@ -26,6 +26,7 @@ export interface UpstreamDocument {
 export interface ThemeDocument {
   readonly $schema: string;
   readonly name: string;
+  readonly appearance?: 'dark' | 'light';
   readonly colors: Readonly<Record<string, string>>;
   readonly export: Readonly<Record<string, string>>;
 }
@@ -124,6 +125,7 @@ export function buildTheme(document: UpstreamDocument, rows: readonly RoleRow[])
   return {
     $schema: THEME_SCHEMA_URL,
     name: THEME_NAME,
+    appearance: 'dark',
     colors: sortRecord(colors),
     export: sortRecord(exported),
   };
