@@ -10,7 +10,7 @@
 
 import type { ExtensionAPI, ExtensionContext, ToolCallEventResult } from '@earendil-works/pi-coding-agent';
 import { basename } from '../format.ts';
-import type { TuiSessionState } from '../state.ts';
+import type { SessionReader } from '../state.ts';
 import { type DecisionOutcome, DecisionSurface, decisionTitle, shellOptions, writeOptions } from './surface.ts';
 
 export interface AllowlistState {
@@ -67,9 +67,9 @@ async function showDecision(request: { ctx: ExtensionContext; toolName: 'bash' |
   });
 }
 
-export function installDecisionGate(pi: ExtensionAPI, state: TuiSessionState, allowlist: AllowlistState): void {
+export function installDecisionGate(pi: ExtensionAPI, session: SessionReader, allowlist: AllowlistState): void {
   pi.on('tool_call', async (event, ctx): Promise<ToolCallEventResult | undefined> => {
-    if (state.runEverything) return undefined;
+    if (session.read().runEverything) return undefined;
     const gated = event.toolName === 'bash' || event.toolName === 'edit' || event.toolName === 'write';
     if (!gated) return undefined;
     const toolName = event.toolName as 'bash' | 'edit' | 'write';

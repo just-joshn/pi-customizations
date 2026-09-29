@@ -79,3 +79,79 @@ test('with a UI and no login the command tells the user to log in', async () => 
   await createAntigravityCommand({ cloudCode: [], userInfoUrl: '' }).handler('', ctx);
   expect(notes).toEqual([['Google Antigravity is not logged in. Run /login and choose Google Antigravity.', 'error']]);
 });
+
+test('a summary without an email or tier reports unknown', () => {
+  expect(formatAccountSummary({ projectId: 'p', models: [] })).toBe(['Account: unknown', 'Project: p', 'Tier: unknown', 'Quota:', '  no models returned'].join('\n'));
+});
+
+test('a summary whose model list failed reports the failure', () => {
+  expect(formatAccountSummary({ projectId: 'p', models: [], modelsError: 'denied' })).toBe(['Account: unknown', 'Project: p', 'Tier: unknown', 'Quota:', '  unavailable: denied'].join('\n'));
+});
+
+test('the account summary reads a tier that carries only an id', async () => {
+  const server = await fakeServer((request, res) => {
+    if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
+    if (request.path === '/v1internal:loadCodeAssist') return json(res, 200, { paidTier: { id: 'legacy' } });
+    return json(res, 200, { models: {} });
+  });
+  try {
+    const summary = await fetchAccountSummary(API_KEY, { cloudCode: [server.url], userInfoUrl: `${server.url}/userinfo` });
+    expect(summary.tier).toBe('legacy');
+  } finally {
+    server.close();
+  }
+});
+
+test('the account summary reads a tier that carries only a name', async () => {
+  const server = await fakeServer((request, res) => {
+    if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
+    if (request.path === '/v1internal:loadCodeAssist') return json(res, 200, { currentTier: { name: 'Plus' } });
+    return json(res, 200, { models: {} });
+  });
+  try {
+    const summary = await fetchAccountSummary(API_KEY, { cloudCode: [server.url], userInfoUrl: `${server.url}/userinfo` });
+    expect(summary.tier).toBe('Plus');
+  } finally {
+    server.close();
+  }
+});
+
+test('the account summary reports no tier for an empty loadCodeAssist body', async () => {
+  const server = await fakeServer((request, res) => {
+    if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
+    if (request.path === '/v1internal:loadCodeAssist') return json(res, 200, null);
+    return json(res, 200, { models: {} });
+  });
+  try {
+    const summary = await fetchAccountSummary(API_KEY, { cloudCode: [server.url], userInfoUrl: `${server.url}/userinfo` });
+    expect(summary.tier).toBe(undefined);
+  } finally {
+    server.close();
+  }
+});
+
+test('a failed model listing is reported instead of failing the summary', async () => {
+  const server = await fakeServer((request, res) => {
+    if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
+    if (request.path === '/v1internal:loadCodeAssist') return json(res, 200, {});
+    return json(res, 500, { error: { message: 'denied' } });
+  });
+  try {
+    const summary = await fetchAccountSummary(API_KEY, { cloudCode: [server.url], userInfoUrl: `${server.url}/userinfo` });
+    expect(summary.modelsError).toBe('fetchAvailableModels failed (500): denied');
+    expect(summary.models).toEqual([]);
+  } finally {
+    server.close();
+  }
+});
+
+test('with a UI the command reports a credential error', async () => {
+  const notes: [string, string | undefined][] = [];
+  const ctx = {
+    hasUI: true,
+    ui: { notify: (message: string, level?: string) => notes.push([message, level]) },
+    modelRegistry: { getApiKeyForProvider: async () => 'not json' },
+  } as unknown as ExtensionCommandContext;
+  await createAntigravityCommand({ cloudCode: [], userInfoUrl: '' }).handler('', ctx);
+  expect(notes).toEqual([['Google Antigravity credentials are not readable. Run /login and choose Google Antigravity.', 'error']]);
+});

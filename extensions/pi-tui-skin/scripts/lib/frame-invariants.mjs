@@ -168,139 +168,163 @@ export const ALL_INVARIANTS = ['overflow', 'crash-marker', 'footer-missing', 'he
  * @returns {string[]} findings (`<invariant>: ...`) and skips (`skipped: <invariant>: ...`)
  */
 export function checkFrame(frame) {
+  const context = analyzeFrame(frame);
+  return FRAME_CHECKS.flatMap((check) => check(context));
+}
+
+/** The facts every invariant reads: the pane lines, the flags, and the shared rows. */
+function analyzeFrame(frame) {
   const { plain, ansi, cols, expectChrome = false, expectHeader = false, expectExit = false, paneClipped = true } = frame;
   const paneLines = lines(plain);
-  const results = [];
-  const modal = modalOpen(plain);
-  const nonEmpty = paneLines.flatMap((line, index) => (line.trim() === '' ? [] : [index]));
+  // The mode-row search is bounded to the footer, because a rotating banner tip
+  // may mention the same key, and a bare literal match in the banner is not a
+  // mode row.
+  const footerStart = paneLines.reduce((last, line, index) => (BAND_BOTTOM.test(line.trimEnd()) ? index + 1 : last), 0);
+  return {
+    plain,
+    ansi,
+    cols,
+    expectChrome,
+    expectHeader,
+    expectExit,
+    paneClipped,
+    paneLines,
+    modal: modalOpen(plain),
+    nonEmpty: paneLines.flatMap((line, index) => (line.trim() === '' ? [] : [index])),
+    bandRows: paneLines.flatMap((line, index) => (isBandRow(line) ? [index] : [])),
+    hintRows: paneLines.flatMap((line, index) => (index >= footerStart && line.includes(HINT_LITERAL) ? [index] : [])),
+  };
+}
 
-  // overflow: never fires on a real tmux capture because the pane grid clips.
-  const overWide = paneLines.flatMap((line, index) => {
+/** Every invariant, in the order `checkFrame` reports them. */
+const FRAME_CHECKS = [checkOverflow, checkCrashMarker, checkFooterMissing, checkHeaderMissing, checkOrphanRow, checkEscapeLeak, checkDoubleHeader, checkModeLineLeftAligned, checkPromptBand, checkFooterPosition, checkColorMissing];
+
+/** overflow never fires on a real tmux capture because the pane grid clips. */
+function checkOverflow(frame) {
+  const overWide = frame.paneLines.flatMap((line, index) => {
     const width = visibleWidth(line);
-    return Number.isFinite(cols) && width > cols ? [finding('overflow', `visible width ${width} exceeds cols ${cols}`, line, index)] : [];
+    return Number.isFinite(frame.cols) && width > frame.cols ? [finding('overflow', `visible width ${width} exceeds cols ${frame.cols}`, line, index)] : [];
   });
-  if (overWide.length > 0) results.push(...overWide);
-  else if (paneClipped) results.push(skip('overflow', 'pane grid clips at cols'));
-  else results.push(skip('overflow', `no line exceeds cols ${cols}`));
+  if (overWide.length > 0) return overWide;
+  if (frame.paneClipped) return [skip('overflow', 'pane grid clips at cols')];
+  return [skip('overflow', `no line exceeds cols ${frame.cols}`)];
+}
 
-  // crash-marker
-  const crashFindings = [];
-  const crashTokens = expectExit ? CRASH_TOKENS.filter((candidate) => candidate !== 'PI-EXITED-') : CRASH_TOKENS;
-  for (let index = 0; index < paneLines.length; index++) {
-    const line = paneLines[index];
+function checkCrashMarker(frame) {
+  const crashTokens = frame.expectExit ? CRASH_TOKENS.filter((candidate) => candidate !== 'PI-EXITED-') : CRASH_TOKENS;
+  const findings = [];
+  for (let index = 0; index < frame.paneLines.length; index++) {
+    const line = frame.paneLines[index];
     const token = crashTokens.find((candidate) => line.includes(candidate));
     const stacked = line.includes(STACK_FRAME);
     const startsWithError = /^Error:/.test(line);
-    const toolErrorRow = startsWithError && paneLines.slice(Math.max(0, index - 3), index).some((prior) => prior.includes('◇'));
-    if (token !== undefined) crashFindings.push(finding('crash-marker', `contains ${quote(token)}`, line, index));
-    else if (stacked) crashFindings.push(finding('crash-marker', 'contains a stack frame', line, index));
-    else if (startsWithError && !toolErrorRow) crashFindings.push(finding('crash-marker', 'starts with Error:', line, index));
+    const toolErrorRow = startsWithError && frame.paneLines.slice(Math.max(0, index - 3), index).some((prior) => prior.includes('◇'));
+    if (token !== undefined) findings.push(finding('crash-marker', `contains ${quote(token)}`, line, index));
+    else if (stacked) findings.push(finding('crash-marker', 'contains a stack frame', line, index));
+    else if (startsWithError && !toolErrorRow) findings.push(finding('crash-marker', 'starts with Error:', line, index));
   }
-  results.push(...crashFindings);
+  return findings;
+}
 
-  // footer-missing
-  if (!expectChrome) results.push(skip('footer-missing', 'frame not marked expectChrome'));
-  else if (modal) results.push(skip('footer-missing', 'modal menu open'));
-  else {
-    // The footer is whatever Pi draws below the composer, so a band row with
-    // nothing but blanks under it is a missing footer at any pane width.
-    const bands = paneLines.flatMap((line, index) => (isBandRow(line) ? [index] : []));
-    const lastBand = bands[bands.length - 1];
-    if (lastBand === undefined) results.push(skip('footer-missing', 'no composer band row in frame'));
-    else if (!paneLines.slice(lastBand + 1).some((line) => line.trim() !== '')) {
-      results.push(finding('footer-missing', 'nothing renders below the composer', paneLines[lastBand], lastBand));
-    }
-  }
+function checkFooterMissing(frame) {
+  if (!frame.expectChrome) return [skip('footer-missing', 'frame not marked expectChrome')];
+  if (frame.modal) return [skip('footer-missing', 'modal menu open')];
+  // The footer is whatever Pi draws below the composer, so a band row with
+  // nothing but blanks under it is a missing footer at any pane width.
+  const lastBand = frame.bandRows[frame.bandRows.length - 1];
+  if (lastBand === undefined) return [skip('footer-missing', 'no composer band row in frame')];
+  if (frame.paneLines.slice(lastBand + 1).some((line) => line.trim() !== '')) return [];
+  return [finding('footer-missing', 'nothing renders below the composer', frame.paneLines[lastBand], lastBand)];
+}
 
-  // header-missing
-  if (!expectHeader) results.push(skip('header-missing', 'frame not marked chrome top'));
-  else if (modal) results.push(skip('header-missing', 'modal menu open'));
-  else if (!paneLines.some((line) => line.includes(HEADER_LITERAL))) {
-    results.push(finding('header-missing', `header ${quote(HEADER_LITERAL)} is absent`, paneLines[0] ?? '', 0));
-  }
+function checkHeaderMissing(frame) {
+  if (!frame.expectHeader) return [skip('header-missing', 'frame not marked chrome top')];
+  if (frame.modal) return [skip('header-missing', 'modal menu open')];
+  if (frame.paneLines.some((line) => line.includes(HEADER_LITERAL))) return [];
+  return [finding('header-missing', `header ${quote(HEADER_LITERAL)} is absent`, frame.paneLines[0] ?? '', 0)];
+}
 
-  // orphan-row
-  for (let index = 0; index < paneLines.length; index++) {
-    const line = paneLines[index];
+function checkOrphanRow(frame) {
+  const findings = [];
+  for (let index = 0; index < frame.paneLines.length; index++) {
+    const line = frame.paneLines[index];
     const marker = line.indexOf('◇');
     if (marker === -1) continue;
-    if (line.slice(marker + 1).trim() === '') results.push(finding('orphan-row', 'has no text after ◇', line, index));
+    if (line.slice(marker + 1).trim() === '') findings.push(finding('orphan-row', 'has no text after ◇', line, index));
   }
+  return findings;
+}
 
-  // escape-leak
-  for (let index = 0; index < paneLines.length; index++) {
-    const line = paneLines[index];
-    if (line.includes(ESC)) results.push(finding('escape-leak', 'contains a literal ESC byte', line, index));
-    else if (line.includes('[38;2;')) results.push(finding('escape-leak', 'contains a persisted SGR color', line, index));
+function checkEscapeLeak(frame) {
+  const findings = [];
+  for (let index = 0; index < frame.paneLines.length; index++) {
+    const line = frame.paneLines[index];
+    if (line.includes(ESC)) findings.push(finding('escape-leak', 'contains a literal ESC byte', line, index));
+    else if (line.includes('[38;2;')) findings.push(finding('escape-leak', 'contains a persisted SGR color', line, index));
   }
+  return findings;
+}
 
-  // double-header
-  const headers = paneLines.flatMap((line, index) => (line.includes(HEADER_LITERAL) ? [index] : []));
-  if (headers.length > 1) results.push(finding('double-header', `header appears ${headers.length} times`, paneLines[headers[1]] ?? '', headers[1]));
+function checkDoubleHeader(frame) {
+  const headers = frame.paneLines.flatMap((line, index) => (line.includes(HEADER_LITERAL) ? [index] : []));
+  if (headers.length <= 1) return [];
+  return [finding('double-header', `header appears ${headers.length} times`, frame.paneLines[headers[1]] ?? '', headers[1])];
+}
 
-  // mode-line-left-aligned: the reference keeps the cycle hint in parentheses
-  // on the mode line itself and left-aligns it. Only `esc to stop` is ever
-  // right-aligned, and it sits on the composer's input row. The search is
-  // bounded to the footer, because a rotating banner tip may mention the same
-  // key, and a bare literal match in the banner is not a mode row.
-  const footerStart = paneLines.reduce((last, line, index) => (BAND_BOTTOM.test(line.trimEnd()) ? index + 1 : last), 0);
-  const hintRows = paneLines.flatMap((line, index) => (index >= footerStart && line.includes(HINT_LITERAL) ? [index] : []));
-  if (hintRows.length === 0) results.push(skip('mode-line-left-aligned', `no line below the composer contains ${quote(HINT_LITERAL)}`));
-  else {
-    for (const index of hintRows) {
-      const line = paneLines[index];
-      if (!MODE_ROW.test(line.trimEnd())) results.push(finding('mode-line-left-aligned', 'mode line is not `  <label> (shift+tab to cycle)`', line, index));
-    }
+/** The reference keeps the cycle hint in parentheses on a left-aligned mode line; only `esc to stop` is ever right-aligned. */
+function checkModeLineLeftAligned(frame) {
+  if (frame.hintRows.length === 0) return [skip('mode-line-left-aligned', `no line below the composer contains ${quote(HINT_LITERAL)}`)];
+  return frame.hintRows.flatMap((index) => {
+    const line = frame.paneLines[index];
+    return MODE_ROW.test(line.trimEnd()) ? [] : [finding('mode-line-left-aligned', 'mode line is not `  <label> (shift+tab to cycle)`', line, index)];
+  });
+}
+
+/** The composer draws a `▄` band above the input and a `▀` band below, one column of margin each side. */
+function checkPromptBand(frame) {
+  if (frame.bandRows.length < 2) return [skip('prompt-band', `${frame.bandRows.length} band rows in frame`)];
+  if (frame.modal) return [skip('prompt-band', 'modal menu open')];
+  const [topIndex, bottomIndex] = frame.bandRows.slice(-2);
+  const topGlyphs = bandGlyphs(frame.paneLines[topIndex]);
+  const bottomGlyphs = bandGlyphs(frame.paneLines[bottomIndex]);
+  const findings = [];
+  if (!topGlyphs.has('▄') || topGlyphs.has('▀')) findings.push(finding('prompt-band', 'top band is not a `▄` row', frame.paneLines[topIndex], topIndex));
+  if (!bottomGlyphs.has('▀') || bottomGlyphs.has('▄')) findings.push(finding('prompt-band', 'bottom band is not a `▀` row', frame.paneLines[bottomIndex], bottomIndex));
+  const unframed = frame.paneLines.slice(topIndex + 1, bottomIndex).filter((line) => line.trim() !== '' && !isEditorRow(line));
+  if (unframed.length > 0) findings.push(finding('prompt-band', 'a row inside the band has no side margin', unframed[0], frame.paneLines.indexOf(unframed[0])));
+  return findings;
+}
+
+function checkFooterPosition(frame) {
+  if (!frame.expectChrome) return [skip('footer-position', 'frame not marked expectChrome')];
+  if (frame.modal) return [skip('footer-position', 'modal menu open')];
+  const findings = [];
+  const lastThree = new Set(frame.nonEmpty.slice(-3));
+  const lastSix = new Set(frame.nonEmpty.slice(-6));
+  const bandRow = frame.bandRows[0] ?? -1;
+  // The mode row is absent at the session's default thinking level, so the
+  // footer is anchored on the rows below the composer instead. A picker
+  // replaces the composer, so the anchor only applies when a band is present.
+  if (bandRow !== -1) {
+    const belowComposer = frame.nonEmpty.filter((index) => frame.paneLines.slice(0, index + 1).some((line) => BAND_BOTTOM.test(line.trimEnd())));
+    if (belowComposer.length === 0) findings.push(finding('footer-position', 'nothing renders below the composer band', frame.paneLines[frame.nonEmpty.at(-1) ?? 0] ?? '', frame.nonEmpty.at(-1) ?? 0));
   }
+  if (frame.hintRows.length === 0) findings.push(skip('footer-position', `no line below the composer contains ${quote(HINT_LITERAL)}`));
+  else if (!frame.hintRows.some((index) => lastThree.has(index)))
+    findings.push(finding('footer-position', `footer hint is not within the last 3 non-empty rows (${frame.nonEmpty.slice(-3).join(', ')})`, frame.paneLines[frame.hintRows[0]], frame.hintRows[0]));
+  if (bandRow === -1) findings.push(skip('footer-position', 'no editor band row in frame'));
+  else if (!frame.paneLines.some((line, index) => isBandRow(line) && lastSix.has(index)))
+    findings.push(finding('footer-position', `editor band row is not within the last 6 non-empty rows (${frame.nonEmpty.slice(-6).join(', ')})`, frame.paneLines[bandRow], bandRow));
+  return findings;
+}
 
-  // prompt-band: the composer is a `▄` band above the input and a `▀` band
-  // below, one column of margin each side. Only the composer draws those
-  // glyphs, so the bands are unambiguous; when none are present the composer is
-  // either off screen or replaced by a picker.
-  const bandRows = paneLines.flatMap((line, index) => (isBandRow(line) ? [index] : []));
-  if (bandRows.length < 2) results.push(skip('prompt-band', `${bandRows.length} band rows in frame`));
-  else if (modal) results.push(skip('prompt-band', 'modal menu open'));
-  else {
-    const [topIndex, bottomIndex] = bandRows.slice(-2);
-    const topGlyphs = bandGlyphs(paneLines[topIndex]);
-    const bottomGlyphs = bandGlyphs(paneLines[bottomIndex]);
-    if (!topGlyphs.has('▄') || topGlyphs.has('▀')) results.push(finding('prompt-band', 'top band is not a `▄` row', paneLines[topIndex], topIndex));
-    if (!bottomGlyphs.has('▀') || bottomGlyphs.has('▄')) results.push(finding('prompt-band', 'bottom band is not a `▀` row', paneLines[bottomIndex], bottomIndex));
-    const unframed = paneLines.slice(topIndex + 1, bottomIndex).filter((line) => line.trim() !== '' && !isEditorRow(line));
-    if (unframed.length > 0) results.push(finding('prompt-band', 'a row inside the band has no side margin', unframed[0], paneLines.indexOf(unframed[0])));
-  }
-
-  // footer-position
-  if (!expectChrome) results.push(skip('footer-position', 'frame not marked expectChrome'));
-  else if (modal) results.push(skip('footer-position', 'modal menu open'));
-  else {
-    const lastThree = new Set(nonEmpty.slice(-3));
-    const lastSix = new Set(nonEmpty.slice(-6));
-    const bandRow = paneLines.findIndex((line) => isBandRow(line));
-    // The mode row is absent at the session's default thinking level, so the
-    // footer is anchored on the rows below the composer instead. A picker
-    // replaces the composer, so the anchor only applies when a band is present.
-    if (bandRow !== -1) {
-      const belowComposer = nonEmpty.filter((index) => paneLines.slice(0, index + 1).some((line) => BAND_BOTTOM.test(line.trimEnd())));
-      if (belowComposer.length === 0) results.push(finding('footer-position', 'nothing renders below the composer band', paneLines[nonEmpty.at(-1) ?? 0] ?? '', nonEmpty.at(-1) ?? 0));
-    }
-    if (hintRows.length === 0) results.push(skip('footer-position', `no line below the composer contains ${quote(HINT_LITERAL)}`));
-    else if (!hintRows.some((index) => lastThree.has(index))) results.push(finding('footer-position', `footer hint is not within the last 3 non-empty rows (${nonEmpty.slice(-3).join(', ')})`, paneLines[hintRows[0]], hintRows[0]));
-    if (bandRow === -1) results.push(skip('footer-position', 'no editor band row in frame'));
-    else if (!paneLines.some((line, index) => isBandRow(line) && lastSix.has(index)))
-      results.push(finding('footer-position', `editor band row is not within the last 6 non-empty rows (${nonEmpty.slice(-6).join(', ')})`, paneLines[bandRow], bandRow));
-  }
-
-  // color-missing
-  const topRule = paneLines.findIndex((line) => isBandRow(line));
-  if (ansi === undefined || ansi === null) results.push(skip('color-missing', 'no ANSI capture'));
-  else if (topRule === -1) results.push(skip('color-missing', 'no editor band row in frame'));
-  else {
-    const ansiLine = lines(ansi)[topRule] ?? '';
-    if (!hasSgrColor(ansiLine)) results.push(finding('color-missing', 'editor band row carries no SGR color', paneLines[topRule], topRule));
-  }
-
-  return results;
+function checkColorMissing(frame) {
+  const topRule = frame.bandRows[0] ?? -1;
+  if (frame.ansi === undefined || frame.ansi === null) return [skip('color-missing', 'no ANSI capture')];
+  if (topRule === -1) return [skip('color-missing', 'no editor band row in frame')];
+  const ansiLine = lines(frame.ansi)[topRule] ?? '';
+  if (hasSgrColor(ansiLine)) return [];
+  return [finding('color-missing', 'editor band row carries no SGR color', frame.paneLines[topRule], topRule)];
 }
 
 /** Split `checkFrame` output into findings and skips. */

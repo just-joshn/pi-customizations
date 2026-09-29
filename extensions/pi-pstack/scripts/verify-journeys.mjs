@@ -187,7 +187,6 @@ async function journeyLoad(ctx) {
   const commands = await ctx.send({ type: 'get_commands' });
   const allSkills = [...(await subdirectories(join(ctx.root, 'skills'))), ...(await subdirectories(join(ctx.root, 'host', 'skills')))].sort();
   const promptNames = [...(await readdir(join(ctx.root, 'prompts'))).filter((n) => n.endsWith('.md')).map((n) => n.slice(0, -3)), 'loop'];
-  ctx.skills = allSkills;
   checkEqual('load: skill count discovered', commands.commands.filter((c) => c.source === 'skill').length, allSkills.length);
   checkEqual('load: every skill directory is a discovered skill command', allSkills.filter((name) => commands.commands.some((c) => c.name === `skill:${name}` && c.source === 'skill')).length, allSkills.length);
   checkEqual('load: every prompt template is discovered', promptNames.filter((name) => commands.commands.some((c) => c.name === name && c.source === 'prompt')).length, promptNames.length);
@@ -198,6 +197,7 @@ async function journeyLoad(ctx) {
     );
   }
   check('load: the extension reported no load error', !/Failed to load extension|Extension error/.test(ctx.stderr()), ctx.stderr().slice(0, 400));
+  return { skills: allSkills };
 }
 
 async function journeyNativeSkills(ctx) {
@@ -679,10 +679,12 @@ async function main() {
   const ctx = { root, directory, log, ...(await startPi(directory, log, ['--no-session'])) };
   try {
     await ctx.send({ type: 'set_model', provider: 'journey-test', modelId: 'recorder' });
+    // Each journey folds the facts it discovered into the next context instead of writing them back.
+    let shared = ctx;
     for (const journey of journeys) {
-      if (!only || journey.name.includes(only)) await journey(ctx);
+      if (!only || journey.name.includes(only)) shared = { ...shared, ...(await journey(shared)) };
     }
-    if (!only || 'journeyWorktrees'.includes(only)) await journeyWorktrees(ctx);
+    if (!only || 'journeyWorktrees'.includes(only)) await journeyWorktrees(shared);
   } finally {
     await ctx.finish().catch(() => {});
     await ctx.close().catch(() => {});

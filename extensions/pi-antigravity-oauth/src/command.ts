@@ -26,12 +26,16 @@ function tierName(data: unknown): string | undefined {
   return undefined;
 }
 
+/** Budget for the account command's three lookups, so a stalled connection cannot hold the command open indefinitely. */
+const accountLookupTimeoutMs = 30_000;
+
 export async function fetchAccountSummary(apiKey: string, endpoints: CommandEndpoints): Promise<AccountSummary> {
   const { token, projectId } = parseApiKey(apiKey);
+  const signal = AbortSignal.timeout(accountLookupTimeoutMs);
   const [email, assist, available] = await Promise.all([
-    fetchEmail(endpoints.userInfoUrl, token),
-    postCloudCode(endpoints.cloudCode, 'loadCodeAssist', token, LOAD_CODE_ASSIST_BODY).catch(() => undefined),
-    postCloudCode(endpoints.cloudCode, 'fetchAvailableModels', token, { project: projectId }).then(
+    fetchEmail(endpoints.userInfoUrl, token, signal),
+    postCloudCode(endpoints.cloudCode, 'loadCodeAssist', token, LOAD_CODE_ASSIST_BODY, signal).catch(() => undefined),
+    postCloudCode(endpoints.cloudCode, 'fetchAvailableModels', token, { project: projectId }, signal).then(
       (data): { models: AvailableModel[]; error?: string } => ({ models: parseAvailableModels(data) }),
       (error: unknown) => ({ models: [], error: error instanceof Error ? error.message : String(error) }),
     ),

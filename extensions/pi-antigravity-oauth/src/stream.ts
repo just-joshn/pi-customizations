@@ -150,96 +150,111 @@ interface CloudCodeChunk {
 
 let toolCallCounter = 0;
 
+type CloudCodeResponse = NonNullable<CloudCodeChunk['response']>;
+
+function lastBlock(output: AssistantMessage): TextContent | ThinkingContent | undefined {
+  const block = output.content[output.content.length - 1];
+  return block?.type === 'text' || block?.type === 'thinking' ? block : undefined;
+}
+
+function openBlock(stream: AssistantMessageEventStream, output: AssistantMessage, block: TextContent | ThinkingContent | ToolCall): void {
+  if (output.content.length === 0) stream.push({ type: 'start', partial: output });
+  output.content.push(block);
+}
+
+function endBlock(stream: AssistantMessageEventStream, output: AssistantMessage): void {
+  const block = lastBlock(output);
+  const contentIndex = output.content.length - 1;
+  if (block?.type === 'text') stream.push({ type: 'text_end', contentIndex, content: block.text, partial: output });
+  else if (block?.type === 'thinking') stream.push({ type: 'thinking_end', contentIndex, content: block.thinking, partial: output });
+}
+
+function applyTextPart(stream: AssistantMessageEventStream, output: AssistantMessage, part: GeminiPart & { text: string }): void {
+  const thinking = isThinkingPart(part);
+  const active = lastBlock(output);
+  if (thinking && active?.type !== 'thinking') {
+    endBlock(stream, output);
+    openBlock(stream, output, { type: 'thinking', thinking: '' });
+    stream.push({ type: 'thinking_start', contentIndex: output.content.length - 1, partial: output });
+  } else if (!thinking && active?.type !== 'text') {
+    endBlock(stream, output);
+    openBlock(stream, output, { type: 'text', text: '' });
+    stream.push({ type: 'text_start', contentIndex: output.content.length - 1, partial: output });
+  }
+  const block = lastBlock(output);
+  if (block?.type === 'thinking') {
+    block.thinking += part.text;
+    block.thinkingSignature = retainThoughtSignature(block.thinkingSignature, part.thoughtSignature);
+    stream.push({ type: 'thinking_delta', contentIndex: output.content.length - 1, delta: part.text, partial: output });
+  } else if (block?.type === 'text') {
+    block.text += part.text;
+    block.textSignature = retainThoughtSignature(block.textSignature, part.thoughtSignature);
+    stream.push({ type: 'text_delta', contentIndex: output.content.length - 1, delta: part.text, partial: output });
+  }
+}
+
+function emitToolCall(stream: AssistantMessageEventStream, output: AssistantMessage, call: NonNullable<GeminiPart['functionCall']>, thoughtSignature: string | undefined): void {
+  endBlock(stream, output);
+  const duplicate = output.content.some((block) => block.type === 'toolCall' && block.id === call.id);
+  const toolCall: ToolCall = {
+    type: 'toolCall',
+    id: call.id && !duplicate ? call.id : `${call.name}_${Date.now()}_${++toolCallCounter}`,
+    name: call.name ?? '',
+    arguments: call.args ?? {},
+    ...(thoughtSignature && { thoughtSignature }),
+  };
+  openBlock(stream, output, toolCall);
+  const contentIndex = output.content.length - 1;
+  stream.push({ type: 'toolcall_start', contentIndex, partial: output });
+  stream.push({ type: 'toolcall_delta', contentIndex, delta: JSON.stringify(toolCall.arguments), partial: output });
+  stream.push({ type: 'toolcall_end', contentIndex, toolCall, partial: output });
+}
+
+function resolveStopReason(finishReason: string, content: AssistantMessage['content']): AssistantMessage['stopReason'] {
+  const stopReason = mapStopReasonString(finishReason);
+  return stopReason === 'stop' && content.some((block) => block.type === 'toolCall') ? 'toolUse' : stopReason;
+}
+
+function usageFor(model: Model<Api>, metadata: Record<string, number | undefined>): Usage {
+  const cacheRead = metadata.cachedContentTokenCount ?? 0;
+  const usage: Usage = {
+    input: (metadata.promptTokenCount ?? 0) - cacheRead,
+    output: (metadata.candidatesTokenCount ?? 0) + (metadata.thoughtsTokenCount ?? 0),
+    cacheRead,
+    cacheWrite: 0,
+    reasoning: metadata.thoughtsTokenCount ?? 0,
+    totalTokens: metadata.totalTokenCount ?? 0,
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+  };
+  calculateCost(model, usage);
+  return usage;
+}
+
+// agents-compliance-ignore parameter-mutation: the pi-ai contract carries this message as the shared live partial, so its fields update in place
+function applyChunkState(output: AssistantMessage, model: Model<Api>, response: CloudCodeResponse): void {
+  const candidate = response.candidates?.[0];
+  if (candidate?.finishReason) {
+    output.rawStopReason = candidate.finishReason;
+    output.stopReason = resolveStopReason(candidate.finishReason, output.content);
+  }
+  if (response.usageMetadata) output.usage = usageFor(model, response.usageMetadata);
+}
+
 function createReducer(output: AssistantMessage, stream: AssistantMessageEventStream) {
-  let current: TextContent | ThinkingContent | undefined;
-  let started = false;
-  const index = () => output.content.length - 1;
-  const open = (block: TextContent | ThinkingContent | ToolCall) => {
-    if (!started) stream.push({ type: 'start', partial: output });
-    started = true;
-    output.content.push(block);
-  };
-  const close = () => {
-    if (current?.type === 'text') {
-      stream.push({ type: 'text_end', contentIndex: index(), content: current.text, partial: output });
-    } else if (current?.type === 'thinking') {
-      stream.push({ type: 'thinking_end', contentIndex: index(), content: current.thinking, partial: output });
-    }
-    current = undefined;
-  };
-  const text = (part: GeminiPart & { text: string }) => {
-    const thinking = isThinkingPart(part);
-    if (thinking && current?.type !== 'thinking') {
-      close();
-      current = { type: 'thinking', thinking: '' };
-      open(current);
-      stream.push({ type: 'thinking_start', contentIndex: index(), partial: output });
-    } else if (!thinking && current?.type !== 'text') {
-      close();
-      current = { type: 'text', text: '' };
-      open(current);
-      stream.push({ type: 'text_start', contentIndex: index(), partial: output });
-    }
-    if (current?.type === 'thinking') {
-      current.thinking += part.text;
-      current.thinkingSignature = retainThoughtSignature(current.thinkingSignature, part.thoughtSignature);
-      stream.push({ type: 'thinking_delta', contentIndex: index(), delta: part.text, partial: output });
-    } else if (current?.type === 'text') {
-      current.text += part.text;
-      current.textSignature = retainThoughtSignature(current.textSignature, part.thoughtSignature);
-      stream.push({ type: 'text_delta', contentIndex: index(), delta: part.text, partial: output });
-    }
-  };
-  const functionCall = (call: NonNullable<GeminiPart['functionCall']>, thoughtSignature: string | undefined) => {
-    close();
-    const duplicate = output.content.some((block) => block.type === 'toolCall' && block.id === call.id);
-    const toolCall: ToolCall = {
-      type: 'toolCall',
-      id: call.id && !duplicate ? call.id : `${call.name}_${Date.now()}_${++toolCallCounter}`,
-      name: call.name ?? '',
-      arguments: call.args ?? {},
-      ...(thoughtSignature && { thoughtSignature }),
-    };
-    open(toolCall);
-    stream.push({ type: 'toolcall_start', contentIndex: index(), partial: output });
-    stream.push({ type: 'toolcall_delta', contentIndex: index(), delta: JSON.stringify(toolCall.arguments), partial: output });
-    stream.push({ type: 'toolcall_end', contentIndex: index(), toolCall, partial: output });
-  };
   return {
     get hasContent() {
-      return started;
+      return output.content.length > 0;
     },
-    finish: close,
+    finish: () => endBlock(stream, output),
     chunk(model: Model<Api>, chunk: CloudCodeChunk) {
       const response = chunk.response;
       if (!response) return;
       output.responseId ||= response.responseId;
-      const candidate = response.candidates?.[0];
-      for (const part of candidate?.content?.parts ?? []) {
-        if (part.text !== undefined) text(part as GeminiPart & { text: string });
-        if (part.functionCall) functionCall(part.functionCall, part.thoughtSignature);
+      for (const part of response.candidates?.[0]?.content?.parts ?? []) {
+        if (part.text !== undefined) applyTextPart(stream, output, part as GeminiPart & { text: string });
+        if (part.functionCall) emitToolCall(stream, output, part.functionCall, part.thoughtSignature);
       }
-      if (candidate?.finishReason) {
-        output.rawStopReason = candidate.finishReason;
-        output.stopReason = mapStopReasonString(candidate.finishReason);
-        if (output.stopReason === 'stop' && output.content.some((block) => block.type === 'toolCall')) {
-          output.stopReason = 'toolUse';
-        }
-      }
-      const usage = response.usageMetadata;
-      if (usage) {
-        const cacheRead = usage.cachedContentTokenCount ?? 0;
-        output.usage = {
-          input: (usage.promptTokenCount ?? 0) - cacheRead,
-          output: (usage.candidatesTokenCount ?? 0) + (usage.thoughtsTokenCount ?? 0),
-          cacheRead,
-          cacheWrite: 0,
-          reasoning: usage.thoughtsTokenCount ?? 0,
-          totalTokens: usage.totalTokenCount ?? 0,
-          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
-        };
-        calculateCost(model, output.usage);
-      }
+      applyChunkState(output, model, response);
     },
   };
 }
@@ -283,6 +298,26 @@ function emptyUsage(): Usage {
   };
 }
 
+async function buildRequestInit(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined): Promise<RequestInit> {
+  const { token, projectId } = parseApiKey(options?.apiKey);
+  const base = buildBaseOptions(model, context, options);
+  const thinking = resolveThinking(model, options, base.maxTokens ?? model.maxTokens);
+  const request = buildRequest(model, context, projectId, {
+    temperature: base.temperature,
+    maxTokens: thinking.maxTokens,
+    thinkingConfig: thinking.thinkingConfig,
+    toolChoice: options?.toolChoice,
+    sessionId: options?.sessionId,
+  });
+  const payload = (await options?.onPayload?.(request, model)) ?? request;
+  return {
+    method: 'POST',
+    headers: requestHeaders(model, token, options?.headers),
+    body: JSON.stringify(payload),
+    signal: options?.signal,
+  };
+}
+
 async function run(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined, endpoints: readonly string[], stream: AssistantMessageEventStream): Promise<void> {
   const output: AssistantMessage = {
     role: 'assistant',
@@ -295,23 +330,7 @@ async function run(model: Model<Api>, context: TranscriptContext, options: Simpl
     timestamp: Date.now(),
   };
   try {
-    const { token, projectId } = parseApiKey(options?.apiKey);
-    const base = buildBaseOptions(model, context, options);
-    const thinking = resolveThinking(model, options, base.maxTokens ?? model.maxTokens);
-    const request = buildRequest(model, context, projectId, {
-      temperature: base.temperature,
-      maxTokens: thinking.maxTokens,
-      thinkingConfig: thinking.thinkingConfig,
-      toolChoice: options?.toolChoice,
-      sessionId: options?.sessionId,
-    });
-    const payload = (await options?.onPayload?.(request, model)) ?? request;
-    const init: RequestInit = {
-      method: 'POST',
-      headers: requestHeaders(model, token, options?.headers),
-      body: JSON.stringify(payload),
-      signal: options?.signal,
-    };
+    const init = await buildRequestInit(model, context, options);
     for (let empty = 0; ; empty++) {
       const response = await openStream(endpoints, init, model, options);
       const reducer = createReducer(output, stream);
