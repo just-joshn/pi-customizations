@@ -332,6 +332,7 @@ describe('buildTheme', () => {
     expect(theme).toEqual({
       $schema: 'https://raw.githubusercontent.com/earendil-works/pi/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json',
       name: 'one-dark-pro-flat',
+      appearance: 'dark',
       colors: { selectedBg: '#3a3c3f', text: '#aabbcc' },
       export: { cardBg: '#aabbcc', pageBg: '#101010' },
     });
