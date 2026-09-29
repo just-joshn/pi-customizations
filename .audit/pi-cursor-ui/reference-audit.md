@@ -40,7 +40,7 @@ Decisions taken from that table:
 | 1 | Composer frame | ` ▄▄▄…` / `  → …` / ` ▀▀▀…` | two `─` rules | half-block band, 1-column margin | `scripts/compare-reference.mjs` |
 | 2 | Band color | fill `#151515`, drawn as a foreground | `─` rule in the phase color | `borderMuted` = `#151515` | `artifacts/sweep/08-live-matrix.log` |
 | 3 | Band in shell mode | the CLI accents its input prefix | violet `borderAccent` | Pi's own `bashMode` accent | `test/editor.test.ts` |
-| 4 | Text column | column 2 | column 0 | 2, plus the host's `editorPaddingX` | `test/editor.test.ts` |
+| 4 | Text column | the `→` glyph at column 2, the text at column 4, both kept while typing | column 0 | 4, with the glyph repainted into Pi's `paddingX` | `test/editor.test.ts`, `reference/cursor-agent-2026.09.28-64d2043/02-typed.txt` |
 | 5 | Mode line | `  Plan (shift+tab to cycle)` | `◉ Medium` plus a right-aligned `shift+tab to cycle` | one left-aligned line, inline parentheses | `scripts/lib/frame-invariants.mjs` |
 | 6 | Footer indent | two columns on every row | flush left | two columns | `scripts/compare-reference.mjs` |
 | 7 | Location row | `  ~/cwd · branch` | branch right-aligned on the model row | footer row C | `test/chrome.test.ts` |
@@ -94,6 +94,18 @@ These were live bugs, not reference mismatches.
 | The stop hint vanished on a narrow terminal | `esc to stop` disappeared entirely below 19 columns | the in-row hint had no fallback. It now falls back to the bottom band, then is dropped only when neither fits |
 | Every `esc to stop` assertion could pass on an empty row | the abort scenario had no positive check | the scenario now requires the hint row and the fill color together |
 
+## Defects found in the user-perspective pass
+
+A later hand-driven pass over the real TUI, with the installed CLI as the ground
+truth, found four more.
+
+| Defect | Symptom | Root cause |
+|---|---|---|
+| The composer dropped the prompt glyph | the first keystroke deleted the `→` and moved the input text two columns left of the placeholder row and of the reference, which keeps `  → hello world` | only the empty row was repainted, and the text sat at column 2 outside Pi's `paddingX`, so no glyph could precede it without breaking Pi's cursor and mouse arithmetic. The text column is now 4, equal to `paddingX`, and the first input row's padding is repainted as `  → ` |
+| The working frames kept the old theme's colors | after a mid-session theme switch the composer band took the new theme but the spinner kept cursor-ui's `success` `#3ed07a` while the new theme defined `#8cc265` | the frame strings baked their SGR codes at install time and Pi renders custom frames verbatim. They are now re-derived from the live theme proxy once per editor render, behind a frame-change key so an unrelated invalidation does not restart the animation |
+| The `theme-switch` scenario never opened a picker | it sent `/theme`, which is not a Pi command, so the step asserted the substring `cursor-ui` inside the temp workspace path `pi-cursor-ui-ws-…` and passed without changing a theme | the literal was satisfied by an unrelated part of the frame. The scenario now drives `/settings` and searches for the Theme row, and `theme-switch-spinner` selects the built-in `dark` theme and asserts the in-band spinner is not painted in cursor-ui's `success` |
+| The README and this audit described the wrong palette | both claimed a green idle border and a `borderAccent` busy border, and the footer section claimed a colored dot | the band is `borderMuted` `composerFill` `#151515` in the idle, busy, and aborted captures, and the footer colors the whole mode-line label. Both documents now state that |
+
 ## Harness changes
 
 The live invariants encoded the old design, so they now encode the reference.
@@ -114,23 +126,27 @@ Every number below is from a command run on this machine at this revision.
 |---|---|---|
 | Sweep | `node scripts/ui-sweep.mjs` | `findings: 0`, all 11 steps pass |
 | Type check | `bun run typecheck` | exit 0 |
-| Unit tests | `bun run test:coverage` | 14 files, 2323 passed, 2 expected fail, 1 skipped |
-| Coverage | same run | statements 96.43, branches 91.24, functions 96.12, lines 97.82, thresholds 80 |
+| Unit tests | `bun run test:coverage` | 14 files, 2331 passed, 2 expected fail, 1 skipped |
+| Coverage | same run | statements 96.87, branches 90.65, functions 96.93, lines 98.38, thresholds 80 |
 | Style boundaries | `node scripts/check-skin-boundaries.mjs` | `violations: 0 in 22 source files` |
 | Frame invariants | `node scripts/lib/frame-invariants.mjs --self-test` | `15/15 passed` |
 | Prompt parity | `node scripts/check-prompt-parity.mjs` | system prompt, 4 tool definitions, and reply identical |
-| Live matrix | `node scripts/tmux-smoke.mjs --all` | 44 scenarios, 0 failures, `invariants: 0 findings, 1122 passed` |
-| Live fuzz | `node scripts/tmux-smoke.mjs --fuzz 20 --seed 1` | 20 sessions, `invariants: 0 findings` out of 1609 checks |
+| Live matrix | `node scripts/tmux-smoke.mjs --all` | 46 scenarios, 0 failures, `invariants: 0 findings, 1165 passed` |
+| Live fuzz | `node scripts/tmux-smoke.mjs --fuzz 20 --seed 1` | 20 sessions, `invariants: 0 findings, 1610 skipped` |
 | Reference parity | `node scripts/compare-reference.mjs` | `failures: 0` |
 | Repository lint | `bunx biome ci . --error-on-warnings` | clean |
 
 ## Not verified
 
 - **In-session chrome.** The installed build needs a signed-in account and spent
-  subscription quota to start a chat, so the reference captures cover the idle
-  screen and the `/` palette only. The transcript, tool rows, and the working
-  state come from the reverse-engineered bundle report that already exists at
-  `~/.cursor/research/cursor-cli-2026.09.26-dd393fe/source-composer.md` and
+  subscription quota to start a chat, so the committed captures stay on
+  keystroke-reachable states and submit no prompt. They include the typed
+  composer at 110x34 (`reference/cursor-agent-2026.09.28-64d2043/02-typed.txt`),
+  where the glyph sits at column 2 and the typed text at column 4, which is
+  where the column-4 text column and the persistent glyph come from. The
+  transcript, tool rows, and the working state still come from the
+  reverse-engineered bundle report that already exists
+  at `~/.cursor/research/cursor-cli-2026.09.26-dd393fe/source-composer.md` and
   `source-conversation.md`, which is source-derived rather than observed.
 - **The composer fill.** Pi has no theme role for it, so the input row is not
   filled. No capture can prove what the fill looks like if a role is added later.
