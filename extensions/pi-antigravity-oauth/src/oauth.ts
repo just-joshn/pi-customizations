@@ -188,53 +188,62 @@ async function awaitCode(callback: CallbackServer, interaction: ProviderAuthInte
   }
 }
 
+function authorizationParams(redirectUri: string, challenge: string, state: string): string {
+  return new URLSearchParams({
+    client_id: CLIENT_ID,
+    response_type: 'code',
+    redirect_uri: redirectUri,
+    scope: SCOPES.join(' '),
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+    state,
+    access_type: 'offline',
+    prompt: 'consent',
+  }).toString();
+}
+
+async function findAccount(endpoints: OAuthEndpoints, token: string, signal: AbortSignal): Promise<{ email: string | undefined; projectId: string }> {
+  const [email, projectId] = await Promise.all([fetchEmail(endpoints.userInfoUrl, token, signal), discoverProject(endpoints.cloudCode, token, signal)]);
+  return { email, projectId };
+}
+
+async function authorize(endpoints: OAuthEndpoints, redirectUri: string, interaction: ProviderAuthInteraction): Promise<AntigravityCredential> {
+  const verifier = base64Url(randomBytes(32));
+  const challenge = base64Url(createHash('sha256').update(verifier).digest());
+  const state = base64Url(randomBytes(16));
+  const callback = await listenForCallback(endpoints.callbackHost, endpoints.callbackPort, interaction.signal);
+  try {
+    interaction.notify({
+      type: 'auth_url',
+      url: `${endpoints.authUrl}?${authorizationParams(redirectUri, challenge, state)}`,
+      instructions: 'Complete the sign-in in your browser.',
+    });
+    const code = await awaitCode(callback, interaction, state);
+    interaction.notify({ type: 'progress', message: 'Exchanging authorization code' });
+    const token = await requestToken(endpoints.tokenUrl, { code, grant_type: 'authorization_code', redirect_uri: redirectUri, code_verifier: verifier }, interaction.signal);
+    if (!token.refresh_token) throw new Error('Google returned no refresh token. Try /login again.');
+    interaction.notify({ type: 'progress', message: 'Finding your Antigravity project' });
+    const { email, projectId } = await findAccount(endpoints, token.access_token, interaction.signal);
+    return {
+      type: 'oauth',
+      access: token.access_token,
+      refresh: token.refresh_token,
+      expires: Date.now() + token.expires_in * 1000 - EXPIRY_MARGIN_MS,
+      projectId,
+      ...(email && { email }),
+    };
+  } finally {
+    callback.close();
+  }
+}
+
 export function createAntigravityOAuth(endpoints: OAuthEndpoints = GOOGLE_OAUTH): OAuthAuth {
   const redirectUri = `http://localhost:${endpoints.callbackPort}/oauth-callback`;
   return {
     name: 'Google Antigravity',
     loginLabel: 'Sign in with Google (Antigravity)',
     isSubscription: true,
-    async login(interaction) {
-      const verifier = base64Url(randomBytes(32));
-      const challenge = base64Url(createHash('sha256').update(verifier).digest());
-      const state = base64Url(randomBytes(16));
-      const callback = await listenForCallback(endpoints.callbackHost, endpoints.callbackPort, interaction.signal);
-      try {
-        const params = new URLSearchParams({
-          client_id: CLIENT_ID,
-          response_type: 'code',
-          redirect_uri: redirectUri,
-          scope: SCOPES.join(' '),
-          code_challenge: challenge,
-          code_challenge_method: 'S256',
-          state,
-          access_type: 'offline',
-          prompt: 'consent',
-        });
-        interaction.notify({
-          type: 'auth_url',
-          url: `${endpoints.authUrl}?${params}`,
-          instructions: 'Complete the sign-in in your browser.',
-        });
-        const code = await awaitCode(callback, interaction, state);
-        interaction.notify({ type: 'progress', message: 'Exchanging authorization code' });
-        const token = await requestToken(endpoints.tokenUrl, { code, grant_type: 'authorization_code', redirect_uri: redirectUri, code_verifier: verifier }, interaction.signal);
-        if (!token.refresh_token) throw new Error('Google returned no refresh token. Try /login again.');
-        interaction.notify({ type: 'progress', message: 'Finding your Antigravity project' });
-        const [email, projectId] = await Promise.all([fetchEmail(endpoints.userInfoUrl, token.access_token, interaction.signal), discoverProject(endpoints.cloudCode, token.access_token, interaction.signal)]);
-        const credential: AntigravityCredential = {
-          type: 'oauth',
-          access: token.access_token,
-          refresh: token.refresh_token,
-          expires: Date.now() + token.expires_in * 1000 - EXPIRY_MARGIN_MS,
-          projectId,
-          ...(email && { email }),
-        };
-        return credential;
-      } finally {
-        callback.close();
-      }
-    },
+    login: (interaction) => authorize(endpoints, redirectUri, interaction),
     async refresh(credential, signal) {
       const current = parseCredential(credential);
       const token = await requestToken(endpoints.tokenUrl, { refresh_token: current.refresh, grant_type: 'refresh_token' }, signal);

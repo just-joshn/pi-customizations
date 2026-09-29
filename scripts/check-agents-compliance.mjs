@@ -49,7 +49,7 @@ const loopKinds = new Set(['ForStatement', 'ForOfStatement', 'ForInStatement']);
 const pythonControl = /^(?:if|for|while|try|with)\b/;
 const isTestPath = (path) => /(?:^|\/)(?:test|tests|__tests__)\//.test(path) || /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(path) || /^tests?\//.test(path);
 const vendoredBanner = /Vendored from [\s\S]{0,200}?Do not edit\./;
-const ignorePragma = /agents-compliance-ignore\s+([a-z-]+)\s*:\s*(\S.{11,})/;
+const ignorePragma = /agents-compliance-ignore\s+([a-z-]+)\s*:\s*(\S.*)/;
 const minReasonLength = 12;
 
 function createReporter(source, path) {

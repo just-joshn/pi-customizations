@@ -1,9 +1,12 @@
-.PHONY: verify sweep-tui-skin verify-lint verify-mechanisms verify-toolchain verify-extension verify-oauth verify-tui-parity verify-tui-skin verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
+.PHONY: verify sweep-tui-skin verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-oauth verify-tui-parity verify-tui-skin verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
 
-verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-tui-skin verify-one-dark-pro-theme verify-install verify-python
+verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-tui-skin verify-one-dark-pro-theme verify-install verify-python
 
 verify-lint:
 	bun run ci
+
+verify-agents:
+	bun run check:agents
 
 verify-mechanisms:
 	node scripts/check-pi-mechanisms.mjs
