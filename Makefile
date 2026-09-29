@@ -1,9 +1,12 @@
-.PHONY: verify sweep-cursor-ui verify-lint verify-mechanisms verify-toolchain verify-extension verify-oauth verify-tui-parity verify-cursor-ui verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
+.PHONY: verify sweep-cursor-ui verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-oauth verify-tui-parity verify-cursor-ui verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
 
-verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-cursor-ui verify-one-dark-pro-theme verify-install verify-python
+verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-cursor-ui verify-one-dark-pro-theme verify-install verify-python
 
 verify-lint:
 	bun run ci
+
+verify-agents:
+	bun run check:agents
 
 verify-mechanisms:
 	node scripts/check-pi-mechanisms.mjs
@@ -22,10 +25,10 @@ verify-extension:
 
 verify-oauth:
 	bun run --filter pi-anthropic-oauth typecheck
-	bun run --filter pi-anthropic-oauth test
+	bun run --filter pi-anthropic-oauth test:coverage
 	bun run --filter pi-antigravity-oauth check:vendor
 	bun run --filter pi-antigravity-oauth typecheck
-	bun run --filter pi-antigravity-oauth test
+	bun run --filter pi-antigravity-oauth test:coverage
 
 verify-tui-parity:
 	bun run --filter pi-tui-parity check:docs

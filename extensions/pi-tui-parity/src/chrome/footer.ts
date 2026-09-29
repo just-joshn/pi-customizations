@@ -12,7 +12,7 @@ import type { ExtensionAPI, Theme } from '@earendil-works/pi-coding-agent';
 import { truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
 import { formatTokens } from '../format.ts';
 import { basicFg, type HexColor, paletteFg } from '../palette.ts';
-import { autorunLabel, modeHeadline, type TuiSessionState, vimFooterLabel } from '../state.ts';
+import { autorunLabel, modeHeadline, type SessionReader, type TuiSessionState, vimFooterLabel } from '../state.ts';
 
 export function formatContextPercent(percent: number | null, tokens: number | null): string {
   if (percent !== null) {
@@ -117,7 +117,7 @@ function buildLocationRow(opts: { cwd: string; home: string; branch?: string }):
   return opts.branch ? `${cwd} · ${opts.branch}` : cwd;
 }
 
-export function installFooter(pi: ExtensionAPI, state: TuiSessionState): void {
+export function installFooter(pi: ExtensionAPI, session: SessionReader): void {
   pi.on('session_start', async (_event, ctx) => {
     if (ctx.mode !== 'tui') return;
     ctx.ui.setFooter((tui, theme, footerData) => {
@@ -130,7 +130,7 @@ export function installFooter(pi: ExtensionAPI, state: TuiSessionState): void {
           const usage = ctx.getContextUsage();
           return renderFooterRows({
             theme,
-            state,
+            state: session.read(),
             modelName: model?.name,
             contextWindow: model?.contextWindow,
             contextPercent: usage?.percent ?? null,

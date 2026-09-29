@@ -12,11 +12,11 @@ import { execFileSync } from 'node:child_process';
 
 import type { ExtensionCommandContext, Theme } from '@earendil-works/pi-coding-agent';
 import { VERSION } from '@earendil-works/pi-coding-agent';
-import type { TuiSessionState } from '../state.ts';
+import type { TuiSession } from '../state.ts';
 
 export type CommandStatus = 'implemented' | 'mapped' | 'unmet';
 
-export type CommandHandler = (args: string, ctx: ExtensionCommandContext, state: TuiSessionState) => void | Promise<void>;
+export type CommandHandler = (args: string, ctx: ExtensionCommandContext, session: TuiSession) => void | Promise<void>;
 
 export interface CommandEntry {
   readonly id: string;
@@ -75,11 +75,6 @@ export function totalUsage(entries: readonly unknown[]): UsageTotals {
   return totals;
 }
 
-function toggle(state: TuiSessionState, key: 'runEverything' | 'autoReview' | 'compact'): boolean {
-  state[key] = !state[key];
-  return state[key];
-}
-
 function aboutHandler(_args: string, ctx: ExtensionCommandContext): void {
   const session = ctx.sessionManager.getSessionFile();
   ctx.ui.notify([`pi v${VERSION}`, `Model: ${ctx.model?.name ?? 'none'}`, `Provider: ${ctx.model?.provider ?? '-'}`, `Session: ${session ?? 'No session'}`].join('\n'));
@@ -112,9 +107,9 @@ export const TUI_COMMANDS: readonly CommandEntry[] = [
     aliases: ['auto-run'],
     description: 'Toggle Run Everything (currently …)',
     status: 'implemented',
-    handler: (_args, ctx, state) => {
-      const on = toggle(state, 'runEverything');
-      ctx.ui.notify(on ? 'Run Everything: ON (all commands run without approval)' : 'Run Everything: OFF');
+    handler: (_args, ctx, session) => {
+      const state = session.dispatch({ type: 'toggleRunEverything' });
+      ctx.ui.notify(state.runEverything ? 'Run Everything: ON (all commands run without approval)' : 'Run Everything: OFF');
     },
   },
   {
@@ -122,9 +117,9 @@ export const TUI_COMMANDS: readonly CommandEntry[] = [
     aliases: ['smart-auto'],
     description: 'Toggle Auto-review (currently …)',
     status: 'implemented',
-    handler: (_args, ctx, state) => {
-      const on = toggle(state, 'autoReview');
-      ctx.ui.notify(on ? 'Auto-review: ON' : 'Auto-review: OFF');
+    handler: (_args, ctx, session) => {
+      const state = session.dispatch({ type: 'toggleAutoReview' });
+      ctx.ui.notify(state.autoReview ? 'Auto-review: ON' : 'Auto-review: OFF');
     },
   },
   {
@@ -132,8 +127,8 @@ export const TUI_COMMANDS: readonly CommandEntry[] = [
     aliases: [],
     description: 'Create a plan or show existing plan with options',
     status: 'implemented',
-    handler: (_args, ctx, state) => {
-      state.mode = 'plan';
+    handler: (_args, ctx, session) => {
+      session.dispatch({ type: 'setMode', mode: 'plan' });
       ctx.ui.notify('Plan mode enabled');
     },
   },
@@ -142,8 +137,8 @@ export const TUI_COMMANDS: readonly CommandEntry[] = [
     aliases: [],
     description: 'Toggle ask mode (Q&A, read-only; no edits or command execution)',
     status: 'implemented',
-    handler: (_args, ctx, state) => {
-      state.mode = state.mode === 'ask' ? 'default' : 'ask';
+    handler: (_args, ctx, session) => {
+      const state = session.dispatch({ type: 'toggleAsk' });
       ctx.ui.notify(state.mode === 'ask' ? 'Ask mode enabled' : 'Ask mode disabled');
     },
   },
@@ -163,8 +158,8 @@ export const TUI_COMMANDS: readonly CommandEntry[] = [
     aliases: [],
     description: 'Toggle Vim keys (currently …)',
     status: 'implemented',
-    handler: (_args, ctx, state) => {
-      state.vim = state.vim === 'normal' ? 'insert' : 'normal';
+    handler: (_args, ctx, session) => {
+      const state = session.dispatch({ type: 'toggleVim' });
       ctx.ui.notify(state.vim === 'normal' ? 'Vim keys: ON' : 'Vim keys: OFF');
     },
   },
@@ -173,9 +168,9 @@ export const TUI_COMMANDS: readonly CommandEntry[] = [
     aliases: ['zen'],
     description: 'Toggle compact one-line tool calls (currently on/off)',
     status: 'implemented',
-    handler: (_args, ctx, state) => {
-      const on = toggle(state, 'compact');
-      ctx.ui.notify(on ? 'Zen mode: ON' : 'Zen mode: OFF');
+    handler: (_args, ctx, session) => {
+      const state = session.dispatch({ type: 'toggleCompact' });
+      ctx.ui.notify(state.compact ? 'Zen mode: ON' : 'Zen mode: OFF');
     },
   },
   { id: 'line-numbers', aliases: ['lines', 'numbers'], description: 'Toggle line numbers in code blocks (currently …)', status: 'unmet', reason: "pi's renderer has no line-number toggle" },

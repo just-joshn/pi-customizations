@@ -25,6 +25,21 @@ function safely(action: () => void): void {
   }
 }
 
+/**
+ * Restore every surface `install` took over. Each step runs through `safely`, so
+ * one failing setter cannot skip the rest or escape Pi's shutdown.
+ */
+function uninstallControls(ctx: ExtensionContext): void {
+  safely(() => ctx.ui.setWidget(ACTIVITY_WIDGET_KEY, undefined));
+  safely(() => ctx.ui.setEditorComponent(undefined));
+  safely(() => ctx.ui.setFooter(undefined));
+  safely(() => ctx.ui.setHeader(undefined));
+  safely(() => ctx.ui.setWorkingMessage());
+  safely(() => ctx.ui.setWorkingIndicator());
+  safely(() => ctx.ui.setWorkingVisible(true));
+  safely(() => ctx.ui.setHiddenThinkingLabel());
+}
+
 export function createUiController(store: PresentationStore): UiController {
   let activeTui: TUI | undefined;
   let unsubscribeStore: (() => void) | undefined;
@@ -82,14 +97,7 @@ export function createUiController(store: PresentationStore): UiController {
       unsubscribeStore?.();
       unsubscribeStore = undefined;
 
-      safely(() => ctx.ui.setWidget(ACTIVITY_WIDGET_KEY, undefined));
-      safely(() => ctx.ui.setEditorComponent(undefined));
-      safely(() => ctx.ui.setFooter(undefined));
-      safely(() => ctx.ui.setHeader(undefined));
-      safely(() => ctx.ui.setWorkingMessage());
-      safely(() => ctx.ui.setWorkingIndicator());
-      safely(() => ctx.ui.setWorkingVisible(true));
-      safely(() => ctx.ui.setHiddenThinkingLabel());
+      uninstallControls(ctx);
     },
   };
 }

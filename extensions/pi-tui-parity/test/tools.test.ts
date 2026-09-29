@@ -24,10 +24,10 @@ function capture(): Map<string, AnyDef> {
 
 let contextSeq = 0;
 
-function makeContext(args: unknown): { ctx: unknown; invalidations: () => number } {
+function makeContext(args: unknown, toolCallId = `t${++contextSeq}`): { ctx: unknown; invalidations: () => number } {
   let invalidations = 0;
   const holder: { toolCallId: string; invalidate: () => void; state: ToolRowState | undefined; args: unknown; cwd: string } = {
-    toolCallId: `t${++contextSeq}`,
+    toolCallId,
     invalidate: () => {
       invalidations += 1;
     },
@@ -69,6 +69,23 @@ describe('tui tool renderers', () => {
     expect(invalidations()).toBe(1);
     bash.renderResult?.(result('two'), options, theme, ctx);
     expect(invalidations()).toBe(1);
+  });
+
+  it('invalidates each context once when two contexts share a tool call id', async () => {
+    const theme = await makeTheme();
+    const bash = capture().get('bash');
+    if (!bash) throw new Error('missing bash');
+    const first = makeContext({ command: 'echo hi' }, 'shared-call');
+    const second = makeContext({ command: 'echo hi' }, 'shared-call');
+    const options = { expanded: false, isPartial: false };
+    bash.renderCall?.({ command: 'echo hi' }, theme, first.ctx);
+    bash.renderCall?.({ command: 'echo hi' }, theme, second.ctx);
+    bash.renderResult?.(result('one'), options, theme, first.ctx);
+    bash.renderResult?.(result('two'), options, theme, first.ctx);
+    bash.renderResult?.(result('one'), options, theme, second.ctx);
+    bash.renderResult?.(result('two'), options, theme, second.ctx);
+    expect(first.invalidations()).toBe(1);
+    expect(second.invalidations()).toBe(1);
   });
 
   it('edit: +N -M note from the patch and the bordered diff block', async () => {

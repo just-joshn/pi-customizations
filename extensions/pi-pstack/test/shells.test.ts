@@ -51,6 +51,15 @@ function escapedDescendant(leaderPid: number): number | undefined {
   }
 }
 
+/** Kills one process this suite started. A pid that already exited is the expected case. */
+function killByPid(pid: number): void {
+  try {
+    process.kill(pid, 'SIGKILL');
+  } catch (error) {
+    if ((error as { code?: string }).code !== 'ESRCH') throw error;
+  }
+}
+
 function custom(session: AgentSession, type: string) {
   return session.messages.filter((message) => message.role === 'custom' && message.customType === type);
 }
@@ -224,20 +233,21 @@ test('a descendant that escaped the process group does not block the stop', asyn
   const cwd = await mkdtemp(join(tmpdir(), 'pstack-shell-cwd-'));
   const ctx = { cwd, sessionManager: { getSessionFile: () => null }, isIdle: () => true } as never;
   const record = await runtime.start({ command: `perl -MPOSIX -e 'POSIX::setsid(); sleep 300' & sleep 0.3`, title: 'escape' }, ctx);
+  let escaped: number | undefined;
   try {
     await vi.waitFor(
       () => {
-        if (escapedDescendant(record.pid) === undefined) throw new Error('the descendant has not left the process group yet');
+        escaped = escapedDescendant(record.pid);
+        if (escaped === undefined) throw new Error('the descendant has not left the process group yet');
       },
       { timeout: 5000, interval: 50 },
     );
     expect((await runtime.stop(record.id)).status).toEqual({ kind: 'stopped' });
   } finally {
-    try {
-      execFileSync('pkill', ['-f', 'POSIX::setsid']);
-    } catch {
-      /* the escaped descendant may already be gone */
-    }
+    // Kill the descendant this test started, by pid. A name match would reach every process on the
+    // machine that carries the same command line, including a parallel run of this suite.
+    if (escaped !== undefined) killByPid(escaped);
+    await runtime.stopAll();
     await rm(dirname(record.outputFile), { recursive: true, force: true });
     await rm(cwd, { recursive: true, force: true });
   }

@@ -15,7 +15,7 @@
  * Exits 0 only when every assertion passes.
  */
 
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -151,12 +151,13 @@ function exercisePackagePath() {
   record('package loading also keeps the built-in dark accent away', !idle.includes(BUILT_IN_DARK_ACCENT), '03-package-path-idle');
 }
 
+/** Stops the throwaway server. A server that is already gone is the normal case at teardown. */
+function stopServer() {
+  spawnSync('tmux', ['-L', SOCKET, 'kill-server'], { stdio: 'ignore' });
+}
+
 function cleanup() {
-  try {
-    tmux(['kill-server']);
-  } catch {
-    // The server may already be gone.
-  }
+  stopServer();
   for (const dir of temporaryPaths) rmSync(dir, { recursive: true, force: true });
 }
 
@@ -189,8 +190,9 @@ try {
   failure = error;
   try {
     saveCapture('99-failure', `${error.message}\n${capture('theme-path')}`);
-  } catch {
-    // The pane is gone too; the original error matters more.
+  } catch (captureError) {
+    // The pane is gone too, so the capture is lost. The original error still decides the exit code.
+    process.stderr.write(`failure capture unavailable: ${captureError.message}\n`);
   }
   exitCode = summarize(failure);
 } finally {

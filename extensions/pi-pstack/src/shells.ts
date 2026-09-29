@@ -14,6 +14,7 @@ function json<T>(details: T) {
 
 export function registerShells(pi: ExtensionAPI): void {
   const runtime = new ShellRuntime(pi);
+  pi.on('session_start', () => runtime.forgetPreviousSession());
   pi.on('session_shutdown', () => runtime.stopAll());
   pi.on('message_end', (event) => {
     const message = event.message;

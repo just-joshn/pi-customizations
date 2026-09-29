@@ -28,27 +28,30 @@ export interface ToolRowState {
   added?: number;
   removed?: number;
   suffix?: string;
+  /** Set once invalidateOnce has fired for this rendered row. */
+  invalidated?: boolean;
 }
 
+// agents-compliance-ignore parameter-mutation: pi persists renderer state by reading back the context.state the renderer wrote
 export function ensureState(context: ToolRenderContextLike): ToolRowState {
   if (!context.state || Object.keys(context.state).length === 0) context.state = { verb: '', primary: '' };
   return context.state;
 }
 
-/** Seeds the shared row state; pi initializes it as an empty object, so a nullish check is not enough. */
-const invalidated = new Set<string>();
-
 /**
  * Requests exactly one redraw per tool call. renderResult runs on every TUI
  * frame (the spinner re-renders the row), so an unconditional invalidate
- * makes an infinite render loop.
+ * makes an infinite render loop. The flag lives in context.state, which pi
+ * scopes to the rendered row, so two contexts never suppress each other.
  */
 export function invalidateOnce(context: ToolRenderContextLike): void {
-  if (invalidated.has(context.toolCallId)) return;
-  invalidated.add(context.toolCallId);
+  const state = ensureState(context);
+  if (state.invalidated) return;
+  state.invalidated = true;
   context.invalidate();
 }
 
+// agents-compliance-ignore parameter-mutation: pi persists the seed row state by reading back the context.state the renderer wrote
 export function seedState(context: ToolRenderContextLike, seed: ToolRowState): void {
   if (!context.state || Object.keys(context.state).length === 0) context.state = seed;
 }

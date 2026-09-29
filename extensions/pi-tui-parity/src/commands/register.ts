@@ -4,10 +4,10 @@
  */
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import type { TuiSessionState } from '../state.ts';
+import type { TuiSession } from '../state.ts';
 import { TUI_COMMANDS } from './registry.ts';
 
-export function installCommands(pi: ExtensionAPI, state: TuiSessionState): void {
+export function installCommands(pi: ExtensionAPI, session: TuiSession): void {
   for (const entry of TUI_COMMANDS) {
     const handler = entry.handler;
     if (entry.status !== 'implemented' || !handler) continue;
@@ -15,7 +15,7 @@ export function installCommands(pi: ExtensionAPI, state: TuiSessionState): void 
     pi.registerCommand(entry.id, {
       description: entry.description,
       handler: async (args, ctx) => {
-        await handler(args, ctx, state);
+        await handler(args, ctx, session);
       },
     });
   }
