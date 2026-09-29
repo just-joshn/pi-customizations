@@ -11,7 +11,7 @@ const UsageSchema = Type.Object({
   totalTokens: Type.Number({ minimum: 0 }),
   cost: Type.Object({ input: Type.Number({ minimum: 0 }), output: Type.Number({ minimum: 0 }), cacheRead: Type.Number({ minimum: 0 }), cacheWrite: Type.Number({ minimum: 0 }), total: Type.Number({ minimum: 0 }) }),
 });
-const TaskRecordSchema = Type.Object({
+export const TaskRecordSchema = Type.Object({
   id: Type.String(),
   persona: Type.String(),
   cwd: Type.String(),

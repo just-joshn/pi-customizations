@@ -47,6 +47,11 @@ describe('tui tool renderers', () => {
     expect([...capture().keys()].sort()).toEqual(['bash', 'edit', 'find', 'grep', 'ls', 'read', 'write']);
   });
 
+  it('preserves built-in tool metadata including outputSchema and promptSnippet', () => {
+    const bash = capture().get('bash') as unknown as { outputSchema?: unknown; promptSnippet?: string };
+    expect(bash.promptSnippet).toBe('Execute bash commands (ls, grep, find, etc.)');
+  });
+
   it('read: progressive verb, path, lines note, then past verb', async () => {
     const theme = await makeTheme();
     const read = capture().get('read');

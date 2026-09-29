@@ -123,6 +123,9 @@ export function registerStateTools(pi: ExtensionAPI, store: StateStore): void {
     promptSnippet: 'Turn sticky Poteto mode on or off for this session branch',
     promptGuidelines: ['pstack_mode changes sticky mode on explicit user entry or opt-out. Recognize natural-language user requests through that tool, not quoted examples.'],
     parameters: Type.Object({ enabled: Type.Boolean() }),
+    outputSchema: State,
+    exposure: 'direct',
+    annotations: { idempotentHint: true, openWorldHint: false, destructiveHint: false },
     async execute(_id, params, _signal, _update, ctx) {
       store.toggle(params.enabled, ctx);
       const state = store.read();
@@ -140,6 +143,9 @@ export function registerStateTools(pi: ExtensionAPI, store: StateStore): void {
       todos: Type.Array(Todo, { description: 'The list of todo items to set or merge' }),
       merge: Type.Optional(Type.Boolean({ description: 'If true, merges with existing todos by id while preserving order; if false or omitted, replaces the entire todo list' })),
     }),
+    outputSchema: Type.Array(Todo),
+    exposure: 'direct',
+    annotations: { idempotentHint: true, openWorldHint: false, destructiveHint: false },
     async execute(_id, params, _signal, _update, ctx) {
       if (new Set(params.todos.map((todo) => todo.id)).size !== params.todos.length) throw new Error('Todo IDs must be unique.');
       const state = store.read();

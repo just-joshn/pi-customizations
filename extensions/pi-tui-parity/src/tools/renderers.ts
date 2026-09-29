@@ -100,10 +100,8 @@ function renderBashResult(result: ToolResultLike, options: ToolRenderResultOptio
 function registerBashRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
   const originalBash = createBashTool(deps.cwd);
   pi.registerTool({
+    ...originalBash,
     name: 'bash',
-    label: originalBash.label,
-    description: originalBash.description,
-    parameters: originalBash.parameters,
     async execute(toolCallId, params, signal, onUpdate) {
       deps.starts.set(toolCallId, Date.now());
       return originalBash.execute(toolCallId, params, signal, onUpdate);
@@ -126,10 +124,8 @@ function registerBashRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
 function registerReadRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
   const originalRead = createReadTool(deps.cwd);
   pi.registerTool({
+    ...originalRead,
     name: 'read',
-    label: originalRead.label,
-    description: originalRead.description,
-    parameters: originalRead.parameters,
     async execute(toolCallId, params, signal, onUpdate) {
       return originalRead.execute(toolCallId, params, signal, onUpdate);
     },
@@ -161,10 +157,8 @@ function registerReadRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
 function registerEditRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
   const originalEdit = createEditTool(deps.cwd);
   pi.registerTool({
+    ...originalEdit,
     name: 'edit',
-    label: originalEdit.label,
-    description: originalEdit.description,
-    parameters: originalEdit.parameters,
     async execute(toolCallId, params, signal, onUpdate) {
       return originalEdit.execute(toolCallId, params, signal, onUpdate);
     },
@@ -208,10 +202,8 @@ function registerEditRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
 function registerWriteRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
   const originalWrite = createWriteTool(deps.cwd);
   pi.registerTool({
+    ...originalWrite,
     name: 'write',
-    label: originalWrite.label,
-    description: originalWrite.description,
-    parameters: originalWrite.parameters,
     async execute(toolCallId, params, signal, onUpdate) {
       return originalWrite.execute(toolCallId, params, signal, onUpdate);
     },
@@ -238,10 +230,8 @@ function registerWriteRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
 function registerGrepRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
   const originalGrep = createGrepTool(deps.cwd);
   pi.registerTool({
+    ...originalGrep,
     name: 'grep',
-    label: originalGrep.label,
-    description: originalGrep.description,
-    parameters: originalGrep.parameters,
     async execute(toolCallId, params, signal, onUpdate) {
       return originalGrep.execute(toolCallId, params, signal, onUpdate);
     },
@@ -272,10 +262,8 @@ function registerGrepRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
 function registerFindRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
   const originalFind = createFindTool(deps.cwd);
   pi.registerTool({
+    ...originalFind,
     name: 'find',
-    label: originalFind.label,
-    description: originalFind.description,
-    parameters: originalFind.parameters,
     async execute(toolCallId, params, signal, onUpdate) {
       return originalFind.execute(toolCallId, params, signal, onUpdate);
     },
@@ -306,10 +294,8 @@ function registerFindRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
 function registerLsRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
   const originalLs = createLsTool(deps.cwd);
   pi.registerTool({
+    ...originalLs,
     name: 'ls',
-    label: originalLs.label,
-    description: originalLs.description,
-    parameters: originalLs.parameters,
     async execute(toolCallId, params, signal, onUpdate) {
       return originalLs.execute(toolCallId, params, signal, onUpdate);
     },

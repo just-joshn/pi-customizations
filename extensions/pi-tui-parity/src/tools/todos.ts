@@ -9,7 +9,7 @@
  * follows the active session branch.
  */
 
-import { StringEnum } from '@earendil-works/pi-ai';
+import { type JsonValue, StringEnum } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, Theme } from '@earendil-works/pi-coding-agent';
 import { Text } from '@earendil-works/pi-tui';
 import { Type } from 'typebox';
@@ -34,6 +34,16 @@ const TodoParams = Type.Object({
       status: StringEnum(['pending', 'in_progress', 'completed'] as const),
     }),
     { description: 'The complete todo list; replaces the previous list' },
+  ),
+});
+
+const TodosOutput = Type.Object({
+  todos: Type.Array(
+    Type.Object({
+      id: Type.String({ description: 'Stable todo id' }),
+      content: Type.String({ description: 'What to do' }),
+      status: StringEnum(['pending', 'in_progress', 'completed'] as const),
+    }),
   ),
 });
 
@@ -67,6 +77,9 @@ export function registerTodosTool(pi: ExtensionAPI): void {
     label: 'todo_update',
     description: 'Write the current to-do list. Provide the complete list every time; statuses are pending, in_progress, or completed. Use one in_progress todo at a time.',
     parameters: TodoParams,
+    outputSchema: TodosOutput,
+    exposure: 'direct',
+    annotations: { idempotentHint: true, openWorldHint: false, destructiveHint: false },
     renderCall: (_args, theme, _context) => new Text(theme.fg('toolTitle', theme.bold('To-do')) + theme.fg('dim', ' Updating to-dos...'), 2, 0),
     async execute(_toolCallId, params) {
       const todos: TuiTodo[] = params.todos.map((t) => ({ id: t.id, content: t.content, status: t.status }));
@@ -74,6 +87,7 @@ export function registerTodosTool(pi: ExtensionAPI): void {
       return {
         content: [{ type: 'text', text: `Updated ${todos.length} to-do(s); ${completed} completed.` }],
         details: { todos } satisfies TodosDetails,
+        structuredContent: { todos } as unknown as JsonValue,
       };
     },
     renderResult(result, { isPartial }, theme) {
