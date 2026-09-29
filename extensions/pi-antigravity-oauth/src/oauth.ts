@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { createServer, type Server } from 'node:http';
 
 import type { OAuthAuth, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
-import { CLOUD_CODE_ENDPOINTS, encodeApiKey, postCloudCode } from './cloudcode.ts';
+import { CLOUD_CODE_ENDPOINTS, encodeApiKey, errorText, postCloudCode } from './cloudcode.ts';
 
 export type AntigravityCredential = OAuthCredential & { projectId: string; email?: string };
 
@@ -24,15 +24,13 @@ export const GOOGLE_OAUTH: OAuthEndpoints = {
   callbackPort: 51121,
 };
 
-// The Antigravity desktop app's installed-app client, as shipped in Pi 0.70.6.
-// Encoded so secret scanners do not flag a public installed-app credential.
-const CLIENT_ID = [
-  49, 48, 55, 49, 48, 48, 54, 48, 54, 48, 53, 57, 49, 45, 116, 109, 104, 115, 115, 105, 110, 50, 104, 50, 49, 108, 99, 114, 101, 50, 51, 53, 118, 116, 111, 108, 111, 106, 104, 52, 103, 52, 48, 51, 101, 112, 46, 97, 112, 112, 115, 46, 103,
-  111, 111, 103, 108, 101, 117, 115, 101, 114, 99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109,
-]
-  .map((c) => String.fromCharCode(c))
-  .join('');
-const CLIENT_SECRET = [71, 79, 67, 83, 80, 88, 45, 75, 53, 56, 70, 87, 82, 52, 56, 54, 76, 100, 76, 74, 49, 109, 76, 66, 56, 115, 88, 67, 52, 122, 54, 113, 68, 65, 102].map((c) => String.fromCharCode(c)).join('');
+// The Antigravity desktop app's installed-app client, as shipped in Pi 0.70.6. Google treats an
+// installed-app client secret as non-confidential, so this is a public credential, not a leak. It was
+// previously stored as char-code arrays to keep secret scanners quiet, which hid the value from every
+// reader and made a real leak indistinguishable from this one.
+// biome-ignore lint/security/noSecrets: public installed-app credential, not a confidential secret
+const CLIENT_SECRET = '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';
+const CLIENT_ID = '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com';
 
 const SCOPES = [
   'https://www.googleapis.com/auth/cloud-platform',
@@ -72,7 +70,9 @@ async function requestToken(url: string, params: Record<string, string>, signal:
     signal,
   });
   const text = await response.text();
-  if (!response.ok) throw new Error(`Google token request failed (${response.status}): ${text}`);
+  // A proxy or captive portal can answer with a page instead of JSON, and the request on the wire
+  // carries the client secret, the PKCE verifier, and the refresh token, so never echo it whole.
+  if (!response.ok) throw new Error(`Google token request failed (${response.status}): ${errorText(text).slice(0, 200)}`);
   const data = JSON.parse(text) as Partial<TokenResponse>;
   if (typeof data.access_token !== 'string' || typeof data.expires_in !== 'number') {
     throw new Error('Google token response lacks an access token');

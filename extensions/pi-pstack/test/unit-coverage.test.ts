@@ -130,6 +130,40 @@ test('session_shutdown stops every running shell', async () => {
   }
 });
 
+test('a second session lists no shells from the session before it', async () => {
+  const tools = new Map<string, ToolMock>();
+  const listeners: Record<string, Listener[]> = {};
+  const pi = {
+    registerTool: (def: ToolMock) => tools.set(def.name, def),
+    on: (event: string, handler: Listener) => {
+      listeners[event] = listeners[event] ?? [];
+      listeners[event].push(handler);
+    },
+    sendMessage: () => {},
+  } as unknown as ExtensionAPI;
+  registerShells(pi);
+  const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-rotated-'));
+  const ctx = {
+    cwd: scratch,
+    sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch },
+  } as unknown as ExtensionContext;
+  const shutdown = listeners.session_shutdown?.[0];
+  const start = listeners.session_start?.[0];
+  try {
+    const firstShell = (await tools.get('BackgroundShell')?.execute('1', { command: 'sleep 30', title: 'first session' }, undefined, undefined, ctx)) as { details: { id: string } };
+    await shutdown?.();
+    await start?.();
+    const carried = (await tools.get(BG_SHELL_LIST)?.execute()) as { details: Array<{ id: string }> };
+    const secondShell = (await tools.get('BackgroundShell')?.execute('2', { command: 'sleep 30', title: 'second session' }, undefined, undefined, ctx)) as { details: { id: string } };
+    const listed = (await tools.get(BG_SHELL_LIST)?.execute()) as { details: Array<{ id: string }> };
+    expect(carried.details.some((record) => record.id === firstShell.details.id)).toBe(false);
+    expect(listed.details.map((record) => record.id)).toEqual([secondShell.details.id]);
+  } finally {
+    await shutdown?.();
+    await rm(scratch, { recursive: true, force: true });
+  }
+});
+
 test('pstack index before_agent_start with enabled and todos', async () => {
   const listeners: Record<string, Listener[]> = {};
   const pi = {

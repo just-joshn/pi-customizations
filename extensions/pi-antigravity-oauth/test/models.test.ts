@@ -2,7 +2,7 @@ import type { ModelsPublication, Provider, RefreshModelsContext } from '@earendi
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
 import extension, { createAntigravityProvider } from '../src/index.ts';
-import { FAMILY, familyOf, catalogFromAvailable, parseAvailableModels } from '../src/models.ts';
+import { catalogFromAvailable, FAMILY, familyOf, parseAvailableModels } from '../src/models.ts';
 import { GOOGLE_OAUTH } from '../src/oauth.ts';
 import { fakeServer, json } from './fake-server.ts';
 
@@ -125,12 +125,7 @@ test('parseAvailableModels ignores a response without a model map', () => {
 
 test('catalogFromAvailable infers wire defaults for unknown models', () => {
   const models = catalogFromAvailable(
-    [
-      { id: 'gemini-3.9-pro', supportsThinking: true, supportsImages: true },
-      { id: 'gemini-3.9-flash', supportsThinking: false, supportsImages: false },
-      { id: 'gpt-oss-300b' },
-      { id: 'claude-4-9' },
-    ],
+    [{ id: 'gemini-3.9-pro', supportsThinking: true, supportsImages: true }, { id: 'gemini-3.9-flash', supportsThinking: false, supportsImages: false }, { id: 'gpt-oss-300b' }, { id: 'claude-4-9' }],
     'http://base',
   );
   expect(models.map((model) => [model.id, model.name, model.reasoning, model.thinkingLevelMap, model.input])).toEqual([

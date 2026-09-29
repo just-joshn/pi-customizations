@@ -341,15 +341,7 @@ function registerLsRenderer(pi: ExtensionAPI, deps: RendererDeps): void {
 
 type ToolRendererRegistrar = (pi: ExtensionAPI, deps: RendererDeps) => void;
 
-const TOOL_RENDERER_REGISTRARS: readonly ToolRendererRegistrar[] = [
-  registerBashRenderer,
-  registerReadRenderer,
-  registerEditRenderer,
-  registerWriteRenderer,
-  registerGrepRenderer,
-  registerFindRenderer,
-  registerLsRenderer,
-];
+const TOOL_RENDERER_REGISTRARS: readonly ToolRendererRegistrar[] = [registerBashRenderer, registerReadRenderer, registerEditRenderer, registerWriteRenderer, registerGrepRenderer, registerFindRenderer, registerLsRenderer];
 
 export function registerToolRenderers(pi: ExtensionAPI): void {
   const deps: RendererDeps = { cwd: process.cwd(), starts: new Map<string, number>() };
