@@ -17,13 +17,23 @@ export interface CustomMode {
 export type VimState = 'insert' | 'normal' | 'visual';
 
 export interface TuiSessionState {
-  mode: TuiMode;
-  customMode: CustomMode | undefined;
-  runEverything: boolean;
-  autoReview: boolean;
-  vim: VimState;
-  compact: boolean;
+  readonly mode: TuiMode;
+  readonly customMode: CustomMode | undefined;
+  readonly runEverything: boolean;
+  readonly autoReview: boolean;
+  readonly vim: VimState;
+  readonly compact: boolean;
 }
+
+export type SessionAction =
+  | { readonly type: 'cycleMode' }
+  | { readonly type: 'setMode'; readonly mode: TuiMode }
+  | { readonly type: 'toggleAsk' }
+  | { readonly type: 'toggleVim' }
+  | { readonly type: 'setVim'; readonly vim: VimState }
+  | { readonly type: 'toggleRunEverything' }
+  | { readonly type: 'toggleAutoReview' }
+  | { readonly type: 'toggleCompact' };
 
 export interface FooterHeadline {
   readonly text: string;
@@ -63,7 +73,7 @@ export function vimFooterLabel(state: TuiSessionState): string | undefined {
 
 export const MODE_CYCLE: readonly TuiMode[] = ['default', 'plan', 'debug', 'ask'];
 
-export function createSessionState(): TuiSessionState {
+export function createSessionState(overrides: Partial<TuiSessionState> = {}): TuiSessionState {
   return {
     mode: 'default',
     customMode: undefined,
@@ -71,10 +81,51 @@ export function createSessionState(): TuiSessionState {
     autoReview: false,
     vim: 'insert',
     compact: true,
+    ...overrides,
   };
 }
 
 export function nextMode(current: TuiMode): TuiMode {
   const idx = MODE_CYCLE.indexOf(current);
   return MODE_CYCLE[(idx + 1) % MODE_CYCLE.length];
+}
+
+export function reduceSession(state: TuiSessionState, action: SessionAction): TuiSessionState {
+  switch (action.type) {
+    case 'cycleMode':
+      return { ...state, mode: nextMode(state.mode) };
+    case 'setMode':
+      return { ...state, mode: action.mode };
+    case 'toggleAsk':
+      return { ...state, mode: state.mode === 'ask' ? 'default' : 'ask' };
+    case 'toggleVim':
+      return { ...state, vim: state.vim === 'normal' ? 'insert' : 'normal' };
+    case 'setVim':
+      return { ...state, vim: action.vim };
+    case 'toggleRunEverything':
+      return { ...state, runEverything: !state.runEverything };
+    case 'toggleAutoReview':
+      return { ...state, autoReview: !state.autoReview };
+    case 'toggleCompact':
+      return { ...state, compact: !state.compact };
+  }
+}
+
+export interface SessionReader {
+  read(): TuiSessionState;
+}
+
+export interface TuiSession extends SessionReader {
+  dispatch(action: SessionAction): TuiSessionState;
+}
+
+export function createSession(initial: TuiSessionState = createSessionState()): TuiSession {
+  let current = initial;
+  return {
+    read: () => current,
+    dispatch: (action) => {
+      current = reduceSession(current, action);
+      return current;
+    },
+  };
 }

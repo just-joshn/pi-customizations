@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ComposerEditor, composerGlyph, composerPlaceholder } from '../src/editor/composer-editor.ts';
-import { createSessionState, nextMode } from '../src/state.ts';
+import { createSession, createSessionState, nextMode } from '../src/state.ts';
 
 const { KeybindingsManager, TUI_KEYBINDINGS, CURSOR_MARKER } = await import('@earendil-works/pi-tui');
 
@@ -9,14 +9,14 @@ const ANSI = new RegExp(`${ESC}\\[[0-9;]*m`, 'g');
 const strip = (s: string) => s.replace(ANSI, '');
 
 function editorHarness() {
-  const state = createSessionState();
+  const session = createSession();
   const requests: string[] = [];
   const editor = new ComposerEditor({ requestRender: () => requests.push('r'), terminal: { rows: 40, columns: 120 } } as never, { borderColor: (s: string) => s } as never, new KeybindingsManager(TUI_KEYBINDINGS as never) as never, {
     theme: { name: 'tui-dark', getColorMode: () => 'truecolor' as const },
-    state,
+    session,
     hasConversation: () => false,
   });
-  return { editor, state, requests };
+  return { editor, session, requests };
 }
 
 describe('composer editor', () => {
@@ -26,40 +26,38 @@ describe('composer editor', () => {
   });
 
   it('glyph is dim by default and active in a mode', () => {
-    const state = createSessionState();
-    expect(composerGlyph(state)).toEqual({ glyph: '→', dim: true });
-    state.mode = 'plan';
-    expect(composerGlyph(state)).toEqual({ glyph: '→', dim: false });
+    expect(composerGlyph(createSessionState())).toEqual({ glyph: '→', dim: true });
+    expect(composerGlyph(createSessionState({ mode: 'plan' }))).toEqual({ glyph: '→', dim: false });
   });
 
   it('shift+tab cycles modes and is not passed to pi', () => {
-    const { editor, state, requests } = editorHarness();
+    const { editor, session, requests } = editorHarness();
     editor.handleInput('\x1b[Z');
-    expect(state.mode).toBe('plan');
+    expect(session.read().mode).toBe('plan');
     editor.handleInput('\x1b[Z');
-    expect(state.mode).toBe('debug');
+    expect(session.read().mode).toBe('debug');
     editor.handleInput('\x1b[Z');
-    expect(state.mode).toBe('ask');
+    expect(session.read().mode).toBe('ask');
     editor.handleInput('\x1b[Z');
-    expect(state.mode).toBe('default');
+    expect(session.read().mode).toBe('default');
     expect(requests.length).toBe(0);
   });
 
   it('escape enters vim normal mode only for empty input', () => {
-    const { editor, state } = editorHarness();
+    const { editor, session } = editorHarness();
     editor.handleInput('\x1b');
-    expect(state.vim).toBe('normal');
+    expect(session.read().vim).toBe('normal');
     editor.handleInput('i');
-    expect(state.vim).toBe('insert');
+    expect(session.read().vim).toBe('insert');
 
     const typed = editorHarness();
     typed.editor.setText('hello');
     typed.editor.handleInput('\x1b');
-    expect(typed.state.vim).toBe('insert');
+    expect(typed.session.read().vim).toBe('insert');
   });
 
   it('normal mode swallows printable keys and maps hjkl', () => {
-    const { editor, state } = editorHarness();
+    const { editor, session } = editorHarness();
     editor.handleInput('\x1b');
     editor.setText('hello');
     editor.handleInput('x');
@@ -68,7 +66,7 @@ describe('composer editor', () => {
     editor.handleInput('i');
     editor.handleInput('I');
     expect(editor.getText()).toBe('hellIo');
-    expect(state.vim).toBe('insert');
+    expect(session.read().vim).toBe('insert');
   });
 
   it('empty-state render draws the half-block frame and inverse placeholder', () => {
