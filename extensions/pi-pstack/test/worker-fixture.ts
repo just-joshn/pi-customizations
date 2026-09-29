@@ -57,7 +57,7 @@ export async function workerFixture() {
       const tool = tools.find((tool) => tool.definition.name === name);
       expect(tool).toBeDefined();
       if (!tool) throw new Error(`tool ${name} not found`);
-      const context = activeSession.extensionRunner.createContext();
+      const context = activeSession.extensionRunner.createToolContext(`test-${name}`, signal);
       return tool.definition.execute(`test-${name}`, params, signal, undefined, busy ? { ...context, isIdle: () => false } : context);
     }
     return { dir, session, call, close };

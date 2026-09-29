@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { type ExtensionAPI, type ExtensionContext, SessionManager, type ToolDefinition } from '@earendil-works/pi-coding-agent';
+import { type ExtensionAPI, type ExtensionContext, type ExtensionToolContext, SessionManager, type ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { expect, test, vi } from 'vitest';
 import { registerContext, registerStatus } from '../src/context.ts';
 import { createState } from '../src/state.ts';
@@ -19,7 +19,7 @@ async function call(manager: SessionManager, options: { history?: boolean; model
   } as unknown as ExtensionAPI;
   registerContext(pi);
   expect(tool).toBeDefined();
-  const ctx = { cwd: manager.getCwd(), sessionManager: manager, modelRegistry: { getAvailable: () => options.models ?? [] } } as unknown as ExtensionContext;
+  const ctx = { cwd: manager.getCwd(), sessionManager: manager, modelRegistry: { getAvailable: () => options.models ?? [] } } as unknown as ExtensionToolContext;
   const result = await tool?.execute('context-review', { history: options.history }, undefined, undefined, ctx);
   if (!result) throw new Error('missing context result');
   return result.details as Evidence;
