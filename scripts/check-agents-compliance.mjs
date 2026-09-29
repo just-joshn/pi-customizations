@@ -21,8 +21,9 @@
 //   by a vendor script and verified by that package's check:vendor gate, so a style
 //   edit there fails the build. Those files are skipped.
 // - A line carrying `agents-compliance-ignore <rule>: <reason>` is reported as an
-//   exemption note. The reason is required, so the exemption is a reviewed claim
-//   rather than a silencer.
+//   exemption note. The pragma counts on the finding's line, the line above it, or
+//   the enclosing function's first line. The reason is required, so the exemption is
+//   a reviewed claim rather than a silencer.
 import { readdir, readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join, relative, resolve } from 'node:path';
@@ -188,6 +189,15 @@ function checkConsole(node, path, report) {
   report(inScript ? 'note' : 'violation', 'console-log', node, `console.${node.expression.name.text} in ${inScript ? 'a CLI script, so confirm it is the intended output' : 'library code'}`);
 }
 
+function enclosingScopeLine(scopes, line) {
+  let best;
+  for (const scope of scopes) {
+    if (line < scope.start || line > scope.end) continue;
+    if (!best || scope.end - scope.start < best.end - best.start) best = scope;
+  }
+  return best?.start;
+}
+
 function analyzeTypeScript(text, path) {
   const source = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true);
   const { found, report } = createReporter(source, path);
@@ -195,8 +205,11 @@ function analyzeTypeScript(text, path) {
   if (lineCount > limits.file) report('violation', 'file-length', undefined, `${lineCount} lines, over the ${limits.file} line maximum`);
   else if (lineCount > limits.typicalFile) report('note', 'file-length', undefined, `${lineCount} lines, over the ${limits.typicalFile} line target`);
   const loops = [];
+  const scopes = [];
+  const lineOf = (node) => source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
   const visit = (node) => {
     if (ts.isFunctionLike(node) && node.body) {
+      scopes.push({ start: lineOf(node), end: source.getLineAndCharacterOfPosition(node.getEnd()).line + 1 });
       checkFunctionShape(source, node, report);
       checkParameterMutation(source, node, report);
     }
@@ -208,7 +221,7 @@ function analyzeTypeScript(text, path) {
     ts.forEachChild(node, visit);
   };
   visit(source);
-  return found;
+  return found.map((item) => ({ ...item, scopeLine: enclosingScopeLine(scopes, item.line) }));
 }
 
 function pythonLines(text) {
@@ -307,7 +320,7 @@ export async function analyzeFile(path, base = root) {
 
 function applyExemptions(found, lines) {
   return found.map((item) => {
-    const scanned = [lines[item.line - 1], lines[item.line - 2]].filter(Boolean);
+    const scanned = [item.line, item.line - 1, item.scopeLine, item.scopeLine ? item.scopeLine - 1 : undefined].map((line) => lines[line - 1]).filter(Boolean);
     const pragmatic = scanned.map((line) => line.match(ignorePragma)).find((match) => match?.[1] === item.rule);
     if (!pragmatic) return item;
     const reason = pragmatic[2].replace(/\*\/\s*$/, '').trim();
