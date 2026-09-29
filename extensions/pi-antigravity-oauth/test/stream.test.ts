@@ -83,6 +83,7 @@ test('text and thinking stream into balanced Pi events with usage', async () => 
     { type: 'thinking', thinking: 'Let me think', thinkingSignature: 'sig1' },
     { type: 'text', text: 'Hello', textSignature: undefined },
   ]);
+  expect(message.thinkingLevel).toBe('high');
   expect(message.stopReason).toBe('stop');
   expect(message.responseId).toBe('r1');
   expect(message.usage.input).toBe(10);
@@ -395,4 +396,18 @@ test('a model base URL outside the configured list is used', async () => {
   } finally {
     server.close();
   }
+});
+
+test('onProviderStreamEvent observes each raw chunk before normalization', async () => {
+  const observed: { chunk: unknown; modelId: string }[] = [];
+  const { message } = await run((_, res) => stream(res, textAndThinking), {
+    stream: {
+      onProviderStreamEvent: (chunk, model) => {
+        observed.push({ chunk, modelId: model.id });
+      },
+    },
+  });
+  expect(observed.length).toBe(3);
+  expect(message.stopReason).toBe('stop');
+  expect(observed[0]?.modelId).toBe('gemini-3.1-pro-low');
 });
