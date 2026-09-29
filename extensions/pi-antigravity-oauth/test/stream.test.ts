@@ -302,3 +302,97 @@ test('a missing credential asks the user to log in without calling Cloud Code', 
   expect(message.errorMessage).toBe('No Google Antigravity credentials. Run /login and choose Google Antigravity.');
   expect(server.requests.length).toBe(0);
 });
+
+test('a context without a system prompt omits the system instruction', async () => {
+  const { server } = await run((_, res) => stream(res, textAndThinking), { context: { messages: [{ role: 'user', content: 'hi', timestamp: 1 }] } });
+  expect(body(server.requests[0]).request.systemInstruction).toBe(undefined);
+  expect(body(server.requests[0]).request.contents).toEqual([{ role: 'user', parts: [{ text: 'hi' }] }]);
+});
+
+test('a tool choice only reaches the wire when tools are present', async () => {
+  const withTools = await run((_, res) => stream(res, textAndThinking), {
+    context: { tools: [readTool], messages: [{ role: 'user', content: 'read a', timestamp: 1 }] },
+    stream: { toolChoice: 'auto' },
+  });
+  expect(body(withTools.server.requests[0]).request.toolConfig).toEqual({ functionCallingConfig: { mode: 'AUTO' } });
+  const withoutTools = await run((_, res) => stream(res, textAndThinking), { stream: { toolChoice: 'auto' } });
+  expect(body(withoutTools.server.requests[0]).request.toolConfig).toBe(undefined);
+});
+
+test('a session id is forwarded in the request envelope', async () => {
+  const { server } = await run((_, res) => stream(res, textAndThinking), { stream: { sessionId: 'sess-1' } });
+  expect(body(server.requests[0]).request.sessionId).toBe('sess-1');
+});
+
+test('a null header override removes the base header', async () => {
+  const { server } = await run((_, res) => stream(res, textAndThinking), { stream: { headers: { Accept: null } } });
+  expect(server.requests[0]?.headers.accept).not.toBe('text/event-stream');
+  expect(server.requests[0]?.headers.authorization).toBe('Bearer ya29.test');
+});
+
+test('a function call without id, name, or args still streams', async () => {
+  const incomplete = sse([{ response: { candidates: [{ content: { parts: [{ functionCall: {} }] }, finishReason: 'STOP' }] } }]);
+  const { message } = await run((_, res) => stream(res, incomplete));
+  expect(message.stopReason).toBe('toolUse');
+  expect(message.content).toEqual([{ type: 'toolCall', id: expect.stringMatching(/^undefined_\d+_\d+$/), name: '', arguments: {} }]);
+});
+
+test('a repeated tool call id gets a generated id', async () => {
+  const repeated = sse([
+    { response: { candidates: [{ content: { parts: [{ functionCall: { id: 'call_1', name: 'read', args: { path: 'a' } } }] }, finishReason: 'STOP' }] } },
+    { response: { candidates: [{ content: { parts: [{ functionCall: { id: 'call_1', name: 'read', args: { path: 'b' } } }] } }] } },
+  ]);
+  const { message } = await run((_, res) => stream(res, repeated));
+  expect(message.content).toEqual([
+    { type: 'toolCall', id: 'call_1', name: 'read', arguments: { path: 'a' } },
+    { type: 'toolCall', id: expect.stringMatching(/^read_\d+_\d+$/), name: 'read', arguments: { path: 'b' } },
+  ]);
+});
+
+test('a usage report with only some fields fills the rest with zero', async () => {
+  const partialUsage = sse([{ response: { candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }], usageMetadata: { promptTokenCount: 7 } } }]);
+  const { message } = await run((_, res) => stream(res, partialUsage));
+  expect(message.usage.input).toBe(7);
+  expect(message.usage.output).toBe(0);
+  expect(message.usage.cacheRead).toBe(0);
+  expect(message.usage.cacheWrite).toBe(0);
+  expect(message.usage.reasoning).toBe(0);
+  expect(message.usage.totalTokens).toBe(0);
+});
+
+test('a chunk without a response or candidates is ignored', async () => {
+  const envelope = sse([{}, { response: {} }, { response: { candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }] } }]);
+  const { message } = await run((_, res) => stream(res, envelope));
+  expect(message.content).toEqual([{ type: 'text', text: 'ok', textSignature: undefined }]);
+  expect(message.stopReason).toBe('stop');
+});
+
+test('a 204 response without a body is an error', async () => {
+  const { message } = await run((_, res) => {
+    res.writeHead(204).end();
+  });
+  expect(message.stopReason).toBe('error');
+  expect(message.errorMessage).toBe('Cloud Code Assist returned no response body');
+});
+
+test('a non-Error payload failure is reported as text', async () => {
+  const { message } = await run((_, res) => stream(res, textAndThinking), {
+    stream: { onPayload: () => Promise.reject('payload rejected') },
+  });
+  expect(message.stopReason).toBe('error');
+  expect(message.errorMessage).toBe('payload rejected');
+});
+
+test('a model base URL outside the configured list is used', async () => {
+  const server = await fakeServer((_, res) => stream(res, textAndThinking));
+  try {
+    const provider = createAntigravityProvider({ endpoints: ['https://ignored.example'], oauth: GOOGLE_OAUTH });
+    const base = provider.getModels()[0];
+    if (!base) throw new Error('missing base model');
+    const message = await provider.streamSimple({ ...base, baseUrl: server.url }, normalizeContext(hello), { apiKey: API_KEY }).result();
+    expect(server.requests[0]?.path).toBe('/v1internal:streamGenerateContent?alt=sse');
+    expect(message.stopReason).toBe('stop');
+  } finally {
+    server.close();
+  }
+});
