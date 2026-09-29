@@ -48,6 +48,8 @@ const cases = [
   ['empty catch', { 'src/swallow.ts': "export function swallow(): void {\n  try {\n    JSON.parse('{}');\n  } catch {}\n}\n" }, ['empty-catch']],
   ['secret-shaped literal', { 'src/secret.ts': `export const key = '${fakeKey}';\n` }, ['hardcoded-secret']],
   ['named secret property', { 'src/named.ts': `export const config = { token: '${fakeTokenValue}' };\n` }, ['hardcoded-secret']],
+  ['secret env fallback', { 'src/env.ts': `export const token = process.env.API_TOKEN ?? '${fakeTokenValue}';\n` }, ['env-fallback']],
+  ['config env fallback is allowed', { 'src/host.ts': "export const host = process.env.PI_CALLBACK_HOST ?? 'localhost';\n" }, []],
   ['vendored banner is skipped', { 'src/vendored.ts': `${vendoredBanner}${longFunction(60)}` }, []],
   ['justified exemption is a note', { 'src/exempt.ts': `// agents-compliance-ignore parameter-mutation: pi persists the field this write sets\n${writeFunction}` }, []],
   ['exemption without a reason fails', { 'src/blank.ts': `// agents-compliance-ignore parameter-mutation: short\n${writeFunction}` }, ['empty-exemption']],

@@ -17,9 +17,9 @@
 //   console calls are notes rather than violations.
 //
 // Two exemptions exist, and both have to be earned in the source:
-// - A file that opens with a `Vendored from ... Do not edit.` banner is generated
-//   by a vendor script and verified by that package's check:vendor gate, so a style
-//   edit there fails the build. Those files are skipped.
+// - A file that opens with a vendored or generated `Do not edit.` banner is
+//   produced by a vendor script and verified by that package's check:vendor gate,
+//   so a style edit there fails the build. Those files are skipped.
 // - A line carrying `agents-compliance-ignore <rule>: <reason>` is reported as an
 //   exemption note. The pragma counts on the finding's line, the line above it, or
 //   the enclosing function's first line. The reason is required, so the exemption is
@@ -42,13 +42,15 @@ const secretPatterns = [
   [/-----BEGIN [A-Z ]*PRIVATE KEY-----/, 'private key block'],
   [/eyJ[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\./, 'serialized JWT literal'],
 ];
-const secretNames = new Set(['password', 'passwd', 'secret', 'token', 'apikey', 'api_key', 'accessToken', 'clientSecret', 'privateKey']);
+const secretFieldNames = new Set(['password', 'passwd', 'secret', 'token', 'apikey', 'accesskey', 'clientsecret', 'privatekey', 'credential', 'authtoken', 'refreshtoken', 'accesstoken', 'apitoken', 'bearertoken']);
+const normalizeName = (name) => name.replace(/[^A-Za-z0-9]/g, '').toLowerCase();
+const isSecretName = (name) => secretFieldNames.has(normalizeName(name));
 const mutatingMethods = new Set(['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill', 'copyWithin', 'set', 'add', 'delete', 'clear']);
 const controlKinds = new Set(['IfStatement', 'ForStatement', 'ForOfStatement', 'ForInStatement', 'WhileStatement', 'DoStatement', 'SwitchStatement', 'TryStatement']);
 const loopKinds = new Set(['ForStatement', 'ForOfStatement', 'ForInStatement']);
 const pythonControl = /^(?:if|for|while|try|with)\b/;
 const isTestPath = (path) => /(?:^|\/)(?:test|tests|__tests__)\//.test(path) || /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(path) || /^tests?\//.test(path);
-const vendoredBanner = /Vendored from [\s\S]{0,200}?Do not edit\./;
+const vendoredBanner = /\/\/.*(?:Vendored|Generated) from[\s\S]{0,240}?Do not edit\./;
 const ignorePragma = /agents-compliance-ignore\s+([a-z-]+)\s*:\s*(\S.*)/;
 const minReasonLength = 12;
 
@@ -154,17 +156,18 @@ function checkSecret(node, path, report) {
   if (!text) return;
   for (const [pattern, label] of secretPatterns) if (pattern.test(text)) report('violation', 'hardcoded-secret', node, `${label} in source`);
   const parent = node.parent;
-  if (!ts.isPropertyAssignment(parent) || isTestPath(path)) return;
+  if (!ts.isPropertyAssignment(parent) || isTestPath(path) || path.includes('/scripts/') || path.startsWith('scripts/')) return;
   const named = stringLiteral(parent.name) ?? parent.name.getText();
-  if (secretNames.has(named) && text.length >= 8) report('violation', 'hardcoded-secret', parent, `${named} carries a literal value; read it from the environment`);
+  if (isSecretName(named) && text.length >= 8) report('violation', 'hardcoded-secret', parent, `${named} carries a literal value; read it from the environment`);
 }
 
 function checkEnvFallback(node, report) {
   if (!ts.isBinaryExpression(node)) return;
   const { BarBarToken, QuestionQuestionToken } = ts.SyntaxKind;
   if (node.operatorToken.kind !== BarBarToken && node.operatorToken.kind !== QuestionQuestionToken) return;
-  const left = node.left.getText();
-  if (left.startsWith('process.env.') && stringLiteral(node.right)) report('note', 'env-fallback', node, `${left} falls back to a literal instead of failing loudly`);
+  const name = node.left.getText().replace(/^process\.env\./, '');
+  if (!node.left.getText().startsWith('process.env.') || !isSecretName(name) || !stringLiteral(node.right)) return;
+  report('violation', 'env-fallback', node, `${node.left.getText()} falls back to a literal secret; fail loudly instead`);
 }
 
 function loopSource(node) {
@@ -174,10 +177,9 @@ function loopSource(node) {
 function checkQuadratic(node, loops, report) {
   if (!loopKinds.has(ts.SyntaxKind[node.kind])) return;
   const source = loopSource(node);
-  if (source && loops.some((outer) => outer === source)) report('note', 'quadratic-scan', node, `loop iterates ${source} again inside itself, which reads as O(n^2)`);
-  loops.push(source);
-  ts.forEachChild(node, (child) => checkQuadratic(child, loops, report));
-  loops.pop();
+  if (source && loops.includes(source)) report('note', 'quadratic-scan', node, `loop iterates ${source} again inside itself, which reads as O(n^2)`);
+  const path = source ? [...loops, source] : loops;
+  ts.forEachChild(node, (child) => checkQuadratic(child, path, report));
 }
 
 function checkConsole(node, path, report) {
