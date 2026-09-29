@@ -1,86 +1,16 @@
-import { readFileSync } from 'node:fs';
 import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import type { ExtensionAPI, ExtensionContext, ExtensionUIContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
-import { ModelRegistry, ModelRuntime, SessionManager, Theme } from '@earendil-works/pi-coding-agent';
+import { ModelRegistry, ModelRuntime, SessionManager } from '@earendil-works/pi-coding-agent';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { BuiltinName } from '../src/tools/builtins.ts';
 import { getBuiltin } from '../src/tools/builtins.ts';
 import { registerToolRenderers, TOOL_OVERRIDES_ENV } from '../src/tools/register-tool-renderers.ts';
+import { createThemeFixture } from './theme-fixture.ts';
 
-/**
- * Real Theme built from this package's theme JSON. The registry-driven
- * `ExtensionContext` below requires a `Theme` instance; no built-in tool reads it.
- */
-function makeTheme(): Theme {
-  const document: { vars: Record<string, string | number>; colors: Record<string, string | number> } = JSON.parse(readFileSync(fileURLToPath(new URL('../themes/cursor-ui.json', import.meta.url)), 'utf8'));
-  const resolve = (value: string | number): string | number => (typeof value === 'string' && value.length > 0 && !value.startsWith('#') ? (document.vars[value] ?? value) : value);
-  const resolved: Record<string, string | number> = Object.fromEntries(Object.entries(document.colors).map(([role, value]) => [role, resolve(value)]));
-  return new Theme(
-    {
-      accent: resolved.accent,
-      border: resolved.border,
-      borderAccent: resolved.borderAccent,
-      borderMuted: resolved.borderMuted,
-      success: resolved.success,
-      error: resolved.error,
-      warning: resolved.warning,
-      muted: resolved.muted,
-      dim: resolved.dim,
-      text: resolved.text,
-      thinkingText: resolved.thinkingText,
-      userMessageText: resolved.userMessageText,
-      customMessageText: resolved.customMessageText,
-      customMessageLabel: resolved.customMessageLabel,
-      toolTitle: resolved.toolTitle,
-      toolOutput: resolved.toolOutput,
-      mdHeading: resolved.mdHeading,
-      mdLink: resolved.mdLink,
-      mdLinkUrl: resolved.mdLinkUrl,
-      mdCode: resolved.mdCode,
-      mdCodeBlock: resolved.mdCodeBlock,
-      mdCodeBlockBorder: resolved.mdCodeBlockBorder,
-      mdQuote: resolved.mdQuote,
-      mdQuoteBorder: resolved.mdQuoteBorder,
-      mdHr: resolved.mdHr,
-      mdListBullet: resolved.mdListBullet,
-      toolDiffAdded: resolved.toolDiffAdded,
-      toolDiffRemoved: resolved.toolDiffRemoved,
-      toolDiffContext: resolved.toolDiffContext,
-      syntaxComment: resolved.syntaxComment,
-      syntaxKeyword: resolved.syntaxKeyword,
-      syntaxFunction: resolved.syntaxFunction,
-      syntaxVariable: resolved.syntaxVariable,
-      syntaxString: resolved.syntaxString,
-      syntaxNumber: resolved.syntaxNumber,
-      syntaxType: resolved.syntaxType,
-      syntaxOperator: resolved.syntaxOperator,
-      syntaxPunctuation: resolved.syntaxPunctuation,
-      thinkingOff: resolved.thinkingOff,
-      thinkingMinimal: resolved.thinkingMinimal,
-      thinkingLow: resolved.thinkingLow,
-      thinkingMedium: resolved.thinkingMedium,
-      thinkingHigh: resolved.thinkingHigh,
-      thinkingXhigh: resolved.thinkingXhigh,
-      bashMode: resolved.bashMode,
-    },
-    {
-      selectedBg: resolved.selectedBg,
-      userMessageBg: resolved.userMessageBg,
-      customMessageBg: resolved.customMessageBg,
-      toolPendingBg: resolved.toolPendingBg,
-      toolSuccessBg: resolved.toolSuccessBg,
-      toolErrorBg: resolved.toolErrorBg,
-    },
-    'truecolor',
-    { name: 'cursor-ui' },
-  );
-}
-
-const theme = makeTheme();
+const theme = createThemeFixture();
 let registry: Promise<ModelRegistry> | undefined;
 
 function sharedRegistry(): Promise<ModelRegistry> {
