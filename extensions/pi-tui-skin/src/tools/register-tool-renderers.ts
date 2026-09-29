@@ -12,13 +12,17 @@
  * are Pi's default active set and register unconditionally.
  */
 
-import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, Theme, ToolDefinition, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
+import type { Component } from '@earendil-works/pi-tui';
+import type { TSchema } from 'typebox';
+import type { Builtins } from './builtins.ts';
 import { getBuiltin, getBuiltins } from './builtins.ts';
 import { renderEditCall, renderEditResult } from './render-edit.ts';
 import { renderFindCall, renderFindResult } from './render-find.ts';
 import { renderGrepCall, renderGrepResult } from './render-grep.ts';
 import { renderLsCall, renderLsResult } from './render-ls.ts';
 import { renderReadCall, renderReadResult } from './render-read.ts';
+import type { ToolResultLike, ToolRowContext } from './render-shell.ts';
 import { renderBashCall, renderBashResult, renderPowerShellCall, renderPowerShellResult } from './render-shell.ts';
 import { renderWriteCall, renderWriteResult } from './render-write.ts';
 
@@ -42,95 +46,55 @@ export function parseToolOverrides(value: string | undefined): Set<OptInTool> {
   return enabled;
 }
 
+type ToolRenderers = {
+  readonly renderCall: (args: unknown, theme: Theme, context: ToolRowContext) => Component;
+  readonly renderResult: (result: ToolResultLike, options: ToolRenderResultOptions, theme: Theme, context: ToolRowContext) => Component;
+};
+
+type ToolRegistration = {
+  /** Set only for tools Pi leaves inactive until the environment names them. */
+  readonly optIn?: OptInTool;
+  readonly register: (pi: ExtensionAPI, template: Builtins) => void;
+};
+
+/**
+ * The order here is the registration order, which is the order the tools appear
+ * in Pi. Each entry names its own loader, so both the definition it spreads and
+ * the delegate it executes stay concrete to that one tool.
+ */
+const TOOL_REGISTRATIONS: readonly ToolRegistration[] = [
+  { register: (pi, template) => registerOverride(pi, template.read, (cwd) => getBuiltin(cwd, 'read'), { renderCall: renderReadCall, renderResult: renderReadResult }) },
+  { register: (pi, template) => registerOverride(pi, template.bash, (cwd) => getBuiltin(cwd, 'bash'), { renderCall: renderBashCall, renderResult: renderBashResult }) },
+  { optIn: 'powershell', register: (pi, template) => registerOverride(pi, template.powershell, (cwd) => getBuiltin(cwd, 'powershell'), { renderCall: renderPowerShellCall, renderResult: renderPowerShellResult }) },
+  { register: (pi, template) => registerOverride(pi, template.edit, (cwd) => getBuiltin(cwd, 'edit'), { renderCall: renderEditCall, renderResult: renderEditResult }) },
+  { register: (pi, template) => registerOverride(pi, template.write, (cwd) => getBuiltin(cwd, 'write'), { renderCall: renderWriteCall, renderResult: renderWriteResult }) },
+  { optIn: 'grep', register: (pi, template) => registerOverride(pi, template.grep, (cwd) => getBuiltin(cwd, 'grep'), { renderCall: renderGrepCall, renderResult: renderGrepResult }) },
+  { optIn: 'find', register: (pi, template) => registerOverride(pi, template.find, (cwd) => getBuiltin(cwd, 'find'), { renderCall: renderFindCall, renderResult: renderFindResult }) },
+  { optIn: 'ls', register: (pi, template) => registerOverride(pi, template.ls, (cwd) => getBuiltin(cwd, 'ls'), { renderCall: renderLsCall, renderResult: renderLsResult }) },
+];
+
+function registerOverride<TParams extends TSchema, TDetails, TState>(
+  pi: ExtensionAPI,
+  definition: ToolDefinition<TParams, TDetails, TState>,
+  load: (cwd: string) => ToolDefinition<TParams, TDetails, TState>,
+  renderers: ToolRenderers,
+): void {
+  pi.registerTool({
+    ...definition,
+    renderShell: 'self',
+    async execute(toolCallId, params, signal, onUpdate, ctx) {
+      return load(ctx.cwd).execute(toolCallId, params, signal, onUpdate, ctx);
+    },
+    renderCall: renderers.renderCall,
+    renderResult: renderers.renderResult,
+  });
+}
+
 export function registerToolRenderers(pi: ExtensionAPI): void {
   const template = getBuiltins(process.cwd());
   const overrides = parseToolOverrides(process.env[TOOL_OVERRIDES_ENV]);
-
-  pi.registerTool({
-    ...template.read,
-    renderShell: 'self',
-    async execute(toolCallId, params, signal, onUpdate, ctx) {
-      return getBuiltin(ctx.cwd, 'read').execute(toolCallId, params, signal, onUpdate, ctx);
-    },
-    renderCall: (args, theme, context) => renderReadCall(args, theme, context),
-    renderResult: (result, options, theme, context) => renderReadResult(result, options, theme, context),
-  });
-
-  pi.registerTool({
-    ...template.bash,
-    renderShell: 'self',
-    async execute(toolCallId, params, signal, onUpdate, ctx) {
-      return getBuiltin(ctx.cwd, 'bash').execute(toolCallId, params, signal, onUpdate, ctx);
-    },
-    renderCall: (args, theme, context) => renderBashCall(args, theme, context),
-    renderResult: (result, options, theme, context) => renderBashResult(result, options, theme, context),
-  });
-
-  if (overrides.has('powershell')) {
-    pi.registerTool({
-      ...template.powershell,
-      renderShell: 'self',
-      async execute(toolCallId, params, signal, onUpdate, ctx) {
-        return getBuiltin(ctx.cwd, 'powershell').execute(toolCallId, params, signal, onUpdate, ctx);
-      },
-      renderCall: (args, theme, context) => renderPowerShellCall(args, theme, context),
-      renderResult: (result, options, theme, context) => renderPowerShellResult(result, options, theme, context),
-    });
-  }
-
-  pi.registerTool({
-    ...template.edit,
-    renderShell: 'self',
-    async execute(toolCallId, params, signal, onUpdate, ctx) {
-      return getBuiltin(ctx.cwd, 'edit').execute(toolCallId, params, signal, onUpdate, ctx);
-    },
-    renderCall: (args, theme, context) => renderEditCall(args, theme, context),
-    renderResult: (result, options, theme, context) => renderEditResult(result, options, theme, context),
-  });
-
-  pi.registerTool({
-    ...template.write,
-    renderShell: 'self',
-    async execute(toolCallId, params, signal, onUpdate, ctx) {
-      return getBuiltin(ctx.cwd, 'write').execute(toolCallId, params, signal, onUpdate, ctx);
-    },
-    renderCall: (args, theme, context) => renderWriteCall(args, theme, context),
-    renderResult: (result, options, theme, context) => renderWriteResult(result, options, theme, context),
-  });
-
-  if (overrides.has('grep')) {
-    pi.registerTool({
-      ...template.grep,
-      renderShell: 'self',
-      async execute(toolCallId, params, signal, onUpdate, ctx) {
-        return getBuiltin(ctx.cwd, 'grep').execute(toolCallId, params, signal, onUpdate, ctx);
-      },
-      renderCall: (args, theme, context) => renderGrepCall(args, theme, context),
-      renderResult: (result, options, theme, context) => renderGrepResult(result, options, theme, context),
-    });
-  }
-
-  if (overrides.has('find')) {
-    pi.registerTool({
-      ...template.find,
-      renderShell: 'self',
-      async execute(toolCallId, params, signal, onUpdate, ctx) {
-        return getBuiltin(ctx.cwd, 'find').execute(toolCallId, params, signal, onUpdate, ctx);
-      },
-      renderCall: (args, theme, context) => renderFindCall(args, theme, context),
-      renderResult: (result, options, theme, context) => renderFindResult(result, options, theme, context),
-    });
-  }
-
-  if (overrides.has('ls')) {
-    pi.registerTool({
-      ...template.ls,
-      renderShell: 'self',
-      async execute(toolCallId, params, signal, onUpdate, ctx) {
-        return getBuiltin(ctx.cwd, 'ls').execute(toolCallId, params, signal, onUpdate, ctx);
-      },
-      renderCall: (args, theme, context) => renderLsCall(args, theme, context),
-      renderResult: (result, options, theme, context) => renderLsResult(result, options, theme, context),
-    });
+  for (const registration of TOOL_REGISTRATIONS) {
+    if (registration.optIn !== undefined && !overrides.has(registration.optIn)) continue;
+    registration.register(pi, template);
   }
 }
