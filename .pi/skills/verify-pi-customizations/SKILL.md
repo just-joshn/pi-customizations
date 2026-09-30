@@ -56,7 +56,7 @@ Drive features end-to-end using the project harness:
 ./.pi/skills/verify-pi-customizations/bin/control-pi drive oauth-providers
 ```
 
-To drive an arbitrary prompt in an isolated session:
+To choose a custom evidence directory for a supported feature drive:
 ```bash
 ./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-status --out artifacts/custom-status
 ```
@@ -80,6 +80,8 @@ Proof standards:
 - All commands execute through real CLI/RPC calls, not unit test stubs.
 - Evidence records action, responses, notifications, and branch state mutations.
 - Proof artifacts survive cleanup.
+- Coverage is limited to the mapped drives: status and empty todos, the mode-off notification and appended state, skill registration, and fixture-backed provider model listing. These drives do not prove restart persistence, workflow execution, OAuth login, or inference.
+- Run doctor before each fresh drive and again after a failure. Check saved artifacts at their named paths after cleanup.
 
 ## Cleanup
 
