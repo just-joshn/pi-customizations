@@ -37,11 +37,21 @@ export function toolAllowList(definition: AgentDefinition, all: readonly string[
   return [...new Set(base)].filter((tool) => !denied(definition.disallowedTools, tool, all));
 }
 
+export function unrecognizedTools(definition: AgentDefinition, all: readonly string[]): string[] {
+  return (definition.tools ?? []).filter((name) => name !== '*' && canonicalTool(name, all) === undefined);
+}
+
+export function zeroToolsError(definition: AgentDefinition, all: readonly string[]): string | undefined {
+  if (!definition.tools || definition.tools.includes('*') || toolAllowList(definition, all).length > 0) return undefined;
+  const invalid = unrecognizedTools(definition, all);
+  return `Agent type '${definition.agentType}' cannot start: its tools list has unrecognized [${invalid.join(', ')}]. Its tools list resolved to nothing, so the agent would have no tools.`;
+}
+
 export function applyToolPolicy(session: AgentSession, definition: AgentDefinition): void {
-  const allowed = toolAllowList(
-    definition,
-    session.getAllTools().map((tool) => tool.name),
-  );
+  const allNames = session.getAllTools().map((tool) => tool.name);
+  const problem = zeroToolsError(definition, allNames);
+  if (problem) throw new Error(problem);
+  const allowed = toolAllowList(definition, allNames);
   const active = session.getActiveToolNames();
   if (allowed.length !== active.length || allowed.some((name) => !active.includes(name))) session.setActiveToolsByName(allowed);
 }

@@ -1,11 +1,12 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, realpathSync } from 'node:fs';
+import { existsSync, mkdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import type { ExtensionAPI, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { Check } from 'typebox/value';
 import { expect, test } from 'vitest';
+import { clearAgentCache } from '../src/subagents/definitions.ts';
 import { depthStore } from '../src/subagents/context.ts';
 import { buildAgentSchema } from '../src/subagents/schema.ts';
 import { registerWorkers } from '../src/workers.ts';
@@ -136,6 +137,36 @@ test('[G1-04] remote isolation outside git falls back to the caller directory', 
     const record = (await call('TaskOutput', { task_id: done.details.agentId })) as { details: { cwd: string } };
     expect(record.details.cwd).toBe(realpathSync(dir));
   } finally {
+    await close();
+  }
+});
+
+test('[G2-24] an agent whose tools resolve to nothing is refused and starts no child', async () => {
+  const { call, close, dir } = await workerFixture();
+  try {
+    mkdirSync(join(dir, '.pi/agents'), { recursive: true });
+    writeFileSync(join(dir, '.pi/agents/empty.md'), '---\nname: empty\ndescription: no tools\ntools: Nope\n---\nbody\n');
+    clearAgentCache();
+    await expect(call('Agent', { description: 'x', prompt: 'p', subagent_type: 'empty', run_in_background: false })).rejects.toThrow(/unrecognized \[Nope\].*Its tools list resolved to nothing/);
+    const listed = (await call('ListAgents', {})) as { details: { agents: unknown[] } };
+    expect(listed.details.agents).toEqual([]);
+  } finally {
+    clearAgentCache();
+    await close();
+  }
+});
+
+test('[G2-01] a project agent file is dispatchable by name and its body becomes the child system prompt', async () => {
+  const { call, close, dir } = await workerFixture();
+  try {
+    mkdirSync(join(dir, '.claude/agents'), { recursive: true });
+    writeFileSync(join(dir, '.claude/agents/reviewer.md'), '---\nname: reviewer\ndescription: reviews\ntools: Read\n---\nREVIEWER_PROMPT_SENTINEL\n');
+    clearAgentCache();
+    const done = (await call('Agent', { description: 'review', prompt: 'go', subagent_type: 'reviewer', run_in_background: false })) as { details: { agentType: string } };
+    expect(done.details.agentType).toBe('reviewer');
+    expect(await readFile(join(dir, 'child-system.txt'), 'utf8')).toContain('REVIEWER_PROMPT_SENTINEL');
+  } finally {
+    clearAgentCache();
     await close();
   }
 });
