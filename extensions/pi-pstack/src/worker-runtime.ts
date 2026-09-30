@@ -78,6 +78,7 @@ export class WorkerRuntime {
   private starting = new Map<string, Promise<StartupOutcome>>();
   private generation = 0;
   private failedUsage = new Map<string, Usage>();
+  private settledHooks = new Map<string, (record: TaskRecord) => Promise<void>>();
   private claimedUsage = new WeakSet<TaskRecord>();
   private lifecycle: Lifecycle = { kind: 'stopped' };
   private closing = new WeakMap<AgentSession, Promise<void>>();
@@ -234,6 +235,7 @@ export class WorkerRuntime {
     const owner = this.generation;
     let session: AgentSession | undefined;
     try {
+      if (launch?.onSettled) this.settledHooks.set(id, launch.onSettled);
       const opened = await depthStore.run(this.depth + 1, () => openWorkerSession({ id, params, prior, ctx, ...(launch ? { launch } : {}) }));
       session = opened.session;
       this.checkStartup(owner, signal);
@@ -342,6 +344,11 @@ export class WorkerRuntime {
     } catch (error) {
       finished = { ...finished, status: 'failed', output: `${finished.output}\nCould not save full output: ${String(error)}` };
     }
+    const settledHook = this.settledHooks.get(record.id);
+    this.settledHooks.delete(record.id);
+    await settledHook?.(finished).catch((error) => {
+      finished = { ...finished, output: `${finished.output}\nWorktree cleanup failed: ${String(error)}` };
+    });
     if (owner !== this.generation) return finished;
     this.records.set(record.id, finished);
     this.pi.appendEntry(taskEntryType, structuredClone(finished));

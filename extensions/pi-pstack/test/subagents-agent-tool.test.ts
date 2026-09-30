@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+import { existsSync, realpathSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -96,6 +98,43 @@ test('[G1-09] SendMessage resumes a finished agent by id and ListAgents reports 
     expect(listed.details.agents).toEqual([{ agentId: first.details.agentId, agentType: 'general-purpose', status: 'settled', description: 'probe' }]);
     expect(await readFile(join(dir, 'provider-inputs.jsonl'), 'utf8')).toContain('two');
     await expect(call('SendMessage', { to: 'nobody', message: 'x' })).rejects.toThrow('No agent found with ID or name: nobody');
+  } finally {
+    await close();
+  }
+});
+
+async function gitFixture() {
+  const fixture = await workerFixture();
+  const git = (...args: string[]) => execFileSync('git', args, { cwd: fixture.dir, encoding: 'utf8' }).trim();
+  git('init', '-q');
+  git('config', 'user.email', 'a@b.c');
+  git('config', 'user.name', 'n');
+  git('add', 'settings.json');
+  git('commit', '-qm', 'init');
+  return { ...fixture, git };
+}
+
+test.each(['worktree', 'remote'] as const)('[G1-04] isolation %s runs the child in an agent worktree that is removed when unchanged', async (isolation) => {
+  const { call, close, git } = await gitFixture();
+  try {
+    const done = (await call('Agent', { description: 'iso', prompt: 'hello', run_in_background: false, isolation })) as { details: { agentId: string; worktreePath?: string } };
+    expect(done.details.worktreePath).toBeUndefined();
+    const listed = (await call('TaskOutput', { task_id: done.details.agentId })) as { details: { cwd: string } };
+    expect(listed.details.cwd).toMatch(/\.pi\/worktrees\/agent-[0-9a-f]{8}$/);
+    expect(existsSync(listed.details.cwd)).toBe(false);
+    expect(git('status', '--porcelain')).not.toContain('.pi');
+    expect(git('worktree', 'list').split('\n')).toHaveLength(1);
+  } finally {
+    await close();
+  }
+});
+
+test('[G1-04] remote isolation outside git falls back to the caller directory', async () => {
+  const { call, close, dir } = await workerFixture();
+  try {
+    const done = (await call('Agent', { description: 'iso', prompt: 'hello', run_in_background: false, isolation: 'remote' })) as { details: { agentId: string } };
+    const record = (await call('TaskOutput', { task_id: done.details.agentId })) as { details: { cwd: string } };
+    expect(record.details.cwd).toBe(realpathSync(dir));
   } finally {
     await close();
   }

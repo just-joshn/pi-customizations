@@ -77,7 +77,7 @@ export function decideAdmission(snapshot: AdmissionSnapshot, request: SpawnReque
     return { ok: false, counter: 'concurrency_limit', refusal: { code: 'subagent_concurrency_limit', message: concurrencyMessage(snapshot.concurrencyCap) } };
   }
   if (request.cwd !== undefined && request.isolation === 'worktree') {
-    return { ok: false, refusal: { code: 'subagent_isolation_conflict', message: 'cwd and isolation: "worktree" cannot be combined.' } };
+    return { ok: false, refusal: { code: 'subagent_isolation_conflict', message: 'cwd and isolation: "worktree" are mutually exclusive.' } };
   }
   return {
     ok: true,
