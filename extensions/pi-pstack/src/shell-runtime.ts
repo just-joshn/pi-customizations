@@ -80,7 +80,7 @@ function describe(record: ShellRecord): string {
 export class ShellRuntime {
   private shells = new Map<string, Shell>();
   private readonly wakes: DeferredWakes;
-  constructor(private readonly pi: ExtensionAPI) {
+  constructor(pi: ExtensionAPI) {
     this.wakes = new DeferredWakes(pi);
   }
 
@@ -201,8 +201,7 @@ export class ShellRuntime {
     const content = `${describe(record)} exited with ${outcome}.\nOutput file: ${record.outputFile}${failure}`;
     const quiet = record.matches > 0 && code === 0;
     const message = { customType: 'pstack-shell-exit', display: true, details: record, content };
-    if (quiet) this.pi.sendMessage(message, { triggerTurn: false, deliverAs: 'followUp' });
-    else this.wakes.send(`exit:${id}`, shell.parentIdle(), message);
+    if (!quiet || writeFailure) this.wakes.send(`exit:${id}`, shell.parentIdle(), message);
   }
 }
 

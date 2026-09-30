@@ -102,6 +102,22 @@ workerTest('personas inherit their configured models and preserve complete sourc
   expect(childPrompt).toMatch(/## Approval Bar/);
 });
 
+workerTest('provider-visible worker instructions exempt settled foreground results and require background TaskOutput collection', async ({ dir, call }) => {
+  const foreground = await call('Task', { prompt: 'foreground collection contract', model: 'worker-test/deterministic', run_in_background: false });
+  const text = foreground.content.find((block) => block.type === 'text');
+  if (text?.type !== 'text') throw new Error('missing text block');
+  const result = JSON.parse(text.text);
+  expect(result.status).toBe('settled');
+  expect(result.output).toBe('users=1');
+  expect(foreground.usage?.totalTokens).toBe(5);
+
+  const providerInstructions = await readFile(join(dir, 'child-system.txt'), 'utf8');
+  expect(providerInstructions).toContain('A successful foreground Task already returns its settled result and usage. No TaskOutput reread is required.');
+  expect(providerInstructions).toContain('Drain every required background child with TaskOutput before returning findings.');
+  expect(providerInstructions).not.toContain('Drain every required child with TaskOutput before returning findings.');
+  expect(providerInstructions).toContain('Your final return closes this session and cancels unfinished descendants.');
+});
+
 workerTest('readonly workers inherit extension providers without enabling write tools', async ({ dir, call }) => {
   const appended: string[][] = [];
   const childPrompts: { readonly: boolean; names: string[] }[] = [];

@@ -25,6 +25,10 @@ function todoWindow<T extends Static<typeof Todo>>(todos: readonly T[]) {
   return { visible, earlier: start, later: todos.length - start - visible.length };
 }
 
+function fitTodoTuiRow(text: string, width: number): string {
+  return truncateToWidth(text.replace(/[\r\n]+/g, ' '), width);
+}
+
 function marker(todo: Static<typeof Todo>): string {
   if (todo.status === 'completed') return '[x]';
   if (todo.status === 'in_progress') return '[>]';
@@ -39,7 +43,7 @@ function widgetLines(todos: readonly Static<typeof Todo>[]): string[] {
 
 function todoWidget(lines: string[]) {
   return () => ({
-    render: (width: number) => lines.map((line) => truncateToWidth(line, width)),
+    render: (width: number) => lines.map((line) => fitTodoTuiRow(line, width)),
     invalidate() {},
   });
 }
@@ -71,7 +75,7 @@ function renderTodoResult(result: { details?: unknown }, options: ToolRenderResu
     render: (width: number) => {
       const { visible, earlier, later } = options.expanded ? { visible: todos, earlier: 0, later: 0 } : todoWindow(todos);
       const lines = [header, ...(earlier ? [theme.fg('dim', `  ... ${earlier} earlier`)] : []), ...visible.map((t) => renderTodoItem(t, theme)), ...(later ? [theme.fg('dim', `  ... ${later} more (expand to view all)`)] : [])];
-      return lines.map((line) => truncateToWidth(line, width));
+      return lines.map((line) => fitTodoTuiRow(line, width));
     },
     invalidate() {},
   };

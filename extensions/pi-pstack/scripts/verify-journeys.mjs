@@ -225,11 +225,11 @@ async function journeyTemplates(ctx) {
 
 async function journeyArguments(ctx) {
   const quoted = requestText(await ctx.turn('/how a "b c" d'));
-  check('template: a quoted argument reaches the model with its quote characters removed', quoted.includes('a b c d'), quoted.slice(-120));
+  check('owned template: quoted text reaches the model literally', quoted.includes('a "b c" d'), quoted.slice(-120));
   const apostrophe = requestText(await ctx.turn("/how it's fine"));
-  check('template: an apostrophe loses its quote character', apostrophe.includes('its fine'), apostrophe.slice(-120));
+  check('owned template: apostrophes reach the model literally', apostrophe.includes("it's fine"), apostrophe.slice(-120));
   const unpaired = requestText(await ctx.turn('/how before it\'s "after"'));
-  check('template: an unpaired quote swallows the rest of the line', unpaired.includes('before its "after"'), unpaired.slice(-120));
+  check('owned template: unpaired quotes reach the model literally', unpaired.includes('before it\'s "after"'), unpaired.slice(-120));
   const native = requestText(await ctx.turn('/skill:how a "b c"'));
   check('native: /skill: keeps argument text exactly as typed', native.includes('a "b c"'), native.slice(-120));
 }
