@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { type ExtensionAPI, type ExtensionContext, parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
 import { Check } from 'typebox/value';
+import { createDelivery } from './deliver.ts';
 import { boundedResult } from './results.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -69,6 +70,7 @@ function registerGoalHooks(pi: ExtensionAPI, store: GoalStore): void {
 }
 
 function registerGoalCommand(pi: ExtensionAPI, store: GoalStore): void {
+  const deliver = createDelivery(pi);
   pi.registerCommand('goal', {
     description: 'Set a goal that Pi pursues to completion across turns.',
     handler: async (args, ctx) => {
@@ -85,7 +87,7 @@ function registerGoalCommand(pi: ExtensionAPI, store: GoalStore): void {
       }
       if (droppedTimeLimit) ctx.ui.notify('Time limits are unsupported. The goal is created without one.', 'warning');
       const skill = parseFrontmatter<Record<string, unknown>>(await readFile(skillPath, 'utf8')).body;
-      pi.sendUserMessage(`<skill name="goal" location="${skillPath}">\nReferences are relative to ${dirname(skillPath)}.\n\n${skill}\n</skill>\n\n${objective}`, { deliverAs: 'followUp' });
+      await deliver(ctx, `<skill name="goal" location="${skillPath}">\nReferences are relative to ${dirname(skillPath)}.\n\n${skill}\n</skill>\n\n${objective}`);
     },
   });
 }
