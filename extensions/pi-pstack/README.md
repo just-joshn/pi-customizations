@@ -1,6 +1,6 @@
 # pstack for pi
 
-This Pi package ports pstack 0.15.5 and team-kit 1.2.0 workflows to Pi 0.99.2. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. It does **not** provide 100% behavior parity with Reference. Required Reference services and external integrations remain unavailable. Read the [compatibility report](docs/parity.md) before using those workflows.
+This Pi package ports pstack 0.15.5 and team-kit 1.2.0 workflows to Pi 0.99.2. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. Upstream-hosted facilities run as local Pi equivalents. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
 
 ## Install
 
@@ -22,7 +22,7 @@ Reload an existing pi session with `/reload`. Run `/pstack` to inspect status an
 
 Start a task with `/poteto-mode your task`. The mode persists on that session branch until `/poteto-mode off`. Natural-language opt-in and opt-out use the model-callable `pstack_mode` tool. `/poteto-mode`, `/setup-pstack`, and `/pstack` are extension commands. Workflow aliases such as `/how`, `/architect`, and `/swarm` are prompt templates that ask the model to read the corresponding skill. Pi's `/skill:name` form loads those instructions directly. `/bro` is a standalone prompt template; use it instead of the retired `/skill:bro`.
 
-Workflow templates obtain the bundled skill path from the extension's host context. Enable the package extension when using these aliases. Native `/skill:name` invocation remains available when only skills are loaded. Templates do not recursively invoke `/skill:` commands or enforce the skill's instructions.
+Every turn, the host context lists each bundled skill, host skill, and playbook by name with its file path. A workflow that says "the how skill" therefore resolves to one file read, as Reference's routing by name does. With Poteto mode on, the source skill's `reminder` line leads the injected mode text. Workflow templates obtain the bundled skill path from the same host context. Enable the package extension when using these aliases. Native `/skill:name` invocation remains available when only skills are loaded. Templates do not recursively invoke `/skill:` commands or enforce the skill's instructions.
 
 With the package extension enabled, direct user invocations of pstack-owned prompt aliases preserve the raw argument suffix, including quotes, whitespace, newlines, backslashes, and dollar placeholders. The input hook quotes that suffix as one parser argument and leaves native prompt discovery and expansion in place. User-owned prompts, other extension commands, and `/bro` are not rewritten. Extension-generated messages keep Pi's normal literal delivery or opt-in expansion. When the extension is disabled, Pi's native prompt parser removes grouping quotes, joins parsed arguments with spaces, and converts unquoted line breaks to spaces. Use `/skill:name` to load a skill directly.
 
@@ -40,13 +40,17 @@ CLI and UI workflows use the project's existing terminal or browser tools. Bundl
 
 `/loop [interval] <prompt>` runs a prompt on a fixed interval, on a self-paced heartbeat, or when a watched event fires. It ports the local half of Reference's synced loop skill. The skill text in `host/skills/loop` is written for Pi, not copied. `BackgroundShell` starts a shell and wakes the agent on each output line that matches `notify_on_output`, and when the shell exits unless it already matched and exited with status zero. A successful exit after a match sends no redundant exit notification. If writing the output log fails, `BackgroundShell` still sends an exit wake, even after a match and a zero exit. While one wake is queued, later matches from the same shell are counted, not queued, so a slow turn never builds a backlog. A match during a busy parent turn is delivered when that turn ends. `BackgroundShellStop` drops that held wake, and an aborted turn keeps it until a later turn ends. `BackgroundShellList` and `BackgroundShellStop` find and stop shells. Stopping signals the shell's process group and returns within a bounded wait even when a descendant escaped that group, and a descendant that calls `setsid` and inherits the pipes outlives the session. Shells end when the session quits, reloads, or switches. Cloud timers are not supplied.
 
+## Goals
+
+`/goal <objective>` arms a goal that Pi pursues across turns. `CreateGoal`, `GetGoal`, and `UpdateGoal` are model-callable, so a playbook that says to arm a `/goal` does so itself. The goal lives on the session branch. While it is active, each finished turn queues a continuation until `UpdateGoal` marks it complete after a completion audit. An aborted or failed turn does not continue. `/goal clear` drops it. A leading time limit is rejected with a notice. The host skills `goal`, `create-skill` (targets Pi's skill format and paths), and `origin` (origin CLI setup and repair) are Pi ports of the Reference built-ins.
+
 ## Local agents
 
 `Task` starts a local SDK session. Background calls return a task ID and deliver a completion message. `TaskOutput` reads or waits for its result. A task that finishes during a parent turn is announced when that turn ends, unless the turn already read its result with `TaskOutput` or `TaskStop`. After an aborted turn, the announcement waits for the next turn to end. `TaskMessage` sends steering or follow-up input. `TaskStop` aborts it. `Task` with `resume` continues the same child transcript.
 
 Supported personas are `generalPurpose`, `poteto-agent`, `comment-sicko` with alias `Comment Sicko`, `ci-watcher`, and `thermo-nuclear-code-quality-review`. The last includes the complete team-kit rubric. The CI watcher inherits the parent model, matching the observed Reference plugin loader. An explicit pi model selection overrides inheritance. Resume retains the previously selected model unless the Task call supplies an explicit model. The original persona file still records its author-requested `fast` selector.
 
-Reference's built-in `shell` and `explore` personas are not defined by either source plugin and remain unsupported. The thermo review persona can consume a diff and file contents collected with ordinary tools, but its prescribed built-in collector orchestration is not reproduced.
+Native `shell` and `explore` personas cover the built-in roles that the kit's review agent calls. The thermo review persona can consume a diff and file contents they collect.
 
 A terminal child closes its session and cancels unfinished descendants. Workers must collect every required child result before returning their final answer. Resuming opens the same persisted transcript in a new SDK session.
 
@@ -54,7 +58,7 @@ Use a separate worktree when a workflow requires isolated writes. A child sessio
 
 Readonly tasks copy the selected provider registration into an isolated model runtime without loading its tool extensions. Failed foreground tasks preserve their nested model usage in the failed tool result. Background model usage enters parent totals when the parent retrieves the result with `TaskOutput` or `TaskStop`; unclaimed usage persists on the active branch across reloads and is charged only once. Resuming a task retains any pending usage.
 
-`environment: "cloud"` fails explicitly. It never runs a cloud-required task locally without an explicit change of scope. Child processes do not survive parent shutdown as hosted Reference cloud agents do.
+`environment: "cloud"` runs the child in its own detached git worktree at `pstack-cloud/<task-id>` under the session directory. It checks out `cloud_base_branch` (the local branch, else `origin/<branch>`) or the parent's HEAD. Uncommitted parent changes are not copied, as with a Reference cloud agent that starts from pushed state. The worktree stays after the task ends so its commits survive. Resume reopens the same worktree. The child process still ends with the parent session, unlike a hosted Reference cloud agent.
 
 ## Models and state
 

@@ -3,8 +3,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, parseFrontmatter } from '@earendil-works/pi-coding-agent';
+import { skillCatalog } from './catalog.ts';
 import { registerCommands, registerNativeInput } from './commands.ts';
 import { registerContext, registerStatus } from './context.ts';
+import { registerGoal } from './goal.ts';
 import { hostInstructions } from './host.ts';
 import { readModelRule } from './models.ts';
 import { registerQuestions } from './questions.ts';
@@ -21,8 +23,14 @@ async function loadSkill(name: string) {
   return { path, body, description: frontmatter.description };
 }
 
+async function loadReminder() {
+  const { frontmatter } = parseFrontmatter<Record<string, unknown>>(await readFile(join(root, 'upstream/skills/poteto-mode/SKILL.md'), 'utf8'));
+  if (typeof frontmatter.reminder !== 'string') throw new Error('Missing poteto-mode reminder in the upstream source.');
+  return frontmatter.reminder;
+}
+
 export default async function pstack(pi: ExtensionAPI) {
-  const [mode, setup] = await Promise.all(['poteto-mode', 'setup-pstack'].map(loadSkill));
+  const [[mode, setup], reminder, catalog] = await Promise.all([Promise.all(['poteto-mode', 'setup-pstack'].map(loadSkill)), loadReminder(), skillCatalog(root)]);
   if (!mode || !setup) throw new Error('Missing pstack resource. Run bun run generate.');
   const skills = new Map([
     ['poteto-mode', mode],
@@ -35,8 +43,8 @@ export default async function pstack(pi: ExtensionAPI) {
   pi.on('session_tree', (_event, ctx) => store.restore(ctx));
   pi.on('before_agent_start', async (event, ctx) => {
     const state = store.read();
-    event.systemPromptOptions.sections.pstack_host = hostInstructions(root, ctx, await readModelRule());
-    if (state.enabled) event.systemPromptOptions.sections.pstack_mode = `References are relative to ${dirname(mode.path)}.\n\n${mode.body}`;
+    event.systemPromptOptions.sections.pstack_host = hostInstructions(root, ctx, await readModelRule(), catalog);
+    if (state.enabled) event.systemPromptOptions.sections.pstack_mode = `${reminder}\n\nReferences are relative to ${dirname(mode.path)}.\n\n${mode.body}`;
     else delete event.systemPromptOptions.sections.pstack_mode;
     if (state.todos.length) event.systemPromptOptions.sections.pstack_todos = JSON.stringify(state.todos);
     else delete event.systemPromptOptions.sections.pstack_todos;
@@ -47,4 +55,5 @@ export default async function pstack(pi: ExtensionAPI) {
   registerStatus(pi, store);
   registerWorkers(pi);
   registerShells(pi);
+  registerGoal(pi);
 }

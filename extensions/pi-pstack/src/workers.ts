@@ -9,12 +9,13 @@ function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime): void {
   pi.registerTool({
     name: 'Task',
     label: 'Task',
-    description: 'Start or resume a Pi subagent. Background runs return an ID and deliver completion. Cloud execution is unavailable. Readonly limits tools; it is not an OS sandbox. Models must resolve to configured Pi providers.',
+    description:
+      'Start or resume a Pi subagent. Background runs return an ID and deliver completion. environment cloud runs in its own git worktree. Readonly limits tools; it is not an OS sandbox. Models must resolve to configured Pi providers.',
     promptSnippet: 'Start or resume a local Pi subagent; background runs return a task ID',
     promptGuidelines: [
-      'Task, TaskOutput, TaskMessage, TaskStop implement local delegation. Use exact available provider/model IDs, optionally :thinking. auto and inherit-parent inherit the parent. Unavailable Reference slugs fail with available choices. Follow the source fallback policy and report any model change.',
-      'Cloud Task execution is unavailable. Never silently replace a required cloud task with local execution. Readonly workers have restricted tools, not an OS sandbox. Agent-mode workers use installed Pi extensions; their tool availability depends on those extensions.',
-      'Task also supports the bundled ci-watcher and thermo-nuclear-code-quality-review personas. ci-watcher inherits the parent model unless the caller supplies a configured Pi model, matching observed Reference plugin behavior. No model is silently substituted. The kit references Reference built-in shell and explore personas whose contracts are not published here; these remain unsupported. Collect the required diff and file contents with available tools before invoking the thermo review persona.',
+      'Task, TaskOutput, TaskMessage, TaskStop implement local delegation. Use exact available provider/model IDs, optionally :thinking. auto and inherit-parent inherit the parent. A slug with no configured provider fails and lists the available choices. Follow the source fallback policy and report any model change.',
+      'environment cloud gives the worker its own detached git worktree under the session directory at pstack-cloud/<task-id>, checked out at cloud_base_branch (local branch, else origin/<branch>) or the parent HEAD. Uncommitted parent changes are not in it, so commit or push what the worker needs. The worktree stays after the task ends, so its branch and commits survive. environment local, the default, shares the parent checkout. Readonly workers have restricted tools, not an OS sandbox. Agent-mode workers use installed Pi extensions.',
+      'Task also supports the bundled ci-watcher and thermo-nuclear-code-quality-review personas. ci-watcher inherits the parent model unless the caller supplies a configured Pi model, matching observed Reference plugin behavior. No model is silently substituted. The shell and explore personas are native. Collect the required diff and file contents with available tools before invoking the thermo review persona.',
     ],
     parameters: TaskParameters,
     outputSchema: TaskRecordSchema,

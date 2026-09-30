@@ -61,7 +61,7 @@ test('generation separates reusable prompts from procedural skills and Reference
   try {
     f.run('--write');
     expect((await readdir(join(f.directory, 'prompts'))).length).toBe(63);
-    expect((await readdir(join(f.directory, 'skills'))).length).toBe(64);
+    expect((await readdir(join(f.directory, 'skills'), { withFileTypes: true })).filter((entry) => entry.isDirectory()).length).toBe(64);
     await expect(readFile(join(f.directory, 'skills/bro/SKILL.md'))).rejects.toMatchObject({ code: 'ENOENT' });
     expect(await readFile(join(f.directory, 'prompts/bro.md'), 'utf8')).toMatch(/Restate your last message/);
     expect(await readFile(join(f.directory, 'prompts/architect.md'), 'utf8')).toMatch(/architect\/SKILL\.md/);

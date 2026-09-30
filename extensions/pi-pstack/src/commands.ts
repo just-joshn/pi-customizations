@@ -2,6 +2,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { createDelivery } from './deliver.ts';
 import { setupModels } from './models.ts';
 import type { StateStore } from './state.ts';
 
@@ -50,6 +51,7 @@ async function handleSetup(pi: ExtensionAPI, ctx: ExtensionContext, store: State
 }
 
 export function registerCommands(pi: ExtensionAPI, skills: Skills, store: StateStore): void {
+  const deliver = createDelivery(pi);
   for (const [name, skill] of skills) {
     pi.registerCommand(name, {
       description: skill.description,
@@ -65,7 +67,7 @@ export function registerCommands(pi: ExtensionAPI, skills: Skills, store: StateS
           }
           store.toggle(true, ctx);
         }
-        pi.sendUserMessage(expand(skills, name, args), { deliverAs: 'followUp' });
+        await deliver(ctx, expand(skills, name, args));
       },
     });
   }

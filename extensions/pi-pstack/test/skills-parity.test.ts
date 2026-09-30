@@ -44,7 +44,7 @@ test('skills inventory: all pstack, team-kit, and loop skills are accounted for'
   }
 
   expect(piHostSkills.includes('loop')).toBe(true);
-  expect(piSkills.length + piHostSkills.length).toBe(65);
+  expect(piSkills.length + piHostSkills.length).toBe(68);
 });
 
 test('reference built-in facilities: host mappings are verified', async () => {
@@ -119,12 +119,12 @@ async function validateSkillMetadata(skill: { name: string; description: string;
   expect(nameMatch?.[1].trim()).toBe(skill.name);
 }
 
-test('skills loader: all 65 skills discover cleanly with valid metadata and frontmatter', async () => {
+test('skills loader: all 68 skills discover cleanly with valid metadata and frontmatter', async () => {
   const f = await fixture();
   try {
     const { loader } = await f.open();
     const skills = loader.getSkills().skills;
-    expect(skills.length).toBe(65);
+    expect(skills.length).toBe(68);
 
     for (const skill of skills) {
       await validateSkillMetadata(skill);
@@ -305,7 +305,7 @@ test('host contract mappings: tool names, reference facilities, and external dep
       getSessionFile: () => '/test/sessions/current.jsonl',
     },
   };
-  const instructions = hostInstructions('/pkg', fakeCtx as never, 'rule-content');
+  const instructions = hostInstructions('/pkg', fakeCtx as never, 'rule-content', '');
   expect(instructions.includes('pstack pi host contract')).toBe(true);
   expect(instructions.includes('/loop is a Pi prompt template')).toBe(true);
   expect(instructions.includes('create-skill')).toBe(true);

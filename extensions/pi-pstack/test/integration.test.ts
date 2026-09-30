@@ -51,15 +51,16 @@ test('official resource loader separates skills, prompt aliases, and runtime com
   try {
     const { session, loader } = await f.open();
     const { skills, diagnostics } = loader.getSkills();
-    expect(skills.length).toBe(65);
+    expect(skills.length).toBe(68);
     expect(diagnostics).toEqual([]);
-    const expected = [...(await readdir(join(packageRoot, 'skills'))), ...(await readdir(join(packageRoot, 'host/skills')))].sort();
+    const directories = async (path: string) => (await readdir(path, { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+    const expected = [...(await directories(join(packageRoot, 'skills'))), ...(await directories(join(packageRoot, 'host/skills')))].sort();
     expect(skills.map((skill) => skill.name).sort()).toEqual(expected);
     for (const skill of skills) expect(skill.name).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     const commands = new Set(session.extensionRunner.getRegisteredCommands().map((command) => command.name));
-    expect([...commands].sort()).toEqual(['poteto-mode', 'pstack', 'setup-pstack']);
+    expect([...commands].sort()).toEqual(['goal', 'poteto-mode', 'pstack', 'setup-pstack']);
     const templates = loader.getPrompts().prompts;
-    expect(templates.length).toBe(64);
+    expect(templates.length).toBe(66);
     const aliases = new Set(templates.map((template) => template.name));
     for (const name of [...expected, 'bro']) expect(commands.has(name) || aliases.has(name)).toBe(true);
     expect(skills.some((skill) => skill.name === 'bro')).toBe(false);
@@ -195,7 +196,7 @@ test('native /skill:poteto-mode enters the same mode and /pstack reports status 
     expect(f.requests.length).toBe(callsBeforeStatus);
     const status = session.messages.findLast((message) => message.role === 'custom' && message.customType === 'pstack-status');
     expect(Boolean(status)).toBe(true);
-    expect(JSON.stringify(status)).toMatch(/65 skills, 64 prompt templates/);
+    expect(JSON.stringify(status)).toMatch(/68 skills, 66 prompt templates/);
     expect(JSON.stringify(status)).toMatch(/team-kit 1.2.0/);
     expect(JSON.stringify(status)).toMatch(/Poteto mode on/);
     await prompt(session, '/poteto-mode off', { startsRun: false });
@@ -323,7 +324,7 @@ test('team-kit templates request skill reading and native skills expand complete
   const f = await fixture();
   try {
     const { session, loader } = await f.open();
-    expect(loader.getSkills().skills.length).toBe(65);
+    expect(loader.getSkills().skills.length).toBe(68);
     const names = new Set(loader.getSkills().skills.map((skill) => skill.name));
     for (const name of KIT_SKILL_NAMES) expect(names.has(name)).toBe(true);
     for (const name of ['pr-review-canvas', 'thermo-nuclear-code-quality-review']) {
@@ -367,14 +368,14 @@ test('pstack tool snippets and guidance follow the active tool set', async () =>
     for (const name of ['Task', 'TaskOutput', 'TaskMessage', 'TaskStop', 'TodoWrite', 'AskQuestion', 'pstack_mode', 'pstack_context', 'BackgroundShell', bgList, bgStop]) {
       expect(tools).toMatch(new RegExp(`^- ${name}: `, 'm'));
     }
-    expect(section(f.requests, 'rules') ?? '').toMatch(/Cloud Task execution is unavailable/);
+    expect(section(f.requests, 'rules') ?? '').toMatch(/environment cloud gives the worker its own detached git worktree/);
     expect(section(f.requests, 'rules') ?? '').toMatch(/AskQuestion works in interactive and RPC sessions/);
-    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/Cloud Task execution is unavailable|TodoWrite keeps/);
+    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/environment cloud gives the worker its own detached git worktree|TodoWrite keeps/);
     session.setActiveToolsByName(['read', 'bash']);
     await prompt(session, 'Continue with read and bash only.');
     expect(section(f.requests, 'tools') ?? '').not.toMatch(/^- (Task|TodoWrite|BackgroundShell): /m);
-    expect(section(f.requests, 'rules') ?? '').not.toMatch(/Cloud Task execution is unavailable|TodoWrite keeps|BackgroundShell/);
-    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/Cloud Task execution is unavailable|TodoWrite keeps|BackgroundShell with notify_on_output/);
+    expect(section(f.requests, 'rules') ?? '').not.toMatch(/environment cloud gives the worker its own detached git worktree|TodoWrite keeps|BackgroundShell/);
+    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/environment cloud gives the worker its own detached git worktree|TodoWrite keeps|BackgroundShell with notify_on_output/);
     expect(f.errors).toEqual([]);
   } finally {
     await f.close();
@@ -388,7 +389,8 @@ test('team-kit rules stay archival to match observed Reference plugin behavior',
     await prompt(session, 'Work on this module.');
     const rules = section(f.requests, 'pstack_team_kit_rules') ?? '';
     expect(rules).toBe('');
-    expect(section(f.requests, 'pstack_host') ?? '').toMatch(/rules remain archived/);
+    expect(section(f.requests, 'pstack_host') ?? '').toMatch(/pstack pi host contract/);
+    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/In switch statements/);
     expect(section(f.requests, 'pstack_mode')).toBeNull();
     await prompt(session, '/poteto-mode Enter the mode.');
     await prompt(session, '/poteto-mode off', { startsRun: false });
