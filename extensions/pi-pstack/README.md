@@ -1,6 +1,6 @@
 # pstack for pi
 
-This Pi package ports pstack 0.15.5 and team-kit 1.2.0 workflows to Pi 0.99.1. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. It does **not** provide 100% behavior parity with Reference. Required Reference services and external integrations remain unavailable. Read the [compatibility report](docs/parity.md) before using those workflows.
+This Pi package ports pstack 0.15.5 and team-kit 1.2.0 workflows to Pi 0.99.2. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. It does **not** provide 100% behavior parity with Reference. Required Reference services and external integrations remain unavailable. Read the [compatibility report](docs/parity.md) before using those workflows.
 
 ## Install
 
@@ -26,7 +26,7 @@ Workflow templates obtain the bundled skill path from the extension's host conte
 
 With the package extension enabled, direct user invocations of pstack-owned prompt aliases preserve the raw argument suffix, including quotes, whitespace, newlines, backslashes, and dollar placeholders. The input hook quotes that suffix as one parser argument and leaves native prompt discovery and expansion in place. User-owned prompts, other extension commands, and `/bro` are not rewritten. Extension-generated messages keep Pi's normal literal delivery or opt-in expansion. When the extension is disabled, Pi's native prompt parser removes grouping quotes, joins parsed arguments with spaces, and converts unquoted line breaks to spaces. Use `/skill:name` to load a skill directly.
 
-The runtime uses current `@earendil-works` pi packages. Host dependencies are peers. SDK 0.99.1 is the development and verification target. Other versions have not been verified.
+The runtime uses current `@earendil-works` pi packages. Host dependencies are peers. SDK 0.99.2 is the development and verification target. Other versions have not been verified.
 
 ## Team-kit workflows
 

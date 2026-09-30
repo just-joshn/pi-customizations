@@ -123,7 +123,7 @@ function run() {
 
   tmux(['-f', '/dev/null', 'new-session', '-d', '-x', '110', '-y', '36', '-s', SESSION, '-c', workspace, paneCommand]);
 
-  const idle = waitFor('idle editor (header + placeholder)', '01-idle', (cap) => captureContains(cap, 'pi v0.99.1') && captureContains(cap, 'Plan, search, build anything'));
+  const idle = waitFor('idle editor (header + placeholder)', '01-idle', (cap) => captureContains(cap, 'pi v0.99.2') && captureContains(cap, 'Plan, search, build anything'));
   record('header shows "pi"', 'pass', '01-idle');
   record('empty-state placeholder "Plan, search, build anything"', 'pass', '01-idle');
 
