@@ -1,6 +1,6 @@
 # OAuth providers
 
-OAuth extensions register subscription model providers for Claude (`claude-subscription` via `pi-anthropic-oauth`) and Antigravity (`google-antigravity` via `pi-antigravity-oauth`) when credentials are present.
+OAuth extensions register subscription model providers for Claude (`claude-subscription` via `pi-anthropic-oauth`) and Antigravity (`google-antigravity` via `pi-antigravity-oauth`) when the extensions load. Credentials govern authenticated use; the harness checks fixture-backed CLI model visibility.
 
 ## Sub-features
 
@@ -21,13 +21,15 @@ Preconditions:
 - Environment passes `./.pi/skills/verify-pi-customizations/bin/control-pi doctor`.
 - Disposable `PI_CODING_AGENT_DIR` scratch directory initialized with fixture credentials in `auth.json` (mode `0600`).
 
-- **List Claude models.** Execute `pi --no-extensions -e extensions/pi-anthropic-oauth --list-models claude-subscription`. The model list includes `claude-opus-5-5`, `claude-sonnet-4-6`, and other subscription models.
+- **List Claude models.** Execute `pi --no-extensions -e extensions/pi-anthropic-oauth --list-models claude-subscription`. The model list includes Claude Opus models from the installed Pi Anthropic catalog; exact model IDs depend on the Pi version.
 - **List Antigravity models.** Execute `pi --no-extensions -e extensions/pi-antigravity-oauth --list-models google-antigravity`. The model list includes `gemini-3-flash-agent`, `claude-opus-4-6-thinking`, and other Antigravity models.
 - **Run verification.** Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive oauth-providers`.
 - **Proof.** Verify that artifacts exist at `artifacts/verify-pi-customizations/oauth-providers/claude-models.txt` and `antigravity-models.txt`.
 
 ## Gotchas
 
-- Models only register if `auth.json` exists in `PI_CODING_AGENT_DIR` with an active credential matching the provider key.
+- Both extensions register providers without checking credentials. The harness supplies synthetic, unexpired OAuth records for CLI listing; these are not active subscription credentials.
 - Provider keys are `claude-subscription` and `google-antigravity`.
-- `auth.json` must have strict filesystem permissions (`0600`) to be loaded securely.
+- The harness writes fixture `auth.json` with mode `0600` as secure setup, not as a test of permission rejection.
+- The harness creates its own disposable scratch directory and fixture credentials; no manual initialization is needed.
+- This drive does not verify `/model`, OAuth login/refresh, authenticated catalog discovery, or inference. Those routes require real credentials and, for Antigravity, project entitlement; they were not attempted by this recipe.
