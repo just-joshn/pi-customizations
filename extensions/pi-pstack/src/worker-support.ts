@@ -8,6 +8,8 @@ import { type AgentSession, createAgentSession, DefaultResourceLoader, type Exte
 import { cursorToolNames } from './host.ts';
 import { resolveModel } from './models.ts';
 import { readPersona } from './personas.ts';
+import type { AgentDefinition } from './subagents/definitions.ts';
+import { applyToolPolicy } from './subagents/tool-pool.ts';
 import type { TaskParameters, TaskRecord } from './worker-records.ts';
 
 export async function childModelRuntime(readonly: boolean, provider: string, ctx: ExtensionContext): Promise<ModelRuntime | undefined> {
@@ -66,14 +68,32 @@ async function workerDirectory(ctx: ExtensionContext): Promise<string> {
   return dir;
 }
 
-type OpenWorker = { id: string; params: TaskParameters; prior: TaskRecord | undefined; ctx: ExtensionContext };
+export type AgentLaunch = Readonly<{ definition: AgentDefinition; description: string; name?: string; depth: number; model?: string }>;
+type OpenWorker = { id: string; params: TaskParameters; prior: TaskRecord | undefined; ctx: ExtensionContext; launch?: AgentLaunch };
 
-export async function openWorkerSession({ id, params, prior, ctx }: OpenWorker): Promise<{ session: AgentSession; record: TaskRecord }> {
+type RecordInputs = { id: string; persona: string; cwd: string; readonly: boolean; selected: ReturnType<typeof resolveModel>; sessionFile: string; outputFile: string; launch?: AgentLaunch };
+
+function initialRecord({ id, persona, cwd, readonly, selected, sessionFile, outputFile, launch }: RecordInputs): TaskRecord {
+  return {
+    id,
+    persona,
+    cwd,
+    readonly,
+    modelReference: `${selected.model.provider}/${selected.model.id}:${selected.thinkingLevel}`,
+    sessionFile,
+    outputFile,
+    status: 'running',
+    output: '',
+    ...(launch ? { description: launch.description, depth: launch.depth, ...(launch.name ? { agentName: launch.name } : {}) } : {}),
+  };
+}
+
+export async function openWorkerSession({ id, params, prior, ctx, launch }: OpenWorker): Promise<{ session: AgentSession; record: TaskRecord }> {
   const cwd = await realpath(resolve(ctx.cwd, params.cwd ?? prior?.cwd ?? ctx.cwd));
-  const persona = params.subagent_type ?? prior?.persona ?? 'generalPurpose';
+  const persona = launch?.definition.agentType ?? params.subagent_type ?? prior?.persona ?? 'generalPurpose';
   const readonly = params.readonly ?? prior?.readonly ?? false;
   if (prior && (cwd !== prior.cwd || persona !== prior.persona || readonly !== prior.readonly)) throw new Error('Resume must preserve the task workspace, persona, and readonly policy.');
-  const profile = await readPersona(persona);
+  const profile = launch ? { instructions: launch.definition.systemPrompt, defaultModel: undefined } : await readPersona(persona);
   const selected = resolveModel(params.model ?? prior?.modelReference ?? profile.defaultModel, ctx);
   const { pi: manifest } = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')) as { pi: Record<'extensions' | 'skills' | 'prompts', string[]> };
   const loader = new DefaultResourceLoader({
@@ -102,8 +122,9 @@ export async function openWorkerSession({ id, params, prior, ctx }: OpenWorker):
   const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
   const sessionFile = manager.getSessionFile();
   if (!sessionFile) throw new Error('Worker session did not provide a durable transcript path.');
-  const record: TaskRecord = { id, persona, cwd, readonly, modelReference: `${selected.model.provider}/${selected.model.id}:${selected.thinkingLevel}`, sessionFile, outputFile: join(dir, `${id}.output.txt`), status: 'running', output: '' };
+  const record = initialRecord({ id, persona, cwd, readonly, selected, sessionFile, outputFile: join(dir, `${id}.output.txt`), ...(launch ? { launch } : {}) });
   const modelRuntime = await childModelRuntime(readonly, selected.model.provider, ctx);
   const { session } = await createAgentSession({ cwd, modelRuntime, resourceLoader: loader, sessionManager: manager, ...selected, ...(readonly ? { tools: ['read', 'grep', 'find', 'ls'] } : {}) });
+  if (launch) applyToolPolicy(session, launch.definition);
   return { session, record };
 }
