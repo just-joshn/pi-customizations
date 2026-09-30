@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import type { JsonValue } from '@earendil-works/pi-ai';
 import type { AgentToolResult, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
@@ -12,6 +14,7 @@ import { type AgentResult, AgentResultSchema, asyncLaunched, completed, resultTe
 import { buildAgentSchema, ListAgentsSchema, SendMessageSchema } from './schema.ts';
 import { SubagentStats } from './stats.ts';
 import type { AdmissionSnapshot, LaunchPlan, SpawnRequest } from './types.ts';
+import { createWorktree, finalizeWorktree, repositoryRoot, type WorktreeOutcome } from './worktree.ts';
 
 type AgentParams = { description: string; prompt: string; subagent_type?: string; model?: string; run_in_background?: boolean; isolation?: 'worktree' | 'remote' };
 type Update = Parameters<WorkerRuntime['start']>[4];
@@ -74,15 +77,39 @@ class AgentLauncher {
     return { plan, definition, model: choice.request, background: plan.background || definition.background === true };
   }
 
+  private async isolate(admitted: Admitted, ctx: ExtensionContext): Promise<{ cwd?: string; outcome: () => WorktreeOutcome | undefined; settle?: () => Promise<void> }> {
+    const requested = admitted.plan.isolation ?? admitted.definition.isolation;
+    const wantsWorktree = requested === 'worktree' || (requested === 'remote' && (await repositoryRoot(ctx.cwd)) !== undefined);
+    if (!wantsWorktree) return { outcome: () => undefined };
+    const id = randomUUID().slice(0, 8);
+    const worktree = await createWorktree(ctx.cwd, id);
+    let outcome: WorktreeOutcome | undefined;
+    return {
+      cwd: worktree.path,
+      outcome: () => outcome,
+      settle: async () => {
+        outcome = await finalizeWorktree(worktree);
+      },
+    };
+  }
+
   async launch(callId: string, params: AgentParams, signal: AbortSignal | undefined, onUpdate: Update, ctx: ExtensionContext): Promise<AgentToolResult<AgentResult>> {
-    const { plan, definition, model, background } = this.admit(params, ctx);
+    const admitted = this.admit(params, ctx);
+    const { plan, definition, model, background } = admitted;
+    const isolation = await this.isolate(admitted, ctx);
     this.spawned += 1;
     this.stats.spawn(plan.depth);
-    const taskParams = { prompt: plan.prompt, ...(model ? { model } : {}), ...(background ? {} : { run_in_background: false }) };
-    const started = await this.runtime.start(callId, taskParams, signal, ctx, onUpdate, { definition, description: plan.description, depth: plan.depth });
+    const taskParams = { prompt: plan.prompt, ...(model ? { model } : {}), ...(isolation.cwd ? { cwd: isolation.cwd } : {}), ...(background ? {} : { run_in_background: false }) };
+    const launch = { definition, description: plan.description, depth: plan.depth, ...(isolation.settle ? { onSettled: isolation.settle } : {}) };
+    const started = await this.runtime.start(callId, taskParams, signal, ctx, onUpdate, launch).catch(async (error) => {
+      await isolation.settle?.().catch(() => undefined);
+      throw error;
+    });
     const record = started.details;
     if (!background) this.stats.settle(record.status === 'running' ? 'settled' : record.status);
-    const result = background ? asyncLaunched(record, plan) : completed({ ...record, ...(started.usage ? { usage: started.usage } : {}) }, plan);
+    const kept = isolation.outcome();
+    const worktree = kept?.kept ? { worktreePath: kept.path, worktreeBranch: kept.branch } : {};
+    const result = background ? asyncLaunched(record, plan) : completed({ ...record, ...(started.usage ? { usage: started.usage } : {}) }, plan, worktree);
     return { ...wrap(result, resultText(result)), ...(started.usage ? { usage: started.usage } : {}) };
   }
 }

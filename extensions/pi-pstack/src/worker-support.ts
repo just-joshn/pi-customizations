@@ -68,7 +68,7 @@ async function workerDirectory(ctx: ExtensionContext): Promise<string> {
   return dir;
 }
 
-export type AgentLaunch = Readonly<{ definition: AgentDefinition; description: string; name?: string; depth: number; model?: string }>;
+export type AgentLaunch = Readonly<{ definition: AgentDefinition; description: string; name?: string; depth: number; model?: string; onSettled?: (record: TaskRecord) => Promise<void> }>;
 type OpenWorker = { id: string; params: TaskParameters; prior: TaskRecord | undefined; ctx: ExtensionContext; launch?: AgentLaunch };
 
 type RecordInputs = { id: string; persona: string; cwd: string; readonly: boolean; selected: ReturnType<typeof resolveModel>; sessionFile: string; outputFile: string; launch?: AgentLaunch };
