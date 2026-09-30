@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import type { Usage } from '@earendil-works/pi-ai';
 import { type AgentSession, createAgentSession, DefaultResourceLoader, type ExtensionContext, getAgentDir, ModelRuntime, SessionManager } from '@earendil-works/pi-coding-agent';
 import { skillCatalog } from './catalog.ts';
+import { cloudCheckout } from './cloud.ts';
 import { referenceToolNames } from './host.ts';
 import { resolveModel } from './models.ts';
 import { readPersona } from './personas.ts';
@@ -70,7 +71,8 @@ async function workerDirectory(ctx: ExtensionContext): Promise<string> {
 type OpenWorker = { id: string; params: TaskParameters; prior: TaskRecord | undefined; ctx: ExtensionContext };
 
 export async function openWorkerSession({ id, params, prior, ctx }: OpenWorker): Promise<{ session: AgentSession; record: TaskRecord }> {
-  const cwd = await realpath(resolve(ctx.cwd, params.cwd ?? prior?.cwd ?? ctx.cwd));
+  const requested = resolve(ctx.cwd, params.cwd ?? prior?.cwd ?? ctx.cwd);
+  const cwd = params.environment === 'cloud' && !prior ? await cloudCheckout(id, requested, params.cloud_base_branch, ctx) : await realpath(requested);
   const persona = params.subagent_type ?? prior?.persona ?? 'generalPurpose';
   const readonly = params.readonly ?? prior?.readonly ?? false;
   if (prior && (cwd !== prior.cwd || persona !== prior.persona || readonly !== prior.readonly)) throw new Error('Resume must preserve the task workspace, persona, and readonly policy.');

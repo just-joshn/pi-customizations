@@ -133,7 +133,6 @@ export class WorkerRuntime {
 
   private priorTask(params: TaskParameters): TaskRecord | undefined {
     if (this.lifecycle.kind !== 'active') throw new Error('Parent session is not active. Wait for session startup or tree restoration before starting a task.');
-    if (params.environment === 'cloud') throw new Error('Reference cloud execution is unavailable in Pi. Explicitly choose environment local only when local execution satisfies the task.');
     const prior = params.resume ? this.records.get(params.resume) : undefined;
     if (params.resume && !prior) throw new Error(`Unknown task in this branch: ${params.resume}`);
     return prior;

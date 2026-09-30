@@ -383,7 +383,7 @@ test('user-perspective: AskQuestion rejects invalid identifiers', async () => {
   }
 });
 
-test('user-perspective: Task tool rejects cloud execution and unsupported personas', async () => {
+test('user-perspective: Task tool rejects cloud execution outside a git repository and unsupported personas', async () => {
   const f = await fixture();
   try {
     const { session } = await f.open();
@@ -397,7 +397,7 @@ test('user-perspective: Task tool rejects cloud execution and unsupported person
     let results = toolResultsOf(session, 'Task');
     expect(results.length).toBe(1);
     expect(results[0]?.isError).toBe(true);
-    expect(JSON.stringify(results[0])).toMatch(/Reference cloud execution is unavailable in Pi/);
+    expect(JSON.stringify(results[0])).toMatch(/environment cloud runs in a git worktree, and .+ is not inside a git repository/);
 
     f.calls.push({
       type: 'toolCall',
