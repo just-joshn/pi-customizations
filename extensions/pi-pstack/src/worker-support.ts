@@ -51,6 +51,15 @@ export function deduplicateExtensions<T extends { resolvedPath: string }>(extens
   return unique.filter((extension) => canonical(extension.resolvedPath) === own || packageName(extension.resolvedPath) !== 'pi-pstack');
 }
 
+type LoadedExtensions<T> = { extensions: T[]; errors: Array<{ path: string; error: string }> };
+
+export function workerExtensions<T extends { path: string; resolvedPath: string }, R extends LoadedExtensions<T>>(result: R, ownEntry: string): R {
+  const extensions = deduplicateExtensions(result.extensions, ownEntry);
+  const dropped = result.extensions.filter((extension) => !extensions.includes(extension)).map((extension) => extension.path);
+  const errors = result.errors.filter((error) => !dropped.some((path) => error.path === path || error.error.endsWith(` conflicts with ${path}`)));
+  return { ...result, extensions, errors };
+}
+
 export function sumUsage(messages: AgentSession['messages'], previous?: Usage): Usage {
   const empty: Usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
   return messages.reduce(
@@ -112,7 +121,7 @@ export async function openWorkerSession({ id, params, prior, ctx }: OpenWorker):
       `pstack host contract.\n${await skillCatalog(root)}`,
       cursorToolNames,
     ],
-    extensionsOverride: (result) => ({ ...result, extensions: deduplicateExtensions(result.extensions, join(root, 'src/index.ts')) }),
+    extensionsOverride: (result) => workerExtensions(result, join(root, 'src/index.ts')),
   });
   await loader.reload();
   if (loader.getExtensions().errors.length)

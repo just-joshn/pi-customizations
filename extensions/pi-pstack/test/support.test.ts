@@ -5,7 +5,7 @@ import type { AgentSession, ExtensionContext } from '@earendil-works/pi-coding-a
 import { expect, test } from 'vitest';
 import { boundedResult } from '../src/results.ts';
 import { restoreTaskRecords } from '../src/worker-records.ts';
-import { deduplicateExtensions, sumUsage } from '../src/worker-support.ts';
+import { deduplicateExtensions, sumUsage, workerExtensions } from '../src/worker-support.ts';
 
 const usage = { input: 2, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 5, cost: { input: 1, output: 2, cacheRead: 0, cacheWrite: 0, total: 3 } };
 
@@ -60,8 +60,16 @@ test('workers keep only the running pstack copy when another copy is installed',
     const installed = await entry('installed', 'pi-pstack');
     const other = await entry('other', 'pi-other');
     const running = await entry('running', 'pi-pstack');
-    const kept = deduplicateExtensions([{ resolvedPath: installed }, { resolvedPath: other }, { resolvedPath: running }], running);
-    expect(kept.map((extension) => extension.resolvedPath)).toEqual([other, running]);
+    const loaded = {
+      extensions: [installed, other, running].map((path) => ({ path, resolvedPath: path })),
+      errors: [
+        { path: running, error: `Tool "Task" conflicts with ${installed}` },
+        { path: other, error: 'Extension failed to load' },
+      ],
+    };
+    const kept = workerExtensions(loaded, running);
+    expect(kept.extensions.map((extension) => extension.resolvedPath)).toEqual([other, running]);
+    expect(kept.errors).toEqual([{ path: other, error: 'Extension failed to load' }]);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
