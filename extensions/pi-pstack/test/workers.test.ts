@@ -85,9 +85,7 @@ workerTest('unknown task ids are refused by message, output, and stop', async ({
 workerTest('personas inherit their configured models and preserve complete source instructions', async ({ dir, call }) => {
   const inheritedWatcher = await call('Task', { prompt: 'watch', subagent_type: 'ci-watcher', run_in_background: false });
   expect(JSON.stringify(inheritedWatcher.content)).toMatch(/settled/);
-  for (const role of ['shell', 'explore']) {
-    await expect(call('Task', { prompt: 'prepare', subagent_type: role })).rejects.toThrow(/Unsupported agent/);
-  }
+  await expect(call('Task', { prompt: 'prepare', subagent_type: 'nonexistent-role' })).rejects.toThrow(/Unsupported agent/);
   const watcher = await call('Task', { prompt: 'watch', subagent_type: 'ci-watcher', model: 'worker-test/deterministic', run_in_background: false });
   const watcherData = JSON.parse(watcher.content.find((block) => block.type === 'text')?.text ?? '{}');
   expect(watcherData.status).toBe('settled');
@@ -129,7 +127,7 @@ workerTest('readonly workers inherit extension providers without enabling write 
     return prompts;
   });
   await call('Task', { prompt: '/bro Rewrite this plainly.', model: 'worker-test/deterministic', run_in_background: false });
-  expect(childPrompts.find((loader) => !loader.readonly)?.names.length).toBe(64);
+  expect(childPrompts.find((loader) => !loader.readonly)?.names.length).toBe(66);
   expect(childPrompts.find((loader) => !loader.readonly)?.names.includes('loop')).toBe(true);
   const childInput = await readFile(join(dir, 'child-input.txt'), 'utf8');
   expect(childInput).toMatch(/Stop using jargon and speak coherently/);
@@ -138,7 +136,7 @@ workerTest('readonly workers inherit extension providers without enabling write 
   expect(JSON.stringify(readonlyReview.content)).toMatch(/settled/);
   expect(JSON.parse(await readFile(join(dir, 'child-tools.txt'), 'utf8')).sort()).toEqual(['find', 'grep', 'ls', 'read']);
   observer.mockRestore();
-  expect(childPrompts.find((loader) => loader.readonly)?.names.length).toBe(64);
+  expect(childPrompts.find((loader) => loader.readonly)?.names.length).toBe(66);
   expect(childPrompts.find((loader) => loader.readonly)?.names.includes('loop')).toBe(true);
   const childPrompt = appended.flat().join('\n');
   expect(childPrompt).toMatch(/You are a \*\*Task subagent\*\*/);

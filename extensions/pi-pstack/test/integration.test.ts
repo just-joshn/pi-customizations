@@ -51,15 +51,15 @@ test('official resource loader separates skills, prompt aliases, and runtime com
   try {
     const { session, loader } = await f.open();
     const { skills, diagnostics } = loader.getSkills();
-    expect(skills.length).toBe(65);
+    expect(skills.length).toBe(68);
     expect(diagnostics).toEqual([]);
     const expected = [...(await readdir(join(packageRoot, 'skills'))), ...(await readdir(join(packageRoot, 'host/skills')))].sort();
     expect(skills.map((skill) => skill.name).sort()).toEqual(expected);
     for (const skill of skills) expect(skill.name).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     const commands = new Set(session.extensionRunner.getRegisteredCommands().map((command) => command.name));
-    expect([...commands].sort()).toEqual(['poteto-mode', 'pstack', 'setup-pstack']);
+    expect([...commands].sort()).toEqual(['goal', 'poteto-mode', 'pstack', 'setup-pstack']);
     const templates = loader.getPrompts().prompts;
-    expect(templates.length).toBe(64);
+    expect(templates.length).toBe(66);
     const aliases = new Set(templates.map((template) => template.name));
     for (const name of [...expected, 'bro']) expect(commands.has(name) || aliases.has(name)).toBe(true);
     expect(skills.some((skill) => skill.name === 'bro')).toBe(false);
@@ -195,7 +195,7 @@ test('native /skill:poteto-mode enters the same mode and /pstack reports status 
     expect(f.requests.length).toBe(callsBeforeStatus);
     const status = session.messages.findLast((message) => message.role === 'custom' && message.customType === 'pstack-status');
     expect(Boolean(status)).toBe(true);
-    expect(JSON.stringify(status)).toMatch(/65 skills, 64 prompt templates/);
+    expect(JSON.stringify(status)).toMatch(/68 skills, 66 prompt templates/);
     expect(JSON.stringify(status)).toMatch(/team-kit 1.2.0/);
     expect(JSON.stringify(status)).toMatch(/Poteto mode on/);
     await prompt(session, '/poteto-mode off', { startsRun: false });
@@ -323,7 +323,7 @@ test('team-kit templates request skill reading and native skills expand complete
   const f = await fixture();
   try {
     const { session, loader } = await f.open();
-    expect(loader.getSkills().skills.length).toBe(65);
+    expect(loader.getSkills().skills.length).toBe(68);
     const names = new Set(loader.getSkills().skills.map((skill) => skill.name));
     for (const name of KIT_SKILL_NAMES) expect(names.has(name)).toBe(true);
     for (const name of ['pr-review-canvas', 'thermo-nuclear-code-quality-review']) {
