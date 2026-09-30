@@ -8,6 +8,7 @@ import { rpcProcess } from './rpc-process.mjs';
 
 const root = process.argv[2] ? resolve(process.argv[2]) : fileURLToPath(new URL('../', import.meta.url));
 const only = process.argv[3];
+const evidenceDirectory = process.argv[4] ? resolve(process.argv[4]) : undefined;
 const cli = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 
 const findings = [];
@@ -203,7 +204,8 @@ async function journeyLoad(ctx) {
 async function journeyNativeSkills(ctx) {
   for (const name of ctx.skills) {
     if (name === 'setup-pstack') continue;
-    const file = name === 'loop' ? join(ctx.root, 'host', 'skills', 'loop', 'SKILL.md') : join(ctx.root, 'skills', name, 'SKILL.md');
+    const bundled = join(ctx.root, 'skills', name, 'SKILL.md');
+    const file = (await exists(bundled)) ? bundled : join(ctx.root, 'host', 'skills', name, 'SKILL.md');
     const text = requestText(await ctx.turn(`/skill:${name} journey arguments`));
     const body = frontmatterBody(await readFile(file, 'utf8'));
     check(`native: /skill:${name} delivers the complete skill body`, text.includes(body), `body ${body.length} chars not fully present`);
@@ -304,6 +306,50 @@ async function journeyTodos(ctx) {
   check('state: a new session starts with an empty todo list', String(fresh?.content).includes('Todos: none.'), String(fresh?.content).slice(0, 200));
 }
 
+async function journeyGoal(base) {
+  const ctx = {
+    ...base,
+    async callTool(message) {
+      const before = (await base.messages()).length;
+      await base.run(message);
+      return (await base.messages()).slice(before);
+    },
+  };
+  await ctx.send({ type: 'new_session' });
+  const before = await ctx.callTool('JOURNEY:getgoal');
+  checkEqual('goal: a new session has no goal', before.find((message) => message.toolName === 'GetGoal')?.details, null);
+  const results = await ctx.callTool('JOURNEY:goalcycle');
+  const created = results.filter((message) => message.toolName === 'CreateGoal');
+  check('goal: creation preserves the full objective', created[0]?.details?.objective === 'Verify every capability without subagents' && created[0]?.details?.status === 'active', JSON.stringify(created));
+  check('goal: a second creation fails while active', created[1]?.isError === true && JSON.stringify(created[1]).includes('already active'));
+  const read = results.find((message) => message.toolName === 'GetGoal');
+  check('goal: GetGoal returns the active objective', read?.details?.objective === 'Verify every capability without subagents' && read?.details?.status === 'active');
+  const complete = results.find((message) => message.toolName === 'UpdateGoal');
+  checkEqual('goal: completion records the complete status', complete?.details?.status, 'complete');
+  const after = await ctx.callTool('JOURNEY:getgoal');
+  checkEqual('goal: completion survives the next turn', after.find((message) => message.toolName === 'GetGoal')?.details?.status, 'complete');
+  await ctx.run('/goal clear');
+  const cleared = await ctx.callTool('JOURNEY:getgoal');
+  checkEqual('goal: clear records the cleared status', cleared.find((message) => message.toolName === 'GetGoal')?.details?.status, 'cleared');
+  await ctx.send({ type: 'new_session' });
+  const fresh = await ctx.callTool('JOURNEY:getgoal');
+  checkEqual('goal: a new session does not inherit another session goal', fresh.find((message) => message.toolName === 'GetGoal')?.details, null);
+  const continued = await ctx.callTool('JOURNEY:goalcontinue');
+  check(
+    'goal: an active goal schedules a continuation message',
+    continued.some((message) => message.customType === 'pstack-goal-continue' && message.content.includes('Prove automatic goal continuation')),
+  );
+  check(
+    'goal: the continuation can complete the original goal',
+    continued.some((message) => message.toolName === 'UpdateGoal' && message.details?.status === 'complete' && message.details?.objective === 'Prove automatic goal continuation'),
+  );
+  const requests = await ctx.requests();
+  check(
+    'goal: the continuation request carries the full objective and audit instruction',
+    requests.some((request) => requestText(request).includes('Goal still active. Objective:\nProve automatic goal continuation\n\nContinue working. Call GetGoal if you lost the objective. Audit every requirement against fresh evidence.')),
+  );
+}
+
 async function journeyTools(ctx) {
   const context = await ctx.callTool('JOURNEY:context');
   const contextResult = context.find((message) => message.toolName === 'pstack_context');
@@ -397,6 +443,7 @@ async function journeySetup(ctx) {
 
 const journeys = [
   journeyLoad,
+  journeyGoal,
   journeyNativeSkills,
   journeyTemplates,
   journeyArguments,
@@ -647,6 +694,7 @@ async function journeyResume(ctx) {
     sessionFile = (await first.send({ type: 'get_state' })).sessionFile;
     await first.run('/poteto-mode');
     await first.run('JOURNEY:todowrite');
+    await first.run('JOURNEY:goalcycle');
   } finally {
     await first.finish().catch(() => {});
     await first.close().catch(() => {});
@@ -663,6 +711,9 @@ async function journeyResume(ctx) {
     check('resume: a reopened session keeps the saved todos', listed.includes('[>] Run the journey (in_progress)'), listed.slice(0, 300));
     const prompt = systemText(await second.turn('journey probe'));
     check('resume: the restored mode reaches the next prompt', prompt.includes('## Non-negotiables'));
+    await second.run('JOURNEY:getgoal');
+    const goal = (await second.messages()).filter((message) => message.role === 'toolResult' && message.toolName === 'GetGoal').at(-1);
+    check('resume: the completed goal survives process restart', goal?.details?.status === 'complete' && goal?.details?.objective === 'Verify every capability without subagents', JSON.stringify(goal));
   } finally {
     await second.finish().catch(() => {});
     await second.close().catch(() => {});
@@ -670,24 +721,32 @@ async function journeyResume(ctx) {
 }
 
 async function main() {
+  const workerJourneys = new Set([journeyTaskResume, journeyTaskLifecycle, journeyTaskGates, journeyPersonas, journeyDelegation]);
+  const selected = [...journeys, journeyWorktrees].filter((journey) => (only === '--no-workers' ? !workerJourneys.has(journey) : !only || journey.name.includes(only)));
+  if (selected.length === 0) throw new Error(`Unknown journey selector: ${only}`);
   const directory = await mkdtemp(join(tmpdir(), 'pi-pstack-journey-'));
   const log = join(directory, 'requests');
   await mkdir(log, { recursive: true });
   await mkdir(join(directory, 'extensions'), { recursive: true });
   await copyFile(join(root, 'test', 'journey-provider.ts'), join(directory, 'extensions', 'journey-provider.ts'));
   await cp(join(root, 'skills/poteto-mode/scripts'), join(directory, 'helper-scripts'), { recursive: true, filter: (source) => !source.includes('node_modules') });
-  const ctx = { root, directory, log, ...(await startPi(directory, log, ['--no-session'])) };
+  const skills = [...(await subdirectories(join(root, 'skills'))), ...(await subdirectories(join(root, 'host', 'skills')))].sort();
+  const ctx = { root, directory, log, skills, ...(await startPi(directory, log, ['--no-session'])) };
   try {
     await ctx.send({ type: 'set_model', provider: 'journey-test', modelId: 'recorder' });
     // Each journey folds the facts it discovered into the next context instead of writing them back.
     let shared = ctx;
-    for (const journey of journeys) {
-      if (!only || journey.name.includes(only)) shared = { ...shared, ...(await journey(shared)) };
+    for (const journey of selected) {
+      shared = { ...shared, ...(await journey(shared)) };
     }
-    if (!only || 'journeyWorktrees'.includes(only)) await journeyWorktrees(shared);
   } finally {
     await ctx.finish().catch(() => {});
     await ctx.close().catch(() => {});
+    if (evidenceDirectory) {
+      await mkdir(evidenceDirectory, { recursive: true });
+      await cp(log, join(evidenceDirectory, 'requests'), { recursive: true });
+      await writeFile(join(evidenceDirectory, 'results.json'), JSON.stringify({ selected: selected.map((journey) => journey.name), passes, findings, stderr: ctx.stderr() }, null, 2));
+    }
     await rm(directory, { recursive: true, force: true });
   }
   for (const name of passes) process.stdout.write(`ok   ${name}\n`);
