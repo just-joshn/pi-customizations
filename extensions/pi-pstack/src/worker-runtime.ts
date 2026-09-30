@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 
 import type { JsonValue, Usage } from '@earendil-works/pi-ai';
-import type { AgentSession, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { AgentSession, AgentSessionEvent, AgentSessionEventListener, AgentToolResult, AgentToolUpdateCallback, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from './deferred-wakes.ts';
 import { workerControl } from './worker-control.ts';
 import { restoreTaskRecords, type TaskParameters, type TaskRecord, taskEntryType, taskOutputLimit, taskSummary } from './worker-records.ts';
@@ -11,6 +11,65 @@ import { openWorkerSession, sumUsage } from './worker-support.ts';
 type Worker = { readonly session: AgentSession; readonly completion: Promise<TaskRecord>; readonly stop: () => void; readonly drain: () => Promise<string[]> };
 type StartupOutcome = { error: unknown } | undefined;
 type Lifecycle = { kind: 'active' } | { kind: 'stopped' } | { kind: 'stopping'; completion: Promise<void> };
+type SafeToolName = string & { readonly __brand: 'SafeToolName' };
+type TaskActivity =
+  | Readonly<{ kind: 'tool-started'; tool: SafeToolName }>
+  | Readonly<{ kind: 'tool-finished'; tool: SafeToolName; failed: boolean }>
+  | Readonly<{ kind: 'retry-started'; attempt: number; maxAttempts: number }>
+  | Readonly<{ kind: 'retry-finished'; attempt: number; recovered: boolean }>;
+export type TaskProgressSnapshot = Readonly<{
+  kind: 'progress';
+  task_id: TaskRecord['id'];
+  status: 'running';
+  active_tools: readonly SafeToolName[];
+  latest: TaskActivity;
+}>;
+export type TaskToolDetails = TaskRecord | TaskProgressSnapshot;
+type TaskUpdate = AgentToolUpdateCallback<TaskToolDetails>;
+type ProgressTransition = Readonly<{ activeCalls: ReadonlyMap<string, SafeToolName>; latest: TaskActivity }>;
+const toolNamePattern = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,31}$/;
+
+function safeToolName(name: string): SafeToolName {
+  return (toolNamePattern.test(name) ? name : 'extension tool') as SafeToolName;
+}
+
+function projectProgressEvent(activeCalls: ReadonlyMap<string, SafeToolName>, event: AgentSessionEvent): ProgressTransition | undefined {
+  if ((event.type === 'tool_execution_start' || event.type === 'tool_execution_end') && event.parentToolCallId !== undefined) return undefined;
+  switch (event.type) {
+    case 'tool_execution_start': {
+      const tool = safeToolName(event.toolName);
+      const next = new Map(activeCalls);
+      next.set(event.toolCallId, tool);
+      return { activeCalls: next, latest: Object.freeze({ kind: 'tool-started', tool }) };
+    }
+    case 'tool_execution_end': {
+      const tool = activeCalls.get(event.toolCallId) ?? safeToolName(event.toolName);
+      const next = new Map(activeCalls);
+      next.delete(event.toolCallId);
+      return { activeCalls: next, latest: Object.freeze({ kind: 'tool-finished', tool, failed: event.isError }) };
+    }
+    case 'auto_retry_start':
+      return { activeCalls, latest: Object.freeze({ kind: 'retry-started', attempt: event.attempt, maxAttempts: event.maxAttempts }) };
+    case 'auto_retry_end':
+      return { activeCalls, latest: Object.freeze({ kind: 'retry-finished', attempt: event.attempt, recovered: event.success }) };
+    default:
+      return undefined;
+  }
+}
+
+function progressText(snapshot: TaskProgressSnapshot): string {
+  const active = snapshot.active_tools.length ? snapshot.active_tools.join(', ') : 'none';
+  const latest = snapshot.latest;
+  const description =
+    latest.kind === 'tool-started'
+      ? `${latest.tool} started`
+      : latest.kind === 'tool-finished'
+        ? `${latest.tool} ${latest.failed ? 'failed' : 'finished'}`
+        : latest.kind === 'retry-started'
+          ? `retry ${latest.attempt}/${latest.maxAttempts} started`
+          : `retry ${latest.attempt} ${latest.recovered ? 'recovered' : 'failed'}`;
+  return `Task ${snapshot.task_id} running. Active tools: ${active}. Latest: ${description}.`;
+}
 
 export class WorkerRuntime {
   private records = new Map<string, TaskRecord>();
@@ -143,7 +202,7 @@ export class WorkerRuntime {
     if (this.generation !== owner || signal?.aborted) throw new Error('Task startup was cancelled.');
   }
 
-  async start(callId: string, params: TaskParameters, signal: AbortSignal | undefined, ctx: ExtensionContext) {
+  async start(callId: string, params: TaskParameters, signal: AbortSignal | undefined, ctx: ExtensionContext, onUpdate: TaskUpdate | undefined): Promise<AgentToolResult<TaskRecord>> {
     const prior = this.priorTask(params);
     const id = prior?.id ?? randomUUID();
     if (this.starting.has(id) || (this.workers.has(id) && this.records.get(id)?.status === 'running')) throw new Error(`Task ${id} is running. Use TaskMessage to queue input.`);
@@ -166,7 +225,7 @@ export class WorkerRuntime {
       const previous = this.workers.get(id);
       if (previous) await this.close(previous.session);
       this.checkStartup(owner, signal);
-      const worker = this.launch(opened, params, signal, owner, () => ctx.isIdle());
+      const worker = this.launch(opened, params, signal, owner, () => ctx.isIdle(), onUpdate);
       const record = params.run_in_background === false ? await this.foreground(callId, worker) : this.records.get(id);
       if (!record) throw new Error(`Failed to create task record for ${id}`);
       return this.result(record);
@@ -192,17 +251,36 @@ export class WorkerRuntime {
     throw new Error(taskSummary(record));
   }
 
-  private launch(opened: Awaited<ReturnType<typeof openWorkerSession>>, params: TaskParameters, signal: AbortSignal | undefined, owner: number, parentIdle: () => boolean): Worker {
+  private launch(opened: Awaited<ReturnType<typeof openWorkerSession>>, params: TaskParameters, signal: AbortSignal | undefined, owner: number, parentIdle: () => boolean, onUpdate: TaskUpdate | undefined): Worker {
     const { session } = opened;
     const usage = this.records.get(opened.record.id)?.usage;
     const record: TaskRecord = { ...opened.record, ...(usage ? { usage } : {}) };
     this.records.set(record.id, record);
     this.pi.appendEntry(taskEntryType, structuredClone(record));
-    const control = workerControl(session, signal);
+    const observe = params.run_in_background === false && onUpdate ? this.progressObserver(record.id, owner, onUpdate) : undefined;
+    const control = workerControl(session, signal, observe);
     const completion = this.complete({ session, record }, params, owner, control, parentIdle);
     const worker: Worker = { session, completion, stop: control.stop, drain: control.drain };
     this.workers.set(record.id, worker);
     return worker;
+  }
+
+  private progressObserver(taskId: TaskRecord['id'], owner: number, onUpdate: TaskUpdate): AgentSessionEventListener {
+    let activeCalls: ReadonlyMap<string, SafeToolName> = new Map();
+    return (event) => {
+      if (owner !== this.generation) return;
+      const transition = projectProgressEvent(activeCalls, event);
+      if (!transition) return;
+      activeCalls = transition.activeCalls;
+      const snapshot: TaskProgressSnapshot = Object.freeze({
+        kind: 'progress',
+        task_id: taskId,
+        status: 'running',
+        active_tools: Object.freeze([...activeCalls.values()]),
+        latest: transition.latest,
+      });
+      onUpdate({ content: [{ type: 'text', text: progressText(snapshot) }], details: snapshot });
+    };
   }
 
   private async run(session: AgentSession, prompt: string): Promise<{ status: TaskRecord['status']; output: string }> {
@@ -254,7 +332,7 @@ export class WorkerRuntime {
     return finished;
   }
 
-  private result(record: TaskRecord) {
+  private result(record: TaskRecord): AgentToolResult<TaskRecord> {
     this.completions.drop(record.id);
     const usage = this.claimUsage(record);
     const current = this.records.get(record.id) ?? record;

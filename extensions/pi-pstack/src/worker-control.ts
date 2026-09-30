@@ -1,6 +1,6 @@
-import type { AgentSession } from '@earendil-works/pi-coding-agent';
+import type { AgentSession, AgentSessionEventListener } from '@earendil-works/pi-coding-agent';
 
-export function workerControl(session: AgentSession, signal: AbortSignal | undefined) {
+export function workerControl(session: AgentSession, signal: AbortSignal | undefined, observe?: AgentSessionEventListener) {
   let stopped = false;
   let listening = true;
   const failures: string[] = [];
@@ -25,7 +25,12 @@ export function workerControl(session: AgentSession, signal: AbortSignal | undef
     abort();
   };
   const unsubscribe = session.subscribe((event) => {
-    if (stopped && event.type === 'agent_start') abort();
+    if (!listening) return;
+    if (stopped) {
+      if (event.type === 'agent_start') abort();
+      return;
+    }
+    observe?.(event);
   });
   signal?.addEventListener('abort', stop, { once: true });
   return {

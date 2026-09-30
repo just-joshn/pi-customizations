@@ -1,5 +1,6 @@
 import { appendFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { type AssistantMessage, createAssistantMessageEventStream, type ToolCall } from '@earendil-works/pi-ai';
 import { type ExtensionAPI, getAgentDir, type ProviderConfig } from '@earendil-works/pi-coding-agent';
@@ -7,12 +8,20 @@ import { clearPendingWork, registerPendingWork } from './worker-gates.ts';
 import { workerTiming } from './worker-timing.ts';
 
 type StreamArguments = Parameters<NonNullable<ProviderConfig['streamSimple']>>;
+const progressFixture = fileURLToPath(new URL('./fixtures/task-progress-sentinel.txt', import.meta.url));
+const retryFailures = new Set<string>();
 
 function requestedTools(text: string, context: StreamArguments[1]): ToolCall[] {
   const last = context.messages.at(-1);
   const failedChild = text.includes('BROKEN_CHILD_PARENT');
   const nested = text.includes('NEST_ROOT') || text.includes('NEST_STOP');
   const controls = text.includes('CONTROL_BATCH_PARENT');
+  if (text.includes('PROGRESS_READ') && last?.role === 'user') {
+    return [{ type: 'toolCall', id: 'worker-child-read-call-id', name: 'read', arguments: { path: progressFixture } }];
+  }
+  if (text.includes('PROGRESS_SHELL') && last?.role === 'user') {
+    return [{ type: 'toolCall', id: 'worker-child-shell-call-id', name: 'bash', arguments: { command: 'printf PROGRESS_CHILD_SHELL_OUTPUT_SENTINEL' } }];
+  }
   if ((nested || failedChild || controls) && last?.role === 'user') {
     return [
       {
@@ -80,7 +89,9 @@ function streamWorker(model: StreamArguments[0], context: StreamArguments[1], op
   const text = JSON.stringify(users.at(-1));
   saveRequest(context, dir);
   const calls = requestedTools(text, context);
-  const error = text.includes('FAIL');
+  const retryFailure = text.includes('PROGRESS_RETRY') && !retryFailures.has(dir);
+  if (retryFailure) retryFailures.add(dir);
+  const error = text.includes('FAIL') || retryFailure;
   const grandchild = text.includes('GRANDCHILD');
   const nested = text.includes('NEST_ROOT') || text.includes('NEST_STOP');
   const log = (event: string) => appendFileSync(join(dir, 'audit.txt'), `${event}\n`);
@@ -95,7 +106,7 @@ function streamWorker(model: StreamArguments[0], context: StreamArguments[1], op
       model: model.id,
       content: calls.length ? calls : [{ type: 'text', text: `users=${users.length}` }],
       stopReason: aborted ? 'aborted' : error ? 'error' : calls.length ? 'toolUse' : 'stop',
-      errorMessage: error ? 'scripted failure' : undefined,
+      errorMessage: retryFailure ? 'network error' : error ? 'scripted failure' : undefined,
       timestamp: Date.now(),
       usage: { input: 2, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 5, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
     };
