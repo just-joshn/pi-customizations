@@ -1,8 +1,12 @@
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import type { AgentSession, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
 import { boundedResult } from '../src/results.ts';
 import { restoreTaskRecords } from '../src/worker-records.ts';
-import { deduplicateExtensions, sumUsage } from '../src/worker-support.ts';
+import { deduplicateExtensions, sumUsage, workerExtensions } from '../src/worker-support.ts';
 
 const usage = { input: 2, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 5, cost: { input: 1, output: 2, cacheRead: 0, cacheWrite: 0, total: 3 } };
 
@@ -45,6 +49,33 @@ test('extension deduplication preserves the first SDK descriptor and stable orde
   expect(input).toEqual(snapshot);
 });
 
+test('workers keep only the running pstack copy when another copy is installed', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'pstack-dedupe-'));
+  try {
+    const entry = async (name: string, pkg: string) => {
+      await mkdir(join(dir, name, 'src'), { recursive: true });
+      await writeFile(join(dir, name, 'package.json'), JSON.stringify({ name: pkg }));
+      await writeFile(join(dir, name, 'src/index.ts'), '');
+      return join(dir, name, 'src/index.ts');
+    };
+    const installed = await entry('installed', 'pi-pstack');
+    const other = await entry('other', 'pi-other');
+    const running = await entry('running', 'pi-pstack');
+    const loaded = {
+      extensions: [installed, other, running].map((path) => ({ path, resolvedPath: path })),
+      errors: [
+        { path: running, error: `Tool "Task" conflicts with ${installed}` },
+        { path: other, error: 'Extension failed to load' },
+      ],
+    };
+    const kept = workerExtensions(loaded, running);
+    expect(kept.extensions.map((extension) => extension.resolvedPath)).toEqual([other, running]);
+    expect(kept.errors).toEqual([{ path: other, error: 'Extension failed to load' }]);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test('restored task records do not expose caller-owned records or usage', () => {
   const record = { id: 'one', persona: 'generalPurpose', cwd: '/tmp', readonly: false, sessionFile: '/tmp/one', outputFile: '/tmp/out', status: 'settled', output: 'done', usage };
   const restored = restoreTaskRecords([{ type: 'custom', customType: 'pstack-task', data: record }]).get('one');
@@ -69,8 +100,8 @@ test('hostInstructions formats defaults without overrides or transcript file', a
     cwd: '/workspace',
     sessionManager: { getSessionDir: () => '/sessions', getSessionFile: () => undefined },
   } as unknown as ExtensionContext;
-  const output = hostInstructions('/root', ctx, '');
-  expect(output).toContain('No override. Upstream defaults remain requests, not confirmed available models.');
+  const output = hostInstructions('/root', ctx, '', '');
+  expect(output).toContain('No override. Each role uses its skill default.');
   expect(output).toContain('This session transcript is in memory.');
 });
 

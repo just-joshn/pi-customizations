@@ -30,7 +30,7 @@ async function verify(client) {
   const messages = await client.send({ type: 'get_messages' });
   const statusList = messages.messages.filter((message) => message.role === 'custom' && message.customType === 'pstack-status');
   assert.equal(statusList.length, 3);
-  assert.match(String(statusList[0]?.content), /65 skills, 64 prompt templates/);
+  assert.match(String(statusList[0]?.content), /68 skills, 66 prompt templates/);
   assert.match(String(statusList[0]?.content), /cursor-team-kit 1.2.0/);
   assert.match(String(statusList[2]?.content), /Todos: none\./);
   await client.send({ type: 'prompt', message: '/poteto-mode off' });

@@ -34,8 +34,13 @@ test('thermo reviewer receives its complete persona and complete rubric', async 
   expect(profile.instructions).toContain(await readFile(join(root, 'skills/thermo-nuclear-code-quality-review/SKILL.md'), 'utf8'));
 });
 
-test('unknown or unsupported builtin roles do not silently become general purpose', async () => {
-  for (const name of ['', 'shell', 'explore', 'other', '../poteto-agent']) {
+test('shell and explore personas are supplied natively', async () => {
+  expect((await readPersona('shell')).instructions).toMatch(/shell agent/);
+  expect((await readPersona('explore')).instructions).toMatch(/read-only codebase explorer/);
+});
+
+test('unknown roles do not silently become general purpose', async () => {
+  for (const name of ['', 'other', '../poteto-agent']) {
     await expect(readPersona(name)).rejects.toThrow(/Unsupported agent .*Available:/);
   }
 });

@@ -30,6 +30,7 @@ export const TaskParameters = Type.Object({
   model: Type.Optional(Type.String()),
   cwd: Type.Optional(Type.String()),
   environment: Type.Optional(Type.String({ enum: ['local', 'cloud'] })),
+  cloud_base_branch: Type.Optional(Type.String({ minLength: 1 })),
   readonly: Type.Optional(Type.Boolean()),
   run_in_background: Type.Optional(Type.Boolean()),
   resume: Type.Optional(Type.String()),
