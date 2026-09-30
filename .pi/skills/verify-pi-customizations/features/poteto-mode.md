@@ -22,13 +22,15 @@ Preconditions:
 - Environment passes `./.pi/skills/verify-pi-customizations/bin/control-pi doctor`.
 - `extensions/pi-pstack` is present and unchanged.
 
-- **Turn off mode.** Send `/poteto-mode off` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive poteto-mode`. The driver asserts a UI notification with `message: "Poteto mode is off."`. It records `notifyType` but does not assert its value.
-- **Verify branch entry.** Check the appended entries stream. The driver asserts a custom `pstack-state` entry with `enabled: false`. It records the `todos` array but does not assert its value.
-- **Proof.** Verify that artifacts exist at `artifacts/verify-pi-customizations/poteto-mode/off.txt` and `off.json`. The JSON file captures the Pi UI notification and the appended custom state entry.
+- **Turn off mode.** Send `/poteto-mode off` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive poteto-mode`. An `extension_ui_request` notification arrives with `message: "Poteto mode is off."` and `notifyType: "info"`. The driver asserts the message and records `notifyType` without asserting it.
+- **Verify branch entry.** Check the appended entries stream. An `entry_appended` record arrives with `type: "custom"`, `customType: "pstack-state"`, and `data.enabled: false`. In this fresh session, `data.todos` is empty; toggling an existing branch preserves its todos. The driver records `todos` without asserting it.
+- **Proof.** Verify that artifacts exist at `artifacts/verify-pi-customizations/poteto-mode/off.txt` and `off.json`. The JSON file captures both the UI notification and the custom state entry.
 
 ## Gotchas
 
 - Turning off mode uses `ctx.ui.notify`, which appears as an `extension_ui_request` over RPC rather than a chat message.
 - The extension restores mode from the active branch when a session opens or the branch changes. To verify restoration, reopen the same session or switch branches and check `/pstack status`.
-- The current driver tests only `/poteto-mode off`. It does not verify `/poteto-mode` activation, `/skill:poteto-mode off`, direct `pstack_mode` calls, or restoration after reopening or switching branches.
+- This `--no-session` drive tests only `/poteto-mode off`. It does not verify `/poteto-mode` activation, `/skill:poteto-mode off`, direct `pstack_mode` calls, or restoration after restart or branch navigation.
+- Native `/skill:poteto-mode` interception requires Pi discovery to resolve to this package's skill path.
+- The harness creates its own disposable scratch directory; no manual initialization is needed.
 - The `off` argument is case-insensitive (`OFF`, `off`, `Off`).

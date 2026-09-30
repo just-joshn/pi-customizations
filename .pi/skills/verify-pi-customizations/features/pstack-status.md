@@ -36,8 +36,8 @@ Preconditions:
 
 - pstack status and todos output are delivered as custom message records (`role: "custom"`, `customType: "pstack-status"`), not regular assistant responses.
 - The counts cover directories under pstack's `skills/` and `host/skills/`, plus Markdown files under `prompts/` and `host/prompts/`. Other packages can add resources to Pi without changing these counts.
-- The `control-pi` drive checks RPC messages. It does not exercise the interactive TUI.
 - The TUI todo widget shows at most eight items. It keeps the in-progress todo, or the first pending todo when none is in progress, in the window and includes one earlier todo where possible. It shows `... N earlier` and `... N more` rows for hidden items. If todos exist but none is in progress or pending, the widget shows the first eight.
 - The widget replaces line breaks with spaces and truncates each row to the terminal width. `/pstack todos` RPC text and persisted `pstack-state` retain the original line breaks. The `control-pi drive pstack-status` recipe does not test the TUI window or multiline rendering.
 - Unrecognized subcommands such as `/pstack foo` return command usage guidance rather than status output.
 - Running `/pstack` without arguments displays the same status banner as `/pstack status`.
+- This drive covers the status banner and empty todos, not populated todo rendering or interactive widgets.
