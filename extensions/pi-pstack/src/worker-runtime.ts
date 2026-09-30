@@ -277,7 +277,7 @@ export class WorkerRuntime {
     this.records.set(record.id, record);
     this.pi.appendEntry(taskEntryType, structuredClone(record));
     const observe = params.run_in_background === false && onUpdate ? this.progressObserver(record.id, owner, onUpdate) : undefined;
-    const control = workerControl(session, signal, observe);
+    const control = workerControl(session, signal, observe, { taskId: record.id, log: (message) => this.pi.events.emit('pstack:subagent-log', message) });
     const completion = this.complete({ session, record }, params, owner, control, parentIdle);
     const worker: Worker = { session, completion, stop: control.stop, drain: control.drain };
     this.workers.set(record.id, worker);
