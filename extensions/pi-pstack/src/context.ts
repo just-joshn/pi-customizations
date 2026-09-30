@@ -113,7 +113,7 @@ export function registerStatus(pi: ExtensionAPI, store: StateStore): void {
         `pstack ${versions.pstack} with team-kit ${versions.teamKit} for Pi ${VERSION}. ${skillCount} skills, ${promptCount} prompt templates. Poteto mode ${state.enabled ? 'on' : 'off'}.${todoSummary}`,
         `Model configuration: ${modelConfigPath()}`,
         `Compatibility report: ${join(root, 'docs/parity.md')}`,
-        'Partial runtime parity. Reference cloud agents, hosted automation editor, bot routines, server-synced create-skill and credential isolation are not supplied.',
+        'Cloud Tasks run in local git worktrees. The hosted automation editor, Grok Bot routines and credential isolation have no Pi equivalent yet.',
       ];
       if (subcommand === 'todos' && state.todos.length === 0) lines.push('', 'Todos: none.');
       if (subcommand === 'todos' && state.todos.length > 0) {

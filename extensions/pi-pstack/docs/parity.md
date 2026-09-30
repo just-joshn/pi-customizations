@@ -1,6 +1,6 @@
 # Compatibility report
 
-The requested 100% behavior parity is not achieved. The plugin requires Reference capabilities that the official pi extension API does not provide. This package implements portable contracts and preserves every source file. Identical prompt text is not evidence of identical model behavior.
+Each Reference facility pstack uses maps to a local Pi mechanism below. The unmet table lists what has no Pi equivalent yet. The package preserves every source file. Identical prompt text is not evidence of identical model behavior, so `scripts/probe-routing.mjs` measures routing on the real CLI.
 
 ## Implemented contracts
 
@@ -13,7 +13,9 @@ The requested 100% behavior parity is not achieved. The plugin requires Referenc
 | Team-kit plugin rule delivery | Rules remain archived and are not injected, matching the observed Reference CLI | `test/integration.test.ts`, reference team-kit report |
 | Team-kit local agent personas | CI watcher inherits the parent model as observed in Reference; strict review persona receives its complete rubric | `src/personas.ts`, `test/personas.test.ts`, `test/workers.test.ts` |
 | Native `/goal`, `shell`, `explore`, `create-skill`, `origin` | `CreateGoal`, `GetGoal`, `UpdateGoal` with branch-persisted state and turn continuation. Native `shell` and `explore` personas. Pi ports of the `goal`, `create-skill` and `origin` built-in skills | `src/goal.ts`, `src/personas.ts`, `host/skills` |
-| Sticky Poteto mode | Branch-local session entries and structured prompt section; explicit off command and mode tool | `src/index.ts`, integration tests |
+| Sticky Poteto mode | Branch-local session entries and structured prompt section led by the source `reminder` line; explicit off command and mode tool | `src/index.ts`, integration tests |
+| Routing to skills by name | Host context lists every skill, host skill, and playbook name with its path, built from the directories at load, for parents and readonly children | `src/catalog.ts`, `test/catalog.test.ts` |
+| Reference cloud Task environment | `environment: "cloud"` and `cloud_base_branch` run the child in a detached git worktree under the session directory. Resume reopens it. The child process ends with its parent | `src/cloud.ts`, `test/workers.test.ts` |
 | Two agent personas | Complete upstream persona instructions; Poteto child receives full mode instructions | `src/workers.ts` |
 | Local task delegation | SDK child sessions, background completion, output, message, stop, and same-transcript resume | `src/workers.ts` |
 | Model setup | Available pi model identities, supported effort, all 17 roles, ordered panels, aliases, budget selection, confirmed atomic rule write | `src/models.ts`, model tests |
@@ -28,7 +30,7 @@ The requested 100% behavior parity is not achieved. The plugin requires Referenc
 
 | Source requirement | Why parity is unavailable |
 | --- | --- |
-| Reference cloud agent environment and durable hosted lifecycle | SDK children run locally and stop with their owner. Cloud requests fail explicitly. |
+| Durable hosted lifecycle for cloud agents | Cloud Tasks get an isolated worktree, but the SDK child stops with its owner. Their commits survive in the worktree. |
 | Reference cloud timers | Cloud timer subscriptions are not implemented. Local `/loop` covers wakes. A required cloud wake chain is an unmet gate. |
 | Exact Reference model entitlements, aliases, speed tiers, and inference behavior | Pi uses provider/model IDs and separate supported thinking levels. Availability depends on configured providers. No silent family substitution occurs. |
 | Reference synced `create-skill` and Automations services | The references identify server-synced skills and host services. This package does not implement those services or distribute their complete current skill text. |
