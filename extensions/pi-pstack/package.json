@@ -44,6 +44,7 @@
     "check:resources": "node scripts/resources.mjs",
     "check:cli": "node scripts/verify-cli.mjs",
     "check:journeys": "node scripts/verify-journeys.mjs",
+    "check:journeys:no-workers": "node scripts/verify-journeys.mjs . --no-workers",
     "check:upstream": "node scripts/verify-upstream.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
