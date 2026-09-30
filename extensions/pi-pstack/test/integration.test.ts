@@ -53,7 +53,8 @@ test('official resource loader separates skills, prompt aliases, and runtime com
     const { skills, diagnostics } = loader.getSkills();
     expect(skills.length).toBe(68);
     expect(diagnostics).toEqual([]);
-    const expected = [...(await readdir(join(packageRoot, 'skills'))), ...(await readdir(join(packageRoot, 'host/skills')))].sort();
+    const directories = async (path: string) => (await readdir(path, { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+    const expected = [...(await directories(join(packageRoot, 'skills'))), ...(await directories(join(packageRoot, 'host/skills')))].sort();
     expect(skills.map((skill) => skill.name).sort()).toEqual(expected);
     for (const skill of skills) expect(skill.name).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     const commands = new Set(session.extensionRunner.getRegisteredCommands().map((command) => command.name));
@@ -388,7 +389,8 @@ test('team-kit rules stay archival to match observed Cursor plugin behavior', as
     await prompt(session, 'Work on this module.');
     const rules = section(f.requests, 'pstack_team_kit_rules') ?? '';
     expect(rules).toBe('');
-    expect(section(f.requests, 'pstack_host') ?? '').toMatch(/rules remain archived/);
+    expect(section(f.requests, 'pstack_host') ?? '').toMatch(/pstack pi host contract/);
+    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/In switch statements/);
     expect(section(f.requests, 'pstack_mode')).toBeNull();
     await prompt(session, '/poteto-mode Enter the mode.');
     await prompt(session, '/poteto-mode off', { startsRun: false });
