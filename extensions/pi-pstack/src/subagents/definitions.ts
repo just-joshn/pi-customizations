@@ -69,46 +69,9 @@ function stringList(value: unknown): string[] | undefined {
 
 export type ParsedAgent = { agent?: AgentDefinition; warnings: string[]; error?: string };
 
-export function parseAgentFile(path: string, text: string, source: AgentSource, baseDir: string): ParsedAgent {
-  const warnings: string[] = [];
-  let parsed: ReturnType<typeof parseFrontmatter<Record<string, unknown>>>;
-  try {
-    parsed = parseFrontmatter<Record<string, unknown>>(text);
-  } catch (error) {
-    return { warnings, error: `Agent file ${path} has invalid frontmatter: ${String(error)}` };
-  }
-  const { frontmatter: fm, body } = parsed;
-  const name = fm.name;
-  if (typeof name !== 'string' || !name.trim()) return { warnings, error: `Agent file ${path} is missing a name` };
-  if (name.startsWith('-') || name.normalize('NFKC').includes(':')) return { warnings, error: `Agent file ${path} has an invalid name '${name}'` };
-  if (typeof fm.description !== 'string' || !fm.description.trim()) return { warnings, error: `Agent file ${path} is missing a description` };
+type Mutable = { -readonly [K in keyof AgentDefinition]: AgentDefinition[K] };
 
-  let tools = stringList(fm.tools);
-  let skills = stringList(fm.skills);
-  const hadSkillTool = tools?.includes('Skill') === true;
-  if (hadSkillTool) {
-    warnings.push(`Agent file ${path}: 'Skill' in tools is deprecated; use the skills field instead.`);
-    tools = tools?.filter((tool) => tool !== 'Skill');
-    skills = skills ?? [];
-  }
-
-  const agent: { -readonly [K in keyof AgentDefinition]: AgentDefinition[K] } = {
-    agentType: name.trim(),
-    whenToUse: fm.description.replace(/\\n/g, '\n'),
-    systemPrompt: body.trim(),
-    source,
-    baseDir,
-    filePath: path,
-    filename: basename(path, '.md'),
-  };
-  if (tools) agent.tools = tools;
-  const disallowed = stringList(fm.disallowedTools);
-  if (disallowed) agent.disallowedTools = disallowed;
-  if (skills) agent.skills = skills;
-  if (typeof fm.model === 'string') {
-    const model = fm.model.trim();
-    if (model) agent.model = model.toLowerCase() === 'inherit' ? 'inherit' : model;
-  }
+function applyOptionalFields(agent: Mutable, fm: Record<string, unknown>, path: string, warnings: string[]): void {
   if (fm.background !== undefined) {
     if (fm.background === true || fm.background === 'true') agent.background = true;
     else if (fm.background !== false && fm.background !== 'false') warnings.push(`Agent file ${path} has invalid background value '${String(fm.background)}'. Must be 'true', 'false', or omitted.`);
@@ -137,6 +100,49 @@ export function parseAgentFile(path: string, text: string, source: AgentSource, 
     if (typeof mode === 'string' && permissionModes.includes(mode)) agent.permissionMode = mode;
     else warnings.push(`Agent file ${path} has invalid permissionMode '${String(fm.permissionMode)}'. Valid options: ${permissionModes.join(', ')}`);
   }
+}
+
+export function parseAgentFile(path: string, text: string, source: AgentSource, baseDir: string): ParsedAgent {
+  const warnings: string[] = [];
+  let parsed: ReturnType<typeof parseFrontmatter<Record<string, unknown>>>;
+  try {
+    parsed = parseFrontmatter<Record<string, unknown>>(text);
+  } catch (error) {
+    return { warnings, error: `Agent file ${path} has invalid frontmatter: ${String(error)}` };
+  }
+  const { frontmatter: fm, body } = parsed;
+  const name = fm.name;
+  if (typeof name !== 'string' || !name.trim()) return { warnings, error: `Agent file ${path} is missing a name` };
+  if (name.startsWith('-') || name.normalize('NFKC').includes(':')) return { warnings, error: `Agent file ${path} has an invalid name '${name}'` };
+  if (typeof fm.description !== 'string' || !fm.description.trim()) return { warnings, error: `Agent file ${path} is missing a description` };
+
+  let tools = stringList(fm.tools);
+  let skills = stringList(fm.skills);
+  const hadSkillTool = tools?.includes('Skill') === true;
+  if (hadSkillTool) {
+    warnings.push(`Agent file ${path}: 'Skill' in tools is deprecated; use the skills field instead.`);
+    tools = tools?.filter((tool) => tool !== 'Skill');
+    skills = skills ?? [];
+  }
+
+  const agent: Mutable = {
+    agentType: name.trim(),
+    whenToUse: fm.description.replace(/\\n/g, '\n'),
+    systemPrompt: body.trim(),
+    source,
+    baseDir,
+    filePath: path,
+    filename: basename(path, '.md'),
+  };
+  if (tools) agent.tools = tools;
+  const disallowed = stringList(fm.disallowedTools);
+  if (disallowed) agent.disallowedTools = disallowed;
+  if (skills) agent.skills = skills;
+  if (typeof fm.model === 'string') {
+    const model = fm.model.trim();
+    if (model) agent.model = model.toLowerCase() === 'inherit' ? 'inherit' : model;
+  }
+  applyOptionalFields(agent, fm, path, warnings);
   if (typeof fm.color === 'string') agent.color = fm.color;
   if (typeof fm.initialPrompt === 'string' && fm.initialPrompt.trim()) agent.initialPrompt = fm.initialPrompt.trim();
   if (fm.omitContextFiles === true) agent.omitContextFiles = true;

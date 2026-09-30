@@ -584,7 +584,7 @@ test('all pstack tools declare outputSchema, exposure, and annotations conformin
   registerQuestions(pi);
   registerShells(pi);
   registerWorkers(pi);
-  expect(tools.length).toBe(11);
+  expect(tools.length).toBe(14);
   for (const tool of tools) {
     expect(tool.outputSchema).toBeDefined();
     expect(tool.exposure).toBeDefined();

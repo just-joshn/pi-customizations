@@ -22,6 +22,11 @@ export const TaskRecordSchema = Type.Object({
   status: Type.Union([Type.Literal('running'), Type.Literal('settled'), Type.Literal('failed'), Type.Literal('interrupted')]),
   output: Type.String(),
   usage: Type.Optional(UsageSchema),
+  agentName: Type.Optional(Type.String()),
+  description: Type.Optional(Type.String()),
+  depth: Type.Optional(Type.Integer({ minimum: 1 })),
+  toolUseCount: Type.Optional(Type.Integer({ minimum: 0 })),
+  durationMs: Type.Optional(Type.Number({ minimum: 0 })),
 });
 export type TaskRecord = Static<typeof TaskRecordSchema>;
 export const TaskParameters = Type.Object({

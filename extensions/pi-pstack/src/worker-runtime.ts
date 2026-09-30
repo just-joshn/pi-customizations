@@ -4,9 +4,10 @@ import { writeFile } from 'node:fs/promises';
 import type { JsonValue, Usage } from '@earendil-works/pi-ai';
 import type { AgentSession, AgentSessionEvent, AgentSessionEventListener, AgentToolResult, AgentToolUpdateCallback, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from './deferred-wakes.ts';
+import { currentDepth, depthStore } from './subagents/context.ts';
 import { workerControl } from './worker-control.ts';
 import { restoreTaskRecords, type TaskParameters, type TaskRecord, taskEntryType, taskOutputLimit, taskSummary } from './worker-records.ts';
-import { openWorkerSession, sumUsage } from './worker-support.ts';
+import { type AgentLaunch, openWorkerSession, sumUsage } from './worker-support.ts';
 
 type Worker = { readonly session: AgentSession; readonly completion: Promise<TaskRecord>; readonly stop: () => void; readonly drain: () => Promise<string[]> };
 type StartupOutcome = { error: unknown } | undefined;
@@ -81,8 +82,24 @@ export class WorkerRuntime {
   private lifecycle: Lifecycle = { kind: 'stopped' };
   private closing = new WeakMap<AgentSession, Promise<void>>();
   private readonly completions: DeferredWakes;
+  readonly depth = currentDepth();
   constructor(private readonly pi: ExtensionAPI) {
     this.completions = new DeferredWakes(pi);
+  }
+
+  runningCount(): number {
+    return [...this.records.values()].filter((record) => record.status === 'running').length;
+  }
+
+  find(reference: string): TaskRecord | undefined {
+    const byId = this.records.get(reference);
+    if (byId) return byId;
+    const named = [...this.records.values()].filter((record) => record.agentName?.toLowerCase() === reference.toLowerCase());
+    return named.findLast((record) => record.status === 'running') ?? named.at(-1);
+  }
+
+  list(): readonly TaskRecord[] {
+    return [...this.records.values()];
   }
 
   registerLifecycle(): void {
@@ -202,7 +219,7 @@ export class WorkerRuntime {
     if (this.generation !== owner || signal?.aborted) throw new Error('Task startup was cancelled.');
   }
 
-  async start(callId: string, params: TaskParameters, signal: AbortSignal | undefined, ctx: ExtensionContext, onUpdate: TaskUpdate | undefined): Promise<AgentToolResult<TaskRecord>> {
+  async start(callId: string, params: TaskParameters, signal: AbortSignal | undefined, ctx: ExtensionContext, onUpdate: TaskUpdate | undefined, launch?: AgentLaunch): Promise<AgentToolResult<TaskRecord>> {
     const prior = this.priorTask(params);
     const id = prior?.id ?? randomUUID();
     if (this.starting.has(id) || (this.workers.has(id) && this.records.get(id)?.status === 'running')) throw new Error(`Task ${id} is running. Use TaskMessage to queue input.`);
@@ -217,7 +234,7 @@ export class WorkerRuntime {
     const owner = this.generation;
     let session: AgentSession | undefined;
     try {
-      const opened = await openWorkerSession({ id, params, prior, ctx });
+      const opened = await depthStore.run(this.depth + 1, () => openWorkerSession({ id, params, prior, ctx, ...(launch ? { launch } : {}) }));
       session = opened.session;
       this.checkStartup(owner, signal);
       await session.bindExtensions({ mode: 'print' });
@@ -301,6 +318,7 @@ export class WorkerRuntime {
   private async complete(worker: Awaited<ReturnType<typeof openWorkerSession>>, params: TaskParameters, owner: number, control: ReturnType<typeof workerControl>, parentIdle: () => boolean): Promise<TaskRecord> {
     const { session, record } = worker;
     const initialCount = session.messages.length;
+    const startedAt = Date.now();
     let outcome: Awaited<ReturnType<WorkerRuntime['run']>>;
     try {
       outcome = await this.run(session, params.prompt);
@@ -317,7 +335,8 @@ export class WorkerRuntime {
     const status = control.stopped() ? 'interrupted' : outcome.status;
     const pendingUsage = owner === this.generation ? this.records.get(record.id)?.usage : this.claimedUsage.has(record) ? undefined : record.usage;
     const usage = sumUsage(session.messages.slice(initialCount), pendingUsage);
-    let finished: TaskRecord = { ...record, status, output: outcome.output.slice(0, taskOutputLimit), usage };
+    const toolUseCount = session.messages.slice(initialCount).reduce((count, message) => count + (message.role === 'assistant' ? message.content.filter((block) => block.type === 'toolCall').length : 0), 0);
+    let finished: TaskRecord = { ...record, status, output: outcome.output.slice(0, taskOutputLimit), usage, toolUseCount, durationMs: Date.now() - startedAt };
     try {
       await writeFile(finished.outputFile, outcome.output);
     } catch (error) {
