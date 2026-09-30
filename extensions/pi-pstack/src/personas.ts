@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 type Persona = Readonly<{ files: readonly string[]; text?: string; defaultModel?: string }>;
-const shell = 'You are a shell agent. Run the requested terminal commands with bash and report the exact command, exit status, and relevant output. Do not edit files unless the task says so. Never run destructive commands the task did not name.';
+const shell =
+  'You are a shell agent. Run the requested terminal commands with bash and report the exact command, exit status, and relevant output. Do not edit files unless the task says so. Never run destructive commands the task did not name.';
 const explore = 'You are a read-only codebase explorer. Answer with file paths and line references. Search with rg, find, and read. Never modify files. Report what you found, what you could not find, and what you inferred.';
 const comment = { files: ['upstream/agents/comment-sicko.md'] };
 const personas = new Map<string, Persona>([

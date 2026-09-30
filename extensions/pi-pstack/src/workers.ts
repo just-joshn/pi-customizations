@@ -9,7 +9,8 @@ function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime): void {
   pi.registerTool({
     name: 'Task',
     label: 'Task',
-    description: 'Start or resume a Pi subagent. Background runs return an ID and deliver completion. environment cloud runs in its own git worktree. Readonly limits tools; it is not an OS sandbox. Models must resolve to configured Pi providers.',
+    description:
+      'Start or resume a Pi subagent. Background runs return an ID and deliver completion. environment cloud runs in its own git worktree. Readonly limits tools; it is not an OS sandbox. Models must resolve to configured Pi providers.',
     promptSnippet: 'Start or resume a local Pi subagent; background runs return a task ID',
     promptGuidelines: [
       'Task, TaskOutput, TaskMessage, TaskStop implement local delegation. Use exact available provider/model IDs, optionally :thinking. auto and inherit-parent inherit the parent. A slug with no configured provider fails and lists the available choices. Follow the source fallback policy and report any model change.',
