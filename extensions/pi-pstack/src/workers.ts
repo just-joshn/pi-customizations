@@ -1,12 +1,12 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { TaskParameters, TaskRecordSchema } from './worker-records.ts';
-import { WorkerRuntime } from './worker-runtime.ts';
+import { type TaskToolDetails, WorkerRuntime } from './worker-runtime.ts';
 
 export { restoreTaskRecords, taskSummary } from './worker-records.ts';
 
 function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime): void {
-  pi.registerTool({
+  pi.registerTool<typeof TaskParameters, TaskToolDetails>({
     name: 'Task',
     label: 'Task',
     description: 'Start or resume a Pi subagent. Background runs return an ID and deliver completion. Cloud execution is unavailable. Readonly limits tools; it is not an OS sandbox. Models must resolve to configured Pi providers.',
@@ -21,7 +21,7 @@ function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime): void {
     exposure: 'direct',
     annotations: { openWorldHint: true },
     executionMode: 'parallel',
-    execute: (id, params, signal, _update, ctx) => runtime.start(id, params, signal, ctx),
+    execute: (id, params, signal, onUpdate, ctx) => runtime.start(id, params, signal, ctx, onUpdate),
   });
 }
 
