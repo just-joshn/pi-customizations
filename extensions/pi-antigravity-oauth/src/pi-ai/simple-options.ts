@@ -1,4 +1,4 @@
-// Vendored from @earendil-works/pi-ai 0.99.1 src/api/simple-options.ts (MIT) by scripts/vendor-pi-ai.mjs. Only import specifiers differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 0.99.2 src/api/simple-options.ts (MIT) by scripts/vendor-pi-ai.mjs. Only import specifiers differ. Do not edit.
 import type {
 	Api,
 	Model,
