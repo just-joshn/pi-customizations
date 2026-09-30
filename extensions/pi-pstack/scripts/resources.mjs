@@ -19,6 +19,7 @@ async function files(dir, installedDependencies = false) {
   const paths = await Promise.all(
     items.map(async (item) => {
       if (installedDependencies && item.name === 'node_modules' && item.isDirectory()) return [];
+      if (installedDependencies && item.name === '.DS_Store') return [];
       const path = join(dir, item.name);
       if (item.isDirectory()) return files(path, installedDependencies);
       if (item.isFile()) return [path];
