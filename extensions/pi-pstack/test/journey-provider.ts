@@ -1,11 +1,14 @@
 import { appendFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { type AssistantMessage, type Context, createAssistantMessageEventStream, type Model, type ToolCall } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
 const BG_SHELL_LIST = 'Background' + 'ShellList';
 const BG_SHELL_STOP = 'Background' + 'ShellStop';
+const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const progressFixture = process.env.PSTACK_PROGRESS_FIXTURE ?? join(packageRoot, 'test', 'fixtures', 'task-progress-sentinel.txt');
 
 type CallArguments = ToolCall['arguments'];
 type PlannedCall = { name: string; arguments: CallArguments };
@@ -48,6 +51,7 @@ const toolCalls: Record<string, PlannedCall[]> = {
     },
   ],
   'JOURNEY:task': [{ name: 'Task', arguments: { prompt: 'Report the word delegate-ok and nothing else.', subagent_type: 'generalPurpose', run_in_background: false } }],
+  'JOURNEY:progress': [{ name: 'Task', arguments: { prompt: 'JOURNEY:progress-child', subagent_type: 'generalPurpose', run_in_background: false } }],
   'JOURNEY:readonly': [{ name: 'Task', arguments: { prompt: 'readonly child turn', readonly: true, run_in_background: false } }],
   'JOURNEY:badcwd': [{ name: 'Task', arguments: { prompt: 'cwd child turn', cwd: 'no/such/directory', run_in_background: false } }],
   'JOURNEY:localenv': [{ name: 'Task', arguments: { prompt: 'local child turn', environment: 'local', run_in_background: false } }],
@@ -141,6 +145,13 @@ const toolCalls: Record<string, PlannedCall[]> = {
   ],
 };
 
+function progressChildCalls(context: Context): PlannedCall[] {
+  const last = context.messages.at(-1);
+  if (last?.role === 'toolResult' && last.toolName === 'bash') return [{ name: 'read', arguments: { path: progressFixture } }];
+  if (last?.role === 'user') return [{ name: 'bash', arguments: { command: 'sleep 0.4; printf PSTACK_CHILD_SHELL_OUTPUT_SENTINEL' } }];
+  return [];
+}
+
 function escapingShellCalls(context: Context) {
   const started = context.messages.filter((message) => message.role === 'toolResult' && message.toolName === 'BackgroundShell').at(-1);
   const id = started === undefined ? undefined : JSON.stringify(started).match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)?.[0];
@@ -148,6 +159,7 @@ function escapingShellCalls(context: Context) {
 }
 
 function dispatch(requested: string, context: Context): { calls: PlannedCall[] | undefined; sequenced: boolean } {
+  if (requested === 'JOURNEY:progress-child') return { calls: progressChildCalls(context), sequenced: true };
   if (requested === 'JOURNEY:tasklist') return { calls: backgroundTaskCalls(context), sequenced: true };
   if (requested === 'JOURNEY:taskresume') return { calls: taskResumeCalls(context), sequenced: true };
   if (requested === 'JOURNEY:taskpolicy') return { calls: taskPolicyCalls(context), sequenced: true };
@@ -279,8 +291,12 @@ function scriptedReply(model: Model<string>, context: Context) {
     usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
   };
   const stream = createAssistantMessageEventStream();
-  stream.push({ type: 'done', reason: message.stopReason === 'stop' ? 'stop' : 'toolUse', message });
-  stream.end(message);
+  const complete = () => {
+    stream.push({ type: 'done', reason: message.stopReason === 'stop' ? 'stop' : 'toolUse', message });
+    stream.end(message);
+  };
+  if (requested === 'JOURNEY:progress-child' && answered) setTimeout(complete, 300);
+  else complete();
   return stream;
 }
 
