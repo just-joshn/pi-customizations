@@ -1,13 +1,14 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import type { Context, ToolCall } from '@earendil-works/pi-ai';
-import type { AgentSession } from '@earendil-works/pi-coding-agent';
+import type { AgentSession, ExtensionFactory } from '@earendil-works/pi-coding-agent';
+import { Type } from 'typebox';
 import { expect, test, vi } from 'vitest';
-import type { ShellRecord } from '../src/shell-runtime.ts';
+import { type ShellRecord, ShellRuntime } from '../src/shell-runtime.ts';
 import { fixture, prompt, toolResults } from './session-fixture.ts';
 
 type Fixture = Awaited<ReturnType<typeof fixture>>;
@@ -104,7 +105,8 @@ shellTest('a matching output line wakes the agent once with the line and log pat
   await prompt(session, 'start the sleeper');
   const shell = detailsOf<ShellRecord>(session, 'BackgroundShell');
   expect(shell.outputFile).toBe(join(f.root, 'sessions', 'pstack-shells', session.sessionId, `${shell.id}.log`));
-  await waitFor(() => custom(session, 'pstack-shell-exit').length === 1 && !session.isStreaming, 'the sleeper to exit');
+  await waitFor(() => !groupAlive(shell.pid), 'the sleeper process to exit');
+  await waitFor(() => f.requests.length === 3 && !session.isStreaming, 'the match request to settle');
   const requests = f.requests;
   expect(requests.length).toBe(3);
   const expected = `Background shell ${shell.id} (wake) matched ^AGENT_LOOP_WAKE_t.\nOutput file: ${shell.outputFile}\nLine: ${line}`;
@@ -202,18 +204,98 @@ shellTest('a shell stopped in the same busy turn sends no stale wake afterwards'
   expect(custom(session, 'pstack-shell-output').length).toBe(0);
 });
 
-shellTest('a matching command exiting zero produces a quiet followUp message instead of a wake', async (f, session) => {
+shellTest('a matching command exiting zero records its status without an extra response', async (f, session) => {
   f.calls.push(call('BackgroundShell', { command: 'echo AGENT_LOOP_TICK_q; sleep 0.1; exit 0', title: 'quiet', notify_on_output: '^AGENT_LOOP_TICK_q' }));
   await prompt(session, 'start quiet shell');
   const _shell = detailsOf<ShellRecord>(session, 'BackgroundShell');
-  await waitFor(() => custom(session, 'pstack-shell-exit').length === 1 && !session.isStreaming, 'the quiet shell to exit');
-  expect(custom(session, 'pstack-shell-exit').length).toBe(1);
-  const exitMsg = custom(session, 'pstack-shell-exit')[0] as { details: ShellRecord };
-  expect(exitMsg.details.status).toEqual({ kind: 'exited', code: 0, signal: null });
+  await waitFor(() => !groupAlive(detailsOf<ShellRecord>(session, 'BackgroundShell').pid), 'the quiet shell process to exit');
+  await waitFor(() => !session.isStreaming && custom(session, 'pstack-shell-output').length === 1, 'the match wake');
+  expect(custom(session, 'pstack-shell-exit').length).toBe(0);
+  f.calls.push(call(BG_SHELL_LIST, {}));
+  await prompt(session, 'list completed shells');
+  const listed = detailsOf<ShellRecord[]>(session, BG_SHELL_LIST);
+  expect(listed[0]?.status).toEqual({ kind: 'exited', code: 0, signal: null });
   expect(custom(session, 'pstack-shell-output').length).toBe(1);
-  await session.waitForIdle();
-  // The initial turn costs two requests and the match wake costs one; a quiet exit adds no turn.
-  expect(f.requests.length).toBe(3);
+  expect(f.requests.length).toBe(5);
+});
+
+const heldExitTool = 'HoldUntil' + 'ShellExit';
+
+function heldShellFactory(): ExtensionFactory {
+  return (pi) => {
+    const runtime = new ShellRuntime(pi);
+    pi.registerTool({
+      name: 'StartHeldShell',
+      label: 'Start held shell',
+      description: 'Start a shell and return its record.',
+      parameters: Type.Object({ command: Type.String(), title: Type.String(), notify_on_output: Type.String() }),
+      execute: async (_id, params, _signal, _update, ctx) => {
+        const record = await runtime.start(params, ctx);
+        return { content: [{ type: 'text', text: 'started' }], details: record };
+      },
+    });
+    pi.registerTool({
+      name: heldExitTool,
+      label: 'Wait for held shell exit',
+      description: 'Wait until the shell has exited.',
+      parameters: Type.Object({}),
+      execute: async () => {
+        await waitFor(() => runtime.list()[0]?.status.kind === 'exited', 'the held shell to exit');
+        return { content: [{ type: 'text', text: 'exited' }], details: runtime.list()[0] };
+      },
+    });
+    pi.on('session_shutdown', () => runtime.stopAll());
+  };
+}
+
+test('a quiet exit during a held parent turn produces only the match request', async () => {
+  const f = await fixture({ extensionOnly: true, extensionFactories: [heldShellFactory()] });
+  const { session } = await f.open();
+  try {
+    const shellCall = call('StartHeldShell', { command: 'echo HELD_MATCH; sleep 0.1', title: 'held', notify_on_output: '^HELD_MATCH$' });
+    const waitCall = call(heldExitTool, {});
+    f.calls.push([shellCall, waitCall]);
+    await prompt(session, 'start and await the shell in one turn');
+    const shell = detailsOf<ShellRecord>(session, 'StartHeldShell');
+    expect(detailsOf<ShellRecord>(session, heldExitTool).status).toEqual({ kind: 'exited', code: 0, signal: null });
+    const classifications = f.requests.flatMap((request) => {
+      const body = requestTexts(request).at(-1) ?? '';
+      if (body.includes(`Background shell ${shell.id} (held) matched ^HELD_MATCH$`)) return ['match'];
+      if (body.includes(`Background shell ${shell.id} (held) exited with`)) return ['exit'];
+      return [];
+    });
+    expect(classifications).toEqual(['match']);
+    expect(custom(session, 'pstack-shell-exit').length).toBe(0);
+  } finally {
+    await shutdown(session);
+    await f.close();
+  }
+});
+
+shellTest('a failed output log write still reports a matched successful exit', async (f, session) => {
+  const release = join(f.root, 'release-output');
+  f.calls.push(call('BackgroundShell', { command: `while [ ! -e '${release}' ]; do sleep 0.01; done; echo OUTPUT_FAILURE_MATCH`, title: 'write failure', notify_on_output: '^OUTPUT_FAILURE_MATCH$' }));
+  await prompt(session, 'start the output failure shell');
+  const shell = detailsOf<ShellRecord>(session, 'BackgroundShell');
+  await rm(shell.outputFile);
+  await mkdir(shell.outputFile);
+  await writeFile(release, 'ready');
+  await waitFor(() => custom(session, 'pstack-shell-exit').length === 1 && !session.isStreaming, 'the output write failure exit report');
+  const exitMessage = custom(session, 'pstack-shell-exit')[0] as { content: string; details: ShellRecord };
+  expect(exitMessage.content).toContain('Output file write failed:');
+  expect(exitMessage.content).toContain('EISDIR');
+  expect(exitMessage.details.status).toEqual({ kind: 'exited', code: 0, signal: null });
+  expect(exitMessage.details.matches).toBe(1);
+  await waitFor(() => requestTexts(f.requests.at(-1)).some((body) => body.includes('Output file write failed:')) && !session.isStreaming, 'the write failure model request');
+  const classifications = f.requests.flatMap((request) => {
+    const body = requestTexts(request).at(-1) ?? '';
+    if (body.includes(`Background shell ${shell.id} (write failure) matched ^OUTPUT_FAILURE_MATCH$`)) return ['match'];
+    if (body.includes(`Background shell ${shell.id} (write failure) exited with`)) return ['exit'];
+    return [];
+  });
+  expect(classifications).toEqual(['match', 'exit']);
+  expect(f.requests.length).toBe(4);
+  await rm(shell.outputFile, { recursive: true, force: true });
 });
 
 shellTest('readLines delivers un-terminated tail and signal outcome on kill', async (f, session) => {
