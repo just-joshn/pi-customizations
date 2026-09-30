@@ -40,13 +40,17 @@ CLI and UI workflows use the project's existing terminal or browser tools. Bundl
 
 `/loop [interval] <prompt>` runs a prompt on a fixed interval, on a self-paced heartbeat, or when a watched event fires. It ports the local half of Cursor's synced loop skill. The skill text in `host/skills/loop` is written for Pi, not copied. `BackgroundShell` starts a shell and wakes the agent on each output line that matches `notify_on_output`, and when the shell exits unless it already matched and exited with status zero. A successful exit after a match sends no redundant exit notification. If writing the output log fails, `BackgroundShell` still sends an exit wake, even after a match and a zero exit. While one wake is queued, later matches from the same shell are counted, not queued, so a slow turn never builds a backlog. A match during a busy parent turn is delivered when that turn ends. `BackgroundShellStop` drops that held wake, and an aborted turn keeps it until a later turn ends. `BackgroundShellList` and `BackgroundShellStop` find and stop shells. Stopping signals the shell's process group and returns within a bounded wait even when a descendant escaped that group, and a descendant that calls `setsid` and inherits the pipes outlives the session. Shells end when the session quits, reloads, or switches. Cloud timers are not supplied.
 
+## Goals
+
+`/goal <objective>` arms a goal that Pi pursues across turns. `CreateGoal`, `GetGoal`, and `UpdateGoal` are model-callable, so a playbook that says to arm a `/goal` does so itself. The goal lives on the session branch. While it is active, each finished turn queues a continuation until `UpdateGoal` marks it complete after a completion audit. An aborted or failed turn does not continue. `/goal clear` drops it. A leading time limit is rejected with a notice. The host skills `goal`, `create-skill` (targets Pi's skill format and paths), and `origin` (origin CLI setup and repair) are Pi ports of the Cursor built-ins.
+
 ## Local agents
 
 `Task` starts a local SDK session. Background calls return a task ID and deliver a completion message. `TaskOutput` reads or waits for its result. A task that finishes during a parent turn is announced when that turn ends, unless the turn already read its result with `TaskOutput` or `TaskStop`. After an aborted turn, the announcement waits for the next turn to end. `TaskMessage` sends steering or follow-up input. `TaskStop` aborts it. `Task` with `resume` continues the same child transcript.
 
 Supported personas are `generalPurpose`, `poteto-agent`, `comment-sicko` with alias `Comment Sicko`, `ci-watcher`, and `thermo-nuclear-code-quality-review`. The last includes the complete team-kit rubric. The CI watcher inherits the parent model, matching the observed Cursor plugin loader. An explicit pi model selection overrides inheritance. Resume retains the previously selected model unless the Task call supplies an explicit model. The original persona file still records its author-requested `fast` selector.
 
-Cursor's built-in `shell` and `explore` personas are not defined by either source plugin and remain unsupported. The thermo review persona can consume a diff and file contents collected with ordinary tools, but its prescribed built-in collector orchestration is not reproduced.
+Native `shell` and `explore` personas cover the built-in roles that the kit's review agent calls. The thermo review persona can consume a diff and file contents they collect.
 
 A terminal child closes its session and cancels unfinished descendants. Workers must collect every required child result before returning their final answer. Resuming opens the same persisted transcript in a new SDK session.
 

@@ -113,7 +113,7 @@ export function registerStatus(pi: ExtensionAPI, store: StateStore): void {
         `pstack ${versions.pstack} with cursor-team-kit ${versions.teamKit} for Pi ${VERSION}. ${skillCount} skills, ${promptCount} prompt templates. Poteto mode ${state.enabled ? 'on' : 'off'}.${todoSummary}`,
         `Model configuration: ${modelConfigPath()}`,
         `Compatibility report: ${join(root, 'docs/parity.md')}`,
-        'Partial runtime parity. Cursor cloud agents, hosted automation editor, cloud timers, goals, bot routines, server-synced create-skill and credential isolation are not supplied.',
+        'Partial runtime parity. Cursor cloud agents, hosted automation editor, bot routines, server-synced create-skill and credential isolation are not supplied.',
       ];
       if (subcommand === 'todos' && state.todos.length === 0) lines.push('', 'Todos: none.');
       if (subcommand === 'todos' && state.todos.length > 0) {

@@ -199,14 +199,14 @@ test('host contract maps upstream Cursor facilities and tool names to Pi', async
   for (const text of [
     'A Cursor rule becomes an AGENTS.md context file',
     'guidance that must apply on every turn belongs in a context file',
-    "where a workflow calls for Cursor's create-skill",
+    "Where a workflow calls for Cursor's create-skill, follow",
     'classify the tools that pstack_context returns',
     'Glob is find',
     'appears in the transcript as a <skill name="..."> block',
   ]) {
     expect(host.includes(text)).toBe(true);
   }
-  expect(host).toMatch(/Pi's format from \/.+\/docs\/skills\.md/);
+  expect(host).toMatch(/Pi's format in \/.+\/docs\/skills\.md/);
 });
 
 test('local /loop ships as a Pi skill and template that the host contract names', async () => {

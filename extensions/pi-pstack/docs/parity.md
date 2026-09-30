@@ -12,6 +12,7 @@ The requested 100% behavior parity is not achieved. The plugin requires Cursor c
 | Required deslop, control-cli, and control-ui workflows | All 18 kit skills remain available through prompt aliases and native skills, bringing the combined total to 64 skills plus the bro prompt | `test/integration.test.ts`, `scripts/verify-cli.mjs` |
 | Team-kit plugin rule delivery | Rules remain archived and are not injected, matching the observed Cursor CLI | `test/integration.test.ts`, reference team-kit report |
 | Team-kit local agent personas | CI watcher inherits the parent model as observed in Cursor; strict review persona receives its complete rubric | `src/personas.ts`, `test/personas.test.ts`, `test/workers.test.ts` |
+| Native `/goal`, `shell`, `explore`, `create-skill`, `origin` | `CreateGoal`, `GetGoal`, `UpdateGoal` with branch-persisted state and turn continuation. Native `shell` and `explore` personas. Pi ports of the `goal`, `create-skill` and `origin` built-in skills | `src/goal.ts`, `src/personas.ts`, `host/skills` |
 | Sticky Poteto mode | Branch-local session entries and structured prompt section; explicit off command and mode tool | `src/index.ts`, integration tests |
 | Two agent personas | Complete upstream persona instructions; Poteto child receives full mode instructions | `src/workers.ts` |
 | Local task delegation | SDK child sessions, background completion, output, message, stop, and same-transcript resume | `src/workers.ts` |
@@ -28,11 +29,10 @@ The requested 100% behavior parity is not achieved. The plugin requires Cursor c
 | Source requirement | Why parity is unavailable |
 | --- | --- |
 | Cursor cloud agent environment and durable hosted lifecycle | SDK children run locally and stop with their owner. Cloud requests fail explicitly. |
-| Cursor cloud timers and goal continuation | Cloud timer subscriptions and active-goal continuation are not implemented. A required cloud wake chain or goal is an unmet gate. |
+| Cursor cloud timers | Cloud timer subscriptions are not implemented. Local `/loop` covers wakes. A required cloud wake chain is an unmet gate. |
 | Exact Cursor model entitlements, aliases, speed tiers, and inference behavior | Pi uses provider/model IDs and separate supported thinking levels. Availability depends on configured providers. No silent family substitution occurs. |
 | Cursor synced `create-skill` and Automations services | The references identify server-synced skills and host services. This package does not implement those services or distribute their complete current skill text. |
 | Terminal, browser, and GitHub execution dependencies | Team-kit instructions are now bundled, but actual project tools, browser binaries, credentials, and target applications remain environment-dependent. No universal UI or CLI check is implied by installing a skill. |
-| Cursor built-in `shell` and `explore` agents | The kit review agent's example calls these unpublished personas. Task rejects them. Callers may supply already-collected evidence to the supported review persona, but the prescribed collector orchestration remains unmet. |
 | Team-kit CI watcher author-requested `fast` selector | The source file is retained, but the observed plugin loader strips this selector. Runtime inheritance follows that observed behavior. Explicit model requests still require available pi providers. |
 | Cursor in-app browser and chat corpus | Canvas assets are bundled, but pi has no Cursor browser. Local browser tools may open the generated HTML. Preference extraction uses the explicitly identified pi workspace corpus, not unavailable Cursor conversations. |
 | Benny reviewed Automations editor handoff | The source explicitly requires Cursor's editor and approval flow. Preserved prompts are not deployed automations. |

@@ -283,7 +283,7 @@ async function journeyStatus(ctx) {
   await ctx.run('/pstack tones');
   const statuses = (await ctx.messages()).slice(before).filter((message) => message.customType === 'pstack-status');
   checkEqual('status: each accepted form publishes one status message', statuses.length, 2);
-  check('status: reports the discovered skill and template counts', /65 skills, 64 prompt templates/.test(String(statuses[0]?.content)), String(statuses[0]?.content).slice(0, 200));
+  check('status: reports the discovered skill and template counts', /68 skills, 66 prompt templates/.test(String(statuses[0]?.content)), String(statuses[0]?.content).slice(0, 200));
   const notifications = ctx.ui.filter((request) => request.method === 'notify').map((request) => request.message ?? '');
   check(
     'status: an unknown argument notifies the accepted forms',
