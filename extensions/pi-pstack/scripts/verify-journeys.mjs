@@ -9,6 +9,8 @@ import { rpcProcess } from './rpc-process.mjs';
 const root = process.argv[2] ? resolve(process.argv[2]) : fileURLToPath(new URL('../', import.meta.url));
 const only = process.argv[3];
 const cli = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
+const progressFixture = join(root, 'test', 'fixtures', 'task-progress-sentinel.txt');
+const progressSentinel = 'CHILD_READ_FIXTURE_SENTINEL_CONTENT';
 
 const findings = [];
 const passes = [];
@@ -116,7 +118,6 @@ async function everyRequest(log) {
 
 function clientFor(child, log) {
   const client = rpcProcess(child, { requestDeadlineMs: 180000, shutdownDeadlineMs: 15000 });
-  let reference = 0;
   const requests = async () =>
     (await readFile(join(log, `requests-${child.pid}.jsonl`), 'utf8').catch(() => ''))
       .split('\n')
@@ -134,16 +135,15 @@ function clientFor(child, log) {
   return {
     send: (message) => client.send(message),
     requests,
+    toolUpdates: client.toolUpdates,
     finish: () => client.finish(),
     close: () => client.close(),
     async run(message) {
-      reference = (await requests()).length;
+      const reference = (await requests()).length;
       await client.send({ type: 'prompt', message });
       await idle();
       const recorded = await requests();
-      const produced = recorded.slice(reference);
-      reference = recorded.length;
-      return produced;
+      return recorded.slice(reference);
     },
     async turn(message) {
       const recorded = await this.run(message);
@@ -167,7 +167,7 @@ function clientFor(child, log) {
 async function startPi(directory, log, extraArgs) {
   const child = spawn(process.execPath, [cli, '--mode', 'rpc', ...extraArgs, '-e', root], {
     cwd: directory,
-    env: { ...process.env, HOME: directory, PI_CODING_AGENT_DIR: directory, PSTACK_JOURNEY_LOG: log },
+    env: { ...process.env, HOME: directory, PI_CODING_AGENT_DIR: directory, PSTACK_JOURNEY_LOG: log, PSTACK_PROGRESS_FIXTURE: progressFixture },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
   let stderr = '';
@@ -315,6 +315,41 @@ async function journeyTools(ctx) {
   check('tool: AskQuestion returns the selected answer', JSON.stringify(question.find((m) => m.toolName === 'AskQuestion')).includes('approve'), JSON.stringify(question).slice(0, 300));
 }
 
+async function journeyProgress(ctx) {
+  const start = ctx.toolUpdates.length;
+  const messages = await ctx.callTool('JOURNEY:progress');
+  const task = messages.find((message) => message.toolName === 'Task');
+  const record = task?.details;
+  const updates = ctx.toolUpdates
+    .slice(start)
+    .filter((event) => event.toolName === 'Task')
+    .map((event) => event.partialResult);
+  const bashStarted = updates.find((partial) => partial.details?.latest?.kind === 'tool-started' && partial.details.latest.tool === 'bash');
+  const bashFinished = updates.find((partial) => partial.details?.latest?.kind === 'tool-finished' && partial.details.latest.tool === 'bash');
+  const readStarted = updates.find((partial) => partial.details?.latest?.kind === 'tool-started' && partial.details.latest.tool === 'read');
+  const readFinished = updates.find((partial) => partial.details?.latest?.kind === 'tool-finished' && partial.details.latest.tool === 'read');
+  check('RPC: foreground Task returns the unchanged settled record', task?.isError !== true && record?.status === 'settled' && record.output === 'recorded JOURNEY:progress-child');
+  check('RPC: child shell start is a literal safe snapshot', bashStarted?.content?.[0]?.text === `Task ${record?.id} running. Active tools: bash. Latest: bash started.`);
+  check('RPC: child shell finish is a literal safe snapshot', bashFinished?.content?.[0]?.text === `Task ${record?.id} running. Active tools: none. Latest: bash finished.`);
+  check('RPC: child read start is a literal safe snapshot', readStarted?.content?.[0]?.text === `Task ${record?.id} running. Active tools: read. Latest: read started.`);
+  check('RPC: child read finish is a literal safe snapshot', readFinished?.content?.[0]?.text === `Task ${record?.id} running. Active tools: none. Latest: read finished.`);
+  check(
+    'RPC: progress partials omit structured output and usage',
+    updates.length === 4 && updates.every((partial) => partial.details?.kind === 'progress' && !Object.hasOwn(partial, 'structuredContent') && !Object.hasOwn(partial, 'usage')),
+  );
+  const encoded = JSON.stringify(updates);
+  for (const secret of [progressSentinel, 'JOURNEY:progress-child', progressFixture, 'journey-', 'sleep 0.4; printf PSTACK_CHILD_SHELL_OUTPUT_SENTINEL', 'PSTACK_CHILD_SHELL_OUTPUT_SENTINEL']) {
+    check(
+      `RPC: progress omits ${secret === progressFixture ? 'paths' : secret === progressSentinel || secret.includes('OUTPUT') ? 'child results' : secret === 'journey-' ? 'child call ids' : secret.includes('command') || secret.includes('sleep') ? 'child commands' : 'child input'}`,
+      !encoded.includes(secret),
+    );
+  }
+  const transcript = await readFile(record?.sessionFile ?? '', 'utf8').catch(() => '');
+  check('RPC: the installed child read the fixture sentinel', transcript.includes(progressSentinel));
+  const persisted = JSON.stringify(await ctx.messages());
+  check('RPC: progress is not persisted in parent messages', !persisted.includes('"kind":"progress"') && !persisted.includes('Latest: read started.'));
+}
+
 async function journeyDelegation(ctx) {
   const task = await ctx.callTool('JOURNEY:task');
   const taskResult = task.find((message) => message.toolName === 'Task');
@@ -408,6 +443,7 @@ const journeys = [
   journeyTodoMerge,
   journeyTodoWidget,
   journeyQuestionVariants,
+  journeyProgress,
   journeyTaskResume,
   journeyTaskLifecycle,
   journeyTaskGates,

@@ -14,7 +14,7 @@ The requested 100% behavior parity is not achieved. The plugin requires Referenc
 | Team-kit local agent personas | CI watcher inherits the parent model as observed in Reference; strict review persona receives its complete rubric | `src/personas.ts`, `test/personas.test.ts`, `test/workers.test.ts` |
 | Sticky Poteto mode | Branch-local session entries and structured prompt section; explicit off command and mode tool | `src/index.ts`, integration tests |
 | Two agent personas | Complete upstream persona instructions; Poteto child receives full mode instructions | `src/workers.ts` |
-| Local task delegation | SDK child sessions, background completion, output, message, stop, and same-transcript resume | `src/workers.ts` |
+| Local task delegation | SDK child sessions, foreground tool start/end and retry snapshots, background completion, output, message, stop, and same-transcript resume. Progress omits child arguments, results, and shell output. It stops when the foreground Task call settles. | `src/workers.ts`, `src/worker-runtime.ts`, `test/workers.test.ts`, `scripts/verify-journeys.mjs`, `scripts/verify-progress-tui.mjs` |
 | Model setup | Available pi model identities, supported effort, all 17 roles, ordered panels, aliases, budget selection, confirmed atomic rule write | `src/models.ts`, model tests |
 | Ordered playbook todos | Persistent replace or merge operation with verbatim content | `TodoWrite`, integration tests |
 | Preference and approval questions | TUI and RPC selection, free text, multiple selections, explicit cancellation | `AskQuestion`; installed CLI RPC tests verify selection and cancellation without paid inference |
@@ -28,6 +28,7 @@ The requested 100% behavior parity is not achieved. The plugin requires Referenc
 | Source requirement | Why parity is unavailable |
 | --- | --- |
 | Reference cloud agent environment and durable hosted lifecycle | SDK children run locally and stop with their owner. Cloud requests fail explicitly. |
+| Claude task frames and complete task-progress payloads | Pi maps direct child tool starts/ends and automatic retries to transient foreground Task updates. It does not send Claude frames, model changes, shell text, child messages, usage summaries, or progress after a background call returns. RPC clients receive updates but own their rendering. |
 | Reference cloud timers and goal continuation | Cloud timer subscriptions and active-goal continuation are not implemented. A required cloud wake chain or goal is an unmet gate. |
 | Exact Reference model entitlements, aliases, speed tiers, and inference behavior | Pi uses provider/model IDs and separate supported thinking levels. Availability depends on configured providers. No silent family substitution occurs. |
 | Reference synced `create-skill` and Automations services | The references identify server-synced skills and host services. This package does not implement those services or distribute their complete current skill text. |
@@ -56,7 +57,7 @@ The team-kit increment closes three named skill-distribution dependencies. Its r
 
 ## Verification limits
 
-The test suite exercises the actual pi resource loader and SDK with a deterministic provider. It does not contact paid model providers or deploy external automations. Source helper test results and final verification counts are recorded in `verification.md`.
+The test suite exercises the actual pi resource loader and SDK with a deterministic provider. The foreground progress journey also exercises the installed Pi CLI in RPC and TUI modes. It does not contact paid model providers or deploy external automations. Source helper test results and final verification counts are recorded in `verification.md`.
 
 The generated worktree audit searches the Pi session directories of the main worktree and of each worktree, including `pstack-workers`. It uses Perl for file dates, so GNU or uutils coreutils on PATH do not blank the LAST_CHAT column. It cannot see sessions moved by the `sessionDir` setting, `PI_CODING_AGENT_SESSION_DIR`, or `--session-dir`. The source `orch` CLI maintains an orchestration store; it does not itself provide the missing cloud scheduler.
 
