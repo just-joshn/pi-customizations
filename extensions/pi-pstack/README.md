@@ -1,6 +1,6 @@
 # pstack for pi
 
-This Pi package ports pstack 0.15.5 and cursor-team-kit 1.2.0 workflows to Pi 0.99.2. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. It does **not** provide 100% behavior parity with Cursor. Required Cursor services and external integrations remain unavailable. Read the [compatibility report](docs/parity.md) before using those workflows.
+This Pi package ports pstack 0.15.5 and cursor-team-kit 1.2.0 workflows to Pi 0.99.2. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. Cursor-hosted facilities run as local Pi equivalents. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
 
 ## Install
 
@@ -22,7 +22,7 @@ Reload an existing pi session with `/reload`. Run `/pstack` to inspect status an
 
 Start a task with `/poteto-mode your task`. The mode persists on that session branch until `/poteto-mode off`. Natural-language opt-in and opt-out use the model-callable `pstack_mode` tool. `/poteto-mode`, `/setup-pstack`, and `/pstack` are extension commands. Workflow aliases such as `/how`, `/architect`, and `/swarm` are prompt templates that ask the model to read the corresponding skill. Pi's `/skill:name` form loads those instructions directly. `/bro` is a standalone prompt template; use it instead of the retired `/skill:bro`.
 
-Workflow templates obtain the bundled skill path from the extension's host context. Enable the package extension when using these aliases. Native `/skill:name` invocation remains available when only skills are loaded. Templates do not recursively invoke `/skill:` commands or enforce the skill's instructions.
+Every turn, the host context lists each bundled skill, host skill, and playbook by name with its file path. A workflow that says "the how skill" therefore resolves to one file read, as Cursor's routing by name does. With Poteto mode on, the source skill's `reminder` line leads the injected mode text. Workflow templates obtain the bundled skill path from the same host context. Enable the package extension when using these aliases. Native `/skill:name` invocation remains available when only skills are loaded. Templates do not recursively invoke `/skill:` commands or enforce the skill's instructions.
 
 With the package extension enabled, direct user invocations of pstack-owned prompt aliases preserve the raw argument suffix, including quotes, whitespace, newlines, backslashes, and dollar placeholders. The input hook quotes that suffix as one parser argument and leaves native prompt discovery and expansion in place. User-owned prompts, other extension commands, and `/bro` are not rewritten. Extension-generated messages keep Pi's normal literal delivery or opt-in expansion. When the extension is disabled, Pi's native prompt parser removes grouping quotes, joins parsed arguments with spaces, and converts unquoted line breaks to spaces. Use `/skill:name` to load a skill directly.
 
@@ -58,7 +58,7 @@ Use a separate worktree when a workflow requires isolated writes. A child sessio
 
 Readonly tasks copy the selected provider registration into an isolated model runtime without loading its tool extensions. Failed foreground tasks preserve their nested model usage in the failed tool result. Background model usage enters parent totals when the parent retrieves the result with `TaskOutput` or `TaskStop`; unclaimed usage persists on the active branch across reloads and is charged only once. Resuming a task retains any pending usage.
 
-`environment: "cloud"` fails explicitly. It never runs a cloud-required task locally without an explicit change of scope. Child processes do not survive parent shutdown as hosted Cursor cloud agents do.
+`environment: "cloud"` runs the child in its own detached git worktree at `pstack-cloud/<task-id>` under the session directory. It checks out `cloud_base_branch` (the local branch, else `origin/<branch>`) or the parent's HEAD. Uncommitted parent changes are not copied, as with a Cursor cloud agent that starts from pushed state. The worktree stays after the task ends so its commits survive. Resume reopens the same worktree. The child process still ends with the parent session, unlike a hosted Cursor cloud agent.
 
 ## Models and state
 
