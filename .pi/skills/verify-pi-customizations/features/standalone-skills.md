@@ -6,7 +6,7 @@ Standalone skills in `skills/` provide modular workflows (doctor, simplify, run,
 
 - `skills-declaration` declares root skill directory in `package.json`.
 - `skills-registration` exposes `/skill:<name>` commands in the Pi CLI and RPC interface.
-- `skills-execution` expands `/skill:<name>` by inserting skill content from `SKILL.md` into the prompt before a model turn.
+- `skills-invocation` makes each workflow available through its native `/skill:<name>` entry point. Pi expands `/skill:<name>` by inserting content from `SKILL.md` into the prompt before a model turn.
 
 ## How to get to it (user POV)
 
@@ -33,5 +33,6 @@ Preconditions:
 - Standalone skills do not require `extensions/` to be loaded; Pi registers them from the package skill declaration.
 - Native skills are prefixed with `skill:` in Pi's command list.
 - Native skill loading avoids a separate tool call to read the definition, not model processing. The expanded content is part of the next model prompt.
-- The `control-pi` drive checks command registration only. It does not invoke a skill.
 - Modifying a skill's `SKILL.md` frontmatter changes its registration name and description.
+- This drive verifies discovery/registration only; it does not invoke workflows or measure model overhead.
+- The harness creates its own disposable scratch directory; no manual initialization is needed.
