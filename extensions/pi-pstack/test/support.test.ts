@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import type { AgentSession, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
 import { boundedResult } from '../src/results.ts';

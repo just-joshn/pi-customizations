@@ -13,7 +13,9 @@ function fakePi() {
 }
 
 const printCtx = { hasUI: false } as ExtensionContext;
-const tick = () => new Promise((resolve) => setTimeout(resolve, 5));
+const flush = async () => {
+  for (let hop = 0; hop < 10; hop += 1) await Promise.resolve();
+};
 
 test('interactive delivery queues the message and returns at once', async () => {
   const { pi, sent } = fakePi();
@@ -25,13 +27,13 @@ test('print delivery holds the command until the turn it queued settles', async 
   const { pi, sent, emit } = fakePi();
   const events: string[] = [];
   const done = createDelivery(pi)(printCtx, 'task').then(() => events.push('returned'));
-  await tick();
+  await flush();
   expect(sent).toEqual(['task']);
   emit('agent_settled');
-  await tick();
+  await flush();
   expect(events).toEqual([]);
   emit('agent_start');
-  await tick();
+  await flush();
   expect(events).toEqual([]);
   emit('agent_settled');
   await done;
