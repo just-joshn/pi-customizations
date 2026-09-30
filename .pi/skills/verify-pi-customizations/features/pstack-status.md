@@ -1,11 +1,11 @@
 # pstack status and todos
 
-pstack status and todos report runtime metadata, loaded skill counts, bundled prompt templates, persistent mode state, model configuration paths, and active branch todo items.
+pstack status and todos report runtime metadata, bundled skill counts, bundled prompt templates, persistent mode state, model configuration paths, and active branch todo items.
 
 ## Sub-features
 
 - `status-version` reports pstack version, team-kit version, and Pi agent version.
-- `status-counts` reports the count of loaded skills and prompt templates.
+- `status-counts` reports the count of bundled skill directories and prompt template files.
 - `status-mode` reports whether Poteto mode is on or off.
 - `status-todos` reports current active branch todo items or confirms an empty list.
 
@@ -33,3 +33,5 @@ Preconditions:
 - pstack status and todos output are delivered as custom message records (`role: "custom"`, `customType: "pstack-status"`), not regular assistant responses.
 - Unrecognized subcommands such as `/pstack foo` return command usage guidance rather than status output.
 - Running `/pstack` without arguments displays the same status banner as `/pstack status`.
+- Counts describe bundled resources, not Pi's loaded-resource registry; extra installed skills do not change them.
+- This drive covers the status banner and empty todos, not populated todo rendering or interactive widgets.
