@@ -1,3 +1,6 @@
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { AgentSession, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
 import { boundedResult } from '../src/results.ts';
@@ -43,6 +46,25 @@ test('extension deduplication preserves the first SDK descriptor and stable orde
     { resolvedPath: 'a', label: 'second' },
   ]);
   expect(input).toEqual(snapshot);
+});
+
+test('workers keep only the running pstack copy when another copy is installed', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'pstack-dedupe-'));
+  try {
+    const entry = async (name: string, pkg: string) => {
+      await mkdir(join(dir, name, 'src'), { recursive: true });
+      await writeFile(join(dir, name, 'package.json'), JSON.stringify({ name: pkg }));
+      await writeFile(join(dir, name, 'src/index.ts'), '');
+      return join(dir, name, 'src/index.ts');
+    };
+    const installed = await entry('installed', 'pi-pstack');
+    const other = await entry('other', 'pi-other');
+    const running = await entry('running', 'pi-pstack');
+    const kept = deduplicateExtensions([{ resolvedPath: installed }, { resolvedPath: other }, { resolvedPath: running }], running);
+    expect(kept.map((extension) => extension.resolvedPath)).toEqual([other, running]);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });
 
 test('restored task records do not expose caller-owned records or usage', () => {
