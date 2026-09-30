@@ -1,3 +1,4 @@
+import { readFileSync, realpathSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -22,13 +23,32 @@ export async function childModelRuntime(readonly: boolean, provider: string, ctx
   return runtime;
 }
 
-export function deduplicateExtensions<T extends { resolvedPath: string }>(extensions: T[]): T[] {
-  return extensions
+function packageName(entry: string): string | undefined {
+  try {
+    return JSON.parse(readFileSync(join(dirname(entry), '..', 'package.json'), 'utf8')).name;
+  } catch {
+    return undefined;
+  }
+}
+
+function canonical(path: string): string {
+  try {
+    return realpathSync(path);
+  } catch {
+    return path;
+  }
+}
+
+export function deduplicateExtensions<T extends { resolvedPath: string }>(extensions: T[], ownEntry?: string): T[] {
+  const unique = extensions
     .map((extension, index) => ({ extension, index }))
     .toSorted((left, right) => (left.extension.resolvedPath < right.extension.resolvedPath ? -1 : left.extension.resolvedPath > right.extension.resolvedPath ? 1 : left.index - right.index))
     .filter((item, index, sorted) => index === 0 || item.extension.resolvedPath !== sorted[index - 1]?.extension.resolvedPath)
     .toSorted((left, right) => left.index - right.index)
     .map(({ extension }) => extension);
+  if (!ownEntry) return unique;
+  const own = canonical(ownEntry);
+  return unique.filter((extension) => canonical(extension.resolvedPath) === own || packageName(extension.resolvedPath) !== 'pi-pstack');
 }
 
 export function sumUsage(messages: AgentSession['messages'], previous?: Usage): Usage {
@@ -92,7 +112,7 @@ export async function openWorkerSession({ id, params, prior, ctx }: OpenWorker):
       `pstack host contract.\n${await skillCatalog(root)}`,
       referenceToolNames,
     ],
-    extensionsOverride: (result) => ({ ...result, extensions: deduplicateExtensions(result.extensions) }),
+    extensionsOverride: (result) => ({ ...result, extensions: deduplicateExtensions(result.extensions, join(root, 'src/index.ts')) }),
   });
   await loader.reload();
   if (loader.getExtensions().errors.length)
