@@ -16,6 +16,10 @@ function expand(skills: Skills, name: string, args: string) {
 
 const isOff = (args: string) => args.trim().toLowerCase() === 'off';
 
+function encodePromptArgument(value: string): string {
+  return `'${value.replaceAll("'", "'\"'\"'")}'`;
+}
+
 function turnOff(store: StateStore, ctx: ExtensionContext) {
   store.toggle(false, ctx);
   ctx.ui.notify('Poteto mode is off.', 'info');
@@ -69,6 +73,7 @@ export function registerCommands(pi: ExtensionAPI, skills: Skills, store: StateS
 
 export function registerNativeInput(pi: ExtensionAPI, skills: Skills, store: StateStore): void {
   pi.on('input', async (event, ctx) => {
+    if (event.source === 'extension') return { action: 'continue' };
     const native = event.text.match(/^\/skill:(poteto-mode|setup-pstack)(?:\s+([\s\S]*))?$/);
     if (native) {
       const name = native[1];
@@ -85,6 +90,17 @@ export function registerNativeInput(pi: ExtensionAPI, skills: Skills, store: Sta
       }
       store.toggle(true, ctx);
       return { action: 'transform', text: expand(skills, name, args), images: event.images };
+    }
+    if (/^\/bro(?:\s|$)/.test(event.text)) return { action: 'continue' };
+    const alias = event.text.match(/^\/([\w-]+)([\s\S]*)$/);
+    if (alias && (alias[2] === '' || /^\s/.test(alias[2]))) {
+      const [, name, rawSuffix] = alias;
+      const suffix = rawSuffix.replace(/^\s/, '');
+      const prompt = pi.getCommands().find((command) => command.name === name);
+      const ownedPaths = [join(root, 'prompts', `${name}.md`), join(root, 'host', 'prompts', `${name}.md`)];
+      if (prompt?.source === 'prompt' && ownedPaths.includes(prompt.sourceInfo.path) && suffix !== '') {
+        return { action: 'transform', text: `/${name} ${encodePromptArgument(suffix)}`, images: event.images };
+      }
     }
     return { action: 'continue' };
   });
