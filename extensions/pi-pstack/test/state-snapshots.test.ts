@@ -206,9 +206,21 @@ const multilineWindowTodos = Object.freeze([
   Object.freeze({ id: 'twelve', content: 'Pending twelve', status: 'pending' as const }),
 ]);
 
-test('TodoWrite preserves raw multiline content across state, merge, restore, and RPC', async () => {
+const addedMultilineTodo = Object.freeze({ id: 'added', content: 'Added\r\nline\nagain', status: 'pending' as const });
+const mergedMultilineTodos = [...multilineStatusTodos, addedMultilineTodo];
+const initialMultilineRpcRows = ['[ ] First line\nSecond line (pending)', '[>] First line\r\nSecond line (in_progress)', '[x] First line\rSecond line (completed)', '[-] First line\r\n\n\rSecond line (cancelled)'];
+const mergedMultilineRpcRows = [
+  '[ ] First line\nSecond line (pending)',
+  '[>] First line\r\nSecond line (in_progress)',
+  '[x] First line\rSecond line (completed)',
+  '[-] First line\r\n\n\rSecond line (cancelled)',
+  '[ ] Added\r\nline\nagain (pending)',
+];
+
+function createRpcTodoWriteFixture() {
   const published: unknown[] = [];
   const tools: ToolDefinition[] = [];
+  let rpcWidget: Widget | undefined;
   const pi = {
     appendEntry: (_type: string, data: unknown) => {
       published.push(data);
@@ -217,7 +229,6 @@ test('TodoWrite preserves raw multiline content across state, merge, restore, an
       tools.push(tool);
     },
   } as unknown as ExtensionAPI;
-  let rpcWidget: Widget | undefined;
   const rpcContext = {
     mode: 'rpc',
     ui: {
@@ -230,41 +241,62 @@ test('TodoWrite preserves raw multiline content across state, merge, restore, an
   const store = createState(pi);
   registerStateTools(pi, store);
   const tool = tools.find((entry) => entry.name === 'TodoWrite');
-  const result = await tool?.execute('initial', { todos: [...multilineStatusTodos] }, undefined, undefined, rpcContext);
-  if (!result) throw new Error('missing result');
+  if (!tool) throw new Error('missing TodoWrite tool');
+  return {
+    published,
+    rpcContext,
+    store,
+    tool,
+    get widget() {
+      return rpcWidget;
+    },
+  };
+}
 
-  const initialRpcRows = ['[ ] First line\nSecond line (pending)', '[>] First line\r\nSecond line (in_progress)', '[x] First line\rSecond line (completed)', '[-] First line\r\n\n\rSecond line (cancelled)'];
+test('TodoWrite preserves raw multiline content across state, merge, and RPC', async () => {
+  const fixture = createRpcTodoWriteFixture();
+  const { published, rpcContext, store, tool } = fixture;
+  const result = await tool.execute('initial', { todos: [...multilineStatusTodos] }, undefined, undefined, rpcContext);
+  if (!result) throw new Error('missing result');
   expect(store.read().todos).toEqual(multilineStatusTodos);
   expect(published).toEqual([{ enabled: false, todos: multilineStatusTodos }]);
   expect(result.details).toEqual(multilineStatusTodos);
   expect(result.structuredContent).toEqual(multilineStatusTodos);
-  expect(rpcWidget).toEqual(initialRpcRows);
+  expect(result.content).toEqual([
+    {
+      type: 'text',
+      text: '[{"id":"lf","content":"First line\\nSecond line","status":"pending"},{"id":"crlf","content":"First line\\r\\nSecond line","status":"in_progress"},{"id":"cr","content":"First line\\rSecond line","status":"completed"},{"id":"repeated","content":"First line\\r\\n\\n\\rSecond line","status":"cancelled"}]',
+    },
+  ]);
+  expect(fixture.widget).toEqual(initialMultilineRpcRows);
 
-  const addedTodo = Object.freeze({ id: 'added', content: 'Added\r\nline\nagain', status: 'pending' as const });
-  const merged = await tool?.execute('merge', { todos: [addedTodo], merge: true }, undefined, undefined, rpcContext);
+  const merged = await tool.execute('merge', { todos: [addedMultilineTodo], merge: true }, undefined, undefined, rpcContext);
   if (!merged) throw new Error('missing merged result');
-  const mergedTodos = [...multilineStatusTodos, addedTodo];
-  const mergedRpcRows = [
-    '[ ] First line\nSecond line (pending)',
-    '[>] First line\r\nSecond line (in_progress)',
-    '[x] First line\rSecond line (completed)',
-    '[-] First line\r\n\n\rSecond line (cancelled)',
-    '[ ] Added\r\nline\nagain (pending)',
-  ];
-  expect(store.read().todos).toEqual(mergedTodos);
+  expect(store.read().todos).toEqual(mergedMultilineTodos);
   expect(published).toEqual([
     { enabled: false, todos: multilineStatusTodos },
-    { enabled: false, todos: mergedTodos },
+    { enabled: false, todos: mergedMultilineTodos },
   ]);
-  expect(merged.details).toEqual(mergedTodos);
-  expect(merged.structuredContent).toEqual(mergedTodos);
-  expect(rpcWidget).toEqual(mergedRpcRows);
+  expect(merged.details).toEqual(mergedMultilineTodos);
+  expect(merged.structuredContent).toEqual(mergedMultilineTodos);
+  expect(merged.content).toEqual([
+    {
+      type: 'text',
+      text: '[{"id":"lf","content":"First line\\nSecond line","status":"pending"},{"id":"crlf","content":"First line\\r\\nSecond line","status":"in_progress"},{"id":"cr","content":"First line\\rSecond line","status":"completed"},{"id":"repeated","content":"First line\\r\\n\\n\\rSecond line","status":"cancelled"},{"id":"added","content":"Added\\r\\nline\\nagain","status":"pending"}]',
+    },
+  ]);
+  expect(fixture.widget).toEqual(mergedMultilineRpcRows);
+});
 
+test('TodoWrite restores raw multiline content to state and RPC', async () => {
+  const fixture = createRpcTodoWriteFixture();
+  await fixture.tool.execute('initial', { todos: [...multilineStatusTodos] }, undefined, undefined, fixture.rpcContext);
+  await fixture.tool.execute('merge', { todos: [addedMultilineTodo], merge: true }, undefined, undefined, fixture.rpcContext);
   let restoredWidget: Widget | undefined;
   const restoreContext = {
     mode: 'rpc',
     sessionManager: {
-      getBranch: () => published.map((data) => ({ type: 'custom', customType: 'pstack-state', data })),
+      getBranch: () => fixture.published.map((data) => ({ type: 'custom', customType: 'pstack-state', data })),
     },
     ui: {
       setStatus() {},
@@ -275,8 +307,8 @@ test('TodoWrite preserves raw multiline content across state, merge, restore, an
   } as unknown as ExtensionContext;
   const restored = createState({ appendEntry() {} } as unknown as ExtensionAPI);
   restored.restore(restoreContext);
-  expect(restored.read().todos).toEqual(mergedTodos);
-  expect(restoredWidget).toEqual(mergedRpcRows);
+  expect(restored.read().todos).toEqual(mergedMultilineTodos);
+  expect(restoredWidget).toEqual(mergedMultilineRpcRows);
 });
 
 test('TodoWrite compacts each newline form in captured TUI rows', async () => {
