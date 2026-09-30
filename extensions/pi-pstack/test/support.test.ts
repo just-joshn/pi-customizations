@@ -69,8 +69,8 @@ test('hostInstructions formats defaults without overrides or transcript file', a
     cwd: '/workspace',
     sessionManager: { getSessionDir: () => '/sessions', getSessionFile: () => undefined },
   } as unknown as ExtensionContext;
-  const output = hostInstructions('/root', ctx, '');
-  expect(output).toContain('No override. Upstream defaults remain requests, not confirmed available models.');
+  const output = hostInstructions('/root', ctx, '', '');
+  expect(output).toContain('No override. Each role uses its skill default.');
   expect(output).toContain('This session transcript is in memory.');
 });
 

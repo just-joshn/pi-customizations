@@ -305,7 +305,7 @@ test('host contract mappings: tool names, reference facilities, and external dep
       getSessionFile: () => '/test/sessions/current.jsonl',
     },
   };
-  const instructions = hostInstructions('/pkg', fakeCtx as never, 'rule-content');
+  const instructions = hostInstructions('/pkg', fakeCtx as never, 'rule-content', '');
   expect(instructions.includes('pstack pi host contract')).toBe(true);
   expect(instructions.includes('/loop is a Pi prompt template')).toBe(true);
   expect(instructions.includes('create-skill')).toBe(true);

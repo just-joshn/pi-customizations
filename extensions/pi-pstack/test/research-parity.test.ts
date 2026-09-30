@@ -187,7 +187,7 @@ test('worktree audit dates agent activity from Pi sessions and worker transcript
 test('host contract names the workspace session directory the transcript skills read', async () => {
   const { hostInstructions } = await import('../src/host.ts');
   const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/agent/sessions/--w--', getSessionFile: () => '/agent/sessions/--w--/s.jsonl' } };
-  const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '');
+  const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '');
   expect(host.includes('Workspace Pi session directory: /agent/sessions/--w--.')).toBe(true);
   expect(host.includes('Task child transcripts: /agent/sessions/--w--/pstack-workers/<parent-session-id>.')).toBe(true);
 });
@@ -195,7 +195,7 @@ test('host contract names the workspace session directory the transcript skills 
 test('host contract maps upstream Reference facilities and tool names to Pi', async () => {
   const { hostInstructions } = await import('../src/host.ts');
   const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
-  const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '');
+  const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '');
   for (const text of [
     'A Reference rule becomes an AGENTS.md context file',
     'guidance that must apply on every turn belongs in a context file',
@@ -216,5 +216,5 @@ test('local /loop ships as a Pi skill and template that the host contract names'
   expect((await read('host/prompts/loop.md')).includes('Read loop/SKILL.md in full under the pstack host skills directory')).toBe(true);
   const { hostInstructions } = await import('../src/host.ts');
   const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
-  expect(hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '').includes('/loop is a Pi prompt template for the local loop skill')).toBe(true);
+  expect(hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '').includes('/loop is a Pi prompt template for the local loop skill')).toBe(true);
 });
