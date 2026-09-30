@@ -328,7 +328,7 @@ async function journeyDelegation(ctx) {
   check('tool: Task rejects an unsupported persona by name', JSON.stringify(unsupported.find((m) => m.toolName === 'Task')).includes('not-a-persona'), JSON.stringify(unsupported).slice(0, 300));
   const cloud = await ctx.callTool('JOURNEY:cloud');
   const cloudResult = cloud.find((message) => message.toolName === 'Task');
-  check('tool: Task refuses cloud execution instead of running locally', cloudResult?.isError === true && JSON.stringify(cloudResult).includes('cloud'), JSON.stringify(cloudResult).slice(0, 300));
+  check('tool: Task cloud execution outside a git repository names the missing repository', cloudResult?.isError === true && JSON.stringify(cloudResult).includes('not inside a git repository'), JSON.stringify(cloudResult).slice(0, 300));
   const badModel = await ctx.callTool('JOURNEY:badmodel');
   const badModelResult = badModel.find((message) => message.toolName === 'Task');
   check('tool: Task reports an unavailable model with the available choices', badModelResult?.isError === true && JSON.stringify(badModelResult).includes('Unavailable model'), JSON.stringify(badModelResult).slice(0, 300));

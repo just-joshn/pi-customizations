@@ -368,14 +368,14 @@ test('pstack tool snippets and guidance follow the active tool set', async () =>
     for (const name of ['Task', 'TaskOutput', 'TaskMessage', 'TaskStop', 'TodoWrite', 'AskQuestion', 'pstack_mode', 'pstack_context', 'BackgroundShell', bgList, bgStop]) {
       expect(tools).toMatch(new RegExp(`^- ${name}: `, 'm'));
     }
-    expect(section(f.requests, 'rules') ?? '').toMatch(/Cloud Task execution is unavailable/);
+    expect(section(f.requests, 'rules') ?? '').toMatch(/environment cloud gives the worker its own detached git worktree/);
     expect(section(f.requests, 'rules') ?? '').toMatch(/AskQuestion works in interactive and RPC sessions/);
-    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/Cloud Task execution is unavailable|TodoWrite keeps/);
+    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/environment cloud gives the worker its own detached git worktree|TodoWrite keeps/);
     session.setActiveToolsByName(['read', 'bash']);
     await prompt(session, 'Continue with read and bash only.');
     expect(section(f.requests, 'tools') ?? '').not.toMatch(/^- (Task|TodoWrite|BackgroundShell): /m);
-    expect(section(f.requests, 'rules') ?? '').not.toMatch(/Cloud Task execution is unavailable|TodoWrite keeps|BackgroundShell/);
-    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/Cloud Task execution is unavailable|TodoWrite keeps|BackgroundShell with notify_on_output/);
+    expect(section(f.requests, 'rules') ?? '').not.toMatch(/environment cloud gives the worker its own detached git worktree|TodoWrite keeps|BackgroundShell/);
+    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/environment cloud gives the worker its own detached git worktree|TodoWrite keeps|BackgroundShell with notify_on_output/);
     expect(f.errors).toEqual([]);
   } finally {
     await f.close();
