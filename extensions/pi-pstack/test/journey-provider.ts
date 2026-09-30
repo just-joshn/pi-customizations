@@ -52,6 +52,8 @@ const toolCalls: Record<string, PlannedCall[]> = {
   ],
   'JOURNEY:task': [{ name: 'Task', arguments: { prompt: 'Report the word delegate-ok and nothing else.', subagent_type: 'generalPurpose', run_in_background: false } }],
   'JOURNEY:progress': [{ name: 'Task', arguments: { prompt: 'JOURNEY:progress-child', subagent_type: 'generalPurpose', run_in_background: false } }],
+  'JOURNEY:agent': [{ name: 'Agent', arguments: { description: 'agent probe', prompt: 'Report the word agent-ok and nothing else.', run_in_background: false } }],
+  'JOURNEY:agentunknown': [{ name: 'Agent', arguments: { description: 'unknown type', prompt: 'never runs', subagent_type: 'not-a-type' } }],
   'JOURNEY:readonly': [{ name: 'Task', arguments: { prompt: 'readonly child turn', readonly: true, run_in_background: false } }],
   'JOURNEY:badcwd': [{ name: 'Task', arguments: { prompt: 'cwd child turn', cwd: 'no/such/directory', run_in_background: false } }],
   'JOURNEY:localenv': [{ name: 'Task', arguments: { prompt: 'local child turn', environment: 'local', run_in_background: false } }],

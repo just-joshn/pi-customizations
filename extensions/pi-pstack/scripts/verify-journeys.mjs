@@ -315,6 +315,22 @@ async function journeyTools(ctx) {
   check('tool: AskQuestion returns the selected answer', JSON.stringify(question.find((m) => m.toolName === 'AskQuestion')).includes('approve'), JSON.stringify(question).slice(0, 300));
 }
 
+async function journeyAgent(ctx) {
+  const launched = (await ctx.callTool('JOURNEY:agent')).find((message) => message.toolName === 'Agent');
+  const details = launched?.details;
+  check(
+    'RPC: foreground Agent returns the completed shape from the real child session',
+    launched?.isError !== true && details?.status === 'completed' && details.agentType === 'general-purpose' && details.content?.[0]?.text.startsWith('recorded Report the word agent-ok'),
+    JSON.stringify(launched).slice(0, 300),
+  );
+  const refused = (await ctx.callTool('JOURNEY:agentunknown')).find((message) => message.toolName === 'Agent');
+  check(
+    'RPC: an unknown Agent type is a tool error that lists the available agents',
+    refused?.isError === true && JSON.stringify(refused).includes("Agent type 'not-a-type' not found. Available agents: Explore, Plan, general-purpose, statusline-setup"),
+    JSON.stringify(refused).slice(0, 300),
+  );
+}
+
 async function journeyProgress(ctx) {
   const start = ctx.toolUpdates.length;
   const messages = await ctx.callTool('JOURNEY:progress');
@@ -443,6 +459,7 @@ const journeys = [
   journeyTodoMerge,
   journeyTodoWidget,
   journeyQuestionVariants,
+  journeyAgent,
   journeyProgress,
   journeyTaskResume,
   journeyTaskLifecycle,
