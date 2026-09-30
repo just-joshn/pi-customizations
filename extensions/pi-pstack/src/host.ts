@@ -12,6 +12,7 @@ export function hostInstructions(root: string, ctx: ExtensionContext, rule: stri
   return [
     'pstack pi host contract. Follow the bundled workflow instructions in full.',
     catalog,
+    `Reference snapshots live at ${join(root, 'upstream')} and ${join(root, 'upstream-team-kit')}.`,
     '/poteto-mode, /setup-pstack, /pstack, and /goal are extension commands. Every other workflow name, including the team-kit skills, is a prompt template that reads the matching SKILL.md.',
     `Model role overrides live at ${modelConfigPath()}, the Pi location of ~/.upstream/rules/pstack-models.mdc. The active rule follows:\n${rule || 'No override. Each role uses its skill default.'}`,
     `Workspace Pi session directory: ${manager.getSessionDir()}. Task child transcripts: ${childTranscripts}. Transcript-reading skills use these directories. workflow-from-chats reads this history through pstack_context.`,
