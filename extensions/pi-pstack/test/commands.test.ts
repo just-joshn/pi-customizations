@@ -292,7 +292,14 @@ test('pstack index entry point wires extension hooks and registers all tools', a
   const commands: string[] = [];
   const pi = {
     registerCommand: (name: string) => commands.push(name),
+    registerFlag: () => {},
     registerTool: (t: { name: string }) => tools.push(t.name),
+    events: {
+      emit() {},
+      on() {
+        return () => {};
+      },
+    },
     on: (event: string, handler: GenericListener) => {
       listeners[event] = listeners[event] ?? [];
       listeners[event].push(handler);
@@ -310,7 +317,7 @@ test('pstack index entry point wires extension hooks and registers all tools', a
 
   const ctx = {
     cwd: '/test/cwd',
-    sessionManager: { getBranch: () => [], getSessionDir: () => '/tmp', getSessionFile: () => '/tmp/f.jsonl' },
+    sessionManager: { getBranch: () => [], getSessionDir: () => '/tmp', getSessionFile: () => '/tmp/f.jsonl', getSessionId: () => 'index-hook-session' },
     ui: { setStatus() {}, setWidget() {} },
   } as unknown as ExtensionContext;
 

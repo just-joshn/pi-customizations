@@ -164,11 +164,18 @@ test('a second session lists no shells from the session before it', async () => 
   }
 });
 
-test('pstack index before_agent_start with enabled and todos', async () => {
+function indexApi() {
   const listeners: Record<string, Listener[]> = {};
   const pi = {
+    registerFlag: () => {},
     registerCommand: () => {},
     registerTool: () => {},
+    events: {
+      emit() {},
+      on() {
+        return () => {};
+      },
+    },
     on: (event: string, handler: Listener) => {
       listeners[event] = listeners[event] ?? [];
       listeners[event].push(handler);
@@ -177,7 +184,11 @@ test('pstack index before_agent_start with enabled and todos', async () => {
     getCommands: () => [],
     getAllTools: () => [],
   } as unknown as ExtensionAPI;
+  return { pi, listeners };
+}
 
+test('pstack index before_agent_start with enabled and todos', async () => {
+  const { pi, listeners } = indexApi();
   await pstack(pi);
 
   const ctx = {
@@ -195,6 +206,7 @@ test('pstack index before_agent_start with enabled and todos', async () => {
       ],
       getSessionDir: () => '/tmp',
       getSessionFile: () => '/tmp/f.jsonl',
+      getSessionId: () => 'index-hook-session',
     },
     ui: { setStatus() {}, setWidget() {} },
   } as unknown as ExtensionContext;

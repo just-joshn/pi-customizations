@@ -13,10 +13,10 @@ export type SpawnRequest = Readonly<{
   cwd?: string;
 }>;
 
+export type AgentTypeErrorCode = 'subagent_type_not_found' | 'subagent_type_ambiguous' | 'subagent_type_missing';
+
 export type RefusalCode =
-  | 'subagent_type_not_found'
-  | 'subagent_type_ambiguous'
-  | 'subagent_type_required'
+  | AgentTypeErrorCode
   | 'subagent_depth_cap'
   | 'subagent_concurrency_limit'
   | 'subagent_budget_exhausted'

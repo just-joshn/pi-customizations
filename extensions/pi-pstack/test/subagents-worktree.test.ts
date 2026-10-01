@@ -46,6 +46,22 @@ test('[G6-18] unchanged worktree is removed and a changed one is kept with path 
   expect(await finalizeWorktree(committed)).toMatchObject({ kept: true });
 });
 
+test('cleanup keeps a checkout whose branch identity changed', async () => {
+  const worktree = await createWorktree(repo, 'changed-identity');
+  git(worktree.path, 'checkout', '-qb', 'replacement-branch');
+  expect(await finalizeWorktree(worktree)).toEqual({ kept: true, path: worktree.path, branch: worktree.branch });
+  expect(existsSync(worktree.path)).toBe(true);
+  expect(git(worktree.path, 'branch', '--show-current')).toBe('replacement-branch');
+});
+
+test('creating isolation from a linked checkout does not pollute that checkout', async () => {
+  const parent = await createWorktree(repo, 'parent-linked');
+  const nested = await createWorktree(parent.path, 'nested-linked');
+  expect(git(parent.path, 'status', '--porcelain')).toBe('');
+  expect(await finalizeWorktree(nested)).toEqual({ kept: false });
+  expect(await finalizeWorktree(parent)).toEqual({ kept: false });
+});
+
 test('[G6-13] outside a git repository the precondition error is exact', async () => {
   const plain = mkdtempSync(join(tmpdir(), 'subagent-plain-'));
   try {

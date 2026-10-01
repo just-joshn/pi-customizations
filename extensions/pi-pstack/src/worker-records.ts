@@ -1,5 +1,6 @@
 import { type Static, Type } from 'typebox';
 import { Check } from 'typebox/value';
+import { ToolStatsSchema } from './subagents/tool-stats.ts';
 
 export const taskEntryType = 'pstack-task';
 export const taskOutputLimit = 12000;
@@ -19,10 +20,18 @@ export const TaskRecordSchema = Type.Object({
   sessionFile: Type.String(),
   outputFile: Type.String(),
   modelReference: Type.Optional(Type.String()),
+  modelsUsed: Type.Optional(Type.Array(Type.String())),
+  toolStats: Type.Optional(ToolStatsSchema),
+  abort: Type.Optional(Type.Object({ reason: Type.String(), telemetry: Type.String(), userInitiated: Type.Boolean(), cutoffNote: Type.Optional(Type.String()) })),
   status: Type.Union([Type.Literal('running'), Type.Literal('settled'), Type.Literal('failed'), Type.Literal('interrupted')]),
   output: Type.String(),
   usage: Type.Optional(UsageSchema),
   agentName: Type.Optional(Type.String()),
+  spawnedWithWorktree: Type.Optional(Type.Boolean()),
+  worktreeCleanlyRemoved: Type.Optional(Type.Boolean()),
+  worktreePath: Type.Optional(Type.String()),
+  worktreeBranch: Type.Optional(Type.String()),
+  worktreeRepoRoot: Type.Optional(Type.String()),
   description: Type.Optional(Type.String()),
   depth: Type.Optional(Type.Integer({ minimum: 1 })),
   toolUseCount: Type.Optional(Type.Integer({ minimum: 0 })),

@@ -1,8 +1,15 @@
 import type { AgentSession, AgentSessionEventListener } from '@earendil-works/pi-coding-agent';
+import { type AbortInfo, type AbortReason, abortInfo, normalizeAbortReason } from './subagents/abort-reasons.ts';
 
-export type Escalation = Readonly<{ taskId: string; log: (message: string) => void; killAfterMs?: number; overdueAfterMs?: number }>;
+export type Escalation = Readonly<{ foreground?: boolean; onAbort?: (info: AbortInfo) => void; taskId: string; log: (message: string) => void; killAfterMs?: number; overdueAfterMs?: number }>;
 export const killAfterMs = 10000;
 export const overdueAfterMs = 30000;
+
+export function launchSignal(signal: AbortSignal | undefined, background: boolean): AbortSignal | undefined {
+  if (!signal?.aborted) return signal;
+  if (background && normalizeAbortReason(signal.reason) === 'interrupt') return undefined;
+  throw new DOMException('Task launch was aborted before startup.', 'AbortError');
+}
 
 function stopEscalator(session: AgentSession, failures: string[], plan: Escalation | undefined) {
   let timers: ReturnType<typeof setTimeout>[] = [];
@@ -16,7 +23,7 @@ function stopEscalator(session: AgentSession, failures: string[], plan: Escalati
     overdue = false;
     if (!plan) return;
     const kill = setTimeout(() => {
-      plan.log(`killEscalation: task ${plan.taskId} still unsettled ${plan.killAfterMs ?? killAfterMs}ms after kill; killed process groups of 1 agent(s)`);
+      plan.log(`killEscalation: task ${plan.taskId} still unsettled ${plan.killAfterMs ?? killAfterMs}ms after stop; requesting session disposal`);
       try {
         session.dispose();
       } catch (error) {
@@ -49,13 +56,18 @@ function abortSession(session: AgentSession, failures: string[], pending: Set<Pr
 
 export function workerControl(session: AgentSession, signal: AbortSignal | undefined, observe?: AgentSessionEventListener, escalation?: Escalation) {
   let stopped = false;
+  let info: AbortInfo | undefined;
   let listening = true;
   const failures: string[] = [];
   const pending = new Set<Promise<void>>();
   const abort = () => abortSession(session, failures, pending);
   const escalator = stopEscalator(session, failures, escalation);
-  const stop = () => {
+  const stop = (reason: AbortReason, parentSignal: boolean) => {
     if (!listening || (stopped && !escalator.overdue())) return;
+    if (!stopped) {
+      info = abortInfo(reason, parentSignal && (escalation?.foreground ?? false));
+      escalation?.onAbort?.(info);
+    }
     stopped = true;
     abort();
     escalator.start();
@@ -68,10 +80,12 @@ export function workerControl(session: AgentSession, signal: AbortSignal | undef
     }
     observe?.(event);
   });
-  signal?.addEventListener('abort', stop, { once: true });
+  const signalAbort = () => stop(abortInfo(signal?.reason, false).reason, true);
+  signal?.addEventListener('abort', signalAbort, { once: true });
   return {
-    stop,
+    stop: (reason: AbortReason = 'user-cancel') => stop(reason, false),
     stopped: () => stopped,
+    abortInfo: () => info,
     async drain() {
       await Promise.all(pending);
       return failures.slice();
@@ -79,7 +93,7 @@ export function workerControl(session: AgentSession, signal: AbortSignal | undef
     unsubscribe() {
       listening = false;
       escalator.clear();
-      signal?.removeEventListener('abort', stop);
+      signal?.removeEventListener('abort', signalAbort);
       unsubscribe();
     },
   };

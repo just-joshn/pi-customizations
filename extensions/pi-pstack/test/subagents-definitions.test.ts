@@ -24,6 +24,22 @@ function write(path: string, body: string): string {
 }
 const agent = (name: string, extra = '', prompt = 'Prompt body') => `---\nname: ${name}\ndescription: does ${name}\n${extra}---\n${prompt}\n`;
 
+test('[G2-28] observer fields normalize blanks and retain nonempty values', () => {
+  const blank = parseAgentFile('/p/a.md', agent('z', 'observer: "  "\nobserverMessage: " "\n'), 'userSettings', '/p').agent;
+  expect(blank).toMatchObject({ agentType: 'z', systemPrompt: 'Prompt body' });
+  expect(blank).not.toHaveProperty('observer');
+  expect(blank).not.toHaveProperty('observerMessage');
+  const configured = parseAgentFile('/p/a.md', agent('z', 'observer: " watcher "\nobserverMessage: " Report risks "\ncacheTtl: 1h\n'), 'userSettings', '/p').agent;
+  expect(configured).toMatchObject({ observer: 'watcher', observerMessage: 'Report risks', cacheTtl: '1h' });
+});
+
+test('[G2-28] unsupported TTL and unknown experimental keys are omitted', () => {
+  const parsed = parseAgentFile('/p/a.md', agent('z', 'cacheTtl: 2h\nexperimentalUnknown: true\n'), 'userSettings', '/p');
+  expect(parsed.agent).toMatchObject({ agentType: 'z', systemPrompt: 'Prompt body' });
+  expect(parsed.agent).not.toHaveProperty('cacheTtl');
+  expect(parsed.agent).not.toHaveProperty('experimentalUnknown');
+});
+
 test('[G2-01] project definition beats user definition and lists stay sorted', () => {
   write('user/x.md', agent('x', '', 'from user'));
   write('proj/.claude/agents/x.md', agent('x', '', 'from project'));
@@ -42,6 +58,14 @@ test('[G2-01] policy beats flag beats project', () => {
   const flag = { ...builtinAgents({})[0], agentType: 'p', source: 'flagSettings' as const, systemPrompt: 'flag' } as never;
   const found = discoverAgents({ root: dir, userDirs: [], flagAgents: [flag], policyAgents: [policy], env: {} });
   expect(found.activeAgents.find((entry) => entry.agentType === 'p')?.source).toBe('policySettings');
+});
+
+test('duplicate suppression preserves later-directory precedence within the same source', () => {
+  const a = write('early/x.md', agent('x', '', 'earlier directory'));
+  const b = write('later/x.md', agent('x', '', 'later directory'));
+  const found = discoverAgents({ root: dir, userDirs: [], additionalDirs: [join(dir, 'early'), join(dir, 'later')], env: {} });
+  expect(found.allAgents.filter((entry) => entry.agentType === 'x').map((entry) => entry.filePath)).toEqual([a, b]);
+  expect(found.activeAgents.find((entry) => entry.agentType === 'x')).toMatchObject({ filePath: b, systemPrompt: 'later directory' });
 });
 
 test('[G2-02] discovery is cached by root until the cache is cleared', () => {
@@ -69,13 +93,17 @@ test('[G2-03] duplicate names in one directory are logged with the active path',
   const a = write('proj/.pi/agents/a/x.md', agent('x'));
   const b = write('proj/.pi/agents/b/x.md', agent('x'));
   const found = discoverAgents({ root: join(dir, 'proj'), userDirs: [], env: {} });
-  expect(found.logs).toContain(`[agents] Duplicate agent name 'x' (projectSettings): ${a}, ${b} — active: ${a}`);
+  expect(found.logs).toContain(`[agents] Duplicate agent name 'x' (projectSettings): ${a}, ${b} \u2014 active: ${b}`);
+  expect(found.activeAgents.find((entry) => entry.agentType === 'x')?.filePath).toBe(b);
   expect(sanitizeDisplay(`a\u0000b${'c'.repeat(300)}`)).toHaveLength(200);
-  expect(sanitizeDisplay('a\u0001b')).toBe('ab');
+  expect(sanitizeDisplay('a\u0001b')).toBe('a b');
+  const controls = String.fromCharCode(...Array.from({ length: 32 }, (_, index) => index));
+  expect(sanitizeDisplay(`prefix${controls}suffix`)).toBe('prefix suffix');
 });
 
 test.each([
   ['-x', false],
+  ['" -x "', false],
   ['a\uFF1Ab', false],
   ['fine', true],
 ])('[G2-04] name %s loads=%s', (name, loads) => {
@@ -128,4 +156,17 @@ test('[G2-11] built-in metadata', () => {
   expect(all.find((entry) => entry.agentType === 'Explore')?.systemPrompt).toContain('file search specialist');
   expect(all.find((entry) => entry.agentType === 'Plan')?.systemPrompt).toContain('Critical Files for Implementation');
   expect(all[0]?.systemPrompt.startsWith('You are an agent for Claude Code')).toBe(true);
+});
+
+test('diagnostic names replace Unicode controls and normalize whitespace', () => {
+  expect(sanitizeDisplay('  a\u202Eb\u0085c  \t d  ')).toBe('a b c d');
+  expect(sanitizeDisplay('')).toBe('');
+});
+
+test.for(['hooks: {}', 'PreToolUse: []', 'PermissionRequest: []', 'mcpServers: [private-server]'])('unsupported executable configuration %s never silently loads', (field) => {
+  const parsed = parseAgentFile('/p/a.md', agent('guarded', `${field}\n`), 'projectSettings', '/p');
+  expect(parsed).toMatchObject({ error: expect.stringContaining('requires a native Pi adapter') });
+  expect(parsed).not.toHaveProperty('agent');
+  const ordinary = parseAgentFile('/p/a.md', agent('ordinary'), 'projectSettings', '/p');
+  expect(ordinary.agent).toMatchObject({ agentType: 'ordinary', systemPrompt: 'Prompt body' });
 });

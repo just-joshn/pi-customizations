@@ -37,11 +37,31 @@ test.each([
   ['SYSTEM', false],
   ['User', false],
   ['Team-Lead', false],
+  ['a0123456789abcdef', false],
+  ['aworker-0123456789abcdef', false],
+  ['agent-a0123456789abcdef', true],
+  ['team_lead', true],
+  ['teamlead', true],
+  ['APREFIX-0123456789ABCDEF', false],
+  ['main\n', false],
+  ['ｍａｉｎ', false],
+  ['ma\u200bin', false],
   [`agent-${'ab'.repeat(8)}`, false],
 ])('[G1-06] worker name %s is accepted=%s', (name, accepted) => {
   const refusal = validateName(name);
   expect(refusal === undefined).toBe(accepted);
   if (name === '-a') expect(refusal?.message).toBe('name must start with a letter or digit and contain only letters, digits, underscores, or hyphens (max 64 chars)');
+});
+
+test('[G1-06] reserved main name has the exact routing refusal', () => {
+  expect(validateName('main')).toEqual({ code: 'subagent_name_invalid', message: '"main" is reserved \u2014 SendMessage routes it to the main conversation' });
+});
+
+test.for(['MAIN', 'SYSTEM', 'Team-Lead', 'a0123456789abcdef', 'aworker-0123456789abcdef'])('[G1-06] reserved routing name %s has the exact refusal', (name) => {
+  expect(validateName(name)).toEqual({
+    code: 'subagent_name_invalid',
+    message: 'name must not be a reserved name ("main", "team-lead", "user" or "system", in any spelling) or have the shape of an agent id \u2014 those already address an agent directly',
+  });
 });
 
 test('[G1-10] unknown type returns the sorted available list and no plan', () => {
@@ -62,6 +82,32 @@ test('[G1-10] normalized and ambiguous type matches', () => {
   const twin = { ...base, agents: [...base.agents, { agentType: 'explore', whenToUse: 'x' }, { agentType: 'EXPLORE', whenToUse: 'y' }] };
   const ambiguous = resolveAgentType(twin, 'Explore ');
   expect('refusal' in ambiguous && ambiguous.refusal.message).toContain('is ambiguous — matches');
+});
+
+test('[G2-12] exact matches precede normalized lookup and ambiguous misses name both candidates', () => {
+  const variants = {
+    ...base,
+    agents: [
+      { agentType: 'explore', whenToUse: '' },
+      { agentType: 'EX-PLORE', whenToUse: '' },
+    ],
+  };
+  expect(resolveAgentType(variants, 'explore')).toEqual({ type: 'explore' });
+  expect(resolveAgentType({ ...base, agents: [{ agentType: 'explore', whenToUse: '' }] }, 'Explore')).toEqual({ type: 'explore' });
+  expect(resolveAgentType(variants, 'Explore')).toEqual({ refusal: { code: 'subagent_type_ambiguous', message: "Agent type 'Explore' is ambiguous — matches EX-PLORE, explore. Use the exact name." } });
+});
+
+test('[G2-12] default resolution accepts exactly one allowed normalized general-purpose definition', () => {
+  const agents = [{ agentType: 'General_Purpose', whenToUse: '' }];
+  expect(resolveAgentType({ ...base, agents }, undefined)).toEqual({ type: 'General_Purpose' });
+  expect(resolveAgentType({ ...base, agents, allowedAgentTypes: [] }, undefined)).toMatchObject({ refusal: { code: 'subagent_type_missing' } });
+  expect(resolveAgentType({ ...base, agents: [...agents, { agentType: 'GENERALPURPOSE', whenToUse: '' }] }, undefined)).toMatchObject({ refusal: { code: 'subagent_type_missing' } });
+});
+
+test('[G2-12] an empty pool cannot manufacture a general-purpose agent', () => {
+  expect(resolveAgentType({ ...base, agents: [] }, undefined)).toEqual({
+    refusal: { code: 'subagent_type_missing', message: 'subagent_type is required: the general-purpose agent is not available in this session. Available agents: none' },
+  });
 });
 
 test('[G1-10] fork resolves only when available', () => {

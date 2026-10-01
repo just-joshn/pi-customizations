@@ -67,7 +67,7 @@ const readOnlyTools = ['read', 'grep', 'find', 'ls', 'bash'];
 const builtIn = { source: 'built-in', baseDir: 'built-in' } as const;
 
 export function builtinAgents(env: NodeJS.ProcessEnv, options: { mode?: 'none' | 'default' } = {}): readonly AgentDefinition[] {
-  if (options.mode === 'none') return [];
+  if (options.mode === 'none' || env.CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS || env.PI_DISABLE_BUILTIN_AGENTS) return [];
   const generalPurpose: AgentDefinition = {
     ...builtIn,
     agentType: 'general-purpose',
