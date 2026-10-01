@@ -36,6 +36,17 @@ const networkResponses = [];
 const finishedRequests = new Set();
 const traceEvents = [];
 let traceComplete = false;
+const controller = new AbortController();
+const interrupt = () => {
+  controller.abort(new Error('Canvas browser verification interrupted'));
+  for (const waiter of pending.values()) {
+    clearTimeout(waiter.timer);
+    waiter.reject(controller.signal.reason);
+  }
+  pending.clear();
+};
+process.on('SIGINT', interrupt);
+process.on('SIGTERM', interrupt);
 let next = 0;
 function selectPage(pages, expected) {
   const page = pages.find((entry) => entry.type === 'page' && entry.url === expected);
@@ -43,6 +54,7 @@ function selectPage(pages, expected) {
   return page;
 }
 function send(method, params = {}) {
+  controller.signal.throwIfAborted();
   return new Promise((resolveCall, reject) => {
     const id = ++next;
     const timer = setTimeout(() => {
@@ -62,6 +74,7 @@ try {
   let port;
   const deadline = Date.now() + 15000;
   while (Date.now() < deadline) {
+    controller.signal.throwIfAborted();
     const text = await readFile(join(profile, 'DevToolsActivePort'), 'utf8').catch(() => '');
     if (text) {
       port = text.split('\n')[0];
@@ -86,6 +99,8 @@ try {
   await writeFile(join(output, 'page-selection.json'), JSON.stringify({ selected: page.id, decoy: decoy.id, available: pages.map(({ title, url }) => ({ title, url })), diagnostic }, null, 2));
   socket = new WebSocket(page.webSocketDebuggerUrl);
   await new Promise((done, reject) => {
+    controller.signal.addEventListener('abort', () => reject(controller.signal.reason), { once: true });
+    controller.signal.throwIfAborted();
     socket.addEventListener('open', done, { once: true });
     socket.addEventListener('error', reject, { once: true });
   });
@@ -117,6 +132,7 @@ try {
   const networkDeadline = Date.now() + 15000;
   let documentResponse;
   while (!documentResponse) {
+    controller.signal.throwIfAborted();
     documentResponse = networkResponses.find((entry) => entry.response.url === url && entry.type === 'Document' && finishedRequests.has(entry.requestId));
     if (documentResponse) break;
     assert.ok(Date.now() < networkDeadline, 'the selected app document completes its network load');
@@ -186,6 +202,7 @@ try {
   await send('Tracing.end');
   const traceDeadline = Date.now() + 15000;
   while (!traceComplete) {
+    controller.signal.throwIfAborted();
     assert.ok(Date.now() < traceDeadline, 'Chrome completes the selected app interaction trace');
     await new Promise((done) => setTimeout(done, 40));
   }
@@ -210,5 +227,10 @@ try {
   socket?.close();
   if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
   await new Promise((done) => (child.exitCode !== null || child.signalCode !== null ? done() : child.once('exit', done)));
-  await rm(profile, { recursive: true, force: true });
+  try {
+    await rm(profile, { recursive: true, force: true });
+  } finally {
+    process.off('SIGINT', interrupt);
+    process.off('SIGTERM', interrupt);
+  }
 }
