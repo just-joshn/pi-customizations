@@ -2,8 +2,9 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { type ExtensionAPI, type SessionEntry, SessionManager, VERSION } from '@earendil-works/pi-coding-agent';
+import { type ExtensionAPI, type SessionEntry, VERSION } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import { workspaceHistory } from './history.ts';
 import { modelConfigPath } from './models.ts';
 import { boundedResult } from './results.ts';
 import type { StateStore } from './state.ts';
@@ -66,7 +67,7 @@ export function registerContext(pi: ExtensionAPI): void {
       const entries = boundedList(branch.toReversed().map(entryEvidence));
       const tools = boundedList(pi.getAllTools().map((tool) => ({ name: tool.name, description: tool.description.slice(0, summaryCharacters) })));
       const models = boundedList(ctx.modelRegistry.getAvailable().map((model) => `${model.provider}/${model.id}`));
-      const sessions = params.history ? await SessionManager.list(ctx.cwd, ctx.sessionManager.getSessionDir(), undefined, signal) : [];
+      const sessions = params.history ? await workspaceHistory(ctx.cwd, ctx.sessionManager.getSessionDir(), signal) : [];
       const history = boundedList(sessions.map((session) => ({ id: session.id, path: session.path, name: session.name?.slice(0, summaryCharacters) })));
       const details = {
         cwd: ctx.cwd,
