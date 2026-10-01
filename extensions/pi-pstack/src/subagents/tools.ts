@@ -9,6 +9,7 @@ import type { TaskRecord } from '../worker-records.ts';
 import type { WorkerRuntime } from '../worker-runtime.ts';
 import type { AgentLaunch } from '../worker-support.ts';
 import { decideAdmission } from './admission.ts';
+import { renderAgentCall, renderAgentResult, trackAgentCallGroups } from './agent-render.ts';
 import { AdmissionSlots } from './admission-slots.ts';
 import { type AgentDefinition, type Discovery, discoverAgents } from './definitions.ts';
 import { agentGuidance } from './guidance.ts';
@@ -200,6 +201,7 @@ class AgentLauncher {
 }
 
 function registerAgent(pi: ExtensionAPI, launcher: AgentLauncher, env: NodeJS.ProcessEnv): void {
+  const groups = trackAgentCallGroups(pi);
   pi.registerTool({
     name: 'Agent',
     label: 'Agent',
@@ -211,6 +213,8 @@ function registerAgent(pi: ExtensionAPI, launcher: AgentLauncher, env: NodeJS.Pr
     executionMode: 'parallel',
     annotations: { openWorldHint: true },
     execute: (id, params, signal, onUpdate, ctx) => launcher.launch(id, params as AgentParams, signal, onUpdate as Update, ctx),
+    renderCall: (args, theme, context) => renderAgentCall(args as AgentParams, theme, context, groups),
+    renderResult: (result, options, theme) => renderAgentResult(result, options, theme),
   });
 }
 
