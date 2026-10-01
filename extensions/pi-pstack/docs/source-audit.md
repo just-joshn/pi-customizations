@@ -8,6 +8,12 @@ Reference loads `plugin-metadata/plugin.json`, discovers the 47 skills and two a
 
 There is no extension runtime or hidden plugin hook in the source manifest. Most behavior is specified as model instructions. Exact copied text therefore establishes content parity, not observable host behavior or proof that a model follows every instruction.
 
+## Current bundled-agent requirement audit
+
+Both supplied agent snapshots match byte for byte. An initial ledger groups six Poteto-agent clauses and 21 Comment Sicko clauses. Fresh native persona-loader tests pass, including both Comment Sicko names, complete Poteto agent/mode content, and rejection of unknown names. This is loader/content evidence only.
+
+Conversation-agent reuse, actual background placement, exact first output, full reading/principle navigation, scoped diff fallback, live keep-list proof, truthful flags, and report-only execution remain unverified. No agent is spawned under the explicit no-subagent constraint. Source metadata intent must be distinguished from native host execution semantics; preserving `is_background` in prompt text does not prove background allocation. No source obligation is marked complete merely because its phrase appears in a loaded prompt.
+
 ## Current setup-pstack requirement audit
 
 The supplied setup source has an initial ledger of 41 clauses spanning detection, budgets, current-state preservation, role/panel semantics, validation, rule persistence, and the optional verification offer. Compound/default-role obligations and model-mediated branches remain unfinished. Fresh model/resolver tests pass. Two fresh real TUI runs pass eleven journeys each, including a detected fixture provider selection whose literal model and unlimited budget are persisted only after confirmation.
