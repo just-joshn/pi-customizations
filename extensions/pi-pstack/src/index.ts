@@ -8,6 +8,7 @@ import { registerContext, registerStatus } from './context.ts';
 import { hostInstructions } from './host.ts';
 import { readModelRule } from './models.ts';
 import { registerQuestions } from './questions.ts';
+import { registerEventFlags } from './subagents/sdk-events.ts';
 import { registerShells } from './shells.ts';
 import { createState, registerStateTools } from './state.ts';
 import { registerWorkers } from './workers.ts';
@@ -23,6 +24,7 @@ async function loadSkill(name: string) {
 
 export default async function pstack(pi: ExtensionAPI) {
   pi.registerFlag('append-subagent-system-prompt', { type: 'string', description: 'Append native child system instructions when CLAUDE_CODE_ENABLE_APPEND_SUBAGENT_PROMPT is enabled.' });
+  registerEventFlags(pi);
   pi.registerFlag('agents', { type: 'string', description: 'JSON map of native agent definitions for this session.' });
   const [mode, setup] = await Promise.all(['poteto-mode', 'setup-pstack'].map(loadSkill));
   if (!mode || !setup) throw new Error('Missing pstack resource. Run bun run generate.');
