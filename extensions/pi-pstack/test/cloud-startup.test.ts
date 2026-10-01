@@ -49,7 +49,7 @@ test('a rejected first cloud prompt closes its mocked allocation and records fai
   const { session } = await f.open();
   try {
     if (!runtime || !context) throw new Error('Main fixture lifecycle did not start');
-    await expect(runtime.start('fixture-call', { prompt: 'Not executed', environment: 'cloud' }, undefined, context)).rejects.toThrow('Fixture prompt rejected');
+    await expect(runtime.start('fixture-call', { prompt: 'Not executed', environment: 'cloud' }, undefined, context, undefined)).rejects.toThrow('Fixture prompt rejected');
     expect(close).toHaveBeenCalledOnce();
     expect((await runtime.output(taskId, false, undefined)).details).toMatchObject({ status: 'failed', output: 'Error: Fixture prompt rejected' });
     expect(f.requests).toEqual([]);
