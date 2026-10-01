@@ -64,9 +64,9 @@ export function decideAdmission(snapshot: AdmissionSnapshot, request: SpawnReque
     const invalid = validateName(request.name);
     if (invalid) return { ok: false, refusal: invalid };
   }
-  if (snapshot.stopPending) return { ok: false, refusal: { code: 'subagent_stop_pending', message: 'This agent is still stopping and cannot start more agents.' } };
   if (!snapshot.hasProject) return { ok: false, refusal: { code: 'subagent_no_directory_in_cwd_scope', message: 'A subagent cannot be started from here in this session. Do the task without a subagent.' } };
   if (snapshot.depth >= snapshot.depthCap) return { ok: false, counter: 'depth_limit', refusal: { code: 'subagent_depth_cap', message: depthMessage(snapshot.depth, snapshot.depthCap) } };
+  if (snapshot.stopPending) return { ok: false, refusal: { code: 'subagent_stop_pending', message: 'This agent has been stopped and its stop is still completing; it cannot launch new agents.' } };
   const resolved = resolveAgentType(snapshot, request.subagentType);
   if ('refusal' in resolved) return { ok: false, refusal: resolved.refusal };
   if (snapshot.maxBudgetUsd !== undefined && snapshot.spentUsd >= snapshot.maxBudgetUsd) {

@@ -8,6 +8,7 @@ import type { Readable } from 'node:stream';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from './deferred-wakes.ts';
+import { processGroupEvent } from './subagents/process-groups.ts';
 
 export type ShellStatus = { kind: 'running' } | { kind: 'exited'; code: number | null; signal: NodeJS.Signals | null } | { kind: 'stopped' };
 export type ShellRecord = Readonly<{
@@ -80,7 +81,7 @@ function describe(record: ShellRecord): string {
 export class ShellRuntime {
   private shells = new Map<string, Shell>();
   private readonly wakes: DeferredWakes;
-  constructor(pi: ExtensionAPI) {
+  constructor(private readonly pi: ExtensionAPI) {
     this.wakes = new DeferredWakes(pi);
   }
 
@@ -93,6 +94,7 @@ export class ShellRuntime {
     await writeFile(outputFile, '');
     const child = spawn('bash', ['-c', params.command], { cwd: ctx.cwd, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
     await once(child, 'spawn');
+    if (child.pid) this.pi.events.emit(processGroupEvent, { pid: child.pid });
     const record: ShellRecord = {
       id,
       title: params.title,
