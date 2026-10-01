@@ -8,6 +8,14 @@ Reference loads `plugin-metadata/plugin.json`, discovers the 47 skills and two a
 
 There is no extension runtime or hidden plugin hook in the source manifest. Most behavior is specified as model instructions. Exact copied text therefore establishes content parity, not observable host behavior or proof that a model follows every instruction.
 
+## Current team-kit dependency audit
+
+Fresh byte comparisons match all three supplied `control-cli`, `control-ui`, and `deslop` source files to the native copies. The initial ledger groups 35 CLI entries, 40 UI entries, and nine deslop entries. It distinguishes instructions and guardrails, conditional capability recipes, and illustrative code blocks. These are initial groupings, not a completed exhaustive semantic audit or proof of model adherence.
+
+Fresh installed TUI automation passes five reload checks and now saves the startup screen before its first action. A fresh isolated Chrome/CDP canvas run passes seven rendering/interaction checks with before/after screenshots. A separate local CDP run captures an accessibility tree containing the literal fixture heading and a nonempty sampled CPU profile over synthetic read-only computed-style work. The probe source and resulting artifacts are preserved for reruns. These observations establish the exercised mechanisms, not performance improvement, a startup comparison, or memory-leak diagnosis.
+
+Keyboard/focus/pointer browser paths, multiple-tab/no-match diagnostics, network controls, trace/heap collection, and CLI startup/hang/memory profiling remain unverified in this audit unit. Deslop's nine instruction entries remain content-only. Green quality tools do not prove that a model performs the requested diff review or follows its editing guardrails.
+
 ## Nonzero goal accounting evidence
 
 The goal source requires completion to preserve usage accounting. A new SDK integration test supplies synthetic nonzero main-session receipts. Session totals are 10 tokens before goal creation, 40 tokens and 0.4 synthetic cost after completion, and the same totals after reopening the persisted session. The completed goal record is also checked against its literal objective and status. Fourteen focused goal/delivery/host tests pass; the allowed real RPC suite still passes 451 assertions with zero findings.

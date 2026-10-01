@@ -67,6 +67,7 @@ try {
     `env PI_CODING_AGENT_DIR=${quote(agent)} PSTACK_JOURNEY_LOG=${quote(output)} pi --no-session --approve --no-extensions -e ${quote(join(root, 'src/index.ts'))} -e ${quote(join(root, 'test/journey-provider.ts'))} --provider journey-test --model recorder --thinking off`,
   );
   await wait(() => pane().includes('recorder'));
+  await writeFile(join(output, 'startup-terminal.txt'), pane());
   submit('/skill:e2e-terminal-reload');
   await wait(async () => (await requests()).length === 1 && pane().includes('recorded'));
   assert.ok(JSON.stringify((await requests())[0].messages).includes('Literal original terminal skill body.'));
