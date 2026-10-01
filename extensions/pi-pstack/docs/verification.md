@@ -15,7 +15,7 @@ Fresh checks verify the following contracts:
 - `bun pm pack --dry-run` passes. A package dry run does not verify an extracted package's runtime.
 - `bunx vitest run test/cli.test.ts` passes five distribution checks, including loading an extracted package through the real installed CLI. The inventory check permits only the documented `upstream/.gitignore` packer omission.
 
-The terminal question harness passes five journeys at 120 and 70 columns. It checks single selection, text entry, cancellation, multiple selection, and cancellation after one selection. A fixture command invokes the production AskQuestion handler with the real Pi UI. The harness does not exercise model-mediated tool dispatch or setup dialogs. It makes no inference calls and creates no subagents.
+The terminal harness passes six journeys at 120 and 70 columns. It checks single selection, text entry, cancellation, multiple selection, cancellation after one selection, and cancellation at the setup budget dialog. Fixture commands invoke the production AskQuestion and setup handlers with the real Pi UI. Budget cancellation returns false without creating a model configuration file. Model-mediated tool dispatch, role editing, write confirmation, and the optional verification offer remain unverified through the terminal. It makes no inference calls and creates no subagents.
 
 The current cloud lifecycle regressions use saved records, idle transport processes, or a main-session SDK fixture with a mocked launch boundary. The latest focused run passes 19 tests. The fixtures do not launch AI workers.
 
