@@ -51,15 +51,19 @@ test('retries are reported with their attempt numbers', () => {
   ]);
 });
 
-test('nested tool calls and unrelated events produce no update', () => {
+test('nested tool calls and unrelated events are skipped and the next real event is reported alone', () => {
   const { updates, listener } = observe();
   listener(started('child', 'read', 'parent'));
   listener({ type: 'agent_start' });
-  expect(updates).toEqual([]);
+  listener(started('a', 'grep'));
+  expect(updates.map((update) => update.text)).toEqual(['Task task-1 running. Active tools: grep. Latest: grep started.']);
 });
 
-test('a stale generation reports nothing', () => {
-  const { updates, listener } = observe(() => false);
+test('events from a stale generation are dropped and tracking resumes once current', () => {
+  let current = false;
+  const { updates, listener } = observe(() => current);
   listener(started('a', 'read'));
-  expect(updates).toEqual([]);
+  current = true;
+  listener(started('b', 'grep'));
+  expect(updates.map((update) => update.text)).toEqual(['Task task-1 running. Active tools: grep. Latest: grep started.']);
 });
