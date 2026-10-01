@@ -19,12 +19,14 @@ import { backgroundTasksDisabled } from './gates.ts';
 import { agentGuidance } from './guidance.ts';
 import { concurrencyCap, sessionSpawnCap } from './limits.ts';
 import { chooseChildModel } from './models.ts';
+import { restartPrompt } from './orphan-notices.ts';
 import { checkOptionPortability } from './option-portability.ts';
 import { pstackSetting } from './pstack-settings.ts';
 import { AgentPreconditionError, AgentTypeError } from './precondition-error.ts';
 import { flaggedOutput } from './completion-notice.ts';
 import { type AgentResult, AgentResultSchema, asyncLaunched, completed, resultText } from './results.ts';
 import { registerResumeCommand } from './resume-command.ts';
+import { ResumeError } from './resume-errors.ts';
 import { resumeLaunch } from './resume-launch.ts';
 import { type AgentInput, agentSchemaGates, buildAgentSchema, ListAgentsSchema, parseAgentInput, SendMessageSchema } from './schema.ts';
 import type { SubagentStats } from './stats.ts';
@@ -116,6 +118,16 @@ class AgentLauncher {
       launchFor: (record: TaskRecord) => resumeLaunch(record, ctx, { catalog: this.catalog, keepsAlive: (id) => this.runtime.keepsAlive(id) }),
     };
     return continueAgent(deps, request, ctx);
+  }
+
+  async restartOrphan(record: TaskRecord, ctx: ExtensionContext): Promise<ContinueOutcome> {
+    const request = { callId: `restart-${record.id}`, record, userInitiated: false, signal: undefined };
+    try {
+      return await this.continue({ ...request, message: undefined }, ctx);
+    } catch (error) {
+      if (!(error instanceof ResumeError) || error.code !== 'state') throw error;
+    }
+    return this.continue({ ...request, message: restartPrompt(record) }, ctx);
   }
 
   private refuse(decision: Extract<ReturnType<typeof decideAdmission>, { ok: false }>): never {
@@ -346,6 +358,7 @@ export function registerAgentTools(pi: ExtensionAPI, runtime: WorkerRuntime, env
       offers.mask((names) => names.filter((name) => name !== 'Agent' && name !== 'Task'));
     }
   });
+  runtime.setResumeHandler((record, ctx) => launcher.restartOrphan(record, ctx));
   registerAgent(pi, launcher, env);
   registerSendMessage(pi, runtime, launcher);
   registerResumeCommand(pi, runtime, (request, ctx) => launcher.continue(request, ctx));

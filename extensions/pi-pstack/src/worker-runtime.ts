@@ -15,6 +15,7 @@ import { validateId } from './subagents/identifiers.ts';
 import { AgentInvocations } from './subagents/invocations.ts';
 import { memoryEnabled } from './subagents/memory.ts';
 import { childStatsEvents } from './subagents/nested-depth.ts';
+import { type ResumeHandler, reconcileOrphans } from './subagents/orphan-recovery.ts';
 import { AgentPreconditionError } from './subagents/precondition-error.ts';
 import { groupSpawned, ProcessGroups, processGroupEvent } from './subagents/process-groups.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
@@ -121,9 +122,14 @@ export class WorkerRuntime {
   private readonly depthPolicy = new SessionDepthPolicy();
   readonly stats = new SubagentStats();
   private readonly frames: SdkEvents;
+  private resumeHandler: ResumeHandler | undefined;
   constructor(private readonly pi: ExtensionAPI) {
     this.completions = new DeferredWakes(pi);
     this.frames = new SdkEvents(pi);
+  }
+
+  setResumeHandler(handler: ResumeHandler): void {
+    this.resumeHandler = handler;
   }
 
   /** Reports a running task's move to the background as an SDK task_updated patch. */
@@ -184,7 +190,7 @@ export class WorkerRuntime {
       this.failedUsage.delete(event.toolCallId);
       return { usage };
     });
-    this.pi.on('session_start', async (_event, ctx) => this.restore(ctx));
+    this.pi.on('session_start', async (_event, ctx) => this.restore(ctx, true));
     this.pi.on('session_tree', async (_event, ctx) => this.restore(ctx));
     this.pi.on('session_shutdown', async () => {
       detachControl();
@@ -278,7 +284,7 @@ export class WorkerRuntime {
     if (failures.length) throw new AggregateError(failures, failures.join('; '));
   }
 
-  private async restore(ctx: ExtensionContext): Promise<void> {
+  private async restore(ctx: ExtensionContext, reconcile = false): Promise<void> {
     const completion = this.stopAll();
     const owner = this.generation;
     try {
@@ -307,8 +313,19 @@ export class WorkerRuntime {
         this.failedUsage = new Map();
         this.completions.clear();
         this.lifecycle = { kind: 'active' };
+        if (reconcile) this.recoverOrphans(ctx, branch);
       }
     }
+  }
+
+  private recoverOrphans(ctx: ExtensionContext, branch: ReturnType<ExtensionContext['sessionManager']['getBranch']>): void {
+    const canRead = this.pi.getActiveTools().some((name) => ['read', 'bash'].includes(name.toLowerCase()));
+    const { records, restart } = reconcileOrphans({ pi: this.pi, frames: this.frames, ctx, branch, resume: this.resumeHandler, canRead });
+    this.records = new Map([...this.records, ...records]);
+    const owner = this.generation;
+    void Promise.resolve()
+      .then(() => (owner === this.generation ? restart() : undefined))
+      .catch((error) => this.pi.events.emit('pstack:subagent-log', `Orphan restart failed: ${String(error)}`));
   }
 
   private priorTask(params: TaskParameters): TaskRecord | undefined {
