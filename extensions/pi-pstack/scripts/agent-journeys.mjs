@@ -1,4 +1,5 @@
 import { agentAppendJourney } from './agent-append-journey.mjs';
+import { agentDiscoveryAdmissionJourney } from './agent-discovery-admission-journey.mjs';
 import { agentDepthSettingJourney } from './agent-depth-setting-journey.mjs';
 import { agentGuidanceJourney } from './agent-guidance-journey.mjs';
 import { agentJsonInheritanceJourney } from './agent-json-inheritance-journey.mjs';
@@ -21,5 +22,6 @@ export function agentJourneys(check, startPi) {
     agentSimpleJourney(check, startPi),
     agentLegacyDepthJourney(check, startPi),
     agentDepthSettingJourney(check, startPi),
+    agentDiscoveryAdmissionJourney(check, startPi),
   ];
 }

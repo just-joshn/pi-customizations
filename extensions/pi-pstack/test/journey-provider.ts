@@ -64,6 +64,7 @@ const toolCalls: Record<string, PlannedCall[]> = {
   'JOURNEY:agentsimple': [{ name: 'Agent', arguments: { description: 'Must not delegate', prompt: 'SIMPLE_MUST_NOT_RUN_CHILD', subagent_type: 'general-purpose', run_in_background: false } }],
   'JOURNEY:agentjson': [{ name: 'Agent', arguments: { description: 'JSON definition probe', prompt: 'Report JSON definition.', subagent_type: 'probe-worker', run_in_background: false } }],
   'JOURNEY:agentremote': [{ name: 'Agent', arguments: { description: 'remote fallback probe', prompt: 'Report native fallback.', isolation: 'remote', run_in_background: false } }],
+  'JOURNEY:legacyalias': [{ name: 'Task', arguments: { description: 'legacy alias', prompt: 'Report legacy alias.', subagent_type: 'Explore', run_in_background: false } }],
   'JOURNEY:agentunknown': [{ name: 'Agent', arguments: { description: 'unknown type', prompt: 'never runs', subagent_type: 'not-a-type' } }],
   'JOURNEY:readonly': [{ name: 'Task', arguments: { prompt: 'readonly child turn', readonly: true, run_in_background: false } }],
   'JOURNEY:badcwd': [{ name: 'Task', arguments: { prompt: 'cwd child turn', cwd: 'no/such/directory', run_in_background: false } }],
@@ -323,7 +324,7 @@ function scriptedReply(model: Model<string>, context: Context, signal: AbortSign
     content,
     stopReason: content[0]?.type === 'toolCall' ? 'toolUse' : 'stop',
     timestamp: Date.now(),
-    usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+    usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: requested.includes('JOURNEY:costly') ? 0.02 : 0 } },
   };
   const stream = createAssistantMessageEventStream();
   const complete = () => {

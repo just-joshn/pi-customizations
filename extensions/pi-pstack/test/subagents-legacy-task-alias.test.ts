@@ -39,3 +39,13 @@ test('a Task call carrying the Agent contract launches through the Agent launche
     await fixture.close();
   }
 });
+
+test('a Task call naming a Reference persona keeps the Reference Task contract even with a description', async () => {
+  const fixture = await workerFixture();
+  try {
+    const done = (await fixture.call('Task', { description: 'reference persona', prompt: 'hello', subagent_type: 'generalPurpose', run_in_background: false })) as { details: Record<string, unknown> };
+    expect(done.details).toMatchObject({ persona: 'generalPurpose', status: 'settled' });
+  } finally {
+    await fixture.close();
+  }
+});

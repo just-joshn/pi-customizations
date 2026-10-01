@@ -1,5 +1,6 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import { isReferencePersona } from './personas.ts';
 import { AgentResultSchema } from './subagents/results.ts';
 import { type LaunchAgent, registerAgentTools } from './subagents/tools.ts';
 import { TaskParameters, TaskRecordSchema } from './worker-records.ts';
@@ -7,8 +8,11 @@ import { type TaskToolDetails, WorkerRuntime } from './worker-runtime.ts';
 
 export { restoreTaskRecords, taskSummary } from './worker-records.ts';
 
-function carriesAgentContract(params: object): boolean {
-  return 'description' in params && typeof params.description === 'string';
+const referenceOnlyFields = ['resume', 'readonly', 'environment', 'cwd'];
+
+function carriesAgentContract(params: TaskParameters & { description?: unknown }): boolean {
+  if (typeof params.description !== 'string' || referenceOnlyFields.some((field) => field in params)) return false;
+  return params.subagent_type === undefined || !isReferencePersona(params.subagent_type);
 }
 
 function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime, launchAgent: LaunchAgent): void {
