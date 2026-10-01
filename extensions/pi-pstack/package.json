@@ -48,7 +48,8 @@
     "check:upstream": "node scripts/verify-upstream.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "check:parity": "node scripts/check-subagent-parity.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
