@@ -90,7 +90,7 @@ test('a shadowed duplicate group is logged without an active location', () => {
 test('CLAUDE_CODE_SAFE_MODE limits discovery to built-ins', () => {
   write('proj/.claude/agents/custom.md', agent('custom'));
   const found = discoverAgents({ root: join(dir, 'proj'), userDirs: [], env: { CLAUDE_CODE_SAFE_MODE: '1' }, pluginAgents: [plugin] });
-  expect(found.activeAgents.map((entry) => entry.agentType)).toEqual(['Explore', 'general-purpose', 'Plan', 'statusline-setup']);
+  expect(found.activeAgents.map((entry) => entry.agentType)).toEqual(['claude-code-guide', 'Explore', 'general-purpose', 'Plan', 'statusline-setup']);
 });
 
 test('oversized files are skipped with the recovered log and symlinked regular files load', () => {

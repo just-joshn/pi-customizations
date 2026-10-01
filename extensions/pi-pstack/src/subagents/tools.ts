@@ -138,6 +138,10 @@ class AgentLauncher {
 
   private async isolate(admitted: Admitted, ctx: ExtensionContext): Promise<{ cwd?: string; worktree?: AgentWorktree; outcome: () => WorktreeOutcome | undefined; settle?: () => Promise<Partial<TaskRecord>> }> {
     const requested = admitted.plan.isolation ?? admitted.definition.isolation;
+    if (requested !== undefined && admitted.definition.source === 'built-in' && admitted.definition.agentType === 'web-fetch') {
+      this.pi.events.emit('pstack:subagent-log', `[web-fetch agent] isolation:'${requested}' ignored; the built-in web-fetch agent always runs as a local agent`);
+      return { outcome: () => undefined };
+    }
     const wantsWorktree = requested === 'worktree' || (requested === 'remote' && (await repositoryRoot(ctx.cwd)) !== undefined);
     if (!wantsWorktree) return { outcome: () => undefined };
     const id = randomUUID().slice(0, 8);

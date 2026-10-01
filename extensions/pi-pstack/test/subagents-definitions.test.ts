@@ -82,7 +82,7 @@ test('[G2-02] unreadable agent directory falls back to built-ins with a log', ()
   chmodSync(join(dir, 'user'), 0o000);
   try {
     const found = discoverAgents({ root: dir, userDirs: [join(dir, 'user')], env: {} });
-    expect(found.activeAgents.map((entry) => entry.source)).toEqual(['built-in', 'built-in', 'built-in', 'built-in']);
+    expect(found.activeAgents.map((entry) => entry.source)).toEqual(['built-in', 'built-in', 'built-in', 'built-in', 'built-in']);
     expect(found.logs[0]).toContain('Error loading agent definitions: ');
   } finally {
     chmodSync(join(dir, 'user'), 0o755);
@@ -140,8 +140,8 @@ test('[G2-06] model inherit folds case, background true stores, Skill tool migra
 test('[G2-10] built-ins by mode, env and safe mode', () => {
   expect(builtinAgents({}, { mode: 'none' })).toEqual([]);
   const names = (env: NodeJS.ProcessEnv) => builtinAgents(env).map((entry) => entry.agentType);
-  expect(names({})).toEqual(['general-purpose', 'statusline-setup', 'Explore', 'Plan']);
-  expect(names({ CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS: '1' })).toEqual(['general-purpose', 'statusline-setup']);
+  expect(names({})).toEqual(['general-purpose', 'statusline-setup', 'Explore', 'Plan', 'claude-code-guide']);
+  expect(names({ CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS: '1' })).toEqual(['general-purpose', 'statusline-setup', 'claude-code-guide']);
   const safe = discoverAgents({ root: dir, safeMode: true, env: {} });
   expect(safe.activeAgents.every((entry) => entry.source === 'built-in')).toBe(true);
   expect(safe.warnings).toEqual(['Safe mode: all customizations are disabled (CLAUDE.md, skills, plugins, hooks, MCP, agents, and more)']);
