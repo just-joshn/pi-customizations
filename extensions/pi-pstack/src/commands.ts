@@ -2,6 +2,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { createDelivery } from './deliver.ts';
 import { setupModels } from './models.ts';
 import type { StateStore } from './state.ts';
 
@@ -25,9 +26,9 @@ function turnOff(store: StateStore, ctx: ExtensionContext) {
   ctx.ui.notify('Poteto mode is off.', 'info');
 }
 
-async function setup(pi: ExtensionAPI, ctx: ExtensionContext, store: StateStore) {
-  if (!(await setupModels(ctx))) return;
-  if (store.read().verificationOffered) return;
+export async function setupPstack(pi: ExtensionAPI, ctx: ExtensionContext, store: StateStore) {
+  if (!(await setupModels(ctx))) return false;
+  if (store.read().verificationOffered) return true;
   store.update({ ...store.read(), verificationOffered: true }, ctx);
   pi.sendUserMessage(
     [
@@ -38,10 +39,11 @@ async function setup(pi: ExtensionAPI, ctx: ExtensionContext, store: StateStore)
     ].join('\n'),
     { deliverAs: 'followUp' },
   );
+  return true;
 }
 async function handleSetup(pi: ExtensionAPI, ctx: ExtensionContext, store: StateStore) {
   try {
-    await setup(pi, ctx, store);
+    await setupPstack(pi, ctx, store);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     ctx.ui.notify(message, 'error');
@@ -50,6 +52,7 @@ async function handleSetup(pi: ExtensionAPI, ctx: ExtensionContext, store: State
 }
 
 export function registerCommands(pi: ExtensionAPI, skills: Skills, store: StateStore): void {
+  const deliver = createDelivery(pi);
   for (const [name, skill] of skills) {
     pi.registerCommand(name, {
       description: skill.description,
@@ -65,7 +68,7 @@ export function registerCommands(pi: ExtensionAPI, skills: Skills, store: StateS
           }
           store.toggle(true, ctx);
         }
-        pi.sendUserMessage(expand(skills, name, args), { deliverAs: 'followUp' });
+        await deliver(ctx, expand(skills, name, args));
       },
     });
   }

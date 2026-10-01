@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { mkdtemp, readFile, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -30,7 +30,7 @@ import { agentSystemPrompt, appendedSubagentPrompt } from './subagents/system-pr
 import { provenanceFields } from './subagents/worktree-metadata.ts';
 import { trackedBashTool } from './subagents/tracked-bash.ts';
 import type { AgentCheckout } from './subagents/worktree-hooks.ts';
-import type { TaskParameters, TaskRecord } from './worker-records.ts';
+import { type TaskParameters, type TaskRecord, taskOwnerEntryType } from './worker-records.ts';
 
 export async function childModelRuntime(readonly: boolean, provider: string, ctx: ExtensionContext): Promise<ModelRuntime | undefined> {
   if (!readonly) return undefined;
@@ -42,16 +42,44 @@ export async function childModelRuntime(readonly: boolean, provider: string, ctx
   return runtime;
 }
 
-export function deduplicateExtensions<T extends { resolvedPath: string }>(extensions: T[]): T[] {
-  return extensions
+function packageName(entry: string): string | undefined {
+  try {
+    return JSON.parse(readFileSync(join(dirname(entry), '..', 'package.json'), 'utf8')).name;
+  } catch {
+    return undefined;
+  }
+}
+
+function canonical(path: string): string {
+  try {
+    return realpathSync(path);
+  } catch {
+    return path;
+  }
+}
+
+export function deduplicateExtensions<T extends { resolvedPath: string }>(extensions: T[], ownEntry?: string): T[] {
+  const unique = extensions
     .map((extension, index) => ({ extension, index }))
     .toSorted((left, right) => (left.extension.resolvedPath < right.extension.resolvedPath ? -1 : left.extension.resolvedPath > right.extension.resolvedPath ? 1 : left.index - right.index))
     .filter((item, index, sorted) => index === 0 || item.extension.resolvedPath !== sorted[index - 1]?.extension.resolvedPath)
     .toSorted((left, right) => left.index - right.index)
     .map(({ extension }) => extension);
+  if (!ownEntry) return unique;
+  const own = canonical(ownEntry);
+  return unique.filter((extension) => canonical(extension.resolvedPath) === own || packageName(extension.resolvedPath) !== 'pi-pstack');
 }
 
-export function sumUsage(messages: AgentSession['messages'], previous?: Usage): Usage {
+type LoadedExtensions<T> = { extensions: T[]; errors: Array<{ path: string; error: string }> };
+
+export function workerExtensions<T extends { path: string; resolvedPath: string }, R extends LoadedExtensions<T>>(result: R, ownEntry: string): R {
+  const extensions = deduplicateExtensions(result.extensions, ownEntry);
+  const dropped = result.extensions.filter((extension) => !extensions.includes(extension)).map((extension) => extension.path);
+  const errors = result.errors.filter((error) => !dropped.some((path) => error.path === path || error.error.endsWith(` conflicts with ${path}`)));
+  return { ...result, extensions, errors };
+}
+
+export function sumUsage(messages: ReadonlyArray<{ role: string; usage?: Usage }>, previous?: Usage): Usage {
   const empty: Usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
   return messages.reduce(
     (sum, message) => {
@@ -182,7 +210,10 @@ async function openChildTranscript(options: OpenWorker, cwd: string, dir: string
   const { id, params, prior, launch, appendedPrompt, agentDefinitions, ctx } = options;
   const path = prior?.sessionFile ?? (await createChildTranscript(cwd, dir, id, ctx.sessionManager.getSessionFile()));
   const manager = SessionManager.open(path, dir, cwd);
-  if (!prior) manager.appendCustomEntry(environmentEntryType, await agentEnvironment(id, ctx.sessionManager.getSessionId(), cwd));
+  if (!prior) {
+    manager.appendCustomEntry(environmentEntryType, await agentEnvironment(id, ctx.sessionManager.getSessionId(), cwd));
+    manager.appendCustomEntry(taskOwnerEntryType, { id });
+  }
   if (fork?.seed) seedForkTranscript(manager, fork.seed.messages, fork.seed.state);
   const worktree = launch?.worktree?.path ?? prior?.worktreePath ?? prior?.inheritedWorktreePath ?? options.inheritedWorktree;
   saveChildContext(manager, {
@@ -223,7 +254,7 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
     additionalExtensionPaths: readonly ? [] : manifest.extensions.map((path) => join(root, path)),
     additionalSkillPaths: fork ? [] : manifest.skills.map((path) => join(root, path)),
     additionalPromptTemplatePaths: manifest.prompts.map((path) => join(root, path)),
-    extensionsOverride: (result) => ({ ...result, extensions: deduplicateExtensions(result.extensions) }),
+    extensionsOverride: (result) => workerExtensions(result, join(root, 'src/index.ts')),
   });
   const dir = await workerDirectory(ctx);
   const { manager, sessionFile } = await openChildTranscript(options, cwd, dir, depth, fork);

@@ -2,8 +2,9 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { type ExtensionAPI, type SessionEntry, SessionManager, VERSION } from '@earendil-works/pi-coding-agent';
+import { type ExtensionAPI, type SessionEntry, VERSION } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import { workspaceHistory } from './history.ts';
 import { modelConfigPath } from './models.ts';
 import { boundedResult } from './results.ts';
 import type { StateStore } from './state.ts';
@@ -66,7 +67,7 @@ export function registerContext(pi: ExtensionAPI): void {
       const entries = boundedList(branch.toReversed().map(entryEvidence));
       const tools = boundedList(pi.getAllTools().map((tool) => ({ name: tool.name, description: tool.description.slice(0, summaryCharacters) })));
       const models = boundedList(ctx.modelRegistry.getAvailable().map((model) => `${model.provider}/${model.id}`));
-      const sessions = params.history ? await SessionManager.list(ctx.cwd, undefined, undefined, signal) : [];
+      const sessions = params.history ? await workspaceHistory(ctx.cwd, ctx.sessionManager.getSessionDir(), signal) : [];
       const history = boundedList(sessions.map((session) => ({ id: session.id, path: session.path, name: session.name?.slice(0, summaryCharacters) })));
       const details = {
         cwd: ctx.cwd,
@@ -113,7 +114,7 @@ export function registerStatus(pi: ExtensionAPI, store: StateStore): void {
         `pstack ${versions.pstack} with cursor-team-kit ${versions.teamKit} for Pi ${VERSION}. ${skillCount} skills, ${promptCount} prompt templates. Poteto mode ${state.enabled ? 'on' : 'off'}.${todoSummary}`,
         `Model configuration: ${modelConfigPath()}`,
         `Compatibility report: ${join(root, 'docs/parity.md')}`,
-        'Partial runtime parity. Cursor cloud agents, hosted automation editor, cloud timers, goals, bot routines, server-synced create-skill and credential isolation are not supplied.',
+        'Cloud Tasks run in local git worktrees. The hosted automation editor, Grok Bot routines and credential isolation have no Pi equivalent yet.',
       ];
       if (subcommand === 'todos' && state.todos.length === 0) lines.push('', 'Todos: none.');
       if (subcommand === 'todos' && state.todos.length > 0) {

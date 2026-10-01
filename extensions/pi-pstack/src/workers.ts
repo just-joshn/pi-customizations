@@ -4,7 +4,8 @@ import { isCursorPersona } from './personas.ts';
 import { AgentResultSchema } from './subagents/results.ts';
 import { registerTaskPanel } from './subagents/task-panel.ts';
 import { type LaunchAgent, registerAgentTools } from './subagents/tools.ts';
-import { TaskParameters, TaskRecordSchema } from './worker-records.ts';
+import { discoverTasks } from './task-discovery.ts';
+import { TaskParameters, TaskRecordSchema, taskSummary } from './worker-records.ts';
 import { type TaskToolDetails, WorkerRuntime } from './worker-runtime.ts';
 
 export { restoreTaskRecords, taskSummary } from './worker-records.ts';
@@ -20,12 +21,13 @@ function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime, launchAgent:
   pi.registerTool<typeof TaskParameters, TaskToolDetails | Awaited<ReturnType<LaunchAgent>>['details']>({
     name: 'Task',
     label: 'Task',
-    description: 'Start or resume a Pi subagent. Background runs return an ID and deliver completion. Cloud execution is unavailable. Readonly limits tools; it is not an OS sandbox. Models must resolve to configured Pi providers.',
+    description:
+      'Start or resume a Pi subagent. Background runs return an ID and deliver completion. environment cloud requires a configured isolated VM executor. Readonly limits tools; it is not an OS sandbox. Models must resolve to configured Pi providers.',
     promptSnippet: 'Start or resume a local Pi subagent; background runs return a task ID',
     promptGuidelines: [
-      'Task, TaskOutput, TaskMessage, TaskStop implement local delegation. Use exact available provider/model IDs, optionally :thinking. auto and inherit-parent inherit the parent. Unavailable Cursor slugs fail with available choices. Follow the source fallback policy and report any model change.',
-      'Cloud Task execution is unavailable. Never silently replace a required cloud task with local execution. Readonly workers have restricted tools, not an OS sandbox. Agent-mode workers use installed Pi extensions; their tool availability depends on those extensions.',
-      'Task also supports the bundled ci-watcher and thermo-nuclear-code-quality-review personas. ci-watcher inherits the parent model unless the caller supplies a configured Pi model, matching observed Cursor plugin behavior. No model is silently substituted. The kit references Cursor built-in shell and explore personas whose contracts are not published here; these remain unsupported. Collect the required diff and file contents with available tools before invoking the thermo review persona.',
+      'Task, TaskOutput, TaskMessage, TaskStop implement Pi delegation. Use exact available provider/model IDs, optionally :thinking. auto and inherit-parent inherit the parent. A slug with no configured provider fails and lists the available choices. Follow the source fallback policy and report any model change.',
+      'environment cloud starts a detached Pi root in a configured separate VM at cloud_base_branch (local branch, else origin/<branch>) or the committed parent HEAD. remote_executor selects a configured VM; no local fallback is permitted. Each VM admits one active job. Placement receipts identify the actual machine, virtualization, boot, checkout SHA and session. Resume preserves that placement. Uncommitted parent changes are not in it, so commit or push what the worker needs. The worktree stays after the task ends, so its branch and commits survive. environment local, the default, shares the parent checkout. Readonly workers have restricted tools, not an OS sandbox. Remote workers use guest-installed Pi extensions and guest credentials.',
+      'Task also supports the bundled ci-watcher and thermo-nuclear-code-quality-review personas. ci-watcher inherits the parent model unless the caller supplies a configured Pi model, matching observed Cursor plugin behavior. No model is silently substituted. The shell and explore personas are native. Collect the required diff and file contents with available tools before invoking the thermo review persona.',
     ],
     parameters: TaskParameters,
     outputSchema: Type.Union([TaskRecordSchema, AgentResultSchema]),
@@ -80,6 +82,27 @@ function registerControlTools(pi: ExtensionAPI, runtime: WorkerRuntime): void {
   });
 }
 
+function registerTaskList(pi: ExtensionAPI, runtime: WorkerRuntime): void {
+  pi.registerTool({
+    name: 'TaskList',
+    label: 'List tasks',
+    description: 'List tasks recorded in the current Pi parent branch, with durable session and remote placement pointers.',
+    parameters: Type.Object({ repository: Type.Optional(Type.Boolean()), branch: Type.Optional(Type.String({ minLength: 1 })) }),
+    outputSchema: Type.Object({ tasks: Type.Array(TaskRecordSchema) }),
+    exposure: 'direct',
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+    execute: async (_id, params, _signal, _update, ctx) => {
+      if (!params.repository) {
+        if (params.branch) throw new Error('Branch discovery requires repository: true.');
+        const tasks = runtime.list();
+        return { content: [{ type: 'text', text: JSON.stringify({ tasks: tasks.map((record) => JSON.parse(taskSummary(record))) }) }], details: { tasks } };
+      }
+      const receipts = await discoverTasks(ctx.cwd, params.branch);
+      return { content: [{ type: 'text', text: JSON.stringify({ tasks: receipts.map((item) => ({ ...JSON.parse(taskSummary(item.record)), branch: item.branch, observed: 'launch receipt; TaskAttach reconciles live status' })) }) }], details: { tasks: receipts.map((item) => item.record) } };
+    },
+  });
+}
+
 export function registerWorkers(pi: ExtensionAPI): void {
   const runtime = new WorkerRuntime(pi);
   runtime.registerLifecycle();
@@ -87,4 +110,5 @@ export function registerWorkers(pi: ExtensionAPI): void {
   registerTaskTool(pi, runtime, launchAgent);
   registerControlTools(pi, runtime);
   registerTaskPanel(pi, runtime);
+  registerTaskList(pi, runtime);
 }

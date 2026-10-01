@@ -1,5 +1,13 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { constants } from "node:os";
 import { join } from "node:path";
 
 const scriptsDirectory = import.meta.dir;
@@ -22,22 +30,124 @@ function currentInstallKey(): string {
     .digest("hex");
 }
 
-export function ensureDependenciesInstalled(): void {
-  const installKey = currentInstallKey();
-  if (
+const installLockPath = join(scriptsDirectory, ".poteto-mode-tools-install.lock");
+const lockPollMilliseconds = 100;
+const lockWaitMilliseconds = 5 * 60 * 1000;
+
+function isInstalled(installKey: string): boolean {
+  return (
     existsSync(commanderPackagePath) &&
     existsSync(installKeyPath) &&
     readFileSync(installKeyPath, "utf8").trim() === installKey
-  ) {
-    return;
-  }
+  );
+}
 
-  const result = Bun.spawnSync(
+function processAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === "EPERM";
+  }
+}
+
+function lockIsOld(): boolean {
+  try {
+    return Date.now() - statSync(installLockPath).mtimeMs > lockWaitMilliseconds;
+  } catch {
+    return false;
+  }
+}
+
+function lockIsStale(): boolean {
+  let pid = Number.NaN;
+  try {
+    pid = Number(readFileSync(join(installLockPath, "pid"), "utf8"));
+  } catch {}
+  return Number.isInteger(pid) && pid > 0 ? !processAlive(pid) : lockIsOld();
+}
+
+function tryAcquireInstallLock(): boolean {
+  try {
+    mkdirSync(installLockPath);
+    writeFileSync(join(installLockPath, "pid"), String(process.pid));
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "EEXIST") return false;
+    throw error;
+  }
+}
+
+function acquireInstallLock(installKey: string): boolean {
+  const deadline = Date.now() + lockWaitMilliseconds;
+  while (!tryAcquireInstallLock()) {
+    if (isInstalled(installKey)) return false;
+    if (lockIsStale()) rmSync(installLockPath, { recursive: true, force: true });
+    else if (Date.now() > deadline)
+      throw new Error(
+        "timed out waiting for another process to finish installing dependencies"
+      );
+    else Bun.sleepSync(lockPollMilliseconds);
+  }
+  return true;
+}
+
+interface SpawnResult {
+  readonly exitCode: number;
+  readonly stdout: string;
+  readonly stderr: string;
+}
+
+const readStream = (stream: unknown): Promise<string> =>
+  stream instanceof ReadableStream
+    ? new Response(stream).text()
+    : Promise.resolve("");
+
+async function spawnForwarding(
+  argv: string[],
+  cwd: string,
+  inherit: boolean
+): Promise<SpawnResult> {
+  const child = inherit
+    ? Bun.spawn(argv, {
+        cwd,
+        env: process.env,
+        stdin: "inherit",
+        stdout: "inherit",
+        stderr: "inherit",
+      })
+    : Bun.spawn(argv, { cwd, stdout: "pipe", stderr: "pipe" });
+  const forwarders = (["SIGINT", "SIGTERM"] as const).map((signal) => {
+    const forward = (): void => {
+      child.kill(signal);
+    };
+    process.on(signal, forward);
+    return [signal, forward] as const;
+  });
+  const [stdout, stderr] = await Promise.all([
+    readStream(child.stdout),
+    readStream(child.stderr),
+  ]);
+  await child.exited;
+  for (const [signal, forward] of forwarders) process.off(signal, forward);
+  const signalled = child.signalCode;
+  return {
+    exitCode:
+      child.exitCode ??
+      (signalled === null ? 1 : 128 + (constants.signals[signalled] ?? 0)),
+    stdout,
+    stderr,
+  };
+}
+
+async function installDependencies(installKey: string): Promise<void> {
+  const result = await spawnForwarding(
     [process.execPath, "install", "--frozen-lockfile"],
-    { cwd: scriptsDirectory }
+    scriptsDirectory,
+    false
   );
   if (result.exitCode !== 0) {
-    process.stdout.write(result.stdout);
+    process.stderr.write(result.stdout);
     process.stderr.write(result.stderr);
     throw new Error(
       `bun install --frozen-lockfile exited with status ${result.exitCode}`
@@ -48,15 +158,23 @@ export function ensureDependenciesInstalled(): void {
       "bun install --frozen-lockfile completed without installing commander"
     );
   }
-
   writeFileSync(installKeyPath, `${installKey}\n`);
+}
 
-  const restarted = Bun.spawnSync([process.execPath, ...process.argv.slice(1)], {
-    cwd: process.cwd(),
-    env: process.env,
-    stdin: "inherit",
-    stdout: "inherit",
-    stderr: "inherit",
-  });
-  process.exit(restarted.exitCode ?? 1);
+export async function ensureDependenciesInstalled(): Promise<void> {
+  const installKey = currentInstallKey();
+  if (isInstalled(installKey)) return;
+  if (acquireInstallLock(installKey)) {
+    try {
+      if (!isInstalled(installKey)) await installDependencies(installKey);
+    } finally {
+      rmSync(installLockPath, { recursive: true, force: true });
+    }
+  }
+  const restarted = await spawnForwarding(
+    [process.execPath, ...process.argv.slice(1)],
+    process.cwd(),
+    true
+  );
+  process.exit(restarted.exitCode);
 }

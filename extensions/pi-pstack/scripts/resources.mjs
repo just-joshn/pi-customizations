@@ -3,12 +3,20 @@ import { chmod, mkdir, readdir, readFile, rmdir, stat, unlink, writeFile } from 
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { cloudVm, localState, remoteFallback } from './resource-text.mjs';
+import { pinLatest, sentenceCaseHeadings, tabIndentFences } from './resource-transforms.mjs';
+
 const root = fileURLToPath(new URL('../', import.meta.url));
 const sources = [
   { directory: 'upstream', inventory: 'docs/source-inventory.json' },
   { directory: 'upstream-team-kit', inventory: 'docs/team-kit-source-inventory.json' },
 ];
 const write = process.argv.includes('--write');
+const routineAdapter = await readFile(join(root, 'host/adapters/make-bot-ui/SKILL.md'));
+const overlayNames = (await readdir(join(root, 'scripts/overlays'))).filter((name) => name.endsWith('.mjs')).sort();
+const overlays = (await Promise.all(overlayNames.map((name) => import(new URL(`./overlays/${name}`, import.meta.url))))).flatMap((module) => module.default);
+const rowNames = (await readdir(join(root, 'scripts/resource-rows'))).filter((name) => name.endsWith('.mjs')).sort();
+const generatedRows = (await Promise.all(rowNames.map((name) => import(new URL(`./resource-rows/${name}`, import.meta.url))))).flatMap((module) => module.default);
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 if (!manifest.pi?.prompts?.includes('./prompts') || !manifest.files?.includes('prompts')) {
@@ -19,6 +27,7 @@ async function files(dir, installedDependencies = false) {
   const paths = await Promise.all(
     items.map(async (item) => {
       if (installedDependencies && item.name === 'node_modules' && item.isDirectory()) return [];
+      if (installedDependencies && item.name === '.DS_Store') return [];
       const path = join(dir, item.name);
       if (item.isDirectory()) return files(path, installedDependencies);
       if (item.isFile()) return [path];
@@ -55,8 +64,14 @@ const modelRule = 'Map model rule location to Pi agent configuration.';
 const skillDirectories = 'Map user and project skill directories to Pi discovery locations.';
 const transcripts = 'Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts.';
 const portableDates = 'Replace BSD-only stat and date calls with Perl so transcript dates survive GNU or uutils coreutils on PATH.';
-const repositorySkills = 'Map the upstream repository path for the bundled skills to this repository layout.';
+const dependencyCorrections = 'Adapt external dependency instructions to Pi host capabilities and evidence rules.';
 const hostPaths = [
+  [
+    /^skills\/pr-review-canvas\/SKILL\.md$/,
+    'Run this backgrounded, then navigate the in-app browser to',
+    'Run this backgrounded, then open a local browser. Follow the control-ui skill to connect to the browser and verify the page at',
+    'Map the review canvas browser step to the local control-ui workflow.',
+  ],
   [
     markdownFiles,
     'Look recursively for `.cursor/skills/**/*-mode/SKILL.md` and `~/.cursor/skills/*-mode/SKILL.md`',
@@ -73,7 +88,7 @@ const hostPaths = [
     'Transcripts live in the workspace Pi session directory that the pstack host contract names. Read that path. Pi\'s `sessionDir` setting, `PI_CODING_AGENT_SESSION_DIR`, and `--session-dir` can move it. By default transcripts live at `~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`, with Task subagent transcripts under `<slug>/<parent-uuid>/subagents/agent-<child-id>.jsonl` (older runs used `<slug>/pstack-workers/<parent-uuid>/`). `<slug>` is the workspace path with the leading slash dropped, each "/", "\\", and ":" turned into "-", and `--` added at both ends (so `/Users/you/proj` becomes `--Users-you-proj--`). Every line is one session entry.',
     transcripts,
   ],
-  [markdownFiles, 'ls -t <agent-transcripts>/*.jsonl <agent-transcripts>/*/*.jsonl <agent-transcripts>/*/subagents/*.jsonl', 'ls -t <session-dir>/*.jsonl <session-dir>/*/subagents/agent-*.jsonl <session-dir>/pstack-workers/*/*.jsonl', transcripts],
+  [markdownFiles, 'ls -t <agent-transcripts>/*.jsonl <agent-transcripts>/*/*.jsonl <agent-transcripts>/*/subagents/*.jsonl', '', transcripts],
   [
     markdownFiles,
     'Three transcript layouts: legacy flat (`<id>.jsonl`), current nested (`<id>/<id>.jsonl`), and subagent (`<parent>/subagents/<child>.jsonl`).',
@@ -89,28 +104,127 @@ const hostPaths = [
   [markdownFiles, '`agent-transcripts/` directory', 'Pi session directory', transcripts],
   [markdownFiles, 'under `agent-transcripts/`', 'under the Pi session directory', transcripts],
   [markdownFiles, '`~/.cursor/projects/*/`', '`~/.pi/agent/sessions/*/`', transcripts],
-  [markdownFiles, 'pstack/skills/', 'extensions/pi-pstack/skills/', repositorySkills],
+  [
+    /^skills\/deslop\/SKILL\.md$/,
+    'Check the diff against main and remove AI-generated slop introduced in the branch.',
+    "Find the pull request's actual base branch from forge metadata or the task brief. For a stacked pull request, use its direct parent branch. For non-PR work, use the task's named comparison base. Review only changes introduced by this branch; if the scope is unknown, report it and do not edit outside the known diff. Never default to `main` when it is not the base.",
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/deslop\/SKILL\.md$/,
+    '- Extra comments that are unnecessary or inconsistent with local style',
+    '- Extra comments that are unnecessary or inconsistent with local style, except comments that document invariants, constraints, security, compatibility, or user intent',
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/deslop\/SKILL\.md$/,
+    '- Keep behavior unchanged unless fixing a clear bug.',
+    '- Keep behavior unchanged unless fixing a clear bug.\n- Preserve all comments that document constraints, invariants, security, compatibility, or user intent. Do not delete or rewrite them.',
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/swarm\/SKILL\.md$/,
+    'Fan out N parallel cloud workers.',
+    `Fan out N parallel workers. Default each worker to \`environment: "cloud"\` when the host contract shows a configured remote executor. Use a local worker when the task needs an app, simulator, credentials, transcripts, or IDE state available only on this machine. Verify a cloud worker's host, working directory, and exact commit SHA. ${cloudVm} ${remoteFallback} If a required machine is unavailable, mark the lane BLOCKED.`,
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/swarm\/SKILL\.md$/,
+    'N is total workers, not the cloud concurrency limit.',
+    'N is the total worker count, not the current concurrency limit.',
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/swarm\/SKILL\.md$/,
+    'Spawn all N workers in one message with `subagent_type: generalPurpose`, `environment: "cloud"`, `run_in_background: true`, and the step 4 model, left unset for `auto` or `inherit-parent`. Use `environment: "local"` only when the worker needs access to something on the user\'s computer.',
+    'Spawn all N workers in one message with `subagent_type: generalPurpose`, `run_in_background: true`, and the step 4 model, left unset for `auto` or `inherit-parent`, using the Pi `Task` tool. Default `environment` to `"cloud"` when the host contract shows a configured remote executor. Use `environment: "local"` only when the worker needs access to something on this machine, or when no remote executor is configured, and record that fallback. Use `environment: "cloud"` for a configured independent VM. Its receipt must match the expected machine identity and exact checkout SHA. If a required machine is unavailable, mark the lane BLOCKED.',
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/poteto-mode\/playbooks\/autopilot-(?:full|stack)\.md$/,
+    'One Cursor cloud agent per PR',
+    'One Pi worker per PR',
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/poteto-mode\/playbooks\/autopilot-(?:full|stack)\.md$/,
+    'Never require Graphite (`gt`).',
+    `Never require Graphite (\`gt\`). Run each owner as Task \`environment: "cloud"\` when the host contract shows a configured remote executor, unless it needs ${localState}. Keep an owner local when the app, simulator, credentials, transcripts, or IDE state are local. Verify a cloud owner's host, working directory, and exact commit SHA. ${cloudVm} ${remoteFallback} If the required machine is unavailable, mark the lane BLOCKED.`,
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/poteto-mode\/playbooks\/shipping\.md$/,
+    'One subagent per PR, not batched, each a Cursor cloud agent, each exercising the real surface with the matching control skill (such as `control-ui` or `control-cli` from `cursor-team-kit`) against parent versus head. Each returns `PASS`, `PASS+NOTES` or `FAIL` and posts that verdict on its own PR. Safe means a verdict from an agent that did not write the code.',
+    `One independent worker per PR, not batched, and none may have written the code. Each exercises the real surface with \`control-ui\` or \`control-cli\` against parent versus head. Each returns \`PASS\`, \`PASS+NOTES\` or \`FAIL\` and posts that verdict on its own PR. Safe means a verdict from an agent that did not write the code. Default each verifier to \`environment: "cloud"\` when the host contract shows a configured remote executor. Run a local app lane on the machine that can reach the app when the lane needs this machine's app, simulator, credentials, transcripts, or IDE state. Run a genuinely remote lane only through a separately configured remote executor that can run the app and its dependencies; verify the host, machine ID, working directory, and exact PR-head SHA. ${cloudVm} ${remoteFallback} If the required machine is unavailable, mark the lane BLOCKED. For a result from \`verify-this\`, map \`VERIFIED\` to \`PASS\` only when the required baseline, treatment, and evidence are present. Map \`NOT VERIFIED\` and \`INCONCLUSIVE\` to \`FAIL\`. \`PASS+NOTES\` is allowed only when all verification requirements pass and every note is non-blocking. Post the verdict on the PR.`,
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/,
+    '- [ ] `git show origin/main:<control skill path>`',
+    '- [ ] Read the control skill from the target repository when it commits that file. Otherwise read the bundled skill from the package path named by the pstack host contract. Do not run `git show` for a skill path absent from the target repository.',
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/,
+    'Each live lane runs on its own cloud VM at the PR head. Drive through `control-ui` or `control-cli` from `cursor-team-kit`.',
+    `Each live lane runs on its own cloud VM at the PR head when the host contract shows a configured remote executor, as Task \`environment: "cloud"\` with one VM per lane. Use a local worker only for a local-only app, simulator, credential, transcript, or IDE. Verify each cloud lane's host, machine ID, working directory, and exact PR-head SHA. ${cloudVm} ${remoteFallback} Mark the lane BLOCKED if its required machine is unavailable. Drive the real surface through \`control-ui\` or \`control-cli\`.`,
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/,
+    '- [ ] Hold the review gate. <PR ids> change an interaction. They wait for the operator\'s review in chat with screenshots and a video before merge.',
+    '- [ ] Hold the review gate. <PR ids> change an interaction. Before capturing or storing screenshots or video from a privacy-sensitive workspace, get the operator\'s explicit agreement. Without agreement, do not store the media and mark the review gate BLOCKED. The operator reviews approved screenshots and video in chat before merge.',
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/,
+    '- [ ] Save every screenshot to `/tmp/swarm-<pr-id>/worker-<n>/<slug>.png` and return the paths with the report.',
+    '- [ ] Check whether the workspace is privacy-sensitive before capturing or storing media. Without the operator\'s explicit agreement, do not store screenshots or video from a privacy-sensitive workspace and mark the lane BLOCKED. Otherwise save each screenshot to `/tmp/swarm-<pr-id>/worker-<n>/<slug>.png` and return the paths with the report.',
+    dependencyCorrections,
+  ],
+  [
+    worktreeAudit,
+    '# Usage: worktree-audit.sh [repo-path]   (defaults to the current repo)',
+    '# Usage: worktree-audit.sh [repo-path] [session-dir]\n# Pass the host contract session directory when Pi uses --session-dir.\n# Otherwise PI_CODING_AGENT_SESSION_DIR overrides the default store.',
+    transcripts,
+  ],
   [
     worktreeAudit,
     `# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.\nslug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')\ntranscripts="$HOME/.cursor/projects/$slug/agent-transcripts"`,
-    `# Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including child transcripts under <parent-id>/subagents and legacy pstack-workers.\nsessions="\${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"; sessions="\${sessions/#\\~/$HOME}/sessions"\nsession_dir() { printf '%s/--%s--' "$sessions" "$(printf '%s' "$1" | sed 's#^/##; s#[/:]#-#g')"; }\ntranscripts=$(session_dir "$main_wt")`,
+    `# Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including child transcripts under <parent-id>/subagents and legacy pstack-workers.\nsessions="\${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"; sessions="\${sessions/#\\~/$HOME}/sessions"\nsession_dir() { printf '%s/--%s--' "$sessions" "$(printf '%s' "$1" | sed 's#^/##; s#[/:]#-#g')"; }\ntranscripts="\${2:-\${PI_CODING_AGENT_SESSION_DIR:-$(session_dir "$main_wt")}}"\ntranscripts="\${transcripts/#\\~/$HOME}"`,
     transcripts,
   ],
   [
     worktreeAudit,
     `\tif [ -d "$transcripts" ]; then\n\t\tf=$(rg -l -e "\${wt}/" -e "\${wt}\\"" "$transcripts" 2>/dev/null`,
-    `\twt_sessions=$(session_dir "$wt")\n\tif [ -d "$transcripts" ] || [ -d "$wt_sessions" ]; then\n\t\tf=$(rg -l -e "\${wt}/" -e "\${wt}\\"" "$transcripts" "$wt_sessions" 2>/dev/null`,
+    `\twt_sessions=$(session_dir "$wt")\n\tif [ -d "$transcripts" ] || [ -d "$wt_sessions" ]; then\n\t\tf=$(rg -l -0 -e "\${wt}/" -e "\${wt}\\"" "$transcripts" "$wt_sessions" 2>/dev/null`,
     transcripts,
   ],
-  [worktreeAudit, `| xargs stat -f '%m %N' 2>/dev/null`, `| xargs perl -e 'printf "%d %s\\n", (stat)[9], $_ for @ARGV' 2>/dev/null`, portableDates],
+  [worktreeAudit, `| xargs stat -f '%m %N' 2>/dev/null`, `| xargs -0 perl -e 'printf "%d %s\\n", (stat)[9], $_ for @ARGV' 2>/dev/null`, portableDates],
   [worktreeAudit, `last=$(date -r "$last_ts" '+%Y-%m-%d' 2>/dev/null)`, `last=$(perl -MPOSIX -e 'print strftime("%Y-%m-%d", localtime shift)' "$last_ts" 2>/dev/null)`, portableDates],
 ];
+hostPaths.push(
+  [
+    /^skills\/poteto-mode\/playbooks\/autopilot-(?:full|stack)\.md$/,
+    'A cloud root uses the existing cloud-sleeper wake chain instead.',
+    'A durable Pi root uses `SubscribeTimer` with a 30-minute schedule and the audit prompt. Record its run and subscription IDs. `ListSubscriptions` verifies it remains armed; `Unsubscribe` cancels it after the program finishes. A cloud root, a Task with `environment: "cloud"` on a remote VM, arms `SubscribeTimer` from its own Pi root on that VM, and the tick fires there.',
+    dependencyCorrections,
+  ],
+  [
+    /^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/,
+    'In a cloud root, a cloud-sleeper wake chain.',
+    'For a durable root, use `SubscribeTimer` with a 30-minute schedule and the audit prompt. Record the run and subscription IDs, verify them with `ListSubscriptions`, and cancel with `Unsubscribe` after the program finishes. A cloud root, a Task with `environment: "cloud"` on a remote VM, arms `SubscribeTimer` from its own Pi root on that VM, and the tick fires there.',
+    dependencyCorrections,
+  ],
+);
+hostPaths.push(...generatedRows);
 const appliedHostPaths = new Set();
 function mapHostPaths(entry, text) {
   return hostPaths.reduce(
     ({ text, transformations }, row) => {
       const [scope, from, to, reason] = row;
-      if (!scope.test(entry.path) || !text.includes(from)) return { text, transformations };
+      const present = typeof from === 'string' ? text.includes(from) : new RegExp(from.source, from.flags.replace('g', '')).test(text);
+      if (!scope.test(entry.path) || !present) return { text, transformations };
       appliedHostPaths.add(row);
       return { text: text.replaceAll(from, to), transformations: transformations.includes(reason) ? transformations : [...transformations, reason] };
     },
@@ -119,6 +233,7 @@ function mapHostPaths(entry, text) {
 }
 
 function markdown(entry) {
+  if (entry.path === 'skills/make-bot-ui/SKILL.md') return { generated: Buffer.from(routineAdapter.toString('utf8').replaceAll('../../../upstream/', '../../upstream/')), transformations: ['Replace Cursor routine panel and secret card with the native reviewed Pi routine adapter at host/adapters/make-bot-ui/SKILL.md.'] };
   let text = entry.original.toString('utf8');
   let transformations = [];
   if (/^skills\/[^/]+\/SKILL\.md$/.test(entry.path)) {
@@ -130,23 +245,49 @@ function markdown(entry) {
     const portable = text.replace(/^(---\r?\n)([\s\S]*?)(\r?\n---)/, (_match, start, frontmatter, end) => start + frontmatter.replace(/^(?:mode|icon|color|reminder|paths):[^\n]*(?:\n|$)/gm, '') + end);
     if (text !== portable) transformations = [...transformations, 'Remove Cursor-only frontmatter; Pi runtime behavior belongs to the extension.'];
     text = portable;
-    if (pathTriggered) {
-      text = text.replace(/^disable-model-invocation: true\r?\n/m, '');
-      transformations = [...transformations, 'Pi has no file-path skill trigger, so let the description route the skill instead of hiding it.'];
-    }
+    if (pathTriggered) transformations = [...transformations, 'Pi has no file-path skill trigger. Keep the skill hidden from model selection, and the host contract requires reading it before editing matching files.'];
     if (slug === 'setup-pstack') {
-      text = text.replace(/^(---\r?\n[\s\S]*?)(\r?\n---)/, '$1\ndisable-model-invocation: true$2');
-      transformations = [...transformations, "Hide the skill from automatic selection; the extension's /setup-pstack and /skill:setup-pstack handlers own the validated dialogs."];
+      text = text.replace('# Setup pstack', '# Setup pstack\n\nCall `pstack_setup` to perform these steps through native Pi dialogs and validated writes. This skill may be selected when the user asks to configure models. Do not bypass the confirmation by manually writing the rule. The steps below document the contract owned by that tool; /setup-pstack and /skill:setup-pstack use the same implementation.');
+      transformations = [...transformations, "Preserve ambient setup invocation and route it through the same native validated dialogs as the slash entry points."];
     }
   }
   const mapped = mapHostPaths(entry, text);
-  return { generated: Buffer.from(mapped.text), transformations: [...transformations, ...mapped.transformations] };
+  const shaped = shapeMarkdown(entry.path, mapped.text);
+  return { generated: Buffer.from(shaped.text), transformations: [...transformations, ...mapped.transformations, ...shaped.transformations] };
+}
+
+function shapeMarkdown(path, text) {
+  if (/^skills\/(?:tdd|principle-[^/]+)\/SKILL\.md$/.test(path)) return { text: sentenceCaseHeadings(text), transformations: ['Use sentence case for headings, per the prose style rules.'] };
+  if (path === 'skills/typescript-best-practices/references/patterns.md') return { text: tabIndentFences(text), transformations: ['Indent code snippets with tabs, per the technical-writing rule.'] };
+  return { text, transformations: [] };
+}
+
+const helperPins = /^skills\/poteto-mode\/scripts\/(?:package\.json|bun\.lock)$/;
+const helperLock = verified.find((entry) => entry.path === 'skills/poteto-mode/scripts/bun.lock').original.toString('utf8');
+
+function pinnedText(entry) {
+  const text = entry.original.toString('utf8');
+  if (!helperPins.test(entry.path)) return { text, transformations: [] };
+  const pinned = pinLatest(text, helperLock);
+  return { text: pinned, transformations: pinned === text ? [] : ['Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible.'] };
 }
 
 function script(entry) {
-  if (!worktreeAudit.test(entry.path)) return { generated: entry.original, transformations: [] };
-  const mapped = mapHostPaths(entry, entry.original.toString('utf8'));
-  return { generated: Buffer.from(mapped.text), transformations: mapped.transformations };
+  const mapped = worktreeAudit.test(entry.path) ? mapHostPaths(entry, entry.original.toString('utf8')) : pinnedText(entry);
+  const overlaid = overlays.filter((overlay) => overlay.path === entry.path).reduce((acc, overlay) => applyOverlay(acc, overlay), mapped);
+  if (overlaid.text === entry.original.toString('utf8')) return { generated: entry.original, transformations: [] };
+  return { generated: Buffer.from(overlaid.text), transformations: overlaid.transformations };
+}
+
+function applyOverlay({ text, transformations }, overlay) {
+  let next = text;
+  const reasons = [...transformations];
+  for (const [from, to, reason] of overlay.edits) {
+    if (!next.includes(from)) throw new Error(`Overlay for ${overlay.path} does not match: ${from.slice(0, 60)}`);
+    next = next.replace(from, () => to);
+    reasons.push(reason);
+  }
+  return { text: next, transformations: reasons };
 }
 
 function promptOutput(entry, generated) {

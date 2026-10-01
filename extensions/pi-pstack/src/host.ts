@@ -1,28 +1,57 @@
-import { join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { basename, join } from 'node:path';
 
-import { type ExtensionContext, getDocsPath } from '@earendil-works/pi-coding-agent';
-import { modelConfigPath } from './models.ts';
+import { type ExtensionContext, getAgentDir, getDocsPath } from '@earendil-works/pi-coding-agent';
+import { modelConfigPath, projectModelConfigPath } from './models.ts';
 
 export const cursorToolNames =
   'Upstream prose names Cursor tools. Read is the read tool, Shell is bash, Grep is grep, and Glob is find. A /skill:name or /poteto-mode invocation appears in the transcript as a <skill name="..."> block in the user message, not as a read call.';
 
-export function hostInstructions(root: string, ctx: ExtensionContext, rule: string): string {
+const noOverride =
+  'No override. Every role without a line runs on the parent model (inherit-parent). Omit Task model for it, because a skill default slug is a Cursor catalog name and not a Pi model id.';
+const roleLines =
+  'Role lines: "trail reviewer" is the show-me-your-work cross-model reviewer, "figure-it-out judge" is the figure-it-out judge, and "recall miners" are the recall fan-out subagents. The trail reviewer and the judge must run on a different model family from the work they review.';
+const webTools =
+  "Cursor WebSearch and WebFetch have no built-in Pi tool. Prefer a web search tool that another extension registers in the active tool list. Otherwise use bash: curl -sL --max-time 20 -A 'Mozilla/5.0' 'https://www.bing.com/search?q=<url-encoded query>' searches, and curl -sL --max-time 20 <url> fetches a page. Result links in the search HTML are redirects whose u= parameter is the target URL in base64 after a two-character a1 prefix.";
+const imageTool =
+  'Cursor image generation has no built-in Pi tool. Use an image tool that another extension registers. Otherwise write a self-contained SVG file in marker-on-whiteboard style with few short labels, or a mermaid diagram for a label-driven flow, and say that the picture is a substitute.';
+const originCli = 'The origin CLI is present when `command -v origin || test -x ~/.local/bin/origin` succeeds. Load the origin host skill to repair a missing or unauthenticated CLI before any gh fallback on an origin.cursor.com remote.';
+const dashboard = 'Cursor dashboard cloud-agent status maps to TaskList({ repository: true }) and TaskAttach, which read status without a prompt.';
+
+export function agentStore(cwd: string): string {
+  const slug = `${basename(cwd).replace(/[^\w.-]+/g, '-')}-${createHash('sha256').update(cwd).digest('hex').slice(0, 8)}`;
+  return join(getAgentDir(), 'pstack', 'store', slug);
+}
+
+function storeInstructions(cwd: string): string {
+  const store = agentStore(cwd);
+  return `Agent store: ${store}.\nOrchestrate state lives in orchestrate/<project-slug>/ under ${store}, and plans default to ${store}/docs/ unless the operator names a path. orch takes --store or ORCH_STORE, so export ORCH_STORE=${store}/orchestrate/<project-slug> before the first orch call.`;
+}
+
+export function hostInstructions(root: string, ctx: ExtensionContext, rule: string, catalog = ''): string {
   const manager = ctx.sessionManager;
-  const childTranscripts = manager.getSessionFile() ? join(manager.getSessionDir(), '<parent-session-id>', 'subagents') : 'a temporary directory, because this session is not persisted';
+  const childTranscripts = manager.getSessionFile()
+    ? `${join(manager.getSessionDir(), '<parent-session-id>', 'subagents')} and ${join(manager.getSessionDir(), 'pstack-workers', manager.getSessionId())}`
+    : 'temporary directories, because this session is not persisted';
   return [
-    'pstack pi host contract. Follow the bundled workflow instructions in full. Preserve their gates and report missing dependencies.',
-    `Bundled skills: ${join(root, 'skills')}. Immutable source including agents and dormant Benny pack: ${join(root, 'upstream')}.`,
-    'Workflow aliases are Pi prompt templates. When one requests a skill, read its SKILL.md in full from the bundled skills directory and resolve references relative to that skill directory. /bro is a standalone prompt template. Only /poteto-mode, /setup-pstack, and /pstack are executable extension commands.',
-    `cursor-team-kit is bundled at ${join(root, 'upstream-team-kit')}. Its skills, including deslop, control-cli, control-ui and verify-this, are in the same generated skills directory. Read the relevant SKILL.md in full before applying it. Its two rules remain archived, matching observed Cursor plugin delivery.`,
-    `Read model role overrides at ${modelConfigPath()}. This is the Pi mapping of ~/.cursor/rules/pstack-models.mdc. The active rule follows:\n${rule || 'No override. Upstream defaults remain requests, not confirmed available models.'}`,
-    'Only apply active Poteto mode to tasks matching its own scope.',
-    `Workspace Pi session directory: ${manager.getSessionDir()}. Task child transcripts: ${childTranscripts}. Transcript-reading skills use these directories. Cursor chat links in upstream prose are source-host references; do not invent them or read other workspaces to fill gaps.`,
-    'control-cli and control-ui provide local harness instructions, not installed terminal or browser tooling. Discover and use the project tools as those skills require. pr-review-canvas assets are bundled, but Pi has no Cursor in-app browser. Use available local browser tooling only when it satisfies the workflow. workflow-from-chats can inspect Pi workspace history through pstack_context; identify that corpus and cite real parent session IDs without exposing private transcript paths or inventing Cursor links.',
-    `/loop is a Pi prompt template for the local loop skill at ${join(root, 'host/skills/loop/SKILL.md')}. When a playbook arms a terminal /loop tick, follow that skill.`,
-    'Cursor cloud timers, /goal, cloud hosting, /automate editor, server-synced create-skill and Grok Bot routines are not implemented here. MCP connectors and service credentials remain external dependencies. Stop the affected workflow at its unmet gate and name what is missing. Do not fabricate equivalent verification or approvals.',
-    `Upstream prose also names Cursor facilities. A Cursor rule becomes an AGENTS.md context file for a directory tree, or APPEND_SYSTEM.md for system prompt additions. Pi skills load on demand, so guidance that must apply on every turn belongs in a context file. Author new skills in Pi's format from ${join(getDocsPath(), 'skills.md')} where a workflow calls for Cursor's create-skill. Where a workflow lists MCP servers, classify the tools that pstack_context returns.`,
+    'pstack pi host contract. Follow the bundled workflow instructions in full.',
+    catalog,
+    `Reference snapshots live at ${join(root, 'upstream')} and ${join(root, 'upstream-team-kit')}.`,
+    '/poteto-mode, /setup-pstack, /pstack, and /goal are extension commands. Every other workflow name, including the cursor-team-kit skills, is a prompt template that reads the matching SKILL.md.',
+    `Model role overrides live at ${modelConfigPath()}, the Pi location of ~/.cursor/rules/pstack-models.mdc. A project rule at ${projectModelConfigPath(ctx.cwd)} overrides the user rule for the roles it names when the file exists. The active rule follows:\n${rule || noOverride}`,
+    roleLines,
+    `Pi session storage directory: ${manager.getSessionDir()}. The storage directory may contain other workspaces. For workspace history, call pstack_context({ history: true }) and use only its matching transcript paths. Do not glob or mine the entire storage directory. Discovery completeness is unknown. Task child transcripts owned by this parent session: ${childTranscripts}. Transcript-reading skills must distinguish storage location from workspace scope. workflow-from-chats reads this history through pstack_context.`,
+    `/loop is a Pi prompt template for the local loop skill at ${join(root, 'host/skills/loop/SKILL.md')}. When a playbook arms a /loop tick, follow that skill with BackgroundShell.`,
+    'SubscribeTimer runs fixed-delay or cron subscriptions in an explicitly named durable Pi root. ListSubscriptions reads that root and Unsubscribe cancels and drains a subscription. Timer roots continue after this UI closes. Their transcripts are separate from this active session. No timer starts merely because pstack loads.',
+    '/goal is native. CreateGoal arms a goal, GetGoal reads it back, and UpdateGoal completes it after an audit. A playbook that says to arm a /goal calls CreateGoal itself.',
+    `A Cursor rule becomes an AGENTS.md context file for a directory tree, or APPEND_SYSTEM.md for system prompt additions. Pi skills load on demand, so guidance that must apply on every turn belongs in a context file. Where a workflow calls for Cursor's create-skill, follow ${join(root, 'host/skills/create-skill/SKILL.md')}, which targets Pi's format in ${join(getDocsPath(), 'skills.md')}. Where a workflow lists MCP servers, classify the tools that pstack_context returns.`,
     cursorToolNames,
-    'Benny is a dormant source pack, not a registered automation. Its Cursor reviewed-editor creation and credential-isolation requirements remain unsatisfied by this extension.',
+    webTools,
+    imageTool,
+    originCli,
+    dashboard,
+    `Before you edit or create any .ts or .tsx file, read ${join(root, 'skills/typescript-best-practices/SKILL.md')} in full once per session. Pi has no file-path skill trigger, so this rule replaces the upstream paths glob.`,
+    storeInstructions(ctx.cwd),
     `This session transcript is ${ctx.sessionManager.getSessionFile() ?? 'in memory'}. Workspace is ${ctx.cwd}.`,
   ].join('\n\n');
 }

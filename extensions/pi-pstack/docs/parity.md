@@ -1,6 +1,6 @@
 # Compatibility report
 
-The requested 100% behavior parity is not achieved. The plugin requires Cursor capabilities that the official pi extension API does not provide. This package implements portable contracts and preserves every source file. Identical prompt text is not evidence of identical model behavior.
+Each Cursor facility pstack uses maps to a local Pi mechanism below. The unmet table lists what has no Pi equivalent yet. The package preserves every source file. Identical prompt text is not evidence of identical model behavior, so `scripts/probe-routing.mjs` measures routing on the real CLI.
 
 ## Implemented contracts
 
@@ -12,13 +12,15 @@ The requested 100% behavior parity is not achieved. The plugin requires Cursor c
 | Required deslop, control-cli, and control-ui workflows | All 18 kit skills remain available through prompt aliases and native skills, bringing the combined total to 64 skills plus the bro prompt | `test/integration.test.ts`, `scripts/verify-cli.mjs` |
 | Team-kit plugin rule delivery | Rules remain archived and are not injected, matching the observed Cursor CLI | `test/integration.test.ts`, reference team-kit report |
 | Team-kit local agent personas | CI watcher inherits the parent model as observed in Cursor; strict review persona receives its complete rubric | `src/personas.ts`, `test/personas.test.ts`, `test/workers.test.ts` |
-| Sticky Poteto mode | Branch-local session entries and structured prompt section; explicit off command and mode tool | `src/index.ts`, integration tests |
+| Native `/goal`, `shell`, `explore`, `create-skill`, `origin` | `CreateGoal`, `GetGoal`, `UpdateGoal` with branch-persisted state and turn continuation. Native `shell` and `explore` personas. Pi ports of the `goal`, `create-skill` and `origin` built-in skills | `src/goal.ts`, `src/personas.ts`, `host/skills` |
+| Sticky Poteto mode | Branch-local session entries and structured prompt section led by the source `reminder` line; explicit off command and mode tool | `src/index.ts`, integration tests |
+| Routing to skills by name | Host context lists every skill, host skill, and playbook name with its path, built from the directories at load, for parents and readonly children | `src/catalog.ts`, `test/catalog.test.ts` |
 | Two agent personas | Complete upstream persona instructions; Poteto child receives full mode instructions | `src/workers.ts` |
 | Local task delegation | SDK child sessions, foreground tool start/end and retry snapshots, background completion, output, message, stop, and same-transcript resume. Progress omits child arguments, results, and shell output. It stops when the foreground Task call settles. | `src/workers.ts`, `src/worker-runtime.ts`, `test/workers.test.ts`, `scripts/verify-journeys.mjs`, `scripts/verify-progress-tui.mjs` |
 | Model setup | Available pi model identities, supported effort, all 17 roles, ordered panels, aliases, budget selection, confirmed atomic rule write | `src/models.ts`, model tests |
 | Ordered playbook todos | Persistent replace or merge operation with verbatim content | `TodoWrite`, integration tests |
 | Preference and approval questions | TUI and RPC selection, free text, multiple selections, explicit cancellation | `AskQuestion`; installed CLI RPC tests verify selection and cancellation without paid inference |
-| Workspace transcript evidence | Current branch and workspace-scoped pi session history. Generated transcript skills and the worktree audit read the Pi session directory and `pstack-workers` child transcripts that the host contract names | `pstack_context`, `scripts/resources.mjs`, `test/research-parity.test.ts` |
+| Workspace transcript evidence | Current branch and workspace-scoped pi session history. Generated transcript skills and the worktree audit read the Pi session directory, per-parent `subagents` transcripts, and legacy `pstack-workers` transcripts | `pstack_context`, `scripts/resources.mjs`, `test/research-parity.test.ts` |
 | Helper scripts | Complete original scripts, lockfile, and test suites | `upstream/skills/poteto-mode/scripts` |
 | Benny source pack | Preserved and excluded from public skill discovery | Package manifest and resource inventory |
 | Local `/loop` with monitored shell output | `BackgroundShell` wakes the agent on each output line that matches `notify_on_output` and on shell exit unless it already matched and exited with status zero. `BackgroundShellList` and `BackgroundShellStop` manage shells. A Pi-authored loop skill and `/loop` template follow the local fixed, dynamic, and watcher procedures. Shells end with the session | `src/shells.ts`, `host/skills/loop/SKILL.md`, `test/shells.test.ts` |
@@ -29,11 +31,11 @@ The requested 100% behavior parity is not achieved. The plugin requires Cursor c
 | --- | --- |
 | Cursor cloud agent environment and durable hosted lifecycle | SDK children run locally and stop with their owner. Cloud requests fail explicitly. |
 | Claude task frames and complete task-progress payloads | Pi maps direct child tool starts/ends and automatic retries to transient foreground Task updates. It does not send Claude frames, model changes, shell text, child messages, usage summaries, or progress after a background call returns. RPC clients receive updates but own their rendering. |
-| Cursor cloud timers and goal continuation | Cloud timer subscriptions and active-goal continuation are not implemented. A required cloud wake chain or goal is an unmet gate. |
+| Cursor cloud timers | Cloud timer subscriptions are not implemented. Local `/loop` covers wakes. A required cloud wake chain is an unmet gate. |
+| Detached cloud task startup, placement, and durable hosted lifecycle | The current runtime does not connect the detached cloud transport to Task. SDK children run locally and stop with their owner; cloud requests fail explicitly. |
 | Exact Cursor model entitlements, aliases, speed tiers, and inference behavior | Pi uses provider/model IDs and separate supported thinking levels. Availability depends on configured providers. No silent family substitution occurs. |
 | Cursor synced `create-skill` and Automations services | The references identify server-synced skills and host services. This package does not implement those services or distribute their complete current skill text. |
 | Terminal, browser, and GitHub execution dependencies | Team-kit instructions are now bundled, but actual project tools, browser binaries, credentials, and target applications remain environment-dependent. No universal UI or CLI check is implied by installing a skill. |
-| Cursor built-in `shell` and `explore` agents | The kit review agent's example calls these unpublished personas. Task rejects them. Callers may supply already-collected evidence to the supported review persona, but the prescribed collector orchestration remains unmet. |
 | Team-kit CI watcher author-requested `fast` selector | The source file is retained, but the observed plugin loader strips this selector. Runtime inheritance follows that observed behavior. Explicit model requests still require available pi providers. |
 | Cursor in-app browser and chat corpus | Canvas assets are bundled, but pi has no Cursor browser. Local browser tools may open the generated HTML. Preference extraction uses the explicitly identified pi workspace corpus, not unavailable Cursor conversations. |
 | Benny reviewed Automations editor handoff | The source explicitly requires Cursor's editor and approval flow. Preserved prompts are not deployed automations. |
@@ -43,7 +45,7 @@ The requested 100% behavior parity is not achieved. The plugin requires Cursor c
 | Arbitrary MCP and business service integrations | Writable workers discover installed pi extensions. Availability, permissions, and external service behavior remain installation-specific. |
 | UI parity and stochastic instruction compliance | Pi has different UI and system instructions. Deterministic tests cannot establish every possible model decision or identical rendering. |
 
-The runtime tells the model to retain source gates and identify missing dependencies. That instruction is not a security boundary. Task rejects unsupported cloud execution, unknown personas, and unresolved model requests in code. Other workflow gates remain model instructions. Do not interpret the report as proof that every model will obey every workflow instruction.
+The runtime tells the model to retain source gates and identify missing dependencies. That instruction is not a security boundary. Task rejects unknown personas and unresolved model requests in code. SDK child sessions are local and do not establish hosted execution or complete credential isolation. Other workflow gates remain model instructions. Do not interpret the report as proof that every model will obey every workflow instruction.
 
 ## Mechanism migration
 
@@ -57,9 +59,13 @@ The team-kit increment closes three named skill-distribution dependencies. Its r
 
 ## Verification limits
 
+The comprehensive audit prohibits subagents. The allowed deterministic main-session RPC suite most recently passes 427 assertions with zero findings and excludes Task execution. The native Origin skill preserves the source's `disabled-environments` metadata, and cloud arguments omit that packaged copy. A fresh `test/resource-environment.test.ts` run reproduced a user-scoped `skill:origin` from `~/.agents/skills/origin/SKILL.md` without the metadata. Resource selection now combines declared exclusions with the authoritative metadata for the same Origin identity, including filename-derived prompt identities. The real idle CLI no longer exposes the duplicate, and local discovery remains available. This is a resource-discovery policy, not a filesystem or credential isolation boundary. Live public Origin installation succeeds in isolated HOME/install/bin directories, and a corrupt fixture archive is rejected by the unchanged installer's checksum check. Authentication and hosted repository operations remain unverified.
+
+`scripts/verify-store-isolation.mjs` runs the macOS fixture-store experiment with a deterministic main-session provider and no Task calls or paid inference. It preserves baseline and sandbox observations in the supplied evidence directory. This experiment is not evidence that production cloud Tasks are sandboxed.
+
 The test suite exercises the actual pi resource loader and SDK with a deterministic provider. The foreground progress journey also exercises the installed Pi CLI in RPC and TUI modes. It does not contact paid model providers or deploy external automations. Source helper test results and final verification counts are recorded in `verification.md`.
 
-The generated worktree audit searches the Pi session directories of the main worktree and of each worktree, including `pstack-workers`. It uses Perl for file dates, so GNU or uutils coreutils on PATH do not blank the LAST_CHAT column. It cannot see sessions moved by the `sessionDir` setting, `PI_CODING_AGENT_SESSION_DIR`, or `--session-dir`. The source `orch` CLI maintains an orchestration store; it does not itself provide the missing cloud scheduler.
+The generated worktree audit searches the Pi session directories of the main worktree and of each worktree, including `pstack-workers`. It uses Perl for file dates, so GNU or uutils coreutils on PATH do not blank the LAST_CHAT column. It honors `PI_CODING_AGENT_SESSION_DIR`, including a leading `~/`. An explicit second session-directory argument takes precedence. Supply the host contract directory for `sessionDir` settings or `--session-dir`, since this Bash helper does not read Pi settings or the parent CLI arguments. The source `orch` CLI maintains an orchestration store; it does not itself provide the missing cloud scheduler.
 
 ## Reference behavior audit
 

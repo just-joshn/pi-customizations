@@ -23,7 +23,7 @@ export const model: Model<'openai-completions'> = {
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 };
 
-export function providerFixture(capture: (request: Context) => void, next: () => ToolCall | ToolCall[] | undefined): ExtensionFactory {
+export function providerFixture(capture: (request: Context) => void, next: () => ToolCall | ToolCall[] | undefined, usage?: AssistantMessage['usage']): ExtensionFactory {
   return (pi) => {
     pi.registerProvider(model.provider, {
       api: model.api,
@@ -41,7 +41,7 @@ export function providerFixture(capture: (request: Context) => void, next: () =>
           content: call ? (Array.isArray(call) ? call : [call]) : [{ type: 'text', text: 'Scripted reply.' }],
           stopReason: call ? 'toolUse' : 'stop',
           timestamp: Date.now(),
-          usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+          usage: usage ? structuredClone(usage) : { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
         };
         const stream = createAssistantMessageEventStream();
         stream.push({ type: 'done', reason: call ? 'toolUse' : 'stop', message });
@@ -75,7 +75,14 @@ export async function closeSessions(sessions: AgentSession[], root: string) {
   }
 }
 
-type FixtureOptions = { extensionOnly?: boolean; extensionDisabled?: boolean; createDirectory?: (path: string) => Promise<unknown>; includeNativePromptTemplates?: boolean; extensionFactories?: ExtensionFactory[] };
+type FixtureOptions = {
+  usage?: AssistantMessage['usage'];
+  extensionOnly?: boolean;
+  extensionDisabled?: boolean;
+  createDirectory?: (path: string) => Promise<unknown>;
+  includeNativePromptTemplates?: boolean;
+  extensionFactories?: ExtensionFactory[];
+};
 
 async function setupDirs(root: string, cwd: string, agentDir: string, createDirectory: (path: string) => Promise<unknown>) {
   try {
@@ -127,7 +134,7 @@ async function openFixtureSession(opts: { cwd: string; agentDir: string; setting
   return { session, manager: opts.manager, loader: opts.loader };
 }
 
-export async function fixture({ extensionOnly = false, extensionDisabled = false, createDirectory = mkdir, includeNativePromptTemplates = false, extensionFactories = [] }: FixtureOptions = {}) {
+export async function fixture({ usage, extensionOnly = false, extensionDisabled = false, createDirectory = mkdir, includeNativePromptTemplates = false, extensionFactories = [] }: FixtureOptions = {}) {
   const root = await mkdtemp(join(tmpdir(), 'pstack-integration-'));
   const cwd = join(root, 'workspace');
   const agentDir = join(root, 'agent');
@@ -141,6 +148,7 @@ export async function fixture({ extensionOnly = false, extensionDisabled = false
     providerFixture(
       (request) => requests.push(request),
       () => calls.shift(),
+      usage,
     ),
     ...extensionFactories,
   ];

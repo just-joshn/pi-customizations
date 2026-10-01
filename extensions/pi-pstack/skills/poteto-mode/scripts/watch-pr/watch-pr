@@ -1,6 +1,24 @@
 #!/usr/bin/env bun
 import { ensureDependenciesInstalled } from "../bootstrap.ts";
 
-ensureDependenciesInstalled();
+try {
+  await ensureDependenciesInstalled();
+} catch (error) {
+  const { statusQueryVerdict, verdictFactory } = await import("./policy.ts");
+  const { renderJson } = await import("./render.ts");
+  const clock = {
+    now: () => performance.now() / 1_000,
+    observedAt: () => new Date().toISOString(),
+    sleep: async () => {},
+  };
+  const detail = error instanceof Error ? error.message : String(error);
+  const verdict = statusQueryVerdict(verdictFactory(clock, "single"), 1, {
+    kind: "bootstrap-failed",
+    retryable: false,
+    detail,
+  });
+  process.stdout.write(renderJson(verdict));
+  process.exit(verdict.exitCode);
+}
 const { main } = await import("./cli.ts");
 process.exitCode = await main(process.argv.slice(2));
