@@ -19,10 +19,10 @@ Invoke when the user says "reflect" or "/reflect". Skip when the conversation is
 The parent finds its own transcript file before fanning out. The system prompt names the active workspace's Pi session directory. Use that path. Do not glob across `~/.pi/agent/sessions/*/`. That crosses workspace boundaries and reads private chats from unrelated projects.
 
 ```bash
-ls -t <session-dir>/*.jsonl <session-dir>/pstack-workers/*/*.jsonl 2>/dev/null | head -10
+ls -t <session-dir>/*.jsonl <session-dir>/*/subagents/agent-*.jsonl <session-dir>/pstack-workers/*/*.jsonl 2>/dev/null | head -10
 ```
 
-Two transcript layouts: session (`<timestamp>_<id>.jsonl`) and Task subagent (`pstack-workers/<parent>/<timestamp>_<child>.jsonl`).
+Two transcript layouts: session (`<timestamp>_<id>.jsonl`) and Task subagent (`<parent-id>/subagents/agent-<child>.jsonl`, with `agent-<child>.meta.json` beside it; older runs wrote `pstack-workers/<parent>/<timestamp>_<child>.jsonl`).
 
 For each candidate, read the first JSONL line whose `message.role` is `user` and check that its `message.content` (a string, or the `text` of its first text block) contains the conversation's opening user prompt. Take the matching path. If no path resolves, write a tight digest of the session and pass that instead.
 

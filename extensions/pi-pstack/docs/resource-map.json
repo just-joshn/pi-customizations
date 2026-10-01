@@ -61,7 +61,7 @@
     "executable": false,
     "transformations": [
       "Map user and project skill directories to Pi discovery locations.",
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts."
     ]
   },
   {
@@ -343,7 +343,7 @@
     "sha256": "d60da0146518979dd042b658d33e56c94bd3deb8797efe7d2b208a5b6f0c0bf7",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts."
     ]
   },
   {
@@ -389,7 +389,7 @@
     "sha256": "b94b15469775c524556caf3c7de7907182bb80a8ea2e020a174c7a03d57935ff",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts."
     ]
   },
   {
@@ -433,7 +433,7 @@
     "sha256": "cfe9ebd5b5ef619058526804a2b045401eddfe131f78cf9e12054b26a5e84fff",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts."
     ]
   },
   {
@@ -607,10 +607,10 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/worktree-audit.sh",
     "destination": "skills/poteto-mode/scripts/worktree-audit.sh",
-    "sha256": "1f9ef415ce6e29602be2cde800b3c0045e226c6db8571224de1ab684ad143e63",
+    "sha256": "d0308b61f9c9c52d43feaa2cfd0e41d4f9a94afd0346292252a03e837f1d9176",
     "executable": true,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.",
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Replace BSD-only stat and date calls with Perl so transcript dates survive GNU or uutils coreutils on PATH."
     ]
   },
@@ -985,10 +985,10 @@
   {
     "source": "upstream/skills/recall/SKILL.md",
     "destination": "skills/recall/SKILL.md",
-    "sha256": "1f8cfccb5a5942f9c3a5f395ba9593d43991337cb740bf3042f4554831754004",
+    "sha256": "31782d3ca8cf9c2e2ce2717912c5481454a518df339f54492e4a21cd22f4ffcc",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts."
     ]
   },
   {
@@ -1003,10 +1003,10 @@
   {
     "source": "upstream/skills/reflect/SKILL.md",
     "destination": "skills/reflect/SKILL.md",
-    "sha256": "655ddf208cc8061148ea3baed144b1f340990fb74e63ce17dd6ccce2bae5799a",
+    "sha256": "85ea7d8baf35c55856908470e541904fc3cd8c80b6f2aa30aa4ec3311187bb28",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts."
     ]
   },
   {
@@ -1068,7 +1068,7 @@
     "sha256": "45706fe3600c76acf85d0a5b16d2f6dc18ff0eb07c71c8fe3fe6a50fef93cd7a",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts."
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts."
     ]
   },
   {
