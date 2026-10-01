@@ -3,13 +3,21 @@ import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { AgentSession, createAgentSession, DefaultResourceLoader, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
+import { Check } from 'typebox/value';
 import { expect, test, vi } from 'vitest';
+import { TaskRecordSchema, taskEntryType } from '../src/worker-records.ts';
 import { registerWorkers, restoreTaskRecords, taskSummary } from '../src/workers.ts';
 import { workerFixture } from './worker-fixture.ts';
 import { releasePendingWork } from './worker-gates.ts';
 import { workerTiming } from './worker-timing.ts';
+
+const progressFixturePath = fileURLToPath(new URL('./fixtures/task-progress-sentinel.txt', import.meta.url));
+const progressSentinel = 'CHILD_READ_FIXTURE_SENTINEL_CONTENT';
+const progressInput = 'PROGRESS_READ CHILD_INPUT_SENTINEL_9c372671';
+const progressShellOutput = 'PROGRESS_CHILD_SHELL_OUTPUT_SENTINEL';
 
 const record = {
   id: 'task-one',
@@ -67,9 +75,9 @@ test('official SDK loads all worker tools without spawning children', async () =
   }
 });
 
-function workerTest(name: string, scenario: (fixture: Awaited<ReturnType<typeof workerFixture>>) => Promise<void>) {
+function workerTest(name: string, scenario: (fixture: Awaited<ReturnType<typeof workerFixture>>) => Promise<void>, options: { retry?: boolean } = {}) {
   test(name, async () => {
-    const fixture = await workerFixture();
+    const fixture = await workerFixture(options);
     try {
       await scenario(fixture);
     } finally {
@@ -90,7 +98,112 @@ workerTest('cloud tasks fail explicitly without creating a local worktree when n
 workerTest('unknown task ids are refused by message, output, and stop', async ({ call }) => {
   await expect(call('TaskMessage', { task_id: 'missing', message: 'hello' })).rejects.toThrow(/Task is not running/);
   await expect(call('TaskOutput', { task_id: 'missing' })).rejects.toThrow(/Unknown task in this branch/);
-  await expect(call('TaskStop', { task_id: 'missing' })).rejects.toThrow(/No live task/);
+  const missingStop = await call('TaskStop', { task_id: 'missing' });
+  expect(missingStop.isError).toBe(true);
+  expect(missingStop.details).toEqual({ status: 'failed', task_id: 'missing', message: 'No live task: missing' });
+});
+
+workerTest(
+  'foreground Task projects retry outcomes without exposing retry errors',
+  async ({ call }) => {
+    const updates: { content: unknown; details: unknown; structuredContent?: unknown; usage?: unknown }[] = [];
+    const result = await call('Task', { prompt: 'PROGRESS_RETRY CHILD_RETRY_INPUT_SENTINEL', model: 'worker-test/deterministic', run_in_background: false }, undefined, false, (partialResult) => updates.push(partialResult));
+    if (!Check(TaskRecordSchema, result.details)) throw new Error('Task returned non-record details');
+    expect(result.details.status).toBe('settled');
+    expect(result.details.output).toBe('users=1');
+    expect(updates).toEqual([
+      {
+        content: [{ type: 'text', text: `Task ${result.details.id} running. Active tools: none. Latest: retry 1/1 started.` }],
+        details: { kind: 'progress', task_id: result.details.id, status: 'running', active_tools: [], latest: { kind: 'retry-started', attempt: 1, maxAttempts: 1 } },
+      },
+      {
+        content: [{ type: 'text', text: `Task ${result.details.id} running. Active tools: none. Latest: retry 1 recovered.` }],
+        details: { kind: 'progress', task_id: result.details.id, status: 'running', active_tools: [], latest: { kind: 'retry-finished', attempt: 1, recovered: true } },
+      },
+    ]);
+    const encoded = JSON.stringify(updates);
+    expect(encoded.includes('network error')).toBe(false);
+    expect(encoded.includes('CHILD_RETRY_INPUT_SENTINEL')).toBe(false);
+  },
+  { retry: true },
+);
+
+workerTest('foreground Task reports safe transient read snapshots without changing its final record', async ({ session, call }) => {
+  const updates: { content: unknown; details: unknown; structuredContent?: unknown; usage?: unknown }[] = [];
+  const result = await call('Task', { prompt: progressInput, model: 'worker-test/deterministic', run_in_background: false }, undefined, false, (partialResult) => updates.push(partialResult));
+  if (!Check(TaskRecordSchema, result.details)) throw new Error('Task returned non-record details');
+  const finalRecord = result.details;
+  expect(finalRecord.status).toBe('settled');
+  expect(finalRecord.output).toBe('users=1');
+  expect(result.usage?.totalTokens).toBe(10);
+  expect(result.structuredContent).toEqual(finalRecord);
+  expect(result.content).toEqual([
+    {
+      type: 'text',
+      text: JSON.stringify({ task_id: finalRecord.id, status: 'settled', output: 'users=1', output_file: finalRecord.outputFile, transcript: finalRecord.sessionFile }),
+    },
+  ]);
+  expect(updates).toEqual([
+    {
+      content: [{ type: 'text', text: `Task ${finalRecord.id} running. Active tools: read. Latest: read started.` }],
+      details: { kind: 'progress', task_id: finalRecord.id, status: 'running', active_tools: ['read'], latest: { kind: 'tool-started', tool: 'read' } },
+    },
+    {
+      content: [{ type: 'text', text: `Task ${finalRecord.id} running. Active tools: none. Latest: read finished.` }],
+      details: { kind: 'progress', task_id: finalRecord.id, status: 'running', active_tools: [], latest: { kind: 'tool-finished', tool: 'read', failed: false } },
+    },
+  ]);
+  const updateText = JSON.stringify(updates);
+  for (const secret of [progressSentinel, progressInput, progressFixturePath, 'worker-child-read-call-id']) {
+    expect(updateText).not.toContain(secret);
+  }
+  const transcript = await readFile(finalRecord.sessionFile, 'utf8');
+  expect(transcript).toContain(progressSentinel);
+  expect(transcript).toContain(progressFixturePath);
+  expect(transcript).toContain(progressInput);
+  expect(await readFile(finalRecord.outputFile, 'utf8')).toBe('users=1');
+  const branch = session.sessionManager.getBranch();
+  const taskData = branch.flatMap((entry) => (entry.type === 'custom' && entry.customType === taskEntryType && 'data' in entry ? [entry.data] : []));
+  expect(taskData).toHaveLength(3);
+  expect(taskData.map((data) => Check(TaskRecordSchema, data))).toEqual([true, true, true]);
+  expect(restoreTaskRecords(branch).get(finalRecord.id)).toEqual(finalRecord);
+  expect(JSON.stringify(branch)).not.toContain('"kind":"progress"');
+});
+
+workerTest('background Task ignores a supplied update callback through child completion', async ({ call }) => {
+  const updates: unknown[] = [];
+  const started = await call('Task', { prompt: progressInput, model: 'worker-test/deterministic', run_in_background: true }, undefined, false, (partialResult) => updates.push(partialResult));
+  if (!Check(TaskRecordSchema, started.details)) throw new Error('Task returned non-record details');
+  expect(started.details.status).toBe('running');
+  const completed = await call('TaskOutput', { task_id: started.details.id, block: true });
+  if (!Check(TaskRecordSchema, completed.details)) throw new Error('TaskOutput returned non-record details');
+  expect(completed.details.status).toBe('settled');
+  expect(completed.details.output).toBe('users=1');
+  expect(completed.usage?.totalTokens).toBe(10);
+  expect(updates).toEqual([]);
+});
+
+workerTest('foreground Task never includes child shell command or output in progress', async ({ call }) => {
+  const updates: unknown[] = [];
+  const result = await call('Task', { prompt: 'PROGRESS_SHELL CHILD_INPUT_SHELL_SENTINEL', model: 'worker-test/deterministic', run_in_background: false }, undefined, false, (partialResult) => updates.push(partialResult));
+  if (!Check(TaskRecordSchema, result.details)) throw new Error('Task returned non-record details');
+  expect(result.details.status).toBe('settled');
+  expect(result.details.output).toBe('users=1');
+  expect(updates).toEqual([
+    {
+      content: [{ type: 'text', text: `Task ${result.details.id} running. Active tools: bash. Latest: bash started.` }],
+      details: { kind: 'progress', task_id: result.details.id, status: 'running', active_tools: ['bash'], latest: { kind: 'tool-started', tool: 'bash' } },
+    },
+    {
+      content: [{ type: 'text', text: `Task ${result.details.id} running. Active tools: none. Latest: bash finished.` }],
+      details: { kind: 'progress', task_id: result.details.id, status: 'running', active_tools: [], latest: { kind: 'tool-finished', tool: 'bash', failed: false } },
+    },
+  ]);
+  const updateText = JSON.stringify(updates);
+  expect(updateText).not.toContain(progressShellOutput);
+  expect(updateText).not.toContain('printf PROGRESS_CHILD_SHELL_OUTPUT_SENTINEL');
+  expect(updateText).not.toContain('worker-child-shell-call-id');
+  expect(updateText).not.toContain('CHILD_INPUT_SHELL_SENTINEL');
 });
 
 workerTest('personas inherit their configured models and preserve complete source instructions', async ({ dir, call }) => {
@@ -133,8 +246,9 @@ workerTest('readonly workers inherit extension providers without enabling write 
   const getAppendSystemPrompt = DefaultResourceLoader.prototype.getAppendSystemPrompt;
   const observer = vi.spyOn(DefaultResourceLoader.prototype, 'getAppendSystemPrompt').mockImplementation(function (this: DefaultResourceLoader) {
     const prompts = getAppendSystemPrompt.call(this);
-    childPrompts.push({ readonly: this.getExtensions().extensions.length === 0, names: this.getPrompts().prompts.map((prompt) => prompt.name) });
-    if (this.getExtensions().extensions.length === 0) appended.push(prompts);
+    const readonly = this.getExtensions().extensions.every((extension) => extension.tools.size === 0);
+    childPrompts.push({ readonly, names: this.getPrompts().prompts.map((prompt) => prompt.name) });
+    if (readonly) appended.push(prompts);
     return prompts;
   });
   await call('Task', { prompt: '/bro Rewrite this plainly.', model: 'worker-test/deterministic', run_in_background: false });
@@ -214,6 +328,7 @@ workerTest('worker messages, cancellation, and usage follow the live child', asy
   expect(task.status).toBe('running');
   const stopped = await call('TaskStop', { task_id: task.task_id });
   expect(JSON.stringify(stopped.content)).toMatch(/interrupted/);
+  expect(stopped.details).toMatchObject({ task_id: task.task_id, task_type: 'local_agent', command: 'generalPurpose', message: `Stopped task ${task.task_id}` });
 });
 
 workerTest('terminal children and explicit stops drain every grandchild', async ({ dir, call }) => {

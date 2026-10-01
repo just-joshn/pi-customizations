@@ -325,7 +325,7 @@ test('escaped descendant lookup reads the fixture PID instead of a global name m
 
 test('a descendant that escaped the process group does not block the stop', async () => {
   const { ShellRuntime } = await import('../src/shell-runtime.ts');
-  const runtime = new ShellRuntime({ sendMessage: () => {}, on: () => {} } as never);
+  const runtime = new ShellRuntime({ sendMessage: () => {}, on: () => {}, events: { emit: () => {} } } as never);
   const cwd = await mkdtemp(join(tmpdir(), 'pstack-shell-cwd-'));
   const ctx = { cwd, sessionManager: { getSessionFile: () => null }, isIdle: () => true } as never;
   const record = await runtime.start({ command: `perl -MPOSIX -e 'POSIX::setsid(); $|=1; print "ESCAPED_PID=$$\\n"; sleep 300' & sleep 0.3`, title: 'escape' }, ctx);
@@ -351,7 +351,7 @@ test('a descendant that escaped the process group does not block the stop', asyn
 
 test('a process group that refuses the signal does not fail the stop', async () => {
   const { ShellRuntime } = await import('../src/shell-runtime.ts');
-  const runtime = new ShellRuntime({ sendMessage: () => {}, on: () => {} } as never);
+  const runtime = new ShellRuntime({ sendMessage: () => {}, on: () => {}, events: { emit: () => {} } } as never);
   const cwd = await mkdtemp(join(tmpdir(), 'pstack-shell-cwd-'));
   const ctx = { cwd, sessionManager: { getSessionFile: () => null }, isIdle: () => true } as never;
   const record = await runtime.start({ command: 'sleep 0.6', title: 'unsignallable' }, ctx);
@@ -373,7 +373,7 @@ test('a process group that refuses the signal does not fail the stop', async () 
 test('ShellRuntime direct unit tests: fallback dir, unknown stop, and delivered', async () => {
   const { ShellRuntime } = await import('../src/shell-runtime.ts');
   const messages: unknown[] = [];
-  const pi = { sendMessage: (msg: unknown) => messages.push(msg), on: () => {} } as never;
+  const pi = { sendMessage: (msg: unknown) => messages.push(msg), on: () => {}, events: { emit: () => {} } } as never;
   const runtime = new ShellRuntime(pi);
   const cwd = await mkdtemp(join(tmpdir(), 'pstack-shell-cwd-'));
   const fakeCtx = {

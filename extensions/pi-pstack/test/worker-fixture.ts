@@ -3,8 +3,9 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { createAgentSession, DefaultResourceLoader, SessionManager } from '@earendil-works/pi-coding-agent';
+import { type AgentToolUpdateCallback, createAgentSession, createEventBus, DefaultResourceLoader, SessionManager } from '@earendil-works/pi-coding-agent';
 import { expect, vi } from 'vitest';
+import { registerShells } from '../src/shells.ts';
 import { registerWorkers } from '../src/workers.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -32,35 +33,78 @@ async function closeFixture(session: Awaited<ReturnType<typeof createAgentSessio
   }
 }
 
-export async function workerFixture() {
+function workerLoader(dir: string, flags: Readonly<Record<string, string>>, shells: boolean) {
+  const eventBus = createEventBus();
+  const normalizedTypes: unknown[] = [];
+  const subagentLogs: unknown[] = [];
+  const modelResolutions: unknown[] = [];
+  const subagentStats: unknown[] = [];
+  const loader = new DefaultResourceLoader({
+    cwd: dir,
+    agentDir: dir,
+    eventBus,
+    noSkills: true,
+    noContextFiles: true,
+    extensionFactories: [
+      (pi) => {
+        for (const [name, value] of Object.entries(flags)) pi.registerFlag(name, { type: 'string', default: value });
+        pi.events.on('pstack:subagent-type-normalized', (value) => {
+          normalizedTypes.push(value);
+        });
+        pi.events.on('pstack:subagent-log', (value) => {
+          subagentLogs.push(value);
+        });
+        pi.events.on('pstack:subagent-model-resolve', (value) => {
+          modelResolutions.push(value);
+        });
+        pi.events.on('pstack:subagent-stats', (value) => {
+          subagentStats.push(value);
+        });
+        registerWorkers(pi);
+        if (shells) registerShells(pi);
+      },
+    ],
+  });
+  return { loader, eventBus, normalizedTypes, subagentLogs, modelResolutions, subagentStats };
+}
+
+export async function workerFixture(options: { retry?: boolean; flags?: Readonly<Record<string, string>>; shells?: boolean } = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'pstack-child-'));
   vi.stubEnv('PI_CODING_AGENT_DIR', dir);
   let session: Awaited<ReturnType<typeof createAgentSession>>['session'] | undefined;
   const close = () => closeFixture(session, dir);
   try {
     await mkdir(join(dir, 'extensions'));
-    await writeFile(join(dir, 'settings.json'), JSON.stringify({ retry: { enabled: false }, compaction: { enabled: false } }));
+    await writeFile(join(dir, 'settings.json'), JSON.stringify({ retry: { enabled: options.retry ?? false, maxRetries: 1, baseDelayMs: 0 }, compaction: { enabled: false } }));
     await writeProvider(dir);
-    const loader = new DefaultResourceLoader({ cwd: dir, agentDir: dir, noSkills: true, noContextFiles: true, extensionFactories: [registerWorkers] });
+    const { loader, eventBus, normalizedTypes, subagentLogs, modelResolutions, subagentStats } = workerLoader(dir, options.flags ?? {}, options.shells ?? false);
     await loader.reload();
     expect(loader.getExtensions().errors).toEqual([]);
     session = (await createAgentSession({ cwd: dir, agentDir: dir, resourceLoader: loader, sessionManager: SessionManager.create(dir, join(dir, 'sessions')) })).session;
     await session.bindExtensions({ mode: 'print' });
     const context = session.extensionRunner.createContext();
-    const model = context.modelRegistry.getAvailable().find((model) => model.provider === 'worker-test');
+    const model = context.modelRegistry.getAvailable().find((model) => model.provider === 'worker-test' && model.id === 'deterministic');
     expect(model).toBeDefined();
     if (!model) throw new Error('missing model');
     await session.setModel(model);
     const activeSession = session;
-    const tools = loader.getExtensions().extensions.flatMap((extension) => [...extension.tools.values()]);
-    async function call(name: string, params: Record<string, unknown>, signal?: AbortSignal, busy = false) {
+    async function call(name: string, params: Record<string, unknown>, signal?: AbortSignal, busy = false, onUpdate?: AgentToolUpdateCallback<unknown>) {
+      const tools = loader.getExtensions().extensions.flatMap((extension) => [...extension.tools.values()]);
       const tool = tools.find((tool) => tool.definition.name === name);
       expect(tool).toBeDefined();
       if (!tool) throw new Error(`tool ${name} not found`);
       const context = activeSession.extensionRunner.createToolContext(`test-${name}`, signal);
-      return tool.definition.execute(`test-${name}`, params, signal, undefined, busy ? { ...context, isIdle: () => false } : context);
+      return tool.definition.execute(`test-${name}`, params, signal, onUpdate, busy ? { ...context, isIdle: () => false } : context);
     }
-    return { dir, session, call, close };
+    async function command(name: string, args: string): Promise<ReadonlyArray<{ message: string; level: string | undefined }>> {
+      const registered = activeSession.extensionRunner.getCommand(name);
+      if (!registered) throw new Error(`command ${name} not found`);
+      const notes: { message: string; level: string | undefined }[] = [];
+      const context = activeSession.extensionRunner.createCommandContext();
+      await registered.handler(args, { ...context, ui: { ...context.ui, notify: (message: string, level?: string) => notes.push({ message, level }) } });
+      return notes;
+    }
+    return { dir, session, eventBus, call, command, close, normalizedTypes, subagentLogs, modelResolutions, subagentStats };
   } catch (error) {
     await close();
     throw error;
