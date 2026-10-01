@@ -176,6 +176,7 @@ function presentationFields(fm: Record<string, unknown>): Partial<Mutable> {
     ...(color ? { color } : {}),
     ...(model !== undefined ? { model } : {}),
     ...(typeof fm.initialPrompt === 'string' && fm.initialPrompt.trim() ? { initialPrompt: fm.initialPrompt.trim() } : {}),
+    ...(typeof fm.criticalSystemReminder_EXPERIMENTAL === 'string' && fm.criticalSystemReminder_EXPERIMENTAL.trim() ? { criticalSystemReminder_EXPERIMENTAL: fm.criticalSystemReminder_EXPERIMENTAL.trim() } : {}),
     ...(fm.omitContextFiles === true || fm.omitContextFiles === 'true' ? { omitContextFiles: true } : {}),
   };
 }
