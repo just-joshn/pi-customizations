@@ -161,6 +161,7 @@ class AgentLauncher {
     const { plan, definition, model, background } = admitted;
     const isolation = await this.isolate(admitted, ctx);
     const prompt = plan.prompt;
+    const requestedIsolation = plan.isolation ?? definition.isolation;
     const taskParams = { prompt, ...(model ? { model } : {}), ...(isolation.cwd ? { cwd: isolation.cwd } : {}), ...(background ? {} : { run_in_background: false }) };
     const launch = {
       definition,
@@ -174,6 +175,8 @@ class AgentLauncher {
         this.publishStats();
       },
       ...(isolation.worktree ? { worktree: isolation.worktree } : {}),
+      ...(requestedIsolation ? { requestedIsolation } : {}),
+      ...(this.runtime.agentId ? { parentAgentId: this.runtime.agentId } : {}),
       onSettled: async (record: TaskRecord) => {
         if (record.status !== 'running') this.stats.settle(record.status, record.abort?.telemetry);
         this.publishStats();
@@ -187,7 +190,6 @@ class AgentLauncher {
     const record = started.details;
     const kept = isolation.outcome();
     const worktree = kept?.kept ? { worktreePath: kept.path, worktreeBranch: kept.branch } : {};
-    const requestedIsolation = plan.isolation ?? definition.isolation;
     const isolationResult = requestedIsolation ? { requestedIsolation, effectiveIsolation: isolation.cwd ? ('worktree' as const) : ('local' as const) } : {};
     const result = background
       ? asyncLaunched(record, plan, isolationResult)
