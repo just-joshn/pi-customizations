@@ -4,11 +4,12 @@ import { join } from 'node:path';
 
 import { type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { type DetachedRpcHandle, openDetachedRpc, startDetachedRpc } from '../scripts/detached-rpc-client.mjs';
+import { availableInEnvironment } from './resource-environment.ts';
 import { taskOutcome } from './task-outcome.ts';
 import type { TaskParameters, TaskRecord } from './worker-records.ts';
 import { prepareWorkerSession } from './worker-support.ts';
 
-export function cloudWorkerArguments({ dir, selected, loader, readonly }: Awaited<ReturnType<typeof prepareWorkerSession>>, systemFile: string, prior?: TaskRecord): string[] {
+export function cloudWorkerArguments({ dir, selected, loader, readonly }: Pick<Awaited<ReturnType<typeof prepareWorkerSession>>, 'dir' | 'selected' | 'loader' | 'readonly'>, systemFile: string, prior?: TaskRecord): string[] {
   return [
     '--approve',
     '--no-extensions',
@@ -26,8 +27,14 @@ export function cloudWorkerArguments({ dir, selected, loader, readonly }: Awaite
     '--append-system-prompt',
     systemFile,
     ...loader.getExtensions().extensions.flatMap((extension) => ['-e', extension.resolvedPath]),
-    ...loader.getSkills().skills.flatMap((skill) => ['--skill', skill.filePath]),
-    ...loader.getPrompts().prompts.flatMap((prompt) => ['--prompt-template', prompt.filePath]),
+    ...loader
+      .getSkills()
+      .skills.filter((skill) => availableInEnvironment(skill.filePath, 'cloud'))
+      .flatMap((skill) => ['--skill', skill.filePath]),
+    ...loader
+      .getPrompts()
+      .prompts.filter((prompt) => availableInEnvironment(prompt.filePath, 'cloud'))
+      .flatMap((prompt) => ['--prompt-template', prompt.filePath]),
     ...(readonly ? ['--tools', 'read,grep,find,ls'] : []),
   ];
 }
