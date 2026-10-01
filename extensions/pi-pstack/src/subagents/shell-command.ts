@@ -28,18 +28,20 @@ export function runShellCommand(command: string, { cwd, input, env, timeoutMs }:
     child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk));
     child.stdin.on('error', () => {});
     child.on('error', (error) => {
+      if (timedOut) return;
       clearTimeout(timeout);
       if (escalation) clearTimeout(escalation);
       resolveRun({ code: 1, stdout: '', stderr: String(error) });
     });
     child.on('close', (code, signal) => {
+      if (timedOut) return;
       clearTimeout(timeout);
       if (escalation) clearTimeout(escalation);
       const text = Buffer.concat(stderr).toString('utf8');
       resolveRun({
-        code: timedOut ? 124 : code ?? 1,
+        code: code ?? 1,
         stdout: Buffer.concat(stdout).toString('utf8'),
-        stderr: timedOut ? `${text}${text ? '\n' : ''}terminated by timeout` : signal ? `${text}terminated by ${signal}` : text,
+        stderr: signal ? `${text}terminated by ${signal}` : text,
       });
     });
     child.stdin.end(input);

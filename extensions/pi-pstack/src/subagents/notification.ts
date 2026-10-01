@@ -12,6 +12,7 @@ export type AgentNotificationInput = Readonly<{
   result?: string;
   usage?: NotificationUsage;
   worktree?: Readonly<{ path: string; branch?: string }>;
+  worktreeCleanupWarning?: string;
 }>;
 
 const defaultNote = 'A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.';
@@ -49,7 +50,8 @@ function notificationBody(input: AgentNotificationInput): string {
   const usage = input.usage ? `\n<usage><subagent_tokens>${input.usage.totalTokens}</subagent_tokens><tool_uses>${input.usage.toolUses}</tool_uses><duration_ms>${input.usage.durationMs}</duration_ms></usage>` : '';
   const branch = input.worktree?.branch ? `<worktreeBranch>${escapeMarkup(input.worktree.branch)}</worktreeBranch>` : '';
   const worktree = input.worktree ? `\n<worktree><worktreePath>${input.worktree.path}</worktreePath>${branch}</worktree>` : '';
-  return `\n<note>${note}</note>${result}${usage}${worktree}`;
+  const cleanupWarning = input.worktreeCleanupWarning ? `\n<worktree-cleanup-warning>${escapeMarkup(input.worktreeCleanupWarning)}</worktree-cleanup-warning>` : '';
+  return `\n<note>${note}</note>${result}${usage}${worktree}${cleanupWarning}`;
 }
 
 export function agentNotification(input: AgentNotificationInput): string {
