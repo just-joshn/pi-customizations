@@ -63,10 +63,15 @@ export async function verifiedWorktree(worktree: Pick<AgentWorktree, 'path' | 'b
 
 export async function finalizeWorktree(worktree: AgentWorktree): Promise<WorktreeOutcome> {
   if (!(await verifiedWorktree(worktree))) return { kept: true, path: worktree.path, branch: worktree.branch };
+  const kept = { kept: true, path: worktree.path, branch: worktree.branch } as const;
   const head = await run(worktree.path, ['rev-parse', 'HEAD']);
-  const dirty = await run(worktree.path, ['status', '--porcelain']);
-  if (head !== worktree.baseCommit || dirty) return { kept: true, path: worktree.path, branch: worktree.branch };
-  await run(worktree.repoRoot, ['worktree', 'remove', '--force', worktree.path]);
+  const changes = await run(worktree.path, ['status', '--porcelain', '--ignored', '--untracked-files=all']);
+  if (head !== worktree.baseCommit || changes) return kept;
+  try {
+    await run(worktree.repoRoot, ['worktree', 'remove', worktree.path]);
+  } catch {
+    return kept;
+  }
   await run(worktree.repoRoot, ['branch', '-D', worktree.branch]);
   return { kept: false };
 }
