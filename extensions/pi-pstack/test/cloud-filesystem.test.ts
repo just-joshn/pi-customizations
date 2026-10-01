@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { expect, test, vi } from 'vitest';
 import { startDetachedRpc } from '../scripts/detached-rpc-client.mjs';
@@ -28,7 +29,7 @@ test('cloud visibility includes global, custom and orchestration stores but allo
 });
 
 test.skipIf(process.platform !== 'darwin')(
-  'real idle transport applies the cloud visibility policy without exposing siblings on legacy resume',
+  'real idle transport keeps store data private while nested policy preparation exposes the native sandbox limit',
   async () => {
     const root = await mkdtemp(join(tmpdir(), 'pstack-cloud-policy-rpc-'));
     const sessions = join(root, 'sessions');
@@ -48,6 +49,10 @@ test.skipIf(process.platform !== 'darwin')(
       await Promise.all([writeFile(global, 'global fixture'), writeFile(orchestration, 'orchestration fixture'), writeFile(repo, 'repo fixture')]);
       const handle = await startDetachedRpc({ directory: own, cwd: workspace, agentDir: join(root, 'agent'), args: ['--no-session', '--no-extensions'], filesystem });
       try {
+        expect.hasAssertions();
+        for (const directory of filesystem.denied) {
+          expect(await handle.send({ type: 'bash', command: `ls -A ${JSON.stringify(directory)} >/dev/null 2>&1 && printf listed || printf blocked` })).toMatchObject({ success: true, data: { output: 'blocked' } });
+        }
         for (const [path, output] of [
           [legacy, 'readable'],
           [sibling, 'blocked'],
@@ -57,6 +62,12 @@ test.skipIf(process.platform !== 'darwin')(
         ] as const) {
           expect(await handle.send({ type: 'bash', command: `head -c 1 '${path}' >/dev/null 2>&1 && printf readable || printf blocked` })).toMatchObject({ success: true, data: { output } });
         }
+        const module = fileURLToPath(new URL('../src/cloud-filesystem.ts', import.meta.url));
+        const child = join(own, 'nested');
+        await mkdir(child);
+        const transport = fileURLToPath(new URL('../scripts/detached-rpc-client.mjs', import.meta.url));
+        const script = `(async () => { const m = await import(${JSON.stringify(module)}); const t = await import(${JSON.stringify(transport)}); const filesystem = await m.cloudFilesystem(${JSON.stringify(own)}, ${JSON.stringify(child)}, ${JSON.stringify(workspace)}); console.log('prepared'); const h = await t.startDetachedRpc({ directory: ${JSON.stringify(child)}, cwd: ${JSON.stringify(workspace)}, agentDir: ${JSON.stringify(join(root, 'agent'))}, args: ['--no-session', '--no-extensions'], filesystem }); try { const r = await h.send({ type: 'get_state' }); console.log(r.success ? 'prepared' : 'failed'); } finally { await h.close(); } })().catch(e => { if (e.message.includes('sandbox_apply: Operation not permitted')) console.log('nested sandbox unavailable'); else throw e; })`;
+        expect(await handle.send({ type: 'bash', command: `${JSON.stringify(process.execPath)} -e ${JSON.stringify(script)}` })).toMatchObject({ success: true, data: { output: 'prepared\nnested sandbox unavailable\n' } });
       } finally {
         await handle.close();
       }

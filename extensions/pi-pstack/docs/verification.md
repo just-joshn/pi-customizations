@@ -16,7 +16,7 @@ Fresh checks verify the following contracts:
 
 The current cloud lifecycle regressions use saved records, idle transport processes, or a main-session SDK fixture with a mocked launch boundary. The latest focused run passes 19 tests. The fixtures do not launch AI workers.
 
-Cloud launch requests a macOS restriction on reads of known coordinator stores. Real idle transport tests verify custom session, global session, and orchestration-store exclusion. Unsupported platforms fail explicitly. Complete hosted filesystem and credential isolation remain unverified.
+Cloud launch requests a macOS restriction on reads of known coordinator stores. Real idle transport tests verify blocked store byte reads and directory listings while allowing exact store-root metadata for canonicalization. Nested policy preparation succeeds. Applying a second sandbox from the restricted process fails with `sandbox_apply: Operation not permitted` on the tested macOS host. The test records that platform limit, not nested cloud parity. Unsupported platforms fail explicitly. Complete hosted filesystem and credential isolation remain unverified.
 
 Evidence is retained in `/tmp/pstack-e2e-evidence`. The current logs include `fresh-resources.log`, `fresh-typecheck.log`, `fresh-cli.log`, `fresh-upstream.log`, `fresh-pack.log`, and `cloud-startup-verification.log`. The real RPC results are in `full-rpc/results.json`.
 
