@@ -4,7 +4,16 @@ import { readFile, rename, writeFile } from 'node:fs/promises';
 import { Type } from 'typebox';
 import { Check } from 'typebox/value';
 
-export const launchSchema = Type.Object({ executable: Type.String({ minLength: 1 }), args: Type.Array(Type.String()), cwd: Type.String({ minLength: 1 }), agentDir: Type.String({ minLength: 1 }) });
+export const launchSchema = Type.Object({
+  executable: Type.String({ minLength: 1 }),
+  args: Type.Array(Type.String()),
+  cwd: Type.String({ minLength: 1 }),
+  agentDir: Type.String({ minLength: 1 }),
+  headless: Type.Optional(Type.Boolean()),
+  closeAfterSettle: Type.Optional(Type.Boolean()),
+  ownerId: Type.Optional(Type.String({ minLength: 1 })),
+});
+export const snapshotSchema = Type.Object({ invocation: Type.String(), entries: Type.Array(Type.Unknown()), leafId: Type.Union([Type.String(), Type.Null()]), error: Type.Optional(Type.String()) });
 export const commandSchema = Type.Object({ id: Type.String({ pattern: '^[0-9a-f-]{36}$' }), command: Type.Object({ type: Type.String({ minLength: 1 }) }, { additionalProperties: true }) });
 const responseFields = { id: Type.String(), type: Type.Literal('response'), command: Type.String() };
 export const responseSchema = Type.Union([Type.Object({ ...responseFields, success: Type.Literal(true), data: Type.Optional(Type.Unknown()) }), Type.Object({ ...responseFields, success: Type.Literal(false), error: Type.String() })]);

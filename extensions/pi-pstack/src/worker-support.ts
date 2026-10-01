@@ -60,7 +60,7 @@ export function workerExtensions<T extends { path: string; resolvedPath: string 
   return { ...result, extensions, errors };
 }
 
-export function sumUsage(messages: AgentSession['messages'], previous?: Usage): Usage {
+export function sumUsage(messages: ReadonlyArray<{ role: string; usage?: Usage }>, previous?: Usage): Usage {
   const empty: Usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
   return messages.reduce(
     (sum, message) => {

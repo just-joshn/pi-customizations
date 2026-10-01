@@ -13,11 +13,11 @@ export function createDelivery(pi: ExtensionAPI, startTimeoutMs = 60_000): Deliv
     for (const waiter of waiters) if (waiter.started) waiter.resolve();
   });
   return async (ctx, text) => {
-    if (ctx.hasUI) {
+    if (ctx.hasUI && !process.env.PI_PSTACK_HEADLESS) {
       pi.sendUserMessage(text, { deliverAs: 'followUp' });
       return;
     }
-    // Print mode disposes the session when the command returns, so hold the command until the turn it queued settles.
+    // Headless sessions may close when the command returns, so wait for its queued turn to settle.
     await new Promise<void>((resolve) => {
       const waiter: Waiter = {
         started: false,

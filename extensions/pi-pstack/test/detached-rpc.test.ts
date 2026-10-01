@@ -1,8 +1,10 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { Type } from 'typebox';
+import { Check } from 'typebox/value';
 import { expect, test } from 'vitest';
 import { openDetachedRpc, startDetachedRpc } from '../scripts/detached-rpc-client.mjs';
 import { packageRoot } from './session-fixture.ts';
@@ -114,6 +116,112 @@ test('a handled goal command does not finish its independent active turn', async
     expect(messages.data.messages.filter((message) => message.role === 'toolResult')).toEqual([]);
     const last = messages.data.messages.findLast((message) => message.role === 'assistant');
     expect(last?.content.find((block) => block.type === 'text')?.text).toContain('recorded <skill name="goal"');
+  } finally {
+    await handle?.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 30000);
+
+test('headless delivery waits for settlement and leaves a snapshot after automatic shutdown', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-detached-snapshot-'));
+  const agentDir = join(directory, 'agent');
+  let handle: Awaited<ReturnType<typeof startDetachedRpc>> | undefined;
+  try {
+    handle = await startDetachedRpc({
+      directory,
+      cwd: directory,
+      agentDir,
+      headless: true,
+      closeAfterSettle: true,
+      args: ['--no-session', '--no-extensions', '-e', packageRoot, '-e', join(packageRoot, 'test/held-journey-provider.ts'), '--provider', 'journey-test', '--model', 'recorder'],
+    });
+    const submitted = handle.send({ type: 'prompt', message: '/goal Prove automatic goal continuation' });
+    const reopened = openDetachedRpc(handle.directory);
+    await expect
+      .poll(
+        async () => {
+          const response = await reopened.send({ type: 'get_state' });
+          return response.success && response.command === 'get_state' && response.data.isStreaming;
+        },
+        { timeout: 5000 },
+      )
+      .toBe(true);
+    const early = await Promise.race([submitted.then(() => true), reopened.send({ type: 'get_state' }).then(() => false)]);
+    expect(early).toBe(false);
+    await writeFile(join(agentDir, 'release-scripted-reply'), 'release');
+    const completed = await submitted;
+    expect(completed.success).toBe(true);
+    await expect.poll(() => reopened.status(), { timeout: 5000 }).toBe('exited');
+    const snapshot = await reopened.snapshot();
+    expect(snapshot?.invocation).toBe(completed.id);
+    expect(JSON.stringify(snapshot?.entries)).toContain('recorded <skill name=');
+    expect(snapshot?.error).toBeUndefined();
+    await expect(reopened.send({ type: 'get_state' })).rejects.toThrow('exited');
+  } finally {
+    await handle?.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 30000);
+
+test('headless dialogs are cancelled rather than implicitly approved', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-detached-dialog-'));
+  let handle: Awaited<ReturnType<typeof startDetachedRpc>> | undefined;
+  try {
+    handle = await startDetachedRpc({
+      directory,
+      cwd: directory,
+      agentDir: join(directory, 'agent'),
+      headless: true,
+      closeAfterSettle: true,
+      args: ['--no-session', '--no-extensions', '-e', packageRoot, '-e', join(packageRoot, 'test/detached-dialog.ts')],
+    });
+    const response = await handle.send({ type: 'prompt', message: '/detached-confirm-fixture' });
+    expect(response.success).toBe(true);
+    const reopened = openDetachedRpc(handle.directory);
+    await expect.poll(() => reopened.status(), { timeout: 5000 }).toBe('exited');
+    const snapshot = await reopened.snapshot();
+    expect(JSON.stringify(snapshot?.entries)).toContain('"approved":false');
+    expect(JSON.stringify(snapshot?.entries)).toContain('denied');
+  } finally {
+    await handle?.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 30000);
+
+test('a completed snapshot remains readable after the coordinator, supervisor, and Pi process exit', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-detached-orphan-'));
+  let handle: Awaited<ReturnType<typeof startDetachedRpc>> | undefined;
+  try {
+    const raw: unknown = JSON.parse(execFileSync(process.execPath, [join(packageRoot, 'test/detached-rpc-fixture.mjs'), directory, packageRoot, 'snapshot'], { encoding: 'utf8', timeout: 20000 }));
+    const identity = Type.Object({ directory: Type.String(), coordinatorPid: Type.Integer({ minimum: 1 }), supervisorPid: Type.Integer({ minimum: 1 }), piPid: Type.Integer({ minimum: 1 }) });
+    if (!Check(identity, raw)) throw new Error('Invalid fixture process identity.');
+    handle = openDetachedRpc(raw.directory);
+    await expect.poll(() => handle?.status(), { timeout: 5000 }).toBe('exited');
+    for (const pid of [raw.coordinatorPid, raw.supervisorPid, raw.piPid]) {
+      await expect
+        .poll(
+          () => {
+            try {
+              process.kill(pid, 0);
+              return true;
+            } catch (error) {
+              if (error && typeof error === 'object' && 'code' in error && error.code === 'ESRCH') return false;
+              throw error;
+            }
+          },
+          { timeout: 5000 },
+        )
+        .toBe(false);
+    }
+    const snapshot = await handle.snapshot();
+    expect(JSON.stringify(snapshot?.entries)).toContain('UpdateGoal');
+    expect(snapshot?.error).toBeUndefined();
+    if (process.env.PSTACK_EVIDENCE_DIRECTORY) {
+      const evidence = join(process.env.PSTACK_EVIDENCE_DIRECTORY, 'durable-snapshot');
+      await mkdir(evidence, { recursive: true });
+      await cp(handle.directory, evidence, { recursive: true });
+      await writeFile(join(evidence, 'identity.json'), JSON.stringify(raw, null, 2));
+    }
   } finally {
     await handle?.close();
     await rm(directory, { recursive: true, force: true });
