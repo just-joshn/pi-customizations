@@ -216,9 +216,7 @@ class AgentLauncher {
       outcome: () => outcome,
       settle: async () => {
         outcome ??= await finalizeCheckout(worktree, (message) => this.pi.events.emit('pstack:subagent-log', message));
-        return outcome.kept
-          ? { worktreeCleanlyRemoved: false, ...keptFields(outcome) }
-          : { worktreeCleanlyRemoved: true, ...(outcome.branchCleanupError ? { worktreeCleanupWarning: outcome.branchCleanupError } : {}) };
+        return outcome.kept ? { worktreeCleanlyRemoved: false, ...keptFields(outcome) } : { worktreeCleanlyRemoved: true, ...(outcome.branchCleanupError ? { worktreeCleanupWarning: outcome.branchCleanupError } : {}) };
       },
     };
   }
@@ -268,7 +266,8 @@ class AgentLauncher {
       onSettled: async (record: TaskRecord) => {
         if (record.status !== 'running') this.stats.settle(record.status, record.abort?.telemetry);
         this.publishStats();
-        if (isolation.worktree && this.runtime.keepsAlive(record.id)) return { worktreeCleanlyRemoved: false, ...keptFields({ kept: true, path: isolation.worktree.path, ...('branch' in isolation.worktree ? { branch: isolation.worktree.branch } : {}) }) };
+        if (isolation.worktree && this.runtime.keepsAlive(record.id))
+          return { worktreeCleanlyRemoved: false, ...keptFields({ kept: true, path: isolation.worktree.path, ...('branch' in isolation.worktree ? { branch: isolation.worktree.branch } : {}) }) };
         return (await isolation.settle?.()) ?? {};
       },
     };
@@ -282,7 +281,12 @@ class AgentLauncher {
     const isolationResult = requestedIsolation ? { requestedIsolation, effectiveIsolation: isolation.cwd ? ('worktree' as const) : ('local' as const) } : {};
     const result = background
       ? asyncLaunched(record, plan, { ...isolationResult, canReadOutputFile: this.canReadOutputFile() })
-      : completed({ ...record, output: await readFile(record.outputFile, 'utf8'), ...(started.usage ? { usage: started.usage } : {}) }, plan, { ...worktree, ...isolationResult }, (findings) => this.reportFindings(record.id, findings));
+      : completed(
+          { ...record, output: await readFile(record.outputFile, 'utf8'), ...(started.usage ? { usage: started.usage } : {}) },
+          plan,
+          { ...worktree, ...isolationResult, ...(record.worktreeCleanupWarning ? { worktreeCleanupWarning: record.worktreeCleanupWarning } : {}) },
+          (findings) => this.reportFindings(record.id, findings),
+        );
     return { ...wrap(result, resultText(result)), ...(started.usage ? { usage: started.usage } : {}) };
   }
 }
