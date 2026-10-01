@@ -35,7 +35,9 @@ export class ProcessGroups {
 
   killAll(): number {
     const owners = new Set([this.agentId, ...this.groups.values()]);
-    for (const pid of this.groups.keys()) killGroup(pid);
+    const groups = this.groups;
+    this.groups = new Map();
+    for (const pid of groups.keys()) killGroup(pid);
     return owners.size;
   }
 }

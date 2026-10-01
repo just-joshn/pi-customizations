@@ -8,7 +8,9 @@ import { validateId } from './identifiers.ts';
 const git = promisify(execFile);
 
 export type AgentWorktree = Readonly<{ path: string; branch: string; repoRoot: string; baseCommit: string }>;
-export type WorktreeOutcome = Readonly<{ kept: false }> | Readonly<{ kept: true; path: string; branch?: string }>;
+export type WorktreeOutcome =
+  | Readonly<{ kept: false; branchCleanupError?: string }>
+  | Readonly<{ kept: true; path: string; branch?: string }>;
 
 async function run(cwd: string, args: readonly string[]): Promise<string> {
   const { stdout } = await git('git', [...args], { cwd });
@@ -72,6 +74,10 @@ export async function finalizeWorktree(worktree: AgentWorktree): Promise<Worktre
   } catch {
     return kept;
   }
-  await run(worktree.repoRoot, ['branch', '-D', worktree.branch]);
-  return { kept: false };
+  try {
+    await run(worktree.repoRoot, ['branch', '-D', worktree.branch]);
+    return { kept: false };
+  } catch (error) {
+    return { kept: false, branchCleanupError: `Worktree was removed, but branch '${worktree.branch}' remains: ${String(error)}` };
+  }
 }
