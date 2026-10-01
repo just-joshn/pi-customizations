@@ -1,4 +1,4 @@
-import { realpath, writeFile } from 'node:fs/promises';
+import { realpath, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 export async function filesystemLaunch(executable, args, directory, filesystem) {
@@ -9,7 +9,9 @@ export async function filesystemLaunch(executable, args, directory, filesystem) 
   const denied = await Promise.all(filesystem.denied.map((path) => realpath(path)));
   const allowed = await Promise.all(filesystem.allowed.map((path) => realpath(path)));
   if (denied.some((path) => allowed.some((parent) => path === parent || path.startsWith(parent === '/' ? '/' : `${parent}/`)))) throw new Error('A coordinator store cannot also be an allowed task directory.');
-  const exceptions = allowed.map((path) => `(require-not (subpath ${JSON.stringify(path)}))`).join(' ');
+  const files = await Promise.all((filesystem.files ?? []).map((path) => realpath(path)));
+  for (const path of files) if (!(await stat(path)).isFile()) throw new Error('Allowed legacy session path must be a file.');
+  const exceptions = [...allowed.map((path) => `(require-not (subpath ${JSON.stringify(path)}))`), ...files.map((path) => `(require-not (literal ${JSON.stringify(path)}))`)].join(' ');
   const rules = denied.map((path) => `(deny file-read* (require-all (subpath ${JSON.stringify(path)}) ${exceptions}))`).join('\n');
   const profile = join(directory, 'filesystem.sb');
   await writeFile(profile, `(version 1)\n(allow default)\n${rules}\n`, { mode: 0o600 });

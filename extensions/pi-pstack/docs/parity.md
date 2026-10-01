@@ -31,7 +31,7 @@ Each Cursor facility pstack uses maps to a local Pi mechanism below. The unmet t
 | Source requirement | Why parity is unavailable |
 | --- | --- |
 | Complete cloud execution parity | Detached transport lifetime, reconnect, control, and snapshots are verified through real main-session fixtures. Dedicated Task startup, steering, resume, and descendant teardown journeys remain unexecuted. This local transport does not provide a hosted service. |
-| Cloud exclusion from the local store | Separate worktrees do not restrict filesystem reads. A rerunnable macOS sandbox experiment blocks parent-store byte reads, symlink access, and shell descendants while retaining task-owned reads. The sandbox is not integrated into Task launch. Cross-platform exclusion remains unverified. |
+| Complete cloud exclusion from the local store | Cloud launch now requests a macOS read restriction for the coordinator's custom session directory, the global session store, and `ORCH_STORE` when set. Task-owned directories and the worktree remain readable. Legacy resume permits only its exact session file. Real idle transport tests verify this policy. Actual Task execution remains unverified. Other platforms reject the restriction rather than falling back unsandboxed. Complete hosted filesystem and credential isolation is not established. |
 | Cursor cloud timers | Cloud timer subscriptions are not implemented. Local `/loop` covers wakes. A required cloud wake chain is an unmet gate. |
 | Exact Cursor model entitlements, aliases, speed tiers, and inference behavior | Pi uses provider/model IDs and separate supported thinking levels. Availability depends on configured providers. No silent family substitution occurs. |
 | Cursor synced `create-skill` and Automations services | The references identify server-synced skills and host services. This package does not implement those services or distribute their complete current skill text. |
@@ -45,7 +45,7 @@ Each Cursor facility pstack uses maps to a local Pi mechanism below. The unmet t
 | Arbitrary MCP and business service integrations | Writable workers discover installed pi extensions. Availability, permissions, and external service behavior remain installation-specific. |
 | UI parity and stochastic instruction compliance | Pi has different UI and system instructions. Deterministic tests cannot establish every possible model decision or identical rendering. |
 
-The runtime tells the model to retain source gates and identify missing dependencies. That instruction is not a security boundary. Task rejects unknown personas and unresolved model requests in code. Cloud execution is implemented, but local-store exclusion remains unmet. Other workflow gates remain model instructions. Do not interpret the report as proof that every model will obey every workflow instruction.
+The runtime tells the model to retain source gates and identify missing dependencies. That instruction is not a security boundary. Task rejects unknown personas and unresolved model requests in code. Cloud execution requests the native filesystem restriction. That restriction does not establish hosted execution or complete credential isolation. Other workflow gates remain model instructions. Do not interpret the report as proof that every model will obey every workflow instruction.
 
 ## Mechanism migration
 
