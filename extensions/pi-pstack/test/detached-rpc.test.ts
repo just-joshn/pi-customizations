@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -15,6 +15,7 @@ test('a detached Pi RPC process accepts control from a reopened handle without m
     expect(launched.startsWith(directory)).toBe(true);
     handle = openDetachedRpc(launched);
     const reopened = openDetachedRpc(handle.directory);
+    expect(await reopened.activity()).toEqual({ kind: 'idle' });
     const commands = await reopened.send({ type: 'get_commands' });
     expect(commands.success).toBe(true);
     if (!commands.success || commands.command !== 'get_commands') throw new Error('Expected successful command discovery.');
@@ -43,12 +44,76 @@ test('a detached Pi RPC process accepts control from a reopened handle without m
     const stats = await reopened.send({ type: 'get_session_stats' });
     if (!stats.success || stats.command !== 'get_session_stats') throw new Error('Expected session statistics.');
     expect(stats.data.tokens).toEqual({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 });
+    expect(await reopened.activity()).toEqual({ kind: 'idle' });
+    const handled = await reopened.send({ type: 'prompt', message: '/pstack' });
+    expect(handled.success).toBe(true);
+    if (!handled.success || handled.command !== 'prompt') throw new Error('Expected handled extension command.');
+    expect(handled.data.disposition).toBe('handled');
+    expect(await reopened.activity()).toEqual({ kind: 'settled', invocation: handled.id });
     expect((await reopened.send({ type: 'clear_queue' })).success).toBe(true);
     expect((await reopened.send({ type: 'abort' })).success).toBe(true);
     await Promise.all([handle.close(), reopened.close()]);
     expect(await reopened.status()).toBe('exited');
     await reopened.close();
     await expect(reopened.send({ type: 'get_state' })).rejects.toThrow('exited');
+  } finally {
+    await handle?.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 30000);
+
+test('final settlement survives goal continuation in a scripted main-session fixture without Task calls', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-detached-goal-'));
+  let handle: Awaited<ReturnType<typeof startDetachedRpc>> | undefined;
+  try {
+    handle = await startDetachedRpc({
+      directory,
+      cwd: directory,
+      agentDir: join(directory, 'agent'),
+      args: ['--no-session', '--no-extensions', '-e', packageRoot, '-e', join(packageRoot, 'test/journey-provider.ts'), '--provider', 'journey-test', '--model', 'recorder'],
+    });
+    const accepted = await handle.send({ type: 'prompt', message: 'JOURNEY:goalcontinue' });
+    expect(accepted.success).toBe(true);
+    const reopened = openDetachedRpc(handle.directory);
+    await expect.poll(() => reopened.activity(), { timeout: 5000 }).toEqual({ kind: 'settled', invocation: accepted.id });
+    const messages = await reopened.send({ type: 'get_messages' });
+    if (!messages.success || messages.command !== 'get_messages') throw new Error('Expected completed goal messages.');
+    expect(messages.data.messages.filter((message) => message.role === 'toolResult').map((message) => message.toolName)).toEqual(['CreateGoal', 'UpdateGoal']);
+    const stats = await reopened.send({ type: 'get_session_stats' });
+    if (!stats.success || stats.command !== 'get_session_stats') throw new Error('Expected fixture statistics.');
+    expect(stats.data.tokens).toEqual({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 });
+  } finally {
+    await handle?.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 30000);
+
+test('a handled goal command does not finish its independent active turn', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-detached-held-'));
+  const agentDir = join(directory, 'agent');
+  let handle: Awaited<ReturnType<typeof startDetachedRpc>> | undefined;
+  try {
+    handle = await startDetachedRpc({
+      directory,
+      cwd: directory,
+      agentDir,
+      args: ['--no-session', '--no-extensions', '-e', packageRoot, '-e', join(packageRoot, 'test/held-journey-provider.ts'), '--provider', 'journey-test', '--model', 'recorder'],
+    });
+    const handled = await handle.send({ type: 'prompt', message: '/goal Prove automatic goal continuation' });
+    if (!handled.success || handled.command !== 'prompt') throw new Error('Expected handled goal command.');
+    expect(handled.data.disposition).toBe('handled');
+    const state = await handle.send({ type: 'get_state' });
+    if (!state.success || state.command !== 'get_state') throw new Error('Expected held turn state.');
+    expect(state.data.isStreaming).toBe(true);
+    expect(await handle.activity()).toEqual({ kind: 'running', invocation: handled.id });
+    await writeFile(join(agentDir, 'release-scripted-reply'), 'release');
+    const reopened = openDetachedRpc(handle.directory);
+    await expect.poll(() => reopened.activity(), { timeout: 5000 }).toEqual({ kind: 'settled', invocation: handled.id });
+    const messages = await reopened.send({ type: 'get_messages' });
+    if (!messages.success || messages.command !== 'get_messages') throw new Error('Expected finished goal messages.');
+    expect(messages.data.messages.filter((message) => message.role === 'toolResult')).toEqual([]);
+    const last = messages.data.messages.findLast((message) => message.role === 'assistant');
+    expect(last?.content.find((block) => block.type === 'text')?.text).toContain('recorded <skill name="goal"');
   } finally {
     await handle?.close();
     await rm(directory, { recursive: true, force: true });

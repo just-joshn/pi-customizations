@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, realpath, unlink } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { readRecord, responseSchema, statusSchema, writeRecord } from './detached-rpc-protocol.mjs';
+import { activitySchema, readRecord, responseSchema, statusSchema, writeRecord } from './detached-rpc-protocol.mjs';
 
 const requestDeadlineMs = 30000;
 const pollMs = 25;
@@ -16,6 +16,11 @@ export function openDetachedRpc(directory) {
   const readStatus = () => readRecord(statusPath, statusSchema);
   return {
     directory,
+    async activity() {
+      const activity = await readRecord(join(directory, 'activity.json'), activitySchema);
+      if (!activity) throw new Error('Detached RPC activity is unavailable.');
+      return activity;
+    },
     async status() {
       const status = await readStatus();
       if (!status) throw new Error('Detached RPC has not started.');
