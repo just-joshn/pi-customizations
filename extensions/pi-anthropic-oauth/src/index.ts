@@ -52,7 +52,7 @@ function billingOverrides(options: StreamOptions | undefined): Pick<StreamOption
   };
 }
 
-export default function (pi: ExtensionAPI) {
+export default function (pi: Pick<ExtensionAPI, 'registerProvider'>) {
   const anthropic = builtinProviders().find((provider) => provider.id === 'anthropic');
   const oauth = anthropic?.auth.oauth;
   if (!anthropic || !oauth) throw new Error("Pi's built-in anthropic provider with Claude Pro/Max OAuth is not available.");

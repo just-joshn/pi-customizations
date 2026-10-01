@@ -4,7 +4,7 @@ import { type AssistantMessage, type AssistantMessageEventStream, type Model, no
 import extension from '../src/index.ts';
 import { ask } from '../test/support/context.ts';
 import { OAUTH_ACCESS_TOKEN } from '../test/support/credentials.ts';
-import { loadProvider } from '../test/support/load-extension.ts';
+import { captureProvider } from '../test/support/load-extension.ts';
 import { type MessagesServer, startMessagesServer } from '../test/support/messages-server.ts';
 import { type Scenario, scenarios } from './equivalence-scenarios.ts';
 
@@ -66,7 +66,7 @@ async function missingToken(provider: Provider) {
   }
 }
 
-const provider = await loadProvider(extension);
+const provider = captureProvider(extension);
 const results = [...(await Promise.all(scenarios.map((scenario) => runScenario(provider, scenario)))), await missingToken(provider)];
 const models = provider.getModels().map(({ id, api, provider: owner, compat }) => ({ id, api, provider: owner, compat }));
 const summary = { provider: { id: provider.id, name: provider.name, oauth: provider.auth.oauth?.name, isSubscription: provider.auth.oauth?.isSubscription }, models, results };

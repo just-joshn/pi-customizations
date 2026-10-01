@@ -2,7 +2,7 @@ import { createModels, InMemoryCredentialStore, type SimpleStreamOptions } from 
 import { expect, test, vi } from 'vitest';
 import extension from '../src/index.ts';
 import { oauthCredential } from './support/credentials.ts';
-import { loadProvider } from './support/load-extension.ts';
+import { captureProvider } from './support/load-extension.ts';
 import { promptCarrying } from './support/payload-probe.ts';
 import { BILLING_TEXT } from './support/request-body.ts';
 import { collect, textOf } from './support/run-stream.ts';
@@ -20,7 +20,7 @@ const BILLING = { type: 'text', text: BILLING_TEXT };
 const NOTE = { type: 'text', text: 'note' };
 
 async function send(payload: unknown, options: SimpleStreamOptions = {}) {
-  const provider = await loadProvider(extension);
+  const provider = captureProvider(extension);
   const credentials = new InMemoryCredentialStore();
   await credentials.modify(provider.id, async () => oauthCredential());
   const models = createModels({ credentials });
