@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 
 import type { JsonValue } from '@earendil-works/pi-ai';
-import type { AgentToolResult, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { buildSessionContext, type AgentToolResult, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { launchSignal } from '../worker-control.ts';
 import type { TaskRecord } from '../worker-records.ts';
@@ -24,6 +24,8 @@ import { checkOptionPortability } from './option-portability.ts';
 import { pstackSetting } from './pstack-settings.ts';
 import { AgentPreconditionError, AgentTypeError } from './precondition-error.ts';
 import { flaggedOutput } from './completion-notice.ts';
+import { buildForkSeed, type ForkSeed, forkDefinition, forkDirective, forkWorktreeNotice, insideFork } from './fork-context.ts';
+import { forkAvailability, forkType } from './fork-gate.ts';
 import { type AgentResult, AgentResultSchema, asyncLaunched, completed, resultText } from './results.ts';
 import { registerResumeCommand } from './resume-command.ts';
 import { ResumeError } from './resume-errors.ts';
@@ -38,7 +40,7 @@ import { repositoryRoot, type WorktreeOutcome } from './worktree.ts';
 
 type AgentParams = AgentInput & { max_turns?: unknown };
 type Update = Parameters<WorkerRuntime['start']>[4];
-type Admitted = Readonly<{ plan: LaunchPlan; definition: AgentDefinition; model: string | undefined; background: boolean }>;
+type Admitted = Readonly<{ plan: LaunchPlan; definition: AgentDefinition; model: string | undefined; background: boolean; fork?: ForkSeed }>;
 
 function toRequest(params: AgentParams): SpawnRequest {
   return {
@@ -87,9 +89,12 @@ class AgentLauncher {
   private snapshot(ctx: ExtensionContext, agents: AdmissionSnapshot['agents']): AdmissionSnapshot {
     const sessionCap = sessionSpawnCap(this.env);
     const budget = maxBudgetUsd(this.pi.getFlag('max-budget-usd'));
+    const fork = forkAvailability({ env: this.env, root: ctx.cwd, agents, allowedAgentTypes: this.runtime.allowedAgentTypes });
     return {
       agents,
-      forkAvailable: false,
+      forkAvailable: fork.available,
+      ...(fork.denied ? { forkDenial: fork.denied } : {}),
+      insideFork: insideFork(buildSessionContext(ctx.sessionManager.getEntries(), ctx.sessionManager.getLeafId()).messages),
       ...(this.runtime.allowedAgentTypes !== undefined ? { allowedAgentTypes: this.runtime.allowedAgentTypes } : {}),
       depth: this.runtime.depth,
       depthCap: this.runtime.maximumDepth(ctx, this.env),
@@ -141,6 +146,7 @@ class AgentLauncher {
       case 'subagent_type_not_found':
       case 'subagent_type_ambiguous':
       case 'subagent_type_missing':
+      case 'subagent_type_denied':
         throw new AgentTypeError({ code, message });
       default:
         throw new AgentPreconditionError(decision.refusal);
@@ -154,7 +160,7 @@ class AgentLauncher {
       ...(definition.model !== undefined ? { definitionModel: definition.model } : {}),
       ...(exploreInheritCap(definition, this.env) ? { inheritCap: 'opus' } : {}),
       ...(parent ? { parent } : {}),
-      fork: false,
+      fork: plan.agentType === forkType,
       env: this.env,
       available: ctx.modelRegistry.getAvailable().map((model) => `${model.provider}/${model.id}`),
     });
@@ -174,7 +180,7 @@ class AgentLauncher {
     const decision = decideAdmission(this.snapshot(ctx, found.activeAgents), toRequest(params));
     if (!decision.ok) this.refuse(decision);
     const { plan } = decision;
-    const selected = found.activeAgents.find((agent) => agent.agentType === plan.agentType);
+    const selected = plan.agentType === forkType ? forkDefinition : found.activeAgents.find((agent) => agent.agentType === plan.agentType);
     if (!selected) throw new Error(`Agent type '${plan.agentType}' not found.`);
     if (params.subagent_type && params.subagent_type !== plan.agentType) {
       this.pi.events.emit('pstack:subagent-type-normalized', { requested: params.subagent_type, resolved: plan.agentType });
@@ -182,7 +188,14 @@ class AgentLauncher {
     }
     const definition = withMaxTurns(selected, params.max_turns);
     checkOptionPortability(definition, (message) => this.pi.events.emit('pstack:subagent-log', message));
-    return { plan, definition, model: this.chooseModel(plan, definition, ctx), background: (plan.background || definition.background === true) && !backgroundTasksDisabled(this.env) };
+    const fork = plan.agentType === forkType ? buildForkSeed(ctx, this.pi.getActiveTools()) : undefined;
+    return {
+      plan,
+      definition,
+      model: this.chooseModel(plan, definition, ctx),
+      background: (plan.background || definition.background === true || fork !== undefined) && !backgroundTasksDisabled(this.env),
+      ...(fork ? { fork } : {}),
+    };
   }
 
   private async isolate(admitted: Admitted, ctx: ExtensionContext): Promise<{ cwd?: string; worktree?: AgentCheckout; outcome: () => WorktreeOutcome | undefined; settle?: () => Promise<Partial<TaskRecord>> }> {
@@ -228,9 +241,9 @@ class AgentLauncher {
   }
 
   private async dispatch(callId: string, admitted: Admitted, signal: AbortSignal | undefined, onUpdate: Update, ctx: ExtensionContext, release: () => void): Promise<AgentToolResult<AgentResult>> {
-    const { plan, definition, model, background } = admitted;
+    const { plan, definition, model, background, fork } = admitted;
     const isolation = await this.isolate(admitted, ctx);
-    const prompt = plan.prompt;
+    const prompt = fork ? forkDirective(plan.prompt) + (isolation.cwd ? `\n\n${forkWorktreeNotice(ctx.cwd, isolation.cwd)}` : '') : plan.prompt;
     const requestedIsolation = plan.isolation ?? definition.isolation;
     const cwd = isolation.cwd ?? plan.cwd;
     const taskParams = { prompt, ...(model ? { model } : {}), ...(cwd ? { cwd } : {}), ...(background ? {} : { run_in_background: false }) };
@@ -238,6 +251,7 @@ class AgentLauncher {
       definition,
       description: plan.description,
       depth: plan.depth,
+      ...(fork ? { fork } : { parentTools: this.pi.getActiveTools() }),
       ...(plan.name ? { name: plan.name } : {}),
       onStarted: () => {
         release();

@@ -2,6 +2,7 @@ import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import type { TaskRecord } from '../worker-records.ts';
 import type { AgentLaunch } from '../worker-support.ts';
 import type { DefinitionCatalog } from './definition-catalog.ts';
+import { forkDefinition } from './fork-context.ts';
 import { type AgentWorktree, finalizeWorktree } from './worktree.ts';
 
 function recordedWorktree(record: TaskRecord): AgentWorktree | undefined {
@@ -21,6 +22,7 @@ type ResumeContext = Readonly<{ catalog: DefinitionCatalog; keepsAlive: (id: str
 
 export function resumeLaunch(record: TaskRecord, ctx: ExtensionContext, { catalog, keepsAlive }: ResumeContext): AgentLaunch | undefined {
   const definition = catalog.discover(ctx).activeAgents.find((agent) => agent.agentType === record.persona);
-  if (!definition) return undefined;
-  return { definition, description: record.description ?? '', depth: record.depth ?? 1, onSettled: (finished) => finalizeRecordedWorktree(finished, keepsAlive(finished.id)) };
+  const resolved = definition ?? (record.persona === forkDefinition.agentType ? forkDefinition : undefined);
+  if (!resolved) return undefined;
+  return { definition: resolved, description: record.description ?? '', depth: record.depth ?? 1, onSettled: (finished) => finalizeRecordedWorktree(finished, keepsAlive(finished.id)) };
 }
