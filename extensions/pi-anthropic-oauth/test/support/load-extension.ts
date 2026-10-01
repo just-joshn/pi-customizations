@@ -1,40 +1,18 @@
 import type { Provider } from '@earendil-works/pi-ai';
-import { createEventBus, createExtensionRuntime, type EventBus, type Extension, type ExtensionFactory, type ExtensionRuntime } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ProviderConfig } from '@earendil-works/pi-coding-agent';
 
-interface FactoryLoader {
-  loadExtensionFromFactory(factory: ExtensionFactory, cwd: string, eventBus: EventBus, runtime: ExtensionRuntime): Promise<Extension>;
-}
+type RegisteringExtension = (pi: Pick<ExtensionAPI, 'registerProvider'>) => void;
 
-export interface NativeRegistration {
-  readonly provider: Provider;
-  readonly extensionPath: string;
-}
-
-export interface LoadedExtension {
-  readonly extension: Extension;
-  readonly registrations: readonly NativeRegistration[];
-}
-
-// Pi's package exports map hides loadExtensionFromFactory, so the loader module is
-// addressed through the resolved package entry. It is the same module Pi itself runs.
-async function importFactoryLoader(): Promise<FactoryLoader> {
-  const entry = import.meta.resolve('@earendil-works/pi-coding-agent');
-  const loaderModule: Record<string, unknown> = await import(new URL('./core/extensions/loader.js', entry).href);
-  const load = loaderModule.loadExtensionFromFactory;
-  if (typeof load !== 'function') throw new Error('Pi no longer exposes loadExtensionFromFactory from core/extensions/loader.js');
-  return { loadExtensionFromFactory: (...args) => load(...args) };
-}
-
-export async function loadExtension(factory: ExtensionFactory): Promise<LoadedExtension> {
-  const loader = await importFactoryLoader();
-  const runtime = createExtensionRuntime();
-  const extension = await loader.loadExtensionFromFactory(factory, process.cwd(), createEventBus(), runtime);
-  return { extension, registrations: [...runtime.pendingNativeProviderRegistrations] };
-}
-
-export async function loadProvider(factory: ExtensionFactory): Promise<Provider> {
-  const { registrations } = await loadExtension(factory);
-  const [first] = registrations;
-  if (registrations.length !== 1 || !first) throw new Error(`expected one native provider registration, received ${registrations.length}`);
-  return first.provider;
+// Runs a factory that only calls registerProvider against a fake of that one method.
+// Pi's public discovery path is covered separately in registration.test.ts.
+export function captureProvider(factory: RegisteringExtension): Provider {
+  const registered: Provider[] = [];
+  const registerProvider = (first: Provider | string, config?: ProviderConfig): void => {
+    if (typeof first === 'string') throw new Error(`legacy registerProvider(${JSON.stringify(first)}, config) is not supported, received ${config === undefined ? 'no config' : 'a config'}`);
+    registered.push(first);
+  };
+  factory({ registerProvider });
+  const [only] = registered;
+  if (registered.length !== 1 || !only) throw new Error(`expected one native provider registration, received ${registered.length}`);
+  return only;
 }

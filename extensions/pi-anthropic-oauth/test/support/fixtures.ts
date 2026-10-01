@@ -2,7 +2,7 @@ import { type Api, createModels, InMemoryCredentialStore, type Model, type Mutab
 import { test as base, beforeEach, vi } from 'vitest';
 import extension from '../../src/index.ts';
 import { oauthCredential } from './credentials.ts';
-import { loadProvider } from './load-extension.ts';
+import { captureProvider } from './load-extension.ts';
 import { type MessagesServer, sseReply, startMessagesServer } from './messages-server.ts';
 import { textMessage } from './sse.ts';
 import { stubTokenEndpoint, type TokenEndpoint } from './token-endpoint.ts';
@@ -32,7 +32,7 @@ export const test = base.extend<Fixtures>({
   },
   // biome-ignore lint/correctness/noEmptyPattern: Vitest requires a destructured first fixture argument
   provider: async ({}, use) => {
-    await use(await loadProvider(extension));
+    await use(captureProvider(extension));
   },
   credentials: async ({ provider }, use) => {
     const credentials = new InMemoryCredentialStore();
