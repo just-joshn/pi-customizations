@@ -31,6 +31,7 @@ const child = spawn(
 );
 let socket;
 const pending = new Map();
+const heapChunks = [];
 let next = 0;
 function selectPage(pages, expected) {
   const page = pages.find((entry) => entry.type === 'page' && entry.url === expected);
@@ -86,6 +87,10 @@ try {
   });
   socket.addEventListener('message', ({ data }) => {
     const response = JSON.parse(data);
+    if (response.method === 'HeapProfiler.addHeapSnapshotChunk') {
+      heapChunks.push(response.params.chunk);
+      return;
+    }
     const waiter = pending.get(response.id);
     if (!waiter) return;
     pending.delete(response.id);
@@ -106,6 +111,43 @@ try {
   assert.ok(rendered.includes('</script><img src=x onerror=alert(1)>'));
   assert.ok(!rendered.includes('import next'));
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".file-body")).display'), 'block');
+  await send('Accessibility.enable');
+  const accessibility = await send('Accessibility.getFullAXTree');
+  assert.ok(
+    accessibility.nodes.some((node) => node.role?.value === 'heading' && node.name?.value === 'Pi review canvas probe'),
+    'accessibility tree contains the real canvas heading',
+  );
+  await writeFile(join(output, 'accessibility.json'), JSON.stringify(accessibility, null, 2));
+  await send('Profiler.enable');
+  await send('Profiler.start');
+  await evaluate('(() => { const body = document.querySelector(".file-body"); let total = 0; for (let index = 0; index < 100000; index++) total += getComputedStyle(body).display.length; return total; })()');
+  const cpu = await send('Profiler.stop');
+  assert.ok(cpu.profile.nodes.length > 0 && cpu.profile.samples?.length > 0, 'read-only synthetic style work produces sampled CPU data');
+  await writeFile(join(output, 'canvas.cpuprofile'), JSON.stringify(cpu.profile));
+  await send('HeapProfiler.enable');
+  await send('HeapProfiler.takeHeapSnapshot');
+  const heapText = heapChunks.join('');
+  const heap = JSON.parse(heapText);
+  assert.ok(heap.snapshot.meta.node_fields.includes('self_size') && heap.nodes.length > 0, 'heap snapshot contains a node graph');
+  assert.equal(heap.nodes.length, heap.snapshot.node_count * heap.snapshot.meta.node_fields.length, 'heap node table is complete');
+  assert.equal(heap.edges.length, heap.snapshot.edge_count * heap.snapshot.meta.edge_fields.length, 'heap edge table is complete');
+  await writeFile(join(output, 'canvas.heapsnapshot'), heapText);
+  await writeFile(
+    join(output, 'profile-evidence.json'),
+    JSON.stringify(
+      {
+        url,
+        cpuSamples: cpu.profile.samples.length,
+        cpuNodes: cpu.profile.nodes.length,
+        heapNodes: heap.snapshot.node_count,
+        heapEdges: heap.snapshot.edge_count,
+        heapBytes: Buffer.byteLength(heapText),
+        scope: 'Accessibility and capture mechanisms on the isolated app. Synthetic read-only CPU work, single heap graph, no leak or performance-improvement verdict.',
+      },
+      null,
+      2,
+    ),
+  );
   const target = await evaluate('(() => { const box = document.querySelector(".file-hdr").getBoundingClientRect(); return { x: box.x + box.width / 2, y: box.y + box.height / 2 }; })()');
   const before = await send('Page.captureScreenshot');
   await writeFile(join(output, 'before.png'), Buffer.from(before.data, 'base64'));
@@ -116,9 +158,9 @@ try {
   await writeFile(join(output, 'after.png'), Buffer.from(after.data, 'base64'));
   await writeFile(
     join(output, 'results.json'),
-    `${JSON.stringify({ passed: true, checks: ['decoy tab excluded', 'no-match titles/URLs', 'positive app heading', 'diff rendering', 'literal unsafe HTML', 'import filtering', 'expanded state', 'fresh screenshot', 'real pointer collapse'], scope: 'Real isolated Chrome and source canvas assets. No keyboard/focus, perf, hosted UI or model-adherence claim.' }, null, 2)}\n`,
+    `${JSON.stringify({ passed: true, checks: ['decoy tab excluded', 'no-match titles/URLs', 'positive app heading', 'diff rendering', 'literal unsafe HTML', 'import filtering', 'expanded state', 'fresh screenshot', 'real pointer collapse', 'accessibility heading', 'sampled CPU profile', 'heap snapshot graph'], scope: 'Real isolated Chrome and source canvas assets. CPU uses read-only synthetic style work; a heap capture is not leak proof. No keyboard/focus, performance improvement, hosted UI or model-adherence claim.' }, null, 2)}\n`,
   );
-  process.stdout.write('Canvas browser passes nine checks.\n');
+  process.stdout.write('Canvas browser passes twelve checks.\n');
   await send('Browser.close');
 } finally {
   for (const waiter of pending.values()) {
