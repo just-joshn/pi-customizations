@@ -178,10 +178,10 @@ function clientFor(child, log) {
   };
 }
 
-async function startPi(directory, log, extraArgs) {
+async function startPi(directory, log, extraArgs, agentDirectory = directory) {
   const child = spawn(process.execPath, [cli, '--mode', 'rpc', ...extraArgs, '-e', root], {
     cwd: directory,
-    env: { ...process.env, HOME: directory, PI_CODING_AGENT_DIR: directory, PSTACK_JOURNEY_LOG: log },
+    env: { ...process.env, HOME: agentDirectory, PI_CODING_AGENT_DIR: agentDirectory, PSTACK_JOURNEY_LOG: log },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
   let stderr = '';
