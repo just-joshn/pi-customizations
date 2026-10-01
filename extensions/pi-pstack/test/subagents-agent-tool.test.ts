@@ -58,11 +58,12 @@ test('[G1-07] foreground Agent returns the completed shape and background return
     expect(done.content[0]?.text).toContain('users=1');
 
     const launched = (await call('Agent', { description: 'probe two', prompt: 'hello again' })) as { details: Record<string, unknown> };
-    expect(Object.keys(launched.details).toSorted()).toEqual(['agentId', 'canReadOutputFile', 'description', 'modelsUsed', 'outputFile', 'prompt', 'resolvedModel', 'status'].toSorted());
+    expect(Object.keys(launched.details).toSorted()).toEqual(['agentId', 'canReadOutputFile', 'description', 'outputFile', 'prompt', 'resolvedModel', 'status'].toSorted());
     expect(launched.details.status).toBe('async_launched');
-    const finished = (await call('TaskOutput', { task_id: launched.details.agentId, block: true })) as { details: { output: string } };
+    const finished = (await call('TaskOutput', { task_id: launched.details.agentId, block: true })) as { details: { output: string; sessionFile: string; outputFile: string } };
     expect(finished.details.output).toBe('users=1');
-    expect(await readFile(String(launched.details.outputFile), 'utf8')).toBe('users=1');
+    expect(launched.details.outputFile).toBe(finished.details.sessionFile);
+    expect(await readFile(finished.details.outputFile, 'utf8')).toBe('users=1');
   } finally {
     await close();
   }
@@ -397,9 +398,14 @@ test('[G2-07] definition maxTurns interrupts the foreground child at the configu
     mkdirSync(join(dir, '.pi/agents'), { recursive: true });
     writeFileSync(join(dir, '.pi/agents/short.md'), '---\nname: short\ndescription: one turn\nmaxTurns: 1\n---\nbody\n');
     clearAgentCache();
-    await expect(call('Agent', { description: 'short', prompt: 'PROGRESS_READ limit', subagent_type: 'short', run_in_background: false })).rejects.toThrow(/"status":"interrupted"/);
+    const done = await call('Agent', { description: 'short', prompt: 'PROGRESS_READ limit', subagent_type: 'short', run_in_background: false });
+    expect(done.details).toMatchObject({
+      status: 'completed',
+      content: [{ type: 'text', text: 'NOTE: this agent stopped at its 1-turn limit before finishing. It was still calling tools and had produced no report. Send the agent a message (SendMessage) to let it continue from where it stopped.\n' }],
+      harnessNoteCount: 1,
+    });
     const listed = (await call('ListAgents', {})) as { details: { agents: { status: string }[] } };
-    expect(listed.details.agents.map((agent) => agent.status)).toEqual(['interrupted']);
+    expect(listed.details.agents.map((agent) => agent.status)).toEqual(['settled']);
   } finally {
     clearAgentCache();
     await close();
