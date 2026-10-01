@@ -30,7 +30,7 @@ async function loadReminder() {
 }
 
 export default async function pstack(pi: ExtensionAPI) {
-  const [[mode, setup], reminder, catalog] = await Promise.all([Promise.all(['poteto-mode', 'setup-pstack'].map(loadSkill)), loadReminder(), skillCatalog(root)]);
+  const [[mode, setup], reminder, catalog] = await Promise.all([Promise.all(['poteto-mode', 'setup-pstack'].map(loadSkill)), loadReminder(), skillCatalog(root, process.env.PI_PSTACK_WORKER_OWNER ? 'cloud' : 'local')]);
   if (!mode || !setup) throw new Error('Missing pstack resource. Run bun run generate.');
   const skills = new Map([
     ['poteto-mode', mode],
