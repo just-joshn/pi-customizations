@@ -4,7 +4,7 @@ import { isCursorPersona } from './personas.ts';
 import { AgentResultSchema } from './subagents/results.ts';
 import { registerTaskPanel } from './subagents/task-panel.ts';
 import { type LaunchAgent, registerAgentTools } from './subagents/tools.ts';
-import { discoverTasks } from './task-discovery.ts';
+import { discoverTasks, selectTask } from './task-discovery.ts';
 import { TaskParameters, TaskRecordSchema, taskSummary } from './worker-records.ts';
 import { type TaskToolDetails, WorkerRuntime } from './worker-runtime.ts';
 
@@ -106,6 +106,19 @@ function registerTaskList(pi: ExtensionAPI, runtime: WorkerRuntime): void {
   });
 }
 
+function registerTaskAttach(pi: ExtensionAPI, runtime: WorkerRuntime): void {
+  pi.registerTool({
+    name: 'TaskAttach',
+    label: 'Attach remote task',
+    description: 'Explicitly attach one previously launched remote task in this repository by task_id or unambiguous branch. Reconciles status without sending a prompt.',
+    parameters: Type.Object({ task_id: Type.Optional(Type.String({ minLength: 1 })), branch: Type.Optional(Type.String({ minLength: 1 })) }),
+    outputSchema: TaskRecordSchema,
+    exposure: 'direct',
+    annotations: { openWorldHint: true },
+    execute: async (_id, params, _signal, _update, ctx) => runtime.attach((await selectTask(ctx.cwd, params)).record, ctx),
+  });
+}
+
 export function registerWorkers(pi: ExtensionAPI): void {
   const runtime = new WorkerRuntime(pi);
   runtime.registerLifecycle();
@@ -114,4 +127,5 @@ export function registerWorkers(pi: ExtensionAPI): void {
   registerControlTools(pi, runtime);
   registerTaskPanel(pi, runtime);
   registerTaskList(pi, runtime);
+  registerTaskAttach(pi, runtime);
 }

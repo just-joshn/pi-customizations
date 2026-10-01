@@ -5,6 +5,16 @@ export type Escalation = Readonly<{ foreground?: boolean; onAbort?: (info: Abort
 export const killAfterMs = 10000;
 export const overdueAfterMs = 30000;
 
+export function waitFor<T>(completion: Promise<T>, signal: AbortSignal | undefined, cancelled: string): Promise<T> {
+  if (!signal) return completion;
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => reject(new Error(cancelled));
+    if (signal.aborted) return abort();
+    signal.addEventListener('abort', abort, { once: true });
+    completion.then(resolve, reject).finally(() => signal.removeEventListener('abort', abort));
+  });
+}
+
 export function launchSignal(signal: AbortSignal | undefined, background: boolean): AbortSignal | undefined {
   if (!signal?.aborted) return signal;
   if (background && normalizeAbortReason(signal.reason) === 'interrupt') return undefined;
