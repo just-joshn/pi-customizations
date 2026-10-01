@@ -19,6 +19,7 @@ import { saveChildContext } from './subagents/session-context.ts';
 import { preloadSkills } from './subagents/skill-preload.ts';
 import type { SubagentStatsDelta } from './subagents/stats.ts';
 import { agentSystemPrompt, appendedSubagentPrompt } from './subagents/system-prompt.ts';
+import { provenanceFields } from './subagents/worktree-metadata.ts';
 import type { AgentWorktree } from './subagents/worktree.ts';
 import type { TaskParameters, TaskRecord } from './worker-records.ts';
 
@@ -85,6 +86,8 @@ export type AgentLaunch = Readonly<{
   depth: number;
   model?: string;
   worktree?: AgentWorktree;
+  requestedIsolation?: 'worktree' | 'remote';
+  parentAgentId?: string;
   onStarted?: () => void;
   onSettled?: (record: TaskRecord) => Promise<Partial<TaskRecord>>;
 }>;
@@ -116,7 +119,7 @@ function initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFil
     status: 'running',
     output: '',
     ...(launch ? { description: launch.description, ...(launch.name ? { agentName: launch.name } : {}) } : {}),
-    ...(launch?.worktree ? { spawnedWithWorktree: true, worktreePath: launch.worktree.path, worktreeBranch: launch.worktree.branch, worktreeRepoRoot: launch.worktree.repoRoot, worktreeCleanlyRemoved: false } : {}),
+    ...provenanceFields(launch),
   };
 }
 

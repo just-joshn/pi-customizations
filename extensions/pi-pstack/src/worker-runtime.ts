@@ -96,7 +96,7 @@ export class WorkerRuntime {
   private closing = new WeakMap<AgentSession, Promise<void>>();
   private readonly completions: DeferredWakes;
   depth = currentDepth();
-  private agentId: string | undefined;
+  agentId: string | undefined;
   allowedAgentTypes: readonly string[] | undefined;
   private readonly invocations = new AgentInvocations();
   private appendedPrompt: string | undefined;

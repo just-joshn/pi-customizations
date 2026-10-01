@@ -57,6 +57,12 @@ function requestedTools(text: string, context: StreamArguments[1]): ToolCall[] {
   if (text.includes('SPAWN_AGENT') && last?.role === 'user') return [{ type: 'toolCall', id: 'depth-child', name: 'Agent', arguments: { description: 'nested depth', prompt: 'nested', run_in_background: false } }];
   const selfStop = text.match(/SELF_STOP=([0-9a-f-]+)/)?.[1];
   if (selfStop && last?.role === 'user') return [{ type: 'toolCall', id: 'self-stop', name: 'TaskStop', arguments: { task_id: selfStop } }];
+  if (text.includes('IGNORED_WRITE') && last?.role === 'user') return [{ type: 'toolCall', id: 'ignored-write', name: 'write', arguments: { path: 'secret.env', content: 'TOKEN=child' } }];
+  if (text.includes('CWD_ESCAPE') && last?.role === 'user')
+    return [
+      { type: 'toolCall', id: 'cwd-escape', name: 'bash', arguments: { command: 'cd / && pwd' } },
+      { type: 'toolCall', id: 'cwd-probe', name: 'bash', arguments: { command: 'pwd > cwd-probe.txt' } },
+    ];
   if (text.includes('WORKTREE_WRITE') && last?.role === 'user') return [{ type: 'toolCall', id: 'isolated-write', name: 'write', arguments: { path: 'child-change.txt', content: 'isolated-change' } }];
   if (text.includes('PROGRESS_READ') && last?.role === 'user') {
     return [{ type: 'toolCall', id: 'worker-child-read-call-id', name: 'read', arguments: { path: progressFixture } }];
