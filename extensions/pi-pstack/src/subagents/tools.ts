@@ -269,7 +269,9 @@ function registerListAgents(pi: ExtensionAPI, runtime: WorkerRuntime): void {
   });
 }
 
-export function registerAgentTools(pi: ExtensionAPI, runtime: WorkerRuntime, env: NodeJS.ProcessEnv = process.env): SubagentStats {
+export type LaunchAgent = (callId: string, params: unknown, signal: AbortSignal | undefined, onUpdate: Update, ctx: ExtensionContext) => Promise<AgentToolResult<AgentResult>>;
+
+export function registerAgentTools(pi: ExtensionAPI, runtime: WorkerRuntime, env: NodeJS.ProcessEnv = process.env): LaunchAgent {
   const launcher = new AgentLauncher(runtime, env, pi);
   const offers = new ToolOfferScope(pi);
   pi.on('agent_end', () => offers.restore());
@@ -282,13 +284,10 @@ export function registerAgentTools(pi: ExtensionAPI, runtime: WorkerRuntime, env
     }
     if (runtime.depth >= runtime.maximumDepth(ctx, env)) {
       offers.mask((names) => names.filter((name) => name !== 'Agent' && name !== 'Task'));
-      return;
     }
-    const allowed = runtime.allowedAgentTypes;
-    if (allowed !== undefined && !allowed.includes('general-purpose')) offers.mask((names) => names.filter((name) => name !== 'Agent'));
   });
   registerAgent(pi, launcher, env);
   registerSendMessage(pi, runtime, env);
   registerListAgents(pi, runtime);
-  return launcher.stats;
+  return (callId, params, signal, onUpdate, ctx) => launcher.launch(callId, agentParams(params), signal, onUpdate, ctx);
 }

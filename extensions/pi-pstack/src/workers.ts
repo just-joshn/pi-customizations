@@ -1,13 +1,18 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { registerAgentTools } from './subagents/tools.ts';
+import { AgentResultSchema } from './subagents/results.ts';
+import { type LaunchAgent, registerAgentTools } from './subagents/tools.ts';
 import { TaskParameters, TaskRecordSchema } from './worker-records.ts';
 import { type TaskToolDetails, WorkerRuntime } from './worker-runtime.ts';
 
 export { restoreTaskRecords, taskSummary } from './worker-records.ts';
 
-function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime): void {
-  pi.registerTool<typeof TaskParameters, TaskToolDetails>({
+function carriesAgentContract(params: object): boolean {
+  return 'description' in params && typeof params.description === 'string';
+}
+
+function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime, launchAgent: LaunchAgent): void {
+  pi.registerTool<typeof TaskParameters, TaskToolDetails | Awaited<ReturnType<LaunchAgent>>['details']>({
     name: 'Task',
     label: 'Task',
     description: 'Start or resume a Pi subagent. Background runs return an ID and deliver completion. Cloud execution is unavailable. Readonly limits tools; it is not an OS sandbox. Models must resolve to configured Pi providers.',
@@ -18,11 +23,11 @@ function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime): void {
       'Task also supports the bundled ci-watcher and thermo-nuclear-code-quality-review personas. ci-watcher inherits the parent model unless the caller supplies a configured Pi model, matching observed Cursor plugin behavior. No model is silently substituted. The kit references Cursor built-in shell and explore personas whose contracts are not published here; these remain unsupported. Collect the required diff and file contents with available tools before invoking the thermo review persona.',
     ],
     parameters: TaskParameters,
-    outputSchema: TaskRecordSchema,
+    outputSchema: Type.Union([TaskRecordSchema, AgentResultSchema]),
     exposure: 'direct',
     annotations: { openWorldHint: true },
     executionMode: 'parallel',
-    execute: (id, params, signal, onUpdate, ctx) => runtime.start(id, params, signal, ctx, onUpdate),
+    execute: (id, params, signal, onUpdate, ctx) => (carriesAgentContract(params) ? launchAgent(id, params, signal, onUpdate, ctx) : runtime.start(id, params, signal, ctx, onUpdate)),
   });
 }
 
@@ -72,7 +77,7 @@ function registerControlTools(pi: ExtensionAPI, runtime: WorkerRuntime): void {
 export function registerWorkers(pi: ExtensionAPI): void {
   const runtime = new WorkerRuntime(pi);
   runtime.registerLifecycle();
-  registerTaskTool(pi, runtime);
+  const launchAgent = registerAgentTools(pi, runtime);
+  registerTaskTool(pi, runtime, launchAgent);
   registerControlTools(pi, runtime);
-  registerAgentTools(pi, runtime);
 }
