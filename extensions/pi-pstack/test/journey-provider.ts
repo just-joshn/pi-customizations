@@ -287,7 +287,10 @@ function scriptedReply(model: Model<string>, context: Context) {
     content,
     stopReason: content[0]?.type === 'toolCall' ? 'toolUse' : 'stop',
     timestamp: Date.now(),
-    usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+    usage:
+      process.env.PSTACK_JOURNEY_NONZERO_USAGE === '1'
+        ? { input: 7, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 10, cost: { input: 0.07, output: 0.03, cacheRead: 0, cacheWrite: 0, total: 0.1 } }
+        : { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
   };
   const stream = createAssistantMessageEventStream();
   stream.push({ type: 'done', reason: message.stopReason === 'stop' ? 'stop' : 'toolUse', message });
