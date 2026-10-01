@@ -7,6 +7,21 @@ import { fixture } from './session-fixture.ts';
 vi.mock(import('../src/cloud-worker.ts'), async (original) => ({ ...(await original()), openCloudWorker: vi.fn(), readCloudOutcome: vi.fn() }));
 vi.mock(import('../scripts/detached-rpc-client.mjs'), async (original) => ({ ...(await original()), openDetachedRpc: vi.fn() }));
 
+function cloudRecord(id: string) {
+  return {
+    id,
+    persona: 'generalPurpose',
+    cwd: '/unused',
+    readonly: false,
+    sessionFile: '/unused/session',
+    outputFile: '/unused/output',
+    status: 'running' as const,
+    output: '',
+    modelReference: 'fixture',
+    detached: { directory: '/unused', invocation: 'fixture', entryCursor: null },
+  };
+}
+
 test('a rejected first cloud prompt closes its mocked allocation and records failure', async () => {
   let runtime: WorkerRuntime | undefined, context: ExtensionContext | undefined;
   const close = vi.fn(async () => {});
@@ -18,21 +33,7 @@ test('a rejected first cloud prompt closes its mocked allocation and records fai
   let taskId = '';
   vi.mocked(openCloudWorker).mockImplementation(async ({ id }) => {
     taskId = id;
-    return {
-      handle,
-      record: {
-        id,
-        persona: 'generalPurpose',
-        cwd: '/unused',
-        readonly: false,
-        sessionFile: '/unused/session',
-        outputFile: '/unused/output',
-        status: 'running',
-        output: '',
-        modelReference: 'fixture',
-        detached: { directory: '/unused', invocation: 'fixture', entryCursor: null },
-      },
-    };
+    return { handle, record: cloudRecord(id) };
   });
   const f = await fixture({
     extensionDisabled: true,
