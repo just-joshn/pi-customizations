@@ -1,6 +1,7 @@
 import { type Static, Type } from 'typebox';
 import { Check, Errors } from 'typebox/value';
-import type { AgentDefinition } from './definitions.ts';
+import { type AgentDefinition, permissionModes } from './definitions.ts';
+import { parseMcpServers } from './mcp-specs.ts';
 
 const strings = Type.Array(Type.String());
 const definitionSchema = Type.Object({
@@ -18,6 +19,9 @@ const definitionSchema = Type.Object({
   criticalSystemReminder_EXPERIMENTAL: Type.Optional(Type.String()),
   memory: Type.Optional(Type.Union([Type.Literal('user'), Type.Literal('project'), Type.Literal('local')])),
   isolation: Type.Optional(Type.Union([Type.Literal('worktree'), Type.Literal('remote')])),
+  permissionMode: Type.Optional(Type.Union(permissionModes.map((mode) => Type.Literal(mode)))),
+  mcpServers: Type.Optional(Type.Array(Type.Union([Type.String(), Type.Record(Type.String(), Type.Unknown())]))),
+  requiredMcpServers: Type.Optional(strings),
 });
 
 export function parseJsonAgentSpec(name: string, input: unknown, baseDir: string, warn?: (message: string) => void): AgentDefinition {
@@ -25,13 +29,14 @@ export function parseJsonAgentSpec(name: string, input: unknown, baseDir: string
     const issues = [...Errors(definitionSchema, input)].map((issue) => `${issue.instancePath}: ${issue.message}`).join('; ');
     throw new Error(`${name}: ${issues}${typeof input === 'object' && input !== null && 'description' in input && input.description === '' ? '; Description cannot be empty' : ''}`);
   }
-  const unsupportedFields = ['permissionMode', 'mcpServers', 'hooks', 'observer', 'observerMessage', 'observeSubagents', 'cacheTtl'].filter((key) => Object.hasOwn(input, key));
+  const unsupportedFields = ['hooks', 'observer', 'observerMessage', 'observeSubagents', 'cacheTtl'].filter((key) => Object.hasOwn(input, key));
   if (unsupportedFields.length > 0) throw new Error(`${name}: Unsupported native JSON agent fields: ${unsupportedFields.join(', ')}`);
   const data: Static<typeof definitionSchema> = input;
   const model = data.model?.trim();
   if (model === '') throw new Error(`${name}: model: Model cannot be empty`);
   const { description, prompt, background } = data;
-  const options = Object.fromEntries(Object.entries(data).filter(([key]) => Object.hasOwn(definitionSchema.properties, key) && !['description', 'prompt', 'model', 'background'].includes(key)));
+  const options = Object.fromEntries(Object.entries(data).filter(([key]) => Object.hasOwn(definitionSchema.properties, key) && !['description', 'prompt', 'model', 'background', 'mcpServers'].includes(key)));
+  const mcpServers = parseMcpServers(data.mcpServers, name, (message) => warn?.(message));
   const hadSkill = data.tools?.includes('Skill') === true;
   if (hadSkill) warn?.(`Agent '${name}': 'Skill' in tools is deprecated; use the skills field instead.`);
   return {
@@ -44,6 +49,7 @@ export function parseJsonAgentSpec(name: string, input: unknown, baseDir: string
     baseDir,
     ...(model !== undefined ? { model: model.toLowerCase() === 'inherit' ? 'inherit' : model } : {}),
     ...(background ? { background: true } : {}),
+    ...(mcpServers?.length ? { mcpServers } : {}),
   };
 }
 

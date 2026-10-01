@@ -7,6 +7,8 @@ import { defaultUserDirs, markdownAgentFiles, policyAgentDirs, projectAgentDirs 
 import { builtinAgents } from './builtins.ts';
 import { type AgentColor, parseAgentColor } from './colors.ts';
 import { safeModeEnabled } from './gates.ts';
+import { type HookTable, parseAgentHooks } from './hook-table.ts';
+import { type McpServerSpec, parseMcpServers } from './mcp-specs.ts';
 import { toolList } from './tool-specs.ts';
 
 export type AgentSource = 'built-in' | 'plugin' | 'userSettings' | 'projectSettings' | 'flagSettings' | 'policySettings';
@@ -29,6 +31,9 @@ export type AgentDefinition = Readonly<{
   model?: string;
   effort?: string | number;
   permissionMode?: string;
+  mcpServers?: readonly McpServerSpec[];
+  requiredMcpServers?: readonly string[];
+  hooks?: HookTable;
   maxTurns?: number;
   background?: true;
   omitClaudeMd?: boolean;
@@ -56,7 +61,7 @@ export type DiscoveryOptions = Readonly<{
   safeMode?: boolean;
 }>;
 
-const permissionModes = ['acceptEdits', 'auto', 'bypassPermissions', 'default', 'dontAsk', 'plan'];
+export const permissionModes = ['acceptEdits', 'auto', 'bypassPermissions', 'default', 'dontAsk', 'plan'];
 const efforts = ['low', 'medium', 'high', 'xhigh', 'max'];
 
 const cache = new Map<string, Discovery>();
@@ -175,13 +180,21 @@ function presentationFields(fm: Record<string, unknown>): Partial<Mutable> {
   };
 }
 
+function executableFields(fm: Record<string, unknown>, agentType: string, warnings: string[]): Partial<Mutable> | { error: string } {
+  const parsed = parseAgentHooks(fm, agentType);
+  warnings.push(...parsed.notes.map((note) => `Agent '${agentType}': ${note}`));
+  if (parsed.unloadable) return { error: `Agent not loaded: ${parsed.unloadable}` };
+  const mcpServers = parseMcpServers(fm.mcpServers, agentType, (message) => warnings.push(message));
+  return { ...(parsed.hooks ? { hooks: parsed.hooks } : {}), ...(mcpServers?.length ? { mcpServers } : {}) };
+}
+
 export function parseAgentFile(path: string, text: string, source: AgentSource, baseDir: string): ParsedAgent {
   const warnings: string[] = [];
   const { fm, body } = frontmatterOf(text, path, warnings);
   const id = identity(fm, path);
   if (!('agentType' in id)) return { warnings: [...warnings, ...id.warnings], ...(id.error ? { error: id.error } : {}) };
-  const executableFields = ['hooks', 'PreToolUse', 'PermissionRequest', 'mcpServers'].filter((key) => Object.hasOwn(fm, key));
-  if (executableFields.length > 0) return { warnings, error: `Agent file ${path} requires a native Pi adapter for executable configuration: ${executableFields.join(', ')}` };
+  const executable = executableFields(fm, id.agentType, warnings);
+  if ('error' in executable) return { warnings, error: `${executable.error} (${path})` };
   let tools: Partial<Mutable>;
   try {
     tools = toolFields(fm, path, warnings);
@@ -189,6 +202,7 @@ export function parseAgentFile(path: string, text: string, source: AgentSource, 
     return { warnings: [...warnings, `Error parsing agent from ${path}: ${error instanceof Error ? error.message : String(error)}`], error: `Failed to parse agent from ${path}: Unknown parsing error` };
   }
   const agent: AgentDefinition = {
+    ...executable,
     ...lifecycleFields(fm, path, warnings),
     ...behaviorFields(fm, path, warnings),
     ...presentationFields(fm),
