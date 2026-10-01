@@ -1,4 +1,4 @@
-// Prints each captured request and result as JSON so two versions can be diffed.
+// Prints each captured request and result in JSON form so two versions can be diffed.
 // Run it on both versions and compare the output.
 import { type AssistantMessage, type AssistantMessageEventStream, type Model, normalizeContext, type Provider } from '@earendil-works/pi-ai';
 import extension from '../src/index.ts';

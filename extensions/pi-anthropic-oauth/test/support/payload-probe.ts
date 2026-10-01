@@ -23,7 +23,7 @@ function probe(model: Model<Api>, context: TranscriptContext, options?: StreamOp
   });
 }
 
-// Stands in for Pi's Anthropic implementation. It parses the user prompt as JSON,
+// Stands in for Pi's Anthropic implementation. It parses the user prompt from JSON,
 // hands that value to onPayload as the request payload, and answers with the
 // payload onPayload resolved, so a test sees exactly what would be sent.
 export const probeStream: Provider['stream'] = probe;
