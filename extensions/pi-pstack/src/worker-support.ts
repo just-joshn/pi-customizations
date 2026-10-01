@@ -20,7 +20,7 @@ import { preloadSkills } from './subagents/skill-preload.ts';
 import type { SubagentStatsDelta } from './subagents/stats.ts';
 import { agentSystemPrompt, appendedSubagentPrompt } from './subagents/system-prompt.ts';
 import { provenanceFields } from './subagents/worktree-metadata.ts';
-import type { AgentWorktree } from './subagents/worktree.ts';
+import type { AgentCheckout } from './subagents/worktree-hooks.ts';
 import type { TaskParameters, TaskRecord } from './worker-records.ts';
 
 export async function childModelRuntime(readonly: boolean, provider: string, ctx: ExtensionContext): Promise<ModelRuntime | undefined> {
@@ -85,7 +85,7 @@ export type AgentLaunch = Readonly<{
   name?: string;
   depth: number;
   model?: string;
-  worktree?: AgentWorktree;
+  worktree?: AgentCheckout;
   requestedIsolation?: 'worktree' | 'remote';
   parentAgentId?: string;
   onStarted?: () => void;
