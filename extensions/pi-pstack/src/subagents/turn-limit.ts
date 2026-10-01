@@ -9,10 +9,12 @@ export function withMaxTurns(definition: AgentDefinition, value: unknown): Agent
 
 export function turnLimit(agentType: string, maxTurns: number, log: (message: string) => void, stop: () => void): AgentSessionEventListener {
   let turns = 0;
+  let reached = false;
   return (event) => {
-    if (event.type !== 'turn_end') return;
+    if (event.type !== 'turn_end' || reached) return;
     turns += 1;
-    if (turns !== maxTurns) return;
+    if (turns < maxTurns || !event.toolResults?.length) return;
+    reached = true;
     log(`[Agent: ${agentType}] Reached max turns limit (${maxTurns})`);
     stop();
   };

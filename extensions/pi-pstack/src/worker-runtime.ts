@@ -5,8 +5,10 @@ import type { JsonValue, Usage } from '@earendil-works/pi-ai';
 import type { AgentSession, AgentSessionEvent, AgentSessionEventListener, AgentToolResult, AgentToolUpdateCallback, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from './deferred-wakes.ts';
 import { depthMessage } from './subagents/admission.ts';
+import { flaggedOutput, lastMeteredTokens, lastReportText, type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
 import { currentDepth, depthStore } from './subagents/context.ts';
 import { SessionDepthPolicy } from './subagents/depth-policy.ts';
+import { HandbackContract, handbackActive, runUntilReported } from './subagents/handback.ts';
 import { validateId } from './subagents/identifiers.ts';
 import { AgentInvocations } from './subagents/invocations.ts';
 import { memoryEnabled } from './subagents/memory.ts';
@@ -20,6 +22,7 @@ import { launchSignal, workerControl } from './worker-control.ts';
 import { restoreTaskRecords, type TaskParameters, type TaskRecord, taskEntryType, taskOutputLimit, taskSummary } from './worker-records.ts';
 import { type AgentLaunch, openWorkerSession, sumUsage } from './worker-support.ts';
 
+type OpenedWorker = Awaited<ReturnType<typeof openWorkerSession>>;
 type Worker = { readonly session: AgentSession; readonly completion: Promise<TaskRecord>; readonly stop: ReturnType<typeof workerControl>['stop']; readonly drain: () => Promise<string[]> };
 type StartupOutcome = { error: unknown } | undefined;
 type Lifecycle = { kind: 'active' } | { kind: 'stopped' } | { kind: 'stopping'; completion: Promise<void> };
@@ -123,7 +126,7 @@ export class WorkerRuntime {
   }
 
   registerLifecycle(): void {
-    const detachControl = registerStopControl(this.pi, (reference) => this.stop(reference));
+    const detachControl = registerStopControl(this.pi, (reference) => this.stop(reference, 'user'));
     this.pi.on('tool_result', (event) => {
       if (event.toolName !== 'Task') return;
       const usage = this.failedUsage.get(event.toolCallId);
@@ -279,7 +282,7 @@ export class WorkerRuntime {
     try {
       if (launch?.onSettled) this.settledHooks.set(id, launch.onSettled);
       if (launch) this.invocations.mark(this.pi, launch.definition.agentType, id);
-      const opened = await this.openChild({ id, params, prior, ctx, ...(launch ? { launch } : {}) });
+      const opened = await this.openChild({ id, params, prior, ctx, toolUseId: callId, ...(launch ? { launch } : {}) });
       session = opened.session;
       this.publishMemory(launch, id);
       if (launch) applyToolPolicy(session, launch.definition, { isContinuation: prior !== undefined, isAsync: params.run_in_background !== false, report: (diagnostic) => this.pi.events.emit('pstack:subagent-zero-tools', diagnostic) });
@@ -355,8 +358,18 @@ export class WorkerRuntime {
         log: (message) => this.pi.events.emit('pstack:subagent-log', message),
         appendedPrompt: this.childPrompt(),
         agentDefinitions: this.agentDefinitions(),
+        ...(handbackActive(input.launch?.definition) ? { handback: this.handbackContract(input.id, owner) } : {}),
       }),
     );
+  }
+
+  private handbackContract(taskId: string, owner: number): HandbackContract {
+    const sender = () => this.records.get(taskId)?.agentName ?? taskId;
+    return new HandbackContract(this.agentId ?? 'main', (content, flagged) => {
+      if (owner !== this.generation) return false;
+      this.pi.sendMessage({ customType: 'subagent_handback', content, display: true, details: { from: sender(), task_id: taskId, flagged } }, { triggerTurn: false, deliverAs: 'steer' });
+      return true;
+    });
   }
 
   private observeStats(owner: number, change: SubagentStatsDelta): void {
@@ -390,12 +403,17 @@ export class WorkerRuntime {
     this.records.set(record.id, record);
     this.pi.appendEntry(taskEntryType, structuredClone(record));
     const progress = params.run_in_background === false && onUpdate ? this.progressObserver(record.id, owner, onUpdate) : undefined;
-    const limit = agent?.definition.maxTurns
+    const maxTurns = agent?.definition.maxTurns;
+    let limitReached: number | undefined;
+    const limit = maxTurns
       ? turnLimit(
           agent.definition.agentType,
-          agent.definition.maxTurns,
+          maxTurns,
           (message) => this.pi.events.emit('pstack:subagent-log', message),
-          () => control.stop(),
+          () => {
+            limitReached = maxTurns;
+            control.stop();
+          },
         )
       : undefined;
     const observe: AgentSessionEventListener | undefined =
@@ -411,7 +429,7 @@ export class WorkerRuntime {
       taskId: record.id,
       log: (message) => this.pi.events.emit('pstack:subagent-log', message),
     });
-    const completion = this.complete({ session, record, modelsUsed }, params, owner, control, parentIdle, !agent && !params.resume);
+    const completion = this.complete({ ...opened, record }, params, owner, control, parentIdle, !agent && !params.resume, () => limitReached);
     const worker: Worker = { session, completion, stop: control.stop, drain: control.drain };
     this.workers.set(record.id, worker);
     return worker;
@@ -450,11 +468,18 @@ export class WorkerRuntime {
     }
   }
 
-  private async complete(worker: Awaited<ReturnType<typeof openWorkerSession>>, params: TaskParameters, owner: number, control: ReturnType<typeof workerControl>, parentIdle: () => boolean, legacy: boolean): Promise<TaskRecord> {
-    const { session, record, modelsUsed } = worker;
+  private async complete(worker: OpenedWorker, params: TaskParameters, owner: number, control: ReturnType<typeof workerControl>, parentIdle: () => boolean, legacy: boolean, limitReached: () => number | undefined): Promise<TaskRecord> {
+    const { session, record } = worker;
     const initialCount = session.messages.length;
     const startedAt = Date.now();
-    let outcome = await this.run(session, params.prompt);
+    let outcome = await runUntilReported(
+      worker.handback,
+      () => this.run(session, params.prompt),
+      (reminder) => this.run(session, reminder),
+      () => !control.stopped(),
+    );
+    const limited = limitReached();
+    if (limited) outcome = { status: 'settled', output: lastReportText(session.messages.slice(initialCount)) };
     try {
       await this.close(session);
     } catch (error) {
@@ -464,26 +489,11 @@ export class WorkerRuntime {
     }
     const abortFailures = await control.drain();
     if (abortFailures.length) outcome = { status: 'failed', output: `${outcome.output}\n${abortFailures.join('\n')}` };
-    const status = control.stopped() ? 'interrupted' : outcome.status;
-    const pendingUsage = owner === this.generation ? this.records.get(record.id)?.usage : this.claimedUsage.has(record) ? undefined : record.usage;
-    const usage = sumUsage(session.messages.slice(initialCount), pendingUsage);
-    const { totalToolUseCount: toolUseCount, toolStats } = countToolStats(session.messages.slice(initialCount));
-    if (session.model) modelsUsed.record(`${session.model.provider}/${session.model.id}`);
-    const modelReference = session.model ? `${session.model.provider}/${session.model.id}:${session.thinkingLevel}` : record.modelReference;
-    let finished: TaskRecord = {
-      ...record,
-      status,
-      output: outcome.output.slice(0, taskOutputLimit),
-      usage,
-      toolUseCount,
-      durationMs: Date.now() - startedAt,
-      modelReference,
-      modelsUsed: modelsUsed.snapshot(),
-      ...(control.abortInfo() ? { abort: control.abortInfo() } : {}),
-      ...(toolStats ? { toolStats } : {}),
-    };
+    const { output } = outcome;
+    const status = control.stopped() && !limited ? 'interrupted' : outcome.status;
+    let finished = this.finishedRecord(worker, owner, control, { status, output, messages: session.messages.slice(initialCount), startedAt, ...(limited ? { limited } : {}) });
     try {
-      await writeFile(finished.outputFile, outcome.output);
+      await writeFile(finished.outputFile, output);
     } catch (error) {
       finished = { ...finished, status: 'failed', output: `${finished.output}\nCould not save full output: ${String(error)}` };
     }
@@ -492,10 +502,39 @@ export class WorkerRuntime {
     if (legacy) this.settleLegacy(finished);
     this.records.set(record.id, finished);
     this.persistFinished(finished);
-    if (params.run_in_background !== false && !control.stopped()) {
-      this.completions.send(record.id, parentIdle(), { customType: 'pstack-task-completion', content: taskSummary(finished), display: true, details: structuredClone(finished) });
-    }
+    if (params.run_in_background !== false && (!control.stopped() || limited)) this.notifyCompletion(finished, output, parentIdle());
     return finished;
+  }
+
+  private finishedRecord(worker: OpenedWorker, owner: number, control: ReturnType<typeof workerControl>, end: { status: TaskRecord['status']; output: string; messages: AgentSession['messages']; startedAt: number; limited?: number }): TaskRecord {
+    const { session, record, modelsUsed } = worker;
+    const pendingUsage = owner === this.generation ? this.records.get(record.id)?.usage : this.claimedUsage.has(record) ? undefined : record.usage;
+    const { totalToolUseCount: toolUseCount, toolStats } = countToolStats(end.messages);
+    if (session.model) modelsUsed.record(`${session.model.provider}/${session.model.id}`);
+    const totalTokens = lastMeteredTokens(end.messages);
+    const abort = end.limited ? undefined : control.abortInfo();
+    return {
+      ...record,
+      status: end.status,
+      output: end.output.slice(0, taskOutputLimit),
+      usage: sumUsage(end.messages, pendingUsage),
+      toolUseCount,
+      durationMs: Date.now() - end.startedAt,
+      modelReference: session.model ? `${session.model.provider}/${session.model.id}:${session.thinkingLevel}` : record.modelReference,
+      modelsUsed: modelsUsed.snapshot(),
+      ...(totalTokens !== undefined ? { totalTokens } : {}),
+      ...(end.limited ? { maxTurnsReached: end.limited } : {}),
+      ...(worker.handback ? { handback: structuredClone(worker.handback.snapshot()) } : {}),
+      ...(abort ? { abort } : {}),
+      ...(toolStats ? { toolStats } : {}),
+    };
+  }
+
+  private notifyCompletion(record: TaskRecord, output: string, parentIdle: boolean): void {
+    const { message, findings } = taskNotification(record, output);
+    const flagged = flaggedOutput(record.id, 'notification', findings);
+    if (flagged) this.pi.events.emit('pstack:subagent-output-flagged', flagged);
+    this.completions.send(record.id, parentIdle, message);
   }
 
   private result(record: TaskRecord, owner = this.generation): AgentToolResult<TaskRecord> {
@@ -560,7 +599,7 @@ export class WorkerRuntime {
     }
   }
 
-  async stop(reference: string) {
+  async stop(reference: string, stoppedBy: StoppedBy = 'parent') {
     const target = this.find(reference);
     const worker = target && this.workers.get(target.id);
     if (reference === this.agentId || !worker) {
@@ -572,7 +611,7 @@ export class WorkerRuntime {
     const wasRunning = target?.status === 'running';
     worker.stop();
     const record = await worker.completion;
-    if (wasRunning && owner === this.generation) this.notifyStopped(worker, record);
+    if (wasRunning && owner === this.generation) this.notifyStopped(worker, record, stoppedBy);
     const result = this.result(record, owner);
     const details = {
       ...result.details,
@@ -584,11 +623,10 @@ export class WorkerRuntime {
     return { ...result, details, structuredContent: details as unknown as JsonValue };
   }
 
-  private notifyStopped(worker: Worker, record: TaskRecord): void {
+  private notifyStopped(worker: Worker, record: TaskRecord, stoppedBy: StoppedBy): void {
     if (this.stoppedNotifications.has(worker)) return;
     this.stoppedNotifications.add(worker);
-    const details = { task_id: record.id, status: 'stopped', task_type: 'local_agent', summary: record.description ?? record.persona };
-    this.pi.sendMessage({ customType: 'task_notification', content: `Task ${record.id} stopped.`, display: true, details }, { triggerTurn: false });
+    this.pi.sendMessage(taskNotification(record, '', stoppedBy).message, { triggerTurn: false });
   }
 
   async message(id: string, message: string, mode: 'steer' | 'followUp' | undefined) {
