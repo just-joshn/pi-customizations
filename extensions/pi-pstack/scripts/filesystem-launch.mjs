@@ -12,7 +12,7 @@ export async function filesystemLaunch(executable, args, directory, filesystem) 
   const files = await Promise.all((filesystem.files ?? []).map((path) => realpath(path)));
   for (const path of files) if (!(await stat(path)).isFile()) throw new Error('Allowed legacy session path must be a file.');
   const exceptions = [...allowed.map((path) => `(require-not (subpath ${JSON.stringify(path)}))`), ...files.map((path) => `(require-not (literal ${JSON.stringify(path)}))`)].join(' ');
-  const rules = denied.map((path) => `(deny file-read* (require-all (subpath ${JSON.stringify(path)}) ${exceptions}))`).join('\n');
+  const rules = denied.map((path) => `(deny file-read* (require-all (subpath ${JSON.stringify(path)}) (require-not (literal ${JSON.stringify(path)})) ${exceptions}))\n(deny file-read-data (literal ${JSON.stringify(path)}))`).join('\n');
   const profile = join(directory, 'filesystem.sb');
   await writeFile(profile, `(version 1)\n(allow default)\n${rules}\n`, { mode: 0o600 });
   return { executable: '/usr/bin/sandbox-exec', args: ['-f', profile, executable, ...args] };
