@@ -47,6 +47,8 @@ A fresh allowed RPC run reproduced a false-idle failure after 412 assertions. Th
 
 All 15 shell mechanics tests now pass without exclusions. The escaped-descendant fixture records its own PID in its output log instead of searching globally by process name. A failing regression demonstrated selection of an unrelated PID before this change. The real shell test confirms that stopping a shell does not block on its escaped descendant, then cleans up only the recorded fixture process. This proves test-fixture ownership, not cloud credential isolation or model adherence.
 
+The goal source audit groups 28 initial semantic clauses. Fresh goal/delivery tests pass ten checks, and the full allowed RPC run passes 427 assertions with zero findings. RPC evidence covers objective preservation, rejected duplicate active creation, continuation, clear, session isolation, and completed-state restart. It does not prove that an agent performs the requested work or the source completion audit. Hosted cloud goal execution remains unverified. The source's usage-accounting statement also lacks a goal-specific attribution receipt; zero-usage fixtures cannot establish that behavior.
+
 The source census inventories supplied authoritative paths without changing them. It hashes regular files and retains every nonblank Markdown line with its line number and an `UNREVIEWED` state. It excludes `.git`, `node_modules`, and `.DS_Store` entries and does not follow symbolic links. Non-Markdown behavior still requires code review and execution. The census always reports `NOT VERIFIED`; extraction is not a requirement verdict or proof of parity.
 
 ```sh
