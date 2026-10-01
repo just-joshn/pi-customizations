@@ -17,18 +17,32 @@ async function requiredRecord(path, schema, message) {
   return record;
 }
 
+async function supervisorStatus(path) {
+  const status = await requiredRecord(path, statusSchema, 'Detached RPC has not started.');
+  if (!terminal(status)) {
+    try {
+      process.kill(status.pid, 0);
+    } catch (error) {
+      if (error.code === 'ESRCH') return { kind: 'failed', pid: status.pid, error: 'Detached RPC supervisor exited without a final status.' };
+      throw error;
+    }
+  }
+  return status;
+}
+
 export function openDetachedRpc(directory) {
   const statusPath = join(directory, 'status.json');
-  const readStatus = () => readRecord(statusPath, statusSchema);
+  const readStatus = () => supervisorStatus(statusPath);
   return {
     directory,
     snapshot: () => readRecord(join(directory, 'snapshot.json'), snapshotSchema),
     activity: () => requiredRecord(join(directory, 'activity.json'), activitySchema, 'Detached RPC activity is unavailable.'),
-    status: async () => (await requiredRecord(statusPath, statusSchema, 'Detached RPC has not started.')).kind,
-    async send(command) {
+    status: async () => (await readStatus()).kind,
+    info: readStatus,
+    async send(command, id = randomUUID()) {
       const status = await readStatus();
       if (terminal(status)) throw new Error(`Detached RPC ${status.kind}: ${status.error ?? 'process closed'}`);
-      const id = randomUUID();
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id)) throw new Error('Invalid detached RPC request ID.');
       const responsePath = join(directory, 'responses', `${id}.json`);
       await writeRecord(join(directory, 'commands', `${id}.json`), { id, command });
       const deadline = Date.now() + requestDeadlineMs;

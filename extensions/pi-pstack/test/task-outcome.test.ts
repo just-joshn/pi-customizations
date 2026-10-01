@@ -16,6 +16,19 @@ test.each([
   expect(taskOutcome([{ ...assistant('one', null, 'partial', stopReason), message: { ...assistant('one', null, 'partial', stopReason).message, errorMessage: 'request ended' } }], 'one')).toEqual({ status, output: 'request ended', usage });
 });
 
+test('unclaimed descendant cleanup usage is conserved and cleanup errors fail the outcome', () => {
+  const entries = [
+    assistant('one', null, 'done'),
+    { id: 'cleanup', parentId: 'one', type: 'custom', customType: 'pstack-worker-cleanup-usage', data: { taskId: 'child', usage } },
+    { id: 'error', parentId: 'cleanup', type: 'custom', customType: 'pstack-worker-cleanup-error', data: { error: 'descendant shutdown failed' } },
+  ];
+  expect(taskOutcome(entries, 'error')).toEqual({
+    status: 'failed',
+    output: 'descendant shutdown failed',
+    usage: { input: 4, output: 6, cacheRead: 0, cacheWrite: 0, totalTokens: 10, cost: { input: 2, output: 4, cacheRead: 0, cacheWrite: 0, total: 6 } },
+  });
+});
+
 test('empty invocation metadata has no stale output or usage', () => {
   expect(taskOutcome([], 'older-leaf')).toEqual({ status: 'settled', output: '', usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } } });
 });

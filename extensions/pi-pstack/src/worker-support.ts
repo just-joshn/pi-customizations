@@ -11,7 +11,7 @@ import { cloudCheckout } from './cloud.ts';
 import { cursorToolNames } from './host.ts';
 import { resolveModel } from './models.ts';
 import { readPersona } from './personas.ts';
-import type { TaskParameters, TaskRecord } from './worker-records.ts';
+import { type TaskParameters, type TaskRecord, taskOwnerEntryType } from './worker-records.ts';
 
 export async function childModelRuntime(readonly: boolean, provider: string, ctx: ExtensionContext): Promise<ModelRuntime | undefined> {
   if (!readonly) return undefined;
@@ -140,6 +140,7 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
   const { id, prior, ctx } = options;
   const { cwd, persona, readonly, selected, loader, dir } = await prepareWorkerSession(options);
   const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
+  manager.appendCustomEntry(taskOwnerEntryType, { id });
   const sessionFile = manager.getSessionFile();
   if (!sessionFile) throw new Error('Worker session did not provide a durable transcript path.');
   const record: TaskRecord = { id, persona, cwd, readonly, modelReference: `${selected.model.provider}/${selected.model.id}:${selected.thinkingLevel}`, sessionFile, outputFile: join(dir, `${id}.output.txt`), status: 'running', output: '' };

@@ -123,6 +123,7 @@ try {
   while (!closing) {
     if (config.closeAfterSettle && activity.kind === 'settled') {
       await activityWrites;
+      if (config.ownerId) await transport.send({ type: 'prompt', message: '/pstack-worker-finalize' });
       const result = await transport.send({ type: 'get_entries', ...(completionCursor ? { since: completionCursor } : {}) });
       await writeRecord(join(directory, 'snapshot.json'), { invocation: activity.invocation, ...result, ...(promptError ? { error: promptError } : {}) });
       closing = true;
