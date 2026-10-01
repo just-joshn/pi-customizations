@@ -1,0 +1,11 @@
+import type { RoutineDefinition, RoutineInput } from './routine-domain.mjs';
+export type RoutineReceipt = RoutineDefinition & { directory: string; kind: 'disabled' | 'starting' | 'ready' | 'failed'; url?: string; runId?: string; sessionFile?: string; rpcDirectory?: string; error?: string };
+export type RoutineLaunch = { cwd: string; agentDir: string; args: string[]; expectedModel?: { provider: string; id: string } };
+export function routineRecord<T = Record<string, unknown>>(path: string): Promise<T | undefined>;
+export function durableRecord(path: string, value: unknown): Promise<void>;
+export function privateDirectory(path: string): Promise<void>;
+export function prepareRoutine(root: string, input: RoutineInput): Promise<RoutineReceipt>;
+export function routineDefinition(directory: string): Promise<RoutineDefinition>;
+export function inspectRoutine(directory: string): Promise<RoutineReceipt>;
+export function startRoutine(directory: string, revision: string, launch: RoutineLaunch): Promise<RoutineReceipt>;
+export function disableRoutine(directory: string): Promise<RoutineReceipt>;

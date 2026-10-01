@@ -4,7 +4,7 @@ description: "Apply when context is filling up: large outputs, long files, repea
 disable-model-invocation: true
 ---
 
-# Guard the Context Window
+# Guard the context window
 
 The context window is finite and non-renewable within a session. Every token should be worth its cost.
 

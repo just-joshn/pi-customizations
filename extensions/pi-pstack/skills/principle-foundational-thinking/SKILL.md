@@ -4,7 +4,7 @@ description: "Apply before writing logic: choosing core types and data structure
 disable-model-invocation: true
 ---
 
-# Foundational Thinking
+# Foundational thinking
 
 **Structural decisions** protect option value. **Code-level decisions** protect simplicity.
 

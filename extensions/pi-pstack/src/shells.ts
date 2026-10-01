@@ -1,7 +1,9 @@
 import type { JsonValue } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import { asShellHandoff, type ShellRole, shellHandoff, shellHandoffEvent, shellRole } from './shell-ownership.ts';
 import { type ShellRecord, ShellRuntime } from './shell-runtime.ts';
+import { stopPendingEvent } from './subagents/stop-pending.ts';
 
 const ShellStatusSchema = Type.Union([
   Type.Object({ kind: Type.Literal('running') }),
@@ -20,6 +22,11 @@ const ShellRecordSchema = Type.Object({
   startedAt: Type.String(),
   status: ShellStatusSchema,
   matches: Type.Number(),
+  backgroundEndsWithFinalResponse: Type.Optional(
+    Type.Literal(true, {
+      description: 'True when this background command is owned by a synchronous subagent and is therefore terminated when that agent gives its final response; absent when the command survives (main loop, async subagents)',
+    }),
+  ),
 });
 
 function started(record: ShellRecord) {
@@ -32,10 +39,38 @@ function json<T>(details: T) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(details, null, 2) }], details, structuredContent: details as unknown as JsonValue };
 }
 
+function handOff(pi: ExtensionAPI, runtime: ShellRuntime): boolean {
+  if (!runtime.running()) return false;
+  const handoff = shellHandoff(runtime);
+  pi.events.emit(shellHandoffEvent, handoff);
+  return handoff.claimed();
+}
+
+function registerOwnership(pi: ExtensionAPI, runtime: ShellRuntime): void {
+  let role: ShellRole = { child: false, endsWithFinalResponse: false };
+  let stopRequested = false;
+  pi.on('session_start', (_event, ctx) => {
+    runtime.forgetPreviousSession();
+    runtime.useContext(ctx);
+    role = shellRole(ctx.sessionManager.getBranch());
+    runtime.markEndsWithFinalResponse(role.endsWithFinalResponse);
+  });
+  pi.events.on(stopPendingEvent, () => {
+    stopRequested = true;
+  });
+  pi.events.on(shellHandoffEvent, (payload) => {
+    const handoff = asShellHandoff(payload);
+    if (handoff && handoff.shells !== runtime && handoff.claim()) runtime.adopt(handoff.shells);
+  });
+  pi.on('session_shutdown', async () => {
+    const survives = role.child && !role.endsWithFinalResponse && !stopRequested;
+    if (!survives || !handOff(pi, runtime)) await runtime.stopAll();
+  });
+}
+
 export function registerShells(pi: ExtensionAPI): void {
   const runtime = new ShellRuntime(pi);
-  pi.on('session_start', () => runtime.forgetPreviousSession());
-  pi.on('session_shutdown', () => runtime.stopAll());
+  registerOwnership(pi, runtime);
   pi.on('message_end', (event) => {
     const message = event.message;
     if (message.role === 'custom' && message.customType === 'pstack-shell-output') runtime.delivered((message.details as ShellRecord).id);

@@ -31,6 +31,10 @@ const declaredPaths = () =>
     .split('\n')
     .filter(Boolean);
 
+test('the journey verifier rejects an unknown selector instead of passing without checks', () => {
+  expect(() => run('verify-journeys.mjs', [root, 'not-a-journey'])).toThrow('Unknown journey selector: not-a-journey');
+});
+
 test('the shipped resource checker verifies both source inventories and generated resources', () => {
   expect(run('resources.mjs')).toBe('Verified 187 upstream files and 205 generated resources.\n');
 });

@@ -61,7 +61,7 @@ Capture this as seed context (file paths, symbols, commits, PR numbers, linked t
 
 ### Discovery
 
-Before spawning investigators, list the available MCPs from the Cursor environment. Use the available-tools map when present. Otherwise inspect the `mcps/` directory Cursor exposes for enabled MCP servers.
+Before spawning investigators, list the available MCPs by calling `pstack_context` and classifying the MCP tools it returns.
 
 Map each available MCP to one evidence category:
 
@@ -77,7 +77,7 @@ Source control is always available through git and `gh`. For the other six, clas
 
 Aim for a complete **coverage map**, not a minimal one. Document the null, don't skip the search.
 
-Launch all matching investigators in a single message so they run concurrently. Don't ask one agent to cover multiple MCPs.
+Launch all matching investigators in a single message so they run concurrently. Don't ask one agent to cover multiple MCPs. An MCP that fits several categories gets one investigator per category, each with that category's playbook, so no investigator covers more than one category.
 
 Subagent config (each):
 - `subagent_type`: `generalPurpose`
@@ -113,9 +113,10 @@ Each entry names the category and the kind of "why" it uniquely surfaces. Use it
 
 ### When to skip an investigator
 
-Only skip with an **explicit, written justification** that goes in the final "Sources Consulted" section. Two valid reasons:
+Only skip with an **explicit, written justification** that goes in the final "Sources Consulted" section. Three valid reasons:
 
 - **No MCP is available for that category** in this environment. Flag this as a gap, not a choice. Example: "Real-time team chat skipped. No matching MCP available, so the conversational record was not searchable."
+- **The caller narrowed the ask.** The invoking skill or user scoped the question so a category cannot bear on it. Name the scoping ask in the justification.
 - **The source is provably irrelevant**, not just "probably irrelevant." A high bar. Example: "Error / exception tracking skipped. Target is a build-time script with no runtime code path."
 
 If your scope assessment suggests a single-commit trivial target where the PR description already contains the complete answer, you may answer inline **only after** confirming all seven available category searches would be redundant. Say so explicitly. This should be rare.

@@ -1,0 +1,1 @@
+export function promptAndSettle(send: (command: { type: string; message: string }) => Promise<unknown>, settlements: () => number, command: { type: string; message: string }, deadlineMs?: number): Promise<unknown>;

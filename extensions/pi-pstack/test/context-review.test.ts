@@ -68,6 +68,31 @@ async function historyFixture() {
   }
 }
 
+test('history uses the active custom session directory without crossing workspace scope', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pstack-context-custom-'));
+  const directory = join(root, 'custom-sessions');
+  const cwd = join(root, 'workspace');
+  vi.stubEnv('PI_CODING_AGENT_DIR', join(root, 'agent'));
+  try {
+    await mkdir(directory, { recursive: true });
+    const own = join(directory, 'own.jsonl');
+    const other = join(directory, 'other.jsonl');
+    for (const [path, id, workspace] of [
+      [own, 'own-session', cwd],
+      [other, 'other-session', join(root, 'other-workspace')],
+    ]) {
+      await writeFile(path, `${JSON.stringify({ type: 'session', version: 3, id, timestamp: '2026-10-01T00:00:00.000Z', cwd: workspace })}\n`);
+    }
+    const manager = SessionManager.open(own, directory);
+    const result = await call(manager, { history: true });
+    expect(result.history).toEqual([{ id: 'own-session', path: own, name: undefined }]);
+    expect(result.historyDiscovery).toEqual({ mode: 'best-effort', completeness: 'unknown' });
+  } finally {
+    vi.unstubAllEnvs();
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test.each(['directory', 'session'])('real SDK %s read failures retain unknown history completeness', async (failure) => {
   const f = await historyFixture();
   try {

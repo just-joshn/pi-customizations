@@ -1,6 +1,6 @@
 ---
 name: workflow-from-chats
-description: Extract durable working preferences from recent Cursor chats and convert them into skills, rules, or workflow docs. Use when asked to learn preferences, mine feedback, personalize workflows, or generate team/person-specific agent guidance.
+description: Extract durable working preferences from recent agent chats and convert them into skills, rules, or workflow docs. Use when asked to learn preferences, mine feedback, personalize workflows, or generate team/person-specific agent guidance.
 ---
 
 # Workflow From Chats

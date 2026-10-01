@@ -11,6 +11,14 @@ type CallArguments = ToolCall['arguments'];
 type PlannedCall = { name: string; arguments: CallArguments };
 
 const toolCalls: Record<string, PlannedCall[]> = {
+  'JOURNEY:getgoal': [{ name: 'GetGoal', arguments: {} }],
+  'JOURNEY:goalcontinue': [{ name: 'CreateGoal', arguments: { objective: 'Prove automatic goal continuation' } }],
+  'JOURNEY:goalcycle': [
+    { name: 'CreateGoal', arguments: { objective: 'Verify every capability without subagents' } },
+    { name: 'GetGoal', arguments: {} },
+    { name: 'CreateGoal', arguments: { objective: 'Replace the original objective' } },
+    { name: 'UpdateGoal', arguments: { status: 'complete' } },
+  ],
   'JOURNEY:todowrite': [
     {
       name: 'TodoWrite',
@@ -52,7 +60,7 @@ const toolCalls: Record<string, PlannedCall[]> = {
   'JOURNEY:badcwd': [{ name: 'Task', arguments: { prompt: 'cwd child turn', cwd: 'no/such/directory', run_in_background: false } }],
   'JOURNEY:localenv': [{ name: 'Task', arguments: { prompt: 'local child turn', environment: 'local', run_in_background: false } }],
   'JOURNEY:subagent': [{ name: 'Task', arguments: { prompt: 'Report the word delegate-ok and nothing else.', subagent_type: 'not-a-persona' } }],
-  'JOURNEY:shellexit': [{ name: 'BackgroundShell', arguments: { command: "perl -MPOSIX -e 'POSIX::setsid(); sleep 300' & sleep 0.3", title: 'Escaping shell' } }],
+  'JOURNEY:shellexit': [{ name: 'BackgroundShell', arguments: { command: "perl -MPOSIX -e 'POSIX::setsid(); sleep 300' & echo ESCAPED_PID=$!; sleep 0.3", title: 'Escaping shell' } }],
   'JOURNEY:shellinvalid': [
     { name: 'BackgroundShell', arguments: { command: 'echo hi', title: 'Bad pattern', notify_on_output: '(' } },
     { name: 'BackgroundShell', arguments: { command: 'echo hi', title: '   ' } },
@@ -148,6 +156,9 @@ function escapingShellCalls(context: Context) {
 }
 
 function dispatch(requested: string, context: Context): { calls: PlannedCall[] | undefined; sequenced: boolean } {
+  if (requested.startsWith('Goal still active. Objective:\nProve automatic goal continuation')) {
+    return { calls: [{ name: 'UpdateGoal', arguments: { status: 'complete' } }], sequenced: false };
+  }
   if (requested === 'JOURNEY:tasklist') return { calls: backgroundTaskCalls(context), sequenced: true };
   if (requested === 'JOURNEY:taskresume') return { calls: taskResumeCalls(context), sequenced: true };
   if (requested === 'JOURNEY:taskpolicy') return { calls: taskPolicyCalls(context), sequenced: true };
@@ -174,7 +185,7 @@ function shellCalls(context: Context) {
   const results = context.messages.filter((message) => message.role === 'toolResult');
   const started = results.find((message) => message.role === 'toolResult' && message.toolName === 'BackgroundShell');
   if (!started) {
-    return [{ name: 'BackgroundShell', arguments: { command: 'echo journey-shell-ready', title: 'Journey shell', notify_on_output: 'journey-shell-ready' } }];
+    return [{ name: 'BackgroundShell', arguments: { command: 'echo journey-shell-ready; exec sleep 300', title: 'Journey shell', notify_on_output: 'journey-shell-ready' } }];
   }
   const listed = results.some((message) => message.role === 'toolResult' && message.toolName === BG_SHELL_LIST);
   if (!listed) return [{ name: BG_SHELL_LIST, arguments: {} }];
@@ -276,7 +287,10 @@ function scriptedReply(model: Model<string>, context: Context) {
     content,
     stopReason: content[0]?.type === 'toolCall' ? 'toolUse' : 'stop',
     timestamp: Date.now(),
-    usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+    usage:
+      process.env.PSTACK_JOURNEY_NONZERO_USAGE === '1'
+        ? { input: 7, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 10, cost: { input: 0.07, output: 0.03, cacheRead: 0, cacheWrite: 0, total: 0.1 } }
+        : { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
   };
   const stream = createAssistantMessageEventStream();
   stream.push({ type: 'done', reason: message.stopReason === 'stop' ? 'stop' : 'toolUse', message });

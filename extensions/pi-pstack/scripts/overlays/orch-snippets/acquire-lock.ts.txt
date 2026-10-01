@@ -1,0 +1,123 @@
+const DEFAULT_LOCK_WAIT_MS = 1000;
+const LOCK_BACKOFF_MS = [25, 50, 100, 200];
+
+function pause(ms: number): Promise<void> {
+  return new Promise((done) => setTimeout(done, ms));
+}
+
+async function readHolder(path: string): Promise<string | null> {
+  try {
+    return (await readFile(path, "utf8")).trim() || "unknown";
+  } catch (error) {
+    return errorCode(error) === "ENOENT" ? null : "unknown";
+  }
+}
+
+function heldError(holder: string, force: boolean): UserError {
+  const hint = force
+    ? ""
+    : "; if that pid is not an orchestrate coordinator, rerun with --force";
+  return new UserError(`store lock held by pid ${holder}${hint}`);
+}
+
+async function takeOver(
+  path: string,
+  holder: string,
+  create: () => Promise<void>
+): Promise<boolean> {
+  const guard = `${path}.takeover`;
+  try {
+    const handle = await open(guard, "wx");
+    await handle.writeFile(`${process.pid}\n`);
+    await handle.close();
+  } catch (error) {
+    if (errorCode(error) !== "EEXIST") {
+      throw error;
+    }
+    const guardHolder = await readHolder(guard);
+    if (guardHolder !== null && holderIsDead(guardHolder)) {
+      await rm(guard, { force: true });
+    }
+    return false;
+  }
+  try {
+    if ((await readHolder(path)) !== holder) {
+      return false;
+    }
+    await rm(path, { force: true });
+    await create();
+    return true;
+  } catch (error) {
+    if (errorCode(error) === "EEXIST") {
+      return false;
+    }
+    throw error;
+  } finally {
+    await rm(guard, { force: true });
+  }
+}
+
+async function attemptLock(
+  path: string,
+  create: () => Promise<void>,
+  options: OpenStoreOptions
+): Promise<string | null> {
+  try {
+    await create();
+    return null;
+  } catch (error) {
+    if (errorCode(error) !== "EEXIST") {
+      throw error;
+    }
+  }
+  const holder = await readHolder(path);
+  if (holder === null) {
+    return attemptLock(path, create, options);
+  }
+  const stale = holderIsDead(holder);
+  if (!stale && options.force !== true) {
+    return holder;
+  }
+  if (stale) {
+    options.onStaleLock?.(holder);
+  } else {
+    options.onLockStolen?.(holder);
+  }
+  return (await takeOver(path, holder, create)) ? null : holder;
+}
+
+async function acquireLock(
+  store: string,
+  options: OpenStoreOptions
+): Promise<() => Promise<void>> {
+  const path = join(store, LOCK_FILE);
+  const pid = String(process.pid);
+  const create = async (): Promise<void> => {
+    const handle = await open(path, "wx");
+    await handle.writeFile(`${pid}\n`);
+    await handle.close();
+  };
+  const deadline = Date.now() + (options.lockWaitMs ?? DEFAULT_LOCK_WAIT_MS);
+  for (let attempt = 0; ; attempt += 1) {
+    const blocker = await attemptLock(path, create, options);
+    if (blocker === null) {
+      break;
+    }
+    if (Date.now() >= deadline) {
+      throw heldError(blocker, options.force === true);
+    }
+    await pause(LOCK_BACKOFF_MS[Math.min(attempt, LOCK_BACKOFF_MS.length - 1)] ?? 200);
+  }
+
+  return async (): Promise<void> => {
+    try {
+      if ((await readFile(path, "utf8")).trim() === pid) {
+        await unlink(path);
+      }
+    } catch (error) {
+      if (errorCode(error) !== "ENOENT") {
+        throw error;
+      }
+    }
+  };
+}

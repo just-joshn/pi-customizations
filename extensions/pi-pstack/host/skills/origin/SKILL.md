@@ -5,6 +5,8 @@ description: >-
   (origin.cursor.com). Use when the CLI is missing or outdated, git push/pull
   fails to authenticate against origin.cursor.com, or the user asks to set up,
   clone, or configure Cursor-hosted repos.
+disabled-environments:
+  - cloud
 ---
 # origin — set up and repair the origin CLI
 

@@ -4,7 +4,7 @@ description: "Apply after completing a task, before declaring done. Verify again
 disable-model-invocation: true
 ---
 
-# Prove It Works
+# Prove it works
 
 Verify every task output by checking the real thing directly. Do not infer from proxies, self-reports, or "it compiles."
 
@@ -14,6 +14,8 @@ Check the real thing, not a proxy:
 - Check process liveness directly, not indirectly through derived state
 - Read the actual value, not a cached or derived representation
 - When verification fails, suspect the observation method before suspecting the system
+
+**Delegation.** Trust artifacts, not self-reports. When a subagent reports that work is done, read its diff or its output yourself before relying on it.
 
 ## Script the check when you can
 

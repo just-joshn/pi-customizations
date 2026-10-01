@@ -47,7 +47,7 @@ test('maintained extension code and tests meet the repository size and logging l
 });
 
 test('runtime source states no dependency version as a literal', async () => {
-  for (const name of await readdir(join(root, 'src'))) {
+  for (const name of (await readdir(join(root, 'src'), { recursive: true })).filter((entry) => entry.endsWith('.ts'))) {
     const text = await readFile(join(root, 'src', name), 'utf8');
     expect({ name, versions: text.match(/\b\d+\.\d+\.\d+\b/g) ?? [] }).toEqual({ name, versions: [] });
   }

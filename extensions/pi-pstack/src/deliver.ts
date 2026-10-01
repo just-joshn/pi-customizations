@@ -13,11 +13,11 @@ export function createDelivery(pi: ExtensionAPI, startTimeoutMs = 60_000): Deliv
     for (const waiter of waiters) if (waiter.started) waiter.resolve();
   });
   return async (ctx, text) => {
-    if (ctx.hasUI) {
+    if (ctx.mode === 'tui' && ctx.hasUI && !process.env.PI_PSTACK_HEADLESS) {
       pi.sendUserMessage(text, { deliverAs: 'followUp' });
       return;
     }
-    // Print mode disposes the session when the command returns, so hold the command until the turn it queued settles.
+    // RPC acknowledgement must not precede the forwarded turn's settlement, even when dialog UI is available.
     await new Promise<void>((resolve) => {
       const waiter: Waiter = {
         started: false,

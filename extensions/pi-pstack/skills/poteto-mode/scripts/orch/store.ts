@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import type { Dirent } from "node:fs";
 import {
@@ -178,6 +178,7 @@ export interface OpenStoreOptions {
   readonly force?: boolean;
   readonly onLockStolen?: (holder: string) => void;
   readonly onStaleLock?: (holder: string) => void;
+  readonly lockWaitMs?: number;
 }
 
 export interface Store {
@@ -378,6 +379,94 @@ function holderIsDead(holder: string): boolean {
   }
 }
 
+const DEFAULT_LOCK_WAIT_MS = 1000;
+const LOCK_BACKOFF_MS = [25, 50, 100, 200];
+
+function pause(ms: number): Promise<void> {
+  return new Promise((done) => setTimeout(done, ms));
+}
+
+async function readHolder(path: string): Promise<string | null> {
+  try {
+    return (await readFile(path, "utf8")).trim() || "unknown";
+  } catch (error) {
+    return errorCode(error) === "ENOENT" ? null : "unknown";
+  }
+}
+
+function heldError(holder: string, force: boolean): UserError {
+  const hint = force
+    ? ""
+    : "; if that pid is not an orchestrate coordinator, rerun with --force";
+  return new UserError(`store lock held by pid ${holder}${hint}`);
+}
+
+async function takeOver(
+  path: string,
+  holder: string,
+  create: () => Promise<void>
+): Promise<boolean> {
+  const guard = `${path}.takeover`;
+  try {
+    const handle = await open(guard, "wx");
+    await handle.writeFile(`${process.pid}\n`);
+    await handle.close();
+  } catch (error) {
+    if (errorCode(error) !== "EEXIST") {
+      throw error;
+    }
+    const guardHolder = await readHolder(guard);
+    if (guardHolder !== null && holderIsDead(guardHolder)) {
+      await rm(guard, { force: true });
+    }
+    return false;
+  }
+  try {
+    if ((await readHolder(path)) !== holder) {
+      return false;
+    }
+    await rm(path, { force: true });
+    await create();
+    return true;
+  } catch (error) {
+    if (errorCode(error) === "EEXIST") {
+      return false;
+    }
+    throw error;
+  } finally {
+    await rm(guard, { force: true });
+  }
+}
+
+async function attemptLock(
+  path: string,
+  create: () => Promise<void>,
+  options: OpenStoreOptions
+): Promise<string | null> {
+  try {
+    await create();
+    return null;
+  } catch (error) {
+    if (errorCode(error) !== "EEXIST") {
+      throw error;
+    }
+  }
+  const holder = await readHolder(path);
+  if (holder === null) {
+    return attemptLock(path, create, options);
+  }
+  const stale = holderIsDead(holder);
+  if (!stale && options.force !== true) {
+    return holder;
+  }
+  if (stale) {
+    options.onStaleLock?.(holder);
+  } else {
+    options.onLockStolen?.(holder);
+  }
+  return (await takeOver(path, holder, create)) ? null : holder;
+}
+
 async function acquireLock(
   store: string,
   options: OpenStoreOptions
@@ -389,42 +478,16 @@ async function acquireLock(
     await handle.writeFile(`${pid}\n`);
     await handle.close();
   };
-
-  const takeOver = async (): Promise<void> => {
-    await unlink(path);
-    try {
-      await create();
-    } catch (retryError) {
-      if (errorCode(retryError) === "EEXIST") {
-        const retryHolder =
-          (await readFile(path, "utf8")).trim() || "unknown";
-        throw new UserError(`store lock held by pid ${retryHolder}`);
-      }
-      throw retryError;
+  const deadline = Date.now() + (options.lockWaitMs ?? DEFAULT_LOCK_WAIT_MS);
+  for (let attempt = 0; ; attempt += 1) {
+    const blocker = await attemptLock(path, create, options);
+    if (blocker === null) {
+      break;
     }
-  };
-
-  try {
-    await create();
-  } catch (error) {
-    if (errorCode(error) !== "EEXIST") {
-      throw error;
+    if (Date.now() >= deadline) {
+      throw heldError(blocker, options.force === true);
     }
-    let holder = "unknown";
-    try {
-      holder = (await readFile(path, "utf8")).trim() || "unknown";
-    } catch {
-      holder = "unknown";
-    }
-    if (holderIsDead(holder)) {
-      options.onStaleLock?.(holder);
-      await takeOver();
-    } else if (options.force) {
-      options.onLockStolen?.(holder);
-      await takeOver();
-    } else {
-      throw new UserError(`store lock held by pid ${holder}`);
-    }
+    await pause(LOCK_BACKOFF_MS[Math.min(attempt, LOCK_BACKOFF_MS.length - 1)] ?? 200);
   }
 
   return async (): Promise<void> => {
@@ -1158,19 +1221,209 @@ function branchSha({
   return sha;
 }
 
-function resolveFrontier(repo: string): readonly FrontierPr[] {
-  return graphiteFrontier(repo).map((row) => ({
-    ...row,
-    sha: branchSha({ branch: row.branches, repo }),
+interface GhPullRequest {
+  readonly number: number;
+  readonly state: FrontierPrState;
+  readonly headRefName: string;
+  readonly baseRefName: string;
+  readonly headRefOid: string;
+}
+
+function parseGhPullRequests(raw: string): readonly GhPullRequest[] {
+  let value: unknown;
+  try {
+    value = JSON.parse(raw);
+  } catch {
+    throw new UserError("gh pr list output is not valid JSON");
+  }
+  if (!isUnknownArray(value)) {
+    throw new UserError("gh pr list output must be an array");
+  }
+  return value.map((row) => {
+    const state = isRecord(row) ? frontierPrStateOrNull(row.state) : null;
+    if (
+      !isRecord(row) ||
+      typeof row.number !== "number" ||
+      !Number.isSafeInteger(row.number) ||
+      row.number < 1 ||
+      typeof row.headRefName !== "string" ||
+      typeof row.baseRefName !== "string" ||
+      typeof row.headRefOid !== "string" ||
+      state === null
+    ) {
+      throw new UserError("gh pr list output has an invalid PR row");
+    }
+    return {
+      number: row.number,
+      state,
+      headRefName: row.headRefName,
+      baseRefName: row.baseRefName,
+      headRefOid: row.headRefOid,
+    };
+  });
+}
+
+function graphiteMissing(repo: string): boolean {
+  const result = spawnSync("gt", ["--version"], { cwd: repo, stdio: "ignore" });
+  return errorCode(result.error) === "ENOENT";
+}
+
+function runForge({
+  command,
+  args,
+  repo,
+}: {
+  command: string;
+  args: readonly string[];
+  repo: string;
+}): string {
+  try {
+    return execFileSync(command, [...args], {
+      cwd: repo,
+      encoding: "utf8",
+      env: process.env,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    throw new UserError(
+      `${command} ${args.slice(0, 2).join(" ")} failed: ${errorMessage(error)}`
+    );
+  }
+}
+
+function preferPullRequest(
+  old: GhPullRequest | undefined,
+  next: GhPullRequest
+): GhPullRequest {
+  if (old === undefined) {
+    return next;
+  }
+  if ((old.state === "OPEN") !== (next.state === "OPEN")) {
+    return old.state === "OPEN" ? old : next;
+  }
+  return next.number > old.number ? next : old;
+}
+
+function githubFrontier(repo: string): readonly FrontierPr[] {
+  const current = runForge({
+    command: "git",
+    args: ["symbolic-ref", "--short", "HEAD"],
+    repo,
+  }).trim();
+  const pulls = parseGhPullRequests(
+    runForge({
+      command: "gh",
+      args: [
+        "pr",
+        "list",
+        "--state",
+        "all",
+        "--limit",
+        "1000",
+        "--json",
+        "number,state,headRefName,baseRefName,headRefOid",
+      ],
+      repo,
+    })
+  );
+  const byHead = new Map<string, GhPullRequest>();
+  for (const pull of pulls) {
+    byHead.set(
+      pull.headRefName,
+      preferPullRequest(byHead.get(pull.headRefName), pull)
+    );
+  }
+  const top = byHead.get(current);
+  if (top === undefined) {
+    throw new UserError(
+      `no pull request has head branch ${current}; check out a branch of the stack`
+    );
+  }
+  const chain = [top];
+  const seen = new Set([top.number]);
+  for (
+    let below = byHead.get(top.baseRefName);
+    below !== undefined;
+    below = byHead.get(below.baseRefName)
+  ) {
+    if (seen.has(below.number)) {
+      throw new UserError("gh pull request base branches form a cycle");
+    }
+    seen.add(below.number);
+    chain.unshift(below);
+  }
+  for (;;) {
+    const head = chain[chain.length - 1]?.headRefName ?? "";
+    const above = [...byHead.values()].filter(
+      (pull) => pull.baseRefName === head && !seen.has(pull.number)
+    );
+    if (above.length === 0) {
+      break;
+    }
+    if (above.length > 1) {
+      const numbers = above.map((pull) => `#${pull.number}`).join(", ");
+      throw new UserError(
+        `pull requests ${numbers} all target ${head}; the stack is not linear`
+      );
+    }
+    chain.push(above[0] as GhPullRequest);
+    seen.add((above[0] as GhPullRequest).number);
+  }
+  return chain.map((pull) => ({
+    branches: pull.headRefName,
+    pr: pull.number,
+    sha: pull.headRefOid,
+    state: pull.state,
   }));
+}
+
+function frontierSha({ branch, repo }: { branch: string; repo: string }): string {
+  try {
+    const remote = execFileSync(
+      "git",
+      ["rev-parse", "--verify", "--quiet", `refs/remotes/origin/${branch}`],
+      {
+        cwd: repo,
+        encoding: "utf8",
+        env: process.env,
+        stdio: ["ignore", "pipe", "pipe"],
+      }
+    ).trim();
+    if (/^[0-9a-f]{40,64}$/i.test(remote)) {
+      return remote;
+    }
+  } catch {
+    // No remote-tracking ref: fall back to the local branch.
+  }
+  return branchSha({ branch, repo });
+}
+
+interface ResolvedFrontier {
+  readonly prs: readonly FrontierPr[];
+  readonly source: "gt" | "gh";
+}
+
+function resolveFrontier(repo: string): ResolvedFrontier {
+  if (graphiteMissing(repo)) {
+    return { prs: githubFrontier(repo), source: "gh" };
+  }
+  return {
+    prs: graphiteFrontier(repo).map((row) => ({
+      ...row,
+      sha: frontierSha({ branch: row.branches, repo }),
+    })),
+    source: "gt",
+  };
 }
 
 function validateFrontierPin({
   actual,
   expected,
+  source,
 }: {
   actual: readonly number[];
   expected: readonly number[];
+  source: string;
 }): void {
   if (
     actual.length === expected.length &&
@@ -1184,14 +1437,14 @@ function validateFrontierPin({
   const extra = actual.filter((pr) => !expectedSet.has(pr));
   const drift: string[] = [];
   if (missing.length > 0) {
-    drift.push(`missing from gt: ${missing.join(",")}`);
+    drift.push(`missing from ${source}: ${missing.join(",")}`);
   }
   if (extra.length > 0) {
-    drift.push(`extra in gt: ${extra.join(",")}`);
+    drift.push(`extra in ${source}: ${extra.join(",")}`);
   }
   if (missing.length === 0 && extra.length === 0) {
     drift.push(
-      `order differs: expected ${expected.join(",")}; gt ${actual.join(",")}`
+      `order differs: expected ${expected.join(",")}; ${source} ${actual.join(",")}`
     );
   }
   throw new UserError(`frontier pin mismatch: ${drift.join("; ")}`);
@@ -1492,11 +1745,12 @@ export function openStore(
           throw new UserError("--prs must not contain duplicates");
         }
         const old = await readFrontier(store);
-        const prs = resolveFrontier(repo);
+        const { prs, source } = resolveFrontier(repo);
         if (pin !== undefined) {
           validateFrontierPin({
             actual: prs.map((row) => row.pr),
             expected: pin,
+            source,
           });
         }
         const value: Frontier = {

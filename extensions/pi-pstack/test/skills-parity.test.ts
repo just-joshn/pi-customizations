@@ -84,7 +84,7 @@ test('generated resources: repository-relative references resolve in this checko
       expect(existsSync(join(repositoryRoot, target)), `${file} references the missing path ${target}`).toBe(true);
     }
   }
-  expect(targets.length).toBeGreaterThanOrEqual(8);
+  expect(targets).toEqual([]);
 });
 
 test('resource map: exactly 205 generated resources are verified with matching hashes', async () => {
@@ -286,7 +286,9 @@ test('subagent personas resolve their mapped instruction files', async () => {
   for (const { type, files } of mappedSubagents) {
     const persona = await readPersona(type);
     const contents = await Promise.all(files.map((file) => readFile(join(packageRoot, file), 'utf8')));
-    expect(persona.instructions).toBe(contents.join('\n'));
+    const expected = contents.join('\n').replace('Resume an existing `poteto-agent` for the conversation rather than spawning a sibling. ', '');
+    if (type === 'poteto-agent') expect(persona.instructions.endsWith(`\n${expected}`)).toBe(true);
+    else expect(persona.instructions).toBe(expected);
   }
 
   await expect(readPersona('unsupported-role')).rejects.toThrow(/Unsupported agent unsupported-role/);
@@ -301,6 +303,7 @@ test('host contract mappings: tool names, cursor facilities, and external depend
   const fakeCtx = {
     cwd: '/test/workspace',
     sessionManager: {
+      getSessionId: () => 's',
       getSessionDir: () => '/test/sessions',
       getSessionFile: () => '/test/sessions/current.jsonl',
     },

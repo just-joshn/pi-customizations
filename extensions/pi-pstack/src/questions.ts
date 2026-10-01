@@ -72,7 +72,7 @@ export function registerQuestions(pi: ExtensionAPI): void {
     annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     async execute(_id, params, signal, _update, ctx) {
       validateQuestions(params.questions);
-      if (!ctx.hasUI) throw new Error('AskQuestion requires Pi TUI or an RPC client supporting extension dialogs. Ask in the conversation and wait for a user reply.');
+      if (!ctx.hasUI || process.env.PI_PSTACK_HEADLESS) throw new Error('AskQuestion requires Pi TUI or an RPC client supporting extension dialogs. Ask in the conversation and wait for a user reply.');
       let answers: Answer[] = [];
       for (const question of params.questions) {
         const answer = await ask(question, ctx, signal);

@@ -17,7 +17,7 @@ const SUB_BLOCKS = [
 	"Merge.",
 ];
 const PROGRAM_H3 = ["Arm the program", "Spawn owners", "PR mechanics", "Verdict and merge", "Boot recipe"];
-const PROGRAM_MARKERS = ["/goal", "git show origin/main:", /30[- ]minute/, "status message"];
+const PROGRAM_MARKERS = ["/goal", /git show origin\/[^\s:`]+:/, /30[- ]minute/, "status message"];
 const HOW_TO_READ_MARKERS = [
 	"One box is one unit of work",
 	"names the evidence",
@@ -27,6 +27,8 @@ const HOW_TO_READ_MARKERS = [
 ];
 const PERF_ITEMS = ["Metric.", "Probe.", "Baseline.", "Rule."];
 const BOX = /^\s*- \[[ x]\] (.*)$/;
+const FENCE = /^ {0,3}(`{3,})(.*)$/;
+const LABEL = /^\s*(?:[-*+] )?(?:\[[ x]\] )?\*{0,2}[A-Za-z][\w-]*(?: [\w-]+){0,2}\*{0,2}:\*{0,2} /;
 
 const file = process.argv[2];
 if (!file) {
@@ -44,17 +46,24 @@ if (raw[0] === "---") {
 }
 
 const lines = [];
-let fence = false;
+let fence = null;
 for (let i = start; i < raw.length; i++) {
 	const text = raw[i];
 	const n = i + 1;
-	if (/^```/.test(text)) fence = !fence;
-	lines.push({ n, text, code: fence });
-	if (fence) continue;
+	const marker = FENCE.exec(text);
+	const wasFenced = fence !== null;
+	if (marker) {
+		if (fence === null) fence = marker[1].length;
+		else if (marker[1].length >= fence && marker[2].trim() === "") fence = null;
+	}
+	const code = wasFenced || fence !== null;
+	lines.push({ n, text, code });
+	if (code) continue;
 	const prose = text
 		.replace(/`[^`]*`/g, "`")
 		.replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-		.replace(/\]\([^)]*\)/g, "]");
+		.replace(/\]\([^)]*\)/g, "]")
+		.replace(LABEL, "");
 	if (/[\u2013\u2014]/.test(prose)) fail(n, "long dash");
 	if (/[\u2018\u2019\u201c\u201d]/.test(prose)) fail(n, "curly quote");
 	if (/: \S/.test(prose)) fail(n, "mid-sentence colon");

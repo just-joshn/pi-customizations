@@ -23,6 +23,7 @@ test('registerShells registers the three shell tools', () => {
   const pi = {
     registerTool: (def: ToolMock) => tools.set(def.name, def),
     on: () => {},
+    events: { emit: () => {}, on: () => () => {} },
   } as unknown as ExtensionAPI;
   registerShells(pi);
   expect([...tools.keys()].toSorted()).toEqual(['BackgroundShell', BG_SHELL_LIST, BG_SHELL_STOP]);
@@ -38,6 +39,7 @@ test('unknown shell output leaves the started shell list untouched', async () =>
       listeners[event].push(handler);
     },
     sendMessage: () => {},
+    events: { emit: () => {}, on: () => () => {} },
   } as unknown as ExtensionAPI;
   registerShells(pi);
   const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-'));
@@ -71,6 +73,7 @@ test('registerShells stops a started shell on request', async () => {
       listeners[event].push(handler);
     },
     sendMessage: () => {},
+    events: { emit: () => {}, on: () => () => {} },
   } as unknown as ExtensionAPI;
   registerShells(pi);
   const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-'));
@@ -107,6 +110,7 @@ test('session_shutdown stops every running shell', async () => {
       listeners[event].push(handler);
     },
     sendMessage: () => {},
+    events: { emit: () => {}, on: () => () => {} },
   } as unknown as ExtensionAPI;
   registerShells(pi);
   const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-'));
@@ -140,19 +144,21 @@ test('a second session lists no shells from the session before it', async () => 
       listeners[event].push(handler);
     },
     sendMessage: () => {},
+    events: { emit: () => {}, on: () => () => {} },
   } as unknown as ExtensionAPI;
   registerShells(pi);
   const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-rotated-'));
   const ctx = {
     cwd: scratch,
-    sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch },
+    sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch, getBranch: () => [] },
+    isIdle: () => true,
   } as unknown as ExtensionContext;
   const shutdown = listeners.session_shutdown?.[0];
   const start = listeners.session_start?.[0];
   try {
     const firstShell = (await tools.get('BackgroundShell')?.execute('1', { command: 'sleep 30', title: 'first session' }, undefined, undefined, ctx)) as { details: { id: string } };
     await shutdown?.();
-    await start?.();
+    await start?.({ type: 'session_start' }, ctx);
     const carried = (await tools.get(BG_SHELL_LIST)?.execute()) as { details: Array<{ id: string }> };
     const secondShell = (await tools.get('BackgroundShell')?.execute('2', { command: 'sleep 30', title: 'second session' }, undefined, undefined, ctx)) as { details: { id: string } };
     const listed = (await tools.get(BG_SHELL_LIST)?.execute()) as { details: Array<{ id: string }> };
@@ -164,11 +170,18 @@ test('a second session lists no shells from the session before it', async () => 
   }
 });
 
-test('pstack index before_agent_start with enabled and todos', async () => {
+function indexApi() {
   const listeners: Record<string, Listener[]> = {};
   const pi = {
+    registerFlag: () => {},
     registerCommand: () => {},
     registerTool: () => {},
+    events: {
+      emit() {},
+      on() {
+        return () => {};
+      },
+    },
     on: (event: string, handler: Listener) => {
       listeners[event] = listeners[event] ?? [];
       listeners[event].push(handler);
@@ -177,7 +190,11 @@ test('pstack index before_agent_start with enabled and todos', async () => {
     getCommands: () => [],
     getAllTools: () => [],
   } as unknown as ExtensionAPI;
+  return { pi, listeners };
+}
 
+test('pstack index before_agent_start with enabled and todos', async () => {
+  const { pi, listeners } = indexApi();
   await pstack(pi);
 
   const ctx = {
@@ -193,13 +210,16 @@ test('pstack index before_agent_start with enabled and todos', async () => {
           },
         },
       ],
+      getEntries: () => [],
+      getSessionId: () => 's',
       getSessionDir: () => '/tmp',
       getSessionFile: () => '/tmp/f.jsonl',
+      getSessionId: () => 'index-hook-session',
     },
     ui: { setStatus() {}, setWidget() {} },
   } as unknown as ExtensionContext;
 
-  for (const fn of listeners.session_start ?? []) fn({}, ctx);
+  for (const fn of listeners.session_start ?? []) await fn({}, ctx);
 
   const event = { systemPromptOptions: { sections: {} as Record<string, string> } };
   for (const fn of listeners.before_agent_start ?? []) await fn(event, ctx);

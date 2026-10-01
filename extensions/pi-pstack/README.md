@@ -26,7 +26,99 @@ Every turn, the host context lists each bundled skill, host skill, and playbook 
 
 With the package extension enabled, direct user invocations of pstack-owned prompt aliases preserve the raw argument suffix, including quotes, whitespace, newlines, backslashes, and dollar placeholders. The input hook quotes that suffix as one parser argument and leaves native prompt discovery and expansion in place. User-owned prompts, other extension commands, and `/bro` are not rewritten. Extension-generated messages keep Pi's normal literal delivery or opt-in expansion. When the extension is disabled, Pi's native prompt parser removes grouping quotes, joins parsed arguments with spaces, and converts unquoted line breaks to spaces. Use `/skill:name` to load a skill directly.
 
-The runtime uses current `@earendil-works` pi packages. Host dependencies are peers. SDK 0.99.2 is the development and verification target. Other versions have not been verified.
+The runtime uses current `@earendil-works` pi packages. Host dependencies are peers with a minimum of 0.99.2. SDK 0.99.2 is the development and verification target. Newer versions have not been verified.
+
+## Usage
+
+Use `/poteto-mode` at the start of a task. It reads your request, picks one of twenty-three playbooks, copies the playbook's steps into a todo list, routes to the other skills as the steps fire, and writes an unslopped reply. The mode is sticky on that session branch until `/poteto-mode off`. New to pstack? The [pstack guide](docs/guide/README.md) walks through a first real task, from setup and prompting through verification and overnight runs. It is the Pi adaptation of the upstream ten-chapter guide.
+
+### The twenty-three playbooks
+
+The full rules live in [`skills/poteto-mode/SKILL.md`](skills/poteto-mode/SKILL.md).
+
+| playbook | for |
+|---|---|
+| [investigation](skills/poteto-mode/playbooks/investigation.md) | a read-only question: how does X work, why was Y built this way, are we sure. |
+| [bug fix](skills/poteto-mode/playbooks/bug-fix.md) | reproduce a defect, root-cause it, and fix it with runtime evidence. |
+| [perf issue](skills/poteto-mode/playbooks/perf-issue.md) | trace a measured slowness and improve it against a baseline. |
+| [hillclimb](skills/poteto-mode/playbooks/hillclimb.md) | sustained improvement of one metric against a target, with before and after measurement and one commit per accepted win. |
+| [runtime forensics](skills/poteto-mode/playbooks/runtime-forensics.md) | diagnose a live symptom such as a leak, an idle CPU spin, or a glitch from instrumentation. |
+| [trace forensics](skills/poteto-mode/playbooks/trace-forensics.md) | diagnose a captured profiling artifact such as a cpuprofile, trace, spindump, or heap snapshot. |
+| [feature](skills/poteto-mode/playbooks/feature.md) | new or changed behavior, built from a named data shape. |
+| [refactoring](skills/poteto-mode/playbooks/refactoring.md) | a behavior-preserving change to structure or shape. |
+| [prototype](skills/poteto-mode/playbooks/prototype.md) | a throwaway sketch that settles a design or behavioral fork by observation. |
+| [visual parity](skills/poteto-mode/playbooks/visual-parity.md) | pixel-exact UI equivalence between two implementations. |
+| [authoring a skill](skills/poteto-mode/playbooks/authoring-a-skill.md) | writing or editing a SKILL.md. |
+| [eval](skills/poteto-mode/playbooks/eval.md) | test how a skill or prompt change affects agent behavior, blinded. |
+| [babysit](skills/poteto-mode/playbooks/babysit.md) | drive a PR or a stack to merge-ready: conflicts, review threads, CI. |
+| [shipping](skills/poteto-mode/playbooks/shipping.md) | independently verify a green stack, then land the contiguous verified run bottom-up. |
+| [autonomous run](skills/poteto-mode/playbooks/autonomous-run.md) | drive a long task to completion without stopping. |
+| [orchestrate](skills/poteto-mode/playbooks/orchestrate.md) | a standing project handed to one coordinator session: multi-day work, many stacked PRs, fleets of subagents. |
+| [autopilot full](skills/poteto-mode/playbooks/autopilot-full.md) | run independent PRs to merged with one owner per PR and a root swarm verdict on each round. |
+| [autopilot stack](skills/poteto-mode/playbooks/autopilot-stack.md) | build and verify one linear base-branch stack for the operator to review and land. |
+| [session pickup](skills/poteto-mode/playbooks/session-pickup.md) | resume or take over a prior agent's in-flight work. |
+| [pause safely](skills/poteto-mode/playbooks/pause-safely.md) | suspend in-flight work cleanly so it can be resumed later. |
+| [multi phase plan](skills/poteto-mode/playbooks/multi-phase-plan.md) | work that spans phases or stacked PRs. |
+| [worktree cleanup](skills/poteto-mode/playbooks/worktree-cleanup.md) | reclaim disk by pruning merged or abandoned worktrees and stale simulators, safety-gated. |
+| [opening a pr](skills/poteto-mode/playbooks/opening-a-pr.md) | open a ready PR from small ordered commits with a briefing-style body. Every other playbook ends here. |
+
+## Example prompts
+
+Each line is one prompt to paste into Pi.
+
+```text
+/poteto-mode this PR has a subtle bug where the scroll drifts every 750ms even when idle. repro first, then fix and verify.
+/poteto-mode add a --json flag to this command. text output stays byte-identical. verify both forms.
+/poteto-mode move parsing into one module with zero behavior change. record the current output first and prove it is unchanged.
+/poteto-mode startup takes 1.8s on this fixture. trace it, fix the measured cause, and show me before and after.
+/poteto-mode new task. figure out why the cache entry survives logout. don't change any code yet.
+/poteto-mode im going to bed. land the stack even if CI flakes. i want everything merged by morning.
+/poteto-mode take over this branch. read the decision log, figure out what's done, and continue from there.
+/poteto-mode what's eating my disk? prune the worktrees that are safe to prune.
+/poteto-mode write a skill for verifying database migrations in this repo.
+/poteto-mode run the eval playbook on this skill change. same task for both variants, candidates stay blind.
+/how do we dedupe notifications? is there an n+1 when we look up subscribers?
+/why was the retry limit set to five? does the reason still hold?
+/teach me how this PR changes retries. convince me it fixes the cause and not the symptom.
+/recall catch me up on the export work from last week.
+/architect design the import pipeline before writing any code. i care most about how callers use it.
+/arena this, 5 candidates. the cache key format is expensive to change later.
+/swarm check every package under packages/ against its check.sh. one worker per package.
+/interrogate review this PR. no nitpicks unless it is an actual bug or regression.
+/tdd implement
+/blast-radius what else could this one-line change to the parser break?
+```
+
+## Skills to use directly
+
+`/poteto-mode` runs most of these for you when a step needs them. This table is for when you want one directly. Every skill also loads with Pi's `/skill:name` form.
+
+| skill | use it when |
+|---|---|
+| [`/poteto-mode`](skills/poteto-mode/SKILL.md) | the default entry point for any non-trivial task. |
+| [`/how`](skills/how/SKILL.md) | you want a walkthrough of how a subsystem works. |
+| [`/why`](skills/why/SKILL.md) | you want to know why something was built this way. It queries each evidence category your tools expose, such as source control, the issue tracker, docs, chat, observability, and error tracking, in parallel. |
+| [`/recall`](skills/recall/SKILL.md) | you are starting or resuming work and want your recent context on a topic rebuilt from your own Pi sessions and the shared record. |
+| [`/blast-radius`](skills/blast-radius/SKILL.md) | you have a small-looking change and want to know what else it could break, with the one fact that makes it safe proven by running code. |
+| [`/architect`](skills/architect/SKILL.md) | you are about to write code that crosses a function boundary and want the caller's usage, types, and module shape settled first. |
+| [`/arena`](skills/arena/SKILL.md) | you want N parallel attempts at the same thing, then the best parts of each. |
+| [`/swarm`](skills/swarm/SKILL.md) | you want N parallel workers across different slices or races, then one aggregated report. |
+| [`/interrogate`](skills/interrogate/SKILL.md) | you have a diff and want several different models to try to break it, including a strict code-quality lens. |
+| [`/automate-me`](skills/automate-me/SKILL.md) | you want your own `-mode` skill, drafted from how you have actually worked. |
+| [`/make-bot-ui`](skills/make-bot-ui/SKILL.md) | you want a page or dashboard whose buttons wake a persistent Pi routine over an authenticated webhook. In Pi it runs through the routine adapter at `host/adapters/make-bot-ui/SKILL.md`, which calls `RoutinePrepare` and `RoutineEnable` and keeps the sender key out of chat and browser code. It is off the main path, so `/poteto-mode` does not route to it. |
+| [`/setup-pstack`](skills/setup-pstack/SKILL.md) | you want to pick which models pstack uses per role. It detects your models and writes the model rule. |
+| [`/reflect`](skills/reflect/SKILL.md) | a long task landed and you want the recipe captured as a skill edit. |
+| [`/teach`](skills/teach/SKILL.md) | you want to actually understand a change or subsystem, not just have it summarized. |
+| [`/tdd`](skills/tdd/SKILL.md) | you are fixing a bug and there is a cheap local test path. Write the failing test first, then the fix. |
+| [`/no-comments`](skills/no-comments/SKILL.md) | you want comments stripped before review. |
+| [`/typescript-best-practices`](skills/typescript-best-practices/SKILL.md) | you are reading or editing TypeScript. It grounds the type-system-discipline principle in syntax. |
+| [`/figure-it-out`](skills/figure-it-out/SKILL.md) | no bundled playbook fits. It designs a rigorous, auditable playbook for the task. |
+| [`/show-me-your-work`](skills/show-me-your-work/SKILL.md) | you want a reviewable decision trail logged to a TSV you can commit. |
+| [`/create-verification-skill`](skills/create-verification-skill/SKILL.md) | your project has no scripted way to prove app behavior. It generates a project-local verify skill with a feature map. |
+| [`/maintain-verification-skill`](skills/maintain-verification-skill/SKILL.md) | your verify skill's feature map has drifted from the app. |
+| [`/unslop`](skills/unslop/SKILL.md) | you are cleaning up writing and want AI tells removed. |
+| [`/technical-writing`](skills/technical-writing/SKILL.md) | you are writing docs, RFCs, readmes, PR descriptions, or commit messages to a layered standard. |
+| [`/bro`](prompts/bro.md) | you want the last message restated in plain human language. It is a prompt template, not a skill. |
 
 ## Team-kit workflows
 
@@ -96,6 +188,8 @@ bun run check:journeys
 `bun run generate` recreates the operational skills and prompts from the immutable snapshot. The checker rejects changed upstream hashes and generated resource drift. Do not edit generated resources directly.
 
 The CLI check starts an isolated local pi process and exercises RPC commands without model calls. Helper scripts may install their locked dependencies into their generated `node_modules` directory. The resource checker excludes that dependency directory and still checks every generated source file.
+
+The [changelog](CHANGELOG.md) lists each `-pi.N` revision. A pull request workflow at the repository root (`.github/workflows/pi-pstack.yml`) runs `bun run check:resources`, `bun run typecheck`, and `bun run test` for changes under this directory.
 
 [Provenance](docs/provenance.json), [source audit](docs/source-audit.md), [architecture](docs/architecture.md), and [decision trail](docs/decisions.tsv) document the implementation. Original portable helper scripts retain their own runtime dependencies, including Bun, git, and GitHub CLI where required.
 
