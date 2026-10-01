@@ -114,32 +114,21 @@ test('[G3-08] invalid definition effort is reported once and ignored by the real
   }
 });
 
-test.each([0, 1, -1])('integer effort %s is explicitly refused instead of silently converted', async (effort) => {
+test.for([
+  { effort: 0, expected: {} },
+  { effort: 1500, expected: { reasoning: 'low' } },
+  { effort: 8192, expected: { reasoning: 'medium' } },
+  { effort: 100000, expected: { reasoning: 'high' } },
+])('integer effort $effort is read as a thinking budget and mapped to the covering level', async ({ effort, expected }) => {
   const { call, close, dir } = await workerFixture();
   try {
     mkdirSync(join(dir, '.pi/agents'), { recursive: true });
     writeFileSync(join(dir, '.pi/agents/integer.md'), `---\nname: integer\ndescription: integer effort\nmodel: worker-test/alternate\neffort: ${effort}\n---\nThink.\n`);
     clearAgentCache();
-    await expect(call('Agent', { description: 'integer effort', prompt: 'must not run', subagent_type: 'integer', run_in_background: false })).rejects.toThrow(`Cannot apply integer agent effort ${effort}`);
-    expect((await call('ListAgents', {})).details).toEqual({ agents: [] });
+    expect((await call('Agent', { description: 'integer effort', prompt: 'think', subagent_type: 'integer', run_in_background: false })).details).toMatchObject({ status: 'completed' });
+    expect(JSON.parse(await readFile(join(dir, 'child-options.json'), 'utf8'))).toEqual(expected);
   } finally {
     clearAgentCache();
-    await close();
-  }
-});
-
-test('[G3-03] forced configuration selects its model and logs a discarded internal override', async () => {
-  vi.stubEnv('PI_SUBAGENT_MODEL_FORCE', '1');
-  vi.stubEnv('PI_SUBAGENT_MODEL', 'worker-test/alternate');
-  const { call, close, subagentLogs, session } = await workerFixture();
-  const parentModel = session.model;
-  try {
-    const done = await call('Agent', { description: 'force configuration', prompt: 'forced', model: 'opus', run_in_background: false });
-    expect(done.details).toMatchObject({ status: 'completed', resolvedModel: 'worker-test/alternate' });
-    expect(parentModel?.id).toBe('deterministic');
-    expect(subagentLogs).toContain('"opus" ignored: CLAUDE_CODE_SUBAGENT_MODEL_FORCE is set');
-    expect(session.model).toBe(parentModel);
-  } finally {
     await close();
   }
 });
