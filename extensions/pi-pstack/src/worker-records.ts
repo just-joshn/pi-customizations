@@ -52,6 +52,7 @@ export const TaskRecordSchema = Type.Object({
   worktreeRepoRoot: Type.Optional(Type.String()),
   worktreeBaseCommit: Type.Optional(Type.String()),
   worktreeHookBased: Type.Optional(Type.Boolean()),
+  worktreeCleanupWarning: Type.Optional(Type.String()),
   requestedIsolation: Type.Optional(Type.Union([Type.Literal('worktree'), Type.Literal('remote')])),
   parentAgentId: Type.Optional(Type.String()),
   destination: Type.Optional(

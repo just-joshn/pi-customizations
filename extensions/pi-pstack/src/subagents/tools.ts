@@ -36,7 +36,7 @@ import { ToolOfferScope } from './tool-offer-scope.ts';
 import { withMaxTurns } from './turn-limit.ts';
 import type { AdmissionSnapshot, LaunchPlan, SpawnRequest } from './types.ts';
 import { type AgentCheckout, checkoutContext, createAgentCheckout, finalizeCheckout, keptFields } from './worktree-hooks.ts';
-import { repositoryRoot, type WorktreeOutcome } from './worktree.ts';
+import type { WorktreeOutcome } from './worktree.ts';
 
 type AgentParams = AgentInput & { max_turns?: unknown };
 type Update = Parameters<WorkerRuntime['start']>[4];
@@ -204,7 +204,8 @@ class AgentLauncher {
       this.pi.events.emit('pstack:subagent-log', `[web-fetch agent] isolation:'${requested}' ignored; the built-in web-fetch agent always runs as a local agent`);
       return { outcome: () => undefined };
     }
-    const wantsWorktree = requested === 'worktree' || (requested === 'remote' && (await repositoryRoot(ctx.cwd)) !== undefined);
+    if (requested === 'remote') throw new Error('Remote agent execution is not available in this runtime. Choose isolation: "worktree" or omit isolation to run locally.');
+    const wantsWorktree = requested === 'worktree';
     if (!wantsWorktree) return { outcome: () => undefined };
     const id = randomUUID().slice(0, 8);
     const worktree = await createAgentCheckout(checkoutContext(ctx), id);
@@ -215,7 +216,9 @@ class AgentLauncher {
       outcome: () => outcome,
       settle: async () => {
         outcome ??= await finalizeCheckout(worktree, (message) => this.pi.events.emit('pstack:subagent-log', message));
-        return outcome.kept ? { worktreeCleanlyRemoved: false, ...keptFields(outcome) } : { worktreeCleanlyRemoved: true };
+        return outcome.kept
+          ? { worktreeCleanlyRemoved: false, ...keptFields(outcome) }
+          : { worktreeCleanlyRemoved: true, ...(outcome.branchCleanupError ? { worktreeCleanupWarning: outcome.branchCleanupError } : {}) };
       },
     };
   }

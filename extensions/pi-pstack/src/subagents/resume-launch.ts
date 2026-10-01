@@ -15,7 +15,9 @@ export async function finalizeRecordedWorktree(record: TaskRecord, keptAlive: bo
   const worktree = recordedWorktree(record);
   if (!worktree) return {};
   const outcome = keptAlive ? ({ kept: true, path: worktree.path, branch: worktree.branch } as const) : await finalizeWorktree(worktree);
-  return outcome.kept ? { worktreeCleanlyRemoved: false, worktreePath: outcome.path, worktreeBranch: outcome.branch } : { worktreeCleanlyRemoved: true };
+  return outcome.kept
+    ? { worktreeCleanlyRemoved: false, worktreePath: outcome.path, worktreeBranch: outcome.branch }
+    : { worktreeCleanlyRemoved: true, ...(outcome.branchCleanupError ? { worktreeCleanupWarning: outcome.branchCleanupError } : {}) };
 }
 
 type ResumeContext = Readonly<{ catalog: DefinitionCatalog; keepsAlive: (id: string) => boolean }>;
