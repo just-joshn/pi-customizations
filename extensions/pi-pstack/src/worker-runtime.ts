@@ -8,6 +8,7 @@ import { asShellHandoff, shellHandoffEvent } from './shell-ownership.ts';
 import { depthMessage } from './subagents/admission.ts';
 import { flaggedOutput, lastMeteredTokens, lastReportText, type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
 import { currentDepth, depthStore } from './subagents/context.ts';
+import { isForkDefinition } from './subagents/fork-context.ts';
 import type { ContinuationState } from './subagents/continuation.ts';
 import { SessionDepthPolicy } from './subagents/depth-policy.ts';
 import { HandbackContract, handbackActive, runUntilReported } from './subagents/handback.ts';
@@ -336,7 +337,7 @@ export class WorkerRuntime {
       const opened = await this.openChild({ id, params, prior, ctx, toolUseId: callId, ...(launch ? { launch } : {}) });
       session = opened.session;
       this.publishMemory(launch, id);
-      if (launch) applyToolPolicy(session, launch.definition, { isContinuation: prior !== undefined, isAsync: params.run_in_background !== false, report: (diagnostic) => this.pi.events.emit('pstack:subagent-zero-tools', diagnostic) });
+      if (launch && !isForkDefinition(launch.definition)) applyToolPolicy(session, launch.definition, { isContinuation: prior !== undefined, isAsync: params.run_in_background !== false, ...(launch.parentTools ? { parentTools: launch.parentTools } : {}), report: (diagnostic) => this.pi.events.emit('pstack:subagent-zero-tools', diagnostic) });
       signal = this.checkStartup(owner, signal, params.run_in_background !== false);
       await session.bindExtensions({ mode: 'print' });
       signal = this.checkStartup(owner, signal, params.run_in_background !== false);
