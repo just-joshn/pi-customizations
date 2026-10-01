@@ -60,12 +60,13 @@ function registerGoalHooks(pi: ExtensionAPI, store: GoalStore): void {
     if (goal?.status === 'active') event.systemPromptOptions.sections.pstack_goal = `Active goal. Pursue it to completion and never shrink its scope.\n${goal.objective}`;
     else delete event.systemPromptOptions.sections.pstack_goal;
   });
-  pi.on('agent_end', (event) => {
+  pi.on('agent_before_settle', (event) => {
     const goal = store.read();
-    if (goal?.status !== 'active') return;
-    const last = event.messages.findLast((message) => message.role === 'assistant');
-    if (last?.role === 'assistant' && (last.stopReason === 'aborted' || last.stopReason === 'error')) return;
-    pi.sendMessage({ customType: 'pstack-goal-continue', display: true, content: continuationPrompt(goal.objective) }, { triggerTurn: true, deliverAs: 'followUp' });
+    if (goal?.status !== 'active' || event.outcome !== 'completed') return;
+    return {
+      entries: [{ type: 'custom_message', customType: 'pstack-goal-continue', display: true, content: continuationPrompt(goal.objective) }],
+      continue: true,
+    };
   });
 }
 
