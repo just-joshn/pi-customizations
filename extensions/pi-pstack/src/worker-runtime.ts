@@ -194,9 +194,9 @@ export class WorkerRuntime {
         this.pi.appendEntry(taskEntryType, structuredClone(record));
         const handle = cloud;
         const worker = this.attachCloud(record, owner, () => ctx.isIdle(), params.run_in_background !== false);
-        cloud = undefined;
         const response = await handle.send({ type: 'prompt', message: params.prompt }, record.detached?.invocation);
         if (!response.success) throw new Error(response.error);
+        cloud = undefined;
         return this.result(params.run_in_background === false ? await this.foreground(callId, worker, signal) : (this.records.get(id) ?? record));
       }
       const opened = await openWorkerSession({ id, params, prior, ctx });
@@ -214,7 +214,7 @@ export class WorkerRuntime {
     } catch (error) {
       try {
         if (session) await this.close(session);
-        if (cloud) await cloud.close();
+        if (cloud) await this.failCloudStartup(id, cloud, error);
       } catch (cleanup) {
         startupOutcome = { error: cleanup };
         throw new AggregateError([error, cleanup], `${String(error)}; Worker cleanup failed: ${String(cleanup)}`);
@@ -224,6 +224,19 @@ export class WorkerRuntime {
       this.starting.delete(id);
       finishStarting(startupOutcome);
     }
+  }
+
+  private async failCloudStartup(id: string, handle: DetachedRpcHandle, error: unknown): Promise<void> {
+    const record = this.records.get(id);
+    if (record?.detached?.directory === handle.directory) {
+      const worker = this.workers.get(id);
+      if (worker?.kind === 'cloud') worker.disconnect();
+      this.workers.delete(id);
+      const failed = { ...record, status: 'failed' as const, output: String(error) };
+      this.records.set(id, failed);
+      this.pi.appendEntry(taskEntryType, structuredClone(failed));
+    }
+    await handle.close();
   }
 
   private attachCloud(record: TaskRecord, owner: number, parentIdle: () => boolean, background = true): CloudWorker {
