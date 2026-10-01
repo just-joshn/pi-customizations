@@ -11,6 +11,7 @@ import { validateId } from './subagents/identifiers.ts';
 import { AgentInvocations } from './subagents/invocations.ts';
 import { memoryEnabled } from './subagents/memory.ts';
 import { childStatsEvents } from './subagents/nested-depth.ts';
+import { asShellHandoff, shellHandoffEvent } from './shell-ownership.ts';
 import { groupSpawned, ProcessGroups, processGroupEvent } from './subagents/process-groups.ts';
 import { AgentPreconditionError } from './subagents/precondition-error.ts';
 import type { ContinuationState } from './subagents/continuation.ts';
@@ -101,6 +102,7 @@ export class WorkerRuntime {
   private stoppedNotifications = new WeakSet<Worker>();
   private lifecycle: Lifecycle = { kind: 'stopped' };
   private stopping: ReadonlySet<string> = new Set();
+  private keepalive: ReadonlySet<string> = new Set();
   private selfStopPending = false;
   private closing = new WeakMap<AgentSession, Promise<void>>();
   private readonly completions: DeferredWakes;
@@ -129,6 +131,11 @@ export class WorkerRuntime {
 
   list(): readonly TaskRecord[] {
     return [...this.records.values()];
+  }
+
+  /** Whether this agent handed surviving background shells to an ancestor, so its workspace must stay. */
+  keepsAlive(id: string): boolean {
+    return this.keepalive.has(id);
   }
 
   stopPending(): boolean {
@@ -212,7 +219,10 @@ export class WorkerRuntime {
     this.workers = new Map();
     const completion = Promise.resolve()
       .then(async () => {
-        for (const worker of current) worker.stop('shutdown');
+        for (const worker of current) {
+          worker.events.emit(stopPendingEvent, { agentId: worker.id });
+          worker.stop('shutdown');
+        }
         const outcomes = await Promise.allSettled([
           ...starting.map((operation) =>
             operation.then((outcome) => {
@@ -402,6 +412,12 @@ export class WorkerRuntime {
     events.on(processGroupEvent, (payload) => {
       const spawned = groupSpawned(payload);
       if (spawned) groups.add(spawned);
+    });
+    events.on(shellHandoffEvent, (payload) => {
+      const handoff = asShellHandoff(payload);
+      if (!handoff) return;
+      this.pi.events.emit(shellHandoffEvent, handoff);
+      if (handoff.claimed()) this.keepalive = new Set([...this.keepalive, id]);
     });
     return { events, groups };
   }

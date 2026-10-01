@@ -23,6 +23,7 @@ test('registerShells registers the three shell tools', () => {
   const pi = {
     registerTool: (def: ToolMock) => tools.set(def.name, def),
     on: () => {},
+    events: { emit: () => {}, on: () => () => {} },
   } as unknown as ExtensionAPI;
   registerShells(pi);
   expect([...tools.keys()].toSorted()).toEqual(['BackgroundShell', BG_SHELL_LIST, BG_SHELL_STOP]);
@@ -149,14 +150,15 @@ test('a second session lists no shells from the session before it', async () => 
   const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-rotated-'));
   const ctx = {
     cwd: scratch,
-    sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch },
+    sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch, getBranch: () => [] },
+    isIdle: () => true,
   } as unknown as ExtensionContext;
   const shutdown = listeners.session_shutdown?.[0];
   const start = listeners.session_start?.[0];
   try {
     const firstShell = (await tools.get('BackgroundShell')?.execute('1', { command: 'sleep 30', title: 'first session' }, undefined, undefined, ctx)) as { details: { id: string } };
     await shutdown?.();
-    await start?.();
+    await start?.({ type: 'session_start' }, ctx);
     const carried = (await tools.get(BG_SHELL_LIST)?.execute()) as { details: Array<{ id: string }> };
     const secondShell = (await tools.get('BackgroundShell')?.execute('2', { command: 'sleep 30', title: 'second session' }, undefined, undefined, ctx)) as { details: { id: string } };
     const listed = (await tools.get(BG_SHELL_LIST)?.execute()) as { details: Array<{ id: string }> };
