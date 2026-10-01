@@ -40,6 +40,7 @@ export const TaskRecordSchema = Type.Object({
   depth: Type.Optional(Type.Integer({ minimum: 1 })),
   toolUseCount: Type.Optional(Type.Integer({ minimum: 0 })),
   durationMs: Type.Optional(Type.Number({ minimum: 0 })),
+  startedAt: Type.Optional(Type.Number({ minimum: 0 })),
 });
 export type TaskRecord = Static<typeof TaskRecordSchema>;
 export const TaskParameters = Type.Object({

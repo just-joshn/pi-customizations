@@ -122,6 +122,10 @@ export class WorkerRuntime {
     return [...this.records.values()];
   }
 
+  liveMessages(id: string): AgentSession['messages'] | undefined {
+    return this.workers.get(id)?.session.messages;
+  }
+
   registerLifecycle(): void {
     const detachControl = registerStopControl(this.pi, (reference) => this.stop(reference));
     this.pi.on('tool_result', (event) => {
@@ -492,6 +496,7 @@ export class WorkerRuntime {
     if (legacy) this.settleLegacy(finished);
     this.records.set(record.id, finished);
     this.persistFinished(finished);
+    this.pi.events.emit('pstack:subagent-settled', { agentId: record.id, status: finished.status });
     if (params.run_in_background !== false && !control.stopped()) {
       this.completions.send(record.id, parentIdle(), { customType: 'pstack-task-completion', content: taskSummary(finished), display: true, details: structuredClone(finished) });
     }
