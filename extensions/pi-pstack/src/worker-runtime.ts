@@ -7,11 +7,13 @@ import { readCloudOutcome } from './cloud-worker.ts';
 import { DeferredWakes } from './deferred-wakes.ts';
 import { asShellHandoff, shellHandoffEvent } from './shell-ownership.ts';
 import { depthMessage } from './subagents/admission.ts';
-import { type CloudWorker, CloudTasks } from './subagents/cloud-tasks.ts';
+import { closeSession } from './subagents/close-session.ts';
+import { CloudTasks, type CloudWorker } from './subagents/cloud-tasks.ts';
 import { flaggedOutput, lastMeteredTokens, lastReportText, type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
 import { currentDepth, depthStore } from './subagents/context.ts';
 import type { ContinuationState } from './subagents/continuation.ts';
 import { SessionDepthPolicy } from './subagents/depth-policy.ts';
+import { finishedRecord } from './subagents/finished-record.ts';
 import { isForkDefinition } from './subagents/fork-context.ts';
 import { HandbackContract, handbackActive, runUntilReported } from './subagents/handback.ts';
 import { validateId } from './subagents/identifiers.ts';
@@ -19,12 +21,10 @@ import { AgentInvocations } from './subagents/invocations.ts';
 import { memoryEnabled } from './subagents/memory.ts';
 import { childStatsEvents } from './subagents/nested-depth.ts';
 import { type ResumeHandler, reconcileOrphans } from './subagents/orphan-recovery.ts';
-import { finishedRecord } from './subagents/finished-record.ts';
-import { closeSession } from './subagents/close-session.ts';
-import { restoredContext } from './subagents/restored-context.ts';
 import { AgentPreconditionError } from './subagents/precondition-error.ts';
 import { groupSpawned, ProcessGroups, processGroupEvent } from './subagents/process-groups.ts';
 import { RemoteTasks } from './subagents/remote-tasks.ts';
+import { restoredContext } from './subagents/restored-context.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
 import { SdkEvents } from './subagents/sdk-events.ts';
 import { SubagentStats, type SubagentStatsDelta } from './subagents/stats.ts';
@@ -539,7 +539,7 @@ export class WorkerRuntime {
   }
 
   private launch(opened: Awaited<ReturnType<WorkerRuntime['openChild']>>, params: TaskParameters, signal: AbortSignal | undefined, owner: number, parentIdle: () => boolean, onUpdate: TaskUpdate | undefined, agent?: AgentLaunch): Worker {
-    const { session, modelsUsed } = opened;
+    const { session } = opened;
     const usage = this.records.get(opened.record.id)?.usage;
     const record: TaskRecord = { ...opened.record, ...(usage ? { usage } : {}) };
     this.records.set(record.id, record);

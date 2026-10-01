@@ -3,8 +3,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { onTestFinished, test as base } from 'vitest';
-import { ChildTask, type ChildHost, type ChildKind, type ChildLaunch } from '../src/subagents/child-task.ts';
+import { test as base, onTestFinished } from 'vitest';
+import { type ChildHost, type ChildKind, type ChildLaunch, ChildTask } from '../src/subagents/child-task.ts';
 import type { PiCommand } from '../src/subagents/pi-command.ts';
 import { RpcChild } from '../src/subagents/rpc-child.ts';
 import type { TaskRecord } from '../src/worker-records.ts';
@@ -15,11 +15,11 @@ export type Workspace = Readonly<{ dir: string; logFile: string; outputFile: str
 export type Settlement = Readonly<{ record: TaskRecord; output: string; send: boolean; parentIdle: boolean }>;
 
 export const test = base.extend<{ workspace: Workspace }>({
-  workspace: async ({}, use) => {
+  workspace: async ({ onTestFinished }, use) => {
     const dir = await realpath(await mkdtemp(join(tmpdir(), 'pstack-child-')));
+    onTestFinished(() => rm(dir, { recursive: true, force: true }));
     await mkdir(join(dir, 'work'));
     await use({ dir: join(dir, 'work'), logFile: join(dir, 'commands.jsonl'), outputFile: join(dir, 'output.txt') });
-    await rm(dir, { recursive: true, force: true });
   },
 });
 

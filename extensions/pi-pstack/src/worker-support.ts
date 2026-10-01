@@ -21,8 +21,8 @@ import { type HandbackContract, handbackExtension, handbackInstruction, handback
 import { validateId } from './subagents/identifiers.ts';
 import { memoryPrompt } from './subagents/memory.ts';
 import { ModelHistory } from './subagents/model-history.ts';
-import { seedParentIntent } from './subagents/parent-intent.ts';
 import { childStatsEvents } from './subagents/nested-depth.ts';
+import { seedParentIntent } from './subagents/parent-intent.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
 import { validateResumeWorktree } from './subagents/resume-worktree.ts';
 import { saveChildContext } from './subagents/session-context.ts';
