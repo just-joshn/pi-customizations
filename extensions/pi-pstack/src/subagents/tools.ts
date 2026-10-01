@@ -20,6 +20,8 @@ import { chooseChildModel } from './models.ts';
 import { checkOptionPortability } from './option-portability.ts';
 import { AgentPreconditionError, AgentTypeError } from './precondition-error.ts';
 import { flaggedOutput } from './completion-notice.ts';
+import { buildForkSeed, type ForkSeed, forkDefinition, forkDirective, forkWorktreeNotice, insideFork } from './fork-context.ts';
+import { forkAvailability, forkGateEnabled, forkType } from './fork-gate.ts';
 import { type AgentResult, AgentResultSchema, asyncLaunched, completed, resultText } from './results.ts';
 import { registerResumeCommand } from './resume-command.ts';
 import { resumeLaunch } from './resume-launch.ts';
@@ -30,10 +32,11 @@ import { withMaxTurns } from './turn-limit.ts';
 import type { AdmissionSnapshot, LaunchPlan, SpawnRequest } from './types.ts';
 import { type AgentCheckout, checkoutContext, createAgentCheckout, finalizeCheckout, keptFields } from './worktree-hooks.ts';
 import { repositoryRoot, type WorktreeOutcome } from './worktree.ts';
+import { buildSessionContext } from '@earendil-works/pi-coding-agent';
 
 type AgentParams = { description: string; prompt: string; subagent_type?: string; model?: string; run_in_background?: boolean; isolation?: 'worktree' | 'remote'; name?: string; max_turns?: number };
 type Update = Parameters<WorkerRuntime['start']>[4];
-type Admitted = Readonly<{ plan: LaunchPlan; definition: AgentDefinition; model: string | undefined; background: boolean }>;
+type Admitted = Readonly<{ plan: LaunchPlan; definition: AgentDefinition; model: string | undefined; background: boolean; fork?: ForkSeed }>;
 
 function toRequest(params: AgentParams): SpawnRequest {
   return {
@@ -73,9 +76,12 @@ class AgentLauncher {
 
   private snapshot(ctx: ExtensionContext, agents: AdmissionSnapshot['agents']): AdmissionSnapshot {
     const sessionCap = sessionSpawnCap(this.env);
+    const fork = forkAvailability({ env: this.env, root: ctx.cwd, agents, allowedAgentTypes: this.runtime.allowedAgentTypes });
     return {
       agents,
-      forkAvailable: false,
+      forkAvailable: fork.available,
+      ...(fork.denied ? { forkDenial: fork.denied } : {}),
+      insideFork: insideFork(buildSessionContext(ctx.sessionManager.getEntries(), ctx.sessionManager.getLeafId()).messages),
       ...(this.runtime.allowedAgentTypes !== undefined ? { allowedAgentTypes: this.runtime.allowedAgentTypes } : {}),
       depth: this.runtime.depth,
       depthCap: this.runtime.maximumDepth(ctx, this.env),
@@ -125,6 +131,7 @@ class AgentLauncher {
         case 'subagent_type_not_found':
         case 'subagent_type_ambiguous':
         case 'subagent_type_missing':
+        case 'subagent_type_denied':
           throw new AgentTypeError({ code, message });
         default:
           throw new AgentPreconditionError(decision.refusal);
@@ -132,12 +139,18 @@ class AgentLauncher {
     }
     const { plan } = decision;
     if (params.subagent_type && params.subagent_type !== plan.agentType) this.pi.events.emit('pstack:subagent-type-normalized', { requested: params.subagent_type, resolved: plan.agentType });
-    const selected = found.activeAgents.find((agent) => agent.agentType === plan.agentType);
+    const selected = plan.agentType === forkType ? forkDefinition : found.activeAgents.find((agent) => agent.agentType === plan.agentType);
     if (!selected) throw new Error(`Agent type '${plan.agentType}' not found.`);
     const definition = withMaxTurns(selected, params.max_turns);
     checkOptionPortability(definition, (message) => this.pi.events.emit('pstack:subagent-log', message));
+    const model = this.chooseModel(plan, definition, ctx);
+    const fork = plan.agentType === forkType ? buildForkSeed(ctx, this.pi.getActiveTools()) : undefined;
+    return { plan, definition, model, background: plan.background || definition.background === true || fork !== undefined, ...(fork ? { fork } : {}) };
+  }
+
+  private chooseModel(plan: LaunchPlan, definition: AgentDefinition, ctx: ExtensionContext): string | undefined {
     const available = ctx.modelRegistry.getAvailable().map((model) => `${model.provider}/${model.id}`);
-    const choice = chooseChildModel({ ...(plan.model !== undefined ? { toolModel: plan.model } : {}), ...(definition.model !== undefined ? { definitionModel: definition.model } : {}), fork: false, env: this.env, available });
+    const choice = chooseChildModel({ ...(plan.model !== undefined ? { toolModel: plan.model } : {}), ...(definition.model !== undefined ? { definitionModel: definition.model } : {}), fork: plan.agentType === forkType, env: this.env, available });
     if (choice.ignoredOverride) this.pi.events.emit('pstack:subagent-log', `"${choice.ignoredOverride}" ignored: CLAUDE_CODE_SUBAGENT_MODEL_FORCE is set`);
     if (choice.steppedFrom || choice.dropped)
       this.pi.events.emit('pstack:subagent-model-resolve', {
@@ -146,7 +159,7 @@ class AgentLauncher {
         steppedFamily: Boolean(choice.steppedFrom),
         droppedOverride: Boolean(choice.dropped),
       });
-    return { plan, definition, model: choice.request, background: plan.background || definition.background === true };
+    return choice.request;
   }
 
   private async isolate(admitted: Admitted, ctx: ExtensionContext): Promise<{ cwd?: string; worktree?: AgentCheckout; outcome: () => WorktreeOutcome | undefined; settle?: () => Promise<Partial<TaskRecord>> }> {
@@ -188,15 +201,16 @@ class AgentLauncher {
   }
 
   private async dispatch(callId: string, admitted: Admitted, signal: AbortSignal | undefined, onUpdate: Update, ctx: ExtensionContext, release: () => void): Promise<AgentToolResult<AgentResult>> {
-    const { plan, definition, model, background } = admitted;
+    const { plan, definition, model, background, fork } = admitted;
     const isolation = await this.isolate(admitted, ctx);
-    const prompt = plan.prompt;
+    const prompt = fork ? forkDirective(plan.prompt) + (isolation.cwd ? `\n\n${forkWorktreeNotice(ctx.cwd, isolation.cwd)}` : '') : plan.prompt;
     const requestedIsolation = plan.isolation ?? definition.isolation;
     const taskParams = { prompt, ...(model ? { model } : {}), ...(isolation.cwd ? { cwd: isolation.cwd } : {}), ...(background ? {} : { run_in_background: false }) };
     const launch = {
       definition,
       description: plan.description,
       depth: plan.depth,
+      ...(fork ? { fork } : { parentTools: this.pi.getActiveTools() }),
       ...(plan.name ? { name: plan.name } : {}),
       onStarted: () => {
         release();
@@ -236,7 +250,7 @@ function registerAgent(pi: ExtensionAPI, launcher: AgentLauncher, env: NodeJS.Pr
     label: 'Agent',
     description: agentGuidance,
     promptSnippet: 'Launch a new agent',
-    parameters: buildAgentSchema({ addressable: true, forceModel: Boolean(env.CLAUDE_CODE_SUBAGENT_MODEL_FORCE ?? env.PI_SUBAGENT_MODEL_FORCE) }),
+    parameters: buildAgentSchema({ addressable: true, headless: forkGateEnabled(env), forceModel: Boolean(env.CLAUDE_CODE_SUBAGENT_MODEL_FORCE ?? env.PI_SUBAGENT_MODEL_FORCE) }),
     outputSchema: AgentResultSchema,
     exposure: 'direct',
     executionMode: 'parallel',

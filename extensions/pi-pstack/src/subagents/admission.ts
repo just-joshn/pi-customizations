@@ -1,3 +1,4 @@
+import { forkRefusal, forkRequest } from './fork-admission.ts';
 import { normalizeDescription, validateName } from './limits.ts';
 import type { AdmissionSnapshot, AgentSummary, Decision, Refusal, SpawnRequest } from './types.ts';
 
@@ -27,7 +28,8 @@ export function resolveAgentType(snapshot: AdmissionSnapshot, requested: string 
     if (defaults.length === 1 && defaults[0]) return { type: defaults[0].agentType };
     return { refusal: { code: 'subagent_type_missing', message: `subagent_type is required: the ${generalPurpose} agent is not available in this session. Available agents: ${availableNames(snapshot, pool)}` } };
   }
-  if (requested === 'fork' && snapshot.forkAvailable) return { type: 'fork' };
+  const fork = forkRequest(snapshot, requested);
+  if (fork) return fork;
   const exact = pool.find((agent) => agent.agentType === requested);
   if (exact) return { type: exact.agentType };
   const folded = pool.filter((agent) => foldType(agent.agentType) === foldType(requested));
@@ -69,6 +71,8 @@ export function decideAdmission(snapshot: AdmissionSnapshot, request: SpawnReque
   if (snapshot.stopPending) return { ok: false, refusal: { code: 'subagent_stop_pending', message: 'This agent has been stopped and its stop is still completing; it cannot launch new agents.' } };
   const resolved = resolveAgentType(snapshot, request.subagentType);
   if ('refusal' in resolved) return { ok: false, refusal: resolved.refusal };
+  const forkProblem = resolved.type === 'fork' ? forkRefusal(snapshot, request) : undefined;
+  if (forkProblem) return { ok: false, refusal: forkProblem };
   if (snapshot.maxBudgetUsd !== undefined && snapshot.spentUsd >= snapshot.maxBudgetUsd) {
     return { ok: false, counter: 'budget', refusal: { code: 'subagent_budget_exhausted', message: budgetMessage(snapshot.spentUsd, snapshot.maxBudgetUsd) } };
   }

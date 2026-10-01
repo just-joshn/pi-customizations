@@ -2,6 +2,7 @@ import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import type { TaskRecord } from '../worker-records.ts';
 import type { AgentLaunch } from '../worker-support.ts';
 import { discoverAgents } from './definitions.ts';
+import { forkDefinition } from './fork-context.ts';
 import { parseJsonAgents } from './json-definitions.ts';
 import { type AgentWorktree, finalizeWorktree } from './worktree.ts';
 
@@ -23,6 +24,7 @@ type ResumeContext = Readonly<{ env: NodeJS.ProcessEnv; flags: string | undefine
 export function resumeLaunch(record: TaskRecord, ctx: ExtensionContext, { env, flags, keepsAlive }: ResumeContext): AgentLaunch | undefined {
   const flagAgents = flags === undefined ? undefined : parseJsonAgents(flags, ctx.cwd);
   const definition = discoverAgents({ root: ctx.cwd, env, ...(flagAgents ? { flagAgents } : {}) }).activeAgents.find((agent) => agent.agentType === record.persona);
-  if (!definition) return undefined;
-  return { definition, description: record.description ?? '', depth: record.depth ?? 1, onSettled: (finished) => finalizeRecordedWorktree(finished, keepsAlive(finished.id)) };
+  const resolved = definition ?? (record.persona === forkDefinition.agentType ? forkDefinition : undefined);
+  if (!resolved) return undefined;
+  return { definition: resolved, description: record.description ?? '', depth: record.depth ?? 1, onSettled: (finished) => finalizeRecordedWorktree(finished, keepsAlive(finished.id)) };
 }
