@@ -7,6 +7,7 @@ import { agentLegacyDepthJourney } from './agent-legacy-depth-journey.mjs';
 import { agentMemoryRemoteJourney } from './agent-memory-remote-journey.mjs';
 import { agentNotifyTrustJourney } from './agent-notify-trust-journey.mjs';
 import { agentRemoteJourney } from './agent-remote-journey.mjs';
+import { agentResumeStopJourney } from './agent-resume-stop-journey.mjs';
 import { agentSimpleJourney } from './agent-simple-journey.mjs';
 import { agentTurnLimitJourney } from './agent-turn-limit-journey.mjs';
 import { agentWorktreeUiJourney } from './agent-worktree-ui-journey.mjs';
@@ -16,6 +17,7 @@ export function agentJourneys(check, startPi) {
     agentTurnLimitJourney(startPi, check),
     agentGuidanceJourney(check),
     agentRemoteJourney(check),
+    agentResumeStopJourney(check),
     agentJsonJourney(check, startPi),
     agentMemoryRemoteJourney(check, startPi),
     agentJsonInheritanceJourney(check, startPi),

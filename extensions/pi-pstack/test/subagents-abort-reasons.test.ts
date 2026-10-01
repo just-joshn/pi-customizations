@@ -106,7 +106,7 @@ test('successful resume does not keep the previous run abort metadata', async ()
     const started = await fixture.call('Agent', { description: 'abort resume', prompt: 'WAIT_BLOCKED' });
     const { agentId } = started.details as { agentId: string };
     await fixture.call('TaskStop', { task_id: agentId });
-    await fixture.call('SendMessage', { to: agentId, message: 'successful resumed run' });
+    await fixture.command('resume-agent', `${agentId} successful resumed run`);
     const output = await fixture.call('TaskOutput', { task_id: agentId, block: true });
     expect(output.details).toMatchObject({ status: 'settled', output: 'users=2' });
     expect(output.details).not.toHaveProperty('abort');

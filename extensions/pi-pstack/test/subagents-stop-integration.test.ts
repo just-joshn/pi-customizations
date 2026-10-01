@@ -40,7 +40,7 @@ test('stopping a resumed run publishes a new notification for the same agent ID'
     const started = await fixture.call('Agent', { description: 'repeat run', prompt: 'WAIT_BLOCKED' });
     const { agentId } = started.details as { agentId: string };
     await fixture.call('TaskStop', { task_id: agentId });
-    await fixture.call('SendMessage', { to: agentId, message: 'WAIT_BLOCKED' });
+    await fixture.command('resume-agent', `${agentId} WAIT_BLOCKED`);
     await fixture.call('TaskStop', { task_id: agentId });
     expect(stoppedNotifications(fixture.session)).toMatchObject([{ details: { task_id: agentId, status: 'stopped' } }, { details: { task_id: agentId, status: 'stopped' } }]);
   } finally {

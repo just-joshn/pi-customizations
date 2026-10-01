@@ -8,9 +8,10 @@ import { launchSignal } from '../worker-control.ts';
 import type { TaskRecord } from '../worker-records.ts';
 import type { WorkerRuntime } from '../worker-runtime.ts';
 import type { AgentLaunch } from '../worker-support.ts';
-import { decideAdmission } from './admission.ts';
+import { concurrencyMessage, decideAdmission } from './admission.ts';
 import { renderAgentCall, renderAgentResult, trackAgentCallGroups } from './agent-render.ts';
 import { AdmissionSlots } from './admission-slots.ts';
+import { type ContinueOutcome, continueAgent } from './agent-continue.ts';
 import { type AgentDefinition, type Discovery, discoverAgents } from './definitions.ts';
 import { agentGuidance } from './guidance.ts';
 import { parseJsonAgents } from './json-definitions.ts';
@@ -20,6 +21,8 @@ import { checkOptionPortability } from './option-portability.ts';
 import { AgentPreconditionError, AgentTypeError } from './precondition-error.ts';
 import { flaggedOutput } from './completion-notice.ts';
 import { type AgentResult, AgentResultSchema, asyncLaunched, completed, resultText } from './results.ts';
+import { registerResumeCommand } from './resume-command.ts';
+import { resumeLaunch } from './resume-launch.ts';
 import { buildAgentSchema, ListAgentsSchema, SendMessageSchema } from './schema.ts';
 import type { SubagentStats } from './stats.ts';
 import { ToolOfferScope } from './tool-offer-scope.ts';
@@ -83,8 +86,23 @@ class AgentLauncher {
       spawnedThisSession: this.spawned + this.slots.pending,
       spentUsd: 0,
       hasProject: Boolean(ctx.cwd),
-      stopPending: false,
+      stopPending: this.runtime.stopPending(),
     };
+  }
+
+  reserveResume(): () => void {
+    const cap = concurrencyCap(this.env);
+    if (this.runtime.runningCount() + this.slots.pending >= cap) throw new AgentPreconditionError({ code: 'subagent_concurrency_limit', message: concurrencyMessage(cap) });
+    return this.slots.reserve();
+  }
+
+  continue(request: Parameters<typeof continueAgent>[1], ctx: ExtensionContext): Promise<ContinueOutcome> {
+    const deps = {
+      runtime: this.runtime,
+      reserve: () => this.reserveResume(),
+      launchFor: (record: TaskRecord) => resumeLaunch(record, ctx, { env: this.env, flags: this.runtime.agentDefinitions(), keepsAlive: (id) => this.runtime.keepsAlive(id) }),
+    };
+    return continueAgent(deps, request, ctx);
   }
 
   admit(params: AgentParams, ctx: ExtensionContext): Admitted {
@@ -192,6 +210,7 @@ class AgentLauncher {
       onSettled: async (record: TaskRecord) => {
         if (record.status !== 'running') this.stats.settle(record.status, record.abort?.telemetry);
         this.publishStats();
+        if (isolation.worktree && this.runtime.keepsAlive(record.id)) return { worktreeCleanlyRemoved: false, ...keptFields({ kept: true, path: isolation.worktree.path, ...('branch' in isolation.worktree ? { branch: isolation.worktree.branch } : {}) }) };
         return (await isolation.settle?.()) ?? {};
       },
     };
@@ -228,13 +247,7 @@ function registerAgent(pi: ExtensionAPI, launcher: AgentLauncher, env: NodeJS.Pr
   });
 }
 
-function resumeLaunch(record: TaskRecord, ctx: ExtensionContext, env: NodeJS.ProcessEnv, flags: string | undefined): AgentLaunch | undefined {
-  const flagAgents = flags === undefined ? undefined : parseJsonAgents(flags, ctx.cwd);
-  const definition = discoverAgents({ root: ctx.cwd, env, ...(flagAgents ? { flagAgents } : {}) }).activeAgents.find((agent) => agent.agentType === record.persona);
-  return definition ? { definition, description: record.description ?? '', depth: record.depth ?? 1 } : undefined;
-}
-
-function registerSendMessage(pi: ExtensionAPI, runtime: WorkerRuntime, env: NodeJS.ProcessEnv): void {
+function registerSendMessage(pi: ExtensionAPI, runtime: WorkerRuntime, launcher: AgentLauncher): void {
   pi.registerTool({
     name: 'SendMessage',
     label: 'Send message',
@@ -248,11 +261,8 @@ function registerSendMessage(pi: ExtensionAPI, runtime: WorkerRuntime, env: Node
     execute: async (id, params, signal, _onUpdate, ctx) => {
       const record = runtime.find(params.to);
       if (!record) throw new Error(`No agent found with ID or name: ${params.to}`);
-      const live = record.status === 'running';
-      if (live) await runtime.message(record.id, params.message, 'followUp');
-      else await runtime.start(id, { prompt: params.message, resume: record.id }, signal, ctx, undefined, resumeLaunch(record, ctx, env, runtime.agentDefinitions()));
-      const details = { success: true, message: live ? `Message queued for ${record.id}` : `Agent ${record.id} resumed in the background` };
-      return wrap(details, details.message);
+      const { success, message } = await launcher.continue({ callId: id, record, message: params.message, userInitiated: false, signal }, ctx);
+      return wrap({ success, message }, message);
     },
   });
 }
@@ -296,7 +306,8 @@ export function registerAgentTools(pi: ExtensionAPI, runtime: WorkerRuntime, env
     if (allowed !== undefined && !allowed.includes('general-purpose')) offers.mask((names) => names.filter((name) => name !== 'Agent'));
   });
   registerAgent(pi, launcher, env);
-  registerSendMessage(pi, runtime, env);
+  registerSendMessage(pi, runtime, launcher);
+  registerResumeCommand(pi, runtime, (request, ctx) => launcher.continue(request, ctx));
   registerListAgents(pi, runtime);
   return launcher.stats;
 }
