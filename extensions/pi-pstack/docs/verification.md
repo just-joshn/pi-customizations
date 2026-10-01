@@ -53,6 +53,8 @@ The public Origin installer was downloaded from the source skill's HTTPS URL and
 
 A fresh Origin resource audit reproduced a second, user-scoped Origin skill under `~/.agents/skills` without the packaged cloud-exclusion metadata. An independent untagged-copy regression and a filename-derived prompt regression failed before the fix. Effective resource exclusions now combine declared metadata with the authoritative metadata for the same Origin identity. The real idle CLI excludes the duplicate, while local Origin and unrelated cloud-capable resources remain available. This proves resource selection and command discovery, not worker execution, instruction adherence, or credential isolation.
 
+A separate main-session regression reproduced the extension advertising local-only Origin in its cloud-facing host contract. Extension initialization now selects the catalog environment from the detached owner marker. SDK request captures assert literal local and cloud skill lists. A maintained real RPC test records the prompt received by a deterministic main-session provider. Reverting only the catalog selection makes that RPC test fail with Origin incorrectly advertised; restoring it passes. No Task or AI inference runs in these tests, and the marker is not an isolation boundary.
+
 The source census inventories supplied authoritative paths without changing them. It hashes regular files and retains every nonblank Markdown line with its line number and an `UNREVIEWED` state. It excludes `.git`, `node_modules`, and `.DS_Store` entries and does not follow symbolic links. Non-Markdown behavior still requires code review and execution. The census always reports `NOT VERIFIED`; extraction is not a requirement verdict or proof of parity.
 
 ```sh
