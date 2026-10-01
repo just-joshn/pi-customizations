@@ -43,6 +43,14 @@ bun pm pack --dry-run
 bunx vitest run test/cli.test.ts
 ```
 
+The source census inventories supplied authoritative paths without changing them. It hashes regular files and retains every nonblank Markdown line with its line number and an `UNREVIEWED` state. It excludes `.git`, `node_modules`, and `.DS_Store` entries and does not follow symbolic links. Non-Markdown behavior still requires code review and execution. The census always reports `NOT VERIFIED`; extraction is not a requirement verdict or proof of parity.
+
+```sh
+node extensions/pi-pstack/scripts/source-census.mjs /path/to/authoritative/source [...] > /tmp/source-census.json
+```
+
+The current nine-root census contains 166 source entries, including all 158 pstack files, and 9,906 nonblank Markdown review units. Headings, examples, and metadata are included, so this is not a count of requirements. Those units still need semantic grouping and evidence mapping before a requirement-level completion audit can pass.
+
 The generated worktree audit accepts an optional second argument for a custom Pi session directory. Without that argument, it honors `PI_CODING_AGENT_SESSION_DIR` and expands a leading `~/` using HOME. Regressions cover argument precedence over the environment and both absolute and tilde-prefixed environment paths. A real Bash/Git regression reproduces missing recent-chat evidence without this argument and verifies `verify-recent-chat` when the directory is supplied. Default workspace and child transcript discovery remains covered. A second reproduced defect split custom directory names containing spaces and reported an epoch-era date. Null-delimited filename transport fixes that failure. Both plain and spaced custom directories now report the recent session date. The helper never deletes worktrees and does not prove that pruning any worktree is safe.
 
 ```sh
