@@ -40,9 +40,9 @@ test('[B102][C111] a recent disk-resumable orphan is restarted in the background
     const seen = frames(fixture);
     const { agentId } = await runningChild(fixture);
     await restart(fixture);
-    await vi.waitFor(() => expect(notices(fixture, agentId).map((notice) => notice.details.summary)).toEqual(['Background agent "long job" was restarted after the previous session ended']), { timeout: workerTiming.settlementDeadlineMs });
     await vi.waitFor(() => expect(notices(fixture, agentId)).toHaveLength(2), { timeout: workerTiming.settlementDeadlineMs });
-    expect(notices(fixture, agentId)[1]?.details).toMatchObject({ status: 'completed', summary: 'Agent "long job" finished' });
+    expect(notices(fixture, agentId).map((notice) => notice.details.summary)).toEqual(['Background agent "long job" was restarted after the previous session ended', 'Agent "long job" finished']);
+    expect(notices(fixture, agentId)[1]?.details).toMatchObject({ status: 'completed' });
     const starts = seen.filter((frame) => frame.subtype === 'task_started' && frame.task_id === agentId);
     expect(starts.map((frame) => frame.is_backgrounded)).toEqual([true, true]);
   } finally {
