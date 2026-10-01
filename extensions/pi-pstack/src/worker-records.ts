@@ -2,7 +2,15 @@ import { type Static, Type } from 'typebox';
 import { Check } from 'typebox/value';
 
 export const taskEntryType = 'pstack-task';
+export const taskOwnerEntryType = 'pstack-worker-owner';
+export const taskCleanupUsageType = 'pstack-worker-cleanup-usage';
+export const taskCleanupErrorType = 'pstack-worker-cleanup-error';
 export const taskOutputLimit = 12000;
+const TaskOwnerSchema = Type.Object({ id: Type.String({ minLength: 1 }) });
+
+export function taskOwner(entries: ReadonlyArray<{ type: string; customType?: string; data?: unknown }>): string | undefined {
+  return entries.flatMap((entry) => (entry.type === 'custom' && entry.customType === taskOwnerEntryType && Check(TaskOwnerSchema, entry.data) ? [entry.data.id] : [])).at(-1);
+}
 export const UsageSchema = Type.Object({
   input: Type.Number({ minimum: 0 }),
   output: Type.Number({ minimum: 0 }),

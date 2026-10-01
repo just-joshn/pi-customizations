@@ -6,7 +6,8 @@ export type DetachedRpcHandle = {
   status(): Promise<'starting' | 'ready' | 'exited' | 'failed'>;
   activity(): Promise<DetachedActivity>;
   snapshot(): Promise<{ invocation: string; entries: unknown[]; leafId: string | null; error?: string } | undefined>;
-  send(command: RpcCommand): Promise<RpcResponse>;
+  info(): Promise<{ kind: 'starting'; pid: number } | { kind: 'ready'; pid: number; childPid: number } | { kind: 'exited'; pid: number; code: number | null } | { kind: 'failed'; pid: number; error: string }>;
+  send(command: RpcCommand, id?: string): Promise<RpcResponse>;
   close(): Promise<void>;
 };
 
