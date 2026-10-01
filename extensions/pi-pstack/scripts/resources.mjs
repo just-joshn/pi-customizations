@@ -97,11 +97,16 @@ const hostPaths = [
   [markdownFiles, 'under `agent-transcripts/`', 'under the Pi session directory', transcripts],
   [markdownFiles, '`~/.upstream/projects/*/`', '`~/.pi/agent/sessions/*/`', transcripts],
   [markdownFiles, 'pstack/skills/', 'extensions/pi-pstack/skills/', repositorySkills],
-  [worktreeAudit, '# Usage: worktree-audit.sh [repo-path]   (defaults to the current repo)', '# Usage: worktree-audit.sh [repo-path] [session-dir]\n# Pass the host contract session directory when Pi uses --session-dir.', transcripts],
+  [
+    worktreeAudit,
+    '# Usage: worktree-audit.sh [repo-path]   (defaults to the current repo)',
+    '# Usage: worktree-audit.sh [repo-path] [session-dir]\n# Pass the host contract session directory when Pi uses --session-dir.\n# Otherwise PI_CODING_AGENT_SESSION_DIR overrides the default store.',
+    transcripts,
+  ],
   [
     worktreeAudit,
     `# Transcripts dir: ~/.upstream/projects/<slugified-repo-path>/agent-transcripts.\nslug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')\ntranscripts="$HOME/.upstream/projects/$slug/agent-transcripts"`,
-    `# Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including pstack-workers.\nsessions="\${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"; sessions="\${sessions/#\\~/$HOME}/sessions"\nsession_dir() { printf '%s/--%s--' "$sessions" "$(printf '%s' "$1" | sed 's#^/##; s#[/:]#-#g')"; }\ntranscripts="\${2:-$(session_dir "$main_wt")}"`,
+    `# Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including pstack-workers.\nsessions="\${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"; sessions="\${sessions/#\\~/$HOME}/sessions"\nsession_dir() { printf '%s/--%s--' "$sessions" "$(printf '%s' "$1" | sed 's#^/##; s#[/:]#-#g')"; }\ntranscripts="\${2:-\${PI_CODING_AGENT_SESSION_DIR:-$(session_dir "$main_wt")}}"\ntranscripts="\${transcripts/#\\~/$HOME}"`,
     transcripts,
   ],
   [
