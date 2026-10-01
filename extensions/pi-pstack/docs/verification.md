@@ -13,12 +13,13 @@ Fresh checks verify the following contracts:
 - `bun run check:cli` verifies installed CLI package loading, RPC commands, status, mode off, and orderly shutdown without model calls.
 - `bun run check:upstream` passes 58 helper tests with 261 assertions in a temporary copy. These are deterministic helper checks, not live GitHub operations.
 - `bun pm pack --dry-run` passes. A package dry run does not verify an extracted package's runtime.
+- `bunx vitest run test/cli.test.ts` passes five distribution checks, including loading an extracted package through the real installed CLI. The inventory check permits only the documented `upstream/.gitignore` packer omission.
 
 The current cloud lifecycle regressions use saved records, idle transport processes, or a main-session SDK fixture with a mocked launch boundary. The latest focused run passes 19 tests. The fixtures do not launch AI workers.
 
 Cloud launch requests a macOS restriction on reads of known coordinator stores. Real idle transport tests verify blocked store byte reads and directory listings while allowing exact store-root metadata for canonicalization. Nested policy preparation succeeds. Applying a second sandbox from the restricted process fails with `sandbox_apply: Operation not permitted` on the tested macOS host. The test records that platform limit, not nested cloud parity. Unsupported platforms fail explicitly. Complete hosted filesystem and credential isolation remain unverified.
 
-Evidence is retained in `/tmp/pstack-e2e-evidence`. The current logs include `fresh-resources.log`, `fresh-typecheck.log`, `fresh-cli.log`, `fresh-upstream.log`, `fresh-pack.log`, and `cloud-startup-verification.log`. The real RPC results are in `full-rpc/results.json`.
+Evidence is retained in `/tmp/pstack-e2e-evidence`. The current logs include `fresh-resources.log`, `fresh-typecheck.log`, `fresh-cli.log`, `fresh-upstream.log`, `fresh-pack.log`, `fresh-packaged-cli.log`, and `cloud-startup-verification.log`. The real RPC results are in `full-rpc/results.json`.
 
 ## Reproduce the no-subagent audit
 
@@ -37,6 +38,7 @@ bun run typecheck
 bun run check:cli
 bun run check:upstream
 bun pm pack --dry-run
+bunx vitest run test/cli.test.ts
 ```
 
 The unrestricted test suite includes worker execution. Do not run that suite under the audit's no-subagent constraint.
