@@ -32,7 +32,19 @@ const cases = [
   { name: 'partial-cancel', mode: 'multiple', keys: ['Escape'], answers: ['one'], cancelled: true, width: 70 },
 ];
 try {
-  tmux('new-session', '-d', '-s', 'questions', '-x', '120', '-y', '35', '-c', agent, `env PI_CODING_AGENT_DIR=${quote(agent)} PSTACK_TUI_ANSWERS=${quote(answer)} pi --no-session -e ${quote(join(root, 'test/question-tui-fixture.ts'))}`);
+  tmux(
+    'new-session',
+    '-d',
+    '-s',
+    'questions',
+    '-x',
+    '120',
+    '-y',
+    '35',
+    '-c',
+    agent,
+    `env PI_CODING_AGENT_DIR=${quote(agent)} PSTACK_TUI_ANSWERS=${quote(answer)} pi --no-session -e ${quote(join(root, 'test/question-tui-fixture.ts'))} -e ${quote(join(root, 'test/setup-tui-fixture.ts'))}`,
+  );
   await wait(() => pane().includes('question-tui-fixture.ts') && pane().includes('0.0%/'));
   for (const row of cases) {
     await rm(answer, { force: true });
@@ -64,8 +76,24 @@ try {
     await writeFile(join(output, `${row.name}-answer.json`), JSON.stringify(actual, null, 2));
     await wait(() => !pane().includes('Fixture preference'));
   }
-  await writeFile(join(output, 'results.json'), JSON.stringify({ passes: cases.map((row) => row.name), scope: 'Production question handler, real Pi TUI, no inference or subagents.' }, null, 2));
-  process.stdout.write('Five real terminal question journeys passed\n');
+  await rm(answer, { force: true });
+  literal('/fixture-setup-cancel');
+  key('Enter');
+  await wait(() => pane().includes('pstack reasoning budget'));
+  await writeFile(join(output, 'setup-budget-dialog.txt'), pane());
+  key('Escape');
+  await wait(async () => {
+    try {
+      return JSON.parse(await readFile(answer, 'utf8'));
+    } catch {
+      return false;
+    }
+  });
+  const cancelledSetup = JSON.parse(await readFile(answer, 'utf8'));
+  assert.deepEqual(cancelledSetup, { completed: false, configurationExists: false });
+  await writeFile(join(output, 'setup-cancel-answer.json'), JSON.stringify(cancelledSetup, null, 2));
+  await writeFile(join(output, 'results.json'), JSON.stringify({ passes: [...cases.map((row) => row.name), 'setup-budget-cancel'], scope: 'Production question and setup handlers, real Pi TUI, no inference or subagents.' }, null, 2));
+  process.stdout.write('Six real terminal question and setup journeys passed\n');
 } finally {
   try {
     await writeFile(join(output, 'final-terminal.txt'), pane());
