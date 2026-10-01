@@ -43,6 +43,7 @@ export const TaskRecordSchema = Type.Object({
   durationMs: Type.Optional(Type.Number({ minimum: 0 })),
   startedAt: Type.Optional(Type.Number({ minimum: 0 })),
   toolUseId: Type.Optional(Type.String()),
+  requestShape: Type.Optional(Type.Union([Type.Literal('foreground'), Type.Literal('background')])),
   totalTokens: Type.Optional(Type.Number({ minimum: 0 })),
   maxTurnsReached: Type.Optional(Type.Integer({ minimum: 1 })),
   handback: Type.Optional(

@@ -39,13 +39,13 @@ export class SdkEvents {
     return frame;
   }
 
-  /** Bridges bus channels owned by other modules into frames. */
+  /** Bridges bus channels owned by other modules into frames. Extension actions are unavailable until a session attaches. */
   listen(): void {
     this.pi.events.on('pstack:subagent-stats', (stats) => {
-      this.emit({ type: 'system', subtype: 'subagent_stats', stats });
+      if (this.sessionId) this.emit({ type: 'system', subtype: 'subagent_stats', stats });
     });
     this.pi.events.on(hookEventChannel, (payload) => {
-      if (this.flag(hookEventsFlag) && typeof payload === 'object' && payload !== null) this.emit({ ...payload, type: 'system', subtype: 'hook_event' });
+      if (this.sessionId && this.flag(hookEventsFlag) && typeof payload === 'object' && payload !== null) this.emit({ ...payload, type: 'system', subtype: 'hook_event' });
     });
   }
 }
