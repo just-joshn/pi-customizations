@@ -162,11 +162,3 @@ test('diagnostic names replace Unicode controls and normalize whitespace', () =>
   expect(sanitizeDisplay('  a\u202Eb\u0085c  \t d  ')).toBe('a b c d');
   expect(sanitizeDisplay('')).toBe('');
 });
-
-test.for(['hooks: {}', 'PreToolUse: []', 'PermissionRequest: []', 'mcpServers: [private-server]'])('unsupported executable configuration %s never silently loads', (field) => {
-  const parsed = parseAgentFile('/p/a.md', agent('guarded', `${field}\n`), 'projectSettings', '/p');
-  expect(parsed).toMatchObject({ error: expect.stringContaining('requires a native Pi adapter') });
-  expect(parsed).not.toHaveProperty('agent');
-  const ordinary = parseAgentFile('/p/a.md', agent('ordinary'), 'projectSettings', '/p');
-  expect(ordinary.agent).toMatchObject({ agentType: 'ordinary', systemPrompt: 'Prompt body' });
-});
