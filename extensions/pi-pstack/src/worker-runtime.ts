@@ -3,8 +3,8 @@ import { writeFile } from 'node:fs/promises';
 
 import type { JsonValue, Usage } from '@earendil-works/pi-ai';
 import type { AgentSession, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
-import { type DetachedRpcHandle, openDetachedRpc } from '../scripts/detached-rpc-client.mjs';
-import { cloudControl, openCloudWorker, readCloudOutcome } from './cloud-worker.ts';
+import type { DetachedRpcHandle } from '../scripts/detached-rpc-client.mjs';
+import { cloudControl, openCloudHandle, openCloudWorker, readCloudOutcome } from './cloud-worker.ts';
 import { DeferredWakes } from './deferred-wakes.ts';
 import { workerControl } from './worker-control.ts';
 import { restoreTaskRecords, type TaskParameters, type TaskRecord, taskCleanupErrorType, taskCleanupUsageType, taskEntryType, taskOutputLimit, taskOwner, taskOwnerEntryType, taskSummary } from './worker-records.ts';
@@ -156,6 +156,24 @@ export class WorkerRuntime {
     }
   }
 
+  list() {
+    const tasks = [...this.records.values()].map((record) => structuredClone(record));
+    return { content: [{ type: 'text' as const, text: JSON.stringify({ tasks: tasks.map((record) => JSON.parse(taskSummary(record))) }) }], details: { tasks } };
+  }
+
+  async attach(record: TaskRecord, ctx: ExtensionContext) {
+    if (this.lifecycle.kind !== 'active') throw new Error('Parent session is not active.');
+    const existing = this.records.get(record.id);
+    if (existing) return this.result(existing);
+    if (!record.detached?.remote) throw new Error('Only a remote task can be attached from repository discovery.');
+    const outcome = await readCloudOutcome(record);
+    const attached = outcome ? { ...record, ...outcome } : { ...record, status: 'running' as const };
+    this.records.set(record.id, attached);
+    this.pi.appendEntry(taskEntryType, structuredClone(attached));
+    if (!outcome) this.attachCloud(attached, this.generation, () => ctx.isIdle());
+    return this.result(attached);
+  }
+
   private priorTask(params: TaskParameters): TaskRecord | undefined {
     if (this.lifecycle.kind !== 'active') throw new Error('Parent session is not active. Wait for session startup or tree restoration before starting a task.');
     const prior = params.resume ? this.records.get(params.resume) : undefined;
@@ -187,17 +205,7 @@ export class WorkerRuntime {
         if (prior?.detached && params.environment === 'local') throw new Error('Resume must preserve the task execution environment.');
         const opened = await openCloudWorker({ id, params, prior, ctx });
         cloud = opened.handle;
-        this.checkStartup(owner, signal);
-        const usage = this.records.get(id)?.usage;
-        const record = { ...opened.record, ...(usage ? { usage } : {}) };
-        this.records.set(id, record);
-        this.pi.appendEntry(taskEntryType, structuredClone(record));
-        const handle = cloud;
-        const worker = this.attachCloud(record, owner, () => ctx.isIdle(), params.run_in_background !== false);
-        const response = await handle.send({ type: 'prompt', message: params.prompt }, record.detached?.invocation);
-        if (!response.success) throw new Error(response.error);
-        cloud = undefined;
-        return this.result(params.run_in_background === false ? await this.foreground(callId, worker, signal) : (this.records.get(id) ?? record));
+        return await this.startCloud(callId, opened, params, signal, ctx, owner);
       }
       const opened = await openWorkerSession({ id, params, prior, ctx });
       session = opened.session;
@@ -226,6 +234,18 @@ export class WorkerRuntime {
     }
   }
 
+  private async startCloud(callId: string, opened: Awaited<ReturnType<typeof openCloudWorker>>, params: TaskParameters, signal: AbortSignal | undefined, ctx: ExtensionContext, owner: number) {
+    this.checkStartup(owner, signal);
+    const usage = this.records.get(opened.record.id)?.usage;
+    const record = { ...opened.record, ...(usage ? { usage } : {}) };
+    this.records.set(record.id, record);
+    this.pi.appendEntry(taskEntryType, structuredClone(record));
+    const worker = this.attachCloud(record, owner, () => ctx.isIdle(), params.run_in_background !== false);
+    const response = await opened.handle.send({ type: 'prompt', message: params.prompt }, record.detached?.invocation);
+    if (!response.success) throw new Error(response.error);
+    return this.result(params.run_in_background === false ? await this.foreground(callId, worker, signal) : (this.records.get(record.id) ?? record));
+  }
+
   private async failCloudStartup(id: string, handle: DetachedRpcHandle, error: unknown): Promise<void> {
     const record = this.records.get(id);
     if (record?.detached?.directory === handle.directory) {
@@ -241,7 +261,7 @@ export class WorkerRuntime {
 
   private attachCloud(record: TaskRecord, owner: number, parentIdle: () => boolean, background = true): CloudWorker {
     if (!record.detached) throw new Error('Cloud task is missing its durable handle.');
-    const handle = openDetachedRpc(record.detached.directory);
+    const handle = openCloudHandle(record);
     const control = cloudControl(handle);
     const completion = this.completeCloud(record, owner, parentIdle, background, control);
     const worker: CloudWorker = { kind: 'cloud', handle, completion, ...control };

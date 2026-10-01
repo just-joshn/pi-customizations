@@ -78,3 +78,14 @@ test('RPC request timeout rejects the request and reaps the process', async () =
   }
   expect(child.exitCode ?? child.signalCode).not.toBeNull();
 });
+
+test('RPC reports the child exit reason when the child closed its input before exiting', async () => {
+  const child = spawn('/bin/sh', ['-c', 'exec 0<&-; printf "sandbox refused" >&2; sleep 0.3; exit 3']);
+  const client = rpcProcess(child, { requestDeadlineMs: testRequestDeadlineMs, shutdownDeadlineMs: testShutdownDeadlineMs });
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await expect(client.send({ type: 'get_state' })).rejects.toThrow('Pi exited 3: sandbox refused');
+  } finally {
+    await client.close();
+  }
+});

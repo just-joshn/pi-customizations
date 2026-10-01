@@ -64,7 +64,7 @@ test('/poteto-mode with task and /skill:poteto-mode transform input', async () =
   const store = createState(pi);
   registerCommands(pi, skills, store);
   registerNativeInput(pi, skills, store);
-  const ctx = { hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
+  const ctx = { mode: 'tui', hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
 
   await handlers['poteto-mode']?.('my task', ctx);
   expect(store.read().enabled).toBe(true);
@@ -174,7 +174,7 @@ test('native input ignores unrelated input or mismatched skill path', async () =
   } as unknown as ExtensionAPI;
   const store = createState(pi);
   registerNativeInput(pi, skills, store);
-  const ctx = { hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
+  const ctx = { mode: 'tui', hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
 
   const res1 = await input?.({ text: 'just a normal message' }, ctx);
   expect(res1).toEqual({ action: 'continue' });
@@ -196,7 +196,7 @@ test('registered command handles other skills and expands them', async () => {
     sendUserMessage: (text: string, options: unknown) => sent.push({ text, options }),
   } as unknown as ExtensionAPI;
   registerCommands(pi, skills, createState(pi));
-  const ctx = { hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
+  const ctx = { mode: 'tui', hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
   await handlers.how?.('explore auth', ctx);
   expect(sent.length).toBe(1);
   expect(sent[0]?.text).toMatch(/How body/);
@@ -311,12 +311,12 @@ test('pstack index entry point wires extension hooks and registers all tools', a
 
   const ctx = {
     cwd: '/test/cwd',
-    sessionManager: { getBranch: () => [], getSessionDir: () => '/tmp', getSessionFile: () => '/tmp/f.jsonl' },
+    sessionManager: { getBranch: () => [], getEntries: () => [], getSessionId: () => 's', getSessionDir: () => '/tmp', getSessionFile: () => '/tmp/f.jsonl' },
     ui: { setStatus() {}, setWidget() {} },
   } as unknown as ExtensionContext;
 
-  for (const fn of listeners.session_start ?? []) fn({}, ctx);
-  for (const fn of listeners.session_tree ?? []) fn({}, ctx);
+  for (const fn of listeners.session_start ?? []) await fn({}, ctx);
+  for (const fn of listeners.session_tree ?? []) await fn({}, ctx);
 
   const event1 = { systemPromptOptions: { sections: {} as Record<string, string> } };
   for (const fn of listeners.before_agent_start ?? []) await fn(event1, ctx);

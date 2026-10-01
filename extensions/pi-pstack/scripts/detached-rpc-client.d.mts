@@ -1,5 +1,6 @@
 import type { RpcCommand, RpcResponse } from '@earendil-works/pi-coding-agent';
 import type { DetachedActivity } from './detached-rpc-protocol.mjs';
+import type { FilesystemRestriction } from './filesystem-launch.mjs';
 
 export type DetachedRpcHandle = {
   readonly directory: string;
@@ -20,5 +21,5 @@ export function startDetachedRpc(config: {
   headless?: boolean;
   closeAfterSettle?: boolean;
   ownerId?: string;
-  filesystem?: { denied: string[]; allowed: string[]; files?: string[] };
+  filesystem?: FilesystemRestriction;
 }): Promise<DetachedRpcHandle>;

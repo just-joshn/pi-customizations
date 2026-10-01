@@ -30,6 +30,7 @@ export function rpcProcess(child, policy = { requestDeadlineMs, shutdownDeadline
     failure ??= error;
     rejectPending(requests, failure);
   };
+  const failInput = (error) => error?.code === 'EPIPE' || fail(error);
   const reader = readRecords((record) => {
     receiveResponse(record, requests);
     policy.onRecord?.(record);
@@ -40,7 +41,7 @@ export function rpcProcess(child, policy = { requestDeadlineMs, shutdownDeadline
   child.stderr.on('data', (data) => {
     stderr += data.toString();
   });
-  child.stdin.on('error', fail);
+  child.stdin.on('error', failInput);
   child.on('error', fail);
   const ended = new Promise((resolve) =>
     child.once('close', (code, signal) => {
@@ -51,7 +52,7 @@ export function rpcProcess(child, policy = { requestDeadlineMs, shutdownDeadline
   );
   return {
     send(command) {
-      return sendCommand(child, requests, command, ++sequence, policy, () => stderr, fail, failure, closed);
+      return sendCommand(child, requests, command, ++sequence, policy, () => stderr, failInput, failure, closed);
     },
     get stderr() {
       return stderr;

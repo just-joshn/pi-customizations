@@ -12,6 +12,21 @@ const pointers = source.slice(1).map((line, index) => {
   if (cells.length !== 6 || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(cells[0])) throw new Error(`Malformed decision row ${index + 2}`);
   return { line: index + 2, timestamp: cells[0], phase: cells[1], evidence: cells[4], mentions: [] };
 });
+function recordToolCalls(entry, pointers) {
+  if (entry.type !== 'message' || entry.message?.role !== 'assistant') return 0;
+  let count = 0;
+  for (const block of entry.message.content ?? []) {
+    if (block.type !== 'toolCall') continue;
+    count++;
+    if (block.name === 'read') continue;
+    const args = JSON.stringify(block.arguments);
+    if (args.includes('log.sh') && args.includes(log)) continue;
+    for (const pointer of pointers) {
+      if (args.includes(pointer.evidence) || args.includes(basename(pointer.evidence))) pointer.mentions.push({ entry: entry.id, tool: block.name });
+    }
+  }
+  return count;
+}
 const lines = createInterface({ input: createReadStream(transcript), crlfDelay: Infinity });
 let header;
 let entries = 0;
@@ -25,17 +40,7 @@ try {
       continue;
     }
     entries++;
-    if (entry.type !== 'message' || entry.message?.role !== 'assistant') continue;
-    for (const block of entry.message.content ?? []) {
-      if (block.type !== 'toolCall') continue;
-      toolCalls++;
-      if (block.name === 'read') continue;
-      const args = JSON.stringify(block.arguments);
-      if (args.includes('log.sh') && args.includes(log)) continue;
-      for (const pointer of pointers) {
-        if (args.includes(pointer.evidence) || args.includes(basename(pointer.evidence))) pointer.mentions.push({ entry: entry.id, tool: block.name });
-      }
-    }
+    toolCalls += recordToolCalls(entry, pointers);
   }
 } finally {
   lines.close();

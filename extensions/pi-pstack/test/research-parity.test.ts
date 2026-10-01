@@ -134,7 +134,7 @@ test('transcript consumers read the Pi session store, not Cursor agent-transcrip
   const recall = await read('skills/recall/SKILL.md');
   expect(recall.includes('`~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`')).toBe(true);
   expect(recall.includes('`/Users/you/proj` becomes `--Users-you-proj--`')).toBe(true);
-  expect((await read('skills/reflect/SKILL.md')).includes('<session-dir>/pstack-workers/*/*.jsonl')).toBe(true);
+  expect((await read('skills/reflect/SKILL.md')).includes('<session-dir>/pstack-workers/*/*.jsonl')).toBe(false);
 });
 
 function git(cwd: string, ...args: string[]): string {
@@ -220,15 +220,15 @@ test.each([
 
 test('host contract names the workspace session directory the transcript skills read', async () => {
   const { hostInstructions } = await import('../src/host.ts');
-  const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/agent/sessions/--w--', getSessionFile: () => '/agent/sessions/--w--/s.jsonl' } };
+  const ctx = { cwd: '/w', sessionManager: { getSessionId: () => 's', getSessionDir: () => '/agent/sessions/--w--', getSessionFile: () => '/agent/sessions/--w--/s.jsonl' } };
   const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '');
-  expect(host.includes('Workspace Pi session directory: /agent/sessions/--w--.')).toBe(true);
-  expect(host.includes('Task child transcripts: /agent/sessions/--w--/pstack-workers/<parent-session-id>.')).toBe(true);
+  expect(host.includes('Pi session storage directory: /agent/sessions/--w--.')).toBe(true);
+  expect(host.includes('Task child transcripts owned by this parent session: /agent/sessions/--w--/pstack-workers/s.')).toBe(true);
 });
 
 test('host contract maps upstream Cursor facilities and tool names to Pi', async () => {
   const { hostInstructions } = await import('../src/host.ts');
-  const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
+  const ctx = { cwd: '/w', sessionManager: { getSessionId: () => 's', getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
   const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '');
   for (const text of [
     'A Cursor rule becomes an AGENTS.md context file',
@@ -249,6 +249,6 @@ test('local /loop ships as a Pi skill and template that the host contract names'
   for (const text of ['Usage: /loop [interval] <prompt>', 'notify_on_output: "^AGENT_LOOP_TICK_<purpose>"', 'notify_on_output: "^AGENT_LOOP_WAKE_<purpose>"', 'Background' + 'ShellStop']) expect(skill.includes(text)).toBe(true);
   expect((await read('host/prompts/loop.md')).includes('Read loop/SKILL.md in full under the pstack host skills directory')).toBe(true);
   const { hostInstructions } = await import('../src/host.ts');
-  const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
+  const ctx = { cwd: '/w', sessionManager: { getSessionId: () => 's', getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
   expect(hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '').includes('/loop is a Pi prompt template for the local loop skill')).toBe(true);
 });

@@ -1,11 +1,12 @@
 import { randomUUID } from 'node:crypto';
-import { writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
-import { type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
-import { type DetachedRpcHandle, openDetachedRpc, startDetachedRpc } from '../scripts/detached-rpc-client.mjs';
-import { cloudFilesystem } from './cloud-filesystem.ts';
+import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { type DetachedRpcHandle, openDetachedRpc } from '../scripts/detached-rpc-client.mjs';
+import { resolveRemotePlacement, startRemoteWorker } from './remote-worker.ts';
+import { openRemoteRpc } from './remote-worker-transport.ts';
 import { availableInEnvironment } from './resource-environment.ts';
+import { publishTask } from './task-discovery.ts';
 import { taskOutcome } from './task-outcome.ts';
 import type { TaskParameters, TaskRecord } from './worker-records.ts';
 import { prepareWorkerSession } from './worker-support.ts';
@@ -42,32 +43,33 @@ export function cloudWorkerArguments({ dir, selected, loader, readonly }: Pick<A
 
 export async function openCloudWorker(options: { id: string; params: TaskParameters; prior: TaskRecord | undefined; ctx: ExtensionContext }) {
   const { id, prior } = options;
-  const prepared = await prepareWorkerSession(options, 'detached');
-  const { cwd, persona, readonly, selected, loader, dir } = prepared;
-  const systemFile = join(dir, `${id}.system.txt`);
-  await writeFile(systemFile, loader.getAppendSystemPrompt().join('\n\n'), { mode: 0o600 });
-  const args = cloudWorkerArguments(prepared, systemFile, prior);
-  const filesystem = await cloudFilesystem(options.ctx.sessionManager.getSessionDir(), dir, cwd, prior?.sessionFile);
-  const handle = await startDetachedRpc({ directory: dir, cwd, agentDir: getAgentDir(), args, headless: true, closeAfterSettle: true, ownerId: id, filesystem });
+  const localCwd = resolve(options.ctx.cwd, options.params.cwd ?? prior?.detached?.remote?.localCwd ?? options.ctx.cwd);
+  const placement = await resolveRemotePlacement(localCwd, options.params, prior);
+  const prepared = await prepareWorkerSession(options, 'remote');
+  if (prior?.detached) {
+    const previous = openCloudHandle(prior);
+    const state = await previous.info();
+    if (state.kind === 'ready' || state.kind === 'starting') throw new Error('Remote task still owns a live writer. Use TaskOutput or TaskStop first.');
+    await previous.close();
+  }
+  const { persona, readonly, selected, dir } = prepared;
+  const { handle, response, remote } = await startRemoteWorker(id, prepared, placement, prior);
   try {
-    const state = await handle.send({ type: 'get_state' });
-    if (!state.success || state.command !== 'get_state' || !state.data.sessionFile) throw new Error('Cloud worker did not provide a durable session.');
-    if (state.data.model?.provider !== selected.model.provider || state.data.model.id !== selected.model.id || state.data.thinkingLevel !== selected.thinkingLevel)
-      throw new Error('Cloud worker did not select the requested model and thinking level.');
     const entries = await handle.send({ type: 'get_entries' });
     if (!entries.success || entries.command !== 'get_entries') throw new Error('Cloud worker did not provide its entry cursor.');
     const record: TaskRecord = {
       id,
       persona,
-      cwd,
+      cwd: response.cwd,
       readonly,
       modelReference: `${selected.model.provider}/${selected.model.id}:${selected.thinkingLevel}`,
-      sessionFile: state.data.sessionFile,
+      sessionFile: response.sessionFile,
       outputFile: join(dir, `${id}.output.txt`),
       status: 'running',
       output: '',
-      detached: { directory: handle.directory, invocation: randomUUID(), entryCursor: entries.data.entries.at(-1)?.id ?? null },
+      detached: { directory: handle.directory, invocation: randomUUID(), entryCursor: entries.data.entries.at(-1)?.id ?? null, remote },
     };
+    await publishTask(record, prepared.cwd, options.params.cloud_base_branch);
     return { handle, record };
   } catch (error) {
     await handle.close();
@@ -75,18 +77,26 @@ export async function openCloudWorker(options: { id: string; params: TaskParamet
   }
 }
 
+export function openCloudHandle(record: TaskRecord): DetachedRpcHandle {
+  if (!record.detached) throw new Error('Task is not detached.');
+  const { directory, remote } = record.detached;
+  return remote ? openRemoteRpc(remote.executor, record.id, directory) : openDetachedRpc(directory);
+}
+
 export async function readCloudOutcome(record: TaskRecord) {
   if (!record.detached) throw new Error('Task is not detached.');
-  const handle = openDetachedRpc(record.detached.directory);
+  const handle = openCloudHandle(record);
   const state = await handle.info();
   if (state.kind === 'ready' || state.kind === 'starting') return undefined;
   const snapshot = await handle.snapshot();
   if (snapshot) {
     if (snapshot.invocation !== record.detached.invocation) throw new Error('Cloud task invocation does not match its saved snapshot.');
     const outcome = taskOutcome(snapshot.entries, snapshot.leafId);
+    if (record.detached.remote) await handle.close();
     const error = snapshot.error ?? (state.kind === 'failed' ? state.error : state.kind === 'exited' && state.code !== 0 ? `Cloud worker exited with code ${state.code}.` : undefined);
     return error ? { ...outcome, status: 'failed' as const, output: error } : outcome;
   }
+  if (record.detached.remote) await handle.close();
   return { ...taskOutcome([], null), status: state.kind === 'failed' ? ('failed' as const) : ('interrupted' as const), output: state.kind === 'failed' ? state.error : 'Cloud worker exited without a completion snapshot.' };
 }
 

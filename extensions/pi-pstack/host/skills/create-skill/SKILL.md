@@ -10,7 +10,7 @@ This skill guides you through creating effective Agent Skills for Pi. Skills are
 
 ## Before You Begin: Gather Requirements
 
-Before creating a skill, gather essential information from the user about:
+Before creating a skill, reuse requirements already established by the caller or conversation. Ask only for information that is still missing and would change the skill's purpose or behavior:
 
 1. **Purpose and scope**: What specific task or workflow should this skill help with?
 2. **Target location**: Should this be a personal skill (~/.pi/agent/skills/) or project skill (.pi/skills/)?
@@ -107,6 +107,8 @@ The description is **critical** for skill discovery. The agent uses it to decide
    - ✅ Good: "Processes Excel files and generates reports"
    - ❌ Avoid: "I can help you process Excel files"
    - ❌ Avoid: "You can use this to process Excel files"
+
+   The ban is on first and second person. An imperative trigger clause such as `Use when ...`, `Use for ...`, or `Apply when ...` is the WHEN half and is accepted. The pstack principle skills use `Apply when ...` after a third-person statement of what they do.
 
 2. **Be specific and include trigger terms**:
    - ✅ Good: "Extract text and tables from PDF files, fill forms, merge documents. Use when working with PDF files or when the user mentions PDFs, forms, or document extraction."
@@ -399,7 +401,7 @@ Gather information about:
 4. Any specific requirements or constraints
 5. Existing examples or patterns to follow
 
-If you have access to the AskQuestion tool, use it for efficient structured gathering. Otherwise, ask conversationally.
+If you have access to the AskQuestion tool, use it for unresolved details that would change the skill. Otherwise, ask conversationally. Do not repeat questions the caller or conversation already answered.
 
 ### Phase 2: Design
 
@@ -422,8 +424,6 @@ If you have access to the AskQuestion tool, use it for efficient structured gath
 3. Ensure consistent terminology throughout
 4. Verify all file references are one level deep
 5. Test that the skill can be discovered and applied
-
----
 
 ## Complete Example
 
@@ -467,15 +467,40 @@ When reviewing code:
 ## Providing Feedback
 
 Format feedback as:
-- 🔴 **Critical**: Must fix before merge
-- 🟡 **Suggestion**: Consider improving
-- 🟢 **Nice to have**: Optional enhancement
+- **Critical**: Must fix before merge
+- **Suggestion**: Consider improving
+- **Nice to have**: Optional enhancement
 
 ## Additional Resources
 
 - For detailed coding standards, see [STANDARDS.md](STANDARDS.md)
 - For example reviews, see [examples.md](examples.md)
 ```
+
+## Draft, test, and iterate
+
+For a substantive skill change, test the skill against representative tasks before calling it done.
+
+1. Write down the behavior the skill should improve and the observable result that would count as success.
+2. Choose representative tasks from the skill's stated triggers. Include a nearby task that should not trigger it when discovery behavior matters.
+3. Run each task once without the proposed skill, then run the same task with the skill. Keep the task, model, tools, and other instructions fixed where the host allows it.
+4. Compare both results against the success criteria. Record missed steps, wrong outputs, unnecessary actions, or failures to apply the skill.
+5. Edit only the instructions tied to a measured failure, then rerun the same cases. Add a new case only when the failure exposed a missing class of behavior.
+6. Stop when every required case passes and another iteration produces no material improvement. Report the cases, results, and remaining limits.
+
+Do not claim that a skill passed a test when the host cannot run the test or compare the outputs. Report the missing capability and leave the result unverified.
+
+## Optimize a description
+
+When tuning a description, keep the skill body fixed and change only the description.
+
+1. Write positive examples that should load the skill and negative examples that should not.
+2. Draft a small set of descriptions that name the skill's work and trigger situations.
+3. Check each description against the same examples using the host's real skill discovery mechanism. Count correct and incorrect selections.
+4. Keep the description with the best results. If results tie, choose the shortest description that names the same triggers.
+5. Report the examples, counts, and any cases the host could not measure.
+
+Do not describe this manual comparison as an automated benchmark unless a real discovery test ran.
 
 ---
 

@@ -56,7 +56,7 @@ test('official SDK loads all worker tools without spawning children', async () =
       .extensions.flatMap((extension) => [...extension.tools.values()])
       .find((tool) => tool.definition.name === 'Task');
     expect(task).toBeDefined();
-    await expect(task?.definition.execute('cloud-test', { prompt: 'test', environment: 'cloud' }, undefined, undefined, context)).rejects.toThrow(/environment cloud runs in a git worktree, and .+ is not inside a git repository/);
+    await expect(task?.definition.execute('cloud-test', { prompt: 'test', environment: 'cloud' }, undefined, undefined, context)).rejects.toThrow(/configured isolated remote executor/);
     await expect(task?.definition.execute('resume-test', { prompt: 'test', resume: 'other-branch' }, undefined, undefined, context)).rejects.toThrow(/Unknown task in this branch/);
     const names = session.getActiveToolNames();
     expect(names).toEqual(expect.arrayContaining(['Task', 'TaskOutput', 'TaskStop', 'TaskMessage']));
@@ -78,38 +78,13 @@ function workerTest(name: string, scenario: (fixture: Awaited<ReturnType<typeof 
   });
 }
 
-workerTest('cloud tasks run in their own worktree at the requested base and resume there', async ({ dir, call }) => {
+workerTest('cloud tasks fail explicitly without creating a local worktree when no remote executor is configured', async ({ dir, call }) => {
   const repo = join(dir, 'repo');
-  await mkdir(join(repo, 'pkg'), { recursive: true });
-  const git = (...args: string[]) => execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { encoding: 'utf8' }).trim();
-  git('init', '-q', '-b', 'main');
-  await writeFile(join(repo, 'pkg/committed.txt'), 'main');
-  git('add', '-A');
-  git('commit', '-qm', 'main');
-  git('switch', '-qc', 'feature');
-  await writeFile(join(repo, 'pkg/feature.txt'), 'feature');
-  git('add', '-A');
-  git('commit', '-qm', 'feature');
-  git('switch', '-q', 'main');
-  await writeFile(join(repo, 'pkg/dirty.txt'), 'uncommitted');
-
-  const parse = (result: { content: Array<{ type: string; text?: string }> }) => JSON.parse(result.content.find((block) => block.type === 'text')?.text ?? '{}');
-  const head = parse(await call('Task', { prompt: 'cloud work', environment: 'cloud', cwd: join(repo, 'pkg'), model: 'worker-test/deterministic', run_in_background: false }));
-  const headCheckout = join(dir, 'sessions/pstack-cloud', head.task_id);
-  expect(head.status).toBe('settled');
-  expect(await readFile(join(headCheckout, 'pkg/committed.txt'), 'utf8')).toBe('main');
-  expect(existsSync(join(headCheckout, 'pkg/dirty.txt'))).toBe(false);
-  expect(existsSync(join(headCheckout, 'pkg/feature.txt'))).toBe(false);
-  expect(await readFile(join(repo, 'pkg/dirty.txt'), 'utf8')).toBe('uncommitted');
-
-  const feature = parse(await call('Task', { prompt: 'cloud work', environment: 'cloud', cloud_base_branch: 'feature', cwd: repo, model: 'worker-test/deterministic', run_in_background: false }));
-  expect(await readFile(join(dir, 'sessions/pstack-cloud', feature.task_id, 'pkg/feature.txt'), 'utf8')).toBe('feature');
-  expect(git('worktree', 'list').split('\n')).toHaveLength(3);
-
-  const resumed = parse(await call('Task', { prompt: 'continue', environment: 'cloud', resume: head.task_id, run_in_background: false }));
-  expect(resumed.task_id).toBe(head.task_id);
-  expect(git('worktree', 'list').split('\n')).toHaveLength(3);
-  await expect(call('Task', { prompt: 'x', environment: 'cloud', cloud_base_branch: 'missing', cwd: repo })).rejects.toThrow('cloud_base_branch missing does not resolve locally or on origin. Push or fetch it first.');
+  await mkdir(repo);
+  execFileSync('git', ['init', '-q', repo]);
+  vi.stubEnv('PI_PSTACK_EXECUTORS', join(dir, 'missing-executors.json'));
+  await expect(call('Task', { prompt: 'cloud work', environment: 'cloud', cwd: repo, model: 'worker-test/deterministic' })).rejects.toThrow(/configured isolated remote executor/);
+  expect(existsSync(join(dir, 'sessions/pstack-cloud'))).toBe(false);
 });
 
 workerTest('unknown task ids are refused by message, output, and stop', async ({ call }) => {
@@ -420,4 +395,12 @@ test('restoration rejects malformed pending usage while preserving the last vali
     manager.appendCustomEntry('pstack-task', { ...valid, usage: invalid });
     expect(restoreTaskRecords(manager.getBranch()).get(record.id)).toEqual(valid);
   }
+});
+
+workerTest('TaskList exposes only tasks owned by the current parent branch', async ({ call }) => {
+  const empty = await call('TaskList', {});
+  expect(empty.details).toEqual({ tasks: [] });
+  const started = await call('Task', { prompt: 'listed work', model: 'worker-test/deterministic', run_in_background: false });
+  const listing = await call('TaskList', {});
+  expect(listing.details).toEqual({ tasks: [started.details] });
 });

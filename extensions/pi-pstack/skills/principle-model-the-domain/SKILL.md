@@ -4,7 +4,7 @@ description: "Apply when writing stateful logic, or when code branches a lot or 
 disable-model-invocation: true
 ---
 
-# Model the Domain
+# Model the domain
 
 Encode the real domain in a data structure instead of scattering it across conditionals.
 

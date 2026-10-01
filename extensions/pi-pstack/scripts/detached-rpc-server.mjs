@@ -106,7 +106,7 @@ try {
     onRecord(record) {
       if (config.headless && record.type === 'extension_ui_request' && ['select', 'confirm', 'input', 'editor'].includes(record.method)) {
         child.stdin.write(`${JSON.stringify({ type: 'extension_ui_response', id: record.id, cancelled: true })}\n`, (error) => {
-          if (error) {
+          if (error && error.code !== 'EPIPE') {
             failure = error;
             closing = true;
           }

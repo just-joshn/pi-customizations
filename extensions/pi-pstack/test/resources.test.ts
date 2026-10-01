@@ -14,7 +14,7 @@ async function fixture() {
   try {
     await mkdir(join(directory, 'docs'));
     await mkdir(join(directory, 'scripts'));
-    for (const path of ['upstream', 'upstream-team-kit', 'skills', 'prompts', 'package.json', 'scripts/resources.mjs', 'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json'])
+    for (const path of ['upstream', 'upstream-team-kit', 'skills', 'prompts', 'host/adapters', 'package.json', 'scripts', 'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json'])
       await cp(join(root, path), join(directory, path), { recursive: true, filter: (source) => !source.split('/').includes('node_modules') });
   } catch (error) {
     await rm(directory, { recursive: true, force: true });

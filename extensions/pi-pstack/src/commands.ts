@@ -26,9 +26,9 @@ function turnOff(store: StateStore, ctx: ExtensionContext) {
   ctx.ui.notify('Poteto mode is off.', 'info');
 }
 
-async function setup(pi: ExtensionAPI, ctx: ExtensionContext, store: StateStore) {
-  if (!(await setupModels(ctx))) return;
-  if (store.read().verificationOffered) return;
+export async function setupPstack(pi: ExtensionAPI, ctx: ExtensionContext, store: StateStore) {
+  if (!(await setupModels(ctx))) return false;
+  if (store.read().verificationOffered) return true;
   store.update({ ...store.read(), verificationOffered: true }, ctx);
   pi.sendUserMessage(
     [
@@ -39,10 +39,11 @@ async function setup(pi: ExtensionAPI, ctx: ExtensionContext, store: StateStore)
     ].join('\n'),
     { deliverAs: 'followUp' },
   );
+  return true;
 }
 async function handleSetup(pi: ExtensionAPI, ctx: ExtensionContext, store: StateStore) {
   try {
-    await setup(pi, ctx, store);
+    await setupPstack(pi, ctx, store);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     ctx.ui.notify(message, 'error');

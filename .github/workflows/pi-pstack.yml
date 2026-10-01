@@ -1,0 +1,34 @@
+name: pi-pstack
+
+on:
+  pull_request:
+    paths:
+      - 'extensions/pi-pstack/**'
+      - '.github/workflows/pi-pstack.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'extensions/pi-pstack/**'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: extensions/pi-pstack
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+      - uses: astral-sh/setup-uv@v5
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun run check:resources
+      - run: bun run typecheck
+      - run: bun run test
