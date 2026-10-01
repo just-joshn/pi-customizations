@@ -8,6 +8,12 @@ Cursor loads `.cursor-plugin/plugin.json`, discovers the 47 skills and two agent
 
 There is no extension runtime or hidden plugin hook in the source manifest. Most behavior is specified as model instructions. Exact copied text therefore establishes content parity, not observable host behavior or proof that a model follows every instruction.
 
+## Current Origin requirement audit
+
+The native Origin skill matches the supplied Cursor source byte for byte. The initial ledger groups 32 semantic clauses with source lines and hashes. Compound obligations and complete line review remain unfinished. Public installation/version/help, corrupt-archive rejection, native resource/prompt exclusion, and absolute-path invocation have receipts with explicit scopes.
+
+A fresh `auth status` invocation against the isolated real installation exits 1 and reports an unauthenticated state. The retained receipt contains only that classification, exit code, and scope. Raw output, identities, and credentials are not retained. No login, token printing, git-helper setup, hosted repository operation, remote rewrite, or update is performed. Login completion, namespace failures, authorization recovery, real credential storage, Linux/Windows behavior, and hosted execution remain unverified. Instruction presence is not enforcement or model adherence.
+
 ## Current cursor-team-kit dependency audit
 
 Fresh byte comparisons match all three supplied `control-cli`, `control-ui`, and `deslop` source files to the native copies. The initial ledger groups 35 CLI entries, 40 UI entries, and nine deslop entries. It distinguishes instructions and guardrails, conditional capability recipes, and illustrative code blocks. These are initial groupings, not a completed exhaustive semantic audit or proof of model adherence.
