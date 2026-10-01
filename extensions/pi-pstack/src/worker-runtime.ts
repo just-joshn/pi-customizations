@@ -108,6 +108,7 @@ export class WorkerRuntime {
   private readonly completions: DeferredWakes;
   depth = currentDepth();
   private agentId: string | undefined;
+  private ownWorktree: string | undefined;
   allowedAgentTypes: readonly string[] | undefined;
   private readonly invocations = new AgentInvocations();
   private appendedPrompt: string | undefined;
@@ -275,6 +276,8 @@ export class WorkerRuntime {
         this.inheritedDefinitions = definitions?.type === 'custom' && typeof definitions.data === 'string' ? definitions.data : undefined;
         const identity = branch.findLast((entry) => entry.type === 'custom' && entry.customType === 'pstack-agent-identity');
         this.agentId = identity?.type === 'custom' && typeof identity.data === 'string' ? identity.data : undefined;
+        const worktree = branch.findLast((entry) => entry.type === 'custom' && entry.customType === 'pstack-agent-worktree');
+        this.ownWorktree = worktree?.type === 'custom' && typeof worktree.data === 'string' ? worktree.data : undefined;
         const depthEntry = branch.findLast((entry) => entry.type === 'custom' && entry.customType === 'pstack-agent-depth');
         this.depth = depthEntry?.type === 'custom' && typeof depthEntry.data === 'number' && Number.isSafeInteger(depthEntry.data) && depthEntry.data > 0 ? depthEntry.data : 0;
         const scope = branch.findLast((entry) => entry.type === 'custom' && entry.customType === 'pstack-agent-allowed-types');
@@ -398,6 +401,7 @@ export class WorkerRuntime {
         depth,
         events: channel.events,
         onProcessGroup: (pid) => channel.groups.add({ pid }),
+        ...(this.ownWorktree ? { inheritedWorktree: this.ownWorktree } : {}),
         log: (message) => this.pi.events.emit('pstack:subagent-log', message),
         appendedPrompt: this.childPrompt(),
         agentDefinitions: this.agentDefinitions(),
