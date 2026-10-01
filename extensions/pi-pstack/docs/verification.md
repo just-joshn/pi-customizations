@@ -43,6 +43,12 @@ bun pm pack --dry-run
 bunx vitest run test/cli.test.ts
 ```
 
+The generated worktree audit accepts an optional second argument for a custom Pi session directory. A real Bash/Git regression reproduces missing recent-chat evidence without this argument and verifies `verify-recent-chat` when the directory is supplied. Default workspace and child transcript discovery remains covered. The helper remains read-only and does not prove that pruning any worktree is safe.
+
+```sh
+bash extensions/pi-pstack/skills/poteto-mode/scripts/worktree-audit.sh /path/to/repo /path/from/the/host/session/contract
+```
+
 With `tmux` and the installed `pi` CLI on PATH, run the terminal question journeys from the repository root:
 
 ```sh

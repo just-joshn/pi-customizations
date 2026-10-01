@@ -184,6 +184,29 @@ test('worktree audit dates agent activity from Pi sessions and worker transcript
   }
 });
 
+test('worktree audit includes recent activity from an explicit custom Pi session directory', async () => {
+  const f = await worktreeFixture();
+  try {
+    const custom = join(f.directory, 'custom-sessions');
+    await mkdir(custom);
+    await writeFile(join(custom, 'active.jsonl'), JSON.stringify({ type: 'session', cwd: join(f.directory, 'idle') }));
+    const output = execFileSync('bash', [join(root, 'skills/poteto-mode/scripts/worktree-audit.sh'), f.main, custom], {
+      encoding: 'utf8',
+      stdio: 'pipe',
+      env: { ...process.env, HOME: f.directory, PI_CODING_AGENT_DIR: join(f.directory, 'agent'), GH_TOKEN: 'invalid' },
+    });
+    const row = output
+      .trim()
+      .split('\n')
+      .map((line) => line.split('\t'))
+      .find((cells) => cells[8] === join(f.directory, 'idle'));
+    const today = execFileSync('date', ['+%Y-%m-%d'], { encoding: 'utf8' }).trim();
+    expect(row?.slice(6, 8)).toEqual([today, 'verify-recent-chat']);
+  } finally {
+    await f.close();
+  }
+});
+
 test('host contract names the workspace session directory the transcript skills read', async () => {
   const { hostInstructions } = await import('../src/host.ts');
   const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/agent/sessions/--w--', getSessionFile: () => '/agent/sessions/--w--/s.jsonl' } };

@@ -4,7 +4,8 @@
 # operated in it. Emits a table sorted by size with a suggested bucket. Never
 # deletes anything; deletion stays a human-gated step in the playbook.
 #
-# Usage: worktree-audit.sh [repo-path]   (defaults to the current repo)
+# Usage: worktree-audit.sh [repo-path] [session-dir]
+# Pass the host contract session directory when Pi uses --session-dir.
 set -u
 
 repo="${1:-$(git rev-parse --show-toplevel 2>/dev/null)}"
@@ -25,7 +26,7 @@ gh pr list --author "@me" --state all --limit 1000 \
 # Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including pstack-workers.
 sessions="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"; sessions="${sessions/#\~/$HOME}/sessions"
 session_dir() { printf '%s/--%s--' "$sessions" "$(printf '%s' "$1" | sed 's#^/##; s#[/:]#-#g')"; }
-transcripts=$(session_dir "$main_wt")
+transcripts="${2:-$(session_dir "$main_wt")}"
 now=$(date +%s)
 
 printf "SIZE\tAGE\tMERGED\tDIRTY\tREMOTE\tPR\tLAST_CHAT\tBUCKET\tWORKTREE\n"
