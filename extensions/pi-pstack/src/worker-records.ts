@@ -36,6 +36,9 @@ export const TaskRecordSchema = Type.Object({
   worktreeHookBased: Type.Optional(Type.Boolean()),
   requestedIsolation: Type.Optional(Type.Union([Type.Literal('worktree'), Type.Literal('remote')])),
   parentAgentId: Type.Optional(Type.String()),
+  destination: Type.Optional(
+    Type.Object({ kind: Type.Union([Type.Literal('remote'), Type.Literal('teammate')]), sessionUrl: Type.String(), sessionId: Type.String(), planMode: Type.Optional(Type.Boolean()), pane: Type.Optional(Type.String()), team: Type.Optional(Type.String()) }),
+  ),
   inheritedWorktreePath: Type.Optional(Type.String()),
   description: Type.Optional(Type.String()),
   depth: Type.Optional(Type.Integer({ minimum: 1 })),
