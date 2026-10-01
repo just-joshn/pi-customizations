@@ -8,7 +8,7 @@ export const referenceToolNames =
 
 export function hostInstructions(root: string, ctx: ExtensionContext, rule: string): string {
   const manager = ctx.sessionManager;
-  const childTranscripts = manager.getSessionFile() ? join(manager.getSessionDir(), 'pstack-workers', '<parent-session-id>') : 'a temporary pstack-workers directory, because this session is not persisted';
+  const childTranscripts = manager.getSessionFile() ? join(manager.getSessionDir(), '<parent-session-id>', 'subagents') : 'a temporary directory, because this session is not persisted';
   return [
     'pstack pi host contract. Follow the bundled workflow instructions in full. Preserve their gates and report missing dependencies.',
     `Bundled skills: ${join(root, 'skills')}. Immutable source including agents and dormant Benny pack: ${join(root, 'upstream')}.`,
