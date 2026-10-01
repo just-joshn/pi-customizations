@@ -115,7 +115,7 @@ try {
   const initial = `${roles.map((role) => `${role}: auto`).join('\n')}\n`;
   await mkdir(dirname(config), { recursive: true });
   await writeFile(config, initial);
-  for (const mode of ['decline', 'accept', 'edit']) {
+  for (const mode of ['decline', 'accept', 'edit', 'panel']) {
     const accept = mode !== 'decline';
     await rm(answer, { force: true });
     literal('/fixture-setup-cancel');
@@ -128,6 +128,17 @@ try {
       key('Down', 'Down', 'Enter');
       await wait(() => pane().includes('bug-fix (current: auto)'));
       await writeFile(join(output, 'setup-edit-picker.txt'), pane());
+      key('Enter');
+      await wait(() => pane().includes('Accept model table or change a role'));
+    }
+    if (mode === 'panel') {
+      key(...Array.from({ length: 13 }, () => 'Down'), 'Enter');
+      await wait(() => pane().includes('arena runners seat 1'));
+      key('Enter');
+      await wait(() => pane().includes('arena runners seat 2'));
+      key('Down', 'Enter');
+      await wait(() => pane().includes('arena runners seat 3'));
+      await writeFile(join(output, 'setup-panel-duplicate-seats.txt'), pane());
       key('Enter');
       await wait(() => pane().includes('Accept model table or change a role'));
     }
@@ -148,7 +159,10 @@ try {
     assert.equal(actual.configurationExists, true);
     if (accept) {
       assert.ok(actual.configuration.includes('# budget: small (medium)'));
-      for (const role of roles) assert.ok(actual.configuration.includes(`${role}: ${mode === 'edit' && role === 'bug-fix' ? 'inherit-parent' : 'auto'}\n`), role);
+      for (const role of roles) {
+        const expected = role === 'arena runners' && mode === 'panel' ? 'inherit-parent, inherit-parent' : role === 'bug-fix' && ['edit', 'panel'].includes(mode) ? 'inherit-parent' : 'auto';
+        assert.ok(actual.configuration.includes(`${role}: ${expected}\n`), role);
+      }
     } else assert.equal(actual.configuration, initial);
     await writeFile(join(output, `setup-${mode}-answer.json`), JSON.stringify(actual, null, 2));
     await wait(() => !pane().includes('Write pstack model configuration?'));
@@ -156,12 +170,15 @@ try {
   await writeFile(
     join(output, 'results.json'),
     JSON.stringify(
-      { passes: [...cases.map((row) => row.name), 'setup-budget-cancel', 'setup-write-decline', 'setup-write-accept', 'setup-role-edit'], scope: 'Production question and setup handlers, real Pi TUI, no inference or subagents.' },
+      {
+        passes: [...cases.map((row) => row.name), 'setup-budget-cancel', 'setup-write-decline', 'setup-write-accept', 'setup-role-edit', 'setup-panel-duplicate-seats'],
+        scope: 'Production question and setup handlers, real Pi TUI, no inference or subagents.',
+      },
       null,
       2,
     ),
   );
-  process.stdout.write('Nine real terminal question and setup journeys passed\n');
+  process.stdout.write('Ten real terminal question and setup journeys passed\n');
 } finally {
   try {
     await writeFile(join(output, 'final-terminal.txt'), pane());
