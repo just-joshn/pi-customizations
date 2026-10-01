@@ -15,8 +15,9 @@ test('only the latest plan-mode context from the parent branch is inherited', ()
   expect(parentIntent(branch)).toEqual([{ customType: 'plan-mode-context', content: 'second plan' }]);
 });
 
-test('a branch without intent messages inherits nothing', () => {
+test('a branch inherits nothing until it carries a plan-mode message', () => {
   expect(parentIntent([message('unrelated-context', 'x')])).toEqual([]);
+  expect(parentIntent([message('unrelated-context', 'x'), message('plan-mode-context', 'plan')])).toEqual([{ customType: 'plan-mode-context', content: 'plan' }]);
 });
 
 test('seeding writes each inherited message into the child as hidden context', () => {
