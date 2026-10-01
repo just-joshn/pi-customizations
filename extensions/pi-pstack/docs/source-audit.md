@@ -8,6 +8,12 @@ Cursor loads `.cursor-plugin/plugin.json`, discovers the 47 skills and two agent
 
 There is no extension runtime or hidden plugin hook in the source manifest. Most behavior is specified as model instructions. Exact copied text therefore establishes content parity, not observable host behavior or proof that a model follows every instruction.
 
+## Nonzero goal accounting evidence
+
+The goal source requires completion to preserve usage accounting. A new SDK integration test supplies synthetic nonzero main-session receipts. Session totals are 10 tokens before goal creation, 40 tokens and 0.4 synthetic cost after completion, and the same totals after reopening the persisted session. The completed goal record is also checked against its literal objective and status. Fourteen focused goal/delivery/host tests pass; the allowed real RPC suite still passes 451 assertions with zero findings.
+
+This proves preservation of declared session usage, not real provider billing or per-goal attribution. The authoritative skill does not specify a per-goal accounting schema. Dedicated nonzero CLI/RPC accounting and hosted accounting remain unverified. The initial failing test exposed the old zero-only fixture limitation, not a production accounting defect.
+
 ## Current create-skill requirement audit
 
 The supplied Cursor built-in create-skill source has an initial ledger of 56 semantic clauses. These include requirements, guidance, and optional examples. The native port differs in host names, skill directories, question-tool availability, and package-edit protection. Source and port hashes and line references are retained in the audit ledger. The grouping is not an exhaustive completed source-line audit.
