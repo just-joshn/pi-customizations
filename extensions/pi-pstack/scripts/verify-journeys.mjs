@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { rpcProcess } from './rpc-process.mjs';
+import { verifySkillCreation } from './skill-creation-journey.mjs';
 
 const root = process.argv[2] ? resolve(process.argv[2]) : fileURLToPath(new URL('../', import.meta.url));
 const only = process.argv[3];
@@ -441,7 +442,12 @@ async function journeySetup(ctx) {
   check('setup: /skill:setup-pstack runs the same validated dialogs', ctx.ui.length > before);
 }
 
+async function journeySkillCreation(ctx) {
+  await verifySkillCreation({ ctx, check, startPi });
+}
+
 const journeys = [
+  journeySkillCreation,
   journeyLoad,
   journeyGoal,
   journeyNativeSkills,
@@ -738,6 +744,11 @@ async function main() {
     let shared = ctx;
     for (const journey of selected) {
       shared = { ...shared, ...(await journey(shared)) };
+    }
+    if (only === '--no-workers') {
+      const requests = await everyRequest(log);
+      const delegated = requests.some((request) => request.messages.some((message) => message.role === 'assistant' && Array.isArray(message.content) && message.content.some((block) => block.type === 'toolCall' && block.name === 'Task')));
+      check('no-workers: no recorded request invokes Task', !delegated);
     }
   } finally {
     await ctx.finish().catch(() => {});
