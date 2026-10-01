@@ -44,6 +44,32 @@ test('cloud resource arguments and the real idle Pi CLI exclude Origin without l
   }
 }, 30000);
 
+test('an untagged Origin duplicate inherits the authoritative cloud exclusion', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-origin-duplicate-'));
+  const path = join(directory, 'SKILL.md');
+  try {
+    await writeFile(path, '---\nname: origin\ndescription: User-scoped Origin copy\n---\nLocal login workflow.');
+    expect(availableInEnvironment(path, 'cloud')).toBe(false);
+    expect(availableInEnvironment(path, 'local')).toBe(true);
+    await writeFile(path, '---\nname: unrelated\ndescription: Cloud-capable fixture\n---\nBody.');
+    expect(availableInEnvironment(path, 'cloud')).toBe(true);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('an untagged Origin prompt inherits exclusion from its filename identity', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-origin-prompt-'));
+  const path = join(directory, 'origin.md');
+  try {
+    await writeFile(path, '---\ndescription: User-scoped Origin alias\n---\nLocal login workflow.');
+    expect(availableInEnvironment(path, 'cloud')).toBe(false);
+    expect(availableInEnvironment(path, 'local')).toBe(true);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test('environment metadata is validated and does not hide unrestricted resources', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pstack-resource-env-'));
   const path = join(directory, 'SKILL.md');
