@@ -11,6 +11,7 @@ import type { AgentLaunch } from '../worker-support.ts';
 import { decideAdmission } from './admission.ts';
 import { AdmissionSlots } from './admission-slots.ts';
 import { type AgentDefinition, type Discovery, discoverAgents } from './definitions.ts';
+import { backgroundTasksDisabled } from './gates.ts';
 import { agentGuidance } from './guidance.ts';
 import { parseJsonAgents } from './json-definitions.ts';
 import { concurrencyCap, sessionSpawnCap } from './limits.ts';
@@ -18,14 +19,14 @@ import { chooseChildModel } from './models.ts';
 import { checkOptionPortability } from './option-portability.ts';
 import { AgentPreconditionError, AgentTypeError } from './precondition-error.ts';
 import { type AgentResult, AgentResultSchema, asyncLaunched, completed, resultText } from './results.ts';
-import { buildAgentSchema, ListAgentsSchema, SendMessageSchema } from './schema.ts';
+import { type AgentInput, agentSchemaGates, buildAgentSchema, ListAgentsSchema, parseAgentInput, SendMessageSchema } from './schema.ts';
 import type { SubagentStats } from './stats.ts';
 import { ToolOfferScope } from './tool-offer-scope.ts';
 import { withMaxTurns } from './turn-limit.ts';
 import type { AdmissionSnapshot, LaunchPlan, SpawnRequest } from './types.ts';
 import { type AgentWorktree, createWorktree, finalizeWorktree, repositoryRoot, type WorktreeOutcome } from './worktree.ts';
 
-type AgentParams = { description: string; prompt: string; subagent_type?: string; model?: string; run_in_background?: boolean; isolation?: 'worktree' | 'remote'; name?: string; max_turns?: number };
+type AgentParams = AgentInput & { max_turns?: unknown };
 type Update = Parameters<WorkerRuntime['start']>[4];
 type Admitted = Readonly<{ plan: LaunchPlan; definition: AgentDefinition; model: string | undefined; background: boolean }>;
 
@@ -38,7 +39,14 @@ function toRequest(params: AgentParams): SpawnRequest {
     ...(params.run_in_background !== undefined ? { runInBackground: params.run_in_background } : {}),
     ...(params.isolation !== undefined ? { isolation: params.isolation } : {}),
     ...(params.name !== undefined ? { name: params.name } : {}),
+    ...(params.cwd !== undefined ? { cwd: params.cwd } : {}),
   };
+}
+
+function agentParams(raw: unknown): AgentParams {
+  if (typeof raw !== 'object' || raw === null) return parseAgentInput(raw);
+  const { max_turns, ...input } = raw as Record<string, unknown>;
+  return { ...parseAgentInput(input), ...(max_turns !== undefined ? { max_turns } : {}) };
 }
 
 function wrap<T>(details: T, text: string): AgentToolResult<T> {
@@ -125,7 +133,7 @@ class AgentLauncher {
         steppedFamily: Boolean(choice.steppedFrom),
         droppedOverride: Boolean(choice.dropped),
       });
-    return { plan, definition, model: choice.request, background: plan.background || definition.background === true };
+    return { plan, definition, model: choice.request, background: (plan.background || definition.background === true) && !backgroundTasksDisabled(this.env) };
   }
 
   private async isolate(admitted: Admitted, ctx: ExtensionContext): Promise<{ cwd?: string; worktree?: AgentWorktree; outcome: () => WorktreeOutcome | undefined; settle?: () => Promise<Partial<TaskRecord>> }> {
@@ -161,7 +169,8 @@ class AgentLauncher {
     const { plan, definition, model, background } = admitted;
     const isolation = await this.isolate(admitted, ctx);
     const prompt = plan.prompt;
-    const taskParams = { prompt, ...(model ? { model } : {}), ...(isolation.cwd ? { cwd: isolation.cwd } : {}), ...(background ? {} : { run_in_background: false }) };
+    const cwd = isolation.cwd ?? plan.cwd;
+    const taskParams = { prompt, ...(model ? { model } : {}), ...(cwd ? { cwd } : {}), ...(background ? {} : { run_in_background: false }) };
     const launch = {
       definition,
       description: plan.description,
@@ -202,12 +211,12 @@ function registerAgent(pi: ExtensionAPI, launcher: AgentLauncher, env: NodeJS.Pr
     label: 'Agent',
     description: agentGuidance,
     promptSnippet: 'Launch a new agent',
-    parameters: buildAgentSchema({ addressable: true, forceModel: Boolean(env.CLAUDE_CODE_SUBAGENT_MODEL_FORCE ?? env.PI_SUBAGENT_MODEL_FORCE) }),
+    parameters: buildAgentSchema(agentSchemaGates(env)),
     outputSchema: AgentResultSchema,
     exposure: 'direct',
     executionMode: 'parallel',
     annotations: { openWorldHint: true },
-    execute: (id, params, signal, onUpdate, ctx) => launcher.launch(id, params as AgentParams, signal, onUpdate as Update, ctx),
+    execute: (id, params, signal, onUpdate, ctx) => launcher.launch(id, agentParams(params), signal, onUpdate as Update, ctx),
   });
 }
 

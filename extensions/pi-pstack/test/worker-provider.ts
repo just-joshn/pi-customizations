@@ -32,6 +32,8 @@ function statisticsCalls(text: string): ToolCall[] {
 
 function directCalls(text: string): ToolCall[] {
   if (text.includes('NAMED_AGENT_CONTRACT')) return [{ type: 'toolCall', id: 'named-contract', name: 'Agent', arguments: { description: 'named contract child', prompt: 'ordinary named child', name: 'contract-worker', team_name: 'ignored-team', mode: 'plan', run_in_background: false } }];
+  if (text.includes('INTERNAL_CWD_CONTRACT')) return [{ type: 'toolCall', id: 'internal-cwd', name: 'Agent', arguments: { description: 'internal cwd child', prompt: 'hello', run_in_background: false } }];
+  if (text.includes('LEGACY_TASK_AGENT_CONTRACT')) return [{ type: 'toolCall', id: 'legacy-alias', name: 'Task', arguments: { description: 'legacy alias child', prompt: 'hello', subagent_type: 'Explore', run_in_background: false } }];
   if (text.includes('SPAWN_DEEP_TREE')) return [{ type: 'toolCall', id: 'deep-child', name: 'Agent', arguments: { description: 'deep child', prompt: 'SPAWN_AGENT', run_in_background: false } }];
   if (text.includes('SPAWN_BROKEN_GRANDCHILD')) return [{ type: 'toolCall', id: 'broken-grandchild', name: 'Agent', arguments: { description: 'broken grandchild', prompt: 'FAIL', run_in_background: false } }];
   if (text.includes('SELF_ABORT')) return [{ type: 'toolCall', id: 'self-abort', name: 'self_abort', arguments: {} }];
