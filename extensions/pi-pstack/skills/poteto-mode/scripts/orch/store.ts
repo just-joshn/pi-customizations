@@ -502,7 +502,6 @@ async function acquireLock(
     }
   };
 }
-
 async function readTsv(
   path: string,
   header: string,
@@ -1415,7 +1414,6 @@ function resolveFrontier(repo: string): ResolvedFrontier {
     source: "gt",
   };
 }
-
 function validateFrontierPin({
   actual,
   expected,

@@ -22,6 +22,7 @@ function sendCommand(child, requests, command, sequence, policy, getStderr, fail
 
 export function rpcProcess(child, policy = { requestDeadlineMs, shutdownDeadlineMs }) {
   const requests = new Map();
+  const toolUpdates = [];
   let failure;
   let closed;
   let stderr = '';
@@ -32,7 +33,7 @@ export function rpcProcess(child, policy = { requestDeadlineMs, shutdownDeadline
   };
   const failInput = (error) => error?.code === 'EPIPE' || fail(error);
   const reader = readRecords((record) => {
-    receiveResponse(record, requests);
+    receiveResponse(record, requests, toolUpdates);
     policy.onRecord?.(record);
   }, fail);
   child.stdout.setEncoding('utf8');
@@ -51,6 +52,7 @@ export function rpcProcess(child, policy = { requestDeadlineMs, shutdownDeadline
     }),
   );
   return {
+    toolUpdates,
     send(command) {
       return sendCommand(child, requests, command, ++sequence, policy, () => stderr, failInput, failure, closed);
     },
@@ -77,9 +79,10 @@ function rejectPending(requests, error) {
   requests.clear();
 }
 
-function receiveResponse(record, requests) {
+function receiveResponse(record, requests, toolUpdates) {
   if (!record || typeof record !== 'object' || Array.isArray(record) || typeof record.type !== 'string') throw new Error('Invalid RPC record');
   if (record.type === 'extension_error') throw new Error(`RPC extension error: ${record.error}`);
+  if (record.type === 'tool_execution_update') toolUpdates.push(record);
   if (record.type !== 'response') return;
   if (typeof record.success !== 'boolean' || (record.id !== undefined && typeof record.id !== 'string')) throw new Error('Invalid RPC response');
   const pending = requests.get(record.id);

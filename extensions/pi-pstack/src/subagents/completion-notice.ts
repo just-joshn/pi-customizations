@@ -58,11 +58,11 @@ function notificationParts(record: TaskRecord, output: string, stoppedBy?: Stopp
       : undefined;
   const usage = record.durationMs === undefined ? undefined : { totalTokens: record.totalTokens ?? 0, toolUses: record.toolUseCount ?? 0, durationMs: record.durationMs };
   const worktree = record.worktreePath && !record.worktreeCleanlyRemoved ? { path: record.worktreePath, ...(record.worktreeBranch ? { branch: record.worktreeBranch } : {}) } : undefined;
-  return { outcome, report, usage, worktree };
+  return { outcome, report, usage, worktree, worktreeCleanupWarning: record.worktreeCleanupWarning };
 }
 
 export function taskNotification(record: TaskRecord, output: string, stoppedBy?: StoppedBy): { message: Wake; findings: readonly Finding[] } {
-  const { outcome, report, usage, worktree } = notificationParts(record, output, stoppedBy);
+  const { outcome, report, usage, worktree, worktreeCleanupWarning } = notificationParts(record, output, stoppedBy);
   const description = record.description ?? record.persona;
   const content = agentNotification({
     taskId: record.id,
@@ -73,6 +73,7 @@ export function taskNotification(record: TaskRecord, output: string, stoppedBy?:
     ...(report ? { result: modelFacingReport(report) } : {}),
     ...(usage ? { usage } : {}),
     ...(worktree ? { worktree } : {}),
+    ...(worktreeCleanupWarning ? { worktreeCleanupWarning } : {}),
   });
   const details = {
     task_id: record.id,
@@ -82,6 +83,7 @@ export function taskNotification(record: TaskRecord, output: string, stoppedBy?:
     summary: notificationSummary(description, outcome),
     task_type: 'local_agent',
     ...(usage ? { usage: { total_tokens: usage.totalTokens, tool_uses: usage.toolUses, duration_ms: usage.durationMs } } : {}),
+    ...(worktreeCleanupWarning ? { worktree_cleanup_warning: worktreeCleanupWarning } : {}),
   };
   return { message: { customType: taskNotificationType, content, display: true, details }, findings: report?.findings ?? [] };
 }

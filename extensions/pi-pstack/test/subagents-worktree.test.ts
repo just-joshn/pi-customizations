@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 
@@ -44,6 +44,26 @@ test('[G6-18] unchanged worktree is removed and a changed one is kept with path 
   git(committed.path, 'add', '.');
   git(committed.path, 'commit', '-qm', 'child');
   expect(await finalizeWorktree(committed)).toMatchObject({ kept: true });
+});
+
+test('branch deletion failure records partial cleanup after removing an unchanged worktree', async () => {
+  const gitPath = execFileSync('which', ['git'], { encoding: 'utf8' }).trim();
+  const wrapper = mkdtempSync(join(tmpdir(), 'subagent-git-wrapper-'));
+  const originalPath = process.env.PATH;
+  const wrappedGit = join(wrapper, 'git');
+  writeFileSync(wrappedGit, `#!/bin/sh\nif [ "$1" = "branch" ] && [ "$2" = "-D" ]; then echo branch-delete-failed >&2; exit 1; fi\nexec ${gitPath} "$@"\n`);
+  chmodSync(wrappedGit, 0o755);
+  process.env.PATH = `${wrapper}:${originalPath ?? ''}`;
+  try {
+    const worktree = await createWorktree(repo, 'branch-delete-failure');
+    const outcome = await finalizeWorktree(worktree);
+    expect(outcome).toMatchObject({ kept: false, branchCleanupError: expect.stringContaining(`branch '${worktree.branch}' remains`) });
+    expect(existsSync(worktree.path)).toBe(false);
+    expect(git(repo, 'branch', '--list', worktree.branch)).toBe(worktree.branch);
+  } finally {
+    process.env.PATH = originalPath;
+    rmSync(wrapper, { recursive: true, force: true });
+  }
 });
 
 test('cleanup keeps a checkout whose branch identity changed', async () => {

@@ -28,9 +28,11 @@ function storeInstructions(cwd: string): string {
   return `Agent store: ${store}.\nOrchestrate state lives in orchestrate/<project-slug>/ under ${store}, and plans default to ${store}/docs/ unless the operator names a path. orch takes --store or ORCH_STORE, so export ORCH_STORE=${store}/orchestrate/<project-slug> before the first orch call.`;
 }
 
-export function hostInstructions(root: string, ctx: ExtensionContext, rule: string, catalog: string): string {
+export function hostInstructions(root: string, ctx: ExtensionContext, rule: string, catalog = ''): string {
   const manager = ctx.sessionManager;
-  const childTranscripts = manager.getSessionFile() ? join(manager.getSessionDir(), 'pstack-workers', manager.getSessionId()) : 'a temporary pstack-workers directory, because this session is not persisted';
+  const childTranscripts = manager.getSessionFile()
+    ? `${join(manager.getSessionDir(), '<parent-session-id>', 'subagents')} and ${join(manager.getSessionDir(), 'pstack-workers', manager.getSessionId())}`
+    : 'temporary directories, because this session is not persisted';
   return [
     'pstack pi host contract. Follow the bundled workflow instructions in full.',
     catalog,

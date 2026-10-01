@@ -82,7 +82,8 @@ export class ChildTask {
 
   async open(resumeSession?: string): Promise<{ sessionId: string; sessionFile: string }> {
     const { start } = this.launch;
-    const cwd = existsSync(start.cwd) ? start.cwd : process.cwd();
+    if (!existsSync(start.cwd)) throw new Error(`Task working directory does not exist: ${start.cwd}`);
+    const cwd = start.cwd;
     const child = RpcChild.start({ ...start, cwd, args: [...start.args, ...(resumeSession ? ['--session', resumeSession] : [])] });
     this.child = child;
     child.onRecord((record) => this.observe(child, record));
