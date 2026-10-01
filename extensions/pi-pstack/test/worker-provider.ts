@@ -119,7 +119,9 @@ function saveRequest(context: StreamArguments[1], dir: string): void {
   writeFileSync(join(dir, 'child-input.txt'), JSON.stringify(users));
   writeFileSync(join(dir, 'child-tools.txt'), JSON.stringify(system.flatMap((message) => message.toolsAdded?.map((tool) => tool.name) ?? [])));
   appendFileSync(join(dir, 'provider-inputs.jsonl'), `${JSON.stringify(users)}\n`);
-  writeFileSync(join(dir, 'child-tool-results.json'), JSON.stringify(context.messages.filter((message) => message.role === 'toolResult')));
+  const toolResults = JSON.stringify(context.messages.filter((message) => message.role === 'toolResult'));
+  writeFileSync(join(dir, 'child-tool-results.json'), toolResults);
+  appendFileSync(join(dir, 'child-tool-results-history.jsonl'), `${toolResults}\n`);
 }
 
 function scheduleWait(text: string, _nested: boolean, grandchild: boolean, options: StreamArguments[2], finish: (aborted?: boolean) => void) {
