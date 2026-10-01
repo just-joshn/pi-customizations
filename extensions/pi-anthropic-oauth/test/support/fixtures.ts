@@ -24,16 +24,12 @@ beforeEach(() => {
 });
 
 export const test = base.extend<Fixtures>({
-  // biome-ignore lint/correctness/noEmptyPattern: Vitest requires a destructured first fixture argument
-  server: async ({}, use) => {
+  server: async ({ onTestFinished }, use) => {
     const server = await startMessagesServer(sseReply(textMessage('ok')));
+    onTestFinished(() => server.close());
     await use(server);
-    await server.close();
   },
-  // biome-ignore lint/correctness/noEmptyPattern: Vitest requires a destructured first fixture argument
-  provider: async ({}, use) => {
-    await use(captureProvider(extension));
-  },
+  provider: captureProvider(extension),
   credentials: async ({ provider }, use) => {
     const credentials = new InMemoryCredentialStore();
     await credentials.modify(provider.id, async () => oauthCredential());
@@ -49,8 +45,11 @@ export const test = base.extend<Fixtures>({
     if (!model) throw new Error(`model ${PROVIDER_ID}/${MODEL_ID} is not registered`);
     await use({ ...model, baseUrl: server.baseUrl });
   },
-  // biome-ignore lint/correctness/noEmptyPattern: Vitest requires a destructured first fixture argument
-  tokenEndpoint: async ({}, use) => {
+  tokenEndpoint: async ({ onTestFinished }, use) => {
+    const guarded = globalThis.fetch;
+    onTestFinished(() => {
+      vi.stubGlobal('fetch', guarded);
+    });
     await use(stubTokenEndpoint());
   },
 });
