@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { type AgentToolUpdateCallback, createAgentSession, createEventBus, DefaultResourceLoader, SessionManager } from '@earendil-works/pi-coding-agent';
+import { type AgentToolUpdateCallback, createAgentSession, createEventBus, DefaultResourceLoader, type ExtensionFactory, SessionManager } from '@earendil-works/pi-coding-agent';
 import { expect, vi } from 'vitest';
 import { registerShells } from '../src/shells.ts';
 import { registerWorkers } from '../src/workers.ts';
@@ -33,7 +33,7 @@ async function closeFixture(session: Awaited<ReturnType<typeof createAgentSessio
   }
 }
 
-function workerLoader(dir: string, flags: Readonly<Record<string, string>>, shells: boolean) {
+function workerLoader(dir: string, flags: Readonly<Record<string, string>>, shells: boolean, extensions: readonly ExtensionFactory[]) {
   const eventBus = createEventBus();
   const normalizedTypes: unknown[] = [];
   const subagentLogs: unknown[] = [];
@@ -63,21 +63,23 @@ function workerLoader(dir: string, flags: Readonly<Record<string, string>>, shel
         registerWorkers(pi);
         if (shells) registerShells(pi);
       },
+      ...extensions,
     ],
   });
   return { loader, eventBus, normalizedTypes, subagentLogs, modelResolutions, subagentStats };
 }
 
-export async function workerFixture(options: { retry?: boolean; flags?: Readonly<Record<string, string>>; shells?: boolean } = {}) {
+export async function workerFixture(options: { retry?: boolean; flags?: Readonly<Record<string, string>>; shells?: boolean; extensions?: readonly ExtensionFactory[] } = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'pstack-child-'));
   vi.stubEnv('PI_CODING_AGENT_DIR', dir);
+  vi.stubEnv('HOME', join(dir, 'home'));
   let session: Awaited<ReturnType<typeof createAgentSession>>['session'] | undefined;
   const close = () => closeFixture(session, dir);
   try {
     await mkdir(join(dir, 'extensions'));
     await writeFile(join(dir, 'settings.json'), JSON.stringify({ retry: { enabled: options.retry ?? false, maxRetries: 1, baseDelayMs: 0 }, compaction: { enabled: false } }));
     await writeProvider(dir);
-    const { loader, eventBus, normalizedTypes, subagentLogs, modelResolutions, subagentStats } = workerLoader(dir, options.flags ?? {}, options.shells ?? false);
+    const { loader, eventBus, normalizedTypes, subagentLogs, modelResolutions, subagentStats } = workerLoader(dir, options.flags ?? {}, options.shells ?? false, options.extensions ?? []);
     await loader.reload();
     expect(loader.getExtensions().errors).toEqual([]);
     session = (await createAgentSession({ cwd: dir, agentDir: dir, resourceLoader: loader, sessionManager: SessionManager.create(dir, join(dir, 'sessions')) })).session;

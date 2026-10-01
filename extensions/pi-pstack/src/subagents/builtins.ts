@@ -1,3 +1,4 @@
+import { guideAgents } from './builtin-guides.ts';
 import type { AgentDefinition } from './definitions.ts';
 
 const readOnlyProhibitions = [
@@ -85,7 +86,7 @@ export function builtinAgents(env: NodeJS.ProcessEnv, options: { mode?: 'none' |
     color: 'orange',
     systemPrompt: 'You are a status line setup agent. Configure the status line command for the user.',
   };
-  if (env.CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS || env.PI_DISABLE_EXPLORE_PLAN_AGENTS) return [generalPurpose, statusline];
+  if (env.CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS || env.PI_DISABLE_EXPLORE_PLAN_AGENTS) return [generalPurpose, statusline, ...guideAgents(env)];
   const explore: AgentDefinition = {
     ...builtIn,
     agentType: 'Explore',
@@ -108,5 +109,5 @@ export function builtinAgents(env: NodeJS.ProcessEnv, options: { mode?: 'none' |
     omitContextFiles: true,
     systemPrompt: planPrompt,
   };
-  return [generalPurpose, statusline, explore, plan];
+  return [generalPurpose, statusline, explore, plan, ...guideAgents(env)];
 }

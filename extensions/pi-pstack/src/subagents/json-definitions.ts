@@ -1,6 +1,7 @@
 import { type Static, Type } from 'typebox';
 import { Check, Errors } from 'typebox/value';
-import type { AgentDefinition } from './definitions.ts';
+import { type AgentDefinition, permissionModes } from './definitions.ts';
+import { parseMcpServers } from './mcp-specs.ts';
 
 const strings = Type.Array(Type.String());
 const definitionSchema = Type.Object({
@@ -18,20 +19,24 @@ const definitionSchema = Type.Object({
   criticalSystemReminder_EXPERIMENTAL: Type.Optional(Type.String()),
   memory: Type.Optional(Type.Union([Type.Literal('user'), Type.Literal('project'), Type.Literal('local')])),
   isolation: Type.Optional(Type.Union([Type.Literal('worktree'), Type.Literal('remote')])),
+  permissionMode: Type.Optional(Type.Union(permissionModes.map((mode) => Type.Literal(mode)))),
+  mcpServers: Type.Optional(Type.Array(Type.Union([Type.String(), Type.Record(Type.String(), Type.Unknown())]))),
+  requiredMcpServers: Type.Optional(strings),
 });
 
-function definition(name: string, input: unknown, baseDir: string, warn?: (message: string) => void): AgentDefinition {
+export function parseJsonAgentSpec(name: string, input: unknown, baseDir: string, warn?: (message: string) => void): AgentDefinition {
   if (!Check(definitionSchema, input)) {
     const issues = [...Errors(definitionSchema, input)].map((issue) => `${issue.instancePath}: ${issue.message}`).join('; ');
     throw new Error(`${name}: ${issues}${typeof input === 'object' && input !== null && 'description' in input && input.description === '' ? '; Description cannot be empty' : ''}`);
   }
-  const unsupportedFields = ['permissionMode', 'mcpServers', 'hooks', 'observer', 'observerMessage', 'observeSubagents', 'cacheTtl'].filter((key) => Object.hasOwn(input, key));
+  const unsupportedFields = ['hooks', 'observer', 'observerMessage', 'observeSubagents', 'cacheTtl'].filter((key) => Object.hasOwn(input, key));
   if (unsupportedFields.length > 0) throw new Error(`${name}: Unsupported native JSON agent fields: ${unsupportedFields.join(', ')}`);
   const data: Static<typeof definitionSchema> = input;
   const model = data.model?.trim();
   if (model === '') throw new Error(`${name}: model: Model cannot be empty`);
   const { description, prompt, background } = data;
-  const options = Object.fromEntries(Object.entries(data).filter(([key]) => Object.hasOwn(definitionSchema.properties, key) && !['description', 'prompt', 'model', 'background'].includes(key)));
+  const options = Object.fromEntries(Object.entries(data).filter(([key]) => Object.hasOwn(definitionSchema.properties, key) && !['description', 'prompt', 'model', 'background', 'mcpServers'].includes(key)));
+  const mcpServers = parseMcpServers(data.mcpServers, name, (message) => warn?.(message));
   const hadSkill = data.tools?.includes('Skill') === true;
   if (hadSkill) warn?.(`Agent '${name}': 'Skill' in tools is deprecated; use the skills field instead.`);
   return {
@@ -44,6 +49,7 @@ function definition(name: string, input: unknown, baseDir: string, warn?: (messa
     baseDir,
     ...(model !== undefined ? { model: model.toLowerCase() === 'inherit' ? 'inherit' : model } : {}),
     ...(background ? { background: true } : {}),
+    ...(mcpServers?.length ? { mcpServers } : {}),
   };
 }
 
@@ -57,6 +63,6 @@ export function parseJsonAgents(text: string, baseDir: string, warn?: (message: 
   if (typeof input !== 'object' || input === null || Array.isArray(input)) throw new Error('Agent definitions must be a JSON object.');
   return Object.entries(input).map(([name, value]) => {
     if (!name || name.startsWith('-')) throw new Error(`${name}: agent names must not start with '-' or be empty`);
-    return definition(name, value, baseDir, warn);
+    return parseJsonAgentSpec(name, value, baseDir, warn);
   });
 }

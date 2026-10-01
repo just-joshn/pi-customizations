@@ -22,6 +22,10 @@ const personas = new Map<string, Persona>([
   ['thermo-nuclear-code-quality-review', { files: ['upstream-team-kit/agents/thermo-nuclear-code-quality-review.md', 'skills/thermo-nuclear-code-quality-review/SKILL.md'] }],
 ]);
 
+export function isReferencePersona(name: string): boolean {
+  return personas.has(name);
+}
+
 export async function readPersona(name: string): Promise<{ instructions: string; defaultModel: string | undefined }> {
   const persona = personas.get(name);
   if (!persona) throw new Error(`Unsupported agent ${name}. Available: ${[...personas.keys()].join(', ')}`);

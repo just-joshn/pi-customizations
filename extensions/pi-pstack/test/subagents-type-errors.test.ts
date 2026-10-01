@@ -26,7 +26,7 @@ test('[G1-10] ambiguous normalized type retains a distinct type error and create
   const off = fixture.eventBus.on('pstack:subagent-refused', (value) => refusals.push(value));
   try {
     const operation = fixture.call('Agent', { description: 'ambiguous type', prompt: 'ordinary task', subagent_type: 'case one' });
-    await expect(operation).rejects.toMatchObject({ name: 'AgentTypeError', code: 'subagent_type_ambiguous', message: "Agent type 'case one' is ambiguous \u2014 matches CASE_ONE, case-one. Use the exact name." });
+    await expect(operation).rejects.toMatchObject({ name: 'AgentTypeError', code: 'subagent_type_ambiguous', message: "Agent type 'case one' is ambiguous \u2014 matches CASE_ONE, case-one. Use the exact name: CASE_ONE or case-one" });
     await expect(operation).rejects.not.toBeInstanceOf(AgentPreconditionError);
     expect(refusals).toEqual([{ code: 'subagent_type_ambiguous' }]);
     expect((await fixture.call('ListAgents', {})).details).toEqual({ agents: [] });

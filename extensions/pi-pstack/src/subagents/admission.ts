@@ -3,10 +3,9 @@ import { normalizeDescription, validateName } from './limits.ts';
 import type { AdmissionSnapshot, AgentSummary, Decision, Refusal, SpawnRequest } from './types.ts';
 
 const generalPurpose = 'general-purpose';
-const separators = /[\s_-]+/g;
 
-function foldType(type: string): string {
-  return type.toLowerCase().replace(separators, '');
+export function normalizeAgentType(type: string): string {
+  return type.normalize('NFKC').toLowerCase().replace(/[\p{White_Space}\p{Pd}_]+/gu, '');
 }
 
 function dispatchable(snapshot: AdmissionSnapshot): readonly AgentSummary[] {
@@ -20,11 +19,18 @@ function availableNames(snapshot: AdmissionSnapshot, pool: readonly AgentSummary
   return names.length ? names.join(', ') : 'none';
 }
 
+function ambiguity(requested: string, matches: readonly AgentSummary[], available: ReadonlySet<string>, availableList: string): Refusal {
+  const listed = matches.map((agent) => (available.has(agent.agentType) ? agent.agentType : `${agent.agentType} (unavailable)`)).join(', ');
+  const exact = matches.map((agent) => agent.agentType).filter((type) => available.has(type));
+  const remedy = exact.length > 0 ? `Use the exact name: ${exact.join(' or ')}` : `None of these are available. Available agents: ${availableList}`;
+  return { code: 'subagent_type_ambiguous', message: `Agent type '${requested}' is ambiguous \u2014 matches ${listed}. ${remedy}` };
+}
+
 export function resolveAgentType(snapshot: AdmissionSnapshot, requested: string | undefined): { type: string } | { refusal: Refusal } {
   const pool = dispatchable(snapshot);
   if (requested === undefined) {
     if (pool.some((agent) => agent.agentType === generalPurpose)) return { type: generalPurpose };
-    const defaults = pool.filter((agent) => foldType(agent.agentType) === foldType(generalPurpose));
+    const defaults = pool.filter((agent) => normalizeAgentType(agent.agentType) === normalizeAgentType(generalPurpose));
     if (defaults.length === 1 && defaults[0]) return { type: defaults[0].agentType };
     return { refusal: { code: 'subagent_type_missing', message: `subagent_type is required: the ${generalPurpose} agent is not available in this session. Available agents: ${availableNames(snapshot, pool)}` } };
   }
@@ -32,19 +38,12 @@ export function resolveAgentType(snapshot: AdmissionSnapshot, requested: string 
   if (fork) return fork;
   const exact = pool.find((agent) => agent.agentType === requested);
   if (exact) return { type: exact.agentType };
-  const folded = pool.filter((agent) => foldType(agent.agentType) === foldType(requested));
-  if (folded.length === 1 && folded[0]) return { type: folded[0].agentType };
-  if (folded.length > 1) {
-    return {
-      refusal: {
-        code: 'subagent_type_ambiguous',
-        message: `Agent type '${requested}' is ambiguous — matches ${folded
-          .map((agent) => agent.agentType)
-          .toSorted()
-          .join(', ')}. Use the exact name.`,
-      },
-    };
-  }
+  const normalized = normalizeAgentType(requested);
+  const matches = normalized ? snapshot.agents.filter((agent) => normalizeAgentType(agent.agentType) === normalized) : [];
+  const available = new Set(pool.map((agent) => agent.agentType));
+  if (matches.length > 1) return { refusal: ambiguity(requested, matches, available, availableNames(snapshot, pool)) };
+  const single = matches[0];
+  if (single && available.has(single.agentType)) return { type: single.agentType };
   return { refusal: { code: 'subagent_type_not_found', message: `Agent type '${requested}' not found. Available agents: ${availableNames(snapshot, pool)}` } };
 }
 
@@ -57,8 +56,7 @@ export function concurrencyMessage(cap: number): string {
 }
 
 function budgetMessage(spent: number, max: number): string {
-  const format = (amount: number) => (Number.isInteger(amount) ? (amount === max ? `${amount}` : amount.toFixed(2)) : amount.toFixed(2));
-  return `Budget limit reached ($${spent.toFixed(2)} spent of the $${format(max)} maximum). New agents cannot be started. Complete the remaining work directly with your tools, or wrap up.`;
+  return `Budget limit reached ($${spent.toFixed(2)} spent of the $${max} maximum). New agents cannot be started. Complete the remaining work directly with your tools, or wrap up with the results you already have.`;
 }
 
 export function decideAdmission(snapshot: AdmissionSnapshot, request: SpawnRequest): Decision {
