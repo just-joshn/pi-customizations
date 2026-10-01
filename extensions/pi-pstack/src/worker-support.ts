@@ -104,11 +104,12 @@ type OpenWorker = {
   log?: (message: string) => void;
   events?: ReturnType<typeof createEventBus>;
   onProcessGroup?: (pid: number) => void;
+  inheritedWorktree?: string;
 };
 
-type RecordInputs = { id: string; persona: string; cwd: string; readonly: boolean; selected: ReturnType<typeof resolveModel>; depth: number; sessionFile: string; outputFile: string; launch?: AgentLaunch };
+type RecordInputs = { id: string; persona: string; cwd: string; readonly: boolean; selected: ReturnType<typeof resolveModel>; depth: number; sessionFile: string; outputFile: string; launch?: AgentLaunch; inheritedWorktree?: string };
 
-function initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile, launch }: RecordInputs): TaskRecord {
+function initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile, launch, inheritedWorktree }: RecordInputs): TaskRecord {
   return {
     id,
     persona,
@@ -121,6 +122,7 @@ function initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFil
     status: 'running',
     output: '',
     ...(launch ? { description: launch.description, ...(launch.name ? { agentName: launch.name } : {}) } : {}),
+    ...(!launch?.worktree && inheritedWorktree ? { inheritedWorktreePath: inheritedWorktree } : {}),
     ...(launch?.worktree ? { spawnedWithWorktree: true, worktreePath: launch.worktree.path, worktreeBranch: launch.worktree.branch, worktreeRepoRoot: launch.worktree.repoRoot, worktreeBaseCommit: launch.worktree.baseCommit, worktreeCleanlyRemoved: false } : {}),
   };
 }
@@ -165,11 +167,12 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
   });
   const dir = await workerDirectory(ctx);
   const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
-  saveChildContext(manager, { id, depth, foreground: params.run_in_background === false, ...(launch ? { definition: launch.definition } : {}), ...(appendedPrompt !== undefined ? { appendedPrompt } : {}), ...(agentDefinitions !== undefined ? { agentDefinitions } : {}) });
+  const worktree = launch?.worktree?.path ?? prior?.worktreePath ?? prior?.inheritedWorktreePath ?? options.inheritedWorktree;
+  saveChildContext(manager, { id, depth, foreground: params.run_in_background === false, ...(worktree ? { worktree } : {}), ...(launch ? { definition: launch.definition } : {}), ...(appendedPrompt !== undefined ? { appendedPrompt } : {}), ...(agentDefinitions !== undefined ? { agentDefinitions } : {}) });
   const sessionFile = manager.getSessionFile();
   if (!sessionFile) throw new Error('Worker session did not provide a durable transcript path.');
   const { usage: _priorUsage, abort: _priorAbort, toolStats: _priorToolStats, ...saved } = prior ?? {};
-  const record = { ...saved, ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), ...(launch ? { launch } : {}) }) };
+  const record = { ...saved, ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), ...(launch ? { launch } : {}), ...(prior || !options.inheritedWorktree ? {} : { inheritedWorktree: options.inheritedWorktree }) }) };
   const modelRuntime = await childModelRuntime(readonly, selected.model.provider, ctx);
   const tools = readonly ? { tools: ['read', 'grep', 'find', 'ls'] } : onProcessGroup ? { customTools: [trackedBashTool(cwd, onProcessGroup)] } : {};
   const { session } = await createAgentSession({ cwd, modelRuntime, resourceLoader: loader, sessionManager: manager, ...selected, ...tools });
