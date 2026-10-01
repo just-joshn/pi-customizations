@@ -360,7 +360,7 @@ async function journeyAgent(ctx) {
   const refused = (await ctx.callTool('JOURNEY:agentunknown')).find((message) => message.toolName === 'Agent');
   check(
     'RPC: an unknown Agent type is a tool error that lists the available agents',
-    refused?.isError === true && JSON.stringify(refused).includes("Agent type 'not-a-type' not found. Available agents: Explore, Plan, general-purpose, statusline-setup"),
+    refused?.isError === true && JSON.stringify(refused).includes("Agent type 'not-a-type' not found. Available agents: Explore, Plan, provider-cli-guide, general-purpose, statusline-setup"),
     JSON.stringify(refused).slice(0, 300),
   );
 }

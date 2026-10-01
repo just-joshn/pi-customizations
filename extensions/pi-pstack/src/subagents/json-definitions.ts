@@ -20,7 +20,7 @@ const definitionSchema = Type.Object({
   isolation: Type.Optional(Type.Union([Type.Literal('worktree'), Type.Literal('remote')])),
 });
 
-function definition(name: string, input: unknown, baseDir: string, warn?: (message: string) => void): AgentDefinition {
+export function parseJsonAgentSpec(name: string, input: unknown, baseDir: string, warn?: (message: string) => void): AgentDefinition {
   if (!Check(definitionSchema, input)) {
     const issues = [...Errors(definitionSchema, input)].map((issue) => `${issue.instancePath}: ${issue.message}`).join('; ');
     throw new Error(`${name}: ${issues}${typeof input === 'object' && input !== null && 'description' in input && input.description === '' ? '; Description cannot be empty' : ''}`);
@@ -57,6 +57,6 @@ export function parseJsonAgents(text: string, baseDir: string, warn?: (message: 
   if (typeof input !== 'object' || input === null || Array.isArray(input)) throw new Error('Agent definitions must be a JSON object.');
   return Object.entries(input).map(([name, value]) => {
     if (!name || name.startsWith('-')) throw new Error(`${name}: agent names must not start with '-' or be empty`);
-    return definition(name, value, baseDir, warn);
+    return parseJsonAgentSpec(name, value, baseDir, warn);
   });
 }

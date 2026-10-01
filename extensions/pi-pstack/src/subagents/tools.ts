@@ -10,20 +10,23 @@ import type { WorkerRuntime } from '../worker-runtime.ts';
 import type { AgentLaunch } from '../worker-support.ts';
 import { concurrencyMessage, decideAdmission } from './admission.ts';
 import { renderAgentCall, renderAgentResult, trackAgentCallGroups } from './agent-render.ts';
+import { maxBudgetUsd, sessionCostUsd } from './budget.ts';
 import { AdmissionSlots } from './admission-slots.ts';
 import { type ContinueOutcome, continueAgent } from './agent-continue.ts';
-import { type AgentDefinition, type Discovery, discoverAgents } from './definitions.ts';
+import { DefinitionCatalog } from './definition-catalog.ts';
+import type { AgentDefinition } from './definitions.ts';
+import { backgroundTasksDisabled } from './gates.ts';
 import { agentGuidance } from './guidance.ts';
-import { parseJsonAgents } from './json-definitions.ts';
 import { concurrencyCap, sessionSpawnCap } from './limits.ts';
 import { chooseChildModel } from './models.ts';
 import { checkOptionPortability } from './option-portability.ts';
+import { pstackSetting } from './pstack-settings.ts';
 import { AgentPreconditionError, AgentTypeError } from './precondition-error.ts';
 import { flaggedOutput } from './completion-notice.ts';
 import { type AgentResult, AgentResultSchema, asyncLaunched, completed, resultText } from './results.ts';
 import { registerResumeCommand } from './resume-command.ts';
 import { resumeLaunch } from './resume-launch.ts';
-import { buildAgentSchema, ListAgentsSchema, SendMessageSchema } from './schema.ts';
+import { type AgentInput, agentSchemaGates, buildAgentSchema, ListAgentsSchema, parseAgentInput, SendMessageSchema } from './schema.ts';
 import type { SubagentStats } from './stats.ts';
 import { ToolOfferScope } from './tool-offer-scope.ts';
 import { withMaxTurns } from './turn-limit.ts';
@@ -31,7 +34,7 @@ import type { AdmissionSnapshot, LaunchPlan, SpawnRequest } from './types.ts';
 import { type AgentCheckout, checkoutContext, createAgentCheckout, finalizeCheckout, keptFields } from './worktree-hooks.ts';
 import { repositoryRoot, type WorktreeOutcome } from './worktree.ts';
 
-type AgentParams = { description: string; prompt: string; subagent_type?: string; model?: string; run_in_background?: boolean; isolation?: 'worktree' | 'remote'; name?: string; max_turns?: number };
+type AgentParams = AgentInput & { max_turns?: unknown };
 type Update = Parameters<WorkerRuntime['start']>[4];
 type Admitted = Readonly<{ plan: LaunchPlan; definition: AgentDefinition; model: string | undefined; background: boolean }>;
 
@@ -44,7 +47,14 @@ function toRequest(params: AgentParams): SpawnRequest {
     ...(params.run_in_background !== undefined ? { runInBackground: params.run_in_background } : {}),
     ...(params.isolation !== undefined ? { isolation: params.isolation } : {}),
     ...(params.name !== undefined ? { name: params.name } : {}),
+    ...(params.cwd !== undefined ? { cwd: params.cwd } : {}),
   };
+}
+
+function agentParams(raw: unknown): AgentParams {
+  if (typeof raw !== 'object' || raw === null) return parseAgentInput(raw);
+  const { max_turns, ...input } = raw as Record<string, unknown>;
+  return { ...parseAgentInput(input), ...(max_turns !== undefined ? { max_turns } : {}) };
 }
 
 function wrap<T>(details: T, text: string): AgentToolResult<T> {
@@ -57,13 +67,14 @@ class AgentLauncher {
   }
   private spawned = 0;
   private readonly slots = new AdmissionSlots();
-  private readonly reportedDiscoveries = new WeakSet<Discovery>();
+  readonly catalog: DefinitionCatalog;
 
   constructor(
     private readonly runtime: WorkerRuntime,
     private readonly env: NodeJS.ProcessEnv,
     private readonly pi: ExtensionAPI,
   ) {
+    this.catalog = new DefinitionCatalog(pi, env, () => runtime.agentDefinitions());
     this.publishStats();
   }
 
@@ -73,6 +84,7 @@ class AgentLauncher {
 
   private snapshot(ctx: ExtensionContext, agents: AdmissionSnapshot['agents']): AdmissionSnapshot {
     const sessionCap = sessionSpawnCap(this.env);
+    const budget = maxBudgetUsd(this.pi.getFlag('max-budget-usd'));
     return {
       agents,
       forkAvailable: false,
@@ -81,10 +93,11 @@ class AgentLauncher {
       depthCap: this.runtime.maximumDepth(ctx, this.env),
       running: this.runtime.runningCount() + this.slots.pending,
       concurrencyCap: concurrencyCap(this.env),
-      concurrencyBypass: false,
+      concurrencyBypass: pstackSetting(ctx.cwd, 'bypassSubagentConcurrencyCap') === true,
       ...(sessionCap !== undefined ? { sessionSpawnCap: sessionCap } : {}),
       spawnedThisSession: this.spawned + this.slots.pending,
-      spentUsd: 0,
+      spentUsd: sessionCostUsd(ctx.sessionManager.getEntries()),
+      ...(budget !== undefined ? { maxBudgetUsd: budget } : {}),
       hasProject: Boolean(ctx.cwd),
       stopPending: this.runtime.stopPending(),
     };
@@ -100,57 +113,72 @@ class AgentLauncher {
     const deps = {
       runtime: this.runtime,
       reserve: () => this.reserveResume(),
-      launchFor: (record: TaskRecord) => resumeLaunch(record, ctx, { env: this.env, flags: this.runtime.agentDefinitions(), keepsAlive: (id) => this.runtime.keepsAlive(id) }),
+      launchFor: (record: TaskRecord) => resumeLaunch(record, ctx, { catalog: this.catalog, keepsAlive: (id) => this.runtime.keepsAlive(id) }),
     };
     return continueAgent(deps, request, ctx);
   }
 
-  admit(params: AgentParams, ctx: ExtensionContext): Admitted {
-    const flags = this.runtime.agentDefinitions();
-    const flagAgents = typeof flags === 'string' ? parseJsonAgents(flags, ctx.cwd, (message) => this.pi.events.emit('pstack:subagent-log', message)) : [];
-    const found = discoverAgents({ root: ctx.cwd, env: this.env, flagAgents });
-    if (!this.reportedDiscoveries.has(found)) {
-      for (const message of [...found.logs, ...found.warnings]) this.pi.events.emit('pstack:subagent-log', message);
-      this.reportedDiscoveries.add(found);
+  private refuse(decision: Extract<ReturnType<typeof decideAdmission>, { ok: false }>): never {
+    if (decision.counter) {
+      this.stats.refuse(decision.counter);
+      this.publishStats();
     }
-    const decision = decideAdmission(this.snapshot(ctx, found.activeAgents), toRequest(params));
-    if (!decision.ok) {
-      if (decision.counter) {
-        this.stats.refuse(decision.counter);
-        this.publishStats();
-      }
-      this.pi.events.emit('pstack:subagent-refused', { code: decision.refusal.code, ...(decision.counter ? { reason: decision.counter } : {}) });
-      const { code, message } = decision.refusal;
-      switch (code) {
-        case 'subagent_type_not_found':
-        case 'subagent_type_ambiguous':
-        case 'subagent_type_missing':
-          throw new AgentTypeError({ code, message });
-        default:
-          throw new AgentPreconditionError(decision.refusal);
-      }
+    this.pi.events.emit('pstack:subagent-refused', { code: decision.refusal.code, ...(decision.counter ? { reason: decision.counter } : {}) });
+    const { code, message } = decision.refusal;
+    switch (code) {
+      case 'subagent_type_not_found':
+      case 'subagent_type_ambiguous':
+      case 'subagent_type_missing':
+        throw new AgentTypeError({ code, message });
+      default:
+        throw new AgentPreconditionError(decision.refusal);
     }
-    const { plan } = decision;
-    if (params.subagent_type && params.subagent_type !== plan.agentType) this.pi.events.emit('pstack:subagent-type-normalized', { requested: params.subagent_type, resolved: plan.agentType });
-    const selected = found.activeAgents.find((agent) => agent.agentType === plan.agentType);
-    if (!selected) throw new Error(`Agent type '${plan.agentType}' not found.`);
-    const definition = withMaxTurns(selected, params.max_turns);
-    checkOptionPortability(definition, (message) => this.pi.events.emit('pstack:subagent-log', message));
-    const available = ctx.modelRegistry.getAvailable().map((model) => `${model.provider}/${model.id}`);
-    const choice = chooseChildModel({ ...(plan.model !== undefined ? { toolModel: plan.model } : {}), ...(definition.model !== undefined ? { definitionModel: definition.model } : {}), fork: false, env: this.env, available });
+  }
+
+  private chooseModel(plan: LaunchPlan, definition: AgentDefinition, ctx: ExtensionContext): string | undefined {
+    const parent = ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined;
+    const choice = chooseChildModel({
+      ...(plan.model !== undefined ? { toolModel: plan.model } : {}),
+      ...(definition.model !== undefined ? { definitionModel: definition.model } : {}),
+      ...(exploreInheritCap(definition, this.env) ? { inheritCap: 'opus' } : {}),
+      ...(parent ? { parent } : {}),
+      fork: false,
+      env: this.env,
+      available: ctx.modelRegistry.getAvailable().map((model) => `${model.provider}/${model.id}`),
+    });
     if (choice.ignoredOverride) this.pi.events.emit('pstack:subagent-log', `"${choice.ignoredOverride}" ignored: CLAUDE_CODE_SUBAGENT_MODEL_FORCE is set`);
     if (choice.steppedFrom || choice.dropped)
       this.pi.events.emit('pstack:subagent-model-resolve', {
         requested: choice.steppedFrom ?? choice.dropped,
-        resolved: choice.request ?? (ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined),
+        resolved: choice.request ?? parent,
         steppedFamily: Boolean(choice.steppedFrom),
         droppedOverride: Boolean(choice.dropped),
       });
-    return { plan, definition, model: choice.request, background: plan.background || definition.background === true };
+    return choice.request;
+  }
+
+  admit(params: AgentParams, ctx: ExtensionContext): Admitted {
+    const found = this.catalog.discover(ctx);
+    const decision = decideAdmission(this.snapshot(ctx, found.activeAgents), toRequest(params));
+    if (!decision.ok) this.refuse(decision);
+    const { plan } = decision;
+    const selected = found.activeAgents.find((agent) => agent.agentType === plan.agentType);
+    if (!selected) throw new Error(`Agent type '${plan.agentType}' not found.`);
+    if (params.subagent_type && params.subagent_type !== plan.agentType) {
+      this.pi.events.emit('pstack:subagent-type-normalized', { requested: params.subagent_type, resolved: plan.agentType });
+      if (selected.color) this.pi.events.emit('pstack:subagent-color', { agentType: params.subagent_type, color: selected.color });
+    }
+    const definition = withMaxTurns(selected, params.max_turns);
+    checkOptionPortability(definition, (message) => this.pi.events.emit('pstack:subagent-log', message));
+    return { plan, definition, model: this.chooseModel(plan, definition, ctx), background: (plan.background || definition.background === true) && !backgroundTasksDisabled(this.env) };
   }
 
   private async isolate(admitted: Admitted, ctx: ExtensionContext): Promise<{ cwd?: string; worktree?: AgentCheckout; outcome: () => WorktreeOutcome | undefined; settle?: () => Promise<Partial<TaskRecord>> }> {
     const requested = admitted.plan.isolation ?? admitted.definition.isolation;
+    if (requested !== undefined && admitted.definition.source === 'built-in' && admitted.definition.agentType === 'web-fetch') {
+      this.pi.events.emit('pstack:subagent-log', `[web-fetch agent] isolation:'${requested}' ignored; the built-in web-fetch agent always runs as a local agent`);
+      return { outcome: () => undefined };
+    }
     const wantsWorktree = requested === 'worktree' || (requested === 'remote' && (await repositoryRoot(ctx.cwd)) !== undefined);
     if (!wantsWorktree) return { outcome: () => undefined };
     const id = randomUUID().slice(0, 8);
@@ -172,7 +200,7 @@ class AgentLauncher {
     signal = launchSignal(signal, admitted.background);
     const release = this.slots.reserve();
     try {
-      return await this.dispatch(callId, admitted, signal, onUpdate, ctx, release);
+      return await this.dispatch(callId, await loadDeferredDefinition(admitted, params.subagent_type), signal, onUpdate, ctx, release);
     } finally {
       release();
     }
@@ -192,7 +220,8 @@ class AgentLauncher {
     const isolation = await this.isolate(admitted, ctx);
     const prompt = plan.prompt;
     const requestedIsolation = plan.isolation ?? definition.isolation;
-    const taskParams = { prompt, ...(model ? { model } : {}), ...(isolation.cwd ? { cwd: isolation.cwd } : {}), ...(background ? {} : { run_in_background: false }) };
+    const cwd = isolation.cwd ?? plan.cwd;
+    const taskParams = { prompt, ...(model ? { model } : {}), ...(cwd ? { cwd } : {}), ...(background ? {} : { run_in_background: false }) };
     const launch = {
       definition,
       description: plan.description,
@@ -229,6 +258,19 @@ class AgentLauncher {
   }
 }
 
+function exploreInheritCap(definition: AgentDefinition, env: NodeJS.ProcessEnv): boolean {
+  return definition.source === 'built-in' && definition.agentType === 'Explore' && !env.CLAUDE_CODE_DISABLE_EXPLORE_INHERIT_CAP;
+}
+
+async function loadDeferredDefinition(admitted: Admitted, requested: string | undefined): Promise<Admitted> {
+  const { definition } = admitted;
+  if (definition.source !== 'plugin' || definition.loadDefinition === undefined) return admitted;
+  const loaded = await definition.loadDefinition();
+  if (loaded === undefined || loaded.agentType !== definition.agentType || loaded.source !== 'plugin')
+    throw new AgentTypeError({ code: 'subagent_type_not_found', message: `Agent type '${requested ?? 'general-purpose'}' could not be loaded from its plugin.` });
+  return { ...admitted, definition: loaded };
+}
+
 function registerAgent(pi: ExtensionAPI, launcher: AgentLauncher, env: NodeJS.ProcessEnv): void {
   const groups = trackAgentCallGroups(pi);
   pi.registerTool({
@@ -236,12 +278,12 @@ function registerAgent(pi: ExtensionAPI, launcher: AgentLauncher, env: NodeJS.Pr
     label: 'Agent',
     description: agentGuidance,
     promptSnippet: 'Launch a new agent',
-    parameters: buildAgentSchema({ addressable: true, forceModel: Boolean(env.CLAUDE_CODE_SUBAGENT_MODEL_FORCE ?? env.PI_SUBAGENT_MODEL_FORCE) }),
+    parameters: buildAgentSchema(agentSchemaGates(env)),
     outputSchema: AgentResultSchema,
     exposure: 'direct',
     executionMode: 'parallel',
     annotations: { openWorldHint: true },
-    execute: (id, params, signal, onUpdate, ctx) => launcher.launch(id, params as AgentParams, signal, onUpdate as Update, ctx),
+    execute: (id, params, signal, onUpdate, ctx) => launcher.launch(id, agentParams(params), signal, onUpdate as Update, ctx),
     renderCall: (args, theme, context) => renderAgentCall(args as AgentParams, theme, context, groups),
     renderResult: (result, options, theme) => renderAgentResult(result, options, theme),
   });
@@ -287,7 +329,9 @@ function registerListAgents(pi: ExtensionAPI, runtime: WorkerRuntime): void {
   });
 }
 
-export function registerAgentTools(pi: ExtensionAPI, runtime: WorkerRuntime, env: NodeJS.ProcessEnv = process.env): SubagentStats {
+export type LaunchAgent = (callId: string, params: unknown, signal: AbortSignal | undefined, onUpdate: Update, ctx: ExtensionContext) => Promise<AgentToolResult<AgentResult>>;
+
+export function registerAgentTools(pi: ExtensionAPI, runtime: WorkerRuntime, env: NodeJS.ProcessEnv = process.env): LaunchAgent {
   const launcher = new AgentLauncher(runtime, env, pi);
   const offers = new ToolOfferScope(pi);
   pi.on('agent_end', () => offers.restore());
@@ -300,14 +344,11 @@ export function registerAgentTools(pi: ExtensionAPI, runtime: WorkerRuntime, env
     }
     if (runtime.depth >= runtime.maximumDepth(ctx, env)) {
       offers.mask((names) => names.filter((name) => name !== 'Agent' && name !== 'Task'));
-      return;
     }
-    const allowed = runtime.allowedAgentTypes;
-    if (allowed !== undefined && !allowed.includes('general-purpose')) offers.mask((names) => names.filter((name) => name !== 'Agent'));
   });
   registerAgent(pi, launcher, env);
   registerSendMessage(pi, runtime, launcher);
   registerResumeCommand(pi, runtime, (request, ctx) => launcher.continue(request, ctx));
   registerListAgents(pi, runtime);
-  return launcher.stats;
+  return (callId, params, signal, onUpdate, ctx) => launcher.launch(callId, agentParams(params), signal, onUpdate, ctx);
 }

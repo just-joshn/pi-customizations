@@ -75,7 +75,7 @@ test('[G1-10] unknown agent type is a tool error that starts no child', async ()
     await expect(call('Agent', { description: 'x', prompt: 'p', subagent_type: 'does-not-exist' })).rejects.toMatchObject({
       name: 'AgentTypeError',
       code: 'subagent_type_not_found',
-      message: "Agent type 'does-not-exist' not found. Available agents: Explore, Plan, general-purpose, statusline-setup",
+      message: "Agent type 'does-not-exist' not found. Available agents: Explore, Plan, provider-cli-guide, general-purpose, statusline-setup",
     });
     const listed = (await call('ListAgents', {})) as { details: { agents: unknown[] } };
     expect(listed.details.agents).toEqual([]);
