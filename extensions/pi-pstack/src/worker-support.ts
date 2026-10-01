@@ -212,8 +212,9 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
   const { manager, sessionFile } = await openChildTranscript(options, cwd, dir, depth);
   const { usage: _priorUsage, abort: _priorAbort, toolStats: _priorToolStats, ...saved } = prior ?? {};
   const inheritedWorktree = prior ? undefined : options.inheritedWorktree;
-  const record = { ...saved, ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), inheritedWorktree, ...(launch ? { launch } : {}) }), ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}) };
-  await writeAgentMeta(dir, id, { agentType: persona, description: launch?.description ?? prior?.description ?? '', ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}), spawnDepth: depth, requestShape: params.run_in_background === false ? 'foreground' : 'background', requestNonInteractive: !ctx.hasUI });
+  const requestShape = params.run_in_background === false ? ('foreground' as const) : ('background' as const);
+  const record = { ...saved, ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), inheritedWorktree, ...(launch ? { launch } : {}) }), ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}), requestShape };
+  await writeAgentMeta(dir, id, { agentType: persona, description: launch?.description ?? prior?.description ?? '', ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}), spawnDepth: depth, requestShape, requestNonInteractive: !ctx.hasUI });
   const modelRuntime = await childModelRuntime(readonly, selected.model.provider, ctx);
   const tools = readonly ? { tools: ['read', 'grep', 'find', 'ls'] } : onProcessGroup ? { customTools: [trackedBashTool(cwd, onProcessGroup)] } : {};
   const { session } = await createAgentSession({ cwd, modelRuntime, resourceLoader: loader, sessionManager: manager, ...selected, ...tools });
