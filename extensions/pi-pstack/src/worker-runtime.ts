@@ -18,10 +18,12 @@ import { childStatsEvents } from './subagents/nested-depth.ts';
 import { AgentPreconditionError } from './subagents/precondition-error.ts';
 import { groupSpawned, ProcessGroups, processGroupEvent } from './subagents/process-groups.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
+import { SdkEvents } from './subagents/sdk-events.ts';
 import { SubagentStats, type SubagentStatsDelta } from './subagents/stats.ts';
 import { registerStopControl } from './subagents/stop-control.ts';
 import { settleWithin, stillStoppingMessage, stopPendingDetails } from './subagents/stop-deadline.ts';
 import { stopPendingEvent, stopPendingFor } from './subagents/stop-pending.ts';
+import { frameStatus, notificationBody, startedBody, taskFeed, updatedBody } from './subagents/task-frames.ts';
 import { applyToolPolicy } from './subagents/tool-pool.ts';
 import { countToolStats } from './subagents/tool-stats.ts';
 import { turnLimit } from './subagents/turn-limit.ts';
@@ -118,8 +120,15 @@ export class WorkerRuntime {
   private inheritedDefinitions: string | undefined;
   private readonly depthPolicy = new SessionDepthPolicy();
   readonly stats = new SubagentStats();
+  private readonly frames: SdkEvents;
   constructor(private readonly pi: ExtensionAPI) {
     this.completions = new DeferredWakes(pi);
+    this.frames = new SdkEvents(pi);
+  }
+
+  /** Reports a running task's move to the background as an SDK task_updated patch. */
+  markBackgrounded(id: string): void {
+    this.frames.emit(updatedBody(id, { is_backgrounded: true }));
   }
 
   runningCount(): number {
@@ -163,6 +172,7 @@ export class WorkerRuntime {
   }
 
   registerLifecycle(): void {
+    this.frames.listen();
     const detachControl = registerStopControl(this.pi, (reference) => this.stop(reference, 'user'));
     this.pi.events.on(stopPendingEvent, (payload) => {
       if (stopPendingFor(payload, this.agentId)) this.selfStopPending = true;
@@ -275,6 +285,7 @@ export class WorkerRuntime {
       await completion;
     } finally {
       if (owner === this.generation) {
+        this.frames.attach(ctx.sessionManager.getSessionId());
         const branch = ctx.sessionManager.getBranch();
         this.invocations.restore(branch);
         const appended = branch.findLast((entry) => entry.type === 'custom' && entry.customType === 'pstack-append-subagent-system-prompt');
@@ -344,7 +355,7 @@ export class WorkerRuntime {
       if (previous) await this.close(previous.session);
       signal = this.checkStartup(owner, signal, params.run_in_background !== false);
       const worker = this.launch(opened, params, signal, owner, () => ctx.isIdle(), onUpdate, launch);
-      this.publishStart(opened.record, prior, launch);
+      this.publishStart(opened.record, prior, launch, params);
       launch?.onStarted?.();
       const record = params.run_in_background === false ? await this.foreground(callId, worker) : this.records.get(id);
       if (!record) throw new Error(`Failed to create task record for ${id}`);
@@ -364,7 +375,8 @@ export class WorkerRuntime {
     }
   }
 
-  private publishStart(record: TaskRecord, prior: TaskRecord | undefined, launch: AgentLaunch | undefined): void {
+  private publishStart(record: TaskRecord, prior: TaskRecord | undefined, launch: AgentLaunch | undefined, params: TaskParameters): void {
+    this.frames.emit(startedBody(record, params.prompt, prior !== undefined || params.run_in_background !== false));
     if (prior) return;
     if (!launch) {
       this.stats.spawn(record.depth ?? this.depth + 1);
@@ -488,13 +500,12 @@ export class WorkerRuntime {
           },
         )
       : undefined;
-    const observe: AgentSessionEventListener | undefined =
-      progress || limit
-        ? (event) => {
-            progress?.(event);
-            limit?.(event);
-          }
-        : undefined;
+    const feed = taskFeed(this.frames, record, () => owner === this.generation);
+    const observe: AgentSessionEventListener = (event) => {
+      progress?.(event);
+      limit?.(event);
+      feed(event);
+    };
     const control = workerControl(session, signal, observe, {
       foreground: params.run_in_background === false,
       onAbort: (info) => this.pi.events.emit('pstack:subagent-abort', { agent_id: record.id, ...info }),
@@ -576,6 +587,7 @@ export class WorkerRuntime {
     this.records.set(record.id, finished);
     this.persistFinished(finished);
     this.pi.events.emit('pstack:subagent-settled', { agentId: record.id, status: finished.status });
+    if (finished.status !== 'running') this.frames.emit(updatedBody(record.id, { status: frameStatus(finished.status), end_time: Date.now() }));
     if (params.run_in_background !== false && (!control.stopped() || limited)) this.notifyCompletion(finished, output, parentIdle());
     return finished;
   }
@@ -608,6 +620,7 @@ export class WorkerRuntime {
     const { message, findings } = taskNotification(record, output);
     const flagged = flaggedOutput(record.id, 'notification', findings);
     if (flagged) this.pi.events.emit('pstack:subagent-output-flagged', flagged);
+    this.frames.emit(notificationBody(message.details));
     this.completions.send(record.id, parentIdle, message);
   }
 
@@ -716,7 +729,9 @@ export class WorkerRuntime {
   private notifyStopped(worker: Worker, record: TaskRecord, stoppedBy: StoppedBy): void {
     if (this.stoppedNotifications.has(worker)) return;
     this.stoppedNotifications.add(worker);
-    this.pi.sendMessage(taskNotification(record, '', stoppedBy).message, { triggerTurn: false });
+    const { message } = taskNotification(record, '', stoppedBy);
+    this.frames.emit(notificationBody(message.details));
+    this.pi.sendMessage(message, { triggerTurn: false });
   }
 
   async message(id: string, message: string, mode: 'steer' | 'followUp' | undefined) {
