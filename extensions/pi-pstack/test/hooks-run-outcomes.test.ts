@@ -105,8 +105,16 @@ test.for([
   },
   { name: 'an unknown behavior is no answer', runs: [hookRun({ json: { hookSpecificOutput: { decision: { behavior: 'later' } } } })], expected: undefined },
   { name: 'a hook without a decision is no answer', runs: [hookRun({ json: { hookSpecificOutput: {} } }), hookRun()], expected: undefined },
-  { name: 'a denial from any hook beats an earlier allow', runs: [hookRun({ json: { hookSpecificOutput: { decision: { behavior: 'allow' } } } }), hookRun({ json: { hookSpecificOutput: { decision: { behavior: 'deny', message: 'late' } } } })], expected: { behavior: 'deny', message: 'late' } },
-  { name: 'with no denial the first answer decides', runs: [hookRun({ json: { hookSpecificOutput: { decision: { behavior: 'allow', message: 'first' } } } }), hookRun({ json: { hookSpecificOutput: { decision: { behavior: 'allow', message: 'second' } } } })], expected: { behavior: 'allow', message: 'first' } },
+  {
+    name: 'a denial from any hook beats an earlier allow',
+    runs: [hookRun({ json: { hookSpecificOutput: { decision: { behavior: 'allow' } } } }), hookRun({ json: { hookSpecificOutput: { decision: { behavior: 'deny', message: 'late' } } } })],
+    expected: { behavior: 'deny', message: 'late' },
+  },
+  {
+    name: 'with no denial the first answer decides',
+    runs: [hookRun({ json: { hookSpecificOutput: { decision: { behavior: 'allow', message: 'first' } } } }), hookRun({ json: { hookSpecificOutput: { decision: { behavior: 'allow', message: 'second' } } } })],
+    expected: { behavior: 'allow', message: 'first' },
+  },
 ])('permission answer: $name', ({ runs, expected }) => {
   expect(permissionAnswer(runs)).toEqual(expected);
 });
