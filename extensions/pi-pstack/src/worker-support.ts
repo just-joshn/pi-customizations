@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { mkdir, mkdtemp, readFile, realpath } from 'node:fs/promises';
+import { mkdtemp, readFile, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +9,7 @@ import { type AgentSession, createAgentSession, type createEventBus, DefaultReso
 import { cursorToolNames } from './host.ts';
 import { resolveModel } from './models.ts';
 import { readPersona } from './personas.ts';
+import { agentEnvironment, childStorageDir, createChildTranscript, environmentEntryType, writeAgentMeta } from './subagents/agent-storage.ts';
 import type { AgentDefinition } from './subagents/definitions.ts';
 import { type HandbackContract, handbackExtension, handbackInstruction, handbackUnavailable } from './subagents/handback.ts';
 import { withAgentEffort } from './subagents/effort.ts';
@@ -78,9 +79,7 @@ async function workerDirectory(ctx: ExtensionContext): Promise<string> {
   // An unpersisted parent has no session directory, and a relative one would scatter
   // child transcripts into the working directory.
   if (!manager.getSessionFile()) return mkdtemp(join(tmpdir(), 'pstack-workers-'));
-  const dir = resolve(manager.getSessionDir(), 'pstack-workers', validateId(manager.getSessionId()));
-  await mkdir(dir, { recursive: true });
-  return dir;
+  return childStorageDir(manager.getSessionDir(), manager.getSessionId());
 }
 
 export type AgentLaunch = Readonly<{
@@ -158,9 +157,11 @@ function handbackPrompt(handback: HandbackContract | undefined, prior: TaskRecor
   return prior?.handback ? [handbackUnavailable()] : [];
 }
 
-function openChildTranscript(options: OpenWorker, cwd: string, dir: string, depth: number): { manager: SessionManager; sessionFile: string } {
-  const { id, params, prior, launch, appendedPrompt, agentDefinitions } = options;
-  const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
+async function openChildTranscript(options: OpenWorker, cwd: string, dir: string, depth: number): Promise<{ manager: SessionManager; sessionFile: string }> {
+  const { id, params, prior, launch, appendedPrompt, agentDefinitions, ctx } = options;
+  const path = prior?.sessionFile ?? (await createChildTranscript(cwd, dir, id, ctx.sessionManager.getSessionFile()));
+  const manager = SessionManager.open(path, dir, cwd);
+  if (!prior) manager.appendCustomEntry(environmentEntryType, await agentEnvironment(id, ctx.sessionManager.getSessionId(), cwd));
   const worktree = launch?.worktree?.path ?? prior?.worktreePath ?? prior?.inheritedWorktreePath ?? options.inheritedWorktree;
   saveChildContext(manager, {
     id,
@@ -208,10 +209,11 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
     extensionsOverride: (result) => ({ ...result, extensions: deduplicateExtensions(result.extensions) }),
   });
   const dir = await workerDirectory(ctx);
-  const { manager, sessionFile } = openChildTranscript(options, cwd, dir, depth);
+  const { manager, sessionFile } = await openChildTranscript(options, cwd, dir, depth);
   const { usage: _priorUsage, abort: _priorAbort, toolStats: _priorToolStats, ...saved } = prior ?? {};
   const inheritedWorktree = prior ? undefined : options.inheritedWorktree;
   const record = { ...saved, ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), inheritedWorktree, ...(launch ? { launch } : {}) }), ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}) };
+  await writeAgentMeta(dir, id, { agentType: persona, description: launch?.description ?? prior?.description ?? '', ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}), spawnDepth: depth, requestShape: params.run_in_background === false ? 'foreground' : 'background', requestNonInteractive: !ctx.hasUI });
   const modelRuntime = await childModelRuntime(readonly, selected.model.provider, ctx);
   const tools = readonly ? { tools: ['read', 'grep', 'find', 'ls'] } : onProcessGroup ? { customTools: [trackedBashTool(cwd, onProcessGroup)] } : {};
   const { session } = await createAgentSession({ cwd, modelRuntime, resourceLoader: loader, sessionManager: manager, ...selected, ...tools });
