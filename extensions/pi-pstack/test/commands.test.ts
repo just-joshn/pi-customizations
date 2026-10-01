@@ -308,6 +308,7 @@ test('pstack index entry point wires extension hooks and registers all tools', a
     appendEntry() {},
     getCommands: () => [],
     getAllTools: () => [],
+    getActiveTools: () => [],
   } as unknown as ExtensionAPI;
   await pstackModule.default(pi);
   expect(commands).toContain('poteto-mode');

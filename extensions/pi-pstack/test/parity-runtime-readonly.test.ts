@@ -26,7 +26,7 @@ test('Task offers one readonly boolean and no mode that keeps extension tools', 
 
 test('this package registers write-capable extension tools that declare no read-only hint', () => {
   const tools: ToolDefinition[] = [];
-  const pi = { registerTool: (tool: ToolDefinition) => tools.push(tool), registerCommand() {}, on() {}, appendEntry() {} } as never;
+  const pi = { registerTool: (tool: ToolDefinition) => tools.push(tool), registerCommand() {}, on() {}, appendEntry() {}, events: { on: () => () => {}, emit() {} } } as never;
   for (const register of [registerShells, registerWorkers, registerGoal, registerContext]) register(pi);
   const hints = new Map(tools.map((tool) => [tool.name, tool.annotations?.readOnlyHint === true]));
   expect(hints.get('BackgroundShell')).toBe(false);

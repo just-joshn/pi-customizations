@@ -189,6 +189,7 @@ function indexApi() {
     appendEntry() {},
     getCommands: () => [],
     getAllTools: () => [],
+    getActiveTools: () => [],
   } as unknown as ExtensionAPI;
   return { pi, listeners };
 }
@@ -211,7 +212,6 @@ test('pstack index before_agent_start with enabled and todos', async () => {
         },
       ],
       getEntries: () => [],
-      getSessionId: () => 's',
       getSessionDir: () => '/tmp',
       getSessionFile: () => '/tmp/f.jsonl',
       getSessionId: () => 'index-hook-session',
