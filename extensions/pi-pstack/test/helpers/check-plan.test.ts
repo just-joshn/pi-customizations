@@ -42,18 +42,9 @@ function defaults(): Parts {
   return {
     h1: ['# Demo plan'],
     intro: ['Changes one thing for one user.'],
-    howToRead: [
-      'One box is one unit of work. Every box names the evidence that checks it.',
-      'Check a box only when its evidence exists, a file or a log line.',
-      'The program runs `playbooks/autopilot-full.md`.',
-      RULE,
-    ],
+    howToRead: ['One box is one unit of work. Every box names the evidence that checks it.', 'Check a box only when its evidence exists, a file or a log line.', 'The program runs `playbooks/autopilot-full.md`.', RULE],
     programH3: ['Arm the program', 'Spawn owners', 'PR mechanics', 'Verdict and merge', 'Boot recipe'],
-    programBody: [
-      box('Arm the `/goal` and the 30-minute audit tick.'),
-      box('Read `git show origin/main:path/to/playbook.md` first.'),
-      box('Post a status message only on a tracked change.'),
-    ],
+    programBody: [box('Arm the `/goal` and the 30-minute audit tick.'), box('Read `git show origin/main:path/to/playbook.md` first.'), box('Post a status message only on a tracked change.')],
     prs: [blocks()],
     close: ['## Close the program', '', box('Report the result.')],
     tail: [['## Appendix A. Prototype evidence', '', 'Branch and SHA recorded.']],
@@ -89,7 +80,15 @@ async function run(text: string) {
   const file = join(directory, 'plan.md');
   await writeFile(file, text);
   const result = spawnSync('node', [script, file], { encoding: 'utf8' });
-  return { status: result.status, stdout: result.stdout, problems: result.stderr.trim().split('\n').filter(Boolean).map((line) => line.replace(`${file}:`, '')) };
+  return {
+    status: result.status,
+    stdout: result.stdout,
+    problems: result.stderr
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => line.replace(`${file}:`, '')),
+  };
 }
 
 afterEach(async () => {

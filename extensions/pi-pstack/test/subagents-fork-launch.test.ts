@@ -116,7 +116,11 @@ test('[B39] the fork transcript records its parent attribution', async () => {
     const details = await launchFork(fixture);
     const output = (await fixture.call('TaskOutput', { task_id: details.agentId })) as { details: { sessionFile: string } };
     const transcript = await readFile(output.details.sessionFile, 'utf8');
-    const entry = transcript.split('\n').filter(Boolean).map((line) => JSON.parse(line) as { type: string; customType?: string; data?: unknown }).find((line) => line.customType === 'pstack-fork');
+    const entry = transcript
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as { type: string; customType?: string; data?: unknown })
+      .find((line) => line.customType === 'pstack-fork');
     expect(entry?.data).toMatchObject({ parentSessionId: fixture.session.sessionManager.getSessionId(), tools: expect.any(Array) });
   } finally {
     await fixture.close();

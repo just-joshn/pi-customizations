@@ -6,8 +6,8 @@ import { type TaskRecord, taskEntryType } from '../worker-records.ts';
 import { agentMetaPath } from './agent-storage.ts';
 import { groupNotice, type OrphanNotice, orphanSummary, overflowNotice, restartedNotice, restartFailedNotice, settledNotice, singleNote, unreportedNotice, workerRestartReason } from './orphan-notices.ts';
 import { findOrphans, type Orphan, type OrphanProbe, planRecovery, type Settlement } from './orphan-plan.ts';
-import { notificationBody } from './task-frames.ts';
 import type { SdkEvents } from './sdk-events.ts';
+import { notificationBody } from './task-frames.ts';
 
 type Entry = Readonly<{ type: string; customType?: string; data?: unknown }>;
 export type ResumeHandler = (record: TaskRecord, ctx: ExtensionContext) => Promise<Readonly<{ alreadyCompleted?: true }>>;

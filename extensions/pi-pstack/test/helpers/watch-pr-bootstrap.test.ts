@@ -4,7 +4,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statS
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { installFakeBin, ok, prView, fastCheck, threadsPage, commitsPage, fakeEnv, type FakeBin } from './watch-pr-fakes.test-helper.ts';
+import { commitsPage, type FakeBin, fakeEnv, fastCheck, installFakeBin, ok, prView, threadsPage } from './watch-pr-fakes.test-helper.ts';
 
 const shipped = new URL('../../skills/poteto-mode/scripts', import.meta.url).pathname;
 const scratch = (label: string): string => mkdtempSync(join(tmpdir(), `watch-pr-${label}-`));

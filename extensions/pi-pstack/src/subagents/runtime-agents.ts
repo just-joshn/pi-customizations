@@ -6,7 +6,10 @@ export type RuntimeAgentRegistration = Readonly<{ plugin: string; name: string; 
 
 function asPlugin(definition: AgentDefinition, registration: RuntimeAgentRegistration, warn: (message: string) => void = () => {}): AgentDefinition {
   const { mcpServers, permissionMode, ...rest } = definition;
-  for (const [key, present] of [['mcpServers', mcpServers], ['permissionMode', permissionMode]] as const)
+  for (const [key, present] of [
+    ['mcpServers', mcpServers],
+    ['permissionMode', permissionMode],
+  ] as const)
     if (present !== undefined) warn(`Plugin agent ${registration.plugin}:${registration.name} sets ${key}, which is ignored for plugin agents.`);
   return { ...rest, source: 'plugin', baseDir: 'plugin', plugin: registration.plugin, filename: registration.name, registeredAtRunTime: true };
 }

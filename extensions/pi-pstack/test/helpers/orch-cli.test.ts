@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
-import { baseEnv, cleanDirectories, installGt, makeDirectory, makeRepo, runCli, stackLog, git } from './orch-fixtures.ts';
+
+import { baseEnv, cleanDirectories, git, installGt, makeDirectory, makeRepo, runCli, stackLog } from './orch-fixtures.ts';
 
 const cli = (store: string, ...args: string[]) => runCli(['--store', store, ...args]);
 const ok = (store: string, ...args: string[]) => {

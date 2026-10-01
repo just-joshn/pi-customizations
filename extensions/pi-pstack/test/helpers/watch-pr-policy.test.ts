@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 
-import { failedCheck, fakeReader, passingCheck, pendingCheck, type FakeReaderOptions } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
+import { type FakeReaderOptions, failedCheck, fakeReader, passingCheck, pendingCheck } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
 import { ChecksUnavailable, WatcherQueryError } from '../../skills/poteto-mode/scripts/watch-pr/github.ts';
 import {
   applyQueueSnapshot,
@@ -9,28 +9,15 @@ import {
   createQueueState,
   evaluateQueue,
   planQueue,
+  type QueueState,
   readSnapshot,
   runQueued,
   runSimple,
   selectTierMajorStackDecision,
-  type QueueState,
   type WatchClock,
 } from '../../skills/poteto-mode/scripts/watch-pr/policy.ts';
 import { renderStatusTable } from '../../skills/poteto-mode/scripts/watch-pr/render.ts';
-import type {
-  Check,
-  GitHubReader,
-  NonEmpty,
-  PollingOptions,
-  MergeBlocker,
-  PrContext,
-  PrNumber,
-  PrSnapshot,
-  ProgressVerdict,
-  PullRequestFacts,
-  ReviewThread,
-  RollupState,
-} from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
+import type { Check, GitHubReader, MergeBlocker, NonEmpty, PollingOptions, PrContext, PrNumber, ProgressVerdict, PrSnapshot, PullRequestFacts, ReviewThread, RollupState } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 
 const at = (n: number): PrContext => ({ owner: 'owner', repo: 'repo', number: parsePrNumber(n) });
@@ -151,28 +138,40 @@ test('runQueued blocks with merge-gate closed-without-merge exit 6 when the fron
 
 test('runQueued ends in BLOCKER exit 7 after the query-error budget is exhausted', async () => {
   const h = harness();
-  const reader = { ...fakeReader(), async pullRequest(): Promise<PullRequestFacts> {
-    throw new WatcherQueryError({ kind: 'command-exit', retryable: true, code: 1, detail: 'boom' });
-  } };
+  const reader = {
+    ...fakeReader(),
+    async pullRequest(): Promise<PullRequestFacts> {
+      throw new WatcherQueryError({ kind: 'command-exit', retryable: true, code: 1, detail: 'boom' });
+    },
+  };
   const verdict = await runQueued({ dependencies: deps(h, reader), contexts: queue(1), options: { ...base, maxQueryErrors: 2 } });
   expect(verdict).toMatchObject({ kind: 'BLOCKER', exitCode: 7, blocker: { kind: 'status-query', failures: 2 } });
   expect(kinds(h.events)).toEqual(['QUEUE', 'RETRY']);
 });
 
 test('evaluateQueue completes with every merged row when no active rows remain', async () => {
-  const state = await queueState([[1, MERGED], [2, MERGED]]);
+  const state = await queueState([
+    [1, MERGED],
+    [2, MERGED],
+  ]);
   const evaluation = evaluateQueue(state, 0, base);
   expect(evaluation.kind).toBe('complete');
   expect(evaluation.kind === 'complete' && evaluation.merged.map((m) => m.context.number)).toEqual([parsePrNumber(1), parsePrNumber(2)]);
 });
 
 test('evaluateQueue returns the tier-major blocker found among the active rows', async () => {
-  const state = await queueState([[1, {}], [2, { mergeable: 'CONFLICTING' }]]);
+  const state = await queueState([
+    [1, {}],
+    [2, { mergeable: 'CONFLICTING' }],
+  ]);
   expect(evaluateQueue(state, 0, base)).toMatchObject({ kind: 'blocker', blocker: { kind: 'merge-conflicts', pr: { number: 2 } } });
 });
 
 test('evaluateQueue times out at exactly the deadline with the frontier and the unmerged count', async () => {
-  const state = await queueState([[1, {}], [2, {}]]);
+  const state = await queueState([
+    [1, {}],
+    [2, {}],
+  ]);
   expect(evaluateQueue(state, 10, { ...base, timeout: 10 })).toMatchObject({ kind: 'timeout', frontier: { number: 1 }, unmergedCount: 2 });
   expect(evaluateQueue(state, 9, { ...base, timeout: 10 }).kind).toBe('waiting');
 });
@@ -191,12 +190,19 @@ test('evaluateQueue keys a pending frontier wait by PR and pending count and emi
 
 test('evaluateQueue ignores upstack pending checks and waits on merge-queue for a clean frontier', async () => {
   const pending = { fastPath: { kind: 'checks', checks: [pendingCheck('up')] } } as const;
-  const state = await queueState([[1, {}], [2, {}, pending]]);
+  const state = await queueState([
+    [1, {}],
+    [2, {}, pending],
+  ]);
   expect(evaluateQueue(state, 0, base)).toMatchObject({ kind: 'waiting', reason: { kind: 'merge-queue', unmergedCount: 2 }, frontier: { number: 1 } });
 });
 
 test('planQueue sweeps only the PRs not yet known to be merged', async () => {
-  const state = await queueState([[1, MERGED], [2, {}], [3, {}]]);
+  const state = await queueState([
+    [1, MERGED],
+    [2, {}],
+    [3, {}],
+  ]);
   const planned = planQueue({ ...state, nextSweepAt: 5 }, 5);
   expect(planned.work).toMatchObject({ kind: 'whole-stack-sweep' });
   expect(planned.work?.kind === 'whole-stack-sweep' && planned.work.remaining.map((c) => c.number)).toEqual([parsePrNumber(2), parsePrNumber(3)]);
@@ -257,8 +263,7 @@ test('classifyPr treats a draft as a gate unless allowDraft is set and records d
 });
 
 test('classifyPr treats REVIEW_REQUIRED and a null review decision as a wait, not a gate', async () => {
-  for (const reviewDecision of ['REVIEW_REQUIRED', null] as const)
-    expect(classifyPr(await open({ reviewDecision })).kind).toBe('ready');
+  for (const reviewDecision of ['REVIEW_REQUIRED', null] as const) expect(classifyPr(await open({ reviewDecision })).kind).toBe('ready');
 });
 
 test('readSnapshot reads a non-null mergedAt as merged even when state says OPEN', async () => {
@@ -417,7 +422,13 @@ test('a zero-check PR whose deadline passes after one reading times out with the
 test('a zero-check PR with no head SHA never confirms and never reaches READY', async () => {
   const h = harness();
   const reader = zeroReader([{ sha: 'a' }]);
-  const unknownHead: GitHubReader = { ...reader, async pullRequest(context) { h.advance(40); return { ...(await reader.pullRequest(context)), headRefOid: null }; } };
+  const unknownHead: GitHubReader = {
+    ...reader,
+    async pullRequest(context) {
+      h.advance(40);
+      return { ...(await reader.pullRequest(context)), headRefOid: null };
+    },
+  };
   const verdict = await runSimple({ dependencies: deps(h, unknownHead), contexts: [at(1)], mode: 'single', statusOnly: false, options: { ...base, timeout: 30 } });
   expect(verdict).toMatchObject({ kind: 'TIMEOUT', exitCode: 5, reason: { kind: 'no-checks-unconfirmed' } });
 });
@@ -452,8 +463,7 @@ function sequenceChecks(steps: Check[][], reader = fakeReader()): GitHubReader {
     },
   };
 }
-const single = (h: Harness, reader: GitHubReader, options: Partial<PollingOptions> = {}) =>
-  runSimple({ dependencies: deps(h, reader), contexts: [at(1)], mode: 'single', statusOnly: false, options: { ...base, ...options } });
+const single = (h: Harness, reader: GitHubReader, options: Partial<PollingOptions> = {}) => runSimple({ dependencies: deps(h, reader), contexts: [at(1)], mode: 'single', statusOnly: false, options: { ...base, ...options } });
 
 test('runSimple emits WAITING pending-checks, sleeps the interval, refetches, then returns READY scope single', async () => {
   const h = harness();
@@ -522,8 +532,7 @@ function stackReader(upstackSteps: Check[][]): GitHubReader {
     },
   };
 }
-const stack = (h: Harness, reader: GitHubReader) =>
-  runSimple({ dependencies: deps(h, reader), contexts: queue(1, 2), mode: 'stack', statusOnly: false, options: base });
+const stack = (h: Harness, reader: GitHubReader) => runSimple({ dependencies: deps(h, reader), contexts: queue(1, 2), mode: 'stack', statusOnly: false, options: base });
 
 test('runSimple in stack mode emits a poll STATUS and a WAITING on every poll, then READY scope stack when clear', async () => {
   const h = harness();

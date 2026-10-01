@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
 import { openStore, type Store } from '../../skills/poteto-mode/scripts/orch/store.ts';
-import { baseEnv, cleanDirectories, git, installGh, installGit, installGt, makeDirectory, makeRepo, runCli, stackLog, type GtFixture } from './orch-fixtures.ts';
+import { baseEnv, cleanDirectories, type GtFixture, git, installGh, installGit, installGt, makeDirectory, makeRepo, runCli, stackLog } from './orch-fixtures.ts';
 
 const handles: Store[] = [];
 const sha = (char: string) => char.repeat(40);

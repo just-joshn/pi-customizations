@@ -9,16 +9,10 @@ export default [
       ],
       [
         'const BOX = /^\\s*- \\[[ x]\\] (.*)$/;\n',
-        'const BOX = /^\\s*- \\[[ x]\\] (.*)$/;\n' +
-          'const FENCE = /^ {0,3}(`{3,})(.*)$/;\n' +
-          'const LABEL = /^\\s*(?:[-*+] )?(?:\\[[ x]\\] )?\\*{0,2}[A-Za-z][\\w-]*(?: [\\w-]+){0,2}\\*{0,2}:\\*{0,2} /;\n',
+        'const BOX = /^\\s*- \\[[ x]\\] (.*)$/;\n' + 'const FENCE = /^ {0,3}(`{3,})(.*)$/;\n' + 'const LABEL = /^\\s*(?:[-*+] )?(?:\\[[ x]\\] )?\\*{0,2}[A-Za-z][\\w-]*(?: [\\w-]+){0,2}\\*{0,2}:\\*{0,2} /;\n',
         'Add fence and leading-label patterns for the prose checks.',
       ],
-      [
-        'let fence = false;\n',
-        'let fence = null;\n',
-        'Track the opening fence length instead of a boolean.',
-      ],
+      ['let fence = false;\n', 'let fence = null;\n', 'Track the opening fence length instead of a boolean.'],
       [
         '\tif (/^```/.test(text)) fence = !fence;\n\tlines.push({ n, text, code: fence });\n\tif (fence) continue;\n',
         '\tconst marker = FENCE.exec(text);\n' +
@@ -32,12 +26,7 @@ export default [
           '\tif (code) continue;\n',
         'Close a fence only with a marker at least as long as the opener, and allow up to three spaces of indentation.',
       ],
-      [
-        '\t\t.replace(/\\]\\([^)]*\\)/g, "]");\n',
-        '\t\t.replace(/\\]\\([^)]*\\)/g, "]")\n' +
-          '\t\t.replace(LABEL, "");\n',
-        'Exempt a leading `Label: value` colon from the mid-sentence colon rule.',
-      ],
+      ['\t\t.replace(/\\]\\([^)]*\\)/g, "]");\n', '\t\t.replace(/\\]\\([^)]*\\)/g, "]")\n' + '\t\t.replace(LABEL, "");\n', 'Exempt a leading `Label: value` colon from the mid-sentence colon rule.'],
     ],
   },
 ];

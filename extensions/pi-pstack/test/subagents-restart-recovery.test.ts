@@ -76,10 +76,26 @@ function stubSession() {
   const entries: TaskRecord[] = [];
   const frames: Record<string, unknown>[] = [];
   const events = createEventBus();
-  const pi = { events, getFlag: () => undefined, appendEntry: (type: string, data: unknown) => (type === 'pstack-task' ? entries.push(data as TaskRecord) : frames.push(data as Record<string, unknown>)), sendMessage: (message: (typeof sent)[number]) => sent.push(message) };
+  const pi = {
+    events,
+    getFlag: () => undefined,
+    appendEntry: (type: string, data: unknown) => (type === 'pstack-task' ? entries.push(data as TaskRecord) : frames.push(data as Record<string, unknown>)),
+    sendMessage: (message: (typeof sent)[number]) => sent.push(message),
+  };
   const sdk = new SdkEvents(pi as never);
   sdk.attach('owner-session');
-  const lost = (id: string): TaskRecord => ({ id, persona: 'general-purpose', cwd: '/w', readonly: false, sessionFile: `/nowhere/agent-${id}.jsonl`, outputFile: '/nowhere/o.txt', status: 'running', output: '', description: `job ${id}`, requestShape: 'background' });
+  const lost = (id: string): TaskRecord => ({
+    id,
+    persona: 'general-purpose',
+    cwd: '/w',
+    readonly: false,
+    sessionFile: `/nowhere/agent-${id}.jsonl`,
+    outputFile: '/nowhere/o.txt',
+    status: 'running',
+    output: '',
+    description: `job ${id}`,
+    requestShape: 'background',
+  });
   const run = (ids: string[]) => reconcileOrphans({ pi: pi as never, frames: sdk, ctx: {} as never, branch: ids.map((id) => ({ type: 'custom', customType: 'pstack-task', data: lost(id) })), resume: undefined, canRead: false });
   return { sent, entries, frames, run };
 }
