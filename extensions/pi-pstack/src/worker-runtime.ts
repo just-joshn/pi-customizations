@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 
 import type { JsonValue, Usage } from '@earendil-works/pi-ai';
-import type { AgentSession, AgentSessionEvent, AgentSessionEventListener, AgentToolResult, AgentToolUpdateCallback, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { AgentSession, AgentSessionEvent, AgentSessionEventListener, AgentToolResult, AgentToolUpdateCallback, createEventBus, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from './deferred-wakes.ts';
 import { depthMessage } from './subagents/admission.ts';
 import { currentDepth, depthStore } from './subagents/context.ts';
@@ -10,17 +10,24 @@ import { SessionDepthPolicy } from './subagents/depth-policy.ts';
 import { validateId } from './subagents/identifiers.ts';
 import { AgentInvocations } from './subagents/invocations.ts';
 import { memoryEnabled } from './subagents/memory.ts';
+import { childStatsEvents } from './subagents/nested-depth.ts';
+import { groupSpawned, ProcessGroups, processGroupEvent } from './subagents/process-groups.ts';
 import { AgentPreconditionError } from './subagents/precondition-error.ts';
+import type { ContinuationState } from './subagents/continuation.ts';
+import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
 import { SubagentStats, type SubagentStatsDelta } from './subagents/stats.ts';
+import { settleWithin, stillStoppingMessage, stopPendingDetails } from './subagents/stop-deadline.ts';
 import { registerStopControl } from './subagents/stop-control.ts';
+import { stopPendingEvent, stopPendingFor } from './subagents/stop-pending.ts';
 import { applyToolPolicy } from './subagents/tool-pool.ts';
 import { countToolStats } from './subagents/tool-stats.ts';
 import { turnLimit } from './subagents/turn-limit.ts';
-import { launchSignal, workerControl } from './worker-control.ts';
+import { launchSignal, overdueAfterMs, workerControl } from './worker-control.ts';
 import { restoreTaskRecords, type TaskParameters, type TaskRecord, taskEntryType, taskOutputLimit, taskSummary } from './worker-records.ts';
 import { type AgentLaunch, openWorkerSession, sumUsage } from './worker-support.ts';
 
-type Worker = { readonly session: AgentSession; readonly completion: Promise<TaskRecord>; readonly stop: ReturnType<typeof workerControl>['stop']; readonly drain: () => Promise<string[]> };
+type ChildChannel = Readonly<{ events: ReturnType<typeof createEventBus>; groups: ProcessGroups }>;
+type Worker = ChildChannel & { readonly id: string; readonly session: AgentSession; readonly completion: Promise<TaskRecord>; readonly stop: ReturnType<typeof workerControl>['stop']; readonly drain: () => Promise<string[]> };
 type StartupOutcome = { error: unknown } | undefined;
 type Lifecycle = { kind: 'active' } | { kind: 'stopped' } | { kind: 'stopping'; completion: Promise<void> };
 type SafeToolName = string & { readonly __brand: 'SafeToolName' };
@@ -93,6 +100,8 @@ export class WorkerRuntime {
   private claimedUsage = new WeakSet<TaskRecord>();
   private stoppedNotifications = new WeakSet<Worker>();
   private lifecycle: Lifecycle = { kind: 'stopped' };
+  private stopping: ReadonlySet<string> = new Set();
+  private selfStopPending = false;
   private closing = new WeakMap<AgentSession, Promise<void>>();
   private readonly completions: DeferredWakes;
   depth = currentDepth();
@@ -122,8 +131,27 @@ export class WorkerRuntime {
     return [...this.records.values()];
   }
 
+  stopPending(): boolean {
+    return this.selfStopPending;
+  }
+
+  continuationState(id: string): ContinuationState {
+    return { inFlight: this.starting.has(id), stopping: this.stopping.has(id), resumerStopping: this.selfStopPending };
+  }
+
+  settleCompleted(id: string, output: string): void {
+    const record = this.records.get(id);
+    if (!record) throw new Error(`Unknown task in this branch: ${id}`);
+    const { abort: _abort, ...settled } = { ...record, status: 'settled' as const, output: output.slice(0, taskOutputLimit) };
+    this.records.set(id, settled);
+    this.pi.appendEntry(taskEntryType, structuredClone(settled));
+  }
+
   registerLifecycle(): void {
     const detachControl = registerStopControl(this.pi, (reference) => this.stop(reference));
+    this.pi.events.on(stopPendingEvent, (payload) => {
+      if (stopPendingFor(payload, this.agentId)) this.selfStopPending = true;
+    });
     this.pi.on('tool_result', (event) => {
       if (event.toolName !== 'Task') return;
       const usage = this.failedUsage.get(event.toolCallId);
@@ -191,16 +219,7 @@ export class WorkerRuntime {
               if (outcome) throw outcome.error;
             }),
           ),
-          ...current.map(async (worker) => {
-            await worker.completion;
-            const failures = await worker.drain();
-            try {
-              await this.close(worker.session);
-            } catch (error) {
-              failures.push(String(error));
-            }
-            if (failures.length) throw new AggregateError(failures, failures.join('; '));
-          }),
+          ...current.map((worker) => this.shutdownWorker(worker)),
         ]);
         const failures = outcomes.filter((outcome) => outcome.status === 'rejected');
         if (failures.length)
@@ -214,6 +233,21 @@ export class WorkerRuntime {
       });
     this.lifecycle = { kind: 'stopping', completion };
     return completion;
+  }
+
+  private async shutdownWorker(worker: Worker): Promise<void> {
+    const outcome = await settleWithin(worker.completion, overdueAfterMs);
+    if (!outcome.settled) {
+      worker.groups.killAll();
+      throw new Error(stillStoppingMessage(worker.id));
+    }
+    const failures = await worker.drain();
+    try {
+      await this.close(worker.session);
+    } catch (error) {
+      failures.push(String(error));
+    }
+    if (failures.length) throw new AggregateError(failures, failures.join('; '));
   }
 
   private async restore(ctx: ExtensionContext): Promise<void> {
@@ -344,19 +378,32 @@ export class WorkerRuntime {
     return typeof configured === 'string' ? configured : this.inheritedDefinitions;
   }
 
-  private openChild(input: Parameters<typeof openWorkerSession>[0]): ReturnType<typeof openWorkerSession> {
+  private async openChild(input: Parameters<typeof openWorkerSession>[0]): Promise<Awaited<ReturnType<typeof openWorkerSession>> & ChildChannel> {
     const depth = input.prior?.depth ?? this.depth + 1;
     const owner = this.generation;
-    return depthStore.run(depth, () =>
+    const channel = this.childChannel(input.id, owner);
+    const opened = await depthStore.run(depth, () =>
       openWorkerSession({
         ...input,
         depth,
-        onNestedStats: (change) => this.observeStats(owner, change),
+        events: channel.events,
+        onProcessGroup: (pid) => channel.groups.add({ pid }),
         log: (message) => this.pi.events.emit('pstack:subagent-log', message),
         appendedPrompt: this.childPrompt(),
         agentDefinitions: this.agentDefinitions(),
       }),
     );
+    return { ...opened, ...channel };
+  }
+
+  private childChannel(id: string, owner: number): ChildChannel {
+    const events = childStatsEvents((change) => this.observeStats(owner, change));
+    const groups = new ProcessGroups(id, (spawned) => this.pi.events.emit(processGroupEvent, spawned));
+    events.on(processGroupEvent, (payload) => {
+      const spawned = groupSpawned(payload);
+      if (spawned) groups.add(spawned);
+    });
+    return { events, groups };
   }
 
   private observeStats(owner: number, change: SubagentStatsDelta): void {
@@ -383,7 +430,7 @@ export class WorkerRuntime {
     throw new Error(taskSummary(record));
   }
 
-  private launch(opened: Awaited<ReturnType<typeof openWorkerSession>>, params: TaskParameters, signal: AbortSignal | undefined, owner: number, parentIdle: () => boolean, onUpdate: TaskUpdate | undefined, agent?: AgentLaunch): Worker {
+  private launch(opened: Awaited<ReturnType<WorkerRuntime['openChild']>>, params: TaskParameters, signal: AbortSignal | undefined, owner: number, parentIdle: () => boolean, onUpdate: TaskUpdate | undefined, agent?: AgentLaunch): Worker {
     const { session, modelsUsed } = opened;
     const usage = this.records.get(opened.record.id)?.usage;
     const record: TaskRecord = { ...opened.record, ...(usage ? { usage } : {}) };
@@ -410,9 +457,10 @@ export class WorkerRuntime {
       onAbort: (info) => this.pi.events.emit('pstack:subagent-abort', { agent_id: record.id, ...info }),
       taskId: record.id,
       log: (message) => this.pi.events.emit('pstack:subagent-log', message),
+      killGroups: () => opened.groups.killAll(),
     });
     const completion = this.complete({ session, record, modelsUsed }, params, owner, control, parentIdle, !agent && !params.resume);
-    const worker: Worker = { session, completion, stop: control.stop, drain: control.drain };
+    const worker: Worker = { id: record.id, session, completion, stop: control.stop, drain: control.drain, events: opened.events, groups: opened.groups };
     this.workers.set(record.id, worker);
     return worker;
   }
@@ -570,8 +618,14 @@ export class WorkerRuntime {
     }
     const owner = this.generation;
     const wasRunning = target?.status === 'running';
+    if (wasRunning) this.markStopping(target.id, worker);
     worker.stop();
-    const record = await worker.completion;
+    const outcome = await settleWithin(worker.completion, overdueAfterMs);
+    if (!outcome.settled) {
+      const details = stopPendingDetails(target);
+      return { content: [{ type: 'text' as const, text: details.message }], details, structuredContent: details, isError: false };
+    }
+    const record = outcome.value;
     if (wasRunning && owner === this.generation) this.notifyStopped(worker, record);
     const result = this.result(record, owner);
     const details = {
@@ -584,6 +638,16 @@ export class WorkerRuntime {
     return { ...result, details, structuredContent: details as unknown as JsonValue };
   }
 
+  private markStopping(id: string, worker: Worker): void {
+    if (this.stopping.has(id)) return;
+    this.stopping = new Set([...this.stopping, id]);
+    worker.events.emit(stopPendingEvent, { agentId: id });
+    const clear = () => {
+      this.stopping = new Set([...this.stopping].filter((stopping) => stopping !== id));
+    };
+    void worker.completion.then(clear, clear);
+  }
+
   private notifyStopped(worker: Worker, record: TaskRecord): void {
     if (this.stoppedNotifications.has(worker)) return;
     this.stoppedNotifications.add(worker);
@@ -593,6 +657,7 @@ export class WorkerRuntime {
 
   async message(id: string, message: string, mode: 'steer' | 'followUp' | undefined) {
     const worker = this.workers.get(id);
+    if (this.stopping.has(id)) throw new ResumeError('still_stopping', resumeMessages.targetStopping(id));
     if (!worker || this.records.get(id)?.status !== 'running') throw new Error('Task is not running. Use Task with resume.');
     if (mode === 'steer') await worker.session.steer(message);
     else await worker.session.followUp(message);

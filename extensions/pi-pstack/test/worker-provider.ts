@@ -37,6 +37,9 @@ function directCalls(text: string): ToolCall[] {
   if (text.includes('SELF_ABORT')) return [{ type: 'toolCall', id: 'self-abort', name: 'self_abort', arguments: {} }];
   if (text.includes('TOOL_STATS') || text.includes('TOOL_COUNTS') || text.includes('TOOL_CATEGORIES')) return statisticsCalls(text);
   if (text.includes('READ_ONLY_POLICY')) return [{ type: 'toolCall', id: 'read-only-policy', name: 'SelectReadOnly', arguments: {} }];
+  if (text.includes('AWAIT_STOP_PENDING')) return [{ type: 'toolCall', id: 'await-stop-pending', name: 'await_stop_pending', arguments: {} }];
+  if (text.includes('BASH_SLEEP')) return [{ type: 'toolCall', id: 'bash-sleep', name: 'bash', arguments: { command: 'sleep 30' } }];
+  if (text.includes('BG_SHELL_SLEEP')) return [{ type: 'toolCall', id: 'bg-shell-sleep', name: 'BackgroundShell', arguments: { command: 'sleep 30', title: 'keepalive probe' } }];
   if (text.includes('MODEL_SEQUENCE')) return ['one', 'two'].map((id) => ({ type: 'toolCall', id: `model-${id}`, name: 'SwitchTestModel', arguments: { model: 'alternate' } }));
   return [];
 }
@@ -171,7 +174,30 @@ function streamWorker(model: StreamArguments[0], context: StreamArguments[1], op
   return stream;
 }
 
+function registerStopPendingProbe(pi: ExtensionAPI): void {
+  pi.registerTool({
+    name: 'await_stop_pending',
+    label: 'Await stop pending',
+    description: 'Block, ignoring abort, until this agent is told its stop is pending.',
+    parameters: Type.Object({}),
+    execute: async () => {
+      const audit = join(getAgentDir(), 'audit.txt');
+      appendFileSync(audit, 'await-stop-pending-start\n');
+      const seen = await new Promise<string>((resolve) => {
+        const timer = setTimeout(resolve, workerTiming.settlementDeadlineMs, 'timeout');
+        pi.events.on('pstack:subagent-stop-pending', (payload) => {
+          clearTimeout(timer);
+          resolve((payload as { agentId: string }).agentId);
+        });
+      });
+      appendFileSync(audit, `stop-pending:${seen}\n`);
+      return { content: [{ type: 'text', text: `stop pending ${seen}` }], details: {} };
+    },
+  });
+}
+
 export default function workerProvider(pi: ExtensionAPI): void {
+  registerStopPendingProbe(pi);
   pi.registerTool({
     name: 'self_abort',
     label: 'Abort test self',

@@ -38,6 +38,7 @@ test('unknown shell output leaves the started shell list untouched', async () =>
       listeners[event].push(handler);
     },
     sendMessage: () => {},
+    events: { emit: () => {}, on: () => () => {} },
   } as unknown as ExtensionAPI;
   registerShells(pi);
   const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-'));
@@ -71,6 +72,7 @@ test('registerShells stops a started shell on request', async () => {
       listeners[event].push(handler);
     },
     sendMessage: () => {},
+    events: { emit: () => {}, on: () => () => {} },
   } as unknown as ExtensionAPI;
   registerShells(pi);
   const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-'));
@@ -107,6 +109,7 @@ test('session_shutdown stops every running shell', async () => {
       listeners[event].push(handler);
     },
     sendMessage: () => {},
+    events: { emit: () => {}, on: () => () => {} },
   } as unknown as ExtensionAPI;
   registerShells(pi);
   const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-'));
@@ -140,6 +143,7 @@ test('a second session lists no shells from the session before it', async () => 
       listeners[event].push(handler);
     },
     sendMessage: () => {},
+    events: { emit: () => {}, on: () => () => {} },
   } as unknown as ExtensionAPI;
   registerShells(pi);
   const scratch = await mkdtemp(join(tmpdir(), 'pstack-shells-rotated-'));

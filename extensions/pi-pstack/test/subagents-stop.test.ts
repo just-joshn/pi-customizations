@@ -18,19 +18,57 @@ function stubborn() {
   return { session, calls };
 }
 
-test('an unsettled worker requests disposal at 10000ms and permits another stop at 30000ms', async () => {
+test('an unsettled worker is re-aborted, its process groups killed and its session disposed at 10000ms, and may be stopped again at 30000ms', async () => {
   const { session, calls } = stubborn();
   const logs: string[] = [];
-  const control = workerControl(session, undefined, undefined, { taskId: 't1', log: (message) => logs.push(message) });
+  const killGroups = vi.fn(() => 2);
+  const control = workerControl(session, undefined, undefined, { taskId: 't1', log: (message) => logs.push(message), killGroups });
   control.stop();
   await vi.advanceTimersByTimeAsync(9999);
   expect(logs).toEqual([]);
+  expect(killGroups).not.toHaveBeenCalled();
   await vi.advanceTimersByTimeAsync(1);
-  expect(logs).toEqual(['killEscalation: task t1 still unsettled 10000ms after stop; requesting session disposal']);
+  expect(logs).toEqual(['killEscalation: task t1 still unsettled 10000ms after kill; killed process groups of 2 agent(s)']);
+  expect(killGroups).toHaveBeenCalledTimes(1);
   expect(calls.dispose).toBe(1);
   await vi.advanceTimersByTimeAsync(20000);
   expect(logs[1]).toBe('killEscalation: task t1 loop never settled after kill — record retained as its stop handle; TaskStop re-fires, session restart is the final recovery');
   control.stop();
+  await control.drain();
+  expect(calls.abort).toBe(3);
+  control.unsubscribe();
+});
+
+test('a stale escalation from a settled run never touches the replacement run', async () => {
+  const first = stubborn();
+  const replacement = stubborn();
+  const killFirst = vi.fn(() => 1);
+  const killReplacement = vi.fn(() => 1);
+  const stopped = workerControl(first.session, undefined, undefined, { taskId: 'same', log: () => {}, killGroups: killFirst });
+  stopped.stop();
+  stopped.unsubscribe();
+  const next = workerControl(replacement.session, undefined, undefined, { taskId: 'same', log: () => {}, killGroups: killReplacement });
+  await vi.advanceTimersByTimeAsync(30000);
+  expect({ first: first.calls.dispose, replacement: replacement.calls.dispose, killedFirst: killFirst.mock.calls.length, killedReplacement: killReplacement.mock.calls.length }).toEqual({ first: 0, replacement: 0, killedFirst: 0, killedReplacement: 0 });
+  next.unsubscribe();
+});
+
+test('a turn that starts after a stop is aborted again', async () => {
+  let listener: (event: { type: string }) => void = () => {};
+  const calls = { abort: 0 };
+  const session = {
+    abort: async () => {
+      calls.abort += 1;
+    },
+    dispose: () => {},
+    subscribe: (observe: typeof listener) => {
+      listener = observe;
+      return () => {};
+    },
+  } as never;
+  const control = workerControl(session, undefined, undefined, { taskId: 'race', log: () => {} });
+  control.stop();
+  listener({ type: 'agent_start' });
   await control.drain();
   expect(calls.abort).toBe(2);
   control.unsubscribe();

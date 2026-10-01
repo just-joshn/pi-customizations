@@ -49,6 +49,7 @@ function registerControlTools(pi: ExtensionAPI, runtime: WorkerRuntime): void {
     outputSchema: Type.Union([
       Type.Intersect([TaskRecordSchema, Type.Object({ message: Type.String(), task_id: Type.String(), task_type: Type.Literal('local_agent'), command: Type.String() })]),
       Type.Object({ status: Type.Literal('failed'), task_id: Type.String(), message: Type.String() }),
+      Type.Object({ status: Type.Literal('stop_pending'), task_id: Type.String(), message: Type.String(), task_type: Type.Literal('local_agent'), command: Type.String() }),
     ]),
     exposure: 'direct',
     annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: false },

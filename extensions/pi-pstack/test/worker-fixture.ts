@@ -94,7 +94,15 @@ export async function workerFixture(options: { retry?: boolean; flags?: Readonly
       const context = activeSession.extensionRunner.createToolContext(`test-${name}`, signal);
       return tool.definition.execute(`test-${name}`, params, signal, onUpdate, busy ? { ...context, isIdle: () => false } : context);
     }
-    return { dir, session, eventBus, call, close, normalizedTypes, subagentLogs, modelResolutions, subagentStats };
+    async function command(name: string, args: string): Promise<ReadonlyArray<{ message: string; level: string | undefined }>> {
+      const registered = activeSession.extensionRunner.getCommand(name);
+      if (!registered) throw new Error(`command ${name} not found`);
+      const notes: { message: string; level: string | undefined }[] = [];
+      const context = activeSession.extensionRunner.createCommandContext();
+      await registered.handler(args, { ...context, ui: { ...context.ui, notify: (message: string, level?: string) => notes.push({ message, level }) } });
+      return notes;
+    }
+    return { dir, session, eventBus, call, command, close, normalizedTypes, subagentLogs, modelResolutions, subagentStats };
   } catch (error) {
     await close();
     throw error;

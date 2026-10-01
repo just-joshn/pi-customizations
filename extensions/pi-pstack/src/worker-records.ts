@@ -32,6 +32,8 @@ export const TaskRecordSchema = Type.Object({
   worktreePath: Type.Optional(Type.String()),
   worktreeBranch: Type.Optional(Type.String()),
   worktreeRepoRoot: Type.Optional(Type.String()),
+  worktreeBaseCommit: Type.Optional(Type.String()),
+  inheritedWorktreePath: Type.Optional(Type.String()),
   description: Type.Optional(Type.String()),
   depth: Type.Optional(Type.Integer({ minimum: 1 })),
   toolUseCount: Type.Optional(Type.Integer({ minimum: 0 })),
