@@ -57,6 +57,12 @@ Use a fresh output directory to preserve prior evidence:
 node extensions/pi-pstack/scripts/verify-skill-reload-tui.mjs "$(mktemp -d /tmp/pstack-skill-reload-evidence-XXXXXX)"
 ```
 
+The maintained canvas browser harness uses isolated local Google Chrome on macOS and the source canvas template, stylesheet, and renderer. It opens a decoy tab, selects the known local file URL, checks a positive app marker, tests no-match diagnostics, captures fresh before/after screenshots, and dispatches actual mouse input. Nine checks pass, including paths containing spaces, `#`, and `%`. The tab-order counterfactual fails. It preserves new output rather than overwriting an existing canvas fixture.
+
+```sh
+node extensions/pi-pstack/scripts/verify-canvas-browser.mjs "$(mktemp -d /tmp/pstack-canvas-evidence-XXXXXX)"
+```
+
 The public Origin installer was downloaded from the source skill's HTTPS URL and read before execution. It installs successfully into isolated HOME/install/bin directories. The installed CLI reports `2026.09.24-20-34-11-8ed25e0`; version and help commands succeed. With a fixture transport serving a corrupt archive, the unchanged installer rejects SHA-256 mismatch before creating the binary entry. Login, token printing, repository operations, remote changes, and updates were not executed. The isolated binary and installer hashes are retained with the evidence.
 
 A fresh Origin resource audit reproduced a second, user-scoped Origin skill under `~/.agents/skills` without the packaged cloud-exclusion metadata. An independent untagged-copy regression and a filename-derived prompt regression failed before the fix. Effective resource exclusions now combine declared metadata with the authoritative metadata for the same Origin identity. The real idle CLI excludes the duplicate, while local Origin and unrelated cloud-capable resources remain available. This proves resource selection and command discovery, not worker execution, instruction adherence, or credential isolation.
