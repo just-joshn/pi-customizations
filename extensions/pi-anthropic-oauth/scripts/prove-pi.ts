@@ -22,4 +22,4 @@ const answered = code === 0 && stdout.trim().length > 0;
 if (output.includes('Unknown model') || (!askedForLogin && !answered)) {
   throw new Error(`pi did not resolve claude-subscription.\nexit=${code}\n${output}`);
 }
-console.log(askedForLogin ? 'pi resolved claude-subscription/claude-sonnet-4-6 and asked for login' : `pi answered through claude-subscription/claude-sonnet-4-6: ${stdout.trim()}`);
+process.stdout.write(`${askedForLogin ? 'pi resolved claude-subscription/claude-sonnet-4-6 and asked for login' : `pi answered through claude-subscription/claude-sonnet-4-6: ${stdout.trim()}`}\n`);
