@@ -4,7 +4,7 @@ description: "Apply when sequencing an addition, refactor, or rewrite. Remove de
 disable-model-invocation: true
 ---
 
-# Subtract Before You Add
+# Subtract before you add
 
 When evolving a system, remove complexity first, then build.
 

@@ -5,9 +5,12 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { rpcProcess } from './rpc-process.mjs';
+import { promptAndSettle } from './rpc-turn.mjs';
+import { verifySkillCreation } from './skill-creation-journey.mjs';
 
 const root = process.argv[2] ? resolve(process.argv[2]) : fileURLToPath(new URL('../', import.meta.url));
 const only = process.argv[3];
+const evidenceDirectory = process.argv[4] ? resolve(process.argv[4]) : undefined;
 const cli = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 
 const findings = [];
@@ -114,23 +117,31 @@ async function everyRequest(log) {
     .map((line) => JSON.parse(line));
 }
 
+async function waitForRpcIdle(client) {
+  const deadline = Date.now() + 120000;
+  while (Date.now() < deadline) {
+    const state = await client.send({ type: 'get_state' });
+    if (!state.isStreaming && state.pendingMessageCount === 0) return;
+    await new Promise((done) => setTimeout(done, 40));
+  }
+  throw new Error('Pi did not return to idle');
+}
+
 function clientFor(child, log) {
-  const client = rpcProcess(child, { requestDeadlineMs: 180000, shutdownDeadlineMs: 15000 });
+  let settlements = 0;
+  const client = rpcProcess(child, {
+    requestDeadlineMs: 180000,
+    shutdownDeadlineMs: 15000,
+    onRecord: (record) => {
+      if (record.type === 'agent_settled') settlements += 1;
+    },
+  });
   let reference = 0;
   const requests = async () =>
     (await readFile(join(log, `requests-${child.pid}.jsonl`), 'utf8').catch(() => ''))
       .split('\n')
       .filter(Boolean)
       .map((line) => JSON.parse(line));
-  const idle = async () => {
-    const deadline = Date.now() + 120000;
-    while (Date.now() < deadline) {
-      const state = await client.send({ type: 'get_state' });
-      if (!state.isStreaming && state.pendingMessageCount === 0) return;
-      await new Promise((done) => setTimeout(done, 40));
-    }
-    throw new Error('Pi did not return to idle');
-  };
   return {
     send: (message) => client.send(message),
     requests,
@@ -138,12 +149,14 @@ function clientFor(child, log) {
     close: () => client.close(),
     async run(message) {
       reference = (await requests()).length;
-      await client.send({ type: 'prompt', message });
-      await idle();
+      await promptAndSettle(
+        (command) => client.send(command),
+        () => settlements,
+        { type: 'prompt', message },
+      );
+      await waitForRpcIdle(client);
       const recorded = await requests();
-      const produced = recorded.slice(reference);
-      reference = recorded.length;
-      return produced;
+      return recorded.slice(reference);
     },
     async turn(message) {
       const recorded = await this.run(message);
@@ -164,10 +177,10 @@ function clientFor(child, log) {
   };
 }
 
-async function startPi(directory, log, extraArgs) {
+async function startPi(directory, log, extraArgs, agentDirectory = directory) {
   const child = spawn(process.execPath, [cli, '--mode', 'rpc', ...extraArgs, '-e', root], {
     cwd: directory,
-    env: { ...process.env, HOME: directory, PI_CODING_AGENT_DIR: directory, PSTACK_JOURNEY_LOG: log },
+    env: { ...process.env, HOME: agentDirectory, PI_CODING_AGENT_DIR: agentDirectory, PSTACK_JOURNEY_LOG: log },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
   let stderr = '';
@@ -203,7 +216,8 @@ async function journeyLoad(ctx) {
 async function journeyNativeSkills(ctx) {
   for (const name of ctx.skills) {
     if (name === 'setup-pstack') continue;
-    const file = name === 'loop' ? join(ctx.root, 'host', 'skills', 'loop', 'SKILL.md') : join(ctx.root, 'skills', name, 'SKILL.md');
+    const bundled = join(ctx.root, 'skills', name, 'SKILL.md');
+    const file = (await exists(bundled)) ? bundled : join(ctx.root, 'host', 'skills', name, 'SKILL.md');
     const text = requestText(await ctx.turn(`/skill:${name} journey arguments`));
     const body = frontmatterBody(await readFile(file, 'utf8'));
     check(`native: /skill:${name} delivers the complete skill body`, text.includes(body), `body ${body.length} chars not fully present`);
@@ -304,6 +318,50 @@ async function journeyTodos(ctx) {
   check('state: a new session starts with an empty todo list', String(fresh?.content).includes('Todos: none.'), String(fresh?.content).slice(0, 200));
 }
 
+async function journeyGoal(base) {
+  const ctx = {
+    ...base,
+    async callTool(message) {
+      const before = (await base.messages()).length;
+      await base.run(message);
+      return (await base.messages()).slice(before);
+    },
+  };
+  await ctx.send({ type: 'new_session' });
+  const before = await ctx.callTool('JOURNEY:getgoal');
+  checkEqual('goal: a new session has no goal', before.find((message) => message.toolName === 'GetGoal')?.details, null);
+  const results = await ctx.callTool('JOURNEY:goalcycle');
+  const created = results.filter((message) => message.toolName === 'CreateGoal');
+  check('goal: creation preserves the full objective', created[0]?.details?.objective === 'Verify every capability without subagents' && created[0]?.details?.status === 'active', JSON.stringify(created));
+  check('goal: a second creation fails while active', created[1]?.isError === true && JSON.stringify(created[1]).includes('already active'));
+  const read = results.find((message) => message.toolName === 'GetGoal');
+  check('goal: GetGoal returns the active objective', read?.details?.objective === 'Verify every capability without subagents' && read?.details?.status === 'active');
+  const complete = results.find((message) => message.toolName === 'UpdateGoal');
+  checkEqual('goal: completion records the complete status', complete?.details?.status, 'complete');
+  const after = await ctx.callTool('JOURNEY:getgoal');
+  checkEqual('goal: completion survives the next turn', after.find((message) => message.toolName === 'GetGoal')?.details?.status, 'complete');
+  await ctx.run('/goal clear');
+  const cleared = await ctx.callTool('JOURNEY:getgoal');
+  checkEqual('goal: clear records the cleared status', cleared.find((message) => message.toolName === 'GetGoal')?.details?.status, 'cleared');
+  await ctx.send({ type: 'new_session' });
+  const fresh = await ctx.callTool('JOURNEY:getgoal');
+  checkEqual('goal: a new session does not inherit another session goal', fresh.find((message) => message.toolName === 'GetGoal')?.details, null);
+  const continued = await ctx.callTool('JOURNEY:goalcontinue');
+  check(
+    'goal: an active goal schedules a continuation message',
+    continued.some((message) => message.customType === 'pstack-goal-continue' && message.content.includes('Prove automatic goal continuation')),
+  );
+  check(
+    'goal: the continuation can complete the original goal',
+    continued.some((message) => message.toolName === 'UpdateGoal' && message.details?.status === 'complete' && message.details?.objective === 'Prove automatic goal continuation'),
+  );
+  const requests = await ctx.requests();
+  check(
+    'goal: the continuation request carries the full objective and audit instruction',
+    requests.some((request) => requestText(request).includes('Goal still active. Objective:\nProve automatic goal continuation\n\nContinue working. Call GetGoal if you lost the objective. Audit every requirement against fresh evidence.')),
+  );
+}
+
 async function journeyTools(ctx) {
   const context = await ctx.callTool('JOURNEY:context');
   const contextResult = context.find((message) => message.toolName === 'pstack_context');
@@ -328,7 +386,7 @@ async function journeyDelegation(ctx) {
   check('tool: Task rejects an unsupported persona by name', JSON.stringify(unsupported.find((m) => m.toolName === 'Task')).includes('not-a-persona'), JSON.stringify(unsupported).slice(0, 300));
   const cloud = await ctx.callTool('JOURNEY:cloud');
   const cloudResult = cloud.find((message) => message.toolName === 'Task');
-  check('tool: Task cloud execution outside a git repository names the missing repository', cloudResult?.isError === true && JSON.stringify(cloudResult).includes('not inside a git repository'), JSON.stringify(cloudResult).slice(0, 300));
+  check('tool: Task cloud execution without a configured remote executor refuses local fallback', cloudResult?.isError === true && JSON.stringify(cloudResult).includes('No local fallback is permitted'), JSON.stringify(cloudResult).slice(0, 300));
   const badModel = await ctx.callTool('JOURNEY:badmodel');
   const badModelResult = badModel.find((message) => message.toolName === 'Task');
   check('tool: Task reports an unavailable model with the available choices', badModelResult?.isError === true && JSON.stringify(badModelResult).includes('Unavailable model'), JSON.stringify(badModelResult).slice(0, 300));
@@ -342,11 +400,27 @@ async function journeyShells(ctx) {
   check('tool: BackgroundShell starts a shell and reports its id', started?.isError !== true && JSON.stringify(started).includes('Started background shell'), JSON.stringify(started).slice(0, 200));
   check('tool: BackgroundShellList finds the running shell', JSON.stringify(listed).includes('Journey shell'), JSON.stringify(listed).slice(0, 200));
   check('tool: BackgroundShellStop reports a stopped shell', stopped?.isError !== true && JSON.stringify(stopped).includes('stopped'), JSON.stringify(stopped).slice(0, 200));
-  await ctx.callTool('JOURNEY:shellexit');
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  const escaped = await ctx.run('JOURNEY:shellexitstop');
-  check('tool: BackgroundShellStop returns when a descendant escaped the process group', escaped.at(-1)?.isError !== true && JSON.stringify(escaped).includes('stopped'), JSON.stringify(escaped).slice(-300));
-  spawnSync('pkill', ['-f', 'POSIX::setsid']);
+  const escapeStart = (await ctx.callTool('JOURNEY:shellexit')).find((message) => message.toolName === 'BackgroundShell');
+  let descendant;
+  try {
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline && !descendant) {
+      const output = await readFile(escapeStart.details.outputFile, 'utf8').catch(() => '');
+      descendant = Number(output.match(/ESCAPED_PID=(\d+)/)?.[1]) || undefined;
+      if (!descendant) await new Promise((resolve) => setTimeout(resolve, 40));
+    }
+    check('tool: the escaping fixture records its own descendant PID', Number.isSafeInteger(descendant) && descendant > 0);
+    const escaped = await ctx.run('JOURNEY:shellexitstop');
+    check('tool: BackgroundShellStop returns when a descendant escaped the process group', escaped.at(-1)?.isError !== true && JSON.stringify(escaped).includes('stopped'), JSON.stringify(escaped).slice(-300));
+  } finally {
+    if (descendant) {
+      try {
+        process.kill(descendant, 'SIGTERM');
+      } catch (error) {
+        if (error.code !== 'ESRCH') check('tool: the escaping fixture cleans up its own descendant', false, String(error));
+      }
+    }
+  }
 }
 
 async function journeySetup(ctx) {
@@ -395,8 +469,14 @@ async function journeySetup(ctx) {
   check('setup: /skill:setup-pstack runs the same validated dialogs', ctx.ui.length > before);
 }
 
+async function journeySkillCreation(ctx) {
+  await verifySkillCreation({ ctx, check, startPi });
+}
+
 const journeys = [
+  journeySkillCreation,
   journeyLoad,
+  journeyGoal,
   journeyNativeSkills,
   journeyTemplates,
   journeyArguments,
@@ -647,6 +727,7 @@ async function journeyResume(ctx) {
     sessionFile = (await first.send({ type: 'get_state' })).sessionFile;
     await first.run('/poteto-mode');
     await first.run('JOURNEY:todowrite');
+    await first.run('JOURNEY:goalcycle');
   } finally {
     await first.finish().catch(() => {});
     await first.close().catch(() => {});
@@ -663,6 +744,9 @@ async function journeyResume(ctx) {
     check('resume: a reopened session keeps the saved todos', listed.includes('[>] Run the journey (in_progress)'), listed.slice(0, 300));
     const prompt = systemText(await second.turn('journey probe'));
     check('resume: the restored mode reaches the next prompt', prompt.includes('## Non-negotiables'));
+    await second.run('JOURNEY:getgoal');
+    const goal = (await second.messages()).filter((message) => message.role === 'toolResult' && message.toolName === 'GetGoal').at(-1);
+    check('resume: the completed goal survives process restart', goal?.details?.status === 'complete' && goal?.details?.objective === 'Verify every capability without subagents', JSON.stringify(goal));
   } finally {
     await second.finish().catch(() => {});
     await second.close().catch(() => {});
@@ -670,24 +754,37 @@ async function journeyResume(ctx) {
 }
 
 async function main() {
+  const workerJourneys = new Set([journeyTaskResume, journeyTaskLifecycle, journeyTaskGates, journeyPersonas, journeyDelegation]);
+  const selected = [...journeys, journeyWorktrees].filter((journey) => (only === '--no-workers' ? !workerJourneys.has(journey) : !only || journey.name.includes(only)));
+  if (selected.length === 0) throw new Error(`Unknown journey selector: ${only}`);
   const directory = await mkdtemp(join(tmpdir(), 'pi-pstack-journey-'));
   const log = join(directory, 'requests');
   await mkdir(log, { recursive: true });
   await mkdir(join(directory, 'extensions'), { recursive: true });
   await copyFile(join(root, 'test', 'journey-provider.ts'), join(directory, 'extensions', 'journey-provider.ts'));
   await cp(join(root, 'skills/poteto-mode/scripts'), join(directory, 'helper-scripts'), { recursive: true, filter: (source) => !source.includes('node_modules') });
-  const ctx = { root, directory, log, ...(await startPi(directory, log, ['--no-session'])) };
+  const skills = [...(await subdirectories(join(root, 'skills'))), ...(await subdirectories(join(root, 'host', 'skills')))].sort();
+  const ctx = { root, directory, log, skills, ...(await startPi(directory, log, ['--no-session'])) };
   try {
     await ctx.send({ type: 'set_model', provider: 'journey-test', modelId: 'recorder' });
     // Each journey folds the facts it discovered into the next context instead of writing them back.
     let shared = ctx;
-    for (const journey of journeys) {
-      if (!only || journey.name.includes(only)) shared = { ...shared, ...(await journey(shared)) };
+    for (const journey of selected) {
+      shared = { ...shared, ...(await journey(shared)) };
     }
-    if (!only || 'journeyWorktrees'.includes(only)) await journeyWorktrees(shared);
+    if (only === '--no-workers') {
+      const requests = await everyRequest(log);
+      const delegated = requests.some((request) => request.messages.some((message) => message.role === 'assistant' && Array.isArray(message.content) && message.content.some((block) => block.type === 'toolCall' && block.name === 'Task')));
+      check('no-workers: no recorded request invokes Task', !delegated);
+    }
   } finally {
     await ctx.finish().catch(() => {});
     await ctx.close().catch(() => {});
+    if (evidenceDirectory) {
+      await mkdir(evidenceDirectory, { recursive: true });
+      await cp(log, join(evidenceDirectory, 'requests'), { recursive: true });
+      await writeFile(join(evidenceDirectory, 'results.json'), JSON.stringify({ selected: selected.map((journey) => journey.name), passes, findings, stderr: ctx.stderr() }, null, 2));
+    }
     await rm(directory, { recursive: true, force: true });
   }
   for (const name of passes) process.stdout.write(`ok   ${name}\n`);

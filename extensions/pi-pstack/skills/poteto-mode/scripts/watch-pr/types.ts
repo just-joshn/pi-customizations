@@ -224,6 +224,21 @@ export type QueryFailure =
       readonly detail: string;
     }
   | {
+      readonly kind: "gh-missing";
+      readonly retryable: false;
+      readonly detail: string;
+    }
+  | {
+      readonly kind: "bootstrap-failed";
+      readonly retryable: false;
+      readonly detail: string;
+    }
+  | {
+      readonly kind: "stack-cycle";
+      readonly retryable: false;
+      readonly detail: string;
+    }
+  | {
       readonly kind: "invalid-context-url";
       readonly retryable: false;
       readonly detail: string;
@@ -289,7 +304,8 @@ export type ProgressVerdict =
             readonly kind: "pending-checks";
             readonly pending: NonEmpty<PendingCheck>;
           }
-        | { readonly kind: "merge-queue"; readonly unmergedCount: number };
+        | { readonly kind: "merge-queue"; readonly unmergedCount: number }
+        | { readonly kind: "no-checks-unconfirmed"; readonly readings: number; readonly required: number };
     })
   | (Progress<"ADVANCE", "queued-stack"> & {
       readonly merged: PrContext;
@@ -337,6 +353,7 @@ export type TimeoutVerdict = Terminal<"TIMEOUT", 5> & {
         readonly pending: NonEmpty<PendingCheck>;
       }
     | { readonly kind: "status-unavailable"; readonly failure: QueryFailure }
+    | { readonly kind: "no-checks-unconfirmed"; readonly readings: number; readonly required: number }
     | {
         readonly kind: "queued-stack";
         readonly frontier: PrContext;

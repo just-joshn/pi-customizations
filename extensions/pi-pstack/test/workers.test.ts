@@ -3,13 +3,21 @@ import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { AgentSession, createAgentSession, DefaultResourceLoader, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
+import { Check } from 'typebox/value';
 import { expect, test, vi } from 'vitest';
+import { TaskRecordSchema, taskEntryType } from '../src/worker-records.ts';
 import { registerWorkers, restoreTaskRecords, taskSummary } from '../src/workers.ts';
 import { workerFixture } from './worker-fixture.ts';
 import { releasePendingWork } from './worker-gates.ts';
 import { workerTiming } from './worker-timing.ts';
+
+const progressFixturePath = fileURLToPath(new URL('./fixtures/task-progress-sentinel.txt', import.meta.url));
+const progressSentinel = 'CHILD_READ_FIXTURE_SENTINEL_CONTENT';
+const progressInput = 'PROGRESS_READ CHILD_INPUT_SENTINEL_9c372671';
+const progressShellOutput = 'PROGRESS_CHILD_SHELL_OUTPUT_SENTINEL';
 
 const record = {
   id: 'task-one',
@@ -56,7 +64,7 @@ test('official SDK loads all worker tools without spawning children', async () =
       .extensions.flatMap((extension) => [...extension.tools.values()])
       .find((tool) => tool.definition.name === 'Task');
     expect(task).toBeDefined();
-    await expect(task?.definition.execute('cloud-test', { prompt: 'test', environment: 'cloud' }, undefined, undefined, context)).rejects.toThrow(/environment cloud runs in a git worktree, and .+ is not inside a git repository/);
+    await expect(task?.definition.execute('cloud-test', { prompt: 'test', environment: 'cloud' }, undefined, undefined, context)).rejects.toThrow(/configured isolated remote executor/);
     await expect(task?.definition.execute('resume-test', { prompt: 'test', resume: 'other-branch' }, undefined, undefined, context)).rejects.toThrow(/Unknown task in this branch/);
     const names = session.getActiveToolNames();
     expect(names).toEqual(expect.arrayContaining(['Task', 'TaskOutput', 'TaskStop', 'TaskMessage']));
@@ -67,9 +75,9 @@ test('official SDK loads all worker tools without spawning children', async () =
   }
 });
 
-function workerTest(name: string, scenario: (fixture: Awaited<ReturnType<typeof workerFixture>>) => Promise<void>) {
+function workerTest(name: string, scenario: (fixture: Awaited<ReturnType<typeof workerFixture>>) => Promise<void>, options: { retry?: boolean } = {}) {
   test(name, async () => {
-    const fixture = await workerFixture();
+    const fixture = await workerFixture(options);
     try {
       await scenario(fixture);
     } finally {
@@ -78,44 +86,124 @@ function workerTest(name: string, scenario: (fixture: Awaited<ReturnType<typeof 
   });
 }
 
-workerTest('cloud tasks run in their own worktree at the requested base and resume there', async ({ dir, call }) => {
+workerTest('cloud tasks fail explicitly without creating a local worktree when no remote executor is configured', async ({ dir, call }) => {
   const repo = join(dir, 'repo');
-  await mkdir(join(repo, 'pkg'), { recursive: true });
-  const git = (...args: string[]) => execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { encoding: 'utf8' }).trim();
-  git('init', '-q', '-b', 'main');
-  await writeFile(join(repo, 'pkg/committed.txt'), 'main');
-  git('add', '-A');
-  git('commit', '-qm', 'main');
-  git('switch', '-qc', 'feature');
-  await writeFile(join(repo, 'pkg/feature.txt'), 'feature');
-  git('add', '-A');
-  git('commit', '-qm', 'feature');
-  git('switch', '-q', 'main');
-  await writeFile(join(repo, 'pkg/dirty.txt'), 'uncommitted');
-
-  const parse = (result: { content: Array<{ type: string; text?: string }> }) => JSON.parse(result.content.find((block) => block.type === 'text')?.text ?? '{}');
-  const head = parse(await call('Task', { prompt: 'cloud work', environment: 'cloud', cwd: join(repo, 'pkg'), model: 'worker-test/deterministic', run_in_background: false }));
-  const headCheckout = join(dir, 'sessions/pstack-cloud', head.task_id);
-  expect(head.status).toBe('settled');
-  expect(await readFile(join(headCheckout, 'pkg/committed.txt'), 'utf8')).toBe('main');
-  expect(existsSync(join(headCheckout, 'pkg/dirty.txt'))).toBe(false);
-  expect(existsSync(join(headCheckout, 'pkg/feature.txt'))).toBe(false);
-  expect(await readFile(join(repo, 'pkg/dirty.txt'), 'utf8')).toBe('uncommitted');
-
-  const feature = parse(await call('Task', { prompt: 'cloud work', environment: 'cloud', cloud_base_branch: 'feature', cwd: repo, model: 'worker-test/deterministic', run_in_background: false }));
-  expect(await readFile(join(dir, 'sessions/pstack-cloud', feature.task_id, 'pkg/feature.txt'), 'utf8')).toBe('feature');
-  expect(git('worktree', 'list').split('\n')).toHaveLength(3);
-
-  const resumed = parse(await call('Task', { prompt: 'continue', environment: 'cloud', resume: head.task_id, run_in_background: false }));
-  expect(resumed.task_id).toBe(head.task_id);
-  expect(git('worktree', 'list').split('\n')).toHaveLength(3);
-  await expect(call('Task', { prompt: 'x', environment: 'cloud', cloud_base_branch: 'missing', cwd: repo })).rejects.toThrow('cloud_base_branch missing does not resolve locally or on origin. Push or fetch it first.');
+  await mkdir(repo);
+  execFileSync('git', ['init', '-q', repo]);
+  vi.stubEnv('PI_PSTACK_EXECUTORS', join(dir, 'missing-executors.json'));
+  await expect(call('Task', { prompt: 'cloud work', environment: 'cloud', cwd: repo, model: 'worker-test/deterministic' })).rejects.toThrow(/configured isolated remote executor/);
+  expect(existsSync(join(dir, 'sessions/pstack-cloud'))).toBe(false);
 });
 
 workerTest('unknown task ids are refused by message, output, and stop', async ({ call }) => {
   await expect(call('TaskMessage', { task_id: 'missing', message: 'hello' })).rejects.toThrow(/Task is not running/);
   await expect(call('TaskOutput', { task_id: 'missing' })).rejects.toThrow(/Unknown task in this branch/);
-  await expect(call('TaskStop', { task_id: 'missing' })).rejects.toThrow(/No live task/);
+  const missingStop = await call('TaskStop', { task_id: 'missing' });
+  expect(missingStop.isError).toBe(true);
+  expect(missingStop.details).toEqual({ status: 'failed', task_id: 'missing', message: 'No live task: missing' });
+});
+
+workerTest(
+  'foreground Task projects retry outcomes without exposing retry errors',
+  async ({ call }) => {
+    const updates: { content: unknown; details: unknown; structuredContent?: unknown; usage?: unknown }[] = [];
+    const result = await call('Task', { prompt: 'PROGRESS_RETRY CHILD_RETRY_INPUT_SENTINEL', model: 'worker-test/deterministic', run_in_background: false }, undefined, false, (partialResult) => updates.push(partialResult));
+    if (!Check(TaskRecordSchema, result.details)) throw new Error('Task returned non-record details');
+    expect(result.details.status).toBe('settled');
+    expect(result.details.output).toBe('users=1');
+    expect(updates).toEqual([
+      {
+        content: [{ type: 'text', text: `Task ${result.details.id} running. Active tools: none. Latest: retry 1/1 started.` }],
+        details: { kind: 'progress', task_id: result.details.id, status: 'running', active_tools: [], latest: { kind: 'retry-started', attempt: 1, maxAttempts: 1 } },
+      },
+      {
+        content: [{ type: 'text', text: `Task ${result.details.id} running. Active tools: none. Latest: retry 1 recovered.` }],
+        details: { kind: 'progress', task_id: result.details.id, status: 'running', active_tools: [], latest: { kind: 'retry-finished', attempt: 1, recovered: true } },
+      },
+    ]);
+    const encoded = JSON.stringify(updates);
+    expect(encoded.includes('network error')).toBe(false);
+    expect(encoded.includes('CHILD_RETRY_INPUT_SENTINEL')).toBe(false);
+  },
+  { retry: true },
+);
+
+workerTest('foreground Task reports safe transient read snapshots without changing its final record', async ({ session, call }) => {
+  const updates: { content: unknown; details: unknown; structuredContent?: unknown; usage?: unknown }[] = [];
+  const result = await call('Task', { prompt: progressInput, model: 'worker-test/deterministic', run_in_background: false }, undefined, false, (partialResult) => updates.push(partialResult));
+  if (!Check(TaskRecordSchema, result.details)) throw new Error('Task returned non-record details');
+  const finalRecord = result.details;
+  expect(finalRecord.status).toBe('settled');
+  expect(finalRecord.output).toBe('users=1');
+  expect(result.usage?.totalTokens).toBe(10);
+  expect(result.structuredContent).toEqual(finalRecord);
+  expect(result.content).toEqual([
+    {
+      type: 'text',
+      text: JSON.stringify({ task_id: finalRecord.id, status: 'settled', output: 'users=1', output_file: finalRecord.outputFile, transcript: finalRecord.sessionFile }),
+    },
+  ]);
+  expect(updates).toEqual([
+    {
+      content: [{ type: 'text', text: `Task ${finalRecord.id} running. Active tools: read. Latest: read started.` }],
+      details: { kind: 'progress', task_id: finalRecord.id, status: 'running', active_tools: ['read'], latest: { kind: 'tool-started', tool: 'read' } },
+    },
+    {
+      content: [{ type: 'text', text: `Task ${finalRecord.id} running. Active tools: none. Latest: read finished.` }],
+      details: { kind: 'progress', task_id: finalRecord.id, status: 'running', active_tools: [], latest: { kind: 'tool-finished', tool: 'read', failed: false } },
+    },
+  ]);
+  const updateText = JSON.stringify(updates);
+  for (const secret of [progressSentinel, progressInput, progressFixturePath, 'worker-child-read-call-id']) {
+    expect(updateText).not.toContain(secret);
+  }
+  const transcript = await readFile(finalRecord.sessionFile, 'utf8');
+  expect(transcript).toContain(progressSentinel);
+  expect(transcript).toContain(progressFixturePath);
+  expect(transcript).toContain(progressInput);
+  expect(await readFile(finalRecord.outputFile, 'utf8')).toBe('users=1');
+  const branch = session.sessionManager.getBranch();
+  const taskData = branch.flatMap((entry) => (entry.type === 'custom' && entry.customType === taskEntryType && 'data' in entry ? [entry.data] : []));
+  expect(taskData).toHaveLength(3);
+  expect(taskData.map((data) => Check(TaskRecordSchema, data))).toEqual([true, true, true]);
+  expect(restoreTaskRecords(branch).get(finalRecord.id)).toEqual(finalRecord);
+  expect(JSON.stringify(branch)).not.toContain('"kind":"progress"');
+});
+
+workerTest('background Task ignores a supplied update callback through child completion', async ({ call }) => {
+  const updates: unknown[] = [];
+  const started = await call('Task', { prompt: progressInput, model: 'worker-test/deterministic', run_in_background: true }, undefined, false, (partialResult) => updates.push(partialResult));
+  if (!Check(TaskRecordSchema, started.details)) throw new Error('Task returned non-record details');
+  expect(started.details.status).toBe('running');
+  const completed = await call('TaskOutput', { task_id: started.details.id, block: true });
+  if (!Check(TaskRecordSchema, completed.details)) throw new Error('TaskOutput returned non-record details');
+  expect(completed.details.status).toBe('settled');
+  expect(completed.details.output).toBe('users=1');
+  expect(completed.usage?.totalTokens).toBe(10);
+  expect(updates).toEqual([]);
+});
+
+workerTest('foreground Task never includes child shell command or output in progress', async ({ call }) => {
+  const updates: unknown[] = [];
+  const result = await call('Task', { prompt: 'PROGRESS_SHELL CHILD_INPUT_SHELL_SENTINEL', model: 'worker-test/deterministic', run_in_background: false }, undefined, false, (partialResult) => updates.push(partialResult));
+  if (!Check(TaskRecordSchema, result.details)) throw new Error('Task returned non-record details');
+  expect(result.details.status).toBe('settled');
+  expect(result.details.output).toBe('users=1');
+  expect(updates).toEqual([
+    {
+      content: [{ type: 'text', text: `Task ${result.details.id} running. Active tools: bash. Latest: bash started.` }],
+      details: { kind: 'progress', task_id: result.details.id, status: 'running', active_tools: ['bash'], latest: { kind: 'tool-started', tool: 'bash' } },
+    },
+    {
+      content: [{ type: 'text', text: `Task ${result.details.id} running. Active tools: none. Latest: bash finished.` }],
+      details: { kind: 'progress', task_id: result.details.id, status: 'running', active_tools: [], latest: { kind: 'tool-finished', tool: 'bash', failed: false } },
+    },
+  ]);
+  const updateText = JSON.stringify(updates);
+  expect(updateText).not.toContain(progressShellOutput);
+  expect(updateText).not.toContain('printf PROGRESS_CHILD_SHELL_OUTPUT_SENTINEL');
+  expect(updateText).not.toContain('worker-child-shell-call-id');
+  expect(updateText).not.toContain('CHILD_INPUT_SHELL_SENTINEL');
 });
 
 workerTest('personas inherit their configured models and preserve complete source instructions', async ({ dir, call }) => {
@@ -158,8 +246,9 @@ workerTest('readonly workers inherit extension providers without enabling write 
   const getAppendSystemPrompt = DefaultResourceLoader.prototype.getAppendSystemPrompt;
   const observer = vi.spyOn(DefaultResourceLoader.prototype, 'getAppendSystemPrompt').mockImplementation(function (this: DefaultResourceLoader) {
     const prompts = getAppendSystemPrompt.call(this);
-    childPrompts.push({ readonly: this.getExtensions().extensions.length === 0, names: this.getPrompts().prompts.map((prompt) => prompt.name) });
-    if (this.getExtensions().extensions.length === 0) appended.push(prompts);
+    const readonly = this.getExtensions().extensions.every((extension) => extension.tools.size === 0);
+    childPrompts.push({ readonly, names: this.getPrompts().prompts.map((prompt) => prompt.name) });
+    if (readonly) appended.push(prompts);
     return prompts;
   });
   await call('Task', { prompt: '/bro Rewrite this plainly.', model: 'worker-test/deterministic', run_in_background: false });
@@ -239,6 +328,7 @@ workerTest('worker messages, cancellation, and usage follow the live child', asy
   expect(task.status).toBe('running');
   const stopped = await call('TaskStop', { task_id: task.task_id });
   expect(JSON.stringify(stopped.content)).toMatch(/interrupted/);
+  expect(stopped.details).toMatchObject({ task_id: task.task_id, task_type: 'local_agent', command: 'generalPurpose', message: `Stopped task ${task.task_id}` });
 });
 
 workerTest('terminal children and explicit stops drain every grandchild', async ({ dir, call }) => {
@@ -420,4 +510,12 @@ test('restoration rejects malformed pending usage while preserving the last vali
     manager.appendCustomEntry('pstack-task', { ...valid, usage: invalid });
     expect(restoreTaskRecords(manager.getBranch()).get(record.id)).toEqual(valid);
   }
+});
+
+workerTest('TaskList exposes only tasks owned by the current parent branch', async ({ call }) => {
+  const empty = await call('TaskList', {});
+  expect(empty.details).toEqual({ tasks: [] });
+  const started = await call('Task', { prompt: 'listed work', model: 'worker-test/deterministic', run_in_background: false });
+  const listing = await call('TaskList', {});
+  expect(listing.details).toEqual({ tasks: [started.details] });
 });

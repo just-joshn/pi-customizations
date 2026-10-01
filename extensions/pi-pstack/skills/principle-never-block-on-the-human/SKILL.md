@@ -4,7 +4,7 @@ description: "Apply when tempted to ask 'should I do X?' on reversible work. Pro
 disable-model-invocation: true
 ---
 
-# Never Block on the Human
+# Never block on the human
 
 The human supervises asynchronously. Agents must stay unblocked. Make reasonable decisions, proceed, and let the human course-correct after the fact.
 

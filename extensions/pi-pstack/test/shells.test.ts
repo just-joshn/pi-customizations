@@ -38,15 +38,18 @@ function groupAlive(pid: number): boolean {
   }
 }
 
-function escapedDescendant(leaderPid: number): number | undefined {
-  try {
-    const pid = Number(execFileSync('pgrep', ['-f', 'POSIX::setsid']).toString().trim().split('\n')[0]);
-    if (!pid) return undefined;
-    return execFileSync('ps', ['-o', 'pgid=', '-p', String(pid)])
+function escapedDescendant(
+  leaderPid: number,
+  pidFile: string,
+  groupFor = (pid: number) =>
+    execFileSync('ps', ['-o', 'pgid=', '-p', String(pid)])
       .toString()
-      .trim() === String(leaderPid)
-      ? undefined
-      : pid;
+      .trim(),
+): number | undefined {
+  try {
+    const pid = Number(readFileSync(pidFile, 'utf8').match(/^ESCAPED_PID=(\d+)$/m)?.[1]);
+    if (!Number.isSafeInteger(pid) || pid <= 0) return undefined;
+    return groupFor(pid) === String(leaderPid) ? undefined : pid;
   } catch {
     return undefined;
   }
@@ -309,17 +312,28 @@ shellTest('readLines delivers un-terminated tail and signal outcome on kill', as
   expect(await readFile(shell.outputFile, 'utf8')).toBe('trailing-part');
 });
 
+test('escaped descendant lookup reads the fixture PID instead of a global name match', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-owned-pid-'));
+  const pidFile = join(directory, 'descendant.pid');
+  await writeFile(pidFile, 'ESCAPED_PID=33333\n');
+  try {
+    expect(escapedDescendant(11111, pidFile, () => '22222')).toBe(33333);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test('a descendant that escaped the process group does not block the stop', async () => {
   const { ShellRuntime } = await import('../src/shell-runtime.ts');
-  const runtime = new ShellRuntime({ sendMessage: () => {}, on: () => {} } as never);
+  const runtime = new ShellRuntime({ sendMessage: () => {}, on: () => {}, events: { emit: () => {} } } as never);
   const cwd = await mkdtemp(join(tmpdir(), 'pstack-shell-cwd-'));
   const ctx = { cwd, sessionManager: { getSessionFile: () => null }, isIdle: () => true } as never;
-  const record = await runtime.start({ command: `perl -MPOSIX -e 'POSIX::setsid(); sleep 300' & sleep 0.3`, title: 'escape' }, ctx);
+  const record = await runtime.start({ command: `perl -MPOSIX -e 'POSIX::setsid(); $|=1; print "ESCAPED_PID=$$\\n"; sleep 300' & sleep 0.3`, title: 'escape' }, ctx);
   let escaped: number | undefined;
   try {
     await vi.waitFor(
       () => {
-        escaped = escapedDescendant(record.pid);
+        escaped = escapedDescendant(record.pid, record.outputFile);
         if (escaped === undefined) throw new Error('the descendant has not left the process group yet');
       },
       { timeout: 5000, interval: 50 },
@@ -337,7 +351,7 @@ test('a descendant that escaped the process group does not block the stop', asyn
 
 test('a process group that refuses the signal does not fail the stop', async () => {
   const { ShellRuntime } = await import('../src/shell-runtime.ts');
-  const runtime = new ShellRuntime({ sendMessage: () => {}, on: () => {} } as never);
+  const runtime = new ShellRuntime({ sendMessage: () => {}, on: () => {}, events: { emit: () => {} } } as never);
   const cwd = await mkdtemp(join(tmpdir(), 'pstack-shell-cwd-'));
   const ctx = { cwd, sessionManager: { getSessionFile: () => null }, isIdle: () => true } as never;
   const record = await runtime.start({ command: 'sleep 0.6', title: 'unsignallable' }, ctx);
@@ -359,7 +373,7 @@ test('a process group that refuses the signal does not fail the stop', async () 
 test('ShellRuntime direct unit tests: fallback dir, unknown stop, and delivered', async () => {
   const { ShellRuntime } = await import('../src/shell-runtime.ts');
   const messages: unknown[] = [];
-  const pi = { sendMessage: (msg: unknown) => messages.push(msg), on: () => {} } as never;
+  const pi = { sendMessage: (msg: unknown) => messages.push(msg), on: () => {}, events: { emit: () => {} } } as never;
   const runtime = new ShellRuntime(pi);
   const cwd = await mkdtemp(join(tmpdir(), 'pstack-shell-cwd-'));
   const fakeCtx = {

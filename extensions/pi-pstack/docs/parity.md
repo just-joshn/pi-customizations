@@ -15,7 +15,7 @@ Each Reference facility pstack uses maps to a local Pi mechanism below. The unme
 | Native `/goal`, `shell`, `explore`, `create-skill`, `origin` | `CreateGoal`, `GetGoal`, `UpdateGoal` with branch-persisted state and turn continuation. Native `shell` and `explore` personas. Pi ports of the `goal`, `create-skill` and `origin` built-in skills | `src/goal.ts`, `src/personas.ts`, `host/skills` |
 | Sticky Poteto mode | Branch-local session entries and structured prompt section led by the source `reminder` line; explicit off command and mode tool | `src/index.ts`, integration tests |
 | Routing to skills by name | Host context lists every skill, host skill, and playbook name with its path, built from the directories at load, for parents and readonly children | `src/catalog.ts`, `test/catalog.test.ts` |
-| Reference cloud Task environment | `environment: "cloud"` and `cloud_base_branch` run the child in a detached git worktree under the session directory. Resume reopens it. The child process ends with its parent | `src/cloud.ts`, `test/workers.test.ts` |
+| Cloud Task implementation | Cloud startup uses a detached RPC supervisor and a separate git worktree. Saved records reconnect to the supervisor. Completion snapshots survive process exit. Parent shutdown disconnects watchers. Actual cloud Task execution remains unverified under the no-subagent audit restriction | `src/cloud-worker.ts`, `src/worker-runtime.ts`, `test/cloud-record-control.test.ts`, `test/detached-rpc.test.ts` |
 | Two agent personas | Complete upstream persona instructions; Poteto child receives full mode instructions | `src/workers.ts` |
 | Local task delegation | SDK child sessions, background completion, output, message, stop, and same-transcript resume | `src/workers.ts` |
 | Model setup | Available pi model identities, supported effort, all 17 roles, ordered panels, aliases, budget selection, confirmed atomic rule write | `src/models.ts`, model tests |
@@ -30,7 +30,8 @@ Each Reference facility pstack uses maps to a local Pi mechanism below. The unme
 
 | Source requirement | Why parity is unavailable |
 | --- | --- |
-| Durable hosted lifecycle for cloud agents | Cloud Tasks get an isolated worktree, but the SDK child stops with its owner. Their commits survive in the worktree. |
+| Complete cloud execution parity | Detached transport lifetime, reconnect, control, and snapshots are verified through real main-session fixtures. Dedicated Task startup, steering, resume, and descendant teardown journeys remain unexecuted. This local transport does not provide a hosted service. |
+| Complete cloud exclusion from the local store | Cloud launch now requests a macOS read restriction for the coordinator's custom session directory, the global session store, and `ORCH_STORE` when set. Task-owned directories and the worktree remain readable. Legacy resume permits only its exact session file. Store-root metadata is readable for canonicalization, but store contents and directory listings remain blocked. Real idle transport tests verify this policy. A second sandbox applied from an already restricted Pi process fails with `sandbox_apply: Operation not permitted` on the tested macOS host. Nested cloud transport launch remains unmet. Actual Task execution remains unverified. Other platforms reject the restriction rather than falling back unsandboxed. Complete hosted filesystem and credential isolation is not established. |
 | Reference cloud timers | Cloud timer subscriptions are not implemented. Local `/loop` covers wakes. A required cloud wake chain is an unmet gate. |
 | Exact Reference model entitlements, aliases, speed tiers, and inference behavior | Pi uses provider/model IDs and separate supported thinking levels. Availability depends on configured providers. No silent family substitution occurs. |
 | Reference synced `create-skill` and Automations services | The references identify server-synced skills and host services. This package does not implement those services or distribute their complete current skill text. |
@@ -44,7 +45,7 @@ Each Reference facility pstack uses maps to a local Pi mechanism below. The unme
 | Arbitrary MCP and business service integrations | Writable workers discover installed pi extensions. Availability, permissions, and external service behavior remain installation-specific. |
 | UI parity and stochastic instruction compliance | Pi has different UI and system instructions. Deterministic tests cannot establish every possible model decision or identical rendering. |
 
-The runtime tells the model to retain source gates and identify missing dependencies. That instruction is not a security boundary. Task rejects unsupported cloud execution, unknown personas, and unresolved model requests in code. Other workflow gates remain model instructions. Do not interpret the report as proof that every model will obey every workflow instruction.
+The runtime tells the model to retain source gates and identify missing dependencies. That instruction is not a security boundary. Task rejects unknown personas and unresolved model requests in code. Cloud execution requests the native filesystem restriction. That restriction does not establish hosted execution or complete credential isolation. Other workflow gates remain model instructions. Do not interpret the report as proof that every model will obey every workflow instruction.
 
 ## Mechanism migration
 
@@ -58,9 +59,13 @@ The team-kit increment closes three named skill-distribution dependencies. Its r
 
 ## Verification limits
 
+The comprehensive audit prohibits subagents. The allowed deterministic main-session RPC suite most recently passes 427 assertions with zero findings and excludes Task execution. The native Origin skill preserves the source's `disabled-environments` metadata, and cloud arguments omit that packaged copy. A fresh `test/resource-environment.test.ts` run reproduced a user-scoped `skill:origin` from `~/.agents/skills/origin/SKILL.md` without the metadata. Resource selection now combines declared exclusions with the authoritative metadata for the same Origin identity, including filename-derived prompt identities. The real idle CLI no longer exposes the duplicate, and local discovery remains available. This is a resource-discovery policy, not a filesystem or credential isolation boundary. Live public Origin installation succeeds in isolated HOME/install/bin directories, and a corrupt fixture archive is rejected by the unchanged installer's checksum check. Authentication and hosted repository operations remain unverified.
+
+`scripts/verify-store-isolation.mjs` runs the macOS fixture-store experiment with a deterministic main-session provider and no Task calls or paid inference. It preserves baseline and sandbox observations in the supplied evidence directory. This experiment is not evidence that production cloud Tasks are sandboxed.
+
 The test suite exercises the actual pi resource loader and SDK with a deterministic provider. It does not contact paid model providers or deploy external automations. Source helper test results and final verification counts are recorded in `verification.md`.
 
-The generated worktree audit searches the Pi session directories of the main worktree and of each worktree, including `pstack-workers`. It uses Perl for file dates, so GNU or uutils coreutils on PATH do not blank the LAST_CHAT column. It cannot see sessions moved by the `sessionDir` setting, `PI_CODING_AGENT_SESSION_DIR`, or `--session-dir`. The source `orch` CLI maintains an orchestration store; it does not itself provide the missing cloud scheduler.
+The generated worktree audit searches the Pi session directories of the main worktree and of each worktree, including `pstack-workers`. It uses Perl for file dates, so GNU or uutils coreutils on PATH do not blank the LAST_CHAT column. It honors `PI_CODING_AGENT_SESSION_DIR`, including a leading `~/`. An explicit second session-directory argument takes precedence. Supply the host contract directory for `sessionDir` settings or `--session-dir`, since this Bash helper does not read Pi settings or the parent CLI arguments. The source `orch` CLI maintains an orchestration store; it does not itself provide the missing cloud scheduler.
 
 ## Reference behavior audit
 

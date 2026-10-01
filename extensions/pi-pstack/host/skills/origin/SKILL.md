@@ -5,6 +5,8 @@ description: >-
   (the origin host). Use when the CLI is missing or outdated, git push/pull
   fails to authenticate against the origin host, or the user asks to set up,
   clone, or configure Upstream-hosted repos.
+disabled-environments:
+  - cloud
 ---
 # origin — set up and repair the origin CLI
 

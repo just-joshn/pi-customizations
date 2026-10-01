@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext, Theme, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ExtensionContext, Theme, ThemeColor, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
 import { truncateToWidth } from '@earendil-works/pi-tui';
 import { type Static, Type } from 'typebox';
 import { Check } from 'typebox/value';
@@ -16,6 +16,19 @@ const State = Type.Object({ enabled: Type.Boolean(), todos: Type.Array(Todo), ve
 type State = Static<typeof State>;
 
 const collapsedTodos = 8;
+const iconGlyphs: Readonly<Record<string, string>> = { crown: '👑' };
+const colorRoles: Readonly<Record<string, ThemeColor>> = { yellow: 'warning' };
+
+export type ModeBadge = Readonly<{ name: string; icon: string | undefined; color: string | undefined }>;
+
+function statusText(badge: ModeBadge | undefined, ctx: ExtensionContext): string {
+  if (!badge) return 'poteto-mode';
+  const glyph = badge.icon ? iconGlyphs[badge.icon] : undefined;
+  const label = glyph ? `${glyph} ${badge.name}` : badge.name;
+  const role = badge.color ? colorRoles[badge.color] : undefined;
+  // Pi initializes the theme only in the TUI. Reading it in print or RPC mode throws.
+  return role && ctx.mode === 'tui' ? ctx.ui.theme.fg(role, label) : label;
+}
 
 function todoWindow<T extends Static<typeof Todo>>(todos: readonly T[]) {
   const active = todos.findIndex((t) => t.status === 'in_progress');
@@ -88,11 +101,11 @@ function renderTodoCall(args: { todos?: Static<typeof Todo>[]; merge?: boolean }
   return { render: (width: number) => [truncateToWidth(line, width)], invalidate() {} };
 }
 
-export function createState(pi: ExtensionAPI) {
+export function createState(pi: ExtensionAPI, badge?: ModeBadge) {
   let state: State = { enabled: false, todos: [] };
 
   const showState = (ctx: ExtensionContext) => {
-    ctx.ui.setStatus('pstack', state.enabled ? 'poteto-mode' : undefined);
+    ctx.ui.setStatus('pstack', state.enabled ? statusText(badge, ctx) : undefined);
     const lines = state.todos.length ? widgetLines(state.todos) : undefined;
     // RPC clients receive widget text only; component factories are ignored outside the TUI.
     if (!lines || ctx.mode === 'tui') ctx.ui.setWidget('pstack-todos', lines ? todoWidget(lines) : undefined);

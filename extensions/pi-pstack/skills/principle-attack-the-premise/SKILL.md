@@ -4,7 +4,7 @@ description: "Apply when two or more fixes that share one premise have failed th
 disable-model-invocation: true
 ---
 
-# Attack the Premise
+# Attack the premise
 
 When two or more fixes that share one premise have failed the same gate, suspect the premise, not the fixes.
 

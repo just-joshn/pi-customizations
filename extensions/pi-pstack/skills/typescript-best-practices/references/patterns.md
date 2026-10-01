@@ -10,16 +10,16 @@ Brand primitives so they can't be mixed up. Validate once at the boundary. Downs
 type AgentId = string & { readonly __brand: "AgentId" };
 
 function parseAgentId(input: string): AgentId {
-  if (!isUUID(input)) throw new Error(`Invalid agent id: ${input}`);
-  return input as AgentId;
+	if (!isUUID(input)) throw new Error(`Invalid agent id: ${input}`);
+	return input as AgentId;
 }
 
 function focusAgent(id: AgentId): void {
-  /* input is trusted */
+	/* input is trusted */
 }
 ```
 
-Match the `readonly __brand: 'X'` shape. Don't invent a new convention.
+Match the `readonly __brand: "X"` shape. Don't invent a new convention.
 
 ## Discriminated unions
 
@@ -31,9 +31,9 @@ type DiffState = { loading: boolean; diff?: GitDiff; error?: string };
 
 // Do. Only valid states exist.
 type DiffState =
-  | { kind: "loading" }
-  | { kind: "ready"; diff: GitDiff }
-  | { kind: "error"; error: string };
+	| { kind: "loading" }
+	| { kind: "ready"; diff: GitDiff }
+	| { kind: "error"; error: string };
 ```
 
 Pick one discriminant name (`kind`, `type`, `tag`) and stick to it.
@@ -49,13 +49,13 @@ type NonEmpty<T> = [T, ...T[]];
 
 // Don't: T[] plus a length check every caller must repeat
 function pickWinner(entries: string[]): string {
-  if (entries.length === 0) throw new Error("no entries");
-  return entries[Math.floor(Math.random() * entries.length)];
+	if (entries.length === 0) throw new Error("no entries");
+	return entries[Math.floor(Math.random() * entries.length)];
 }
 
 // Do: an empty value of the type can't exist
 function pickWinner(entries: NonEmpty<string>): string {
-  return entries[Math.floor(Math.random() * entries.length)];
+	return entries[Math.floor(Math.random() * entries.length)];
 }
 ```
 
@@ -96,12 +96,12 @@ Strengthen when the loose type forces a lie at a use site. The tells are `!`, `a
 ```ts
 // Don't: partiality smuggled past the compiler
 function newestSession(sessions: Session[]): Session {
-  return sessions.at(0)!;
+	return sessions.at(0)!;
 }
 
 // Do: strengthen the input; the assertion disappears
 function newestSession(sessions: NonEmpty<Session>): Session {
-  return sessions[0];
+	return sessions[0];
 }
 ```
 
@@ -114,14 +114,14 @@ External data is always `unknown`. Narrow before use.
 ```ts
 // Don't
 function handle(input: any) {
-  return input.foo.bar;
+	return input.foo.bar;
 }
 
 // Do
 function handle(input: unknown) {
-  if (typeof input === "object" && input !== null && "foo" in input) {
-    // narrowed; compiler verifies access
-  }
+	if (typeof input === "object" && input !== null && "foo" in input) {
+		// narrowed; compiler verifies access
+	}
 }
 ```
 
@@ -135,14 +135,14 @@ Before writing a property-by-property type guard for external data, look for the
 import { z } from "zod";
 
 const UserSchema = z.object({
-  id: z.string().uuid(),
-  role: z.enum(["admin", "member"]),
+	id: z.string().uuid(),
+	role: z.enum(["admin", "member"]),
 });
 
 type User = z.infer<typeof UserSchema>;
 
 function parseUser(input: unknown): User {
-  return UserSchema.parse(input);
+	return UserSchema.parse(input);
 }
 ```
 
@@ -156,16 +156,16 @@ Every `as` is a potential runtime crash. Cast only after the type system has ver
 // Don't
 const user = data as User;
 
-// Do. Earn the cast at the boundary.
+// Do, when the repository has no runtime schema library. Earn the cast at the boundary. With a schema library, parse through the schema helper in the section above instead.
 function parseUser(data: unknown): User {
-  if (typeof data !== "object" || data === null) {
-    throw new Error("expected object");
-  }
-  if (!("id" in data) || typeof (data as Record<string, unknown>).id !== "string") {
-    throw new Error("expected id");
-  }
-  // ... validate all fields
-  return data as User; // OK, earned cast after full validation
+	if (typeof data !== "object" || data === null) {
+		throw new Error("expected object");
+	}
+	if (!("id" in data) || typeof (data as Record<string, unknown>).id !== "string") {
+		throw new Error("expected id");
+	}
+	// ... validate all fields
+	return data as User; // OK, earned cast after full validation
 }
 ```
 
@@ -188,8 +188,8 @@ From best to last-resort:
 
 ```ts
 function area(s: Shape): number {
-  if ("radius" in s) return Math.PI * s.radius ** 2; // narrowed to circle
-  return s.width * s.height; // narrowed to rect
+	if ("radius" in s) return Math.PI * s.radius ** 2; // narrowed to circle
+	return s.width * s.height; // narrowed to rect
 }
 ```
 
@@ -199,7 +199,7 @@ A guard must actually verify the claim. A lying guard is worse than `as`.
 
 ```ts
 function isCircle(s: Shape): s is Shape & { kind: "circle" } {
-  return s.kind === "circle";
+	return s.kind === "circle";
 }
 ```
 
@@ -212,32 +212,32 @@ In default arms, assign the discriminant to a `never`-typed local.
 ```ts
 // Value-returning switch
 function area(s: Shape): number {
-  switch (s.kind) {
-    case "circle":
-      return Math.PI * s.radius ** 2;
-    case "rect":
-      return s.width * s.height;
-    default: {
-      const _exhaustive: never = s;
-      return _exhaustive;
-    }
-  }
+	switch (s.kind) {
+		case "circle":
+			return Math.PI * s.radius ** 2;
+		case "rect":
+			return s.width * s.height;
+		default: {
+			const _exhaustive: never = s;
+			return _exhaustive;
+		}
+	}
 }
 
 // Void switch
 function handle(s: Shape): void {
-  switch (s.kind) {
-    case "circle":
-      drawCircle(s);
-      break;
-    case "rect":
-      drawRect(s);
-      break;
-    default: {
-      const _exhaustive: never = s;
-      void _exhaustive;
-    }
-  }
+	switch (s.kind) {
+		case "circle":
+			drawCircle(s);
+			break;
+		case "rect":
+			drawRect(s);
+			break;
+		default: {
+			const _exhaustive: never = s;
+			void _exhaustive;
+		}
+	}
 }
 ```
 
@@ -271,17 +271,17 @@ When a `.proto`, OpenAPI spec, GraphQL schema, or database migration already def
 ```ts
 // Don't. Duplicate shape, drifts when the schema changes.
 type CheckSummary = {
-  totalCount: number;
-  checks: { name: string; status: string }[];
+	totalCount: number;
+	checks: { name: string; status: string }[];
 };
 function renderChecks(s: CheckSummary) {
-  /* ... */
+	/* ... */
 }
 
 // Do. Derive from the generated schema type.
 import type { ChecksMessage } from "<generated module>";
 function renderChecks(s: Pick<ChecksMessage, "totalCount" | "checks">) {
-  /* ... */
+	/* ... */
 }
 ```
 
@@ -292,21 +292,21 @@ Reach for `Pick`, `Omit`, `Parameters`, `ReturnType`, `Awaited`, `typeof` before
 ```ts
 // Don't. Swap two args, still compiles.
 openFile(uri, {
-  startLineNumber: 10,
-  startColumn: 1,
-  endLineNumber: 10,
-  endColumn: 1,
+	startLineNumber: 10,
+	startColumn: 1,
+	endLineNumber: 10,
+	endColumn: 1,
 });
 
 // Do. Order-independent, self-documenting.
 openFile({
-  uri,
-  selection: {
-    startLineNumber: 10,
-    startColumn: 1,
-    endLineNumber: 10,
-    endColumn: 1,
-  },
+	uri,
+	selection: {
+		startLineNumber: 10,
+		startColumn: 1,
+		endLineNumber: 10,
+		endColumn: 1,
+	},
 });
 ```
 

@@ -134,7 +134,7 @@ test('transcript consumers read the Pi session store, not Reference agent-transc
   const recall = await read('skills/recall/SKILL.md');
   expect(recall.includes('`~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`')).toBe(true);
   expect(recall.includes('`/Users/you/proj` becomes `--Users-you-proj--`')).toBe(true);
-  expect((await read('skills/reflect/SKILL.md')).includes('<session-dir>/pstack-workers/*/*.jsonl')).toBe(true);
+  expect((await read('skills/reflect/SKILL.md')).includes('<session-dir>/pstack-workers/*/*.jsonl')).toBe(false);
 });
 
 function git(cwd: string, ...args: string[]): string {
@@ -164,7 +164,7 @@ test('worktree audit dates agent activity from Pi sessions and worker transcript
     const output = execFileSync('bash', [join(root, 'skills/poteto-mode/scripts/worktree-audit.sh'), f.main], {
       encoding: 'utf8',
       stdio: 'pipe',
-      env: { ...process.env, HOME: f.directory, PI_CODING_AGENT_DIR: join(f.directory, 'agent'), GH_TOKEN: 'invalid' },
+      env: { ...process.env, HOME: f.directory, PI_CODING_AGENT_DIR: join(f.directory, 'agent'), PI_CODING_AGENT_SESSION_DIR: '', GH_TOKEN: 'invalid' },
     });
     const today = execFileSync('date', ['+%Y-%m-%d'], { encoding: 'utf8' }).trim();
     const rows = new Map(
@@ -184,17 +184,51 @@ test('worktree audit dates agent activity from Pi sessions and worker transcript
   }
 });
 
+test.each([
+  ['custom-sessions', 'argument'],
+  ['custom sessions', 'argument'],
+  ['custom sessions', 'environment'],
+  ['custom sessions', 'tilde environment'],
+])('worktree audit includes recent activity from Pi session directory %s via %s', async (name, mode) => {
+  const f = await worktreeFixture();
+  try {
+    const custom = join(f.directory, name);
+    await mkdir(custom);
+    await writeFile(join(custom, 'active.jsonl'), JSON.stringify({ type: 'session', cwd: join(f.directory, 'idle') }));
+    const output = execFileSync('bash', [join(root, 'skills/poteto-mode/scripts/worktree-audit.sh'), f.main, ...(mode === 'argument' ? [custom] : [])], {
+      encoding: 'utf8',
+      stdio: 'pipe',
+      env: {
+        ...process.env,
+        HOME: f.directory,
+        PI_CODING_AGENT_DIR: join(f.directory, 'agent'),
+        PI_CODING_AGENT_SESSION_DIR: mode === 'tilde environment' ? `~/${name}` : mode === 'environment' ? custom : join(f.directory, 'absent-store'),
+        GH_TOKEN: 'invalid',
+      },
+    });
+    const row = output
+      .trim()
+      .split('\n')
+      .map((line) => line.split('\t'))
+      .find((cells) => cells[8] === join(f.directory, 'idle'));
+    const today = execFileSync('date', ['+%Y-%m-%d'], { encoding: 'utf8' }).trim();
+    expect(row?.slice(6, 8)).toEqual([today, 'verify-recent-chat']);
+  } finally {
+    await f.close();
+  }
+});
+
 test('host contract names the workspace session directory the transcript skills read', async () => {
   const { hostInstructions } = await import('../src/host.ts');
-  const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/agent/sessions/--w--', getSessionFile: () => '/agent/sessions/--w--/s.jsonl' } };
+  const ctx = { cwd: '/w', sessionManager: { getSessionId: () => 's', getSessionDir: () => '/agent/sessions/--w--', getSessionFile: () => '/agent/sessions/--w--/s.jsonl' } };
   const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '');
-  expect(host.includes('Workspace Pi session directory: /agent/sessions/--w--.')).toBe(true);
-  expect(host.includes('Task child transcripts: /agent/sessions/--w--/pstack-workers/<parent-session-id>.')).toBe(true);
+  expect(host.includes('Pi session storage directory: /agent/sessions/--w--.')).toBe(true);
+  expect(host.includes('Task child transcripts owned by this parent session: /agent/sessions/--w--/pstack-workers/s.')).toBe(true);
 });
 
 test('host contract maps upstream Reference facilities and tool names to Pi', async () => {
   const { hostInstructions } = await import('../src/host.ts');
-  const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
+  const ctx = { cwd: '/w', sessionManager: { getSessionId: () => 's', getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
   const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '');
   for (const text of [
     'A Reference rule becomes an AGENTS.md context file',
@@ -215,6 +249,6 @@ test('local /loop ships as a Pi skill and template that the host contract names'
   for (const text of ['Usage: /loop [interval] <prompt>', 'notify_on_output: "^AGENT_LOOP_TICK_<purpose>"', 'notify_on_output: "^AGENT_LOOP_WAKE_<purpose>"', 'Background' + 'ShellStop']) expect(skill.includes(text)).toBe(true);
   expect((await read('host/prompts/loop.md')).includes('Read loop/SKILL.md in full under the pstack host skills directory')).toBe(true);
   const { hostInstructions } = await import('../src/host.ts');
-  const ctx = { cwd: '/w', sessionManager: { getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
+  const ctx = { cwd: '/w', sessionManager: { getSessionId: () => 's', getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
   expect(hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '').includes('/loop is a Pi prompt template for the local loop skill')).toBe(true);
 });

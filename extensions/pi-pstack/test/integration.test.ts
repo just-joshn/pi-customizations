@@ -368,14 +368,14 @@ test('pstack tool snippets and guidance follow the active tool set', async () =>
     for (const name of ['Task', 'TaskOutput', 'TaskMessage', 'TaskStop', 'TodoWrite', 'AskQuestion', 'pstack_mode', 'pstack_context', 'BackgroundShell', bgList, bgStop]) {
       expect(tools).toMatch(new RegExp(`^- ${name}: `, 'm'));
     }
-    expect(section(f.requests, 'rules') ?? '').toMatch(/environment cloud gives the worker its own detached git worktree/);
+    expect(section(f.requests, 'rules') ?? '').toMatch(/environment cloud starts a detached Pi root in a configured separate VM/);
     expect(section(f.requests, 'rules') ?? '').toMatch(/AskQuestion works in interactive and RPC sessions/);
-    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/environment cloud gives the worker its own detached git worktree|TodoWrite keeps/);
+    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/environment cloud starts a detached Pi root in a configured separate VM|TodoWrite keeps/);
     session.setActiveToolsByName(['read', 'bash']);
     await prompt(session, 'Continue with read and bash only.');
     expect(section(f.requests, 'tools') ?? '').not.toMatch(/^- (Task|TodoWrite|BackgroundShell): /m);
-    expect(section(f.requests, 'rules') ?? '').not.toMatch(/environment cloud gives the worker its own detached git worktree|TodoWrite keeps|BackgroundShell/);
-    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/environment cloud gives the worker its own detached git worktree|TodoWrite keeps|BackgroundShell with notify_on_output/);
+    expect(section(f.requests, 'rules') ?? '').not.toMatch(/environment cloud starts a detached Pi root in a configured separate VM|TodoWrite keeps|BackgroundShell/);
+    expect(section(f.requests, 'pstack_host') ?? '').not.toMatch(/environment cloud starts a detached Pi root in a configured separate VM|TodoWrite keeps|BackgroundShell with notify_on_output/);
     expect(f.errors).toEqual([]);
   } finally {
     await f.close();
@@ -571,18 +571,16 @@ test('AskQuestion rejects ambiguous and blank identifiers before opening dialogs
   }
 });
 
-test('context history errors become failed Pi tool results rather than empty evidence', async () => {
+test('context history explicitly labels best-effort discovery as incomplete', async () => {
   const f = await fixture();
-  const listSpy = vi.spyOn(SessionManager, 'list').mockRejectedValue(new Error('history unavailable'));
   try {
     const { session } = await f.open();
-    f.calls.push({ type: 'toolCall', id: 'failed-history', name: 'pstack_context', arguments: { history: true } });
+    f.calls.push({ type: 'toolCall', id: 'history-discovery', name: 'pstack_context', arguments: { history: true } });
     await prompt(session, 'Read workspace history');
     const result = toolResults(session, 'pstack_context').at(-1);
-    expect(Boolean(result?.role === 'toolResult' && result.isError)).toBe(true);
-    expect(JSON.stringify(result?.content)).toMatch(/history unavailable/);
+    expect(result?.role).toBe('toolResult');
+    expect(result?.details).toMatchObject({ historyDiscovery: { mode: 'best-effort', completeness: 'unknown' } });
   } finally {
-    listSpy.mockRestore();
     await f.close();
   }
 });

@@ -27,9 +27,8 @@ Before spawning reviewers, state the intent explicitly. Derive this from:
 - The user's message
 - Commit messages
 - PR description if one exists
-- The code itself
 
-Write one clear paragraph. If you're unsure about the intent, ask the user before proceeding.
+Write one clear paragraph. If the sources leave the intent unclear, state your inferred intent in the paragraph, mark it as inferred, and proceed. Ask the user only when none of these sources exists. Never derive intent from the code alone, because that can bake a visible bug into the accepted intent.
 
 ## Step 3, Spawn Reviewers
 
@@ -46,7 +45,7 @@ For each reviewer:
 - `model`: the configured `interrogate reviewers` entry, or the table default with no configured line. For an `auto` or `inherit-parent` entry, omit `model` so that reviewer runs on the parent model.
 - `readonly`: `true`
 
-If the Task tool rejects a configured entry, run that reviewer on the table default of its family and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use Reviewer A's default. If it rejects a table default, check the valid slugs in the Task tool's error message, pick the closest equivalent (prefer the highest-reasoning tier of the same family), spawn with it, and open a separate PR to update the default table. Do not block the review on the slug issue. Never treat an alias entry as a rejected slug or apply either fallback to it.
+If the Task tool rejects a configured entry, run that reviewer on the table default of its family and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use Reviewer A's default. If it rejects a table default, check the valid slugs in the Task tool's error message, pick the closest equivalent (prefer the highest-reasoning tier of the same family), spawn with it, and report the rejected default in the review summary and suggest running `/setup-pstack`, because the table default lives in the package. Do not block the review on the slug issue. Never treat an alias entry as a rejected slug or apply either fallback to it.
 
 Read `references/reviewer-prompt.md` and fill in the template with:
 1. The stated intent
