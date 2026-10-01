@@ -32,6 +32,10 @@ const child = spawn(
 let socket;
 const pending = new Map();
 const heapChunks = [];
+const networkResponses = [];
+const finishedRequests = new Set();
+const traceEvents = [];
+let traceComplete = false;
 let next = 0;
 function selectPage(pages, expected) {
   const page = pages.find((entry) => entry.type === 'page' && entry.url === expected);
@@ -87,6 +91,10 @@ try {
   });
   socket.addEventListener('message', ({ data }) => {
     const response = JSON.parse(data);
+    if (response.method === 'Network.responseReceived') networkResponses.push(response.params);
+    if (response.method === 'Network.loadingFinished') finishedRequests.add(response.params.requestId);
+    if (response.method === 'Tracing.dataCollected') traceEvents.push(...response.params.value);
+    if (response.method === 'Tracing.tracingComplete') traceComplete = true;
     if (response.method === 'HeapProfiler.addHeapSnapshotChunk') {
       heapChunks.push(response.params.chunk);
       return;
@@ -102,6 +110,26 @@ try {
   const readyDeadline = Date.now() + 15000;
   while ((await evaluate('document.readyState === "complete" && document.querySelector("h1")?.textContent')) !== 'Pi review canvas probe') {
     assert.ok(Date.now() < readyDeadline, 'the selected canvas loads its positive app marker');
+    await new Promise((done) => setTimeout(done, 40));
+  }
+  await send('Network.enable');
+  await send('Page.reload', { ignoreCache: true });
+  const networkDeadline = Date.now() + 15000;
+  let documentResponse;
+  while (!documentResponse) {
+    documentResponse = networkResponses.find((entry) => entry.response.url === url && entry.type === 'Document' && finishedRequests.has(entry.requestId));
+    if (documentResponse) break;
+    assert.ok(Date.now() < networkDeadline, 'the selected app document completes its network load');
+    await new Promise((done) => setTimeout(done, 40));
+  }
+  const responseBody = await send('Network.getResponseBody', { requestId: documentResponse.requestId });
+  assert.equal(responseBody.base64Encoded, false, 'fixture response is text');
+  assert.equal(responseBody.body, html, 'network capture returns exact canvas fixture bytes');
+  await writeFile(join(output, 'canvas-response.html'), responseBody.body);
+  await writeFile(join(output, 'network.json'), JSON.stringify(documentResponse, null, 2));
+  const renderDeadline = Date.now() + 15000;
+  while (!(await evaluate('document.readyState === "complete" && document.querySelector("h1")?.textContent === "Pi review canvas probe"'))) {
+    assert.ok(Date.now() < renderDeadline, 'the reloaded app completes rendering');
     await new Promise((done) => setTimeout(done, 40));
   }
   assert.equal(await evaluate('document.querySelector("h1").textContent'), 'Pi review canvas probe');
@@ -149,18 +177,30 @@ try {
     ),
   );
   const target = await evaluate('(() => { const box = document.querySelector(".file-hdr").getBoundingClientRect(); return { x: box.x + box.width / 2, y: box.y + box.height / 2 }; })()');
+  await send('Tracing.start', { categories: 'devtools.timeline', transferMode: 'ReportEvents' });
   const before = await send('Page.captureScreenshot');
   await writeFile(join(output, 'before.png'), Buffer.from(before.data, 'base64'));
   await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...target, button: 'left', clickCount: 1 });
   await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...target, button: 'left', clickCount: 1 });
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".file-body")).display'), 'none');
+  await send('Tracing.end');
+  const traceDeadline = Date.now() + 15000;
+  while (!traceComplete) {
+    assert.ok(Date.now() < traceDeadline, 'Chrome completes the selected app interaction trace');
+    await new Promise((done) => setTimeout(done, 40));
+  }
+  assert.ok(
+    traceEvents.some((entry) => entry.name === 'EventDispatch' && entry.args?.data?.type === 'click'),
+    'trace contains the actual pointer click',
+  );
+  await writeFile(join(output, 'canvas.trace.json'), JSON.stringify({ traceEvents, scope: 'Isolated browser pointer interaction. Not performance improvement, hosted UI, or model-adherence evidence.' }));
   const after = await send('Page.captureScreenshot');
   await writeFile(join(output, 'after.png'), Buffer.from(after.data, 'base64'));
   await writeFile(
     join(output, 'results.json'),
-    `${JSON.stringify({ passed: true, checks: ['decoy tab excluded', 'no-match titles/URLs', 'positive app heading', 'diff rendering', 'literal unsafe HTML', 'import filtering', 'expanded state', 'fresh screenshot', 'real pointer collapse', 'accessibility heading', 'sampled CPU profile', 'heap snapshot graph'], scope: 'Real isolated Chrome and source canvas assets. CPU uses read-only synthetic style work; a heap capture is not leak proof. No keyboard/focus, performance improvement, hosted UI or model-adherence claim.' }, null, 2)}\n`,
+    `${JSON.stringify({ passed: true, checks: ['decoy tab excluded', 'no-match titles/URLs', 'positive app heading', 'diff rendering', 'literal unsafe HTML', 'import filtering', 'expanded state', 'fresh screenshot', 'real pointer collapse', 'accessibility heading', 'sampled CPU profile', 'heap snapshot graph', 'network fixture bytes', 'pointer click trace'], scope: 'Real isolated Chrome and source canvas assets. CPU uses read-only synthetic style work; a heap capture is not leak proof. No keyboard/focus, performance improvement, hosted UI or model-adherence claim.' }, null, 2)}\n`,
   );
-  process.stdout.write('Canvas browser passes twelve checks.\n');
+  process.stdout.write('Canvas browser passes fourteen checks.\n');
   await send('Browser.close');
 } finally {
   for (const waiter of pending.values()) {
