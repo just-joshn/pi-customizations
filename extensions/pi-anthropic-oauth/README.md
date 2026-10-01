@@ -33,7 +33,7 @@ The package also checks the payload that Pi's Anthropic implementation hands ove
 Run `bun install` first. It installs the Pi packages the tests import, pinned to 0.99.2. Pi does not install development dependencies when it loads the package. The tests also pass against Pi 1.0.0. To check that, copy the package to a scratch directory, set both `@earendil-works/*` devDependencies to `1.0.0`, and run `bun install` there.
 
 - `bun run typecheck` runs `tsc` in strict mode.
-- `bun run test` loads the extension through Pi's extension loader and sends requests through Pi's `Models` to a local Messages server. The stored OAuth credential, bearer header, and refresh run the real path. Only the HTTP peer is faked.
+- `bun run test` calls the extension factory with a small typed fake of `registerProvider` to get the provider. Requests then go through Pi's `Models` to a local Messages server. The stored OAuth credential, bearer header, and refresh run the real path. Only the HTTP peer is faked. One test runs Pi's public `discoverAndLoadExtensions` on a temporary copy of the package to prove that Pi loads the file the `pi.extensions` manifest in `package.json` declares. A type check in the same suite fails if the default export stops being a Pi `ExtensionFactory`.
 - `bun run test:coverage` runs the same tests and enforces the coverage thresholds. `src/index.ts` is fully covered.
 - `bunx vitest run --sequence.shuffle` runs the tests in random order to check that they are independent.
 - `node --experimental-strip-types scripts/equivalence.ts` prints each captured request and result as JSON. To compare two versions, run it on both and diff the output.
