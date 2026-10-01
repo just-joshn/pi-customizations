@@ -20,6 +20,7 @@ import { type HandbackContract, handbackExtension, handbackInstruction, handback
 import { validateId } from './subagents/identifiers.ts';
 import { memoryPrompt } from './subagents/memory.ts';
 import { ModelHistory } from './subagents/model-history.ts';
+import { seedParentIntent } from './subagents/parent-intent.ts';
 import { childStatsEvents } from './subagents/nested-depth.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
 import { validateResumeWorktree } from './subagents/resume-worktree.ts';
@@ -215,6 +216,7 @@ async function openChildTranscript(options: OpenWorker, cwd: string, dir: string
     manager.appendCustomEntry(taskOwnerEntryType, { id });
   }
   if (fork?.seed) seedForkTranscript(manager, fork.seed.messages, fork.seed.state);
+  else if (launch && !prior && !fork) seedParentIntent(manager, ctx.sessionManager.getBranch());
   const worktree = launch?.worktree?.path ?? prior?.worktreePath ?? prior?.inheritedWorktreePath ?? options.inheritedWorktree;
   saveChildContext(manager, {
     id,
