@@ -48,3 +48,17 @@ test.for([
 ])('the internal input contract refuses malformed input: $message', ({ input, message }) => {
   expect(() => parseAgentInput(input)).toThrow(message);
 });
+
+test.for([
+  { env: { CLAUDE_CODE_COORDINATOR_MODE: '1', CLAUDE_CODE_COORDINATOR_FORCE_WORKER_INHERIT_MODEL: '1' }, note: ' Unavailable on this session: this parameter is ignored \u2014 do not set it.' },
+  {
+    env: { CLAUDE_CODE_COORDINATOR_MODE: '1' },
+    note: ' Set this only when EXPLICITLY asked by the user for a specific model, never because the task seems small, simple, or cheap; otherwise omit it so the worker uses the default (the session model, unless a default subagent model is configured).',
+  },
+  { env: {}, note: '' },
+])('coordinator mode appends the recovered model note: $env', ({ env, note }) => {
+  const schema = buildAgentSchema(agentSchemaGates(env)) as unknown as JsonSchema;
+  expect(schema.properties.model?.description).toBe(
+    `Optional model override for this agent. Takes precedence over the agent definition's model frontmatter and the configured default subagent model. If omitted, uses the agent definition's model, else the default (inherits from the parent unless a default subagent model is configured). Ignored for subagent_type: "fork" \u2014 forks always inherit the parent model.${note}`,
+  );
+});

@@ -210,7 +210,7 @@ export default function workerProvider(pi: ExtensionAPI): void {
     api: 'openai-completions',
     baseUrl: 'https://unused.invalid',
     apiKey: 'test-only',
-    models: ['deterministic', 'alternate', 'claude-opus-5'].map((id) => ({ id, name: id, reasoning: id === 'alternate', input: ['text'], contextWindow: 100000, maxTokens: 1000, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } })),
+    models: ['deterministic', 'alternate', 'claude-opus-5', 'claude-fable-1'].map((id) => ({ id, name: id, reasoning: id === 'alternate', input: ['text'], contextWindow: 100000, maxTokens: 1000, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } })),
     streamSimple: streamWorker,
   });
 }

@@ -97,43 +97,59 @@ class AgentLauncher {
     };
   }
 
-  admit(params: AgentParams, ctx: ExtensionContext): Admitted {
-    const found = this.catalog.discover(ctx);
-    const decision = decideAdmission(this.snapshot(ctx, found.activeAgents), toRequest(params));
-    if (!decision.ok) {
-      if (decision.counter) {
-        this.stats.refuse(decision.counter);
-        this.publishStats();
-      }
-      this.pi.events.emit('pstack:subagent-refused', { code: decision.refusal.code, ...(decision.counter ? { reason: decision.counter } : {}) });
-      const { code, message } = decision.refusal;
-      switch (code) {
-        case 'subagent_type_not_found':
-        case 'subagent_type_ambiguous':
-        case 'subagent_type_missing':
-          throw new AgentTypeError({ code, message });
-        default:
-          throw new AgentPreconditionError(decision.refusal);
-      }
+  private refuse(decision: Extract<ReturnType<typeof decideAdmission>, { ok: false }>): never {
+    if (decision.counter) {
+      this.stats.refuse(decision.counter);
+      this.publishStats();
     }
-    const { plan } = decision;
-    if (params.subagent_type && params.subagent_type !== plan.agentType) this.pi.events.emit('pstack:subagent-type-normalized', { requested: params.subagent_type, resolved: plan.agentType });
-    const selected = found.activeAgents.find((agent) => agent.agentType === plan.agentType);
-    if (!selected) throw new Error(`Agent type '${plan.agentType}' not found.`);
-    if (params.subagent_type && params.subagent_type !== plan.agentType && selected.color) this.pi.events.emit('pstack:subagent-color', { agentType: params.subagent_type, color: selected.color });
-    const definition = withMaxTurns(selected, params.max_turns);
-    checkOptionPortability(definition, (message) => this.pi.events.emit('pstack:subagent-log', message));
-    const available = ctx.modelRegistry.getAvailable().map((model) => `${model.provider}/${model.id}`);
-    const choice = chooseChildModel({ ...(plan.model !== undefined ? { toolModel: plan.model } : {}), ...(definition.model !== undefined ? { definitionModel: definition.model } : {}), fork: false, env: this.env, available });
+    this.pi.events.emit('pstack:subagent-refused', { code: decision.refusal.code, ...(decision.counter ? { reason: decision.counter } : {}) });
+    const { code, message } = decision.refusal;
+    switch (code) {
+      case 'subagent_type_not_found':
+      case 'subagent_type_ambiguous':
+      case 'subagent_type_missing':
+        throw new AgentTypeError({ code, message });
+      default:
+        throw new AgentPreconditionError(decision.refusal);
+    }
+  }
+
+  private chooseModel(plan: LaunchPlan, definition: AgentDefinition, ctx: ExtensionContext): string | undefined {
+    const parent = ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined;
+    const choice = chooseChildModel({
+      ...(plan.model !== undefined ? { toolModel: plan.model } : {}),
+      ...(definition.model !== undefined ? { definitionModel: definition.model } : {}),
+      ...(exploreInheritCap(definition, this.env) ? { inheritCap: 'opus' } : {}),
+      ...(parent ? { parent } : {}),
+      fork: false,
+      env: this.env,
+      available: ctx.modelRegistry.getAvailable().map((model) => `${model.provider}/${model.id}`),
+    });
     if (choice.ignoredOverride) this.pi.events.emit('pstack:subagent-log', `"${choice.ignoredOverride}" ignored: CLAUDE_CODE_SUBAGENT_MODEL_FORCE is set`);
     if (choice.steppedFrom || choice.dropped)
       this.pi.events.emit('pstack:subagent-model-resolve', {
         requested: choice.steppedFrom ?? choice.dropped,
-        resolved: choice.request ?? (ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined),
+        resolved: choice.request ?? parent,
         steppedFamily: Boolean(choice.steppedFrom),
         droppedOverride: Boolean(choice.dropped),
       });
-    return { plan, definition, model: choice.request, background: (plan.background || definition.background === true) && !backgroundTasksDisabled(this.env) };
+    return choice.request;
+  }
+
+  admit(params: AgentParams, ctx: ExtensionContext): Admitted {
+    const found = this.catalog.discover(ctx);
+    const decision = decideAdmission(this.snapshot(ctx, found.activeAgents), toRequest(params));
+    if (!decision.ok) this.refuse(decision);
+    const { plan } = decision;
+    const selected = found.activeAgents.find((agent) => agent.agentType === plan.agentType);
+    if (!selected) throw new Error(`Agent type '${plan.agentType}' not found.`);
+    if (params.subagent_type && params.subagent_type !== plan.agentType) {
+      this.pi.events.emit('pstack:subagent-type-normalized', { requested: params.subagent_type, resolved: plan.agentType });
+      if (selected.color) this.pi.events.emit('pstack:subagent-color', { agentType: params.subagent_type, color: selected.color });
+    }
+    const definition = withMaxTurns(selected, params.max_turns);
+    checkOptionPortability(definition, (message) => this.pi.events.emit('pstack:subagent-log', message));
+    return { plan, definition, model: this.chooseModel(plan, definition, ctx), background: (plan.background || definition.background === true) && !backgroundTasksDisabled(this.env) };
   }
 
   private async isolate(admitted: Admitted, ctx: ExtensionContext): Promise<{ cwd?: string; worktree?: AgentWorktree; outcome: () => WorktreeOutcome | undefined; settle?: () => Promise<Partial<TaskRecord>> }> {
@@ -207,6 +223,10 @@ class AgentLauncher {
       : completed({ ...record, output: await readFile(record.outputFile, 'utf8'), ...(started.usage ? { usage: started.usage } : {}) }, plan, { ...worktree, ...isolationResult });
     return { ...wrap(result, resultText(result)), ...(started.usage ? { usage: started.usage } : {}) };
   }
+}
+
+function exploreInheritCap(definition: AgentDefinition, env: NodeJS.ProcessEnv): boolean {
+  return definition.source === 'built-in' && definition.agentType === 'Explore' && !env.CLAUDE_CODE_DISABLE_EXPLORE_INHERIT_CAP;
 }
 
 async function loadDeferredDefinition(admitted: Admitted, requested: string | undefined): Promise<Admitted> {
