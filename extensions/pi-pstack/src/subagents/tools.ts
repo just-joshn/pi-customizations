@@ -18,6 +18,7 @@ import { concurrencyCap, sessionSpawnCap } from './limits.ts';
 import { chooseChildModel } from './models.ts';
 import { checkOptionPortability } from './option-portability.ts';
 import { AgentPreconditionError, AgentTypeError } from './precondition-error.ts';
+import { flaggedOutput } from './completion-notice.ts';
 import { type AgentResult, AgentResultSchema, asyncLaunched, completed, resultText } from './results.ts';
 import { buildAgentSchema, ListAgentsSchema, SendMessageSchema } from './schema.ts';
 import type { SubagentStats } from './stats.ts';
@@ -159,6 +160,15 @@ class AgentLauncher {
     }
   }
 
+  private canReadOutputFile(): boolean {
+    return this.pi.getActiveTools().some((name) => ['read', 'bash'].includes(name.toLowerCase()));
+  }
+
+  private reportFindings(agentId: string, findings: Parameters<typeof flaggedOutput>[2]): void {
+    const flagged = flaggedOutput(agentId, 'finalize', findings);
+    if (flagged) this.pi.events.emit('pstack:subagent-output-flagged', flagged);
+  }
+
   private async dispatch(callId: string, admitted: Admitted, signal: AbortSignal | undefined, onUpdate: Update, ctx: ExtensionContext, release: () => void): Promise<AgentToolResult<AgentResult>> {
     const { plan, definition, model, background } = admitted;
     const isolation = await this.isolate(admitted, ctx);
@@ -194,8 +204,8 @@ class AgentLauncher {
     const worktree = kept?.kept ? keptFields(kept) : {};
     const isolationResult = requestedIsolation ? { requestedIsolation, effectiveIsolation: isolation.cwd ? ('worktree' as const) : ('local' as const) } : {};
     const result = background
-      ? asyncLaunched(record, plan, isolationResult)
-      : completed({ ...record, output: await readFile(record.outputFile, 'utf8'), ...(started.usage ? { usage: started.usage } : {}) }, plan, { ...worktree, ...isolationResult });
+      ? asyncLaunched(record, plan, { ...isolationResult, canReadOutputFile: this.canReadOutputFile() })
+      : completed({ ...record, output: await readFile(record.outputFile, 'utf8'), ...(started.usage ? { usage: started.usage } : {}) }, plan, { ...worktree, ...isolationResult }, (findings) => this.reportFindings(record.id, findings));
     return { ...wrap(result, resultText(result)), ...(started.usage ? { usage: started.usage } : {}) };
   }
 }

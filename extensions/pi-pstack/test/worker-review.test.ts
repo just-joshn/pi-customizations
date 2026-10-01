@@ -112,7 +112,7 @@ test('restoration reports cleanup failure but activates the requested branch aft
 test('a background task awaited by TaskOutput is not delivered again as a completion message', async () => {
   const f = await workerFixture();
   try {
-    const completions = () => f.session.messages.filter((message) => message.role === 'custom' && message.customType === 'pstack-task-completion').length;
+    const completions = () => f.session.messages.filter((message) => message.role === 'custom' && message.customType === 'task_notification').length;
     const awaited = await f.call('Task', { prompt: 'WAIT' }, undefined, true);
     const awaitedId = (awaited.details as { id: string }).id;
     expect(((await f.call('TaskOutput', { task_id: awaitedId, block: true })).details as { status: string }).status).toBe('settled');
@@ -129,7 +129,7 @@ test('a background task awaited by TaskOutput is not delivered again as a comple
 test('a task that settles during a busy parent turn wakes the parent only if its result is still unread', async () => {
   const f = await workerFixture();
   try {
-    const completions = () => f.session.messages.filter((message) => message.role === 'custom' && message.customType === 'pstack-task-completion').length;
+    const completions = () => f.session.messages.filter((message) => message.role === 'custom' && message.customType === 'task_notification').length;
     const read = await f.call('Task', { prompt: 'WAIT' }, undefined, true);
     const readId = (read.details as { id: string }).id;
     await settled(f, readId);

@@ -24,7 +24,8 @@ test('[G3-05] background launch reports the single model selected at that transi
   const { call, close } = await workerFixture();
   try {
     const launched = await call('Agent', { description: 'background history', prompt: 'WAIT_BLOCKED' });
-    expect(launched.details).toMatchObject({ status: 'async_launched', resolvedModel: 'worker-test/deterministic', modelsUsed: ['worker-test/deterministic'] });
+    expect(launched.details).toMatchObject({ status: 'async_launched', resolvedModel: 'worker-test/deterministic' });
+    expect(launched.details).not.toHaveProperty('modelsUsed');
   } finally {
     await close();
   }

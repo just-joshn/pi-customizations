@@ -26,7 +26,7 @@ test('native pi dispatch launches and resumes an agent by its offered name', asy
     const id = details.agents[0]?.agentId;
     if (!id) throw new Error('Missing named child');
     expect((await fixture.call('TaskOutput', { task_id: id, block: true })).details).toMatchObject({ output: 'users=2', agentName: 'contract-worker' });
-    expect(await readFile(join(fixture.dir, 'child-input.txt'), 'utf8')).toContain('NAMED_CONTINUATION');
+    expect(await readFile(join(fixture.dir, 'provider-inputs.jsonl'), 'utf8')).toContain('NAMED_CONTINUATION');
   } finally {
     await fixture.close();
   }
