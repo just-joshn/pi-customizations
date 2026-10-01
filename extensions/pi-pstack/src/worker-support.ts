@@ -132,7 +132,9 @@ export async function prepareWorkerSession({ id, params, prior, ctx }: OpenWorke
         .errors.map((error) => error.error)
         .join('; ')}`,
     );
-  const dir = await workerDirectory(ctx);
+  const base = await workerDirectory(ctx);
+  const dir = engine === 'detached' ? join(base, id) : base;
+  if (engine === 'detached') await mkdir(dir, { recursive: true });
   return { cwd, persona, readonly, selected, loader, dir };
 }
 
