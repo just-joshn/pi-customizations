@@ -29,11 +29,12 @@ import { createRequire } from 'node:module';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { SKIP_DIRECTORIES } from './skip-directories.mjs';
+
 const root = fileURLToPath(new URL('..', import.meta.url));
 const ts = createRequire(join(root, 'extensions/pi-pstack/package.json'))('typescript');
 
 const limits = { file: 800, typicalFile: 400, function: 50, nesting: 4 };
-const skipDirectories = new Set(['node_modules', '.git', 'coverage', 'artifacts', '.audit', 'dist', '.pi', '.claude', '.agents', 'upstream', 'upstream-team-kit']);
 const generatedPrefixes = ['extensions/pi-pstack/skills/', 'extensions/pi-pstack/prompts/'];
 const secretPatterns = [
   [/(?:^|[^A-Za-z0-9])(?:sk|pk|rk)-[A-Za-z0-9_-]{16,}/, 'API key literal'],
@@ -304,7 +305,7 @@ async function sourceFiles(base = root) {
       const path = join(directory, entry.name);
       const rel = relative(base, path);
       if (entry.isDirectory()) {
-        if (skipDirectories.has(entry.name) || generatedPrefixes.some((prefix) => `${rel}/`.startsWith(prefix))) continue;
+        if (SKIP_DIRECTORIES.has(entry.name) || generatedPrefixes.some((prefix) => `${rel}/`.startsWith(prefix))) continue;
         pending.push(path);
       } else if (entry.name.endsWith('.py') || /\.(?:ts|mts|cts|mjs|cjs|js)$/.test(entry.name)) files.push(path);
     }
