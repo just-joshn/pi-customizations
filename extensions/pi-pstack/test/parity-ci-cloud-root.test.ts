@@ -16,6 +16,24 @@ async function toolDetails(sessionFile: string, name: string) {
   return result.details;
 }
 
+function rootArguments(workspace: string): string[] {
+  return [
+    '--no-extensions',
+    '--no-skills',
+    '--no-prompt-templates',
+    '-e',
+    join(process.cwd(), 'src/index.ts'),
+    '-e',
+    join(process.cwd(), 'test/parity-ci-provider.ts'),
+    '--provider',
+    'ci-test',
+    '--model',
+    'recorder',
+    '--session-dir',
+    join(workspace, 'guest', 'task', 'session'),
+  ];
+}
+
 test('a timer and a CI subscription armed from a cloud Task root run on the guest and outlive that root', async () => {
   await fakeForge({ head: 'guest-sha', checks: [{ name: 'build', bucket: 'pass' }] });
   const workspace = await timerOwner('ci-cloud-root');
@@ -31,21 +49,7 @@ test('a timer and a CI subscription armed from a cloud Task root run on the gues
     ownerId: '00000000-0000-0000-0000-000000000001',
     headless: true,
     closeAfterSettle: true,
-    args: [
-      '--no-extensions',
-      '--no-skills',
-      '--no-prompt-templates',
-      '-e',
-      join(process.cwd(), 'src/index.ts'),
-      '-e',
-      join(process.cwd(), 'test/parity-ci-provider.ts'),
-      '--provider',
-      'ci-test',
-      '--model',
-      'recorder',
-      '--session-dir',
-      join(workspace, 'guest', 'task', 'session'),
-    ],
+    args: rootArguments(workspace),
   });
   const state = await root.send({ type: 'get_state' });
   if (!state.success || state.command !== 'get_state') throw new Error('Cloud root did not report its state.');

@@ -225,8 +225,7 @@ function registerStopPendingProbe(pi: ExtensionAPI): void {
   });
 }
 
-export default function workerProvider(pi: ExtensionAPI): void {
-  registerStopPendingProbe(pi);
+function registerFixtureTools(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'self_abort',
     label: 'Abort test self',
@@ -259,6 +258,9 @@ export default function workerProvider(pi: ExtensionAPI): void {
       return { content: [{ type: 'text', text: 'Selected Read only' }], details: {} };
     },
   });
+}
+
+function registerFixtureProvider(pi: ExtensionAPI): void {
   pi.registerProvider('worker-test', {
     api: 'openai-completions',
     baseUrl: 'https://unused.invalid',
@@ -274,4 +276,10 @@ export default function workerProvider(pi: ExtensionAPI): void {
     })),
     streamSimple: streamWorker,
   });
+}
+
+export default function workerProvider(pi: ExtensionAPI): void {
+  registerStopPendingProbe(pi);
+  registerFixtureTools(pi);
+  registerFixtureProvider(pi);
 }
