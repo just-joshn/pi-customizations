@@ -93,9 +93,13 @@ try {
 } finally {
   try {
     await writeFile(join(output, 'final-terminal.txt'), pane());
-  } catch {}
+  } catch (error) {
+    process.stderr.write(`Final terminal capture failed. ${error.message}\n`);
+  }
   try {
     tmux('kill-server');
-  } catch {}
+  } catch (error) {
+    process.stderr.write(`Terminal server cleanup failed. ${error.message}\n`);
+  }
   await rm(directory, { recursive: true, force: true });
 }
