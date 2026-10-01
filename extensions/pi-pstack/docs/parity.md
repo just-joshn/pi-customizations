@@ -15,7 +15,7 @@ Each Cursor facility pstack uses maps to a local Pi mechanism below. The unmet t
 | Native `/goal`, `shell`, `explore`, `create-skill`, `origin` | `CreateGoal`, `GetGoal`, `UpdateGoal` with branch-persisted state and turn continuation. Native `shell` and `explore` personas. Pi ports of the `goal`, `create-skill` and `origin` built-in skills | `src/goal.ts`, `src/personas.ts`, `host/skills` |
 | Sticky Poteto mode | Branch-local session entries and structured prompt section led by the source `reminder` line; explicit off command and mode tool | `src/index.ts`, integration tests |
 | Routing to skills by name | Host context lists every skill, host skill, and playbook name with its path, built from the directories at load, for parents and readonly children | `src/catalog.ts`, `test/catalog.test.ts` |
-| Cursor cloud Task environment | `environment: "cloud"` and `cloud_base_branch` run the child in a detached git worktree under the session directory. Resume reopens it. The child process ends with its parent | `src/cloud.ts`, `test/workers.test.ts` |
+| Cloud Task implementation | Cloud startup uses a detached RPC supervisor and a separate git worktree. Saved records reconnect to the supervisor. Completion snapshots survive process exit. Parent shutdown disconnects watchers. Actual cloud Task execution remains unverified under the no-subagent audit restriction | `src/cloud-worker.ts`, `src/worker-runtime.ts`, `test/cloud-record-control.test.ts`, `test/detached-rpc.test.ts` |
 | Two agent personas | Complete upstream persona instructions; Poteto child receives full mode instructions | `src/workers.ts` |
 | Local task delegation | SDK child sessions, background completion, output, message, stop, and same-transcript resume | `src/workers.ts` |
 | Model setup | Available pi model identities, supported effort, all 17 roles, ordered panels, aliases, budget selection, confirmed atomic rule write | `src/models.ts`, model tests |
@@ -30,7 +30,8 @@ Each Cursor facility pstack uses maps to a local Pi mechanism below. The unmet t
 
 | Source requirement | Why parity is unavailable |
 | --- | --- |
-| Durable hosted lifecycle for cloud agents | Cloud Tasks get an isolated worktree, but the SDK child stops with its owner. Their commits survive in the worktree. |
+| Complete cloud execution parity | Detached transport lifetime, reconnect, control, and snapshots are verified through real main-session fixtures. Dedicated Task startup, steering, resume, and descendant teardown journeys remain unexecuted. This local transport does not provide a hosted service. |
+| Cloud exclusion from the local store | Separate worktrees do not restrict filesystem reads. A rerunnable macOS sandbox experiment blocks parent-store byte reads, symlink access, and shell descendants while retaining task-owned reads. The sandbox is not integrated into Task launch. Cross-platform exclusion remains unverified. |
 | Cursor cloud timers | Cloud timer subscriptions are not implemented. Local `/loop` covers wakes. A required cloud wake chain is an unmet gate. |
 | Exact Cursor model entitlements, aliases, speed tiers, and inference behavior | Pi uses provider/model IDs and separate supported thinking levels. Availability depends on configured providers. No silent family substitution occurs. |
 | Cursor synced `create-skill` and Automations services | The references identify server-synced skills and host services. This package does not implement those services or distribute their complete current skill text. |
@@ -44,7 +45,7 @@ Each Cursor facility pstack uses maps to a local Pi mechanism below. The unmet t
 | Arbitrary MCP and business service integrations | Writable workers discover installed pi extensions. Availability, permissions, and external service behavior remain installation-specific. |
 | UI parity and stochastic instruction compliance | Pi has different UI and system instructions. Deterministic tests cannot establish every possible model decision or identical rendering. |
 
-The runtime tells the model to retain source gates and identify missing dependencies. That instruction is not a security boundary. Task rejects unsupported cloud execution, unknown personas, and unresolved model requests in code. Other workflow gates remain model instructions. Do not interpret the report as proof that every model will obey every workflow instruction.
+The runtime tells the model to retain source gates and identify missing dependencies. That instruction is not a security boundary. Task rejects unknown personas and unresolved model requests in code. Cloud execution is implemented, but local-store exclusion remains unmet. Other workflow gates remain model instructions. Do not interpret the report as proof that every model will obey every workflow instruction.
 
 ## Mechanism migration
 
@@ -57,6 +58,10 @@ These invocation changes follow the [current mechanism audit](mechanism-audit.md
 The team-kit increment closes three named skill-distribution dependencies. Its remaining 15 skills are additional available workflows, not 15 measured parity fixes. Plugin rule omission and persona construction can be tested deterministically. Successful real GitHub, browser, or model-driven workflow execution requires evidence from the user's configured environment. The kit's `loop-on-ci` skill does not implement Cursor's loop notification protocol. The separate `/loop` port does.
 
 ## Verification limits
+
+The comprehensive audit prohibits subagents. The permitted real RPC suite passes 427 assertions with zero findings after the Origin environment fix. That suite explicitly excludes Task execution. `test/resource-environment.test.ts` verifies that cloud resource arguments and a real idle Pi CLI omit Origin's skill and alias. Local discovery retains them. The native Origin skill preserves the source's `disabled-environments` metadata. Origin installation, authentication, and hosted repository operations remain unverified.
+
+`scripts/verify-store-isolation.mjs` runs the macOS fixture-store experiment with a deterministic main-session provider and no Task calls or paid inference. It preserves baseline and sandbox observations in the supplied evidence directory. This experiment is not evidence that production cloud Tasks are sandboxed.
 
 The test suite exercises the actual pi resource loader and SDK with a deterministic provider. It does not contact paid model providers or deploy external automations. Source helper test results and final verification counts are recorded in `verification.md`.
 
