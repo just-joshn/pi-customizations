@@ -13,7 +13,7 @@ export type SpawnRequest = Readonly<{
   cwd?: string;
 }>;
 
-export type AgentTypeErrorCode = 'subagent_type_not_found' | 'subagent_type_ambiguous' | 'subagent_type_missing';
+export type AgentTypeErrorCode = 'subagent_type_not_found' | 'subagent_type_ambiguous' | 'subagent_type_missing' | 'subagent_type_denied';
 
 export type RefusalCode =
   | AgentTypeErrorCode
@@ -24,7 +24,9 @@ export type RefusalCode =
   | 'subagent_no_directory_in_cwd_scope'
   | 'subagent_stop_pending'
   | 'subagent_name_invalid'
-  | 'subagent_isolation_conflict';
+  | 'subagent_isolation_conflict'
+  | 'subagent_fork_remote_isolation'
+  | 'subagent_recursive_fork';
 
 export type Refusal = Readonly<{ code: RefusalCode; message: string }>;
 
@@ -48,6 +50,8 @@ export type AdmissionSnapshot = Readonly<{
   agents: readonly AgentSummary[];
   allowedAgentTypes?: readonly string[];
   forkAvailable: boolean;
+  forkDenial?: Readonly<{ rule: string; source: string }>;
+  insideFork?: boolean;
   depth: number;
   depthCap: number;
   running: number;

@@ -1,5 +1,6 @@
 import type { AgentSession } from '@earendil-works/pi-coding-agent';
 import type { AgentDefinition } from './definitions.ts';
+import { handbackToolName } from './handback.ts';
 import { memoryEnabled } from './memory.ts';
 import { hasToolScope, hasUnsupportedToolScope } from './tool-specs.ts';
 
@@ -47,9 +48,13 @@ function matchingTools(rule: string, all: readonly string[]): readonly string[] 
   return all.filter((tool) => tool.startsWith(`${base}__`));
 }
 
-export function toolAllowList(definition: AgentDefinition, all: readonly string[]): string[] {
+export function inheritedPool(all: readonly string[], parentTools: readonly string[] | undefined): readonly string[] {
+  return parentTools ? all.filter((name) => parentTools.includes(name) || name === handbackToolName) : all;
+}
+
+export function toolAllowList(definition: AgentDefinition, all: readonly string[], inherited: readonly string[] = all): string[] {
   const requested = definition.tools;
-  const base = !requested || requested.includes('*') ? [...all] : requested.flatMap((name) => matchingTools(name, all));
+  const base = !requested || requested.includes('*') ? [...inherited] : requested.flatMap((name) => matchingTools(name, all));
   const denied = new Set((definition.disallowedTools ?? []).flatMap((rule) => matchingTools(rule, all)).flatMap((tool) => (tool === 'Agent' ? launcherTools : [tool])));
   const memoryTools = memoryEnabled(definition, process.env) ? ['read', 'write', 'edit'].filter((name) => all.includes(name)) : [];
   return [...new Set([...base, ...memoryTools])].filter((tool) => !denied.has(tool));
@@ -79,14 +84,15 @@ export type ZeroToolsDiagnostic = Readonly<{
   refused: boolean;
   isAsync: boolean;
 }>;
-type PolicyContext = Readonly<{ isContinuation: boolean; isAsync: boolean; report: (diagnostic: ZeroToolsDiagnostic) => void }>;
+type PolicyContext = Readonly<{ isContinuation: boolean; isAsync: boolean; parentTools?: readonly string[]; report: (diagnostic: ZeroToolsDiagnostic) => void }>;
 
 export function applyToolPolicy(session: AgentSession, definition: AgentDefinition, context?: PolicyContext): void {
   if ((definition.tools ?? []).some(hasUnsupportedToolScope) || (definition.disallowedTools ?? []).some(hasToolScope))
     throw new Error(`Agent '${definition.agentType}' cannot start: argument-scoped tool rules are not enforced by Pi. Use bare tool names only when unrestricted access is intended.`);
   const allNames = session.getAllTools().map((tool) => tool.name);
+  const inherited = inheritedPool(allNames, context?.parentTools);
   const problem = zeroToolsError(definition, allNames, context?.isContinuation);
-  const allowed = toolAllowList(definition, allNames);
+  const allowed = toolAllowList(definition, allNames, inherited);
   if (allowed.length === 0)
     context?.report({
       isBuiltIn: definition.source === 'built-in',
