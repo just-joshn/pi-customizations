@@ -4,6 +4,8 @@ import { basename, join, resolve } from 'node:path';
 
 import { parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import { builtinAgents } from './builtins.ts';
+import { type AgentColor, parseAgentColor } from './colors.ts';
+import { toolList } from './tool-specs.ts';
 
 export type AgentSource = 'built-in' | 'plugin' | 'userSettings' | 'projectSettings' | 'localSettings' | 'flagSettings' | 'policySettings';
 
@@ -26,8 +28,12 @@ export type AgentDefinition = Readonly<{
   omitContextFiles?: boolean;
   memory?: 'user' | 'project' | 'local';
   isolation?: 'worktree' | 'remote';
-  color?: string;
+  color?: AgentColor;
   initialPrompt?: string;
+  criticalSystemReminder_EXPERIMENTAL?: string;
+  observer?: string;
+  observerMessage?: string;
+  cacheTtl?: '1h';
 }>;
 
 export type Discovery = Readonly<{ allAgents: readonly AgentDefinition[]; activeAgents: readonly AgentDefinition[]; logs: readonly string[]; warnings: readonly string[] }>;
@@ -55,10 +61,7 @@ export function clearAgentCache(): void {
 }
 
 export function sanitizeDisplay(text: string): string {
-  return [...text]
-    .filter((char) => char.charCodeAt(0) > 0x1f && char.charCodeAt(0) !== 0x7f)
-    .join('')
-    .slice(0, 200);
+  return text.replace(/[\p{Cc}\p{Cf}]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
 }
 
 function stringList(value: unknown): string[] | undefined {
@@ -67,11 +70,19 @@ function stringList(value: unknown): string[] | undefined {
   return undefined;
 }
 
+function normalizedModel(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const model = value.trim();
+  if (!model) return undefined;
+  return model.toLowerCase() === 'inherit' ? 'inherit' : model;
+}
+
 export type ParsedAgent = { agent?: AgentDefinition; warnings: string[]; error?: string };
 
 type Mutable = { -readonly [K in keyof AgentDefinition]: AgentDefinition[K] };
 
-function applyOptionalFields(agent: Mutable, fm: Record<string, unknown>, path: string, warnings: string[]): void {
+function optionalFields(fm: Record<string, unknown>, path: string, warnings: string[]): Partial<AgentDefinition> {
+  const agent: Partial<Mutable> = {};
   if (fm.background !== undefined) {
     if (fm.background === true || fm.background === 'true') agent.background = true;
     else if (fm.background !== false && fm.background !== 'false') warnings.push(`Agent file ${path} has invalid background value '${String(fm.background)}'. Must be 'true', 'false', or omitted.`);
@@ -100,23 +111,37 @@ function applyOptionalFields(agent: Mutable, fm: Record<string, unknown>, path: 
     if (typeof mode === 'string' && permissionModes.includes(mode)) agent.permissionMode = mode;
     else warnings.push(`Agent file ${path} has invalid permissionMode '${String(fm.permissionMode)}'. Valid options: ${permissionModes.join(', ')}`);
   }
+  for (const key of ['observer', 'observerMessage'] as const) {
+    const value = fm[key];
+    if (typeof value === 'string' && value.trim()) agent[key] = value.trim();
+  }
+  if (fm.cacheTtl === '1h') agent.cacheTtl = fm.cacheTtl;
+  return agent;
 }
 
 export function parseAgentFile(path: string, text: string, source: AgentSource, baseDir: string): ParsedAgent {
   const warnings: string[] = [];
   let parsed: ReturnType<typeof parseFrontmatter<Record<string, unknown>>>;
+  let tools: string[] | undefined;
+  let disallowed: string[] | undefined;
+  let model: string | undefined;
   try {
     parsed = parseFrontmatter<Record<string, unknown>>(text);
+    tools = toolList(parsed.frontmatter.tools);
+    disallowed = toolList(parsed.frontmatter.disallowedTools);
+    model = normalizedModel(parsed.frontmatter.model);
   } catch (error) {
     return { warnings, error: `Agent file ${path} has invalid frontmatter: ${String(error)}` };
   }
   const { frontmatter: fm, body } = parsed;
+  const executableFields = ['hooks', 'PreToolUse', 'PermissionRequest', 'mcpServers'].filter((key) => Object.hasOwn(fm, key));
+  if (executableFields.length > 0) return { warnings, error: `Agent file ${path} requires a native Pi adapter for executable configuration: ${executableFields.join(', ')}` };
   const name = fm.name;
   if (typeof name !== 'string' || !name.trim()) return { warnings, error: `Agent file ${path} is missing a name` };
-  if (name.startsWith('-') || name.normalize('NFKC').includes(':')) return { warnings, error: `Agent file ${path} has an invalid name '${name}'` };
+  const agentType = name.trim();
+  if (agentType.startsWith('-') || agentType.normalize('NFKC').includes(':')) return { warnings, error: `Agent file ${path} has an invalid name '${name}'` };
   if (typeof fm.description !== 'string' || !fm.description.trim()) return { warnings, error: `Agent file ${path} is missing a description` };
 
-  let tools = stringList(fm.tools);
   let skills = stringList(fm.skills);
   const hadSkillTool = tools?.includes('Skill') === true;
   if (hadSkillTool) {
@@ -126,7 +151,9 @@ export function parseAgentFile(path: string, text: string, source: AgentSource, 
   }
 
   const agent: Mutable = {
-    agentType: name.trim(),
+    ...optionalFields(fm, path, warnings),
+    ...(model !== undefined ? { model } : {}),
+    agentType,
     whenToUse: fm.description.replace(/\\n/g, '\n'),
     systemPrompt: body.trim(),
     source,
@@ -135,17 +162,12 @@ export function parseAgentFile(path: string, text: string, source: AgentSource, 
     filename: basename(path, '.md'),
   };
   if (tools) agent.tools = tools;
-  const disallowed = stringList(fm.disallowedTools);
   if (disallowed) agent.disallowedTools = disallowed;
   if (skills) agent.skills = skills;
-  if (typeof fm.model === 'string') {
-    const model = fm.model.trim();
-    if (model) agent.model = model.toLowerCase() === 'inherit' ? 'inherit' : model;
-  }
-  applyOptionalFields(agent, fm, path, warnings);
-  if (typeof fm.color === 'string') agent.color = fm.color;
+  const color = parseAgentColor(fm.color);
+  if (color) agent.color = color;
   if (typeof fm.initialPrompt === 'string' && fm.initialPrompt.trim()) agent.initialPrompt = fm.initialPrompt.trim();
-  if (fm.omitContextFiles === true) agent.omitContextFiles = true;
+  if (fm.omitContextFiles === true || fm.omitContextFiles === 'true') agent.omitContextFiles = true;
   return { agent, warnings };
 }
 
@@ -188,10 +210,14 @@ function projectDirs(root: string): string[] {
   return [join(root, '.pi', 'agents'), join(root, '.claude', 'agents')];
 }
 
+function definitionOrigin(agent: AgentDefinition): string {
+  return `${agent.source}\0${agent.baseDir}\0${agent.agentType}`;
+}
+
 function duplicateLogs(agents: readonly AgentDefinition[]): string[] {
   const groups = new Map<string, AgentDefinition[]>();
   for (const agent of agents) {
-    const key = `${agent.source}\0${agent.baseDir}\0${agent.agentType}`;
+    const key = definitionOrigin(agent);
     groups.set(key, [...(groups.get(key) ?? []), agent]);
   }
   return [...groups.values()]
@@ -199,7 +225,7 @@ function duplicateLogs(agents: readonly AgentDefinition[]): string[] {
     .map((group) => {
       const first = group[0];
       const paths = group.map((agent) => agent.filePath ?? agent.baseDir);
-      return `[agents] Duplicate agent name '${sanitizeDisplay(first?.agentType ?? '')}' (${first?.source}): ${paths.join(', ')} — active: ${paths[0]}`;
+      return `[agents] Duplicate agent name '${sanitizeDisplay(first?.agentType ?? '')}' (${first?.source}): ${paths.join(', ')} — active: ${paths.at(-1)}`;
     });
 }
 

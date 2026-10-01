@@ -39,13 +39,17 @@ function registerControlTools(pi: ExtensionAPI, runtime: WorkerRuntime): void {
     executionMode: 'parallel',
     execute: (_id, params, signal) => runtime.output(params.task_id, params.block, signal),
   });
-  pi.registerTool({
+  const stopParameters = Type.Object({ task_id: Type.String() });
+  pi.registerTool<typeof stopParameters, Awaited<ReturnType<WorkerRuntime['stop']>>['details']>({
     name: 'TaskStop',
     label: 'Stop task',
-    description: 'Abort a running child task.',
+    description: 'Abort a running child task by ID or name. Unknown tasks return a failure result.',
     promptSnippet: 'Abort a running subagent',
-    parameters: Type.Object({ task_id: Type.String() }),
-    outputSchema: TaskRecordSchema,
+    parameters: stopParameters,
+    outputSchema: Type.Union([
+      Type.Intersect([TaskRecordSchema, Type.Object({ message: Type.String(), task_id: Type.String(), task_type: Type.Literal('local_agent'), command: Type.String() })]),
+      Type.Object({ status: Type.Literal('failed'), task_id: Type.String(), message: Type.String() }),
+    ]),
     exposure: 'direct',
     annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: false },
     executionMode: 'parallel',

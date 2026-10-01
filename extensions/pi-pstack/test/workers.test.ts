@@ -87,7 +87,9 @@ function workerTest(name: string, scenario: (fixture: Awaited<ReturnType<typeof 
 workerTest('unknown task ids are refused by message, output, and stop', async ({ call }) => {
   await expect(call('TaskMessage', { task_id: 'missing', message: 'hello' })).rejects.toThrow(/Task is not running/);
   await expect(call('TaskOutput', { task_id: 'missing' })).rejects.toThrow(/Unknown task in this branch/);
-  await expect(call('TaskStop', { task_id: 'missing' })).rejects.toThrow(/No live task/);
+  const missingStop = await call('TaskStop', { task_id: 'missing' });
+  expect(missingStop.isError).toBe(true);
+  expect(missingStop.details).toEqual({ status: 'failed', task_id: 'missing', message: 'No live task: missing' });
 });
 
 workerTest(
@@ -219,8 +221,9 @@ workerTest('readonly workers inherit extension providers without enabling write 
   const getAppendSystemPrompt = DefaultResourceLoader.prototype.getAppendSystemPrompt;
   const observer = vi.spyOn(DefaultResourceLoader.prototype, 'getAppendSystemPrompt').mockImplementation(function (this: DefaultResourceLoader) {
     const prompts = getAppendSystemPrompt.call(this);
-    childPrompts.push({ readonly: this.getExtensions().extensions.length === 0, names: this.getPrompts().prompts.map((prompt) => prompt.name) });
-    if (this.getExtensions().extensions.length === 0) appended.push(prompts);
+    const readonly = this.getExtensions().extensions.every((extension) => extension.tools.size === 0);
+    childPrompts.push({ readonly, names: this.getPrompts().prompts.map((prompt) => prompt.name) });
+    if (readonly) appended.push(prompts);
     return prompts;
   });
   await call('Task', { prompt: '/bro Rewrite this plainly.', model: 'worker-test/deterministic', run_in_background: false });
@@ -300,6 +303,7 @@ workerTest('worker messages, cancellation, and usage follow the live child', asy
   expect(task.status).toBe('running');
   const stopped = await call('TaskStop', { task_id: task.task_id });
   expect(JSON.stringify(stopped.content)).toMatch(/interrupted/);
+  expect(stopped.details).toMatchObject({ task_id: task.task_id, task_type: 'local_agent', command: 'generalPurpose', message: `Stopped task ${task.task_id}` });
 });
 
 workerTest('terminal children and explicit stops drain every grandchild', async ({ dir, call }) => {

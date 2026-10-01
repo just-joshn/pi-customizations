@@ -53,6 +53,17 @@ const toolCalls: Record<string, PlannedCall[]> = {
   'JOURNEY:task': [{ name: 'Task', arguments: { prompt: 'Report the word delegate-ok and nothing else.', subagent_type: 'generalPurpose', run_in_background: false } }],
   'JOURNEY:progress': [{ name: 'Task', arguments: { prompt: 'JOURNEY:progress-child', subagent_type: 'generalPurpose', run_in_background: false } }],
   'JOURNEY:agent': [{ name: 'Agent', arguments: { description: 'agent probe', prompt: 'Report the word agent-ok and nothing else.', run_in_background: false } }],
+  'JOURNEY:agentturnlimit': [{ name: 'Agent', arguments: { description: 'bounded native probe', prompt: 'JOURNEY:progress-child', subagent_type: 'bounded-turn-probe', run_in_background: false } }],
+  'JOURNEY:append-parent': [{ name: 'Task', arguments: { description: 'append parent', prompt: 'JOURNEY:append-child', subagent_type: 'generalPurpose', run_in_background: false } }],
+  'JOURNEY:append-child': [{ name: 'Task', arguments: { prompt: 'JOURNEY:append-grandchild', subagent_type: 'generalPurpose', run_in_background: false } }],
+  'JOURNEY:agentjsonnested': [{ name: 'Agent', arguments: { description: 'JSON parent', prompt: 'JOURNEY:agentjsonnested-child', subagent_type: 'json-parent', run_in_background: false } }],
+  'JOURNEY:agentjsonnested-child': [{ name: 'Agent', arguments: { description: 'JSON leaf', prompt: 'JOURNEY:agentjsonnested-leaf', subagent_type: 'json-leaf', run_in_background: false } }],
+  'JOURNEY:legacydepth': [{ name: 'Agent', arguments: { description: 'Legacy depth parent', prompt: 'JOURNEY:legacydepth-child', run_in_background: false } }],
+  'JOURNEY:legacydepth-child': [{ name: 'Task', arguments: { prompt: 'JOURNEY:legacydepth-leaf', subagent_type: 'generalPurpose', run_in_background: false } }],
+  'JOURNEY:agentrestored': [{ name: 'Agent', arguments: { description: 'Restored offer', prompt: 'JOURNEY:restored-offer-child', run_in_background: false } }],
+  'JOURNEY:agentsimple': [{ name: 'Agent', arguments: { description: 'Must not delegate', prompt: 'SIMPLE_MUST_NOT_RUN_CHILD', subagent_type: 'general-purpose', run_in_background: false } }],
+  'JOURNEY:agentjson': [{ name: 'Agent', arguments: { description: 'JSON definition probe', prompt: 'Report JSON definition.', subagent_type: 'probe-worker', run_in_background: false } }],
+  'JOURNEY:agentremote': [{ name: 'Agent', arguments: { description: 'remote fallback probe', prompt: 'Report native fallback.', isolation: 'remote', run_in_background: false } }],
   'JOURNEY:agentunknown': [{ name: 'Agent', arguments: { description: 'unknown type', prompt: 'never runs', subagent_type: 'not-a-type' } }],
   'JOURNEY:readonly': [{ name: 'Task', arguments: { prompt: 'readonly child turn', readonly: true, run_in_background: false } }],
   'JOURNEY:badcwd': [{ name: 'Task', arguments: { prompt: 'cwd child turn', cwd: 'no/such/directory', run_in_background: false } }],
@@ -160,7 +171,17 @@ function escapingShellCalls(context: Context) {
   return id ? [{ name: BG_SHELL_STOP, arguments: { id } }] : [];
 }
 
+function agentStopCalls(context: Context): PlannedCall[] {
+  const results = toolResults(context);
+  const started = results.find((message) => message.toolName === 'Agent');
+  if (!started) return [{ name: 'Agent', arguments: { description: 'stop notification probe', prompt: 'JOURNEY:agentstop-child' } }];
+  const id = taskIdOf(started);
+  if (id && !results.some((message) => message.toolName === 'TaskStop')) return [{ name: 'TaskStop', arguments: { task_id: id } }];
+  return [];
+}
+
 function dispatch(requested: string, context: Context): { calls: PlannedCall[] | undefined; sequenced: boolean } {
+  if (requested === 'JOURNEY:agentstop') return { calls: agentStopCalls(context), sequenced: true };
   if (requested === 'JOURNEY:progress-child') return { calls: progressChildCalls(context), sequenced: true };
   if (requested === 'JOURNEY:tasklist') return { calls: backgroundTaskCalls(context), sequenced: true };
   if (requested === 'JOURNEY:taskresume') return { calls: taskResumeCalls(context), sequenced: true };
@@ -188,7 +209,7 @@ function shellCalls(context: Context) {
   const results = context.messages.filter((message) => message.role === 'toolResult');
   const started = results.find((message) => message.role === 'toolResult' && message.toolName === 'BackgroundShell');
   if (!started) {
-    return [{ name: 'BackgroundShell', arguments: { command: 'echo journey-shell-ready', title: 'Journey shell', notify_on_output: 'journey-shell-ready' } }];
+    return [{ name: 'BackgroundShell', arguments: { command: 'echo journey-shell-ready; while :; do sleep 1; done', title: 'Journey shell', notify_on_output: 'journey-shell-ready' } }];
   }
   const listed = results.some((message) => message.role === 'toolResult' && message.toolName === BG_SHELL_LIST);
   if (!listed) return [{ name: BG_SHELL_LIST, arguments: {} }];
@@ -262,12 +283,24 @@ function lastUserText(context: Context): string {
   return '';
 }
 
-function scriptedReply(model: Model<string>, context: Context) {
+function holdUntilAbort(stream: ReturnType<typeof createAssistantMessageEventStream>, message: AssistantMessage, signal: AbortSignal | undefined): void {
+  const abort = () => {
+    const error = { ...message, stopReason: 'aborted' as const, errorMessage: 'Journey child aborted' };
+    stream.push({ type: 'error', reason: 'aborted', error });
+    stream.end(error);
+  };
+  if (signal?.aborted) abort();
+  else signal?.addEventListener('abort', abort, { once: true });
+}
+
+function scriptedReply(model: Model<string>, context: Context, signal: AbortSignal | undefined) {
   const logDirectory = process.env.PSTACK_JOURNEY_LOG;
   if (logDirectory)
     appendFileSync(
       join(logDirectory, `requests-${process.pid}.jsonl`),
       `${JSON.stringify({
+        model: model.id,
+        provider: model.provider,
         systemPrompt: context.systemPrompt,
         tools: context.tools?.map((tool) => tool.name),
         messages: context.messages,
@@ -297,17 +330,32 @@ function scriptedReply(model: Model<string>, context: Context) {
     stream.push({ type: 'done', reason: message.stopReason === 'stop' ? 'stop' : 'toolUse', message });
     stream.end(message);
   };
-  if (requested === 'JOURNEY:progress-child' && answered) setTimeout(complete, 300);
+  if (requested === 'JOURNEY:agentstop-child') holdUntilAbort(stream, message, signal);
+  else if (requested === 'JOURNEY:progress-child' && answered) setTimeout(complete, 300);
   else complete();
   return stream;
 }
 
 export default function journeyProvider(pi: ExtensionAPI): void {
+  let isChild = false;
+  pi.on('session_start', (_event, ctx) => {
+    isChild = ctx.sessionManager.getBranch().some((entry) => entry.type === 'custom' && entry.customType === 'pstack-agent-identity');
+  });
+  pi.events.on('pstack:subagent-stats', (stats) => {
+    const logDirectory = process.env.PSTACK_JOURNEY_LOG;
+    if (logDirectory && !isChild) appendFileSync(join(logDirectory, `root-stats-${process.pid}.jsonl`), `${JSON.stringify(stats)}\n`);
+  });
+  pi.registerCommand('journey-simple-off', {
+    description: 'Clear the fixture simple-mode environment switch.',
+    handler: async () => {
+      process.env.CLAUDE_CODE_SIMPLE = '';
+    },
+  });
   pi.registerProvider('journey-test', {
     api: 'openai-completions',
     baseUrl: 'https://unused.invalid',
     apiKey: 'fixture-only-not-a-credential',
     models: [{ id: 'recorder', name: 'Journey recorder', reasoning: false, input: ['text'], contextWindow: 1000000, maxTokens: 1000, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } }],
-    streamSimple: scriptedReply,
+    streamSimple: (model, context, options) => scriptedReply(model, context, options?.signal),
   });
 }

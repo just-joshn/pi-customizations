@@ -22,8 +22,10 @@ function availableNames(snapshot: AdmissionSnapshot, pool: readonly AgentSummary
 export function resolveAgentType(snapshot: AdmissionSnapshot, requested: string | undefined): { type: string } | { refusal: Refusal } {
   const pool = dispatchable(snapshot);
   if (requested === undefined) {
-    if (pool.some((agent) => agent.agentType === generalPurpose) || (!snapshot.allowedAgentTypes && !pool.length)) return { type: generalPurpose };
-    return { refusal: { code: 'subagent_type_required', message: `subagent_type is required: the ${generalPurpose} agent is not available in this session. Available agents: ${availableNames(snapshot, pool)}` } };
+    if (pool.some((agent) => agent.agentType === generalPurpose)) return { type: generalPurpose };
+    const defaults = pool.filter((agent) => foldType(agent.agentType) === foldType(generalPurpose));
+    if (defaults.length === 1 && defaults[0]) return { type: defaults[0].agentType };
+    return { refusal: { code: 'subagent_type_missing', message: `subagent_type is required: the ${generalPurpose} agent is not available in this session. Available agents: ${availableNames(snapshot, pool)}` } };
   }
   if (requested === 'fork' && snapshot.forkAvailable) return { type: 'fork' };
   const exact = pool.find((agent) => agent.agentType === requested);
@@ -45,7 +47,7 @@ export function resolveAgentType(snapshot: AdmissionSnapshot, requested: string 
 }
 
 export function depthMessage(depth: number, cap: number): string {
-  return `Subagent nesting limit reached (depth ${depth} of ${cap}). Complete this task directly using your tools instead of spawning another agent. CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH raises the limit.`;
+  return `Subagent nesting limit reached (depth ${depth} of ${cap}). Complete this task directly using your tools instead of spawning another agent. If the user explicitly requested deeper nesting, ask them to raise CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH.`;
 }
 
 export function concurrencyMessage(cap: number): string {

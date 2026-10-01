@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { agentJourneys } from './agent-journeys.mjs';
 import { rpcProcess } from './rpc-process.mjs';
 
 const root = process.argv[2] ? resolve(process.argv[2]) : fileURLToPath(new URL('../', import.meta.url));
@@ -164,10 +165,10 @@ function clientFor(child, log) {
   };
 }
 
-async function startPi(directory, log, extraArgs) {
+async function startPi(directory, log, extraArgs, extraEnv = {}) {
   const child = spawn(process.execPath, [cli, '--mode', 'rpc', ...extraArgs, '-e', root], {
     cwd: directory,
-    env: { ...process.env, HOME: directory, PI_CODING_AGENT_DIR: directory, PSTACK_JOURNEY_LOG: log, PSTACK_PROGRESS_FIXTURE: progressFixture },
+    env: { ...process.env, ...extraEnv, HOME: directory, PI_CODING_AGENT_DIR: directory, PSTACK_JOURNEY_LOG: log, PSTACK_PROGRESS_FIXTURE: progressFixture },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
   let stderr = '';
@@ -315,6 +316,39 @@ async function journeyTools(ctx) {
   check('tool: AskQuestion returns the selected answer', JSON.stringify(question.find((m) => m.toolName === 'AskQuestion')).includes('approve'), JSON.stringify(question).slice(0, 300));
 }
 
+async function journeyAgentStop(ctx) {
+  const messages = await ctx.callTool('JOURNEY:agentstop');
+  const stopped = messages.find((message) => message.toolName === 'TaskStop');
+  check(
+    'RPC: TaskStop stops the running child and returns native task metadata',
+    stopped?.details?.status === 'interrupted' && stopped?.details?.task_type === 'local_agent' && stopped?.details?.command === 'stop notification probe',
+    JSON.stringify(stopped).slice(0, 300),
+  );
+  const notifications = messages.filter((message) => message.customType === 'task_notification');
+  check(
+    'RPC: stopped child emits exactly one stopped notification, not completed',
+    notifications.length === 1 && notifications[0].details?.status === 'stopped' && notifications[0].details?.task_id === stopped?.details?.task_id,
+    JSON.stringify(notifications).slice(0, 300),
+  );
+}
+
+async function journeyAgentSessionCap(ctx) {
+  const client = await startPi(ctx.directory, ctx.log, ['--no-session'], { CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION: '1', PI_MAX_SUBAGENTS_PER_SESSION: '1' });
+  try {
+    await client.send({ type: 'set_model', provider: 'journey-test', modelId: 'recorder' });
+    const first = (await client.callTool('JOURNEY:agent')).find((message) => message.toolName === 'Agent');
+    check('RPC: first Agent uses the session spawn slot', first?.isError !== true && first?.details?.status === 'completed', JSON.stringify(first).slice(0, 300));
+    await client.run('JOURNEY:agent');
+    const second = (await client.messages()).findLast((message) => message.toolName === 'Agent');
+    check('RPC: another Agent in that session is refused at the cap', second?.isError === true && JSON.stringify(second).includes('Session subagent limit reached'), JSON.stringify(second).slice(0, 300));
+    const fresh = (await client.callTool('JOURNEY:agent')).find((message) => message.toolName === 'Agent');
+    check('RPC: new_session restores the Agent spawn budget', fresh?.isError !== true && fresh?.details?.status === 'completed', JSON.stringify(fresh).slice(0, 300));
+  } finally {
+    await client.finish().catch(() => {});
+    await client.close().catch(() => {});
+  }
+}
+
 async function journeyAgent(ctx) {
   const launched = (await ctx.callTool('JOURNEY:agent')).find((message) => message.toolName === 'Agent');
   const details = launched?.details;
@@ -460,6 +494,9 @@ const journeys = [
   journeyTodoWidget,
   journeyQuestionVariants,
   journeyAgent,
+  journeyAgentSessionCap,
+  journeyAgentStop,
+  ...agentJourneys(check, startPi),
   journeyProgress,
   journeyTaskResume,
   journeyTaskLifecycle,

@@ -573,6 +573,12 @@ test('todo widget stays one row per step so a normal terminal does not shrink it
 test('all pstack tools declare outputSchema, exposure, and annotations conforming to Pi 0.99 mechanisms', () => {
   const tools: ToolDefinition[] = [];
   const pi = {
+    events: {
+      emit() {},
+      on() {
+        return () => {};
+      },
+    },
     appendEntry() {},
     registerTool: (t: ToolDefinition) => {
       tools.push(t);

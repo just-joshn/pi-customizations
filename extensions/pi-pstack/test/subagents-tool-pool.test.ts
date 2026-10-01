@@ -27,6 +27,21 @@ test('[G2-23] disallowed rules remove aliases and whole MCP server groups', () =
   expect(toolAllowList(def({ tools: ['Write'], disallowedTools: ['Write'] }), all)).toEqual([]);
 });
 
+test.for([
+  { rule: 'mcp__foo__*', allowed: ['mcp__foo__a', 'mcp__foo__b'], denied: ['read', 'bash', 'edit', 'write', 'grep', 'find', 'ls', 'Agent', 'mcp__bar__c'] },
+  { rule: 'mcp__*', allowed: ['mcp__foo__a', 'mcp__foo__b', 'mcp__bar__c'], denied: ['read', 'bash', 'edit', 'write', 'grep', 'find', 'ls', 'Agent'] },
+  { rule: 'mcp__foo', allowed: ['mcp__foo__a', 'mcp__foo__b'], denied: ['read', 'bash', 'edit', 'write', 'grep', 'find', 'ls', 'Agent', 'mcp__bar__c'] },
+])('[G2-23] $rule resolves server groups in allow and deny lists', ({ rule, allowed, denied }) => {
+  expect(toolAllowList(def({ tools: [rule] }), all)).toEqual(allowed);
+  expect(toolAllowList(def({ disallowedTools: [rule] }), all)).toEqual(denied);
+});
+
+test('[G2-24] absent MCP server patterns are recognized but match no tools', () => {
+  const missing = def({ tools: ['mcp__absent__*'] });
+  expect(unrecognizedTools(missing, all)).toStrictEqual([]);
+  expect(zeroToolsError(missing, all)).toContain('recognized but matched no tools in this session [mcp__absent__*]');
+});
+
 test('[G2-24] a tools list that resolves to nothing is refused with the unrecognized names', () => {
   const nothing = def({ tools: ['Nope'] });
   expect(unrecognizedTools(nothing, all)).toEqual(['Nope']);
