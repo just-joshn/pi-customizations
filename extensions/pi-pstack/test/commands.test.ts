@@ -27,6 +27,7 @@ test('/poteto-mode off and /skill:poteto-mode off give the same confirmation', a
   registerNativeInput(pi, skills, store);
   const notices: string[] = [];
   const ctx = {
+    hasUI: true,
     ui: {
       setStatus() {},
       setWidget() {},
@@ -63,7 +64,7 @@ test('/poteto-mode with task and /skill:poteto-mode transform input', async () =
   const store = createState(pi);
   registerCommands(pi, skills, store);
   registerNativeInput(pi, skills, store);
-  const ctx = { ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
+  const ctx = { mode: 'tui', hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
 
   await handlers['poteto-mode']?.('my task', ctx);
   expect(store.read().enabled).toBe(true);
@@ -88,7 +89,7 @@ test('owned prompt aliases preserve attached images on transformed input', async
     getCommands: () => [{ source: 'prompt', name: 'how', sourceInfo: { path: promptPath } }],
   } as unknown as ExtensionAPI;
   registerNativeInput(pi, new Map(), createState(pi));
-  const ctx = { ui: { notify() {} } } as unknown as ExtensionContext;
+  const ctx = { hasUI: true, ui: { notify() {} } } as unknown as ExtensionContext;
 
   expect(await input?.({ text: '/how describe this image', images: [{ type: 'image', data: 'abc' }] }, ctx)).toMatchObject({
     action: 'transform',
@@ -108,7 +109,7 @@ test('aliases require a native prompt and preserve standalone /bro', async () =>
     ],
   } as unknown as ExtensionAPI;
   registerNativeInput(pi, new Map(), createState(pi));
-  const ctx = { ui: { notify() {} } } as unknown as ExtensionContext;
+  const ctx = { hasUI: true, ui: { notify() {} } } as unknown as ExtensionContext;
   expect(await input?.({ text: '/how keep' }, ctx)).toEqual({ action: 'continue' });
   expect(await input?.({ text: '/bro keep' }, ctx)).toEqual({ action: 'continue' });
 });
@@ -122,7 +123,7 @@ test('a same-name user prompt is not rewritten', async () => {
     getCommands: () => [{ source: 'prompt', name: 'how', sourceInfo: { path: '/user/prompts/how.md' } }],
   } as unknown as ExtensionAPI;
   registerNativeInput(pi, new Map(), createState(pi));
-  const ctx = { ui: { notify() {} } } as unknown as ExtensionContext;
+  const ctx = { hasUI: true, ui: { notify() {} } } as unknown as ExtensionContext;
 
   expect(await input?.({ text: '/how "keep me"' }, ctx)).toEqual({ action: 'continue' });
 });
@@ -173,7 +174,7 @@ test('native input ignores unrelated input or mismatched skill path', async () =
   } as unknown as ExtensionAPI;
   const store = createState(pi);
   registerNativeInput(pi, skills, store);
-  const ctx = { ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
+  const ctx = { mode: 'tui', hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
 
   const res1 = await input?.({ text: 'just a normal message' }, ctx);
   expect(res1).toEqual({ action: 'continue' });
@@ -195,7 +196,7 @@ test('registered command handles other skills and expands them', async () => {
     sendUserMessage: (text: string, options: unknown) => sent.push({ text, options }),
   } as unknown as ExtensionAPI;
   registerCommands(pi, skills, createState(pi));
-  const ctx = { ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
+  const ctx = { mode: 'tui', hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
   await handlers.how?.('explore auth', ctx);
   expect(sent.length).toBe(1);
   expect(sent[0]?.text).toMatch(/How body/);
@@ -317,12 +318,12 @@ test('pstack index entry point wires extension hooks and registers all tools', a
 
   const ctx = {
     cwd: '/test/cwd',
-    sessionManager: { getBranch: () => [], getSessionDir: () => '/tmp', getSessionFile: () => '/tmp/f.jsonl', getSessionId: () => 'index-hook-session' },
+    sessionManager: { getBranch: () => [], getEntries: () => [], getSessionDir: () => '/tmp', getSessionFile: () => '/tmp/f.jsonl', getSessionId: () => 'index-hook-session' },
     ui: { setStatus() {}, setWidget() {} },
   } as unknown as ExtensionContext;
 
-  for (const fn of listeners.session_start ?? []) fn({}, ctx);
-  for (const fn of listeners.session_tree ?? []) fn({}, ctx);
+  for (const fn of listeners.session_start ?? []) await fn({}, ctx);
+  for (const fn of listeners.session_tree ?? []) await fn({}, ctx);
 
   const event1 = { systemPromptOptions: { sections: {} as Record<string, string> } };
   for (const fn of listeners.before_agent_start ?? []) await fn(event1, ctx);

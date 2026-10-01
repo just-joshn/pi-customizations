@@ -10,8 +10,8 @@ const piDir = join(root, 'extensions/pi-pstack/node_modules/@earendil-works/pi-c
 const { loadSkills, parseFrontmatter } = await import(pathToFileURL(join(piDir, 'dist/index.js')).href);
 const virtualModules = await readFile(join(piDir, 'dist/core/extensions/virtual-modules.js'), 'utf8');
 const supplied = new Set([...virtualModules.matchAll(/^\s+"?([^":\s]+)"?: bundled\w+,$/gm)].map((match) => match[1]));
-const skillFields = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools', 'disable-model-invocation']);
-const promptFields = new Set(['description', 'argument-hint']);
+const skillFields = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools', 'disable-model-invocation', 'disabled-environments']);
+const promptFields = new Set(['description', 'argument-hint', 'disabled-environments']);
 const violations = [];
 const themeNames = new Map();
 const report = (path, message) => violations.push(`${relative(root, path) || '.'}: ${message}`);
@@ -105,6 +105,7 @@ for (const manifestPath of manifests) {
     continue;
   }
   for (const [type, entries] of Object.entries(manifest.pi)) {
+    if (typeof entries === 'string') continue;
     for (const entry of entries) {
       const path = resolve(dirname(manifestPath), entry);
       if (/[*?[]/.test(entry)) {

@@ -1,8 +1,103 @@
 # Verification
 
-The [comprehensive audit](comprehensive-audit.md) supersedes the historical results below. Run `make verify` from the repository root for the current runtime, packaged CLI, source-integrity, maintained-code structure, formatting and lint, and coverage checks.
+## Current audit evidence
 
-## Verified source and host contracts
+The current parity audit remains **NOT VERIFIED**. The [compatibility report](parity.md) lists outstanding host requirements. Local checks do not prove hosted execution, credential isolation, or instruction adherence.
+
+The audit prohibits subagents. Its allowed real RPC suite passes 427 assertions with zero findings. The suite also checks that recorded requests do not invoke `Task`. Actual Task startup, resume, steering, and descendant execution remain unverified by this audit.
+
+Fresh checks verify the following contracts:
+
+- `bun run check:resources` verifies 187 upstream files and 205 generated resources.
+- `bun run typecheck` passes against the package's pinned Pi SDK 0.99.2.
+- `bun run check:cli` verifies installed CLI package loading, RPC commands, status, mode off, and orderly shutdown without model calls.
+- `bun run check:upstream` passes 58 helper tests with 261 assertions in a temporary copy. These are deterministic helper checks, not live GitHub operations.
+- `bun pm pack --dry-run` passes. A package dry run does not verify an extracted package's runtime.
+- `bunx vitest run test/cli.test.ts` passes five distribution checks, including loading an extracted package through the real installed CLI. The inventory check permits only the documented `upstream/.gitignore` packer omission.
+
+The terminal harness passes eleven journeys at 120 and 70 columns. Five cover question selection, text, and cancellation. Six cover setup budget cancellation, declined write confirmation, accepted write confirmation, editing `bug-fix` to `inherit-parent`, a two-seat panel containing duplicate `inherit-parent` aliases, and selecting a registered fixture provider model. Fixture commands invoke the production handlers with the real Pi UI. Budget cancellation creates no configuration. Declined confirmation leaves the seeded file unchanged. Accepted confirmation writes the selected small budget and preserves all 17 roles. Panel editing preserves both duplicate seats in the saved configuration. The provider-selection journey loads a deterministic registered provider through native reload, selects `journey-test/recorder` for `bug-fix`, and confirms its literal persisted value with unlimited budget. Model-mediated tool dispatch, actual subscription entitlement, worker execution, and the optional verification offer remain unverified through the terminal. Persisted panel seats do not establish worker execution or model adherence. It makes no inference calls and creates no subagents.
+
+The current cloud lifecycle regressions use saved records, idle transport processes, or a main-session SDK fixture with a mocked launch boundary. The latest focused run passes 19 tests. The fixtures do not launch AI workers.
+
+Cloud launch requests a macOS restriction on reads of known coordinator stores. Real idle transport tests verify blocked store byte reads and directory listings while allowing exact store-root metadata for canonicalization. Nested policy preparation succeeds. Applying a second sandbox from the restricted process fails with `sandbox_apply: Operation not permitted` on the tested macOS host. The test records that platform limit, not nested cloud parity. Unsupported platforms fail explicitly. Complete hosted filesystem and credential isolation remain unverified.
+
+Evidence is retained in `/tmp/pstack-e2e-evidence`. The current logs include `fresh-resources.log`, `fresh-typecheck.log`, `fresh-cli.log`, `fresh-upstream.log`, `fresh-pack.log`, `fresh-packaged-cli.log`, and `cloud-startup-verification.log`. The real RPC results are in `full-rpc/results.json`.
+
+## Reproduce the no-subagent audit
+
+From the repository root, run the allowed real RPC suite:
+
+```sh
+node extensions/pi-pstack/scripts/verify-journeys.mjs extensions/pi-pstack --no-workers /tmp/pstack-e2e-evidence/full-rpc
+```
+
+From `extensions/pi-pstack`, run the focused lifecycle checks:
+
+```sh
+bunx vitest run test/cloud-startup.test.ts test/cloud-directory.test.ts test/cloud-filesystem.test.ts test/cloud-record-control.test.ts test/detached-rpc.test.ts
+bun run check:resources
+bun run typecheck
+bun run check:cli
+bun run check:upstream
+bun pm pack --dry-run
+bunx vitest run test/cli.test.ts
+```
+
+A fresh allowed RPC run reproduced a false-idle failure after 412 assertions. The harness now waits for `agent_settled` after a prompt receives the `started` disposition, before polling idle state. A controlled idle RPC process verifies that acknowledgement, non-streaming state, and `agent_end` do not release this barrier. Handled commands need no settlement event when they launch no model turn. Forwarded skill commands now hold RPC acknowledgement until their queued turn settles, even though RPC supports dialogs. A failing delivery regression reproduced early RPC return before startup. Mode-specific tests cover pre-start settlement, `agent_end`, and final settlement; TUI delivery still queues immediately. A fresh full allowed RPC run passes, followed by five passing restart-journey repetitions. Two subsequent full allowed RPC runs each pass 427 assertions with zero findings. Those observations do not establish that every possible settlement race is eliminated.
+
+All 15 shell mechanics tests now pass without exclusions. The escaped-descendant fixture records its own PID in its output log instead of searching globally by process name. A failing regression demonstrated selection of an unrelated PID before this change. The real shell test confirms that stopping a shell does not block on its escaped descendant, then cleans up only the recorded fixture process. This proves test-fixture ownership, not cloud credential isolation or model adherence.
+
+The goal source audit groups 28 initial semantic clauses. Fresh goal/delivery tests pass ten checks, and the full allowed RPC run passes 427 assertions with zero findings. RPC evidence covers objective preservation, rejected duplicate active creation, continuation, clear, session isolation, and completed-state restart. It does not prove that an agent performs the requested work or the source completion audit. Hosted cloud goal execution remains unverified. The source's usage-accounting statement also lacks a goal-specific attribution receipt; zero-usage fixtures cannot establish that behavior.
+
+The maintained terminal reload harness drives the installed Pi TUI through tmux and records the prompt received by a deterministic main-session provider. It invokes an original skill, creates another skill and edits the first while Pi remains open, sends literal `/reload`, then invokes both skills. Five checks cover body delivery, reload notification, and no provider request for reload itself. Two fresh runs pass. The first harness attempt incorrectly waited for `JOURNEY:DONE`; terminal evidence showed the provider returns `recorded` for these inputs. The selector was corrected without changing production behavior. No Task or external inference runs.
+
+Use a fresh output directory to preserve prior evidence:
+
+```sh
+node extensions/pi-pstack/scripts/verify-skill-reload-tui.mjs "$(mktemp -d /tmp/pstack-skill-reload-evidence-XXXXXX)"
+```
+
+The maintained canvas browser harness uses isolated local Google Chrome on macOS and the source canvas template, stylesheet, and renderer. It opens a decoy tab, selects the known local file URL, checks a positive app marker, tests no-match diagnostics, captures fresh before/after screenshots, and dispatches actual mouse input. Nine checks pass, including paths containing spaces, `#`, and `%`. The tab-order counterfactual fails. It preserves new output rather than overwriting an existing canvas fixture.
+
+```sh
+node extensions/pi-pstack/scripts/verify-canvas-browser.mjs "$(mktemp -d /tmp/pstack-canvas-evidence-XXXXXX)"
+```
+
+The public Origin installer was downloaded from the source skill's HTTPS URL and read before execution. It installs successfully into isolated HOME/install/bin directories. The installed CLI reports `2026.09.24-20-34-11-8ed25e0`; version and help commands succeed. With a fixture transport serving a corrupt archive, the unchanged installer rejects SHA-256 mismatch before creating the binary entry. Login, token printing, repository operations, remote changes, and updates were not executed. The isolated binary and installer hashes are retained with the evidence.
+
+A fresh Origin resource audit reproduced a second, user-scoped Origin skill under `~/.agents/skills` without the packaged cloud-exclusion metadata. An independent untagged-copy regression and a filename-derived prompt regression failed before the fix. Effective resource exclusions now combine declared metadata with the authoritative metadata for the same Origin identity. The real idle CLI excludes the duplicate, while local Origin and unrelated cloud-capable resources remain available. This proves resource selection and command discovery, not worker execution, instruction adherence, or credential isolation.
+
+A separate main-session regression reproduced the extension advertising local-only Origin in its cloud-facing host contract. Extension initialization now selects the catalog environment from the detached owner marker. SDK request captures assert literal local and cloud skill lists. A maintained real RPC test records the prompt received by a deterministic main-session provider. Reverting only the catalog selection makes that RPC test fail with Origin incorrectly advertised; restoring it passes. No Task or AI inference runs in these tests, and the marker is not an isolation boundary.
+
+The source census inventories supplied authoritative paths without changing them. It hashes regular files and retains every nonblank Markdown line with its line number and an `UNREVIEWED` state. It excludes `.git`, `node_modules`, and `.DS_Store` entries and does not follow symbolic links. Non-Markdown behavior still requires code review and execution. The census always reports `NOT VERIFIED`; extraction is not a requirement verdict or proof of parity.
+
+```sh
+node extensions/pi-pstack/scripts/source-census.mjs /path/to/authoritative/source [...] > /tmp/source-census.json
+```
+
+The current nine-root census contains 166 source entries, including all 158 pstack files, and 9,906 nonblank Markdown review units. Headings, examples, and metadata are included, so this is not a count of requirements. Those units still need semantic grouping and evidence mapping before a requirement-level completion audit can pass.
+
+The generated worktree audit accepts an optional second argument for a custom Pi session directory. Without that argument, it honors `PI_CODING_AGENT_SESSION_DIR` and expands a leading `~/` using HOME. Regressions cover argument precedence over the environment and both absolute and tilde-prefixed environment paths. A real Bash/Git regression reproduces missing recent-chat evidence without this argument and verifies `verify-recent-chat` when the directory is supplied. Default workspace and child transcript discovery remains covered. A second reproduced defect split custom directory names containing spaces and reported an epoch-era date. Null-delimited filename transport fixes that failure. Both plain and spaced custom directories now report the recent session date. The helper never deletes worktrees and does not prove that pruning any worktree is safe.
+
+```sh
+bash extensions/pi-pstack/skills/poteto-mode/scripts/worktree-audit.sh /path/to/repo /path/from/the/host/session/contract
+```
+
+With `tmux` and the installed `pi` CLI on PATH, run the terminal question journeys from the repository root:
+
+```sh
+node extensions/pi-pstack/scripts/verify-question-tui.mjs /tmp/pstack-e2e-evidence/question-tui-maintained
+```
+
+The harness uses a temporary agent directory and working directory. It records terminal captures and literal returned answers, then stops its terminal process. It does not approve the repository trust dialog or alter your personal Pi configuration.
+
+The unrestricted test suite includes worker execution. Do not run that suite under the audit's no-subagent constraint.
+
+## Historical verification
+
+The [comprehensive audit](comprehensive-audit.md) and the results below describe earlier verification runs. Their SDK versions, discovery counts, coverage percentages, and delegation results are historical, not results of the current no-subagent audit.
+
+### Historical source and host contracts
 
 The resource checker verifies all 187 upstream hashes and all 205 generated resources, including executable bits. The official Pi loader discovers 65 legal skill names and 64 prompt templates, including the Pi-authored loop skill and `/loop` template. Benny's three operational skills remain outside discovery. The [mechanism audit](mechanism-audit.md) records the current checks and invocation changes.
 
@@ -14,7 +109,7 @@ The upstream helper suite passed 52 tests with 206 assertions across orchestrati
 
 The packed inventory contains every tracked file the manifest declares except `upstream/.gitignore`. `bun pm pack` drops a file with that name even though `files` lists it explicitly, so the published tarball is one entry short. `test/cli.test.ts` asserts the omission is exactly that one entry, so a wider loss fails the suite.
 
-## Reproduce local checks
+### Historical local check commands
 
 Run from `extensions/pi-pstack`:
 
@@ -30,7 +125,7 @@ bun pm pack --dry-run
 
 To run the preserved helper tests without changing the snapshot, copy `upstream/skills/poteto-mode/scripts` to a temporary directory. In that copy, run `bun install --frozen-lockfile` and `bun test orch watch-pr`.
 
-## Limits
+### Historical limits
 
 No live multi-provider model comparison, paid provider inference, external service integration, interactive terminal dialog journey, cloud deployment, or Benny automation was run. Model setup dialogs have behavioral tests using scripted user answers. The same-family review is independent for the stated code scope but does not satisfy pstack's requested cross-family reviewer diversity.
 

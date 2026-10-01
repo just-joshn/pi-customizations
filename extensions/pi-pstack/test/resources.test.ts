@@ -14,7 +14,7 @@ async function fixture() {
   try {
     await mkdir(join(directory, 'docs'));
     await mkdir(join(directory, 'scripts'));
-    for (const path of ['upstream', 'upstream-team-kit', 'skills', 'prompts', 'package.json', 'scripts/resources.mjs', 'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json'])
+    for (const path of ['upstream', 'upstream-team-kit', 'skills', 'prompts', 'host/adapters', 'package.json', 'scripts', 'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json'])
       await cp(join(root, path), join(directory, path), { recursive: true, filter: (source) => !source.split('/').includes('node_modules') });
   } catch (error) {
     await rm(directory, { recursive: true, force: true });
@@ -44,6 +44,15 @@ test('resource fixture copy failure removes the partially populated directory', 
   }
 });
 
+test('the canvas workflow uses a local browser without altering its source snapshot', async () => {
+  const generated = await readFile(join(root, 'skills/pr-review-canvas/SKILL.md'), 'utf8');
+  const source = await readFile(join(root, 'upstream-team-kit/skills/pr-review-canvas/SKILL.md'), 'utf8');
+  expect(generated).toContain('open a local browser');
+  expect(generated).toContain('Follow the control-ui skill');
+  expect(generated).not.toContain('navigate the in-app browser');
+  expect(source).toContain('navigate the in-app browser');
+});
+
 test('resource generation is reproducible across both source bundles', async () => {
   const f = await fixture();
   try {
@@ -61,7 +70,7 @@ test('generation separates reusable prompts from procedural skills and Reference
   try {
     f.run('--write');
     expect((await readdir(join(f.directory, 'prompts'))).length).toBe(63);
-    expect((await readdir(join(f.directory, 'skills'))).length).toBe(64);
+    expect((await readdir(join(f.directory, 'skills'), { withFileTypes: true })).filter((entry) => entry.isDirectory()).length).toBe(64);
     await expect(readFile(join(f.directory, 'skills/bro/SKILL.md'))).rejects.toMatchObject({ code: 'ENOENT' });
     expect(await readFile(join(f.directory, 'prompts/bro.md'), 'utf8')).toMatch(/Restate your last message/);
     expect(await readFile(join(f.directory, 'prompts/architect.md'), 'utf8')).toMatch(/architect\/SKILL\.md/);

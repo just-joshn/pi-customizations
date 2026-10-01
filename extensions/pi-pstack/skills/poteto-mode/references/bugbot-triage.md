@@ -1,6 +1,6 @@
 # Bugbot triage
 
-Use this reference when the Babysit playbook (`../playbooks/babysit.md`) handles Bugbot or review-automation comments. The goal is not to ignore Bugbot by default. The goal is to stop treating every comment as a required code change.
+Use this reference when the Babysit playbook (`playbooks/babysit.md`) handles Bugbot or review-automation comments. The goal is not to ignore Bugbot by default. The goal is to stop treating every comment as a required code change.
 
 ## Decision rubric
 
@@ -10,7 +10,9 @@ Classify each Bugbot thread before acting:
 - `dismiss`: The comment matches a documented low-risk noisy pattern, and the current code/context proves the concern does not need a code change. Reply with a short reason and resolve the thread.
 - `ask`: The comment is novel, high-severity, security/privacy/data-related, or ambiguous. Ask the user instead of guessing.
 
-When in doubt, ask. Skipping a noisy code-quality comment is cheap; skipping a real data or security bug is not.
+When in doubt, ask. Skipping a noisy code-quality comment is cheap. Skipping a real data or security bug is not.
+
+Under a full-autonomy grant, decide an `ask` finding outside security, privacy, auth, billing, data, and migrations, and log the decision with its reason in the decision trail. Park an `ask` finding inside those categories as an operator gate and keep working the rest.
 
 ## Learned pattern format
 
@@ -95,22 +97,22 @@ Append new candidate learnings here during or after babysitting when they look t
 - Example signal: "masks do not affect hit-testing", "overlay blocks wheel scroll", "ignores deltaMode", "runs in the IntersectionObserver callback before React applies state".
 - Source: one sticky-occlusion PR: six Bugbot passes, roughly eighteen findings, every one fixed rather than dismissed.
 
-### Contract-test drift claims are cheaply verifiable — run the test first
+### Contract-test drift claims are cheaply verifiable, so run the test first
 
 - Confidence: candidate
-- Skip when: Never skip the verification itself; it costs one command. When a PR
+- Skip when: Never skip the verification itself. It costs one command. When a PR
   ships a contract test that pins protocol or documentation prose (regexes over
   a SKILL.md, snapshot of doc wording), and Bugbot claims "the test no longer
   matches the doc" (or vice versa), run that test on the PR tip before
-  classifying. A red run confirms the claim empirically; a green run is a
+  classifying. A red run confirms the claim empirically. A green run is a
   concrete disproof for the dismissal reply.
-- Do not skip when: n/a — this is a verification shortcut, not a dismissal
+- Do not skip when: n/a. This is a verification shortcut, not a dismissal
   pattern. Note that repeat-pass lean-dismiss heuristics would misfire here:
   prose-pinning tests drift precisely BECAUSE earlier fix rounds edit the prose.
 - Example signal: "Contract test omits the pre-fix wait" on a PR whose earlier
-  fix commits reworded the pinned passage; the test run on the tip failed on
+  fix commits reworded the pinned passage. The test run on the tip failed on
   exactly the cited assertion.
-- Source: one prose-pinning PR with eight Bugbot passes; the claim was real on
+- Source: one prose-pinning PR with eight Bugbot passes. The claim was real on
   pass 7 despite every earlier pass being fixed-and-resolved.
 
 ### Stale security-review finding already fixed later in the same PR

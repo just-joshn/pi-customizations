@@ -1,0 +1,11 @@
+import type { TimerInput } from '../src/timer-schedules.ts';
+import type { CiInput } from './timer-ci.mjs';
+export type TimerReceipt = TimerInput & { subscriptionId: string; runId: string; sessionFile: string; rpcDirectory: string; kind?: 'ci'; forge?: 'github' | 'origin'; pr?: number; ci?: { state?: string; head?: string; error?: string } };
+export type TimerCommand = { type: 'subscribe'; timer: TimerInput } | { type: 'subscribe_ci'; ci: CiInput } | { type: 'list' } | { type: 'unsubscribe'; subscriptionId: string } | { type: 'shutdown' };
+export function timerRecord(path: string): Promise<unknown>;
+export function startTimerService(directory: string, launch: { cwd: string; agentDir: string; args: string[]; expectedModel?: { provider: string; id: string } }): Promise<void>;
+export function restartTimerService(directory: string): Promise<void>;
+export function timerCommand(directory: string, command: { type: 'subscribe'; timer: TimerInput }, id?: string): Promise<TimerReceipt>;
+export function timerCommand(directory: string, command: { type: 'subscribe_ci'; ci: CiInput }, id?: string): Promise<TimerReceipt>;
+export function timerCommand(directory: string, command: { type: 'list' }, id?: string): Promise<TimerReceipt[]>;
+export function timerCommand(directory: string, command: { type: 'unsubscribe'; subscriptionId: string; fromSession?: string } | { type: 'shutdown' }, id?: string): Promise<void>;

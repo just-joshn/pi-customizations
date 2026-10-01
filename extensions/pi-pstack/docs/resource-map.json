@@ -2,9 +2,11 @@
   {
     "source": "upstream/skills/architect/SKILL.md",
     "destination": "skills/architect/SKILL.md",
-    "sha256": "691cd39f52c7b613866e6baf9ea0b05451ffa21a6a9b4102f166418b89178fde",
+    "sha256": "25d68041120903c0088aaa2965c09df844b0e6cc6ee738241fdce3f6ab2b48af",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Reconcile the architect two-candidate rule with the arena convergence rule."
+    ]
   },
   {
     "source": "upstream/skills/architect/SKILL.md",
@@ -39,10 +41,11 @@
   {
     "source": "upstream/skills/arena/SKILL.md",
     "destination": "skills/arena/SKILL.md",
-    "sha256": "9f58976c3254ebb53c88ecd9da5d453a43cf76fd8be934cfefb76a937fac02d3",
+    "sha256": "9cebba38a48f5b5fd83eff1d4a49d53902d192d12d4385041110390ad42bc35f",
     "executable": false,
     "transformations": [
-      "Map model rule location to Pi agent configuration."
+      "Map model rule location to Pi agent configuration.",
+      "Name the principle skill so the reference is greppable."
     ]
   },
   {
@@ -57,11 +60,13 @@
   {
     "source": "upstream/skills/automate-me/SKILL.md",
     "destination": "skills/automate-me/SKILL.md",
-    "sha256": "891965908b20b2d9665fef9ec6c5ad2f860e1b318b3043b2057f8dbee9f8ce20",
+    "sha256": "f11540cfb6b733fab0c87facb5945d62db7d653a7a83150fed91943a84684c87",
     "executable": false,
     "transformations": [
       "Map user and project skill directories to Pi discovery locations.",
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts."
+      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Count the inline mining pass separately from the skills."
     ]
   },
   {
@@ -101,10 +106,11 @@
   {
     "source": "upstream/skills/create-verification-skill/SKILL.md",
     "destination": "skills/create-verification-skill/SKILL.md",
-    "sha256": "878b966e288d4ced0ac41a72e37b973d60af9e29a6d189fc4d5266983f2c02cb",
+    "sha256": "b59885620d5b5146885c5a3a4541a7f9e973d5cefa9d8c7e696da9ef82c633c1",
     "executable": false,
     "transformations": [
-      "Map user and project skill directories to Pi discovery locations."
+      "Map user and project skill directories to Pi discovery locations.",
+      "Replace long dashes in generated skill prose with commas, since the prose style rules forbid the long-dash character. The setup-pstack budget labels keep their exact form."
     ]
   },
   {
@@ -140,9 +146,11 @@
   {
     "source": "upstream/skills/figure-it-out/SKILL.md",
     "destination": "skills/figure-it-out/SKILL.md",
-    "sha256": "0eb9485f0e7d84fee56b5d0f0af0faf4635e3ca87c8cba3970c01293b76ecc19",
+    "sha256": "874780548ec18422701e8b3aa5d4ce1231a92effcb2b73379b89f6d672d11391",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Wire the figure-it-out judge to its role line."
+    ]
   },
   {
     "source": "upstream/skills/figure-it-out/SKILL.md",
@@ -156,9 +164,11 @@
   {
     "source": "upstream/skills/how/SKILL.md",
     "destination": "skills/how/SKILL.md",
-    "sha256": "d31805589c7f6a63a6db6c9fadebbd79fb9660682cf1654e9b2e5e1e7cd30bc0",
+    "sha256": "1b012ec069221ae49c83b9f61c58946b7de7bd185655538baa4c1ce9b52505d6",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Remove explorer wording from the simple-path explainer prompt."
+    ]
   },
   {
     "source": "upstream/skills/how/SKILL.md",
@@ -186,10 +196,12 @@
   {
     "source": "upstream/skills/interrogate/SKILL.md",
     "destination": "skills/interrogate/SKILL.md",
-    "sha256": "4aa6b6528ed842163d41672a495f87fb80cdc009c68cc3894e74071a0b6254de",
+    "sha256": "f8d3c1fe1cb046e2164775e0aa1ebf7f7b567fa2aa3f694f2f9dd1e5212d548b",
     "executable": false,
     "transformations": [
-      "Map model rule location to Pi agent configuration."
+      "Map model rule location to Pi agent configuration.",
+      "Infer and state intent instead of blocking, and never take intent from the code under review.",
+      "Drop the pstack-repository PR step that a package user cannot follow."
     ]
   },
   {
@@ -204,9 +216,11 @@
   {
     "source": "upstream/skills/interrogate/references/code-quality-review.md",
     "destination": "skills/interrogate/references/code-quality-review.md",
-    "sha256": "79162fda183eafd40d51661fbb5e151c7ba250f89e506ba17f5bd135dcbd50a8",
+    "sha256": "eafb2cda8e6386354cf425212675a122fd5bc4afb7b13baaab9fee5fbd404add",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Attribute the copied Core Prompt block to its source skill."
+    ]
   },
   {
     "source": "upstream/skills/interrogate/references/lead-judgment.md",
@@ -232,10 +246,11 @@
   {
     "source": "upstream/skills/maintain-verification-skill/SKILL.md",
     "destination": "skills/maintain-verification-skill/SKILL.md",
-    "sha256": "94a4fc97246227a9070d26a5c4a0c4c28fea97229e4a1e29baa948316a28d684",
+    "sha256": "9001ce844647ad51feaa26eb9a67875ec93e4f44d74d5a1f9cbd5e1527032cd4",
     "executable": false,
     "transformations": [
-      "Map user and project skill directories to Pi discovery locations."
+      "Map user and project skill directories to Pi discovery locations.",
+      "Replace long dashes in generated skill prose with commas, since the prose style rules forbid the long-dash character. The setup-pstack budget labels keep their exact form."
     ]
   },
   {
@@ -250,10 +265,10 @@
   {
     "source": "upstream/skills/make-bot-ui/SKILL.md",
     "destination": "skills/make-bot-ui/SKILL.md",
-    "sha256": "ad19d0bc6764287ec08c2521701974e7dac941f72e4d0fe81a24f4614494586f",
+    "sha256": "ca6d3090f542dc3ebd9664596413c997c774ed9fd762e9354b5e230044d59778",
     "executable": false,
     "transformations": [
-      "Normalize skill name to its directory slug for Pi discovery."
+      "Replace Reference routine panel and secret card with the native reviewed Pi routine adapter at host/adapters/make-bot-ui/SKILL.md."
     ]
   },
   {
@@ -268,9 +283,12 @@
   {
     "source": "upstream/skills/no-comments/SKILL.md",
     "destination": "skills/no-comments/SKILL.md",
-    "sha256": "5c5b0882297d704c3a9720c52b7a793c68b013eaf717989f0945624efdfe2b05",
+    "sha256": "3f4b4aaf3c14f1a6049d251c6b2649336cbf3798cf79c3dabc0e26033970f6c1",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Cite the principle that the encoding step applies.",
+      "Keep a durable trail of a declined constraint instead of only the chat report."
+    ]
   },
   {
     "source": "upstream/skills/no-comments/SKILL.md",
@@ -284,66 +302,101 @@
   {
     "source": "upstream/skills/poteto-mode/SKILL.md",
     "destination": "skills/poteto-mode/SKILL.md",
-    "sha256": "a6a5fce0841c8d791515f66c3b84bf1995e2e37cd9fe09bb53ea395ba8fb595d",
+    "sha256": "dbbfb9b1a4449137a390fb82813ffd9804862a36e655eed0bf536935ef764b22",
     "executable": false,
     "transformations": [
       "Normalize skill name to its directory slug for Pi discovery.",
-      "Remove Reference-only frontmatter; Pi runtime behavior belongs to the extension."
+      "Remove Reference-only frontmatter; Pi runtime behavior belongs to the extension.",
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Resolve a stale or contradictory upstream guard natively.",
+      "Name the resolved forge for the reply link, since Origin PRs are not on GitHub.",
+      "Route bot UI requests to the bundled make-bot-ui skill."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/authoring-a-skill.md",
     "destination": "skills/poteto-mode/playbooks/authoring-a-skill.md",
-    "sha256": "f6a13a445c360b48d6cd72780ac01955f45b82826476efe0e67c7559329407aa",
+    "sha256": "3da0794aa406d58114e24536fe1a01b397bb929666e9f854ef2ecfc30338e2c3",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Replace a Reference-only noun with its Pi equivalent."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/autonomous-run.md",
     "destination": "skills/poteto-mode/playbooks/autonomous-run.md",
-    "sha256": "15e54ad3ac92565613980772d8708de6e19cc4690bfd4bb3fb8836522407377b",
+    "sha256": "b9f1782080e36f62cb3e69f1bbb1568b117fe5f1c711f00ab2c637182f40a7b0",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Arm a goal so an autonomous run has a predicate that the goal system checks."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/autopilot-full.md",
     "destination": "skills/poteto-mode/playbooks/autopilot-full.md",
-    "sha256": "a6b1cf159b4d68b2ecf24bd8f2f098d407d539c2207ca89b197045967db43cb3",
+    "sha256": "118d45193a14f0823c02cfb84fc3a5bd39a9d42653d7b013c34e197915df6e5d",
     "executable": false,
     "transformations": [
-      "Map the upstream repository path for the bundled skills to this repository layout."
+      "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
+      "Name bundled skill files relative to the poteto-mode skill directory or by skill name, since an installed package or another repository has no extensions/pi-pstack tree.",
+      "Resolve references from the skill directory the host contract names, not from the playbook file.",
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Require the deslop receipt in the owner report.",
+      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
+      "Name the goal completion point so a goal cannot outlive the program or finish early on a green queue.",
+      "Define the countersign that the autopilots require but never define."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/autopilot-stack.md",
     "destination": "skills/poteto-mode/playbooks/autopilot-stack.md",
-    "sha256": "b7d5dcab33a0b097951e7b5d3a7dc664d645e0cf102acf3a8cd3b188b29bd53a",
+    "sha256": "c09558664c2ee3d52a0f1ffa28bf9a423a4c4c6d049c54c6e762bef995e8b6b1",
     "executable": false,
     "transformations": [
-      "Map the upstream repository path for the bundled skills to this repository layout."
+      "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
+      "Align the stack stuck test with the full autopilot, so an erroring lane is stuck.",
+      "Name bundled skill files relative to the poteto-mode skill directory or by skill name, since an installed package or another repository has no extensions/pi-pstack tree.",
+      "Resolve references from the skill directory the host contract names, not from the playbook file.",
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Require the deslop receipt in the owner report.",
+      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
+      "Name the goal completion point so a goal cannot outlive the program or finish early on a green chain.",
+      "Define STACK-READY, which the stack playbook uses but never defines."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/babysit.md",
     "destination": "skills/poteto-mode/playbooks/babysit.md",
-    "sha256": "a0346c37c2313f36a863b80f66ee7b98059c2242adf74fc7b3e48abdb9ec6f5a",
+    "sha256": "65f797b0a2bc7050c6b9c45f63e4ee2ad5b7db29e5fb368dd8f5f3181f5d72d8",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Resolve references from the skill directory the host contract names, not from the playbook file.",
+      "Resolve a stale or contradictory upstream guard natively.",
+      "Exclude prose-pinning contract-test claims from the third-pass dismissal lean.",
+      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
+      "List only unresolved Origin threads.",
+      "Reconcile the babysit one-watcher rule with the loop skill heartbeat.",
+      "Run the Origin check watch as an event instead of a blocking foreground call."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/bug-fix.md",
     "destination": "skills/poteto-mode/playbooks/bug-fix.md",
-    "sha256": "018bbc146ae19145caa6c7e70591fee081b64447dda1c1c4b681c9974d928b13",
+    "sha256": "4162bed648f0dddaec985a3b72c081b2798c5f1cce2fdf5bc676631f077682c6",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Replace a Reference-only noun with its Pi equivalent."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/eval.md",
     "destination": "skills/poteto-mode/playbooks/eval.md",
-    "sha256": "d60da0146518979dd042b658d33e56c94bd3deb8797efe7d2b208a5b6f0c0bf7",
+    "sha256": "4397c8a91ba8dc0225426d60b63bd16833c28e1ee387c170601648a97e0d0fe1",
     "executable": false,
     "transformations": [
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts."
+      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
+      "Resolve the arena path defaults that contain the words that the eval blinding rules forbid."
     ]
   },
   {
@@ -356,9 +409,12 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/hillclimb.md",
     "destination": "skills/poteto-mode/playbooks/hillclimb.md",
-    "sha256": "41980da135de2579bb38570e4b3373e015029148734ab5dc7d6103417b499af6",
+    "sha256": "4bbfae020f80ffb0f4270f3602f9b2c07e48f2ce2b3138c30bf7053fe43495ab",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use the show-me-your-work log name and columns instead of a second schema.",
+      "Use the show-me-your-work log name instead of a second schema."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/investigation.md",
@@ -370,34 +426,57 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/multi-phase-plan.md",
     "destination": "skills/poteto-mode/playbooks/multi-phase-plan.md",
-    "sha256": "ed0b4ca25b0fc76d3db03a1f6a2e51fe965cbff5d996f463276ff8191abe072f",
+    "sha256": "94e72ab0fddfa3392915cd72ffcbad1d6885656960f59f1b2254f3c098a7ed38",
     "executable": false,
     "transformations": [
-      "Map the upstream repository path for the bundled skills to this repository layout."
+      "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
+      "Name bundled skill files relative to the poteto-mode skill directory or by skill name, since an installed package or another repository has no extensions/pi-pstack tree.",
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Name the agent store directory from the host contract and the orch writers that own each store file.",
+      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
+      "Name the goal completion point so a goal cannot outlive the program or finish early.",
+      "Prefer the repository verification skill over the generic recipe.",
+      "Name the command surface a lane restricts input to when only a recipe exists.",
+      "Keep lane screenshots against the control skill cleanup guardrails."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/opening-a-pr.md",
     "destination": "skills/poteto-mode/playbooks/opening-a-pr.md",
-    "sha256": "1c0281f84348aa5dc6f10defbcdd8357f4b0786d874f340ba34bfc169dc6c26f",
+    "sha256": "dd0355ae42e5154c8e55c3d7d113ba94055349f1e6b1281e27e00aa8e269f471",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Resolve a stale or contradictory upstream guard natively.",
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
+      "Push before an Origin PR create.",
+      "Use the Origin stack flag for a stacked child."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/orchestrate.md",
     "destination": "skills/poteto-mode/playbooks/orchestrate.md",
-    "sha256": "b94b15469775c524556caf3c7de7907182bb80a8ea2e020a174c7a03d57935ff",
+    "sha256": "0d8d7d798d782732a02d309d39bb9162e30acc43c93c2b8bf9d6ca32b535f901",
     "executable": false,
     "transformations": [
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts."
+      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
+      "Restore the upstream cloud default placement and name the local fallback and its record.",
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Name the agent store directory from the host contract and the orch writers that own each store file.",
+      "Seed the frontier from fetched refs and forge heads, since a lagging local branch records a stale SHA.",
+      "Make the frontier forge-neutral so a repository without Graphite can run orchestrate.",
+      "Make the single-stacker rule forge-neutral.",
+      "Name the lock recovery for a live holder and a reused pid."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/pause-safely.md",
     "destination": "skills/poteto-mode/playbooks/pause-safely.md",
-    "sha256": "77968cfe5f4a71a8cd33e0ae8ffcdbd88dd693a212c240457773e6c40c96c21d",
+    "sha256": "40ed73194c9555bea41193fb41c95a9c6fb321325aa519312350187b57ba7490",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Resolve a stale or contradictory upstream guard natively."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/perf-issue.md",
@@ -430,18 +509,25 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/session-pickup.md",
     "destination": "skills/poteto-mode/playbooks/session-pickup.md",
-    "sha256": "cfe9ebd5b5ef619058526804a2b045401eddfe131f78cf9e12054b26a5e84fff",
+    "sha256": "f1fab202cfcdbfb29244b2677b970df4346ff311af9d54b14fa40549453612f8",
     "executable": false,
     "transformations": [
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts."
+      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Resolve a stale or contradictory upstream guard natively."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/shipping.md",
     "destination": "skills/poteto-mode/playbooks/shipping.md",
-    "sha256": "19f3f6803a7bbe9ff04f624b03e3b55f07ac0a05e991aa00d5fe51239b920b2a",
+    "sha256": "f46617eb63e5ee7d9b0b7456144461d2ada442d9291b16b910301932092f8a14",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
+      "Name the queued-mode events the watcher actually emits, since queued mode never emits READY.",
+      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
+      "Run the Origin check watch as an event instead of a blocking foreground call."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/trace-forensics.md",
@@ -460,37 +546,56 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/worktree-cleanup.md",
     "destination": "skills/poteto-mode/playbooks/worktree-cleanup.md",
-    "sha256": "fc464dc4121926df1704f483c5feca83717c0a40b4651d3e11bd3aedd89441b6",
+    "sha256": "39e3fd6831e4a8408624c852dd45f49820d9e506ecd94f28e41bed1c8aafa484",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Never bucket untracked or ignored work for deletion without the user seeing it.",
+      "Gate irreversible simulator and cache deletion on a listed-size confirmation."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/references/bugbot-triage.md",
     "destination": "skills/poteto-mode/references/bugbot-triage.md",
-    "sha256": "b2d146c770d8d3593e1ef3d77b668039b8e1f78093ea1a86f1d45d7f99614309",
+    "sha256": "18d3f53d1eb40be922306596eac50ed70e21104c15a0f82cfe1ec5e624003fbd",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Resolve playbooks from the skill directory the host contract names, not from the reference file.",
+      "Rewrite long dashes and semicolons in the triage reference as plain sentences.",
+      "State how an ask-class finding resolves under a full-autonomy grant."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/bootstrap.ts",
     "destination": "skills/poteto-mode/scripts/bootstrap.ts",
-    "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+    "sha256": "fe546713c9f655a0cd2941eed60cc1047ae786cb1df2a560472481921c9c056a",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Import the filesystem and signal helpers the locked, signal-forwarding install needs.",
+      "Serialize the install behind an exclusive lock directory, forward SIGINT and SIGTERM to the install and the re-exec child, and wait for a concurrent install instead of racing it."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/bun.lock",
     "destination": "skills/poteto-mode/scripts/bun.lock",
-    "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+    "sha256": "530b7fb6cba7f0b2a6cfc862dbcfe9020c333d45e7e0f448133006583ffdc1f2",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/check-plan.mjs",
     "destination": "skills/poteto-mode/scripts/check-plan.mjs",
-    "sha256": "1f9e788ce90a13a9973e35e8c3a52737857c375e057bdccc13c8510a9af30f04",
+    "sha256": "c47dc2a1c112b66f08144587886776072bde3edd901a1aaee64c253fa558a79c",
     "executable": true,
-    "transformations": []
+    "transformations": [
+      "Accept any trunk branch in the `git show origin/<trunk>:` marker instead of requiring main.",
+      "Add fence and leading-label patterns for the prose checks.",
+      "Track the opening fence length instead of a boolean.",
+      "Close a fence only with a marker at least as long as the opener, and allow up to three spaces of indentation.",
+      "Exempt a leading `Label: value` colon from the mid-sentence colon rule."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/orch/orch.test.ts",
@@ -502,23 +607,40 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/orch/orch.ts",
     "destination": "skills/poteto-mode/scripts/orch/orch.ts",
-    "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+    "sha256": "9b1d7a5157a564a5118754caab49c311d09a3e93c88c911a7ebeee93746ec8af",
     "executable": true,
-    "transformations": []
+    "transformations": [
+      "Import path helpers for the default store location.",
+      "Default the store to the pstack agent store for the workspace when neither --store nor ORCH_STORE is set.",
+      "Document the default store in help.",
+      "The frontier no longer requires Graphite.",
+      "Describe the forge-neutral frontier source.",
+      "Install dependencies only when orch.ts is the entry point so importing it has no side effect."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/orch/store.ts",
     "destination": "skills/poteto-mode/scripts/orch/store.ts",
-    "sha256": "0eae7cf69282e827b1227166f2e32cee3560f2f3e65b3f1f2faf6fb83d3b4c5b",
+    "sha256": "9f5cc61d833912c017d56e35249e80113467410396586ad9ce0e761f3cb817c5",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Import spawnSync to detect a missing gt binary.",
+      "Let a writer wait a bounded time for a live lock holder instead of failing at once.",
+      "Serialize stale-lock take-over behind a guard file, retry with backoff, and name the --force recovery for a reused pid.",
+      "Resolve the frontier from gh when gt is not installed, and record the remote PR head instead of a stale local branch.",
+      "Name the frontier source in pin mismatch errors.",
+      "Read the frontier source alongside the rows.",
+      "Pass the frontier source to the pin check."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/package.json",
     "destination": "skills/poteto-mode/scripts/package.json",
-    "sha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+    "sha256": "a49b034b183dcb5735ed948a91eaf76b7f24d6d9ba313704721ad1be7a5f434d",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
@@ -551,9 +673,24 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/github.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/github.ts",
-    "sha256": "d1bbbafbe8e2c703c84da2029de7f2c4011412512f8cf65a42100f46bcb92c8a",
+    "sha256": "b7ec926771e7dacd98bf67f2036e3fa8d2935a5b6632ad2d55d2d6134b6b25e0",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Request pageInfo and accept a reference so review threads can be paged.",
+      "Declare the review thread reference variable.",
+      "Bound every gh and git subprocess with a timeout and report a missing gh as a typed non-retryable failure instead of an uncaught crash.",
+      "Accept the host gh is configured for (GH_HOST) as well as github.com.",
+      "Normalize scp and ssh remotes for any host, then let the host check decide.",
+      "Apply the configured-host rule to origin remotes.",
+      "Apply the configured-host rule to pull request URLs.",
+      "Treat a missing or unrunnable git as no origin so context falls back to gh.",
+      "Read open PRs through a helper that keeps raising the limit until the list is not full.",
+      "Add the open PR paging and review thread paging helpers.",
+      "Fetch every review thread page so an unresolved thread past 100 cannot be hidden.",
+      "Fail closed on a cyclic stack instead of looping forever.",
+      "Let a caller read a confirmed zero-check PR as one skipped placeholder.",
+      "Return the zero-check placeholder only when gh confirms there are no checks."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/policy.test.ts",
@@ -565,16 +702,30 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/policy.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/policy.ts",
-    "sha256": "68d240505852cf23c9b2dea463342e9e61243f486b3cc86c735d140f9ee7be49",
+    "sha256": "58aae40a014a3969761776c9494f65777f5503b32db99b5ef9ad08b866d1a4b5",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Read a PR with zero checks as having no required checks unless GitHub reports it blocked or still computing.",
+      "Import the zero-check reading predicate.",
+      "Track consecutive same-head zero-check readings per PR.",
+      "Keep the zero-check streak across polls of one run.",
+      "Fail closed: update the streak, then wait until a zero-check reading persists across two polls at one head SHA.",
+      "Build the queued-stack TIMEOUT verdict in one place.",
+      "Check the queued deadline between sweep reads so a long sweep cannot overshoot --timeout.",
+      "Give the queued waiting sleep a deadline hook like the single and stack runner has."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/render.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/render.ts",
-    "sha256": "2b709e86628d5b8fdb61f860e60ababc342b0626c67576305442cf548283a604",
+    "sha256": "abeb80da89ba8d3d65a63ebaca36bf633917b6b0a65096981519a15b119827d9",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Import the zero-check reading predicate.",
+      "Show a zero-check PR as having no checks instead of a passing mark.",
+      "Render the zero-check WAITING reason.",
+      "Render the zero-check TIMEOUT reason."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/tsconfig.json",
@@ -593,33 +744,47 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/types.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/types.ts",
-    "sha256": "64ba6221e3bfe61bbb292337d199cdec6309455477280efb060203dba34e0e91",
+    "sha256": "7e3d0c2065b4b5e983397122744203f23d9d9f6379d81bd0957aa3aeb253d91b",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Add non-retryable failure kinds for a missing gh, a failed dependency install, and a cyclic stack so each reaches the exit-7 BLOCKER path.",
+      "Give a zero-check PR that has not yet persisted across polls its own WAITING reason.",
+      "Let the deadline report a zero-check PR that never confirmed."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/watch-pr",
     "destination": "skills/poteto-mode/scripts/watch-pr/watch-pr",
-    "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4",
+    "sha256": "3b5db4a9c7a526efc8cb94382036d6b22e94ff503ea9528cae3696e33bf98521",
     "executable": true,
-    "transformations": []
+    "transformations": [
+      "Render a failed dependency install as the documented exit-7 BLOCKER instead of an uncaught throw."
+    ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/worktree-audit.sh",
     "destination": "skills/poteto-mode/scripts/worktree-audit.sh",
-    "sha256": "d0308b61f9c9c52d43feaa2cfd0e41d4f9a94afd0346292252a03e837f1d9176",
+    "sha256": "791973929ee225487d583856d13c4708f2c5cd36673cc24a13b9c6e810989022",
     "executable": true,
     "transformations": [
       "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
-      "Replace BSD-only stat and date calls with Perl so transcript dates survive GNU or uutils coreutils on PATH."
+      "Replace BSD-only stat and date calls with Perl so transcript dates survive GNU or uutils coreutils on PATH.",
+      "Warn on stderr when jq, rg, or perl is missing instead of silently blanking the PR and LAST_CHAT columns.",
+      "Parse worktree paths by stripping the `worktree ` prefix so paths with spaces survive.",
+      "Read each worktree path whole instead of splitting on whitespace.",
+      "Count ignored and every untracked file, and treat any dirty tree as work to hold (upstream reference/plugins#459).",
+      "Bucket scratch worktrees as hold-wip.",
+      "Only merged ancestry or a MERGED PR is safe. A CLOSED unmerged PR needs review."
     ]
   },
   {
     "source": "upstream/skills/principle-attack-the-premise/SKILL.md",
     "destination": "skills/principle-attack-the-premise/SKILL.md",
-    "sha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3",
+    "sha256": "806fed97bedc5120c2ab330cde7c65c35f5df8521e630192de6b6bc81b8b33cf",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-attack-the-premise/SKILL.md",
@@ -633,9 +798,11 @@
   {
     "source": "upstream/skills/principle-boundary-discipline/SKILL.md",
     "destination": "skills/principle-boundary-discipline/SKILL.md",
-    "sha256": "62ac2862c2caa22dd14531f51c9c6bb445ceb198ca98a687e25b4d47c1f10a28",
+    "sha256": "91ffeea79067d7fbeb39e4c9e634f82124dd418a8795f764e0ac43b73af33467",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-boundary-discipline/SKILL.md",
@@ -649,9 +816,11 @@
   {
     "source": "upstream/skills/principle-build-the-lever/SKILL.md",
     "destination": "skills/principle-build-the-lever/SKILL.md",
-    "sha256": "458b269eab8e95a1573276955312f7d2a13ae8599879a9efc748248f6bc34b56",
+    "sha256": "7ee28e5fc20a4bdfce2c7c54204c7d948ea25185c284be00086bab1fe07e7ad6",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-build-the-lever/SKILL.md",
@@ -665,9 +834,11 @@
   {
     "source": "upstream/skills/principle-encode-lessons-in-structure/SKILL.md",
     "destination": "skills/principle-encode-lessons-in-structure/SKILL.md",
-    "sha256": "77044c83a9ac6df78fc643887ea5f1f11f082adaf14b717c060cdaed03cce863",
+    "sha256": "4f3a96abbab331719bf2450318b74c28a3a2b7f62049f5c2cae0acaf156ea142",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-encode-lessons-in-structure/SKILL.md",
@@ -681,9 +852,11 @@
   {
     "source": "upstream/skills/principle-exhaust-the-design-space/SKILL.md",
     "destination": "skills/principle-exhaust-the-design-space/SKILL.md",
-    "sha256": "8583310d7297b7823d75494faa57b003564d436807febecdecbd8321abe5cf6e",
+    "sha256": "1c49513675d330f174f92c5cf8e9c329702a293656ab098a68bd428643aa0b54",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-exhaust-the-design-space/SKILL.md",
@@ -697,9 +870,12 @@
   {
     "source": "upstream/skills/principle-experience-first/SKILL.md",
     "destination": "skills/principle-experience-first/SKILL.md",
-    "sha256": "58903529d733b1c1a7c9ccf127d45ef3c7d0d9f0b81164a4dc6b80efe6f2912b",
+    "sha256": "089e41de04eef7539c850bbd7935f80679b2e022547885ada720126ac34ebbd5",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Link the principle that the leaf names.",
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-experience-first/SKILL.md",
@@ -713,9 +889,11 @@
   {
     "source": "upstream/skills/principle-fix-root-causes/SKILL.md",
     "destination": "skills/principle-fix-root-causes/SKILL.md",
-    "sha256": "ba4cd38da1dcc8fe5432feb64457cba95594736a9b21b2ebf8f8c52aee068707",
+    "sha256": "f919ea2473076b4a804a8ec7612dfeb3d57500f292ba4696980942d908b71f96",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-fix-root-causes/SKILL.md",
@@ -729,9 +907,11 @@
   {
     "source": "upstream/skills/principle-foundational-thinking/SKILL.md",
     "destination": "skills/principle-foundational-thinking/SKILL.md",
-    "sha256": "864b827e8199d946ce58beca0f89c4ed4099ed6e426fb698a3aaa45de2a9eea2",
+    "sha256": "bf392bf7d47e60a032a37440f9e10d91d02018728d5189910c3d0e6e7e01b51b",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-foundational-thinking/SKILL.md",
@@ -745,9 +925,11 @@
   {
     "source": "upstream/skills/principle-guard-the-context-window/SKILL.md",
     "destination": "skills/principle-guard-the-context-window/SKILL.md",
-    "sha256": "d2cef147862576e3d709b7afc149d85196245e8338b9c7eef337c95fba412b3e",
+    "sha256": "0a834395b7242056dfb6ff476645bb7ee2491ee0d4465ceeadd8a4261d81f26d",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-guard-the-context-window/SKILL.md",
@@ -761,9 +943,11 @@
   {
     "source": "upstream/skills/principle-laziness-protocol/SKILL.md",
     "destination": "skills/principle-laziness-protocol/SKILL.md",
-    "sha256": "9006579e9e3f33955d17569733db688ae65f22577dc3b21803d219a5a8445aff",
+    "sha256": "9f4c6eaffd409e1339c9999b0afeefacb4ffea2d0708aa1f259997c4f85635e6",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-laziness-protocol/SKILL.md",
@@ -777,9 +961,11 @@
   {
     "source": "upstream/skills/principle-make-operations-idempotent/SKILL.md",
     "destination": "skills/principle-make-operations-idempotent/SKILL.md",
-    "sha256": "540738217c3da7bf513b9886924ad6a2bc77e58be867f5bd2e1831c74bf2ce70",
+    "sha256": "a2986a4a3dda4eed4041740f84ee24b7e9ade8ee1669fba2ca7610b45c3eb7eb",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-make-operations-idempotent/SKILL.md",
@@ -793,9 +979,11 @@
   {
     "source": "upstream/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
     "destination": "skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
-    "sha256": "09978915a4a11990cf0a9a02d9c08cc59e0b7a04c5c24b83aa560fbe4146f75b",
+    "sha256": "09099bc2c173de531f5dc6b75db426e8de295ccf4b6bf9a0e5f6722b1b012fe8",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
@@ -809,9 +997,11 @@
   {
     "source": "upstream/skills/principle-minimize-reader-load/SKILL.md",
     "destination": "skills/principle-minimize-reader-load/SKILL.md",
-    "sha256": "42551c5dc74cd578163c148da552db3ff67d29b78600ef216bfd311fb828fe69",
+    "sha256": "4e2560a16b3b3e5e05f6b0b15823f2ca884b6163f0d63b89a4704ac1fa76ca69",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-minimize-reader-load/SKILL.md",
@@ -825,9 +1015,11 @@
   {
     "source": "upstream/skills/principle-model-the-domain/SKILL.md",
     "destination": "skills/principle-model-the-domain/SKILL.md",
-    "sha256": "bbadbb9a723fac3f76e782ae45665eb94058ec10993e4bae36d4dc6b0e4eac07",
+    "sha256": "ce6f6de05e995590c1774db74027849392ec6a74a87f25fa63cddf356ca79d54",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-model-the-domain/SKILL.md",
@@ -841,9 +1033,11 @@
   {
     "source": "upstream/skills/principle-never-block-on-the-human/SKILL.md",
     "destination": "skills/principle-never-block-on-the-human/SKILL.md",
-    "sha256": "f2764bb9338cbfc788c903cf4b9cd0a5f4042d3a04dd6d59cbd525d9beaadd0a",
+    "sha256": "ba827760ea20a5a245c7b68455647b3216e8d4029ae739aeeb46f17cf5cd9169",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-never-block-on-the-human/SKILL.md",
@@ -857,9 +1051,11 @@
   {
     "source": "upstream/skills/principle-outcome-oriented-execution/SKILL.md",
     "destination": "skills/principle-outcome-oriented-execution/SKILL.md",
-    "sha256": "10eb91633aa570355ba4bb37088fcade2b22e498df7a58edc749e65bc5a78e2d",
+    "sha256": "7ce3bac71bdac948a54e200e40ad8295eba108660853644f2901e639bf3ecead",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-outcome-oriented-execution/SKILL.md",
@@ -873,9 +1069,12 @@
   {
     "source": "upstream/skills/principle-prove-it-works/SKILL.md",
     "destination": "skills/principle-prove-it-works/SKILL.md",
-    "sha256": "ec79a15025bac8d33d62011c54f3b612733fd2a024e623b531b3637aa75070e2",
+    "sha256": "f4d7449de421810d6409f72d100378e3070b53d2c3b0e06f199b64b65260d742",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Restore the delegation rule in the leaf itself.",
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-prove-it-works/SKILL.md",
@@ -889,9 +1088,11 @@
   {
     "source": "upstream/skills/principle-redesign-from-first-principles/SKILL.md",
     "destination": "skills/principle-redesign-from-first-principles/SKILL.md",
-    "sha256": "a1c7fd0a96b40e12a74bceb0e6bb20a9666dd844dcabfb624acb27da23b929fe",
+    "sha256": "0b5fb8b42f582dab467359091c8762713b9025935e7797da7c830a8c00bb6a7b",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-redesign-from-first-principles/SKILL.md",
@@ -905,9 +1106,11 @@
   {
     "source": "upstream/skills/principle-separate-before-serializing-shared-state/SKILL.md",
     "destination": "skills/principle-separate-before-serializing-shared-state/SKILL.md",
-    "sha256": "05294b40448e927c5da1c7b6f5c6b9fed3744637e3833d2d948b9154a9dd00bb",
+    "sha256": "9a32d09a9a6eaa2baa29e551495865256943a28911eccbbc0e3f9b94f20d8870",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-separate-before-serializing-shared-state/SKILL.md",
@@ -921,9 +1124,12 @@
   {
     "source": "upstream/skills/principle-sequence-verifiable-units/SKILL.md",
     "destination": "skills/principle-sequence-verifiable-units/SKILL.md",
-    "sha256": "2ccbbacc56ace5afdfb8670cef19d7bd009fb2a0033b9a741cbdf2b6baf72187",
+    "sha256": "09eac2a7550db9b48e5477aea516911f20e4b1f09195cf0e3e9cacf501a25028",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Define green at a declared phase boundary so the two principles agree.",
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-sequence-verifiable-units/SKILL.md",
@@ -937,9 +1143,11 @@
   {
     "source": "upstream/skills/principle-subtract-before-you-add/SKILL.md",
     "destination": "skills/principle-subtract-before-you-add/SKILL.md",
-    "sha256": "a983a50e732c1ed315eba7aaf47a61329e31c4794eb1ab9d25d9945265b31e03",
+    "sha256": "43f5ef904054fb9770e07c5706075593a72eaa8cf94778d093a912de60799307",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-subtract-before-you-add/SKILL.md",
@@ -953,9 +1161,11 @@
   {
     "source": "upstream/skills/principle-test-behavior-not-implementation/SKILL.md",
     "destination": "skills/principle-test-behavior-not-implementation/SKILL.md",
-    "sha256": "87e40efe4e486f7ea639d2ed1fc0abe6c93b8fd0e89a81218086909d2470a52e",
+    "sha256": "d121fb885c200b3fe518b8b0766180513b5bdee4a0371d00e7e910cabd8e10fe",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-test-behavior-not-implementation/SKILL.md",
@@ -969,9 +1179,11 @@
   {
     "source": "upstream/skills/principle-type-system-discipline/SKILL.md",
     "destination": "skills/principle-type-system-discipline/SKILL.md",
-    "sha256": "c83da8031ffb4c86410030d3e261f659598fca2b7d8158fd9dc269d70a3a025e",
+    "sha256": "ee4d581bb074611861dc2dfa2bdb96aebbb5db3dba097e23bbc9df24e8ace427",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/principle-type-system-discipline/SKILL.md",
@@ -985,10 +1197,11 @@
   {
     "source": "upstream/skills/recall/SKILL.md",
     "destination": "skills/recall/SKILL.md",
-    "sha256": "31782d3ca8cf9c2e2ce2717912c5481454a518df339f54492e4a21cd22f4ffcc",
+    "sha256": "fcb60e2f860c91a7cd3b8a4f1e717aeda56475204813d86d6a36d7c1ce31a4ed",
     "executable": false,
     "transformations": [
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts."
+      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
+      "Wire the recall miners to their role line."
     ]
   },
   {
@@ -1003,10 +1216,14 @@
   {
     "source": "upstream/skills/reflect/SKILL.md",
     "destination": "skills/reflect/SKILL.md",
-    "sha256": "85ea7d8baf35c55856908470e541904fc3cd8c80b6f2aa30aa4ec3311187bb28",
+    "sha256": "318438a1fa8ba9c5d67a66a6683c394d8c83ea0dd29716433e715006bb58a021",
     "executable": false,
     "transformations": [
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts."
+      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Use the exact transcript path the host contract names instead of globbing the shared session directory.",
+      "Verify the named transcript instead of scanning candidates.",
+      "Gate the external Backlog write on approval and name a default tracker."
     ]
   },
   {
@@ -1055,20 +1272,22 @@
   {
     "source": "upstream/skills/setup-pstack/SKILL.md",
     "destination": "skills/setup-pstack/SKILL.md",
-    "sha256": "79f1b031f3bf3eb2e8c96a18e7185c82101cb732e1862cc569820272fad39ca8",
+    "sha256": "f6125e52a45841694a9eaa7ee6d576a23619ba476e375bbd7567fa85ae58ce6a",
     "executable": false,
     "transformations": [
-      "Hide the skill from automatic selection; the extension's /setup-pstack and /skill:setup-pstack handlers own the validated dialogs.",
-      "Map model rule location to Pi agent configuration."
+      "Preserve ambient setup invocation and route it through the same native validated dialogs as the slash entry points.",
+      "Map model rule location to Pi agent configuration.",
+      "Replace a Reference-only noun with its Pi equivalent."
     ]
   },
   {
     "source": "upstream/skills/show-me-your-work/SKILL.md",
     "destination": "skills/show-me-your-work/SKILL.md",
-    "sha256": "45706fe3600c76acf85d0a5b16d2f6dc18ff0eb07c71c8fe3fe6a50fef93cd7a",
+    "sha256": "2b1c08f1c9c7d042b895f675c8ebfa8e13d435f9096b8d60c0b022cd0ba06071",
     "executable": false,
     "transformations": [
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts."
+      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
+      "Wire the trail reviewer to its role line."
     ]
   },
   {
@@ -1090,17 +1309,22 @@
   {
     "source": "upstream/skills/show-me-your-work/scripts/log.sh",
     "destination": "skills/show-me-your-work/scripts/log.sh",
-    "sha256": "a65a4bc5fb7cdeadbdb7b7ff1ca4682f4d9c42420942b2977cd17b46c4ac338e",
+    "sha256": "9ec3e9e58c3194bd18877c7cbcfe3580be1681354c8409856ca8b6e60322d029",
     "executable": true,
-    "transformations": []
+    "transformations": [
+      "Take a mkdir lock around the header test and the append so concurrent first writers write one header.",
+      "Guard on the first non-blank character so leading whitespace cannot hide a formula prefix."
+    ]
   },
   {
     "source": "upstream/skills/swarm/SKILL.md",
     "destination": "skills/swarm/SKILL.md",
-    "sha256": "1a2fbedc953043d7b37afd543114ad25ef87b7e3a08f6131c46bd3243459441b",
+    "sha256": "b01d4869c32565dfa0655017c5ee384b385231e5a600631d78dcb879ec9e1324",
     "executable": false,
     "transformations": [
-      "Map model rule location to Pi agent configuration."
+      "Map model rule location to Pi agent configuration.",
+      "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
+      "Reject an exploration result that answers off its slice or reports nothing evidenced."
     ]
   },
   {
@@ -1115,9 +1339,11 @@
   {
     "source": "upstream/skills/tdd/SKILL.md",
     "destination": "skills/tdd/SKILL.md",
-    "sha256": "eeb868e2dfebee528d730a67d7b17498fac4bb85dec2e38bc5c5176aca4d5d2f",
+    "sha256": "68f1bb2a4248f7f869c22a9ab297d675f18a16c5e13e4fa4ed964938634a1eb3",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
   },
   {
     "source": "upstream/skills/tdd/SKILL.md",
@@ -1131,9 +1357,11 @@
   {
     "source": "upstream/skills/teach/SKILL.md",
     "destination": "skills/teach/SKILL.md",
-    "sha256": "bd286e5a6290673be2cd28aef7af2ec7f1fb138e6bce156ea657368c7e7fc8a4",
+    "sha256": "a9b09d2bec36e21e325098631c8c5b5505574cdbb692d097513198abb575f462",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Name a fallback because Pi registers no image-generation tool."
+    ]
   },
   {
     "source": "upstream/skills/teach/SKILL.md",
@@ -1163,11 +1391,11 @@
   {
     "source": "upstream/skills/typescript-best-practices/SKILL.md",
     "destination": "skills/typescript-best-practices/SKILL.md",
-    "sha256": "abd84f43d3c33db81d90273777313a55cf39a6d32414f67e53951246ab4f3adc",
+    "sha256": "a40da091ebac92080cf0ed142051d2bef35e56358084511d599f1097c58f5c73",
     "executable": false,
     "transformations": [
       "Remove Reference-only frontmatter; Pi runtime behavior belongs to the extension.",
-      "Pi has no file-path skill trigger, so let the description route the skill instead of hiding it."
+      "Pi has no file-path skill trigger. Keep the skill hidden from model selection, and the host contract requires reading it before editing matching files."
     ]
   },
   {
@@ -1182,9 +1410,13 @@
   {
     "source": "upstream/skills/typescript-best-practices/references/patterns.md",
     "destination": "skills/typescript-best-practices/references/patterns.md",
-    "sha256": "62e9cd32d2fa066a35d0d1349aac22dce31a48ad7d5eaf142570770cfe707384",
+    "sha256": "2eadb3d0022ee2a6738c421c00e595bf48444a3ff7ce43c51cc240d993134e2e",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Use the double-quote style that the code and the rule table use.",
+      "Mark the hand-rolled guard as the no-schema fallback next to the schema-first rule.",
+      "Indent code snippets with tabs, per the technical-writing rule."
+    ]
   },
   {
     "source": "upstream/skills/unslop/SKILL.md",
@@ -1205,9 +1437,14 @@
   {
     "source": "upstream/skills/why/SKILL.md",
     "destination": "skills/why/SKILL.md",
-    "sha256": "2a852ec8680920109d2b56538b027c52867896a597250ac5d18a13e0b42e5b06",
+    "sha256": "b33fe8cd7b29cd9081beeac4dcf31a5b331ac0b590e127708200e236c0e74f1b",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Replace a Reference-only noun with its Pi equivalent.",
+      "Add the scoped-ask skip reason.",
+      "Give a narrowed why a valid skip reason to record.",
+      "Cover every category of a multi-category MCP without breaking the one-category-per-investigator rule."
+    ]
   },
   {
     "source": "upstream/skills/why/SKILL.md",
@@ -1353,9 +1590,12 @@
   {
     "source": "upstream-team-kit/skills/deslop/SKILL.md",
     "destination": "skills/deslop/SKILL.md",
-    "sha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
+    "sha256": "99a7ef3b7042ee9e376d905bbc5e1df75af17bf3b020d986796a6e7db3bff839",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
+      "Make the deslop result a countable receipt."
+    ]
   },
   {
     "source": "upstream-team-kit/skills/deslop/SKILL.md",
@@ -1465,9 +1705,12 @@
   {
     "source": "upstream-team-kit/skills/pr-review-canvas/SKILL.md",
     "destination": "skills/pr-review-canvas/SKILL.md",
-    "sha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6",
+    "sha256": "2babd483d2f3ffaf41de169d23fbeb24e7486732748552c81c452072a276b496",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map the review canvas browser step to the local control-ui workflow.",
+      "Replace long dashes in generated skill prose with commas, since the prose style rules forbid the long-dash character. The setup-pstack budget labels keep their exact form."
+    ]
   },
   {
     "source": "upstream-team-kit/skills/pr-review-canvas/SKILL.md",
@@ -1598,9 +1841,11 @@
   {
     "source": "upstream-team-kit/skills/workflow-from-chats/SKILL.md",
     "destination": "skills/workflow-from-chats/SKILL.md",
-    "sha256": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16",
+    "sha256": "3b6add31046002009c95002b34659286a309020dc1e2190ed041bcc0782f17d2",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Replace a Reference-only noun with its Pi equivalent."
+    ]
   },
   {
     "source": "upstream-team-kit/skills/workflow-from-chats/SKILL.md",

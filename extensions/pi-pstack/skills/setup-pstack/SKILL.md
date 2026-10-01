@@ -1,10 +1,11 @@
 ---
 name: setup-pstack
 description: Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes an always-applied rule that overrides the skill defaults. Use for /setup-pstack, "configure pstack models", "pstack budget", or changing pstack's model choices.
-disable-model-invocation: true
 ---
 
 # Setup pstack
+
+Call `pstack_setup` to perform these steps through native Pi dialogs and validated writes. This skill may be selected when the user asks to configure models. Do not bypass the confirmation by manually writing the rule. The steps below document the contract owned by that tool; /setup-pstack and /skill:setup-pstack use the same implementation.
 
 Write `~/.pi/agent/pstack/models.mdc`, an always-applied rule that sets pstack's model per role.
 
@@ -12,7 +13,7 @@ Write `~/.pi/agent/pstack/models.mdc`, an always-applied rule that sets pstack's
 
 ### 1. Detect available models
 
-Enumerate the model slugs you can pass to a `Task` subagent in this session. That is the dependable source. If Reference also exposes a models API or CLI that lists the user's entitled models, prefer it for completeness. If you cannot detect any, ask the user to paste the slugs they have access to. Never write a real slug you have not confirmed is available. The aliases `inherit-parent` and `auto` are always valid even though they are not detected slugs.
+Enumerate the model slugs you can pass to a `Task` subagent in this session. That is the dependable source. If Pi also exposes a model registry or CLI that lists the user's configured models, prefer it for completeness. If you cannot detect any, ask the user to paste the slugs they have access to. Never write a real slug you have not confirmed is available. The aliases `inherit-parent` and `auto` are always valid even though they are not detected slugs.
 
 ### 2. Load current state
 

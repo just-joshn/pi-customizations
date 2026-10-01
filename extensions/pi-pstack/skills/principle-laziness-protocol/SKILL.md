@@ -4,7 +4,7 @@ description: "Apply when refactoring, evaluating diff size, or tempted to add ab
 disable-model-invocation: true
 ---
 
-# Laziness Protocol
+# Laziness protocol
 
 Aim for the most result with the least code and complexity.
 

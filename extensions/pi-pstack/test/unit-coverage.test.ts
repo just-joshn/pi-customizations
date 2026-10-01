@@ -210,6 +210,8 @@ test('pstack index before_agent_start with enabled and todos', async () => {
           },
         },
       ],
+      getEntries: () => [],
+      getSessionId: () => 's',
       getSessionDir: () => '/tmp',
       getSessionFile: () => '/tmp/f.jsonl',
       getSessionId: () => 'index-hook-session',
@@ -217,7 +219,7 @@ test('pstack index before_agent_start with enabled and todos', async () => {
     ui: { setStatus() {}, setWidget() {} },
   } as unknown as ExtensionContext;
 
-  for (const fn of listeners.session_start ?? []) fn({}, ctx);
+  for (const fn of listeners.session_start ?? []) await fn({}, ctx);
 
   const event = { systemPromptOptions: { sections: {} as Record<string, string> } };
   for (const fn of listeners.before_agent_start ?? []) await fn(event, ctx);

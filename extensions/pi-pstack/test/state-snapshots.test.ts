@@ -591,7 +591,8 @@ test('all pstack tools declare outputSchema, exposure, and annotations conformin
   registerQuestions(pi);
   registerShells(pi);
   registerWorkers(pi);
-  expect(tools.length).toBe(14);
+  expect(tools.map((t) => t.name).sort()).toEqual(['Agent', 'AskQuestion', 'BackgroundShell', 'BackgroundShellList', 'BackgroundShellStop', 'ListAgents', 'SendMessage', 'Task', 'TaskList', 'TaskMessage', 'TaskOutput', 'TaskStop', 'TodoWrite', 'pstack_context', 'pstack_mode']);
+  expect(tools.length).toBe(15);
   for (const tool of tools) {
     expect(tool.outputSchema).toBeDefined();
     expect(tool.exposure).toBeDefined();

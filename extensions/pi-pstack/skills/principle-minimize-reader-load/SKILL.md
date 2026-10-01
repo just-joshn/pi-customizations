@@ -4,7 +4,7 @@ description: "Apply when reviewing or shaping code that's hard to trace. Count l
 disable-model-invocation: true
 ---
 
-# Minimize Reader Load
+# Minimize reader load
 
 Maintainability is the work a reader must do to understand code. Track two axes:
 1. **Layers to trace.** How many indirections sit between the question and the answer.

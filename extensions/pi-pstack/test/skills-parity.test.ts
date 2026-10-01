@@ -44,7 +44,7 @@ test('skills inventory: all pstack, team-kit, and loop skills are accounted for'
   }
 
   expect(piHostSkills.includes('loop')).toBe(true);
-  expect(piSkills.length + piHostSkills.length).toBe(65);
+  expect(piSkills.length + piHostSkills.length).toBe(68);
 });
 
 test('reference built-in facilities: host mappings are verified', async () => {
@@ -84,7 +84,7 @@ test('generated resources: repository-relative references resolve in this checko
       expect(existsSync(join(repositoryRoot, target)), `${file} references the missing path ${target}`).toBe(true);
     }
   }
-  expect(targets.length).toBeGreaterThanOrEqual(8);
+  expect(targets).toEqual([]);
 });
 
 test('resource map: exactly 205 generated resources are verified with matching hashes', async () => {
@@ -119,12 +119,12 @@ async function validateSkillMetadata(skill: { name: string; description: string;
   expect(nameMatch?.[1].trim()).toBe(skill.name);
 }
 
-test('skills loader: all 65 skills discover cleanly with valid metadata and frontmatter', async () => {
+test('skills loader: all 68 skills discover cleanly with valid metadata and frontmatter', async () => {
   const f = await fixture();
   try {
     const { loader } = await f.open();
     const skills = loader.getSkills().skills;
-    expect(skills.length).toBe(65);
+    expect(skills.length).toBe(68);
 
     for (const skill of skills) {
       await validateSkillMetadata(skill);
@@ -286,7 +286,9 @@ test('subagent personas resolve their mapped instruction files', async () => {
   for (const { type, files } of mappedSubagents) {
     const persona = await readPersona(type);
     const contents = await Promise.all(files.map((file) => readFile(join(packageRoot, file), 'utf8')));
-    expect(persona.instructions).toBe(contents.join('\n'));
+    const expected = contents.join('\n').replace('Resume an existing `poteto-agent` for the conversation rather than spawning a sibling. ', '');
+    if (type === 'poteto-agent') expect(persona.instructions.endsWith(`\n${expected}`)).toBe(true);
+    else expect(persona.instructions).toBe(expected);
   }
 
   await expect(readPersona('unsupported-role')).rejects.toThrow(/Unsupported agent unsupported-role/);
@@ -301,11 +303,12 @@ test('host contract mappings: tool names, reference facilities, and external dep
   const fakeCtx = {
     cwd: '/test/workspace',
     sessionManager: {
+      getSessionId: () => 's',
       getSessionDir: () => '/test/sessions',
       getSessionFile: () => '/test/sessions/current.jsonl',
     },
   };
-  const instructions = hostInstructions('/pkg', fakeCtx as never, 'rule-content');
+  const instructions = hostInstructions('/pkg', fakeCtx as never, 'rule-content', '');
   expect(instructions.includes('pstack pi host contract')).toBe(true);
   expect(instructions.includes('/loop is a Pi prompt template')).toBe(true);
   expect(instructions.includes('create-skill')).toBe(true);
