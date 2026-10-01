@@ -14,7 +14,7 @@ The supplied Cursor built-in create-skill source has an initial ledger of 56 sem
 
 Fresh real RPC checks verify discovery of scaffolded personal and project skills, trust denial/approval, complete body and argument delivery, support-script execution from the skill directory, and explicit-only metadata. The ambient prompt omits both skills when `disable-model-invocation: true` is present. Removing that field produces exactly two failing ambient-discovery checks. Restoring it yields 430 assertions with zero findings. No Task or AI inference runs.
 
-The harness creates skill files directly. It does not prove model-authored quality, discovery questions, exact user-wording preservation, progressive-disclosure behavior, or automatic writing-policy adherence. The current creation journey starts a new process rather than testing `/reload` after an edit. Those requirements remain unverified.
+The harness creates skill files directly. It does not prove model-authored quality, discovery questions, exact user-wording preservation, progressive-disclosure behavior, or automatic writing-policy adherence. Reload-after-edit mechanics are now observed in an existing real RPC session through a fixture command calling native `ctx.reload()`. Before reload, a newly created skill is absent and an edited description remains cached. After reload, the new command, updated description, and invoked body appear. An acknowledgement-only fixture produces exactly three failing checks; restoring native reload passes 435 assertions with zero findings. The literal TUI `/reload` command is not covered by this RPC bridge. Model-writing requirements and that terminal interaction remain unverified.
 
 ## Runtime capability matrix
 
