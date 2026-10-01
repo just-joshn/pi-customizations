@@ -1,16 +1,15 @@
 import { delimiter, resolve } from 'node:path';
 
-import { type ExtensionAPI, type ExtensionContext, getAgentDir, SettingsManager } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { additionalAgentDirs, projectAgentDirs } from './agent-sources.ts';
 import { clearAgentCache, type Discovery, discoverAgents } from './definitions.ts';
 import { parseJsonAgents } from './json-definitions.ts';
 import { installedPluginPackages, packageAgents } from './plugin-agents.ts';
+import { pstackSetting } from './pstack-settings.ts';
 import { parseRegistration, RuntimeAgents } from './runtime-agents.ts';
 
 function settingsDirectories(cwd: string): string[] {
-  const settings: object = SettingsManager.create(cwd, getAgentDir()).getSettings();
-  const pstack = 'pstack' in settings && typeof settings.pstack === 'object' && settings.pstack !== null ? settings.pstack : {};
-  const configured = 'additionalDirectories' in pstack ? pstack.additionalDirectories : undefined;
+  const configured = pstackSetting(cwd, 'additionalDirectories');
   return Array.isArray(configured) ? configured.filter((dir): dir is string => typeof dir === 'string') : [];
 }
 

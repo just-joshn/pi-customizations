@@ -158,7 +158,7 @@ function streamWorker(model: StreamArguments[0], context: StreamArguments[1], op
       stopReason: aborted ? 'aborted' : error ? 'error' : calls.length ? 'toolUse' : 'stop',
       errorMessage: retryFailure ? 'network error' : error ? 'scripted failure' : undefined,
       timestamp: Date.now(),
-      usage: { input: 2, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 5, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+      usage: { input: 2, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 5, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: text.includes('COSTS_ONE_CENT') ? 0.01 : 0 } },
     };
     stream.push(aborted || error ? { type: 'error', reason: aborted ? 'aborted' : 'error', error: message } : { type: 'done', reason: calls.length ? 'toolUse' : 'stop', message });
     stream.end(message);
