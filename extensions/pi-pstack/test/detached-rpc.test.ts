@@ -19,38 +19,29 @@ test('a detached Pi RPC process accepts control from a reopened handle without m
     const reopened = openDetachedRpc(handle.directory);
     expect(await reopened.activity()).toEqual({ kind: 'idle' });
     const commands = await reopened.send({ type: 'get_commands' });
-    expect(commands.success).toBe(true);
     if (!commands.success || commands.command !== 'get_commands') throw new Error('Expected successful command discovery.');
     expect(JSON.stringify(commands.data)).toContain('poteto-mode');
     const state = await reopened.send({ type: 'get_state' });
-    expect(state.success).toBe(true);
     if (!state.success || state.command !== 'get_state') throw new Error('Expected successful state response.');
     expect(state.data).toMatchObject({ isStreaming: false, messageCount: 0 });
     const bad = await reopened.send({ type: 'set_model', provider: 'missing', modelId: 'missing' });
-    expect(bad.success).toBe(false);
     if (bad.success) throw new Error('Expected model selection failure.');
     expect(bad.error).toContain('Model not found');
     const simultaneous = await Promise.all([reopened.send({ type: 'get_state' }), handle.send({ type: 'get_commands' })]);
-    expect(simultaneous.map((response) => response.command)).toEqual(['get_state', 'get_commands']);
-    expect(simultaneous.every((response) => response.success)).toBe(true);
+    expect(simultaneous.map(({ command, success }) => ({ command, success }))).toEqual([{ command: 'get_state', success: true }, { command: 'get_commands', success: true }]);
     expect(new Set(simultaneous.map((response) => response.id)).size).toBe(2);
     const output = await reopened.send({ type: 'bash', command: "printf 'detached-output-ok\\n'", excludeFromContext: true });
-    if (!output.success || output.command !== 'bash') throw new Error('Expected shell output.');
-    expect(output.data).toMatchObject({ output: 'detached-output-ok\n', exitCode: 0, cancelled: false });
+    expect(output).toMatchObject({ success: true, command: 'bash', data: { output: 'detached-output-ok\n', exitCode: 0, cancelled: false } });
     const running = reopened.send({ type: 'bash', command: 'printf ready > rpc-ready; exec sleep 300', excludeFromContext: true });
     await expect.poll(() => readFile(join(directory, 'rpc-ready'), 'utf8').catch(() => ''), { timeout: 5000 }).toBe('ready');
     expect((await handle.send({ type: 'abort_bash' })).success).toBe(true);
     const aborted = await running;
-    if (!aborted.success || aborted.command !== 'bash') throw new Error('Expected an aborted shell result.');
-    expect(aborted.data.cancelled).toBe(true);
+    expect(aborted).toMatchObject({ success: true, command: 'bash', data: { cancelled: true } });
     const stats = await reopened.send({ type: 'get_session_stats' });
-    if (!stats.success || stats.command !== 'get_session_stats') throw new Error('Expected session statistics.');
-    expect(stats.data.tokens).toEqual({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 });
+    expect(stats).toMatchObject({ success: true, command: 'get_session_stats', data: { tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } } });
     expect(await reopened.activity()).toEqual({ kind: 'idle' });
     const handled = await reopened.send({ type: 'prompt', message: '/pstack' });
-    expect(handled.success).toBe(true);
-    if (!handled.success || handled.command !== 'prompt') throw new Error('Expected handled extension command.');
-    expect(handled.data.disposition).toBe('handled');
+    expect(handled).toMatchObject({ success: true, command: 'prompt', data: { disposition: 'handled' } });
     expect(await reopened.activity()).toEqual({ kind: 'settled', invocation: handled.id });
     expect((await reopened.send({ type: 'clear_queue' })).success).toBe(true);
     expect((await reopened.send({ type: 'abort' })).success).toBe(true);
@@ -90,7 +81,7 @@ test('final settlement survives goal continuation in a scripted main-session fix
   }
 }, 30000);
 
-test('a handled goal command does not finish its independent active turn', async () => {
+test('RPC goal delivery waits for its independent active turn to settle', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pstack-detached-held-'));
   const agentDir = join(directory, 'agent');
   let handle: Awaited<ReturnType<typeof startDetachedRpc>> | undefined;
@@ -101,14 +92,15 @@ test('a handled goal command does not finish its independent active turn', async
       agentDir,
       args: ['--no-session', '--no-extensions', '-e', packageRoot, '-e', join(packageRoot, 'test/held-journey-provider.ts'), '--provider', 'journey-test', '--model', 'recorder'],
     });
-    const handled = await handle.send({ type: 'prompt', message: '/goal Prove automatic goal continuation' });
-    if (!handled.success || handled.command !== 'prompt') throw new Error('Expected handled goal command.');
-    expect(handled.data.disposition).toBe('handled');
-    const state = await handle.send({ type: 'get_state' });
-    if (!state.success || state.command !== 'get_state') throw new Error('Expected held turn state.');
-    expect(state.data.isStreaming).toBe(true);
-    expect(await handle.activity()).toEqual({ kind: 'running', invocation: handled.id });
+    const submitted = handle.send({ type: 'prompt', message: '/goal Prove automatic goal continuation' });
+    await expect.poll(async () => {
+      const state = await handle!.send({ type: 'get_state' });
+      return state.success && state.command === 'get_state' && state.data.isStreaming;
+    }, { timeout: 5000 }).toBe(true);
+    expect((await handle.activity()).kind).toBe('running');
     await writeFile(join(agentDir, 'release-scripted-reply'), 'release');
+    const handled = await submitted;
+    expect(handled.success).toBe(true);
     const reopened = openDetachedRpc(handle.directory);
     await expect.poll(() => reopened.activity(), { timeout: 5000 }).toEqual({ kind: 'settled', invocation: handled.id });
     const messages = await reopened.send({ type: 'get_messages' });

@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Sequence work into verifiable units
 
-Order work as a sequence of small units, each ending in a state you can check, and don't advance until the current one is green.
+Order work as a sequence of small units, each ending in a state you can check, and don't advance until the current one is green. Green means the check the plan declares for the unit. Under the **outcome-oriented-execution** principle skill, green at a declared phase boundary is the phase-boundary check that plan names, and breakage the plan scoped as temporary between boundaries is not red.
 
 **Why:** A break caught at the unit that caused it is cheap to localize. A break caught after a batch is buried, and you have already built further on a broken base. Sequencing those same units into a delivery a reviewer can replay turns "trust me" into "watch it go red, then green."
 

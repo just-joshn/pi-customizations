@@ -1,0 +1,162 @@
+const stale = 'Resolve a stale or contradictory upstream instruction natively.';
+const skill = (name) => new RegExp(`^skills/${name}/SKILL\\.md$`);
+
+export default [
+  [
+    skill('no-comments'),
+    'Offer the cheapest in-scope type, runtime, test, or CI lint.',
+    'Offer the cheapest in-scope type, runtime, test, or CI lint, per the **principle-encode-lessons-in-structure** skill.',
+    'Cite the principle that the encoding step applies.',
+  ],
+  [
+    skill('no-comments'),
+    'Otherwise delete, report the constraint open, and sketch out-of-scope work.',
+    'Otherwise delete, report the constraint open, record the declined constraint as a row in the **show-me-your-work** `decisions.tsv` trail, and sketch out-of-scope work.',
+    'Keep a durable trail of a declined constraint instead of only the chat report.',
+  ],
+  [
+    skill('automate-me'),
+    'This skill orchestrates three others: an inline mining pass (see step 1), the `create-skill` skill (authoring), and the **unslop** skill (prose discipline).',
+    'This skill orchestrates two skills and an inline pass. The inline pass mines the history (see step 1). The skills are the `create-skill` skill (authoring) and the **unslop** skill (prose discipline).',
+    'Count the inline mining pass separately from the skills.',
+  ],
+  [
+    skill('principle-prove-it-works'),
+    '- When verification fails, suspect the observation method before suspecting the system',
+    '- When verification fails, suspect the observation method before suspecting the system\n\n**Delegation.** Trust artifacts, not self-reports. When a subagent reports that work is done, read its diff or its output yourself before relying on it.',
+    'Restore the delegation rule in the leaf itself.',
+  ],
+  [
+    skill('principle-experience-first'),
+    'Foundational thinking governs the *sequence* of work.',
+    '[Foundational thinking](../principle-foundational-thinking/SKILL.md) governs the *sequence* of work.',
+    'Link the principle that the leaf names.',
+  ],
+  [
+    skill('principle-sequence-verifiable-units'),
+    "and don't advance until the current one is green.",
+    "and don't advance until the current one is green. Green means the check the plan declares for the unit. Under the **outcome-oriented-execution** principle skill, green at a declared phase boundary is the phase-boundary check that plan names, and breakage the plan scoped as temporary between boundaries is not red.",
+    'Define green at a declared phase boundary so the two principles agree.',
+  ],
+  [
+    /^skills\/typescript-best-practices\/references\/patterns\.md$/,
+    "Match the `readonly __brand: 'X'` shape.",
+    'Match the `readonly __brand: "X"` shape.',
+    'Use the double-quote style that the code and the rule table use.',
+  ],
+  [
+    /^skills\/typescript-best-practices\/references\/patterns\.md$/,
+    '// Do. Earn the cast at the boundary.',
+    '// Do, when the repository has no runtime schema library. Earn the cast at the boundary. With a schema library, parse through the schema helper in the section above instead.',
+    'Mark the hand-rolled guard as the no-schema fallback next to the schema-first rule.',
+  ],
+  [
+    skill('how'),
+    'without the explorer-findings section.',
+    'without the explorer-findings section. Drop the sentence that begins "Multiple explorer agents have traced", the paragraph that begins "The explorers each investigated", and the sentence "The explorers did the work, so you shouldn\'t need to re-explore from scratch." No explorer ran, so the explainer explores for itself.',
+    'Remove explorer wording from the simple-path explainer prompt.',
+  ],
+  [skill('why'), 'Two valid reasons:', 'Three valid reasons:', 'Add the scoped-ask skip reason.'],
+  [
+    skill('why'),
+    '- **The source is provably irrelevant**, not just "probably irrelevant." A high bar.',
+    '- **The caller narrowed the ask.** The invoking skill or user scoped the question so a category cannot bear on it. Name the scoping ask in the justification.\n- **The source is provably irrelevant**, not just "probably irrelevant." A high bar.',
+    'Give a narrowed why a valid skip reason to record.',
+  ],
+  [
+    skill('why'),
+    "Don't ask one agent to cover multiple MCPs.",
+    "Don't ask one agent to cover multiple MCPs. An MCP that fits several categories gets one investigator per category, each with that category's playbook, so no investigator covers more than one category.",
+    'Cover every category of a multi-category MCP without breaking the one-category-per-investigator rule.',
+  ],
+  [
+    skill('architect'),
+    'even when the first looks sufficient.',
+    'even when the first looks sufficient. When arena reports that the runners converged on one shape, run the runners once more with a forced alternative direction before arena ships the consensus. That forced re-run satisfies this rule, and the arena rule that ships a converged shape applies only after it.',
+    'Reconcile the architect two-candidate rule with the arena convergence rule.',
+  ],
+  [
+    skill('interrogate'),
+    "- The code itself\n\nWrite one clear paragraph. If you're unsure about the intent, ask the user before proceeding.",
+    '\nWrite one clear paragraph. If the sources leave the intent unclear, state your inferred intent in the paragraph, mark it as inferred, and proceed. Ask the user only when none of these sources exists. Never derive intent from the code alone, because that can bake a visible bug into the accepted intent.',
+    'Infer and state intent instead of blocking, and never take intent from the code under review.',
+  ],
+  [
+    skill('interrogate'),
+    'and open a separate PR to update the default table.',
+    'and report the rejected default in the review summary and suggest running `/setup-pstack`, because the table default lives in the package.',
+    'Drop the pstack-repository PR step that a package user cannot follow.',
+  ],
+  [
+    skill('arena'),
+    'per the Laziness Protocol',
+    'per the **laziness-protocol** principle skill',
+    'Name the principle skill so the reference is greppable.',
+  ],
+  [
+    skill('reflect'),
+    "The system prompt names the active workspace's Pi session directory. Use that path. Do not glob across `~/.pi/agent/sessions/*/`. That crosses workspace boundaries and reads private chats from unrelated projects.",
+    'The host contract names this session\'s transcript file ("This session transcript is ..."). Use that exact path. When it says the session is in memory, or when you need an earlier session in this workspace, call `pstack_context({ history: true })` and use only its matching transcript paths. Do not glob the Pi session storage directory. It can hold other workspaces, and reading it crosses workspace boundaries and reads private chats from unrelated projects.',
+    'Use the exact transcript path the host contract names instead of globbing the shared session directory.',
+  ],
+  [
+    skill('reflect'),
+    '```bash\nls -t <session-dir>/*.jsonl <session-dir>/pstack-workers/*/*.jsonl 2>/dev/null | head -10\n```\n\n',
+    '',
+    'Remove the session directory glob.',
+  ],
+  [
+    skill('reflect'),
+    "For each candidate, read the first JSONL line whose `message.role` is `user` and check that its `message.content` (a string, or the `text` of its first text block) contains the conversation's opening user prompt. Take the matching path.",
+    "Check that the chosen file's first user line (the first JSONL line whose `message.role` is `user`, with `message.content` a string or the `text` of its first text block) contains the conversation's opening user prompt. Take the matching path.",
+    'Verify the named transcript instead of scanning candidates.',
+  ],
+  [
+    skill('reflect'),
+    'Backlog items file to whatever devex / backlog tracker your team uses automatically. Only the Accepted list waits for approval.',
+    'File Backlog items to GitHub issues through `gh` after the same approval as the Accepted edits, because filing is an external write. When no tracker is configured, list the Backlog items in the summary unfiled.',
+    'Gate the external Backlog write on approval and name a default tracker.',
+  ],
+  [
+    skill('teach'),
+    "reach for the image-generation tool and draw it marker-on-whiteboard style with a few short labels, since image models garble long text. Generate that picture, don't settle for describing it in words.",
+    "reach for an image tool only when the host contract names one. Pi registers no image-generation tool, so otherwise draw it as an SVG or mermaid sketch with a few short labels and say that you substituted it for an image. Keep labels short, since long text garbles. Produce that picture, don't settle for describing it in words.",
+    'Name a fallback because Pi registers no image-generation tool.',
+  ],
+  [
+    skill('show-me-your-work'),
+    'spawn a subagent on a different model family from the one that did the work.',
+    'spawn a subagent on a different model family from the one that did the work, with `model` from the `trail reviewer` line in the `pstack-models.mdc` rule. A role line of `inherit-parent` or `auto` omits `model`, and with no line use a model of a different family from the worker.',
+    'Wire the trail reviewer to its role line.',
+  ],
+  [
+    skill('figure-it-out'),
+    '- Pair delegated work with a judge.',
+    "- Pair delegated work with a judge. Set the judge's `model` from the `figure-it-out judge` line in the `pstack-models.mdc` rule, or use a different family than the worker when the line is missing.",
+    'Wire the figure-it-out judge to its role line.',
+  ],
+  [
+    skill('recall'),
+    'Spawn parallel subagents on a fast, cheap model,',
+    'Spawn parallel subagents with `model` from the `recall miners` line in the `pstack-models.mdc` rule, or a fast, cheap model when the line is missing,',
+    'Wire the recall miners to their role line.',
+  ],
+  [
+    skill('deslop'),
+    'Keep the final summary concise (1-3 sentences).',
+    'Keep the final summary concise (1-3 sentences) and end it with a receipt of files touched and edits per focus area, for example `3 files; comments 4, defensive checks 1, any casts 0, nesting 2, other 0`.',
+    'Make the deslop result a countable receipt.',
+  ],
+  [
+    /^skills\/poteto-mode\/playbooks\/autopilot-(?:full|stack)\.md$/,
+    '(the **deslop** skill, `/deslop`)',
+    "(the **deslop** skill, `/deslop`, whose receipt of files touched and edits per focus area goes in the owner's report)",
+    'Require the deslop receipt in the owner report.',
+  ],
+  [
+    /^skills\/interrogate\/references\/code-quality-review\.md$/,
+    '## Core Prompt\n\nStart from this baseline:',
+    '## Core Prompt\n\nSource: the Core Prompt block below is a copy of the Core Prompt block in the team-kit `thermo-nuclear-code-quality-review` skill. Keep the two in sync.\n\nStart from this baseline:',
+    'Attribute the copied Core Prompt block to its source skill.',
+  ],
+];

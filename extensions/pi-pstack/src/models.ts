@@ -30,7 +30,11 @@ const defaults = new Map<string, string[]>([
   ["swarm workers", [code]],
   ["architect runners", panel],
   ["interrogate reviewers", panel],
+  ["trail reviewer", ["inherit-parent"]],
+  ["figure-it-out judge", ["inherit-parent"]],
+  ["recall miners", ["inherit-parent"]],
 ]);
+export const roleNames: readonly string[] = [...defaults.keys()];
 const panelRoles = new Set(["arena runners", "arena cross-judge pool", "architect runners", "interrogate reviewers"]);
 const budgets = new Map<string, ThinkingLevel | undefined>([
   ["unlimited — keep max", undefined],
@@ -43,13 +47,35 @@ export function modelConfigPath(): string {
   return join(getAgentDir(), "pstack", "models.mdc");
 }
 
-export async function readModelRule(): Promise<string> {
+export function projectModelConfigPath(cwd: string): string {
+  return join(cwd, ".pi", "pstack", "models.mdc");
+}
+
+async function readOptional(path: string): Promise<string> {
   try {
-    return await readFile(modelConfigPath(), "utf8");
+    return await readFile(path, "utf8");
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") return "";
     throw error;
   }
+}
+
+function roleLines(text: string): Map<string, string> {
+  const lines = new Map<string, string>();
+  let frontmatter = false;
+  for (const line of text.split(/\r?\n/)) {
+    if (line.trim() === "---") frontmatter = !frontmatter;
+    else if (!frontmatter && !line.startsWith("#") && line.includes(":")) lines.set(line.slice(0, line.indexOf(":")).trim(), line);
+  }
+  return lines;
+}
+
+export async function readModelRule(cwd?: string): Promise<string> {
+  const user = await readOptional(modelConfigPath());
+  const project = cwd ? roleLines(await readOptional(projectModelConfigPath(cwd))) : new Map<string, string>();
+  if (project.size === 0) return user;
+  const kept = user.split(/\r?\n/).filter((line) => !project.has(line.slice(0, Math.max(line.indexOf(":"), 0)).trim()) || line.startsWith("#"));
+  return `${kept.join("\n").trimEnd()}\n${[...project.values()].join("\n")}\n`;
 }
 
 function isAlias(value: string): boolean {
@@ -149,6 +175,20 @@ function needsChoice(role: string, values: string[], target: ThinkingLevel | und
   }
 }
 
+function modelFamily(value: string, ctx: ExtensionContext): string {
+  const { model } = resolveModel(value, ctx);
+  return model.id.split("/").at(-1)?.toLowerCase().match(/[a-z]+/)?.[0] ?? model.id;
+}
+
+function familyWarnings(working: ModelTable, ctx: ExtensionContext): string[] {
+  return [...working].flatMap(([role, values]) => {
+    if (!panelRoles.has(role) || values.length < 2) return [];
+    const families = new Set(values.map((value) => modelFamily(value, ctx)));
+    if (families.size > 1) return [];
+    return [`${role} lists ${values.length} entries from ${families.size} model family. Entries count as seats, not as independent reviewers. Add a model from another family.`];
+  });
+}
+
 const finishPanel = "Finish panel";
 
 async function chooseAction(working: ModelTable, ctx: ExtensionContext): Promise<string | undefined> {
@@ -246,6 +286,7 @@ export async function setupModels(ctx: ExtensionContext): Promise<boolean> {
       working = new Map([...working, [action, values]]);
       continue;
     }
+    for (const warning of familyWarnings(working, ctx)) ctx.ui.notify(warning, "warning");
     if (!(await ctx.ui.confirm("Write pstack model configuration?", `${budget}\n${modelConfigPath()}`))) return false;
     for (const [role, values] of working) validateRole(role, values, target, ctx);
     await writeConfiguration(working, budget, target);

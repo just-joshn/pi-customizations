@@ -48,8 +48,7 @@ test.skipIf(!available).each(['SIGINT', 'SIGTERM'] as const)(
         { timeout: 10000 },
       );
       allocation = JSON.parse(output.split('\n')[0]);
-      if (!allocation) throw new Error('missing owned Chrome allocation');
-      expect(alive(allocation.pid)).toBe(true);
+      if (!allocation) throw new Error('missing owned Chrome allocation'); expect(alive(allocation.pid)).toBe(true);
       expect(child.kill(signal)).toBe(true);
       await exited;
       expect(alive(allocation.pid)).toBe(false);

@@ -1,3 +1,4 @@
+import { isNoChecksReading } from "./github.ts";
 import type * as T from "./types.ts";
 export const renderJson = (verdict: T.WatcherVerdict): string =>
   `${JSON.stringify(verdict)}\n`;
@@ -6,7 +7,7 @@ function ciCell(row: T.PrSnapshot): string {
   const was = row.ci.hadPreviousPassingCi ? ", was ✅" : "";
   switch (row.ci.kind) {
     case "ci-clean":
-      return "✅";
+      return isNoChecksReading(row.ci.all) ? "➖ no checks" : "✅";
     case "ci-pending":
       return `⏳ ${row.ci.pending.length} pending${was}`;
     case "ci-failing":
@@ -137,6 +138,8 @@ export function renderPretty(verdict: T.WatcherVerdict): string {
     case "STATUS":
       return renderStatusTable(verdict.rows);
     case "WAITING":
+      if (verdict.reason.kind === "no-checks-unconfirmed")
+        return `WAITING: frontier=#${verdict.frontier.number}; no checks reported (${verdict.reason.readings}/${verdict.reason.required} readings at this head); waiting to confirm none are coming\n`;
       return verdict.reason.kind === "pending-checks"
         ? `WAITING: frontier=#${verdict.frontier.number}; ${verdict.reason.pending.length} check${verdict.reason.pending.length === 1 ? "" : "s"} pending\n`
         : `WAITING: frontier=#${verdict.frontier.number} is blocker-free; waiting for merge queue (${verdict.reason.unmergedCount} PR${verdict.reason.unmergedCount === 1 ? "" : "s"} unmerged)\n`;
@@ -158,6 +161,8 @@ export function renderPretty(verdict: T.WatcherVerdict): string {
     case "TIMEOUT":
       if (verdict.reason.kind === "pending-checks")
         return "TIMEOUT: checks still pending\n";
+      if (verdict.reason.kind === "no-checks-unconfirmed")
+        return "TIMEOUT: no checks reported and none confirmed absent\n";
       if (verdict.reason.kind === "status-unavailable")
         return "TIMEOUT: GitHub status remained unavailable\n";
       return `TIMEOUT: queued stack still has ${verdict.reason.unmergedCount} PR${verdict.reason.unmergedCount === 1 ? "" : "s"} unmerged; frontier=#${verdict.reason.frontier.number}\n`;

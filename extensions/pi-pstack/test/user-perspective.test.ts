@@ -383,7 +383,7 @@ test('user-perspective: AskQuestion rejects invalid identifiers', async () => {
   }
 });
 
-test('user-perspective: Task tool rejects cloud execution outside a git repository and unsupported personas', async () => {
+test('user-perspective: Task tool rejects cloud execution without a configured remote executor and unsupported personas', async () => {
   const f = await fixture();
   try {
     const { session } = await f.open();
@@ -397,7 +397,7 @@ test('user-perspective: Task tool rejects cloud execution outside a git reposito
     let results = toolResultsOf(session, 'Task');
     expect(results.length).toBe(1);
     expect(results[0]?.isError).toBe(true);
-    expect(JSON.stringify(results[0])).toMatch(/environment cloud runs in a git worktree, and .+ is not inside a git repository/);
+    expect(JSON.stringify(results[0])).toMatch(/Cloud Tasks require a configured isolated remote executor at .+executors\.json\. No local fallback is permitted\./);
 
     f.calls.push({
       type: 'toolCall',

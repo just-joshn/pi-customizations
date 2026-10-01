@@ -1,10 +1,11 @@
 ---
 name: goal
-description: Set a goal that Pi will pursue to completion across turns. Use for /goal <objective> and whenever a pstack playbook says to arm a /goal.
+description: Set a goal that Pi will pursue to completion across turns. Use for /goal <objective>.
+disable-model-invocation: true
 ---
 # Goal
 
-The pstack extension stores the goal on the session branch and re-prompts after each finished turn while it is active. An agent running a playbook that says to arm a `/goal` calls `CreateGoal` itself. The operator does not have to type `/goal`.
+The pstack extension stores the goal on the session branch and re-prompts after each finished turn while it is active. An agent running a playbook that says to arm a `/goal` calls `CreateGoal` itself. The operator does not have to type `/goal`. Use the same durable, tool-driven flow in local and cloud environments.
 
 ## Parse
 
@@ -17,7 +18,7 @@ Accept `/goal <objective>`.
 
 ## Start
 
-1. Restate the objective clearly, including every explicit deliverable or required evidence you will verify against the repo.
+1. Restate the objective clearly, including every explicit deliverable or required evidence you will verify against the repo. When a playbook supplies exact goal text, pass it to `CreateGoal` verbatim and restate the objective only in your reply.
 2. Call `CreateGoal` exactly once with the objective. Do not create goal files manually or retry creation.
 3. If creation fails, report that no goal was armed. Goal state lives on the session branch; call `GetGoal` to re-read the armed objective at each tick and after context compaction. Ordinary file tools may keep optional scratchpads, but continuation does not require them.
 4. Perform the first concrete unit of work immediately in this turn; do not stop after planning or creating the goal.

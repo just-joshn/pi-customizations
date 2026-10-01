@@ -159,7 +159,7 @@ Since renderer.js loads in `<head>`, you can also call `renderDiff(target, lines
    ```
    Run this backgrounded, then open a local browser. Follow the control-ui skill to connect to the browser and verify the page at `http://127.0.0.1:8432/pr-review-{number}.html`.
 
-   **Why a fixed port and `cd /tmp`:** Background shells have no TTY, so Python buffers its startup message ("Serving HTTP on...") indefinitely — using port 0 means you can never read which port was chosen. And `--directory /tmp` works but `cd /tmp` is more robust across Python versions. If port 8432 is taken, try 8433, 8434, etc.
+   **Why a fixed port and `cd /tmp`:** Background shells have no TTY, so Python buffers its startup message ("Serving HTTP on...") indefinitely, using port 0 means you can never read which port was chosen. And `--directory /tmp` works but `cd /tmp` is more robust across Python versions. If port 8432 is taken, try 8433, 8434, etc.
 
 ### Diff features (handled automatically by renderer.js)
 

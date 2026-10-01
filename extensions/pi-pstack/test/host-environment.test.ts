@@ -25,8 +25,7 @@ test.each([
 test('real RPC delivers the cloud host catalog to a deterministic main-session provider', async () => {
   const f = await fixture({ extensionOnly: true });
   try {
-    const provider = join(f.root, 'record-provider.mjs');
-    await writeFile(provider, `import journey from ${JSON.stringify(join(packageRoot, 'test/journey-provider.ts'))};\nprocess.env = { ...process.env, PSTACK_JOURNEY_LOG: ${JSON.stringify(f.root)} };\nexport default journey;\n`);
+    const provider = join(f.root, 'record-provider.mjs'); await writeFile(provider, `import journey from ${JSON.stringify(join(packageRoot, 'test/journey-provider.ts'))};\nprocess.env = { ...process.env, PSTACK_JOURNEY_LOG: ${JSON.stringify(f.root)} };\nexport default journey;\n`);
     const handle = await startDetachedRpc({
       directory: join(f.root, 'transport'),
       cwd: f.cwd,
@@ -51,10 +50,8 @@ test('real RPC delivers the cloud host catalog to a deterministic main-session p
     });
     try {
       const state = await handle.send({ type: 'get_state' });
-      if (!state.success || state.command !== 'get_state') throw new Error('missing RPC session state');
-      const parentId = state.data.sessionId;
-      const response = await handle.send({ type: 'prompt', message: 'Record the host contract without calling tools' });
-      expect(response.success).toBe(true);
+      if (!state.success || state.command !== 'get_state') throw new Error('missing RPC session state'); const parentId = state.data.sessionId;
+      const response = await handle.send({ type: 'prompt', message: 'Record the host contract without calling tools' }); expect(response.success).toBe(true);
       await vi.waitFor(async () => {
         const path = (await readdir(f.root)).find((name) => /^requests-\d+\.jsonl$/.test(name));
         expect(path).toBeDefined();
@@ -68,9 +65,7 @@ test('real RPC delivers the cloud host catalog to a deterministic main-session p
         expect(host).not.toContain('<parent-session-id>');
         expect(host).toContain(`Task child transcripts owned by this parent session: ${join(f.root, 'shared-session-store', 'pstack-workers', parentId)}`);
       });
-    } finally {
-      await handle.close();
-    }
+    } finally { await handle.close(); }
   } finally {
     await f.close();
   }

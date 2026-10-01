@@ -37,7 +37,7 @@ Spawn one Task subagent that explores and explains in one pass:
 - `model`: the `how explainer` line, default `claude-opus-5-5-max`
 - `readonly`: `true`
 
-Build its prompt from `references/explainer-prompt.md` without the explorer-findings section. Go to Step 4.
+Build its prompt from `references/explainer-prompt.md` without the explorer-findings section. Drop the sentence that begins "Multiple explorer agents have traced", the paragraph that begins "The explorers each investigated", and the sentence "The explorers did the work, so you shouldn't need to re-explore from scratch." No explorer ran, so the explainer explores for itself. Go to Step 4.
 
 ## Step 3. Synthesize (complex questions only)
 
