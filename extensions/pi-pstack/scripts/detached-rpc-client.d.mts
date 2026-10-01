@@ -20,5 +20,5 @@ export function startDetachedRpc(config: {
   headless?: boolean;
   closeAfterSettle?: boolean;
   ownerId?: string;
-  filesystem?: { denied: string[]; allowed: string[] };
+  filesystem?: { denied: string[]; allowed: string[]; files?: string[] };
 }): Promise<DetachedRpcHandle>;

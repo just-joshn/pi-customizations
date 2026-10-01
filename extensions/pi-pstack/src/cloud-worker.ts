@@ -4,6 +4,7 @@ import { join } from 'node:path';
 
 import { type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { type DetachedRpcHandle, openDetachedRpc, startDetachedRpc } from '../scripts/detached-rpc-client.mjs';
+import { cloudFilesystem } from './cloud-filesystem.ts';
 import { availableInEnvironment } from './resource-environment.ts';
 import { taskOutcome } from './task-outcome.ts';
 import type { TaskParameters, TaskRecord } from './worker-records.ts';
@@ -46,7 +47,8 @@ export async function openCloudWorker(options: { id: string; params: TaskParamet
   const systemFile = join(dir, `${id}.system.txt`);
   await writeFile(systemFile, loader.getAppendSystemPrompt().join('\n\n'), { mode: 0o600 });
   const args = cloudWorkerArguments(prepared, systemFile, prior);
-  const handle = await startDetachedRpc({ directory: dir, cwd, agentDir: getAgentDir(), args, headless: true, closeAfterSettle: true, ownerId: id });
+  const filesystem = await cloudFilesystem(options.ctx.sessionManager.getSessionDir(), dir, cwd, prior?.sessionFile);
+  const handle = await startDetachedRpc({ directory: dir, cwd, agentDir: getAgentDir(), args, headless: true, closeAfterSettle: true, ownerId: id, filesystem });
   try {
     const state = await handle.send({ type: 'get_state' });
     if (!state.success || state.command !== 'get_state' || !state.data.sessionFile) throw new Error('Cloud worker did not provide a durable session.');
