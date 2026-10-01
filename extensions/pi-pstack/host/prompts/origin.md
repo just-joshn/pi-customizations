@@ -1,6 +1,8 @@
 ---
 description: "Install, sign in, update, or repair the origin CLI for repos hosted on Cursor (origin.cursor.com). Use when the CLI is missing or outdated, git push/pull fails to authenticate against origin.cursor.com, or the user asks to set up, clone, or configure Cursor-hosted repos. "
 argument-hint: "[request]"
+disabled-environments:
+  - cloud
 ---
 
 Read origin/SKILL.md in full under the pstack host skills directory identified by the pstack host contract.
