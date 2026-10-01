@@ -8,6 +8,12 @@ Reference loads `plugin-metadata/plugin.json`, discovers the 47 skills and two a
 
 There is no extension runtime or hidden plugin hook in the source manifest. Most behavior is specified as model instructions. Exact copied text therefore establishes content parity, not observable host behavior or proof that a model follows every instruction.
 
+## Custom session history discovery
+
+A failing SDK regression reproduced `pstack_context` omitting the active workspace's history when sessions live in a configured custom directory. The tool now passes the active session manager's directory to SDK discovery instead of silently using the default directory. A shared-root fixture returns only the matching workspace's session. The installed real RPC test fails when that one-line fix is reverted and passes when restored. Eleven context tests and the default 451-check RPC suite pass.
+
+This verifies returned history scope and active-directory selection, not read-level isolation across shared storage. The SDK constructs candidate metadata before its workspace filter, so this result must not be cited as proof that foreign transcript bytes are never inspected. Completeness remains explicitly unknown because SDK discovery may skip unreadable files. Exhaustive multi-root history and model-mediated recall still remain unverified.
+
 ## Current bundled-agent requirement audit
 
 Both supplied agent snapshots match byte for byte. An initial ledger groups six Poteto-agent clauses and 21 Comment Sicko clauses. Fresh native persona-loader tests pass, including both Comment Sicko names, complete Poteto agent/mode content, and rejection of unknown names. This is loader/content evidence only.
