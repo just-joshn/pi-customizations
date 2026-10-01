@@ -36,6 +36,19 @@ export const TaskRecordSchema = Type.Object({
   depth: Type.Optional(Type.Integer({ minimum: 1 })),
   toolUseCount: Type.Optional(Type.Integer({ minimum: 0 })),
   durationMs: Type.Optional(Type.Number({ minimum: 0 })),
+  toolUseId: Type.Optional(Type.String()),
+  totalTokens: Type.Optional(Type.Number({ minimum: 0 })),
+  maxTurnsReached: Type.Optional(Type.Integer({ minimum: 1 })),
+  handback: Type.Optional(
+    Type.Object({
+      recipient: Type.String(),
+      delivered: Type.Boolean(),
+      flagged: Type.Boolean(),
+      bounces: Type.Integer({ minimum: 0 }),
+      waitingOnBackground: Type.Boolean(),
+      report: Type.Optional(Type.Object({ text: Type.String(), warning: Type.Optional(Type.String()) })),
+    }),
+  ),
 });
 export type TaskRecord = Static<typeof TaskRecordSchema>;
 export const TaskParameters = Type.Object({
