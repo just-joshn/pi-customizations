@@ -12,4 +12,13 @@ export type DetachedRpcHandle = {
 };
 
 export function openDetachedRpc(directory: string): DetachedRpcHandle;
-export function startDetachedRpc(config: { directory: string; cwd: string; agentDir: string; args: string[]; headless?: boolean; closeAfterSettle?: boolean; ownerId?: string }): Promise<DetachedRpcHandle>;
+export function startDetachedRpc(config: {
+  directory: string;
+  cwd: string;
+  agentDir: string;
+  args: string[];
+  headless?: boolean;
+  closeAfterSettle?: boolean;
+  ownerId?: string;
+  filesystem?: { denied: string[]; allowed: string[] };
+}): Promise<DetachedRpcHandle>;

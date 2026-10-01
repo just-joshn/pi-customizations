@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { activitySchema, readRecord, responseSchema, snapshotSchema, statusSchema, writeRecord } from './detached-rpc-protocol.mjs';
+import { filesystemLaunch } from './filesystem-launch.mjs';
 
 const requestDeadlineMs = 30000;
 const pollMs = 25;
@@ -75,13 +76,14 @@ export function openDetachedRpc(directory) {
   };
 }
 
-export async function startDetachedRpc({ directory: base, cwd, agentDir, args, headless, closeAfterSettle, ownerId }) {
+export async function startDetachedRpc({ directory: base, cwd, agentDir, args, headless, closeAfterSettle, ownerId, filesystem }) {
   await mkdir(base, { recursive: true });
   const directory = await mkdtemp(join(base, 'rpc-'));
   await Promise.all(['commands', 'processing', 'responses'].map((name) => mkdir(join(directory, name), { mode: 0o700 })));
   await mkdir(agentDir, { recursive: true });
   const cli = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle', 'cli.js');
-  await writeRecord(join(directory, 'launch.json'), { executable: process.execPath, args: [cli, '--mode', 'rpc', ...args], cwd: await realpath(cwd), agentDir, headless, closeAfterSettle, ownerId });
+  const launch = await filesystemLaunch(process.execPath, [cli, '--mode', 'rpc', ...args], directory, filesystem);
+  await writeRecord(join(directory, 'launch.json'), { ...launch, cwd: await realpath(cwd), agentDir, headless, closeAfterSettle, ownerId });
   const supervisor = spawn(process.execPath, [fileURLToPath(new URL('./detached-rpc-server.mjs', import.meta.url)), directory], { detached: true, stdio: 'ignore' });
   let failure;
   supervisor.on('error', (error) => {
