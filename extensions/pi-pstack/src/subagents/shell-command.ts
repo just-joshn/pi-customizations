@@ -19,13 +19,19 @@ export function runShellCommand(command: string, { cwd, input, env, timeoutMs }:
         child.stdout.destroy();
         child.stderr.destroy();
         child.stdin.destroy();
+        const text = Buffer.concat(stderr).toString('utf8');
+        resolveRun({ code: 124, stdout: Buffer.concat(stdout).toString('utf8'), stderr: `${text}${text ? '\n' : ''}terminated by timeout` });
       }, timeoutGraceMs);
     }, timeoutMs);
     let escalation: NodeJS.Timeout | undefined;
     child.stdout.on('data', (chunk: Buffer) => stdout.push(chunk));
     child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk));
     child.stdin.on('error', () => {});
-    child.on('error', (error) => resolveRun({ code: 1, stdout: '', stderr: String(error) }));
+    child.on('error', (error) => {
+      clearTimeout(timeout);
+      if (escalation) clearTimeout(escalation);
+      resolveRun({ code: 1, stdout: '', stderr: String(error) });
+    });
     child.on('close', (code, signal) => {
       clearTimeout(timeout);
       if (escalation) clearTimeout(escalation);
@@ -44,7 +50,5 @@ function signalGroup(child: ReturnType<typeof spawn>, signal: NodeJS.Signals): v
   try {
     if (process.platform === 'win32' || child.pid === undefined) child.kill(signal);
     else process.kill(-child.pid, signal);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error;
-  }
+  } catch {}
 }

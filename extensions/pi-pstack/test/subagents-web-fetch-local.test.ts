@@ -20,6 +20,9 @@ test('the built-in web-fetch agent ignores isolation and always runs locally', a
     const done = (await fixture.call('Agent', { description: 'fetch page', prompt: 'hello', subagent_type: 'web-fetch', isolation: 'worktree', run_in_background: false })) as { details: Record<string, unknown> };
     expect(done.details).toMatchObject({ status: 'completed', agentType: 'web-fetch', requestedIsolation: 'worktree', effectiveIsolation: 'local' });
     expect(fixture.subagentLogs).toContain("[web-fetch agent] isolation:'worktree' ignored; the built-in web-fetch agent always runs as a local agent");
+    await expect(fixture.call('Agent', { description: 'remote fetch', prompt: 'hello', subagent_type: 'web-fetch', isolation: 'remote', run_in_background: false })).rejects.toThrow(
+      'Remote agent execution is not available in this runtime',
+    );
   } finally {
     await fixture.close();
   }

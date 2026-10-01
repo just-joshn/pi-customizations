@@ -46,8 +46,7 @@ const fields = {
   ),
   isolation: Type.Optional(
     Type.Union([Type.Literal('worktree'), Type.Literal('remote')], {
-      description:
-        'Isolation mode. "worktree" creates a temporary git worktree so the agent works on an isolated copy of the repo. "remote" launches the agent in a remote cloud environment (always runs in background; availability is gated).',
+      description: 'Isolation mode. "remote" is accepted from saved agent definitions but is not available in this runtime.',
     }),
   ),
   cwd: Type.Optional(
@@ -66,7 +65,7 @@ export function agentSchemaGates(env: NodeJS.ProcessEnv): AgentSchemaGates {
 export function buildAgentSchema(gates: AgentSchemaGates = {}) {
   const { run_in_background, team_name, mode } = fields;
   const model = gates.coordinator ? modelField(coordinatorModelNotes[gates.coordinator]) : fields.model;
-  const { description, prompt, subagent_type, isolation } = fields;
+  const { description, prompt, subagent_type } = fields;
   return Type.Object(
     {
       description,
@@ -75,7 +74,11 @@ export function buildAgentSchema(gates: AgentSchemaGates = {}) {
       ...(gates.forceModel ? {} : { model }),
       ...(gates.headless ? {} : { run_in_background }),
       ...(gates.addressable ? { name: Type.Optional(Type.String({ pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$', description: nameDescription })), team_name, mode } : {}),
-      isolation,
+      isolation: Type.Optional(
+        Type.Literal('worktree', {
+          description: 'Isolation mode. "worktree" creates a temporary git worktree so the agent works on an isolated copy of the repo.',
+        }),
+      ),
     },
     { additionalProperties: false },
   );

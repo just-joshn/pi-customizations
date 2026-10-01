@@ -5,7 +5,7 @@ import { Check } from 'typebox/value';
 import { expect, test } from 'vitest';
 import { workerFixture } from './worker-fixture.ts';
 
-test('[G1-02] native model receives the public parameter contract and honest remote description', async () => {
+test('[G1-02] native model receives the public parameter contract and supported isolation options', async () => {
   const fixture = await workerFixture();
   try {
     await fixture.session.prompt('inspect parameter declarations');
@@ -30,10 +30,10 @@ test('[G1-02] native model receives the public parameter contract and honest rem
     expect(fields.run_in_background).not.toHaveProperty('default');
     expect(fields.run_in_background.description.startsWith('Agents run in the background by default')).toBe(true);
     expect(fields.isolation.description).toBe(
-      'Isolation mode. "worktree" creates a temporary git worktree so the agent works on an isolated copy of the repo. "remote" launches the agent in a remote cloud environment (always runs in background; availability is gated).',
+      'Isolation mode. "worktree" creates a temporary git worktree so the agent works on an isolated copy of the repo.',
     );
-    expect(fields.isolation.anyOf.map((entry: { const: string }) => entry.const)).toEqual(['worktree', 'remote']);
-    expect(['worktree', 'remote'].map((isolation) => Check(schema, { description: 'task', prompt: 'task', isolation }))).toEqual([true, true]);
+    expect(fields.isolation.const).toBe('worktree');
+    expect(['worktree', 'remote'].map((isolation) => Check(schema, { description: 'task', prompt: 'task', isolation }))).toEqual([true, false]);
     expect(['sonnet', 'opus', 'haiku', 'fable'].map((model) => Check(schema, { description: 'task', prompt: 'task', model }))).toEqual([true, true, true, true]);
     expect(Check(schema, { description: 'task', prompt: 'task', model: 'gpt' })).toBe(false);
     expect(Check(schema, { description: 'one two three four five six seven eight nine ten', prompt: 'task' })).toBe(true);
