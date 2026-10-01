@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { expect, onTestFinished, test } from 'vitest';
+import { childStorageDir } from '../src/subagents/agent-storage.ts';
 import type { TaskRecord } from '../src/worker-records.ts';
 import { prepareWorkerSession } from '../src/worker-support.ts';
 import { fixture } from './session-fixture.ts';
@@ -22,7 +23,7 @@ async function mainFixture() {
   const { manager } = await f.open();
   if (!context) throw new Error('Main fixture context was not captured');
   const params = { prompt: 'Not executed', model: 'pstack-integration/scripted', cwd: f.cwd };
-  const base = join(manager.getSessionDir(), 'pstack-workers', manager.getSessionId());
+  const base = childStorageDir(manager.getSessionDir(), manager.getSessionId());
   const prior: TaskRecord = {
     id: 'task-one',
     persona: 'generalPurpose',
