@@ -78,7 +78,13 @@ test('[B105] task_progress reports usage and the last tool after each tool call'
     const frames = collect(fixture);
     await fixture.call('Agent', { description: 'progress probe', prompt: 'PROGRESS_READ', run_in_background: false });
     const progress = frames.find((frame) => frame.subtype === 'task_progress');
-    expect(progress).toMatchObject({ description: 'progress probe', subagent_type: 'general-purpose', last_tool_name: 'read', tool_use_id: 'test-Agent', usage: { tool_uses: 1, total_tokens: expect.any(Number), duration_ms: expect.any(Number) } });
+    expect(progress).toMatchObject({
+      description: 'progress probe',
+      subagent_type: 'general-purpose',
+      last_tool_name: 'read',
+      tool_use_id: 'test-Agent',
+      usage: { tool_uses: 1, total_tokens: expect.any(Number), duration_ms: expect.any(Number) },
+    });
   } finally {
     await fixture.close();
   }

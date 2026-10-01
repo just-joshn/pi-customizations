@@ -52,7 +52,7 @@ test('setup warns when a panel role has fewer than two model families and still 
 });
 
 test('setup stays silent when a panel role spans two model families', async () => {
-  const result = await runSetup(`${claude.provider}/${claude.id}, ${gpt.provider}/${gpt.id}`, [claude, gpt] as typeof claude[]);
+  const result = await runSetup(`${claude.provider}/${claude.id}, ${gpt.provider}/${gpt.id}`, [claude, gpt] as (typeof claude)[]);
   expect(result.notices.filter((notice) => notice.level === 'warning')).toEqual([]);
   expect(result.written).toBe(true);
 });

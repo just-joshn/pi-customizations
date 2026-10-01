@@ -66,9 +66,7 @@ test('[C52] a project hook in an untrusted workspace refuses instead of falling 
 
 test('[C52] a hook that succeeds without a path is a precondition failure', async () => {
   configure(join(home, '.claude/settings.json'), 'true');
-  await expect(createAgentCheckout(context(), 'empty1')).rejects.toThrow(
-    'WorktreeCreate hook failed: hook succeeded but returned no worktree path (command: echo the path to stdout; http/callback: return hookSpecificOutput.worktreePath)',
-  );
+  await expect(createAgentCheckout(context(), 'empty1')).rejects.toThrow('WorktreeCreate hook failed: hook succeeded but returned no worktree path (command: echo the path to stdout; http/callback: return hookSpecificOutput.worktreePath)');
 });
 
 test('[C52] a failing hook reports its command and output', async () => {

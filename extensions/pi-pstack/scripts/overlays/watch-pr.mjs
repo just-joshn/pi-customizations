@@ -1,8 +1,7 @@
 const dir = 'skills/poteto-mode/scripts';
 const L = (...lines) => lines.join('\n');
 
-const noChecksReason =
-  '{ readonly kind: "no-checks-unconfirmed"; readonly readings: number; readonly required: number }';
+const noChecksReason = '{ readonly kind: "no-checks-unconfirmed"; readonly readings: number; readonly required: number }';
 
 const types = {
   path: `${dir}/watch-pr/types.ts`,
@@ -145,24 +144,11 @@ const remoteOriginal = L(
   '    normalized = `https://github.com/${normalized.slice(21)}`;',
 );
 
-const remoteReplacement = L(
-  '  normalized = normalized.replace(/^git@([^:/]+):/, "https://$1/");',
-  '  normalized = normalized.replace(/^ssh:\\/\\/git@([^/:]+)\\//, "https://$1/");',
-);
+const remoteReplacement = L('  normalized = normalized.replace(/^git@([^:/]+):/, "https://$1/");', '  normalized = normalized.replace(/^ssh:\\/\\/git@([^/:]+)\\//, "https://$1/");');
 
-const originRepoOriginal = L(
-  '    const result = await run(["git", "remote", "get-url", "origin"]);',
-  '    return result.code === 0 ? parseRemote(result.stdout) : null;',
-);
+const originRepoOriginal = L('    const result = await run(["git", "remote", "get-url", "origin"]);', '    return result.code === 0 ? parseRemote(result.stdout) : null;');
 
-const originRepoReplacement = L(
-  '    try {',
-  '      const result = await run(["git", "remote", "get-url", "origin"]);',
-  '      return result.code === 0 ? parseRemote(result.stdout) : null;',
-  '    } catch {',
-  '      return null;',
-  '    }',
-);
+const originRepoReplacement = L('    try {', '      const result = await run(["git", "remote", "get-url", "origin"]);', '      return result.code === 0 ? parseRemote(result.stdout) : null;', '    } catch {', '      return null;', '    }');
 
 const openListOriginal = L(
   '    const value = await runJson([',
@@ -181,10 +167,7 @@ const openListOriginal = L(
   '    return list(value, "open PRs").map((item, index) => {',
 );
 
-const openListReplacement = L(
-  '    const value = await listOpenPullRequests(repository);',
-  '    return value.map((item, index) => {',
-);
+const openListReplacement = L('    const value = await listOpenPullRequests(repository);', '    return value.map((item, index) => {');
 
 const githubHelpers = L(
   'const OPEN_PR_LIMIT_CEILING = 10_000;',
@@ -258,11 +241,7 @@ const githubHelpers = L(
   'export class GhGitHubReader implements T.GitHubReader {',
 );
 
-const threadsOriginal = L(
-  '    return parseReviewThreads(',
-  '      await runJson(graphqlArgs(REVIEW_THREADS_QUERY, context))',
-  '    );',
-);
+const threadsOriginal = L('    return parseReviewThreads(', '      await runJson(graphqlArgs(REVIEW_THREADS_QUERY, context))', '    );');
 
 const threadsReplacement = L('    return parseReviewThreads(await allReviewThreadPages(context));');
 
@@ -296,12 +275,7 @@ const downReplacement = L(
   '  }',
 );
 
-const checksSignatureOriginal = L(
-  'export async function resolveChecks(',
-  '  reader: T.GitHubReader,',
-  '  context: T.PrContext',
-  '): Promise<T.CheckRead> {',
-);
+const checksSignatureOriginal = L('export async function resolveChecks(', '  reader: T.GitHubReader,', '  context: T.PrContext', '): Promise<T.CheckRead> {');
 
 const checksSignatureReplacement = L(
   'const NO_CHECKS_PLACEHOLDER: T.Check = {',
@@ -327,22 +301,9 @@ const checksSignatureReplacement = L(
 );
 
 const fallbackOriginal = '  if (fallback !== null) return { source: "graphql-rollup", checks: fallback };';
-const fallbackReplacement = L(
-  fallbackOriginal,
-  '  if (allowEmpty && confirmsNoChecks(fast))',
-  '    return { source: "graphql-rollup", checks: [NO_CHECKS_PLACEHOLDER] };',
-);
+const fallbackReplacement = L(fallbackOriginal, '  if (allowEmpty && confirmsNoChecks(fast))', '    return { source: "graphql-rollup", checks: [NO_CHECKS_PLACEHOLDER] };');
 
-const hostCheck = (tail) =>
-  L(
-    '      url.hostname !== "github.com" ||',
-    '      url.port ||',
-    '      url.username ||',
-    '      url.password ||',
-    '      url.search ||',
-    '      url.hash ||',
-    `      parts.length !== ${tail}`,
-  );
+const hostCheck = (tail) => L('      url.hostname !== "github.com" ||', '      url.port ||', '      url.username ||', '      url.password ||', '      url.search ||', '      url.hash ||', `      parts.length !== ${tail}`);
 const hostCheckKnown = (tail) => hostCheck(tail).replace('url.hostname !== "github.com"', '!isKnownHost(url.hostname)');
 
 const github = {
@@ -353,11 +314,7 @@ const github = {
       'reviewThreads(first: 100, after: $after) {\\n        pageInfo {\\n          hasNextPage\\n          endCursor\\n        }\\n        nodes {',
       'Request pageInfo and accept a cursor so review threads can be paged.',
     ],
-    [
-      'query ReviewThreads($owner: String!, $repo: String!, $pr: Int!) {',
-      'query ReviewThreads($owner: String!, $repo: String!, $pr: Int!, $after: String) {',
-      'Declare the review thread cursor variable.',
-    ],
+    ['query ReviewThreads($owner: String!, $repo: String!, $pr: Int!) {', 'query ReviewThreads($owner: String!, $repo: String!, $pr: Int!, $after: String) {', 'Declare the review thread cursor variable.'],
     [runOriginal, runReplacement, 'Bound every gh and git subprocess with a timeout and report a missing gh as a typed non-retryable failure instead of an uncaught crash.'],
     [
       'function parseRemote(value: string): T.Repository | null {',
@@ -447,14 +404,7 @@ const policy = {
   edits: [
     [
       '  const checks = await resolveChecks(args.reader, args.context);',
-      L(
-        '  const checks = await resolveChecks(',
-        '    args.reader,',
-        '    args.context,',
-        '    facts.mergeStateStatus !== "BLOCKED" &&',
-        '      facts.mergeStateStatus !== "UNKNOWN"',
-        '  );',
-      ),
+      L('  const checks = await resolveChecks(', '    args.reader,', '    args.context,', '    facts.mergeStateStatus !== "BLOCKED" &&', '      facts.mergeStateStatus !== "UNKNOWN"', '  );'),
       'Read a PR with zero checks as having no required checks unless GitHub reports it blocked or still computing.',
     ],
     ['import { WatcherQueryError, resolveChecks } from "./github.ts";', 'import { WatcherQueryError, isNoChecksReading, resolveChecks } from "./github.ts";', 'Import the zero-check reading predicate.'],
@@ -485,13 +435,7 @@ const policy = {
     ],
     [
       '        return { kind: "sleep", seconds: args.options.interval };',
-      L(
-        '        return {',
-        '          kind: "sleep",',
-        '          seconds: args.options.interval,',
-        '          onDeadline: () => queuedTimeout(stamp, state),',
-        '        };',
-      ),
+      L('        return {', '          kind: "sleep",', '          seconds: args.options.interval,', '          onDeadline: () => queuedTimeout(stamp, state),', '        };'),
       'Give the queued waiting sleep a deadline hook like the single and stack runner has.',
     ],
   ],
@@ -500,16 +444,8 @@ const policy = {
 const render = {
   path: `${dir}/watch-pr/render.ts`,
   edits: [
-    [
-      'import type * as T from "./types.ts";',
-      L('import { isNoChecksReading } from "./github.ts";', 'import type * as T from "./types.ts";'),
-      'Import the zero-check reading predicate.',
-    ],
-    [
-      L('    case "ci-clean":', '      return "✅";'),
-      L('    case "ci-clean":', '      return isNoChecksReading(row.ci.all) ? "\u2796 no checks" : "✅";'),
-      'Show a zero-check PR as having no checks instead of a passing mark.',
-    ],
+    ['import type * as T from "./types.ts";', L('import { isNoChecksReading } from "./github.ts";', 'import type * as T from "./types.ts";'), 'Import the zero-check reading predicate.'],
+    [L('    case "ci-clean":', '      return "✅";'), L('    case "ci-clean":', '      return isNoChecksReading(row.ci.all) ? "\u2796 no checks" : "✅";'), 'Show a zero-check PR as having no checks instead of a passing mark.'],
     [
       L('    case "WAITING":', '      return verdict.reason.kind === "pending-checks"'),
       L(
@@ -522,11 +458,7 @@ const render = {
     ],
     [
       '      if (verdict.reason.kind === "status-unavailable")',
-      L(
-        '      if (verdict.reason.kind === "no-checks-unconfirmed")',
-        '        return "TIMEOUT: no checks reported and none confirmed absent\\n";',
-        '      if (verdict.reason.kind === "status-unavailable")',
-      ),
+      L('      if (verdict.reason.kind === "no-checks-unconfirmed")', '        return "TIMEOUT: no checks reported and none confirmed absent\\n";', '      if (verdict.reason.kind === "status-unavailable")'),
       'Render the zero-check TIMEOUT reason.',
     ],
   ],
@@ -729,17 +661,7 @@ const bootstrap = {
   edits: [
     [
       'import { existsSync, readFileSync, writeFileSync } from "node:fs";',
-      L(
-        'import {',
-        '  existsSync,',
-        '  mkdirSync,',
-        '  readFileSync,',
-        '  rmSync,',
-        '  statSync,',
-        '  writeFileSync,',
-        '} from "node:fs";',
-        'import { constants } from "node:os";',
-      ),
+      L('import {', '  existsSync,', '  mkdirSync,', '  readFileSync,', '  rmSync,', '  statSync,', '  writeFileSync,', '} from "node:fs";', 'import { constants } from "node:os";'),
       'Import the filesystem and signal helpers the locked, signal-forwarding install needs.',
     ],
     [bootstrapOriginal, bootstrapReplacement, 'Serialize the install behind an exclusive lock directory, forward SIGINT and SIGTERM to the install and the re-exec child, and wait for a concurrent install instead of racing it.'],
@@ -780,13 +702,7 @@ const launcher = {
 
 const orch = {
   path: `${dir}/orch/orch.ts`,
-  edits: [
-    [
-      L('ensureDependenciesInstalled();', 'const {'),
-      L('if (import.meta.main) await ensureDependenciesInstalled();', 'const {'),
-      'Install dependencies only when orch.ts is the entry point so importing it has no side effect.',
-    ],
-  ],
+  edits: [[L('ensureDependenciesInstalled();', 'const {'), L('if (import.meta.main) await ensureDependenciesInstalled();', 'const {'), 'Install dependencies only when orch.ts is the entry point so importing it has no side effect.']],
 };
 
 export default [types, github, policy, render, bootstrap, launcher, orch];

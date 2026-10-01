@@ -8,9 +8,9 @@ import { asShellHandoff, shellHandoffEvent } from './shell-ownership.ts';
 import { depthMessage } from './subagents/admission.ts';
 import { flaggedOutput, lastMeteredTokens, lastReportText, type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
 import { currentDepth, depthStore } from './subagents/context.ts';
-import { isForkDefinition } from './subagents/fork-context.ts';
 import type { ContinuationState } from './subagents/continuation.ts';
 import { SessionDepthPolicy } from './subagents/depth-policy.ts';
+import { isForkDefinition } from './subagents/fork-context.ts';
 import { HandbackContract, handbackActive, runUntilReported } from './subagents/handback.ts';
 import { validateId } from './subagents/identifiers.ts';
 import { AgentInvocations } from './subagents/invocations.ts';
@@ -19,6 +19,7 @@ import { childStatsEvents } from './subagents/nested-depth.ts';
 import { type ResumeHandler, reconcileOrphans } from './subagents/orphan-recovery.ts';
 import { AgentPreconditionError } from './subagents/precondition-error.ts';
 import { groupSpawned, ProcessGroups, processGroupEvent } from './subagents/process-groups.ts';
+import { RemoteTasks } from './subagents/remote-tasks.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
 import { SdkEvents } from './subagents/sdk-events.ts';
 import { SubagentStats, type SubagentStatsDelta } from './subagents/stats.ts';
@@ -26,7 +27,6 @@ import { registerStopControl } from './subagents/stop-control.ts';
 import { settleWithin, stillStoppingMessage, stopPendingDetails } from './subagents/stop-deadline.ts';
 import { stopPendingEvent, stopPendingFor } from './subagents/stop-pending.ts';
 import { frameStatus, notificationBody, startedBody, taskFeed, updatedBody } from './subagents/task-frames.ts';
-import { RemoteTasks } from './subagents/remote-tasks.ts';
 import { applyToolPolicy } from './subagents/tool-pool.ts';
 import { countToolStats } from './subagents/tool-stats.ts';
 import { turnLimit } from './subagents/turn-limit.ts';
@@ -382,7 +382,13 @@ export class WorkerRuntime {
       const opened = await this.openChild({ id, params, prior, ctx, toolUseId: callId, ...(launch ? { launch } : {}) });
       session = opened.session;
       this.publishMemory(launch, id);
-      if (launch && !isForkDefinition(launch.definition)) applyToolPolicy(session, launch.definition, { isContinuation: prior !== undefined, isAsync: params.run_in_background !== false, ...(launch.parentTools ? { parentTools: launch.parentTools } : {}), report: (diagnostic) => this.pi.events.emit('pstack:subagent-zero-tools', diagnostic) });
+      if (launch && !isForkDefinition(launch.definition))
+        applyToolPolicy(session, launch.definition, {
+          isContinuation: prior !== undefined,
+          isAsync: params.run_in_background !== false,
+          ...(launch.parentTools ? { parentTools: launch.parentTools } : {}),
+          report: (diagnostic) => this.pi.events.emit('pstack:subagent-zero-tools', diagnostic),
+        });
       signal = this.checkStartup(owner, signal, params.run_in_background !== false);
       await session.bindExtensions({ mode: 'print' });
       signal = this.checkStartup(owner, signal, params.run_in_background !== false);
@@ -627,7 +633,12 @@ export class WorkerRuntime {
     return finished;
   }
 
-  private finishedRecord(worker: OpenedWorker, owner: number, control: ReturnType<typeof workerControl>, end: { status: TaskRecord['status']; output: string; messages: AgentSession['messages']; startedAt: number; limited?: number }): TaskRecord {
+  private finishedRecord(
+    worker: OpenedWorker,
+    owner: number,
+    control: ReturnType<typeof workerControl>,
+    end: { status: TaskRecord['status']; output: string; messages: AgentSession['messages']; startedAt: number; limited?: number },
+  ): TaskRecord {
     const { session, record, modelsUsed } = worker;
     const pendingUsage = owner === this.generation ? this.records.get(record.id)?.usage : this.claimedUsage.has(record) ? undefined : record.usage;
     const { totalToolUseCount: toolUseCount, toolStats } = countToolStats(end.messages);

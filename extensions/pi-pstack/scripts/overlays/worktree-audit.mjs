@@ -26,27 +26,19 @@ export default [
           '\tporcelain=$(git -C "$wt" status --porcelain 2>/dev/null)\n' +
           '\tif [ -z "$porcelain" ]; then dirty=clean\n' +
           "\telif printf '%s\\n' \"$porcelain\" | grep -qv '^??'; then\n" +
-          "\t\tdirty=\"wip:$(printf '%s\\n' \"$porcelain\" | grep -cv '^??')\"\n" +
-          "\telse dirty=\"scratch:$(printf '%s\\n' \"$porcelain\" | grep -c '^??')\"; fi\n",
+          '\t\tdirty="wip:$(printf \'%s\\n\' "$porcelain" | grep -cv \'^??\')"\n' +
+          '\telse dirty="scratch:$(printf \'%s\\n\' "$porcelain" | grep -c \'^??\')"; fi\n',
         '\t# wip counts tracked edits. scratch counts untracked and ignored files. Neither is\n' +
           '\t# disposable, so both hold the worktree out of the safe bucket below.\n' +
           '\tporcelain=$(git -C "$wt" status --porcelain --untracked-files=all --ignored=matching 2>/dev/null)\n' +
           '\tif [ -z "$porcelain" ]; then dirty=clean\n' +
           "\telif printf '%s\\n' \"$porcelain\" | grep -qv '^[?!][?!]'; then\n" +
-          "\t\tdirty=\"wip:$(printf '%s\\n' \"$porcelain\" | grep -cv '^[?!][?!]')\"\n" +
-          "\telse dirty=\"scratch:$(printf '%s\\n' \"$porcelain\" | grep -c '^[?!][?!]')\"; fi\n",
+          '\t\tdirty="wip:$(printf \'%s\\n\' "$porcelain" | grep -cv \'^[?!][?!]\')"\n' +
+          '\telse dirty="scratch:$(printf \'%s\\n\' "$porcelain" | grep -c \'^[?!][?!]\')"; fi\n',
         'Count ignored and every untracked file, and treat any dirty tree as work to hold (upstream cursor/plugins#459).',
       ],
-      [
-        '\tcase "$dirty" in wip:*) bucket=hold-wip ;; *)',
-        '\tcase "$dirty" in wip:*|scratch:*) bucket=hold-wip ;; *)',
-        'Bucket scratch worktrees as hold-wip.',
-      ],
-      [
-        'elif [ "$merged" = YES ] || [ "$pr" != "-" ]; then bucket=safe',
-        'elif [ "$merged" = YES ] || [ "${pr#*/}" = MERGED ]; then bucket=safe',
-        'Only merged ancestry or a MERGED PR is safe. A CLOSED unmerged PR needs review.',
-      ],
+      ['\tcase "$dirty" in wip:*) bucket=hold-wip ;; *)', '\tcase "$dirty" in wip:*|scratch:*) bucket=hold-wip ;; *)', 'Bucket scratch worktrees as hold-wip.'],
+      ['elif [ "$merged" = YES ] || [ "$pr" != "-" ]; then bucket=safe', 'elif [ "$merged" = YES ] || [ "${pr#*/}" = MERGED ]; then bucket=safe', 'Only merged ancestry or a MERGED PR is safe. A CLOSED unmerged PR needs review.'],
     ],
   },
 ];

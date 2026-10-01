@@ -5,7 +5,10 @@ import type { AdmissionSnapshot, AgentSummary, Decision, Refusal, SpawnRequest }
 const generalPurpose = 'general-purpose';
 
 export function normalizeAgentType(type: string): string {
-  return type.normalize('NFKC').toLowerCase().replace(/[\p{White_Space}\p{Pd}_]+/gu, '');
+  return type
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[\p{White_Space}\p{Pd}_]+/gu, '');
 }
 
 function dispatchable(snapshot: AdmissionSnapshot): readonly AgentSummary[] {

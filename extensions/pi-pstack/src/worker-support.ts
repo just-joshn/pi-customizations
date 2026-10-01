@@ -10,26 +10,26 @@ import { cursorToolNames } from './host.ts';
 import { resolveModel } from './models.ts';
 import { readPersona } from './personas.ts';
 import { agentEnvironment, childStorageDir, createChildTranscript, environmentEntryType, writeAgentMeta } from './subagents/agent-storage.ts';
+import { childPromptOptions } from './subagents/child-prompt.ts';
 import type { AgentDefinition } from './subagents/definitions.ts';
-import type { ForkSeed } from './subagents/fork-context.ts';
-import { type HandbackContract, handbackExtension, handbackInstruction, handbackUnavailable } from './subagents/handback.ts';
 import { withAgentEffort } from './subagents/effort.ts';
+import type { ForkSeed } from './subagents/fork-context.ts';
+import { seedForkTranscript } from './subagents/fork-context.ts';
+import { type ForkPlan, planFork } from './subagents/fork-session.ts';
+import { type HandbackContract, handbackExtension, handbackInstruction, handbackUnavailable } from './subagents/handback.ts';
 import { validateId } from './subagents/identifiers.ts';
 import { memoryPrompt } from './subagents/memory.ts';
 import { ModelHistory } from './subagents/model-history.ts';
 import { childStatsEvents } from './subagents/nested-depth.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
 import { validateResumeWorktree } from './subagents/resume-worktree.ts';
-import { childPromptOptions } from './subagents/child-prompt.ts';
-import { type ForkPlan, planFork } from './subagents/fork-session.ts';
-import { seedForkTranscript } from './subagents/fork-context.ts';
 import { saveChildContext } from './subagents/session-context.ts';
 import { preloadSkills } from './subagents/skill-preload.ts';
 import type { SubagentStatsDelta } from './subagents/stats.ts';
 import { agentSystemPrompt, appendedSubagentPrompt } from './subagents/system-prompt.ts';
-import { provenanceFields } from './subagents/worktree-metadata.ts';
 import { trackedBashTool } from './subagents/tracked-bash.ts';
 import type { AgentCheckout } from './subagents/worktree-hooks.ts';
+import { provenanceFields } from './subagents/worktree-metadata.ts';
 import { type TaskParameters, type TaskRecord, taskOwnerEntryType } from './worker-records.ts';
 
 export async function childModelRuntime(readonly: boolean, provider: string, ctx: ExtensionContext): Promise<ModelRuntime | undefined> {
@@ -249,7 +249,13 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
     cwd,
     agentDir: getAgentDir(),
     noExtensions: readonly,
-    ...childPromptOptions({ body: profile.instructions + (await memoryPrompt(launch?.definition, cwd, process.env, log)) + appendedSubagentPrompt(appendedPrompt, process.env), host: hostNotes(id, handback, prior), omitContext: launch?.definition.omitClaudeMd === true, fork: fork?.state, ordinary: launch !== undefined }),
+    ...childPromptOptions({
+      body: profile.instructions + (await memoryPrompt(launch?.definition, cwd, process.env, log)) + appendedSubagentPrompt(appendedPrompt, process.env),
+      host: hostNotes(id, handback, prior),
+      omitContext: launch?.definition.omitClaudeMd === true,
+      fork: fork?.state,
+      ordinary: launch !== undefined,
+    }),
     extensionFactories: [modelsUsed.extensionFactory(), ...(handback ? [handbackExtension(handback)] : [])],
     additionalExtensionPaths: readonly ? [] : manifest.extensions.map((path) => join(root, path)),
     additionalSkillPaths: fork ? [] : manifest.skills.map((path) => join(root, path)),
@@ -261,8 +267,20 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
   const { usage: _priorUsage, abort: _priorAbort, toolStats: _priorToolStats, ...saved } = prior ?? {};
   const inheritedWorktree = prior ? undefined : options.inheritedWorktree;
   const requestShape = params.run_in_background === false ? ('foreground' as const) : ('background' as const);
-  const record = { ...saved, ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), inheritedWorktree, ...(launch ? { launch } : {}) }), ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}), requestShape };
-  await writeAgentMeta(dir, id, { agentType: persona, description: launch?.description ?? prior?.description ?? '', ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}), spawnDepth: depth, requestShape, requestNonInteractive: !ctx.hasUI });
+  const record = {
+    ...saved,
+    ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), inheritedWorktree, ...(launch ? { launch } : {}) }),
+    ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}),
+    requestShape,
+  };
+  await writeAgentMeta(dir, id, {
+    agentType: persona,
+    description: launch?.description ?? prior?.description ?? '',
+    ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}),
+    spawnDepth: depth,
+    requestShape,
+    requestNonInteractive: !ctx.hasUI,
+  });
   const modelRuntime = await childModelRuntime(readonly, selected.model.provider, ctx);
   const tools = childTools({ readonly, cwd, fork, onProcessGroup });
   const { session } = await createAgentSession({ cwd, modelRuntime, resourceLoader: loader, sessionManager: manager, ...selected, ...tools });

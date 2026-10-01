@@ -13,7 +13,10 @@ async function hiddenFlag(path: string): Promise<boolean> {
 }
 
 async function directories(path: string): Promise<string[]> {
-  return (await readdir(join(root, path), { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name).toSorted();
+  return (await readdir(join(root, path), { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .toSorted();
 }
 
 test('generation keeps every upstream model-invocation flag, so the generated flag matches its source for each skill', async () => {

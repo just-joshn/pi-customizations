@@ -38,12 +38,7 @@ export default [
     "and don't advance until the current one is green. Green means the check the plan declares for the unit. Under the **outcome-oriented-execution** principle skill, green at a declared phase boundary is the phase-boundary check that plan names, and breakage the plan scoped as temporary between boundaries is not red.",
     'Define green at a declared phase boundary so the two principles agree.',
   ],
-  [
-    /^skills\/typescript-best-practices\/references\/patterns\.md$/,
-    "Match the `readonly __brand: 'X'` shape.",
-    'Match the `readonly __brand: "X"` shape.',
-    'Use the double-quote style that the code and the rule table use.',
-  ],
+  [/^skills\/typescript-best-practices\/references\/patterns\.md$/, "Match the `readonly __brand: 'X'` shape.", 'Match the `readonly __brand: "X"` shape.', 'Use the double-quote style that the code and the rule table use.'],
   [
     /^skills\/typescript-best-practices\/references\/patterns\.md$/,
     '// Do. Earn the cast at the boundary.',
@@ -87,12 +82,7 @@ export default [
     'and report the rejected default in the review summary and suggest running `/setup-pstack`, because the table default lives in the package.',
     'Drop the pstack-repository PR step that a package user cannot follow.',
   ],
-  [
-    skill('arena'),
-    'per the Laziness Protocol',
-    'per the **laziness-protocol** principle skill',
-    'Name the principle skill so the reference is greppable.',
-  ],
+  [skill('arena'), 'per the Laziness Protocol', 'per the **laziness-protocol** principle skill', 'Name the principle skill so the reference is greppable.'],
   [
     skill('reflect'),
     "The system prompt names the active workspace's Pi session directory. Use that path. Do not glob across `~/.pi/agent/sessions/*/`. That crosses workspace boundaries and reads private chats from unrelated projects.",

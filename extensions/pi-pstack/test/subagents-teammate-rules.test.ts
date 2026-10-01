@@ -17,9 +17,24 @@ function refusal(run: () => void): { code: string; message: string } | undefined
 
 test.for([
   { name: 'a named spawn from a teammate', spawn: { name: 'helper' }, code: 'subagent_nested_teammate', message: 'Teammates cannot spawn other teammates — the team roster is flat. To spawn a subagent instead, omit the `name` parameter.' },
-  { name: 'an explicit background spawn', spawn: { runInBackground: true }, code: 'subagent_teammate_background_denied', message: 'In-process teammates cannot spawn background agents. Use run_in_background=false for synchronous subagents.' },
-  { name: 'a background:true definition', spawn: { definition: { agentType: 'watcher', background: true } }, code: 'subagent_teammate_background_denied', message: "In-process teammates cannot spawn background agents. Agent 'watcher' has background: true in its definition." },
-  { name: 'a rewrite that backgrounded the spawn', spawn: { rewritten: { background: true, remote: false } }, code: 'subagent_teammate_background_denied', message: "In-process teammates cannot spawn background agents; a plugin's agent.spawn hook backgrounded this one." },
+  {
+    name: 'an explicit background spawn',
+    spawn: { runInBackground: true },
+    code: 'subagent_teammate_background_denied',
+    message: 'In-process teammates cannot spawn background agents. Use run_in_background=false for synchronous subagents.',
+  },
+  {
+    name: 'a background:true definition',
+    spawn: { definition: { agentType: 'watcher', background: true } },
+    code: 'subagent_teammate_background_denied',
+    message: "In-process teammates cannot spawn background agents. Agent 'watcher' has background: true in its definition.",
+  },
+  {
+    name: 'a rewrite that backgrounded the spawn',
+    spawn: { rewritten: { background: true, remote: false } },
+    code: 'subagent_teammate_background_denied',
+    message: "In-process teammates cannot spawn background agents; a plugin's agent.spawn hook backgrounded this one.",
+  },
 ])('a teammate making $name is refused with the recovered message', ({ spawn, code, message }) => {
   expect(refusal(() => assertTeammateSpawnAllowed(spawn, teammate))).toEqual({ code, message });
 });

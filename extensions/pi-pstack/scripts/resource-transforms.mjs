@@ -3,7 +3,10 @@ const lowerInitial = (part) => (word.test(part) ? part[0].toLowerCase() + part.s
 
 export function sentenceCaseHeadings(text) {
   return text.replace(/^(#{1,6} )(\S+)(.*)$/gm, (_match, hashes, first, rest) => {
-    const lowered = rest.split(' ').map((token) => token.split('-').map(lowerInitial).join('-')).join(' ');
+    const lowered = rest
+      .split(' ')
+      .map((token) => token.split('-').map(lowerInitial).join('-'))
+      .join(' ');
     const [head, ...tail] = first.split('-');
     return `${hashes}${[head, ...tail.map(lowerInitial)].join('-')}${lowered}`;
   });

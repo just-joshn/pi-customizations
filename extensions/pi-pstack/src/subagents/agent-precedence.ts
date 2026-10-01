@@ -2,7 +2,11 @@ import { baseDirDepth } from './agent-sources.ts';
 import type { AgentDefinition, AgentSource } from './definitions.ts';
 
 export function sanitizeDisplay(text: string): string {
-  return text.replace(/[\p{Cc}\p{Cf}]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+  return text
+    .replace(/[\p{Cc}\p{Cf}]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 200);
 }
 
 function tier(candidates: readonly AgentDefinition[], source: AgentSource): AgentDefinition[] {
@@ -16,14 +20,7 @@ function projectTier(candidates: readonly AgentDefinition[]): AgentDefinition[] 
 }
 
 export function resolvePrecedence(candidates: readonly AgentDefinition[]): AgentDefinition[] {
-  const ordered = [
-    tier(candidates, 'built-in'),
-    tier(candidates, 'plugin'),
-    tier(candidates, 'userSettings'),
-    projectTier(candidates),
-    tier(candidates, 'flagSettings'),
-    tier(candidates, 'policySettings'),
-  ];
+  const ordered = [tier(candidates, 'built-in'), tier(candidates, 'plugin'), tier(candidates, 'userSettings'), projectTier(candidates), tier(candidates, 'flagSettings'), tier(candidates, 'policySettings')];
   const winners = new Map<string, AgentDefinition>();
   for (const agent of ordered.flat()) winners.set(agent.agentType, agent);
   return [...winners.values()].toSorted((left, right) => left.agentType.localeCompare(right.agentType));

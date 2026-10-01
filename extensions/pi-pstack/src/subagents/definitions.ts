@@ -70,8 +70,8 @@ export function clearAgentCache(): void {
   cache.clear();
 }
 
-export { defaultUserDirs } from './agent-sources.ts';
 export { sanitizeDisplay } from './agent-precedence.ts';
+export { defaultUserDirs } from './agent-sources.ts';
 
 function stringList(value: unknown): string[] | undefined {
   if (Array.isArray(value)) return value.filter((item): item is string => typeof item === 'string').map((item) => item.trim());

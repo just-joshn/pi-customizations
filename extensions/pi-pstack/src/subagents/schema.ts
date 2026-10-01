@@ -49,9 +49,7 @@ const fields = {
       description: 'Isolation mode. "remote" is accepted from saved agent definitions but is not available in this runtime.',
     }),
   ),
-  cwd: Type.Optional(
-    Type.String({ description: 'Absolute path to run the agent in. Overrides the working directory for all filesystem and shell operations within this agent. Mutually exclusive with isolation: "worktree".' }),
-  ),
+  cwd: Type.Optional(Type.String({ description: 'Absolute path to run the agent in. Overrides the working directory for all filesystem and shell operations within this agent. Mutually exclusive with isolation: "worktree".' })),
 };
 
 const AgentInputSchema = Type.Object({ ...fields, model: Type.Optional(Type.String()) }, { additionalProperties: false });

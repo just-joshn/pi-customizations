@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import { expect, test, vi } from 'vitest';
 import { discoverTasks, publishTask, selectTask } from '../src/task-discovery.ts';
 import type { TaskRecord } from '../src/worker-records.ts';
@@ -15,14 +16,38 @@ async function fixture(onTestFinished: (cleanup: () => Promise<void>) => void) {
   return { directory, repository };
 }
 
-const record = (id: string): TaskRecord => ({ id, persona: 'generalPurpose', cwd: '/guest/worktree', readonly: false, sessionFile: '/guest/session', outputFile: '/local/output', status: 'running', output: '', detached: { directory: '/guest/rpc', invocation: 'invocation', entryCursor: null, remote: { executor: { id: 'vm', transport: 'lima', target: 'vm', isolation: 'vm', machineId: 'machine', packageRoot: '/guest/package', repository: '/guest/repository', localRepository: '/local/repository', agentDir: '/guest/agent' }, machineId: 'machine', hostname: 'vm', virtualization: 'apple', bootId: 'boot', sha: 'a'.repeat(40), localCwd: '/local/repository' } } });
+const record = (id: string): TaskRecord => ({
+  id,
+  persona: 'generalPurpose',
+  cwd: '/guest/worktree',
+  readonly: false,
+  sessionFile: '/guest/session',
+  outputFile: '/local/output',
+  status: 'running',
+  output: '',
+  detached: {
+    directory: '/guest/rpc',
+    invocation: 'invocation',
+    entryCursor: null,
+    remote: {
+      executor: { id: 'vm', transport: 'lima', target: 'vm', isolation: 'vm', machineId: 'machine', packageRoot: '/guest/package', repository: '/guest/repository', localRepository: '/local/repository', agentDir: '/guest/agent' },
+      machineId: 'machine',
+      hostname: 'vm',
+      virtualization: 'apple',
+      bootId: 'boot',
+      sha: 'a'.repeat(40),
+      localCwd: '/local/repository',
+    },
+  },
+});
 
 test('remote launch discovery is scoped to the repository and retains branch placement', async ({ onTestFinished }) => {
   const { directory, repository } = await fixture(onTestFinished);
   expect(await discoverTasks(repository)).toEqual([]);
   await publishTask(record('task-one'), repository);
   expect(await discoverTasks(repository)).toMatchObject([{ branch: 'feature', record: { id: 'task-one' } }]);
-  const other = join(directory, 'other'); execFileSync('git', ['init', '-q', other]);
+  const other = join(directory, 'other');
+  execFileSync('git', ['init', '-q', other]);
   expect(await discoverTasks(other)).toEqual([]);
   expect(await discoverTasks(repository, 'absent')).toEqual([]);
 });

@@ -31,7 +31,10 @@ function statisticsCalls(text: string): ToolCall[] {
 }
 
 function directCalls(text: string): ToolCall[] {
-  if (text.includes('NAMED_AGENT_CONTRACT')) return [{ type: 'toolCall', id: 'named-contract', name: 'Agent', arguments: { description: 'named contract child', prompt: 'ordinary named child', name: 'contract-worker', team_name: 'ignored-team', mode: 'plan', run_in_background: false } }];
+  if (text.includes('NAMED_AGENT_CONTRACT'))
+    return [
+      { type: 'toolCall', id: 'named-contract', name: 'Agent', arguments: { description: 'named contract child', prompt: 'ordinary named child', name: 'contract-worker', team_name: 'ignored-team', mode: 'plan', run_in_background: false } },
+    ];
   if (text.includes('INTERNAL_CWD_CONTRACT')) return [{ type: 'toolCall', id: 'internal-cwd', name: 'Agent', arguments: { description: 'internal cwd child', prompt: 'hello', run_in_background: false } }];
   if (text.includes('LEGACY_TASK_AGENT_CONTRACT')) return [{ type: 'toolCall', id: 'legacy-alias', name: 'Task', arguments: { description: 'legacy alias child', prompt: 'hello', subagent_type: 'Explore', run_in_background: false } }];
   if (text.includes('SPAWN_DEEP_TREE')) return [{ type: 'toolCall', id: 'deep-child', name: 'Agent', arguments: { description: 'deep child', prompt: 'SPAWN_AGENT', run_in_background: false } }];
@@ -260,7 +263,15 @@ export default function workerProvider(pi: ExtensionAPI): void {
     api: 'openai-completions',
     baseUrl: 'https://unused.invalid',
     apiKey: 'test-only',
-    models: ['deterministic', 'alternate', 'claude-opus-5', 'claude-fable-1'].map((id) => ({ id, name: id, reasoning: id === 'alternate', input: ['text'], contextWindow: 100000, maxTokens: 1000, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } })),
+    models: ['deterministic', 'alternate', 'claude-opus-5', 'claude-fable-1'].map((id) => ({
+      id,
+      name: id,
+      reasoning: id === 'alternate',
+      input: ['text'],
+      contextWindow: 100000,
+      maxTokens: 1000,
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    })),
     streamSimple: streamWorker,
   });
 }
