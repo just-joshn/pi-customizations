@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { rpcProcess } from './rpc-process.mjs';
+import { promptAndSettle } from './rpc-turn.mjs';
 import { verifySkillCreation } from './skill-creation-journey.mjs';
 
 const root = process.argv[2] ? resolve(process.argv[2]) : fileURLToPath(new URL('../', import.meta.url));
@@ -116,23 +117,32 @@ async function everyRequest(log) {
     .map((line) => JSON.parse(line));
 }
 
+async function waitForRpcIdle(client) {
+  const deadline = Date.now() + 120000;
+  while (Date.now() < deadline) {
+    const state = await client.send({ type: 'get_state' });
+    if (!state.isStreaming && state.pendingMessageCount === 0) return;
+    await new Promise((done) => setTimeout(done, 40));
+  }
+  throw new Error('Pi did not return to idle');
+}
+
 function clientFor(child, log) {
-  const client = rpcProcess(child, { requestDeadlineMs: 180000, shutdownDeadlineMs: 15000 });
+  let settlements = 0;
+  const client = rpcProcess(child, {
+    requestDeadlineMs: 180000,
+    shutdownDeadlineMs: 15000,
+    onRecord: (record) => {
+      if (record.type === 'agent_settled') settlements += 1;
+    },
+  });
   let cursor = 0;
   const requests = async () =>
     (await readFile(join(log, `requests-${child.pid}.jsonl`), 'utf8').catch(() => ''))
       .split('\n')
       .filter(Boolean)
       .map((line) => JSON.parse(line));
-  const idle = async () => {
-    const deadline = Date.now() + 120000;
-    while (Date.now() < deadline) {
-      const state = await client.send({ type: 'get_state' });
-      if (!state.isStreaming && state.pendingMessageCount === 0) return;
-      await new Promise((done) => setTimeout(done, 40));
-    }
-    throw new Error('Pi did not return to idle');
-  };
+
   return {
     send: (message) => client.send(message),
     requests,
@@ -140,12 +150,14 @@ function clientFor(child, log) {
     close: () => client.close(),
     async run(message) {
       cursor = (await requests()).length;
-      await client.send({ type: 'prompt', message });
-      await idle();
+      await promptAndSettle(
+        (command) => client.send(command),
+        () => settlements,
+        { type: 'prompt', message },
+      );
+      await waitForRpcIdle(client);
       const recorded = await requests();
-      const produced = recorded.slice(cursor);
-      cursor = recorded.length;
-      return produced;
+      return recorded.slice(cursor);
     },
     async turn(message) {
       const recorded = await this.run(message);
