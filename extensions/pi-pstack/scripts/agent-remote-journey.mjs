@@ -3,10 +3,10 @@ export function agentRemoteJourney(check) {
     const result = (await ctx.callTool('JOURNEY:agentremote')).find((message) => message.toolName === 'Agent');
     const details = result?.details;
     check(
-      'RPC: remote request reports native local fallback outside Git',
-      result?.isError !== true && details?.status === 'completed' && details.requestedIsolation === 'remote' && details.effectiveIsolation === 'local',
+      'RPC: remote isolation is rejected by the public Agent schema',
+      result?.isError === true && result?.content?.[0]?.text.includes('isolation: must be equal to constant'),
       JSON.stringify(result).slice(0, 400),
     );
-    check('RPC: local fallback never claims remote_launched', details?.status !== 'remote_launched' && details?.content?.[0]?.text.startsWith('recorded Report native fallback.'), JSON.stringify(result).slice(0, 400));
+    check('RPC: unavailable remote request never claims remote_launched', details?.status !== 'remote_launched', JSON.stringify(result).slice(0, 400));
   };
 }

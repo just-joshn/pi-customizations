@@ -75,15 +75,15 @@ test('[C53] explicit isolation overrides the definition isolation', async () => 
   await withFixture(async (fixture) => {
     initGit(fixture.dir);
     await defineIsolated(fixture.dir, 'worktree');
-    const done = await agent(fixture, { prompt: 'WORKTREE_WRITE', subagent_type: 'isolated', isolation: 'remote' });
-    expect(done).toMatchObject({ requestedIsolation: 'remote', effectiveIsolation: 'worktree' });
+    await expect(agent(fixture, { prompt: 'WORKTREE_WRITE', subagent_type: 'isolated', isolation: 'remote' })).rejects.toThrow('Remote agent execution is not available in this runtime');
+    expect(execFileSync('git', ['worktree', 'list'], { cwd: fixture.dir, encoding: 'utf8' }).trim().split('\n')).toHaveLength(1);
   });
 });
 
 test('[C53] explicit worktree isolation is enforced over a definition that would run locally', async () => {
   await withFixture(async (fixture) => {
     await defineIsolated(fixture.dir, 'remote');
-    expect(await agent(fixture, { prompt: 'hello', subagent_type: 'isolated' })).toMatchObject({ requestedIsolation: 'remote', effectiveIsolation: 'local' });
+    await expect(agent(fixture, { prompt: 'hello', subagent_type: 'isolated' })).rejects.toThrow('Remote agent execution is not available in this runtime');
     await expect(agent(fixture, { prompt: 'hello', subagent_type: 'isolated', isolation: 'worktree' })).rejects.toThrow(/^Cannot create agent worktree: not in a git repository/);
   });
 });
@@ -117,9 +117,9 @@ test('[C56] a retained worktree records checkout, base commit and request proven
 test('[C56] clean removal clears the binding but keeps request provenance', async () => {
   await withFixture(async (fixture) => {
     initGit(fixture.dir);
-    const done = await agent(fixture, { prompt: 'hello', isolation: 'remote' });
+    const done = await agent(fixture, { prompt: 'hello', isolation: 'worktree' });
     const record = (await fixture.call('TaskOutput', { task_id: done.agentId })).details;
-    expect(record).toMatchObject({ spawnedWithWorktree: true, worktreeCleanlyRemoved: true, requestedIsolation: 'remote' });
+    expect(record).toMatchObject({ spawnedWithWorktree: true, worktreeCleanlyRemoved: true, requestedIsolation: 'worktree' });
     expect(record).not.toHaveProperty('worktreePath');
     expect(record).not.toHaveProperty('worktreeBranch');
   });

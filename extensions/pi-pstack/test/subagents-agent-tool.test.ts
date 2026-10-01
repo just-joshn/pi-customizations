@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, realpathSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -36,6 +36,7 @@ test('[G1-02] parameter validation and descriptions', () => {
   expect(schema.properties.model?.description).toContain("Takes precedence over the agent definition's model frontmatter");
   expect(schema.properties.run_in_background?.description?.startsWith('Agents run in the background by default')).toBe(true);
   expect(Check(buildAgentSchema(), { description: 'd', prompt: 'p', isolation: 'docker' })).toBe(false);
+  expect(Check(buildAgentSchema(), { description: 'd', prompt: 'p', isolation: 'remote' })).toBe(false);
   expect(Check(buildAgentSchema(), { description: 'd' })).toBe(false);
   expect(Check(buildAgentSchema(), { description: 'one two three four five six seven eight nine ten', prompt: 'p' })).toBe(true);
 });
@@ -111,12 +112,12 @@ async function gitFixture() {
   return { ...fixture, git };
 }
 
-test.each(['worktree', 'remote'] as const)('[G1-04] isolation %s runs the child in an agent worktree that is removed when unchanged', async (isolation) => {
+test('[G1-04] worktree isolation runs the child in an agent worktree that is removed when unchanged', async () => {
   const { call, close, git, session } = await gitFixture();
   try {
-    const done = (await call('Agent', { description: 'iso', prompt: 'hello', run_in_background: false, isolation })) as { details: { agentId: string; worktreePath?: string } };
+    const done = (await call('Agent', { description: 'iso', prompt: 'hello', run_in_background: false, isolation: 'worktree' })) as { details: { agentId: string; worktreePath?: string } };
     expect(done.details.worktreePath).toBeUndefined();
-    expect(done.details).toMatchObject({ requestedIsolation: isolation, effectiveIsolation: 'worktree' });
+    expect(done.details).toMatchObject({ requestedIsolation: 'worktree', effectiveIsolation: 'worktree' });
     const listed = (await call('TaskOutput', { task_id: done.details.agentId })) as { details: { cwd: string } };
     expect(listed.details.cwd).toMatch(/\.pi\/worktrees\/agent-[0-9a-f]{8}$/);
     expect(existsSync(listed.details.cwd)).toBe(false);
@@ -139,10 +140,10 @@ test.each(['worktree', 'remote'] as const)('[G1-04] isolation %s runs the child 
   }
 });
 
-test.each(['worktree', 'remote'] as const)('[G1-04] a real child edit with %s isolation retains result and durable cleanup metadata', async (isolation) => {
+test('[G1-04] a real child edit with worktree isolation retains result and durable cleanup metadata', async () => {
   const { call, close, dir, git } = await gitFixture();
   try {
-    const done = await call('Agent', { description: 'isolated edit', prompt: 'WORKTREE_WRITE', isolation, run_in_background: false });
+    const done = await call('Agent', { description: 'isolated edit', prompt: 'WORKTREE_WRITE', isolation: 'worktree', run_in_background: false });
     const details = done.details as { agentId: string; worktreePath: string; worktreeBranch: string };
     expect(await readFile(join(details.worktreePath, 'child-change.txt'), 'utf8')).toBe('isolated-change');
     expect(existsSync(join(dir, 'child-change.txt'))).toBe(false);
@@ -216,13 +217,11 @@ test('[G6-19] failed clean-removal metadata persistence emits the required diagn
   }
 });
 
-test('[G1-04] remote isolation outside git falls back to the caller directory', async () => {
-  const { call, close, dir } = await workerFixture();
+test('[G1-04] remote isolation fails closed instead of falling back to local or worktree execution', async () => {
+  const { call, close, git } = await gitFixture();
   try {
-    const done = (await call('Agent', { description: 'iso', prompt: 'hello', run_in_background: false, isolation: 'remote' })) as { details: { agentId: string } };
-    const record = (await call('TaskOutput', { task_id: done.details.agentId })) as { details: { cwd: string } };
-    expect(record.details.cwd).toBe(realpathSync(dir));
-    expect(done.details).toMatchObject({ requestedIsolation: 'remote', effectiveIsolation: 'local' });
+    await expect(call('Agent', { description: 'iso', prompt: 'hello', run_in_background: false, isolation: 'remote' })).rejects.toThrow('Remote agent execution is not available in this runtime');
+    expect(git('worktree', 'list').split('\n')).toHaveLength(1);
   } finally {
     await close();
   }
@@ -352,11 +351,10 @@ test('[G2-13] unknown type rejects before creating a child and leaves the host u
   }
 });
 
-test('background remote fallback reports its effective local isolation', async () => {
+test('background remote request fails explicitly instead of launching a local agent', async () => {
   const { call, close } = await workerFixture();
   try {
-    const started = await call('Agent', { description: 'background fallback', prompt: 'WAIT', isolation: 'remote' });
-    expect(started.details).toMatchObject({ status: 'async_launched', requestedIsolation: 'remote', effectiveIsolation: 'local' });
+    await expect(call('Agent', { description: 'remote request', prompt: 'WAIT', isolation: 'remote' })).rejects.toThrow('Remote agent execution is not available in this runtime');
   } finally {
     await close();
   }

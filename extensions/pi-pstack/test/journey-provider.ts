@@ -78,7 +78,7 @@ const toolCalls: Record<string, PlannedCall[]> = {
   'JOURNEY:agentrestored': [{ name: 'Agent', arguments: { description: 'Restored offer', prompt: 'JOURNEY:restored-offer-child', run_in_background: false } }],
   'JOURNEY:agentsimple': [{ name: 'Agent', arguments: { description: 'Must not delegate', prompt: 'SIMPLE_MUST_NOT_RUN_CHILD', subagent_type: 'general-purpose', run_in_background: false } }],
   'JOURNEY:agentjson': [{ name: 'Agent', arguments: { description: 'JSON definition probe', prompt: 'Report JSON definition.', subagent_type: 'probe-worker', run_in_background: false } }],
-  'JOURNEY:agentremote': [{ name: 'Agent', arguments: { description: 'remote fallback probe', prompt: 'Report native fallback.', isolation: 'remote', run_in_background: false } }],
+  'JOURNEY:agentremote': [{ name: 'Agent', arguments: { description: 'remote unavailable probe', prompt: 'Report the unavailable remote request.', isolation: 'remote', run_in_background: false } }],
   'JOURNEY:legacyalias': [{ name: 'Task', arguments: { description: 'legacy alias', prompt: 'Report legacy alias.', subagent_type: 'Explore', run_in_background: false } }],
   'JOURNEY:agentunknown': [{ name: 'Agent', arguments: { description: 'unknown type', prompt: 'never runs', subagent_type: 'not-a-type' } }],
   'JOURNEY:readonly': [{ name: 'Task', arguments: { prompt: 'readonly child turn', readonly: true, run_in_background: false } }],
