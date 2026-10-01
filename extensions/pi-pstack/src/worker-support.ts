@@ -165,7 +165,7 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
   });
   const dir = await workerDirectory(ctx);
   const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
-  saveChildContext(manager, { id, depth, ...(launch ? { definition: launch.definition } : {}), ...(appendedPrompt !== undefined ? { appendedPrompt } : {}), ...(agentDefinitions !== undefined ? { agentDefinitions } : {}) });
+  saveChildContext(manager, { id, depth, foreground: params.run_in_background === false, ...(launch ? { definition: launch.definition } : {}), ...(appendedPrompt !== undefined ? { appendedPrompt } : {}), ...(agentDefinitions !== undefined ? { agentDefinitions } : {}) });
   const sessionFile = manager.getSessionFile();
   if (!sessionFile) throw new Error('Worker session did not provide a durable transcript path.');
   const { usage: _priorUsage, abort: _priorAbort, toolStats: _priorToolStats, ...saved } = prior ?? {};

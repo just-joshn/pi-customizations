@@ -8,6 +8,7 @@ import type { Readable } from 'node:stream';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from './deferred-wakes.ts';
+import { descendants, killSurvivors } from './shell-descendants.ts';
 import { processGroupEvent } from './subagents/process-groups.ts';
 
 export type ShellStatus = { kind: 'running' } | { kind: 'exited'; code: number | null; signal: NodeJS.Signals | null } | { kind: 'stopped' };
@@ -22,12 +23,14 @@ export type ShellRecord = Readonly<{
   startedAt: string;
   status: ShellStatus;
   matches: number;
+  backgroundEndsWithFinalResponse?: true;
 }>;
 export type ShellParameters = { command: string; title: string; notify_on_output?: string };
 type Shell = { record: ShellRecord; child: ChildProcess; exited: Promise<void>; wakePending: boolean; parentIdle: () => boolean };
+type Wake = Parameters<DeferredWakes['send']>[2];
 
 const lineLimit = 2000;
-const stopGraceMs = 2000;
+const stopGraceMs = 1500;
 
 function parsePattern(pattern: string | undefined): RegExp | undefined {
   if (pattern === undefined) return undefined;
@@ -81,8 +84,50 @@ function describe(record: ShellRecord): string {
 export class ShellRuntime {
   private shells = new Map<string, Shell>();
   private readonly wakes: DeferredWakes;
+  private adopted: readonly ShellRuntime[] = [];
+  private owner: ShellRuntime | undefined;
+  private idle: () => boolean = () => true;
+  private endsWithFinalResponse = false;
   constructor(private readonly pi: ExtensionAPI) {
     this.wakes = new DeferredWakes(pi);
+  }
+
+  /** Shells started from now on belong to a synchronous worker and end with its final response. */
+  markEndsWithFinalResponse(value: boolean): void {
+    this.endsWithFinalResponse = value;
+  }
+
+  useContext(ctx: Pick<ExtensionContext, 'isIdle'>): void {
+    this.idle = () => ctx.isIdle();
+  }
+
+  running(): boolean {
+    return [...this.shells.values()].some((shell) => shell.record.status.kind === 'running') || this.adopted.some((runtime) => runtime.running());
+  }
+
+  /** Takes over shells that outlive the worker that started them; their wakes now reach this session. */
+  adopt(runtime: ShellRuntime): void {
+    this.adopted = [...this.adopted, runtime];
+    runtime.handTo(this);
+  }
+
+  private handTo(owner: ShellRuntime): void {
+    this.owner = owner;
+  }
+
+  private deliverWake(key: string, message: Wake): void {
+    if (this.owner) this.owner.deliverWake(key, message);
+    else this.wakes.send(key, this.idle(), message);
+  }
+
+  private wake(key: string, shell: Shell, message: Wake): void {
+    if (this.owner) this.owner.deliverWake(key, message);
+    else this.wakes.send(key, shell.parentIdle(), message);
+  }
+
+  private dropWake(key: string): void {
+    if (this.owner) this.owner.dropWake(key);
+    this.wakes.drop(key);
   }
 
   async start(params: ShellParameters, ctx: ExtensionContext): Promise<ShellRecord> {
@@ -106,6 +151,7 @@ export class ShellRuntime {
       startedAt: new Date().toISOString(),
       status: { kind: 'running' },
       matches: 0,
+      ...(this.endsWithFinalResponse ? { backgroundEndsWithFinalResponse: true as const } : {}),
     };
     const exited = this.watch(record, child, pattern);
     this.shells.set(id, { record, child, exited, wakePending: false, parentIdle: () => ctx.isIdle() });
@@ -113,17 +159,21 @@ export class ShellRuntime {
   }
 
   list(): ShellRecord[] {
-    return [...this.shells.values()].map((shell) => shell.record).toReversed();
+    return [...[...this.shells.values()].map((shell) => shell.record).toReversed(), ...this.adopted.flatMap((runtime) => runtime.list())];
   }
 
   async stop(id: string): Promise<ShellRecord> {
     const shell = this.shells.get(id);
+    const adopter = shell ? undefined : this.adopted.find((runtime) => runtime.list().some((record) => record.id === id));
+    if (adopter) return adopter.stop(id);
     if (!shell) throw new Error(`Unknown background shell: ${id}`);
     if (shell.record.status.kind === 'running') {
       this.update(id, { status: { kind: 'stopped' } });
-      this.wakes.drop(`output:${id}`);
+      this.dropWake(`output:${id}`);
+      const tree = await descendants(shell.record.pid);
       signalGroup(shell.record.pid, 'SIGTERM');
       if (!(await settlesWithin(shell.exited, stopGraceMs))) signalGroup(shell.record.pid, 'SIGKILL');
+      killSurvivors(tree);
     }
     // A descendant that left the process group keeps the inherited pipes open, so Node
     // never emits close and the exit watch never settles. The record already holds the
@@ -136,7 +186,7 @@ export class ShellRuntime {
 
   async stopAll(): Promise<void> {
     this.wakes.clear();
-    await Promise.all([...this.shells.keys()].map((id) => this.stop(id)));
+    await Promise.all([...[...this.shells.keys()].map((id) => this.stop(id)), ...this.adopted.map((runtime) => runtime.stopAll())]);
   }
 
   /**
@@ -146,11 +196,13 @@ export class ShellRuntime {
    */
   forgetPreviousSession(): void {
     this.shells.clear();
+    this.adopted = [];
   }
 
   delivered(id: string): void {
     const shell = this.shells.get(id);
     if (shell) this.shells.set(id, { ...shell, wakePending: false });
+    else for (const runtime of this.adopted) runtime.delivered(id);
   }
 
   private update(id: string, patch: Partial<ShellRecord>): ShellRecord {
@@ -191,7 +243,7 @@ export class ShellRuntime {
     const current = this.shells.get(id);
     if (current) this.shells.set(id, { ...current, wakePending: true });
     const content = `${describe(record)} matched ${record.pattern}.\nOutput file: ${record.outputFile}\nLine: ${line.slice(0, lineLimit)}`;
-    this.wakes.send(`output:${id}`, shell.parentIdle(), { customType: 'pstack-shell-output', display: true, details: record, content });
+    this.wake(`output:${id}`, shell, { customType: 'pstack-shell-output', display: true, details: record, content });
   }
 
   private exit(id: string, code: number | null, signal: NodeJS.Signals | null, writeFailure: string | undefined): void {
@@ -203,7 +255,7 @@ export class ShellRuntime {
     const content = `${describe(record)} exited with ${outcome}.\nOutput file: ${record.outputFile}${failure}`;
     const quiet = record.matches > 0 && code === 0;
     const message = { customType: 'pstack-shell-exit', display: true, details: record, content };
-    if (!quiet || writeFailure) this.wakes.send(`exit:${id}`, shell.parentIdle(), message);
+    if (!quiet || writeFailure) this.wake(`exit:${id}`, shell, message);
   }
 }
 

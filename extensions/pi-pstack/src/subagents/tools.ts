@@ -93,7 +93,7 @@ class AgentLauncher {
   }
 
   continue(request: Parameters<typeof continueAgent>[1], ctx: ExtensionContext): Promise<ContinueOutcome> {
-    const deps = { runtime: this.runtime, reserve: () => this.reserveResume(), launchFor: (record: TaskRecord) => resumeLaunch(record, ctx, this.env, this.runtime.agentDefinitions()) };
+    const deps = { runtime: this.runtime, reserve: () => this.reserveResume(), launchFor: (record: TaskRecord) => resumeLaunch(record, ctx, { env: this.env, flags: this.runtime.agentDefinitions(), keepsAlive: (id) => this.runtime.keepsAlive(id) }) };
     return continueAgent(deps, request, ctx);
   }
 
@@ -190,6 +190,7 @@ class AgentLauncher {
       onSettled: async (record: TaskRecord) => {
         if (record.status !== 'running') this.stats.settle(record.status, record.abort?.telemetry);
         this.publishStats();
+        if (isolation.worktree && this.runtime.keepsAlive(record.id)) return { worktreeCleanlyRemoved: false, worktreePath: isolation.worktree.path, worktreeBranch: isolation.worktree.branch };
         return (await isolation.settle?.()) ?? {};
       },
     };
