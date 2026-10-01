@@ -226,6 +226,8 @@ If security issue found:
 3. Rotate any exposed secrets
 4. Review entire codebase for similar issues
 
+# Vitest Unit Test Best Practices
+
 ## Scope
 
 These instructions govern Vitest unit tests under this directory. Follow a nearer `AGENTS.md` or `AGENTS.override.md` when it provides more specific rules.
