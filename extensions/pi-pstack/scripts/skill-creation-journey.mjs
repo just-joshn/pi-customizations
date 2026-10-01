@@ -11,15 +11,7 @@ export async function verifySkillCreation({ ctx, check, startPi }) {
     { name: 'e2e-shared-project', scope: 'project', directory: join(workspace, '.agents', 'skills', 'e2e-shared-project') },
     { name: 'e2e-shared-personal', scope: 'personal', directory: join(ctx.directory, '.agents', 'skills', 'e2e-shared-personal') },
   ];
-  for (const { name, directory } of locations) {
-    await mkdir(join(directory, 'scripts'), { recursive: true });
-    await writeFile(join(directory, 'reference.md'), 'The literal expected output is skill-support-ok.\n');
-    await writeFile(join(directory, 'scripts', 'verify.mjs'), "process.stdout.write('skill-support-ok\\n');\n");
-    await writeFile(
-      join(directory, 'SKILL.md'),
-      `---\nname: ${name}\ndescription: Verify a newly created Pi skill. Use for the local skill creation journey.\ndisable-model-invocation: true\n---\n# Created skill\n\nRead reference.md and run scripts/verify.mjs relative to this skill directory.\n`,
-    );
-  }
+  await writeCreatedSkills(locations);
   const denied = await startPi(workspace, ctx.log, ['--no-session', '--no-approve'], ctx.directory);
   try {
     const commands = await denied.send({ type: 'get_commands' });
@@ -52,27 +44,47 @@ export async function verifySkillCreation({ ctx, check, startPi }) {
       check(`create-skill: ${name} delivers its directory and user request`, text.includes(directory) && text.includes('literal user request'));
       check(`create-skill: ${name} support script executes from its directory`, execFileSync(process.execPath, ['scripts/verify.mjs'], { cwd: directory, encoding: 'utf8' }) === 'skill-support-ok\n');
     }
-    const addedDirectory = join(workspace, '.pi', 'skills', 'e2e-reload-added');
-    await mkdir(addedDirectory, { recursive: true });
-    await writeFile(join(addedDirectory, 'SKILL.md'), '---\nname: e2e-reload-added\ndescription: Added after startup\ndisable-model-invocation: true\n---\nLiteral newly discovered body.\n');
-    const projectPath = join(locations[0].directory, 'SKILL.md');
-    await writeFile(projectPath, (await readFile(projectPath, 'utf8')).replace('Verify a newly created Pi skill. Use for the local skill creation journey.', 'Edited after startup. Use for reload verification.'));
-    const stale = await instance.send({ type: 'get_commands' });
-    check('create-skill: new skill is not discovered before reload', !stale.commands.some((command) => command.name === 'skill:e2e-reload-added'));
-    check('create-skill: old description remains cached before reload', stale.commands.find((command) => command.name === 'skill:e2e-project')?.description === 'Verify a newly created Pi skill. Use for the local skill creation journey.');
-    await instance.send({ type: 'prompt', message: '/fixture-reload' });
-    const refreshed = await instance.send({ type: 'get_commands' });
-    check(
-      'create-skill: native command-context reload discovers new skill',
-      refreshed.commands.some((command) => command.name === 'skill:e2e-reload-added'),
-    );
-    check('create-skill: native command-context reload refreshes description', refreshed.commands.find((command) => command.name === 'skill:e2e-project')?.description === 'Edited after startup. Use for reload verification.');
-    const applied = await instance.turn('/skill:e2e-reload-added');
-    check('create-skill: reloaded skill body reaches model request', JSON.stringify(applied.messages).includes('Literal newly discovered body.'));
+    await verifySkillReload({ workspace, locations, check, instance });
   } finally {
     await instance.finish().catch(() => {});
     await instance.close().catch(() => {});
   }
+  await verifyOtherProject({ ctx, check, startPi, locations });
+}
+
+async function writeCreatedSkills(locations) {
+  for (const { name, directory } of locations) {
+    await mkdir(join(directory, 'scripts'), { recursive: true });
+    await writeFile(join(directory, 'reference.md'), 'The literal expected output is skill-support-ok.\n');
+    await writeFile(join(directory, 'scripts', 'verify.mjs'), "process.stdout.write('skill-support-ok\\n');\n");
+    await writeFile(
+      join(directory, 'SKILL.md'),
+      `---\nname: ${name}\ndescription: Verify a newly created Pi skill. Use for the local skill creation journey.\ndisable-model-invocation: true\n---\n# Created skill\n\nRead reference.md and run scripts/verify.mjs relative to this skill directory.\n`,
+    );
+  }
+}
+
+async function verifySkillReload({ workspace, locations, check, instance }) {
+  const addedDirectory = join(workspace, '.pi', 'skills', 'e2e-reload-added');
+  await mkdir(addedDirectory, { recursive: true });
+  await writeFile(join(addedDirectory, 'SKILL.md'), '---\nname: e2e-reload-added\ndescription: Added after startup\ndisable-model-invocation: true\n---\nLiteral newly discovered body.\n');
+  const projectPath = join(locations[0].directory, 'SKILL.md');
+  await writeFile(projectPath, (await readFile(projectPath, 'utf8')).replace('Verify a newly created Pi skill. Use for the local skill creation journey.', 'Edited after startup. Use for reload verification.'));
+  const stale = await instance.send({ type: 'get_commands' });
+  check('create-skill: new skill is not discovered before reload', !stale.commands.some((command) => command.name === 'skill:e2e-reload-added'));
+  check('create-skill: old description remains cached before reload', stale.commands.find((command) => command.name === 'skill:e2e-project')?.description === 'Verify a newly created Pi skill. Use for the local skill creation journey.');
+  await instance.send({ type: 'prompt', message: '/fixture-reload' });
+  const refreshed = await instance.send({ type: 'get_commands' });
+  check(
+    'create-skill: native command-context reload discovers new skill',
+    refreshed.commands.some((command) => command.name === 'skill:e2e-reload-added'),
+  );
+  check('create-skill: native command-context reload refreshes description', refreshed.commands.find((command) => command.name === 'skill:e2e-project')?.description === 'Edited after startup. Use for reload verification.');
+  const applied = await instance.turn('/skill:e2e-reload-added');
+  check('create-skill: reloaded skill body reaches model request', JSON.stringify(applied.messages).includes('Literal newly discovered body.'));
+}
+
+async function verifyOtherProject({ ctx, check, startPi, locations }) {
   const otherWorkspace = join(ctx.directory, 'creation-other-project');
   await mkdir(otherWorkspace, { recursive: true });
   const other = await startPi(otherWorkspace, ctx.log, ['--no-session', '--approve'], ctx.directory);
