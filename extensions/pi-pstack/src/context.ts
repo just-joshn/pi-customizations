@@ -66,7 +66,7 @@ export function registerContext(pi: ExtensionAPI): void {
       const entries = boundedList(branch.toReversed().map(entryEvidence));
       const tools = boundedList(pi.getAllTools().map((tool) => ({ name: tool.name, description: tool.description.slice(0, summaryCharacters) })));
       const models = boundedList(ctx.modelRegistry.getAvailable().map((model) => `${model.provider}/${model.id}`));
-      const sessions = params.history ? await SessionManager.list(ctx.cwd, undefined, undefined, signal) : [];
+      const sessions = params.history ? await SessionManager.list(ctx.cwd, ctx.sessionManager.getSessionDir(), undefined, signal) : [];
       const history = boundedList(sessions.map((session) => ({ id: session.id, path: session.path, name: session.name?.slice(0, summaryCharacters) })));
       const details = {
         cwd: ctx.cwd,
