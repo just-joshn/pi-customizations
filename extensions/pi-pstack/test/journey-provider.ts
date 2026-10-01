@@ -54,6 +54,10 @@ const toolCalls: Record<string, PlannedCall[]> = {
   'JOURNEY:progress': [{ name: 'Task', arguments: { prompt: 'JOURNEY:progress-child', subagent_type: 'generalPurpose', run_in_background: false } }],
   'JOURNEY:agent': [{ name: 'Agent', arguments: { description: 'agent probe', prompt: 'Report the word agent-ok and nothing else.', run_in_background: false } }],
   'JOURNEY:agentslow': [{ name: 'Agent', arguments: { description: 'slow probe', prompt: 'JOURNEY:slowchild', run_in_background: false } }],
+  'JOURNEY:agentpair': [
+    { name: 'Agent', arguments: { description: 'pair one', prompt: 'JOURNEY:slowchild', subagent_type: 'Explore', run_in_background: false } },
+    { name: 'Agent', arguments: { description: 'pair two', prompt: 'JOURNEY:slowchild', run_in_background: false } },
+  ],
   'JOURNEY:agenthooked': [{ name: 'Agent', arguments: { description: 'hooked probe', prompt: 'Report hooked.', isolation: 'worktree', run_in_background: false } }],
   'JOURNEY:agentturnlimit': [{ name: 'Agent', arguments: { description: 'bounded native probe', prompt: 'JOURNEY:progress-child', subagent_type: 'bounded-turn-probe', run_in_background: false } }],
   'JOURNEY:append-parent': [{ name: 'Task', arguments: { description: 'append parent', prompt: 'JOURNEY:append-child', subagent_type: 'generalPurpose', run_in_background: false } }],
