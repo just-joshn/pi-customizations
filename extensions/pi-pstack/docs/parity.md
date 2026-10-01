@@ -59,7 +59,7 @@ The team-kit increment closes three named skill-distribution dependencies. Its r
 
 ## Verification limits
 
-The comprehensive audit prohibits subagents. The permitted real RPC suite passes 427 assertions with zero findings after the Origin environment fix. That suite explicitly excludes Task execution. `test/resource-environment.test.ts` verifies that cloud resource arguments and a real idle Pi CLI omit Origin's skill and alias. Local discovery retains them. The native Origin skill preserves the source's `disabled-environments` metadata. Origin installation, authentication, and hosted repository operations remain unverified.
+The comprehensive audit prohibits subagents. The allowed deterministic main-session RPC suite most recently passes 427 assertions with zero findings and excludes Task execution. The native Origin skill preserves the source's `disabled-environments` metadata, and cloud arguments omit that packaged copy. A fresh `test/resource-environment.test.ts` run contradicts broader exclusion. The idle CLI exposes a user-scoped `skill:origin` from `~/.agents/skills/origin/SKILL.md` without the metadata. This duplicate-resource gap remains unresolved. Live public Origin installation succeeds in isolated HOME/install/bin directories, and a corrupt fixture archive is rejected by the unchanged installer's checksum check. Authentication and hosted repository operations remain unverified.
 
 `scripts/verify-store-isolation.mjs` runs the macOS fixture-store experiment with a deterministic main-session provider and no Task calls or paid inference. It preserves baseline and sandbox observations in the supplied evidence directory. This experiment is not evidence that production cloud Tasks are sandboxed.
 

@@ -49,6 +49,10 @@ All 15 shell mechanics tests now pass without exclusions. The escaped-descendant
 
 The goal source audit groups 28 initial semantic clauses. Fresh goal/delivery tests pass ten checks, and the full allowed RPC run passes 427 assertions with zero findings. RPC evidence covers objective preservation, rejected duplicate active creation, continuation, clear, session isolation, and completed-state restart. It does not prove that an agent performs the requested work or the source completion audit. Hosted cloud goal execution remains unverified. The source's usage-accounting statement also lacks a goal-specific attribution receipt; zero-usage fixtures cannot establish that behavior.
 
+The public Origin installer was downloaded from the source skill's HTTPS URL and read before execution. It installs successfully into isolated HOME/install/bin directories. The installed CLI reports `2026.09.24-20-34-11-8ed25e0`; version and help commands succeed. With a fixture transport serving a corrupt archive, the unchanged installer rejects SHA-256 mismatch before creating the binary entry. Login, token printing, repository operations, remote changes, and updates were not executed. The isolated binary and installer hashes are retained with the evidence.
+
+A fresh Origin resource audit fails despite filtering the packaged cloud-disabled copy. The idle CLI discovers a second, user-scoped Origin skill under `~/.agents/skills` without that metadata. Broad cloud exclusion is therefore not verified. Do not treat earlier isolated discovery checks as proof that duplicate user resources cannot reintroduce the skill.
+
 The source census inventories supplied authoritative paths without changing them. It hashes regular files and retains every nonblank Markdown line with its line number and an `UNREVIEWED` state. It excludes `.git`, `node_modules`, and `.DS_Store` entries and does not follow symbolic links. Non-Markdown behavior still requires code review and execution. The census always reports `NOT VERIFIED`; extraction is not a requirement verdict or proof of parity.
 
 ```sh
