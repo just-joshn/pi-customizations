@@ -1,4 +1,4 @@
-import { stat, writeFile } from 'node:fs/promises';
+import { readFile, stat, writeFile } from 'node:fs/promises';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { modelConfigPath, setupModels } from '../src/models.ts';
@@ -16,7 +16,7 @@ export default function setupFixture(pi: ExtensionAPI): void {
           return false;
         },
       );
-      await writeFile(output, JSON.stringify({ completed, configurationExists }), { mode: 0o600 });
+      await writeFile(output, JSON.stringify({ completed, configurationExists, ...(configurationExists ? { configuration: await readFile(modelConfigPath(), 'utf8') } : {}) }), { mode: 0o600 });
     },
   });
 }
