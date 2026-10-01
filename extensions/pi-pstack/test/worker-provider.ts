@@ -41,6 +41,15 @@ function directCalls(text: string): ToolCall[] {
   return [];
 }
 
+function workspaceCalls(text: string): ToolCall[] {
+  if (text.includes('IGNORED_WRITE')) return [{ type: 'toolCall', id: 'ignored-write', name: 'write', arguments: { path: 'secret.env', content: 'TOKEN=child' } }];
+  if (!text.includes('CWD_ESCAPE')) return [];
+  return [
+    { type: 'toolCall', id: 'cwd-escape', name: 'bash', arguments: { command: 'cd / && pwd' } },
+    { type: 'toolCall', id: 'cwd-probe', name: 'bash', arguments: { command: 'pwd > cwd-probe.txt' } },
+  ];
+}
+
 function requestedTools(text: string, context: StreamArguments[1]): ToolCall[] {
   const last = context.messages.at(-1);
   const failedChild = text.includes('BROKEN_CHILD_PARENT');
@@ -57,12 +66,7 @@ function requestedTools(text: string, context: StreamArguments[1]): ToolCall[] {
   if (text.includes('SPAWN_AGENT') && last?.role === 'user') return [{ type: 'toolCall', id: 'depth-child', name: 'Agent', arguments: { description: 'nested depth', prompt: 'nested', run_in_background: false } }];
   const selfStop = text.match(/SELF_STOP=([0-9a-f-]+)/)?.[1];
   if (selfStop && last?.role === 'user') return [{ type: 'toolCall', id: 'self-stop', name: 'TaskStop', arguments: { task_id: selfStop } }];
-  if (text.includes('IGNORED_WRITE') && last?.role === 'user') return [{ type: 'toolCall', id: 'ignored-write', name: 'write', arguments: { path: 'secret.env', content: 'TOKEN=child' } }];
-  if (text.includes('CWD_ESCAPE') && last?.role === 'user')
-    return [
-      { type: 'toolCall', id: 'cwd-escape', name: 'bash', arguments: { command: 'cd / && pwd' } },
-      { type: 'toolCall', id: 'cwd-probe', name: 'bash', arguments: { command: 'pwd > cwd-probe.txt' } },
-    ];
+  if (last?.role === 'user' && workspaceCalls(text).length) return workspaceCalls(text);
   if (text.includes('WORKTREE_WRITE') && last?.role === 'user') return [{ type: 'toolCall', id: 'isolated-write', name: 'write', arguments: { path: 'child-change.txt', content: 'isolated-change' } }];
   if (text.includes('PROGRESS_READ') && last?.role === 'user') {
     return [{ type: 'toolCall', id: 'worker-child-read-call-id', name: 'read', arguments: { path: progressFixture } }];

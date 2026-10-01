@@ -1,5 +1,6 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import { registerTaskPanel } from './subagents/task-panel.ts';
 import { registerAgentTools } from './subagents/tools.ts';
 import { TaskParameters, TaskRecordSchema } from './worker-records.ts';
 import { type TaskToolDetails, WorkerRuntime } from './worker-runtime.ts';
@@ -75,4 +76,5 @@ export function registerWorkers(pi: ExtensionAPI): void {
   registerTaskTool(pi, runtime);
   registerControlTools(pi, runtime);
   registerAgentTools(pi, runtime);
+  registerTaskPanel(pi, runtime);
 }

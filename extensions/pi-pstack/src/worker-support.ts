@@ -117,6 +117,7 @@ function initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFil
     sessionFile,
     outputFile,
     status: 'running',
+    startedAt: Date.now(),
     output: '',
     ...(launch ? { description: launch.description, ...(launch.name ? { agentName: launch.name } : {}) } : {}),
     ...provenanceFields(launch),
