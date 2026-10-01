@@ -8,6 +8,7 @@ import { agentMemoryRemoteJourney } from './agent-memory-remote-journey.mjs';
 import { agentRemoteJourney } from './agent-remote-journey.mjs';
 import { agentSimpleJourney } from './agent-simple-journey.mjs';
 import { agentTurnLimitJourney } from './agent-turn-limit-journey.mjs';
+import { agentWorktreeUiJourney } from './agent-worktree-ui-journey.mjs';
 
 export function agentJourneys(check, startPi) {
   return [
@@ -21,5 +22,6 @@ export function agentJourneys(check, startPi) {
     agentSimpleJourney(check, startPi),
     agentLegacyDepthJourney(check, startPi),
     agentDepthSettingJourney(check, startPi),
+    agentWorktreeUiJourney(check, startPi),
   ];
 }
