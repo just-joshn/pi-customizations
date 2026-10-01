@@ -54,9 +54,9 @@ test('[G2-01] project definition beats user definition and lists stay sorted', (
 });
 
 test('[G2-01] policy beats flag beats project', () => {
-  const policy = { ...builtinAgents({})[0], agentType: 'p', source: 'policySettings' as const, systemPrompt: 'policy' } as never;
+  write('managed/p.md', agent('p', '', 'policy'));
   const flag = { ...builtinAgents({})[0], agentType: 'p', source: 'flagSettings' as const, systemPrompt: 'flag' } as never;
-  const found = discoverAgents({ root: dir, userDirs: [], flagAgents: [flag], policyAgents: [policy], env: {} });
+  const found = discoverAgents({ root: dir, userDirs: [], flagAgents: [flag], policyDirs: [join(dir, 'managed')], env: {} });
   expect(found.activeAgents.find((entry) => entry.agentType === 'p')?.source).toBe('policySettings');
 });
 
@@ -93,7 +93,7 @@ test('[G2-03] duplicate names in one directory are logged with the active path',
   const a = write('proj/.pi/agents/a/x.md', agent('x'));
   const b = write('proj/.pi/agents/b/x.md', agent('x'));
   const found = discoverAgents({ root: join(dir, 'proj'), userDirs: [], env: {} });
-  expect(found.logs).toContain(`[agents] Duplicate agent name 'x' (projectSettings): ${a}, ${b} \u2014 active: ${b}`);
+  expect(found.logs).toContain(`[agents] Duplicate agent name 'x' (projectSettings): ${b}, ${a} \u2014 active: ${b}`);
   expect(found.activeAgents.find((entry) => entry.agentType === 'x')?.filePath).toBe(b);
   expect(sanitizeDisplay(`a\u0000b${'c'.repeat(300)}`)).toHaveLength(200);
   expect(sanitizeDisplay('a\u0001b')).toBe('a b');

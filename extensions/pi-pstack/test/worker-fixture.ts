@@ -70,6 +70,7 @@ function workerLoader(dir: string, flags: Readonly<Record<string, string>>, exte
 export async function workerFixture(options: { retry?: boolean; flags?: Readonly<Record<string, string>>; extensions?: readonly ExtensionFactory[] } = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'pstack-child-'));
   vi.stubEnv('PI_CODING_AGENT_DIR', dir);
+  vi.stubEnv('HOME', join(dir, 'home'));
   let session: Awaited<ReturnType<typeof createAgentSession>>['session'] | undefined;
   const close = () => closeFixture(session, dir);
   try {
