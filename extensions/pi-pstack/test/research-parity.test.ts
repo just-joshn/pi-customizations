@@ -184,10 +184,10 @@ test('worktree audit dates agent activity from Pi sessions and worker transcript
   }
 });
 
-test('worktree audit includes recent activity from an explicit custom Pi session directory', async () => {
+test.each(['custom-sessions', 'custom sessions'])('worktree audit includes recent activity from explicit Pi session directory %s', async (name) => {
   const f = await worktreeFixture();
   try {
-    const custom = join(f.directory, 'custom-sessions');
+    const custom = join(f.directory, name);
     await mkdir(custom);
     await writeFile(join(custom, 'active.jsonl'), JSON.stringify({ type: 'session', cwd: join(f.directory, 'idle') }));
     const output = execFileSync('bash', [join(root, 'skills/poteto-mode/scripts/worktree-audit.sh'), f.main, custom], {

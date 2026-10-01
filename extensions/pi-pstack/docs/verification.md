@@ -43,7 +43,7 @@ bun pm pack --dry-run
 bunx vitest run test/cli.test.ts
 ```
 
-The generated worktree audit accepts an optional second argument for a custom Pi session directory. A real Bash/Git regression reproduces missing recent-chat evidence without this argument and verifies `verify-recent-chat` when the directory is supplied. Default workspace and child transcript discovery remains covered. The helper remains read-only and does not prove that pruning any worktree is safe.
+The generated worktree audit accepts an optional second argument for a custom Pi session directory. A real Bash/Git regression reproduces missing recent-chat evidence without this argument and verifies `verify-recent-chat` when the directory is supplied. Default workspace and child transcript discovery remains covered. A second reproduced defect split custom directory names containing spaces and reported an epoch-era date. Null-delimited filename transport fixes that failure. Both plain and spaced custom directories now report the recent session date. The helper never deletes worktrees and does not prove that pruning any worktree is safe.
 
 ```sh
 bash extensions/pi-pstack/skills/poteto-mode/scripts/worktree-audit.sh /path/to/repo /path/from/the/host/session/contract
