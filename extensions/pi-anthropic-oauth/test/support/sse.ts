@@ -66,3 +66,12 @@ export function textMessage(text: string, usage: UsageCounts = DEFAULT_USAGE): r
 export function toolUseMessage(id: string, name: string, jsonChunks: readonly string[]): readonly AnthropicEvent[] {
   return [messageStart(), ...toolUseBlock(0, id, name, jsonChunks), ...finish('tool_use')];
 }
+
+export function thinkingBlock(index: number, thinking: string, signature: string): readonly AnthropicEvent[] {
+  return [
+    { type: 'content_block_start', index, content_block: { type: 'thinking', thinking: '' } },
+    { type: 'content_block_delta', index, delta: { type: 'thinking_delta', thinking } },
+    { type: 'content_block_delta', index, delta: { type: 'signature_delta', signature } },
+    { type: 'content_block_stop', index },
+  ];
+}
