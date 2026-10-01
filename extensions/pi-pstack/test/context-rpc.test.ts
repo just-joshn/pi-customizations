@@ -1,5 +1,6 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, realpath, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { expect, test, vi } from 'vitest';
 import { startDetachedRpc } from '../scripts/detached-rpc-client.mjs';
@@ -36,6 +37,8 @@ test('real RPC context discovers the configured session directory and returns on
       const state = await handle.send({ type: 'get_state' });
       if (!state.success || state.command !== 'get_state' || !state.data.sessionFile) throw new Error('missing current session file');
       const file = state.data.sessionFile;
+      const ownUri = join(directory, 'own-uri.jsonl');
+      await writeFile(ownUri, `${JSON.stringify({ type: 'session', version: 3, id: 'own-uri', cwd: pathToFileURL(await realpath(f.cwd)).href, timestamp: '1970-01-01T00:00:00.000Z' })}\n`);
       const header = `${JSON.stringify({ type: 'session', version: 3, id: 'foreign-workspace', timestamp: '2026-10-01T00:00:00.000Z', cwd: join(f.root, 'other-workspace') })}\n`;
       await writeFile(join(directory, 'other.jsonl'), `${header}{"type":"message","message":{"role":"user","content":"foreign synthetic body"}}\n`);
       const response = await handle.send({ type: 'prompt', message: 'JOURNEY:history' });
@@ -45,7 +48,7 @@ test('real RPC context discovers the configured session directory and returns on
         if (!entries.success || entries.command !== 'get_entries') throw new Error('missing RPC entries');
         const result = entries.data.entries.findLast((entry) => entry.type === 'message' && entry.message.role === 'toolResult' && entry.message.toolName === 'pstack_context');
         const details = result?.type === 'message' && result.message.role === 'toolResult' ? result.message.details : undefined;
-        expect(details).toMatchObject({ history: [{ path: file }], omitted: { history: 0 }, historyDiscovery: { mode: 'best-effort', completeness: 'unknown' } });
+        expect(details).toMatchObject({ history: [{ path: file }, { id: 'own-uri', path: ownUri }], omitted: { history: 0 }, historyDiscovery: { mode: 'best-effort', completeness: 'unknown' } });
         expect(JSON.stringify(details)).not.toContain('foreign-workspace');
         expect(JSON.parse(await readFile(join(directory, 'read-probe.json'), 'utf8'))).toEqual({ maxReadEnd: Buffer.byteLength(header), bodyStreamCreated: false });
       });

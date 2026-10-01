@@ -3,6 +3,7 @@ import { type FileHandle, open, readdir } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
+import { fileURLToPath } from 'node:url';
 
 type History = { id: string; path: string; name?: string };
 type Header = { id: string; cwd: string; timestamp?: string };
@@ -19,7 +20,8 @@ function object(line: string): Record<string, unknown> | undefined {
 }
 
 function workspace(cwd: string): string {
-  return resolve(cwd.replace(/^~(?=\/)/, homedir()));
+  const expanded = cwd === '~' ? homedir() : cwd.replace(/^~(?=\/)/, homedir());
+  return resolve(expanded.startsWith('file://') ? fileURLToPath(expanded) : expanded);
 }
 
 async function ownership(handle: FileHandle, signal?: AbortSignal): Promise<Header | undefined> {
