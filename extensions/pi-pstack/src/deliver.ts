@@ -13,11 +13,11 @@ export function createDelivery(pi: ExtensionAPI, startTimeoutMs = 60_000): Deliv
     for (const waiter of waiters) if (waiter.started) waiter.resolve();
   });
   return async (ctx, text) => {
-    if (ctx.hasUI && !process.env.PI_PSTACK_HEADLESS) {
+    if (ctx.mode === 'tui' && ctx.hasUI && !process.env.PI_PSTACK_HEADLESS) {
       pi.sendUserMessage(text, { deliverAs: 'followUp' });
       return;
     }
-    // Headless sessions may close when the command returns, so wait for its queued turn to settle.
+    // RPC acknowledgement must not precede the forwarded turn's settlement, even when dialog UI is available.
     await new Promise<void>((resolve) => {
       const waiter: Waiter = {
         started: false,
