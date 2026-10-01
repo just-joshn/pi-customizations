@@ -3,6 +3,7 @@ import { basename, join } from 'node:path';
 
 import { type ExtensionContext, getAgentDir, getDocsPath } from '@earendil-works/pi-coding-agent';
 import { modelConfigPath, projectModelConfigPath } from './models.ts';
+import { childStorageDir } from './subagents/agent-storage.ts';
 
 export const referenceToolNames =
   'Upstream prose names Reference tools. Read is the read tool, Shell is bash, Grep is grep, and Glob is find. A /skill:name or /poteto-mode invocation appears in the transcript as a <skill name="..."> block in the user message, not as a read call.';
@@ -30,7 +31,7 @@ function storeInstructions(cwd: string): string {
 export function hostInstructions(root: string, ctx: ExtensionContext, rule: string, catalog = ''): string {
   const manager = ctx.sessionManager;
   const childTranscripts = manager.getSessionFile()
-    ? `${join(manager.getSessionDir(), '<parent-session-id>', 'subagents')} and ${join(manager.getSessionDir(), 'pstack-workers', manager.getSessionId())}`
+    ? `${childStorageDir(manager.getSessionDir(), manager.getSessionId())} and, for runs before the agent-<id>.jsonl layout, ${join(manager.getSessionDir(), 'pstack-workers', manager.getSessionId())}`
     : 'temporary directories, because this session is not persisted';
   return [
     'pstack pi host contract. Follow the bundled workflow instructions in full.',

@@ -224,7 +224,7 @@ test('host contract names the workspace session directory the transcript skills 
   const ctx = { cwd: '/w', sessionManager: { getSessionId: () => 's', getSessionDir: () => '/agent/sessions/--w--', getSessionFile: () => '/agent/sessions/--w--/s.jsonl' } };
   const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '');
   expect(host.includes('Pi session storage directory: /agent/sessions/--w--.')).toBe(true);
-  expect(host.includes('Task child transcripts owned by this parent session: /agent/sessions/--w--/<parent-session-id>/subagents')).toBe(true);
+  expect(host).toContain('Task child transcripts owned by this parent session: /agent/sessions/--w--/s/subagents and, for runs before the agent-<id>.jsonl layout, /agent/sessions/--w--/pstack-workers/s');
 });
 
 test('host contract maps upstream Reference facilities and tool names to Pi', async () => {

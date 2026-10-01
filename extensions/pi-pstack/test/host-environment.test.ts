@@ -66,7 +66,8 @@ test('real RPC delivers the cloud host catalog to a deterministic main-session p
         expect(host).toContain('The storage directory may contain other workspaces');
         expect(host).not.toContain('Workspace Pi session directory:');
         expect(host).not.toContain('<parent-session-id>');
-        expect(host).toContain(`Task child transcripts owned by this parent session: ${join(f.root, 'shared-session-store', 'pstack-workers', parentId)}`);
+        const store = join(f.root, 'shared-session-store');
+        expect(host).toContain(`Task child transcripts owned by this parent session: ${join(store, parentId, 'subagents')} and, for runs before the agent-<id>.jsonl layout, ${join(store, 'pstack-workers', parentId)}`);
       });
     } finally {
       await handle.close();
