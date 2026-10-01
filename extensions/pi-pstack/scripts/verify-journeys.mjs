@@ -389,11 +389,27 @@ async function journeyShells(ctx) {
   check('tool: BackgroundShell starts a shell and reports its id', started?.isError !== true && JSON.stringify(started).includes('Started background shell'), JSON.stringify(started).slice(0, 200));
   check('tool: BackgroundShellList finds the running shell', JSON.stringify(listed).includes('Journey shell'), JSON.stringify(listed).slice(0, 200));
   check('tool: BackgroundShellStop reports a stopped shell', stopped?.isError !== true && JSON.stringify(stopped).includes('stopped'), JSON.stringify(stopped).slice(0, 200));
-  await ctx.callTool('JOURNEY:shellexit');
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  const escaped = await ctx.run('JOURNEY:shellexitstop');
-  check('tool: BackgroundShellStop returns when a descendant escaped the process group', escaped.at(-1)?.isError !== true && JSON.stringify(escaped).includes('stopped'), JSON.stringify(escaped).slice(-300));
-  spawnSync('pkill', ['-f', 'POSIX::setsid']);
+  const escapeStart = (await ctx.callTool('JOURNEY:shellexit')).find((message) => message.toolName === 'BackgroundShell');
+  let descendant;
+  try {
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline && !descendant) {
+      const output = await readFile(escapeStart.details.outputFile, 'utf8').catch(() => '');
+      descendant = Number(output.match(/ESCAPED_PID=(\d+)/)?.[1]) || undefined;
+      if (!descendant) await new Promise((resolve) => setTimeout(resolve, 40));
+    }
+    check('tool: the escaping fixture records its own descendant PID', Number.isSafeInteger(descendant) && descendant > 0);
+    const escaped = await ctx.run('JOURNEY:shellexitstop');
+    check('tool: BackgroundShellStop returns when a descendant escaped the process group', escaped.at(-1)?.isError !== true && JSON.stringify(escaped).includes('stopped'), JSON.stringify(escaped).slice(-300));
+  } finally {
+    if (descendant) {
+      try {
+        process.kill(descendant, 'SIGTERM');
+      } catch (error) {
+        if (error.code !== 'ESRCH') check('tool: the escaping fixture cleans up its own descendant', false, String(error));
+      }
+    }
+  }
 }
 
 async function journeySetup(ctx) {

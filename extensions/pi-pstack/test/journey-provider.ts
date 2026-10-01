@@ -60,7 +60,7 @@ const toolCalls: Record<string, PlannedCall[]> = {
   'JOURNEY:badcwd': [{ name: 'Task', arguments: { prompt: 'cwd child turn', cwd: 'no/such/directory', run_in_background: false } }],
   'JOURNEY:localenv': [{ name: 'Task', arguments: { prompt: 'local child turn', environment: 'local', run_in_background: false } }],
   'JOURNEY:subagent': [{ name: 'Task', arguments: { prompt: 'Report the word delegate-ok and nothing else.', subagent_type: 'not-a-persona' } }],
-  'JOURNEY:shellexit': [{ name: 'BackgroundShell', arguments: { command: "perl -MPOSIX -e 'POSIX::setsid(); sleep 300' & sleep 0.3", title: 'Escaping shell' } }],
+  'JOURNEY:shellexit': [{ name: 'BackgroundShell', arguments: { command: "perl -MPOSIX -e 'POSIX::setsid(); sleep 300' & echo ESCAPED_PID=$!; sleep 0.3", title: 'Escaping shell' } }],
   'JOURNEY:shellinvalid': [
     { name: 'BackgroundShell', arguments: { command: 'echo hi', title: 'Bad pattern', notify_on_output: '(' } },
     { name: 'BackgroundShell', arguments: { command: 'echo hi', title: '   ' } },
