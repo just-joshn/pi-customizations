@@ -15,6 +15,8 @@ Fresh checks verify the following contracts:
 - `bun pm pack --dry-run` passes. A package dry run does not verify an extracted package's runtime.
 - `bunx vitest run test/cli.test.ts` passes five distribution checks, including loading an extracted package through the real installed CLI. The inventory check permits only the documented `upstream/.gitignore` packer omission.
 
+The terminal question harness passes five journeys at 120 and 70 columns. It checks single selection, text entry, cancellation, multiple selection, and cancellation after one selection. A fixture command invokes the production AskQuestion handler with the real Pi UI. The harness does not exercise model-mediated tool dispatch or setup dialogs. It makes no inference calls and creates no subagents.
+
 The current cloud lifecycle regressions use saved records, idle transport processes, or a main-session SDK fixture with a mocked launch boundary. The latest focused run passes 19 tests. The fixtures do not launch AI workers.
 
 Cloud launch requests a macOS restriction on reads of known coordinator stores. Real idle transport tests verify blocked store byte reads and directory listings while allowing exact store-root metadata for canonicalization. Nested policy preparation succeeds. Applying a second sandbox from the restricted process fails with `sandbox_apply: Operation not permitted` on the tested macOS host. The test records that platform limit, not nested cloud parity. Unsupported platforms fail explicitly. Complete hosted filesystem and credential isolation remain unverified.
@@ -40,6 +42,14 @@ bun run check:upstream
 bun pm pack --dry-run
 bunx vitest run test/cli.test.ts
 ```
+
+With `tmux` and the installed `pi` CLI on PATH, run the terminal question journeys from the repository root:
+
+```sh
+node extensions/pi-pstack/scripts/verify-question-tui.mjs /tmp/pstack-e2e-evidence/question-tui-maintained
+```
+
+The harness uses a temporary agent directory and working directory. It records terminal captures and literal returned answers, then stops its terminal process. It does not approve the repository trust dialog or alter your personal Pi configuration.
 
 The unrestricted test suite includes worker execution. Do not run that suite under the audit's no-subagent constraint.
 
