@@ -32,7 +32,11 @@ export async function verifySkillCreation({ ctx, check, startPi }) {
   try {
     await instance.send({ type: 'set_model', provider: 'journey-test', modelId: 'recorder' });
     const commands = await instance.send({ type: 'get_commands' });
+    const ambient = await instance.turn('Record ambient skill discovery without invoking a skill');
+    const systemMessages = ambient.messages.filter((message) => message.role === 'system');
+    check('create-skill: ambient discovery delivers a system prompt', systemMessages.length > 0);
     for (const { name, directory } of locations) {
+      check(`create-skill: ${name} explicit-only description is absent from ambient discovery`, !JSON.stringify(systemMessages).includes(name));
       check(
         `create-skill: ${name} is discovered`,
         commands.commands.some((command) => command.name === `skill:${name}` && command.source === 'skill'),
