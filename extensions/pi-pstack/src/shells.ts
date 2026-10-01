@@ -23,7 +23,9 @@ const ShellRecordSchema = Type.Object({
   status: ShellStatusSchema,
   matches: Type.Number(),
   backgroundEndsWithFinalResponse: Type.Optional(
-    Type.Literal(true, { description: 'True when this background command is owned by a synchronous subagent and is therefore terminated when that agent gives its final response; absent when the command survives (main loop, async subagents)' }),
+    Type.Literal(true, {
+      description: 'True when this background command is owned by a synchronous subagent and is therefore terminated when that agent gives its final response; absent when the command survives (main loop, async subagents)',
+    }),
   ),
 });
 

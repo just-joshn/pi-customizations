@@ -8,11 +8,9 @@ import { launchSignal } from '../worker-control.ts';
 import type { TaskRecord } from '../worker-records.ts';
 import type { WorkerRuntime } from '../worker-runtime.ts';
 import { concurrencyMessage, decideAdmission } from './admission.ts';
-import { continueAgent, type ContinueOutcome } from './agent-continue.ts';
 import { AdmissionSlots } from './admission-slots.ts';
+import { type ContinueOutcome, continueAgent } from './agent-continue.ts';
 import { type AgentDefinition, type Discovery, discoverAgents } from './definitions.ts';
-import { registerResumeCommand } from './resume-command.ts';
-import { resumeLaunch } from './resume-launch.ts';
 import { agentGuidance } from './guidance.ts';
 import { parseJsonAgents } from './json-definitions.ts';
 import { concurrencyCap, sessionSpawnCap } from './limits.ts';
@@ -20,6 +18,8 @@ import { chooseChildModel } from './models.ts';
 import { checkOptionPortability } from './option-portability.ts';
 import { AgentPreconditionError, AgentTypeError } from './precondition-error.ts';
 import { type AgentResult, AgentResultSchema, asyncLaunched, completed, resultText } from './results.ts';
+import { registerResumeCommand } from './resume-command.ts';
+import { resumeLaunch } from './resume-launch.ts';
 import { buildAgentSchema, ListAgentsSchema, SendMessageSchema } from './schema.ts';
 import type { SubagentStats } from './stats.ts';
 import { ToolOfferScope } from './tool-offer-scope.ts';
@@ -93,7 +93,11 @@ class AgentLauncher {
   }
 
   continue(request: Parameters<typeof continueAgent>[1], ctx: ExtensionContext): Promise<ContinueOutcome> {
-    const deps = { runtime: this.runtime, reserve: () => this.reserveResume(), launchFor: (record: TaskRecord) => resumeLaunch(record, ctx, { env: this.env, flags: this.runtime.agentDefinitions(), keepsAlive: (id) => this.runtime.keepsAlive(id) }) };
+    const deps = {
+      runtime: this.runtime,
+      reserve: () => this.reserveResume(),
+      launchFor: (record: TaskRecord) => resumeLaunch(record, ctx, { env: this.env, flags: this.runtime.agentDefinitions(), keepsAlive: (id) => this.runtime.keepsAlive(id) }),
+    };
     return continueAgent(deps, request, ctx);
   }
 
