@@ -44,6 +44,15 @@ test('resource fixture copy failure removes the partially populated directory', 
   }
 });
 
+test('the canvas workflow uses a local browser without altering its source snapshot', async () => {
+  const generated = await readFile(join(root, 'skills/pr-review-canvas/SKILL.md'), 'utf8');
+  const source = await readFile(join(root, 'upstream-team-kit/skills/pr-review-canvas/SKILL.md'), 'utf8');
+  expect(generated).toContain('open a local browser');
+  expect(generated).toContain('Follow the control-ui skill');
+  expect(generated).not.toContain('navigate the in-app browser');
+  expect(source).toContain('navigate the in-app browser');
+});
+
 test('resource generation is reproducible across both source bundles', async () => {
   const f = await fixture();
   try {

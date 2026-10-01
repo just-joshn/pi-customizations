@@ -1465,9 +1465,11 @@
   {
     "source": "upstream-team-kit/skills/pr-review-canvas/SKILL.md",
     "destination": "skills/pr-review-canvas/SKILL.md",
-    "sha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6",
+    "sha256": "00c819aff30aa05fe6cbd7947baf4ae3b3fafcb3e18f25edfdbf54a568c4c72f",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map the review canvas browser step to the local control-ui workflow."
+    ]
   },
   {
     "source": "upstream-team-kit/skills/pr-review-canvas/SKILL.md",
