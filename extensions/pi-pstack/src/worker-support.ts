@@ -19,9 +19,9 @@ import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
 import { validateResumeWorktree } from './subagents/resume-worktree.ts';
 import { saveChildContext } from './subagents/session-context.ts';
 import { preloadSkills } from './subagents/skill-preload.ts';
-import { trackedBashTool } from './subagents/tracked-bash.ts';
 import type { SubagentStatsDelta } from './subagents/stats.ts';
 import { agentSystemPrompt, appendedSubagentPrompt } from './subagents/system-prompt.ts';
+import { trackedBashTool } from './subagents/tracked-bash.ts';
 import type { AgentWorktree } from './subagents/worktree.ts';
 import type { TaskParameters, TaskRecord } from './worker-records.ts';
 
@@ -107,7 +107,18 @@ type OpenWorker = {
   inheritedWorktree?: string;
 };
 
-type RecordInputs = { id: string; persona: string; cwd: string; readonly: boolean; selected: ReturnType<typeof resolveModel>; depth: number; sessionFile: string; outputFile: string; launch?: AgentLaunch; inheritedWorktree?: string };
+type RecordInputs = {
+  id: string;
+  persona: string;
+  cwd: string;
+  readonly: boolean;
+  selected: ReturnType<typeof resolveModel>;
+  depth: number;
+  sessionFile: string;
+  outputFile: string;
+  launch?: AgentLaunch;
+  inheritedWorktree: string | undefined;
+};
 
 function initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile, launch, inheritedWorktree }: RecordInputs): TaskRecord {
   return {
@@ -123,7 +134,9 @@ function initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFil
     output: '',
     ...(launch ? { description: launch.description, ...(launch.name ? { agentName: launch.name } : {}) } : {}),
     ...(!launch?.worktree && inheritedWorktree ? { inheritedWorktreePath: inheritedWorktree } : {}),
-    ...(launch?.worktree ? { spawnedWithWorktree: true, worktreePath: launch.worktree.path, worktreeBranch: launch.worktree.branch, worktreeRepoRoot: launch.worktree.repoRoot, worktreeBaseCommit: launch.worktree.baseCommit, worktreeCleanlyRemoved: false } : {}),
+    ...(launch?.worktree
+      ? { spawnedWithWorktree: true, worktreePath: launch.worktree.path, worktreeBranch: launch.worktree.branch, worktreeRepoRoot: launch.worktree.repoRoot, worktreeBaseCommit: launch.worktree.baseCommit, worktreeCleanlyRemoved: false }
+      : {}),
   };
 }
 
@@ -135,8 +148,26 @@ async function loadWorkerResources(options: ConstructorParameters<typeof Default
   return loader;
 }
 
+function openChildTranscript(options: OpenWorker, cwd: string, dir: string, depth: number): { manager: SessionManager; sessionFile: string } {
+  const { id, params, prior, launch, appendedPrompt, agentDefinitions } = options;
+  const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
+  const worktree = launch?.worktree?.path ?? prior?.worktreePath ?? prior?.inheritedWorktreePath ?? options.inheritedWorktree;
+  saveChildContext(manager, {
+    id,
+    depth,
+    foreground: params.run_in_background === false,
+    ...(worktree ? { worktree } : {}),
+    ...(launch ? { definition: launch.definition } : {}),
+    ...(appendedPrompt !== undefined ? { appendedPrompt } : {}),
+    ...(agentDefinitions !== undefined ? { agentDefinitions } : {}),
+  });
+  const sessionFile = manager.getSessionFile();
+  if (!sessionFile) throw new Error('Worker session did not provide a durable transcript path.');
+  return { manager, sessionFile };
+}
+
 export async function openWorkerSession(options: OpenWorker): Promise<{ session: AgentSession; record: TaskRecord; modelsUsed: ModelHistory }> {
-  const { id, params, prior, ctx, launch, appendedPrompt, agentDefinitions, depth = 1, onNestedStats = () => {}, log = () => {}, onProcessGroup } = options;
+  const { id, params, prior, ctx, launch, appendedPrompt, depth = 1, onNestedStats = () => {}, log = () => {}, onProcessGroup } = options;
   validateId(id);
   if (prior && !existsSync(prior.sessionFile)) throw new ResumeError('state', resumeMessages.transcriptMissing(id));
   if (prior) await validateResumeWorktree(prior);
@@ -166,13 +197,10 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
     extensionsOverride: (result) => ({ ...result, extensions: deduplicateExtensions(result.extensions) }),
   });
   const dir = await workerDirectory(ctx);
-  const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
-  const worktree = launch?.worktree?.path ?? prior?.worktreePath ?? prior?.inheritedWorktreePath ?? options.inheritedWorktree;
-  saveChildContext(manager, { id, depth, foreground: params.run_in_background === false, ...(worktree ? { worktree } : {}), ...(launch ? { definition: launch.definition } : {}), ...(appendedPrompt !== undefined ? { appendedPrompt } : {}), ...(agentDefinitions !== undefined ? { agentDefinitions } : {}) });
-  const sessionFile = manager.getSessionFile();
-  if (!sessionFile) throw new Error('Worker session did not provide a durable transcript path.');
+  const { manager, sessionFile } = openChildTranscript(options, cwd, dir, depth);
   const { usage: _priorUsage, abort: _priorAbort, toolStats: _priorToolStats, ...saved } = prior ?? {};
-  const record = { ...saved, ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), ...(launch ? { launch } : {}), ...(prior || !options.inheritedWorktree ? {} : { inheritedWorktree: options.inheritedWorktree }) }) };
+  const inheritedWorktree = prior ? undefined : options.inheritedWorktree;
+  const record = { ...saved, ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), inheritedWorktree, ...(launch ? { launch } : {}) }) };
   const modelRuntime = await childModelRuntime(readonly, selected.model.provider, ctx);
   const tools = readonly ? { tools: ['read', 'grep', 'find', 'ls'] } : onProcessGroup ? { customTools: [trackedBashTool(cwd, onProcessGroup)] } : {};
   const { session } = await createAgentSession({ cwd, modelRuntime, resourceLoader: loader, sessionManager: manager, ...selected, ...tools });

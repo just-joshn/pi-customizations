@@ -22,7 +22,11 @@ function run(command: string, cwd: string, options: ExecOptions, onGroup: (pid: 
   if (pid) onGroup(pid);
   let timedOut = false;
   const abort = () => killTree(pid);
-  const timer = options.timeout === undefined ? undefined : setTimeout(() => ((timedOut = true), abort()), options.timeout * 1000);
+  const expire = () => {
+    timedOut = true;
+    abort();
+  };
+  const timer = options.timeout === undefined ? undefined : setTimeout(expire, options.timeout * 1000);
   options.signal?.addEventListener('abort', abort, { once: true });
   child.stdout?.on('data', options.onData);
   child.stderr?.on('data', options.onData);

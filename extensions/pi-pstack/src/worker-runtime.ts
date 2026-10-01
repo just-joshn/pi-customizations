@@ -4,21 +4,21 @@ import { writeFile } from 'node:fs/promises';
 import type { JsonValue, Usage } from '@earendil-works/pi-ai';
 import type { AgentSession, AgentSessionEvent, AgentSessionEventListener, AgentToolResult, AgentToolUpdateCallback, createEventBus, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from './deferred-wakes.ts';
+import { asShellHandoff, shellHandoffEvent } from './shell-ownership.ts';
 import { depthMessage } from './subagents/admission.ts';
 import { currentDepth, depthStore } from './subagents/context.ts';
+import type { ContinuationState } from './subagents/continuation.ts';
 import { SessionDepthPolicy } from './subagents/depth-policy.ts';
 import { validateId } from './subagents/identifiers.ts';
 import { AgentInvocations } from './subagents/invocations.ts';
 import { memoryEnabled } from './subagents/memory.ts';
 import { childStatsEvents } from './subagents/nested-depth.ts';
-import { asShellHandoff, shellHandoffEvent } from './shell-ownership.ts';
-import { groupSpawned, ProcessGroups, processGroupEvent } from './subagents/process-groups.ts';
 import { AgentPreconditionError } from './subagents/precondition-error.ts';
-import type { ContinuationState } from './subagents/continuation.ts';
+import { groupSpawned, ProcessGroups, processGroupEvent } from './subagents/process-groups.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
 import { SubagentStats, type SubagentStatsDelta } from './subagents/stats.ts';
-import { settleWithin, stillStoppingMessage, stopPendingDetails } from './subagents/stop-deadline.ts';
 import { registerStopControl } from './subagents/stop-control.ts';
+import { settleWithin, stillStoppingMessage, stopPendingDetails } from './subagents/stop-deadline.ts';
 import { stopPendingEvent, stopPendingFor } from './subagents/stop-pending.ts';
 import { applyToolPolicy } from './subagents/tool-pool.ts';
 import { countToolStats } from './subagents/tool-stats.ts';
@@ -411,6 +411,7 @@ export class WorkerRuntime {
   }
 
   private childChannel(id: string, owner: number): ChildChannel {
+    this.keepalive = new Set([...this.keepalive].filter((kept) => kept !== id));
     const events = childStatsEvents((change) => this.observeStats(owner, change));
     const groups = new ProcessGroups(id, (spawned) => this.pi.events.emit(processGroupEvent, spawned));
     events.on(processGroupEvent, (payload) => {

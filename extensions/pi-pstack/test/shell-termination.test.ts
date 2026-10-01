@@ -62,7 +62,12 @@ test('a descendant that left the process group is killed by the descendant backs
   try {
     await vi.waitFor(
       () => {
-        escaped = children(record.pid).find((pid) => execFileSync('ps', ['-o', 'pgid=', '-p', String(pid)]).toString().trim() !== String(record.pid));
+        escaped = children(record.pid).find(
+          (pid) =>
+            execFileSync('ps', ['-o', 'pgid=', '-p', String(pid)])
+              .toString()
+              .trim() !== String(record.pid),
+        );
         expect(escaped).toBeDefined();
       },
       { timeout: 5000, interval: 50 },

@@ -49,7 +49,12 @@ test('a stale escalation from a settled run never touches the replacement run', 
   stopped.unsubscribe();
   const next = workerControl(replacement.session, undefined, undefined, { taskId: 'same', log: () => {}, killGroups: killReplacement });
   await vi.advanceTimersByTimeAsync(30000);
-  expect({ first: first.calls.dispose, replacement: replacement.calls.dispose, killedFirst: killFirst.mock.calls.length, killedReplacement: killReplacement.mock.calls.length }).toEqual({ first: 0, replacement: 0, killedFirst: 0, killedReplacement: 0 });
+  expect({ first: first.calls.dispose, replacement: replacement.calls.dispose, killedFirst: killFirst.mock.calls.length, killedReplacement: killReplacement.mock.calls.length }).toEqual({
+    first: 0,
+    replacement: 0,
+    killedFirst: 0,
+    killedReplacement: 0,
+  });
   next.unsubscribe();
 });
 
