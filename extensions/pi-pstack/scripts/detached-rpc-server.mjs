@@ -17,6 +17,8 @@ let events;
 let diagnostics;
 let failure;
 let activity = { kind: 'idle' };
+let completionCursor = null;
+let promptError;
 let activityWrites = Promise.resolve();
 const setActivity = (next) => {
   activity = next;
@@ -55,13 +57,21 @@ async function dispatch(file) {
     return;
   }
   try {
-    if (command.type === 'prompt') await setActivity({ kind: 'accepted', invocation: id });
+    if (command.type === 'prompt') {
+      const baseline = await transport.send({ type: 'get_entries' });
+      completionCursor = baseline.entries.at(-1)?.id ?? null;
+      promptError = undefined;
+      await setActivity({ kind: 'accepted', invocation: id });
+    }
     const data = await transport.send(command);
     if (command.type === 'prompt' && data?.disposition === 'handled' && activity.kind === 'accepted') await setActivity({ kind: 'settled', invocation: id });
     await activityWrites;
     await respond(id, command.type, true, data);
   } catch (error) {
-    if (command.type === 'prompt') await setActivity({ kind: 'settled', invocation: id });
+    if (command.type === 'prompt') {
+      promptError = error instanceof Error ? error.message : String(error);
+      await setActivity({ kind: 'settled', invocation: id });
+    }
     await respond(id, command.type, false, error instanceof Error ? error.message : String(error));
   }
 }
@@ -70,7 +80,11 @@ try {
   const config = await readRecord(join(directory, 'launch.json'), launchSchema);
   if (!config) throw new Error('Detached RPC launch configuration is missing.');
   await update({ kind: 'starting' });
-  child = spawn(config.executable, config.args, { cwd: config.cwd, env: { ...process.env, PI_CODING_AGENT_DIR: config.agentDir }, stdio: ['pipe', 'pipe', 'pipe'] });
+  child = spawn(config.executable, config.args, {
+    cwd: config.cwd,
+    env: { ...process.env, PI_CODING_AGENT_DIR: config.agentDir, PI_PSTACK_HEADLESS: config.headless ? '1' : '', PI_PSTACK_WORKER_OWNER: config.ownerId ?? '' },
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
   events = createWriteStream(join(directory, 'events.jsonl'), { flags: 'a', mode: 0o600 });
   diagnostics = createWriteStream(join(directory, 'stderr.log'), { flags: 'a', mode: 0o600 });
   events.on('error', (error) => {
@@ -90,6 +104,14 @@ try {
     requestDeadlineMs: 30000,
     shutdownDeadlineMs: 5000,
     onRecord(record) {
+      if (config.headless && record.type === 'extension_ui_request' && ['select', 'confirm', 'input', 'editor'].includes(record.method)) {
+        child.stdin.write(`${JSON.stringify({ type: 'extension_ui_response', id: record.id, cancelled: true })}\n`, (error) => {
+          if (error) {
+            failure = error;
+            closing = true;
+          }
+        });
+      }
       const next = nextActivity(activity, record);
       if (next !== activity) void setActivity(next);
     },
@@ -99,6 +121,13 @@ try {
   await setActivity({ kind: 'idle' });
   await update({ kind: 'ready', childPid: child.pid });
   while (!closing) {
+    if (config.closeAfterSettle && activity.kind === 'settled') {
+      await activityWrites;
+      const result = await transport.send({ type: 'get_entries', ...(completionCursor ? { since: completionCursor } : {}) });
+      await writeRecord(join(directory, 'snapshot.json'), { invocation: activity.invocation, ...result, ...(promptError ? { error: promptError } : {}) });
+      closing = true;
+      break;
+    }
     const files = (await readdir(join(directory, 'commands'))).filter((name) => name.endsWith('.json')).sort();
     for (const file of files) {
       const operation = dispatch(file).catch((error) => {

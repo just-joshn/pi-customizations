@@ -3,7 +3,7 @@ import { Check } from 'typebox/value';
 
 export const taskEntryType = 'pstack-task';
 export const taskOutputLimit = 12000;
-const UsageSchema = Type.Object({
+export const UsageSchema = Type.Object({
   input: Type.Number({ minimum: 0 }),
   output: Type.Number({ minimum: 0 }),
   cacheRead: Type.Number({ minimum: 0 }),
