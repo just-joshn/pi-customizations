@@ -92,8 +92,76 @@ try {
   const cancelledSetup = JSON.parse(await readFile(answer, 'utf8'));
   assert.deepEqual(cancelledSetup, { completed: false, configurationExists: false });
   await writeFile(join(output, 'setup-cancel-answer.json'), JSON.stringify(cancelledSetup, null, 2));
-  await writeFile(join(output, 'results.json'), JSON.stringify({ passes: [...cases.map((row) => row.name), 'setup-budget-cancel'], scope: 'Production question and setup handlers, real Pi TUI, no inference or subagents.' }, null, 2));
-  process.stdout.write('Six real terminal question and setup journeys passed\n');
+  const roles = [
+    'feature, refactoring',
+    'bug-fix',
+    'perf-issue',
+    'hillclimb',
+    'judgment and prose',
+    'hardest tasks',
+    'how explorer',
+    'how explainer',
+    'why investigators',
+    'why synthesizer',
+    'reflect tooling',
+    'reflect judgment, divergent, synthesizer',
+    'arena runners',
+    'arena cross-judge pool',
+    'swarm workers',
+    'architect runners',
+    'interrogate reviewers',
+  ];
+  const config = join(agent, 'pstack/models.mdc');
+  const initial = `${roles.map((role) => `${role}: auto`).join('\n')}\n`;
+  await mkdir(dirname(config), { recursive: true });
+  await writeFile(config, initial);
+  for (const mode of ['decline', 'accept', 'edit']) {
+    const accept = mode !== 'decline';
+    await rm(answer, { force: true });
+    literal('/fixture-setup-cancel');
+    key('Enter');
+    await wait(() => pane().includes('pstack reasoning budget'));
+    key('Down', 'Down', 'Down', 'Enter');
+    await wait(() => pane().includes('Accept model table or change a role'));
+    await writeFile(join(output, `setup-${mode}-roles.txt`), pane());
+    if (mode === 'edit') {
+      key('Down', 'Down', 'Enter');
+      await wait(() => pane().includes('bug-fix (current: auto)'));
+      await writeFile(join(output, 'setup-edit-picker.txt'), pane());
+      key('Enter');
+      await wait(() => pane().includes('Accept model table or change a role'));
+    }
+    key('Enter');
+    await wait(() => pane().includes('Write pstack model configuration?'));
+    await writeFile(join(output, `setup-${mode}-confirmation.txt`), pane());
+    if (!accept) key('Escape');
+    else key('Enter');
+    await wait(async () => {
+      try {
+        return JSON.parse(await readFile(answer, 'utf8'));
+      } catch {
+        return false;
+      }
+    });
+    const actual = JSON.parse(await readFile(answer, 'utf8'));
+    assert.equal(actual.completed, accept);
+    assert.equal(actual.configurationExists, true);
+    if (accept) {
+      assert.ok(actual.configuration.includes('# budget: small (medium)'));
+      for (const role of roles) assert.ok(actual.configuration.includes(`${role}: ${mode === 'edit' && role === 'bug-fix' ? 'inherit-parent' : 'auto'}\n`), role);
+    } else assert.equal(actual.configuration, initial);
+    await writeFile(join(output, `setup-${mode}-answer.json`), JSON.stringify(actual, null, 2));
+    await wait(() => !pane().includes('Write pstack model configuration?'));
+  }
+  await writeFile(
+    join(output, 'results.json'),
+    JSON.stringify(
+      { passes: [...cases.map((row) => row.name), 'setup-budget-cancel', 'setup-write-decline', 'setup-write-accept', 'setup-role-edit'], scope: 'Production question and setup handlers, real Pi TUI, no inference or subagents.' },
+      null,
+      2,
+    ),
+  );
+  process.stdout.write('Nine real terminal question and setup journeys passed\n');
 } finally {
   try {
     await writeFile(join(output, 'final-terminal.txt'), pane());
