@@ -42,6 +42,7 @@ export const AgentResultSchema = Type.Union([
     harnessNoteCount: Type.Optional(Type.Integer()),
     harnessTailCount: Type.Optional(Type.Integer()),
     harnessSectionHash: Type.Optional(Type.String()),
+    worktreeCleanupWarning: Type.Optional(Type.String()),
     handback: Type.Optional(Type.Union([Type.Literal('send'), Type.Literal('flagged'), Type.Literal('withheld')])),
     handbackReport: Type.Optional(Type.Object({ text: Type.String(), warning: Type.Optional(Type.String()) })),
     worktreePath: Type.Optional(Type.String()),
@@ -90,7 +91,12 @@ export function asyncLaunched(record: Launched, plan: LaunchPlan, extra: Isolati
   };
 }
 
-export function completed(record: Launched, plan: LaunchPlan, extra: IsolationResult & { worktreePath?: string; worktreeBranch?: string } = {}, onFindings: (findings: readonly Finding[]) => void = () => {}): AgentResult {
+export function completed(
+  record: Launched,
+  plan: LaunchPlan,
+  extra: IsolationResult & { worktreePath?: string; worktreeBranch?: string; worktreeCleanupWarning?: string } = {},
+  onFindings: (findings: readonly Finding[]) => void = () => {},
+): AgentResult {
   const model = modelIdentity(record);
   const { findings, ...report } = finalizeReport({
     output: record.output,
@@ -131,9 +137,10 @@ function launchedResultText(result: Extract<AgentResult, { status: 'async_launch
 
 function completedResultText(result: Extract<AgentResult, { status: 'completed' }>): string {
   const worktree = result.worktreePath ? `\nworktreePath: ${result.worktreePath}${result.worktreeBranch ? `\nworktreeBranch: ${result.worktreeBranch}` : ''}` : '';
+  const cleanupWarning = result.worktreeCleanupWarning ? `\nworktreeCleanupWarning: ${result.worktreeCleanupWarning}` : '';
   const report = modelFacingReport({ content: result.content, harnessNoteCount: result.harnessNoteCount ?? 0, harnessTailCount: result.harnessTailCount ?? 0, harnessSectionHash: result.harnessSectionHash ?? '' });
-  if (oneShotAgentTypes.has(result.agentType) && !worktree) return report;
-  const trailer = `agentId: ${result.agentId} (use SendMessage with to: '${result.agentId}', summary: '<5-10 word recap>' to continue this agent)${worktree}\n<usage>subagent_tokens: ${result.totalTokens}\ntool_uses: ${result.totalToolUseCount}\nduration_ms: ${result.totalDurationMs}</usage>`;
+  if (oneShotAgentTypes.has(result.agentType) && !worktree && !cleanupWarning) return report;
+  const trailer = `agentId: ${result.agentId} (use SendMessage with to: '${result.agentId}', summary: '<5-10 word recap>' to continue this agent)${worktree}${cleanupWarning}\n<usage>subagent_tokens: ${result.totalTokens}\ntool_uses: ${result.totalToolUseCount}\nduration_ms: ${result.totalDurationMs}</usage>`;
   return `${report}\n${trailer}`;
 }
 

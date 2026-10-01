@@ -138,7 +138,9 @@ CLI and UI workflows use the project's existing terminal or browser tools. Bundl
 
 ## Local agents
 
-`Task` starts a local SDK session. Background calls return a task ID and deliver a completion message. `TaskOutput` reads or waits for its result. A task that finishes during a parent turn is announced when that turn ends, unless the turn already read its result with `TaskOutput` or `TaskStop`. After an aborted turn, the announcement waits for the next turn to end. `TaskMessage` sends steering or follow-up input. `TaskStop` aborts it. `Task` with `resume` continues the same child transcript.
+`Task` starts a local SDK session. A foreground call streams sanitized child tool-start, tool-finish, and retry snapshots into the active Task row. The snapshots omit child arguments, results, and shell output. RPC clients receive the same partial updates and render them themselves.
+
+A background call returns a task ID and sends a completion message. It receives no progress after the tool call returns. `TaskOutput` reads or waits for the result. Pi announces a task that finishes during a parent turn when that turn ends, unless the turn already read or stopped the task. After an aborted turn, the announcement waits for the next turn to end. `TaskMessage` sends steering or follow-up input. `TaskStop` aborts a task. `Task` with `resume` continues the same child transcript.
 
 Supported personas are `generalPurpose`, `poteto-agent`, `comment-sicko` with alias `Comment Sicko`, `ci-watcher`, and `thermo-nuclear-code-quality-review`. The last includes the complete team-kit rubric. The CI watcher inherits the parent model, matching the observed Cursor plugin loader. An explicit pi model selection overrides inheritance. Resume retains the previously selected model unless the Task call supplies an explicit model. The original persona file still records its author-requested `fast` selector.
 
@@ -181,9 +183,10 @@ bun run test:coverage
 bun run check:cli
 bun run check:upstream
 bun run check:journeys
+bun run check:progress-tui
 ```
 
-`bun run check:journeys` starts the real Pi CLI against the package with a deterministic local provider. It loads every skill and prompt template as a user would, drives the mode, status, todo, context, dialog, delegation, shell, setup, helper-script, and worktree journeys, and reports one line per check.
+`bun run check:journeys` starts the real Pi CLI against the package with a deterministic local provider. It loads every skill and prompt template as a user would, drives the mode, status, todo, context, dialog, delegation, shell, setup, helper-script, and worktree journeys, and reports one line per check. `bun run check:progress-tui` requires Pi 0.99.1 and tmux. It launches an isolated TUI with the deterministic provider and checks the visible foreground Task updates.
 
 `bun run generate` recreates the operational skills and prompts from the immutable snapshot. The checker rejects changed upstream hashes and generated resource drift. Do not edit generated resources directly.
 

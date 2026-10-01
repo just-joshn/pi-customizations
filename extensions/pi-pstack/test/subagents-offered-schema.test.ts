@@ -6,13 +6,13 @@ import { workerFixture } from './worker-fixture.ts';
 type JsonSchema = { properties: Record<string, { description?: string; pattern?: string }>; required: string[]; additionalProperties: boolean };
 const keys = (env: NodeJS.ProcessEnv) => Object.keys((buildAgentSchema(agentSchemaGates(env)) as unknown as JsonSchema).properties);
 
-test('the default offered schema matches the observed Claude Code probe exactly', () => {
+test('the public Agent schema only offers supported worktree isolation', () => {
   const schema = buildAgentSchema(agentSchemaGates({})) as unknown as JsonSchema;
   expect(Object.keys(schema.properties)).toEqual(['description', 'prompt', 'subagent_type', 'model', 'run_in_background', 'isolation']);
   expect(schema.required).toEqual(['description', 'prompt']);
   expect(schema.additionalProperties).toBe(false);
   expect(schema.properties.isolation?.description).toBe(
-    'Isolation mode. "worktree" creates a temporary git worktree so the agent works on an isolated copy of the repo. "remote" launches the agent in a remote cloud environment (always runs in background; availability is gated).',
+    'Isolation mode. "worktree" creates a temporary git worktree so the agent works on an isolated copy of the repo.',
   );
 });
 

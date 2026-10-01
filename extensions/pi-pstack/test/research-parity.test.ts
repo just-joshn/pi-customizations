@@ -134,6 +134,7 @@ test('transcript consumers read the Pi session store, not Cursor agent-transcrip
   const recall = await read('skills/recall/SKILL.md');
   expect(recall.includes('`~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`')).toBe(true);
   expect(recall.includes('`/Users/you/proj` becomes `--Users-you-proj--`')).toBe(true);
+  expect((await read('skills/reflect/SKILL.md')).includes('<session-dir>/*/subagents/agent-*.jsonl')).toBe(false);
   expect((await read('skills/reflect/SKILL.md')).includes('<session-dir>/pstack-workers/*/*.jsonl')).toBe(false);
 });
 
@@ -223,7 +224,7 @@ test('host contract names the workspace session directory the transcript skills 
   const ctx = { cwd: '/w', sessionManager: { getSessionId: () => 's', getSessionDir: () => '/agent/sessions/--w--', getSessionFile: () => '/agent/sessions/--w--/s.jsonl' } };
   const host = hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '');
   expect(host.includes('Pi session storage directory: /agent/sessions/--w--.')).toBe(true);
-  expect(host.includes('Task child transcripts owned by this parent session: /agent/sessions/--w--/pstack-workers/s.')).toBe(true);
+  expect(host.includes('Task child transcripts owned by this parent session: /agent/sessions/--w--/<parent-session-id>/subagents')).toBe(true);
 });
 
 test('host contract maps upstream Cursor facilities and tool names to Pi', async () => {

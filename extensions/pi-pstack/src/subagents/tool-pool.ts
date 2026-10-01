@@ -14,8 +14,9 @@ const aliases = new Map([
   ['find', 'find'],
   ['ls', 'ls'],
   ['agent', 'Agent'],
-  ['task', 'Task'],
+  ['task', 'Agent'],
 ]);
+const launcherTools = ['Agent', 'Task'];
 
 export function canonicalTool(name: string, all: readonly string[]): string | undefined {
   const base = name.replace(/\(.*\)$/, '').trim();
@@ -39,6 +40,7 @@ function unmatchedPatterns(definition: AgentDefinition, all: readonly string[]):
 
 function matchingTools(rule: string, all: readonly string[]): readonly string[] {
   const base = rule.replace(/\(.*\)$/, '').trim();
+  if (aliases.get(base.toLowerCase()) === 'Agent') return all.includes('Agent') ? ['Agent'] : [];
   const exact = canonicalTool(base, all);
   if (exact) return [exact];
   if (!serverPattern(base)) return [];
@@ -53,7 +55,7 @@ export function inheritedPool(all: readonly string[], parentTools: readonly stri
 export function toolAllowList(definition: AgentDefinition, all: readonly string[], inherited: readonly string[] = all): string[] {
   const requested = definition.tools;
   const base = !requested || requested.includes('*') ? [...inherited] : requested.flatMap((name) => matchingTools(name, all));
-  const denied = new Set((definition.disallowedTools ?? []).flatMap((rule) => matchingTools(rule, all)));
+  const denied = new Set((definition.disallowedTools ?? []).flatMap((rule) => matchingTools(rule, all)).flatMap((tool) => (tool === 'Agent' ? launcherTools : [tool])));
   const memoryTools = memoryEnabled(definition, process.env) ? ['read', 'write', 'edit'].filter((name) => all.includes(name)) : [];
   return [...new Set([...base, ...memoryTools])].filter((tool) => !denied.has(tool));
 }

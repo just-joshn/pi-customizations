@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { tmpdir } from 'node:os';
 
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { ProcessGroups } from '../src/subagents/process-groups.ts';
 import { trackedBashOperations } from '../src/subagents/tracked-bash.ts';
 
@@ -30,6 +30,19 @@ test('killAll SIGKILLs every tracked group and counts the owning agents', async 
   ]);
   expect(groups.killAll()).toBe(2);
   expect(await exited).toEqual([null, 'SIGKILL']);
+});
+
+test('killAll clears groups before signaling so a retry cannot signal a reused PID', () => {
+  const kill = vi.spyOn(process, 'kill').mockImplementation(() => true);
+  try {
+    const groups = new ProcessGroups('parent', () => {});
+    groups.add({ pid: 12345 });
+    expect(groups.killAll()).toBe(1);
+    expect(groups.killAll()).toBe(1);
+    expect(kill).toHaveBeenCalledTimes(1);
+  } finally {
+    kill.mockRestore();
+  }
 });
 
 test('an agent with no tracked groups still reports itself', () => {

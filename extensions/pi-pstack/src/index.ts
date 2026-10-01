@@ -11,6 +11,7 @@ import { hostInstructions } from './host.ts';
 import { hostVersionNotice } from './host-version.ts';
 import { readModelRule } from './models.ts';
 import { registerQuestions } from './questions.ts';
+import { registerEventFlags } from './subagents/sdk-events.ts';
 import { registerRoutines } from './routines.ts';
 import { registerSetupTool } from './setup-tool.ts';
 import { registerShells } from './shells.ts';
@@ -40,6 +41,11 @@ async function loadModeSource() {
 }
 
 export default async function pstack(pi: ExtensionAPI) {
+  registerEventFlags(pi);
+  pi.registerFlag('append-subagent-system-prompt', { type: 'string', description: 'Append native child system instructions when CLAUDE_CODE_ENABLE_APPEND_SUBAGENT_PROMPT is enabled.' });
+  pi.registerFlag('agents', { type: 'string', description: 'JSON map of native agent definitions for this session.' });
+  pi.registerFlag('add-dir', { type: 'string', description: 'Additional project directories whose .pi/agents and .claude/agents definitions load, separated by the path delimiter.' });
+  pi.registerFlag('max-budget-usd', { type: 'string', description: 'Maximum session spend in USD; new subagents are refused once it is reached.' });
   const [[mode, setup], { reminder, badge }, catalog, testedVersion] = await Promise.all([Promise.all(['poteto-mode', 'setup-pstack'].map(loadSkill)), loadModeSource(), skillCatalog(root, process.env.PI_PSTACK_WORKER_OWNER ? 'cloud' : 'local'), testedHostVersion()]);
   if (!mode || !setup) throw new Error('Missing pstack resource. Run bun run generate.');
   const skills = new Map([

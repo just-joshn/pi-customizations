@@ -64,7 +64,7 @@
     "executable": false,
     "transformations": [
       "Map user and project skill directories to Pi discovery locations.",
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.",
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Replace a Cursor-only noun with its Pi equivalent.",
       "Count the inline mining pass separately from the skills."
     ]
@@ -395,7 +395,7 @@
     "sha256": "4397c8a91ba8dc0225426d60b63bd16833c28e1ee387c170601648a97e0d0fe1",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.",
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Resolve the arena path defaults that contain the words that the eval blinding rules forbid."
     ]
   },
@@ -459,7 +459,7 @@
     "sha256": "0d8d7d798d782732a02d309d39bb9162e30acc43c93c2b8bf9d6ca32b535f901",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.",
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Restore the upstream cloud default placement and name the local fallback and its record.",
       "Replace a Cursor-only noun with its Pi equivalent.",
       "Name the agent store directory from the host contract and the orch writers that own each store file.",
@@ -512,7 +512,7 @@
     "sha256": "f1fab202cfcdbfb29244b2677b970df4346ff311af9d54b14fa40549453612f8",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.",
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Replace a Cursor-only noun with its Pi equivalent.",
       "Resolve a stale or contradictory upstream guard natively."
     ]
@@ -621,7 +621,7 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/orch/store.ts",
     "destination": "skills/poteto-mode/scripts/orch/store.ts",
-    "sha256": "feb39f352d0d6af147eb4fe7e5aaed2c12aab6ac3e2ba36dbaff0d112d6556f0",
+    "sha256": "9f5cc61d833912c017d56e35249e80113467410396586ad9ce0e761f3cb817c5",
     "executable": false,
     "transformations": [
       "Import spawnSync to detect a missing gt binary.",
@@ -764,10 +764,10 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/worktree-audit.sh",
     "destination": "skills/poteto-mode/scripts/worktree-audit.sh",
-    "sha256": "bd7bd3e6dcdd35b3b075a19d685fda4e0d3fa9cb3f5fb0152d4ab55522175ecd",
+    "sha256": "791973929ee225487d583856d13c4708f2c5cd36673cc24a13b9c6e810989022",
     "executable": true,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.",
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Replace BSD-only stat and date calls with Perl so transcript dates survive GNU or uutils coreutils on PATH.",
       "Warn on stderr when jq, rg, or perl is missing instead of silently blanking the PR and LAST_CHAT columns.",
       "Parse worktree paths by stripping the `worktree ` prefix so paths with spaces survive.",
@@ -1197,10 +1197,10 @@
   {
     "source": "upstream/skills/recall/SKILL.md",
     "destination": "skills/recall/SKILL.md",
-    "sha256": "6ef24885d5ea6cf03409b11d557bb51dd0ca611f1ce773444f448e7e72a4ae92",
+    "sha256": "fcb60e2f860c91a7cd3b8a4f1e717aeda56475204813d86d6a36d7c1ce31a4ed",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.",
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Wire the recall miners to their role line."
     ]
   },
@@ -1216,13 +1216,12 @@
   {
     "source": "upstream/skills/reflect/SKILL.md",
     "destination": "skills/reflect/SKILL.md",
-    "sha256": "b789db6b84c354ea9617a2d9b9347095d2d9f9114ec25d3c7e1c8ff8cd14519c",
+    "sha256": "318438a1fa8ba9c5d67a66a6683c394d8c83ea0dd29716433e715006bb58a021",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.",
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Replace a Cursor-only noun with its Pi equivalent.",
       "Use the exact transcript path the host contract names instead of globbing the shared session directory.",
-      "Remove the session directory glob.",
       "Verify the named transcript instead of scanning candidates.",
       "Gate the external Backlog write on approval and name a default tracker."
     ]
@@ -1287,7 +1286,7 @@
     "sha256": "2b1c08f1c9c7d042b895f675c8ebfa8e13d435f9096b8d60c0b022cd0ba06071",
     "executable": false,
     "transformations": [
-      "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.",
+      "Map Cursor agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Wire the trail reviewer to its role line."
     ]
   },

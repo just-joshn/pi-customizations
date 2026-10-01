@@ -1,9 +1,8 @@
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import type { TaskRecord } from '../worker-records.ts';
 import type { AgentLaunch } from '../worker-support.ts';
-import { discoverAgents } from './definitions.ts';
+import type { DefinitionCatalog } from './definition-catalog.ts';
 import { forkDefinition } from './fork-context.ts';
-import { parseJsonAgents } from './json-definitions.ts';
 import { type AgentWorktree, finalizeWorktree } from './worktree.ts';
 
 function recordedWorktree(record: TaskRecord): AgentWorktree | undefined {
@@ -16,14 +15,15 @@ export async function finalizeRecordedWorktree(record: TaskRecord, keptAlive: bo
   const worktree = recordedWorktree(record);
   if (!worktree) return {};
   const outcome = keptAlive ? ({ kept: true, path: worktree.path, branch: worktree.branch } as const) : await finalizeWorktree(worktree);
-  return outcome.kept ? { worktreeCleanlyRemoved: false, worktreePath: outcome.path, worktreeBranch: outcome.branch } : { worktreeCleanlyRemoved: true };
+  return outcome.kept
+    ? { worktreeCleanlyRemoved: false, worktreePath: outcome.path, worktreeBranch: outcome.branch }
+    : { worktreeCleanlyRemoved: true, ...(outcome.branchCleanupError ? { worktreeCleanupWarning: outcome.branchCleanupError } : {}) };
 }
 
-type ResumeContext = Readonly<{ env: NodeJS.ProcessEnv; flags: string | undefined; keepsAlive: (id: string) => boolean }>;
+type ResumeContext = Readonly<{ catalog: DefinitionCatalog; keepsAlive: (id: string) => boolean }>;
 
-export function resumeLaunch(record: TaskRecord, ctx: ExtensionContext, { env, flags, keepsAlive }: ResumeContext): AgentLaunch | undefined {
-  const flagAgents = flags === undefined ? undefined : parseJsonAgents(flags, ctx.cwd);
-  const definition = discoverAgents({ root: ctx.cwd, env, ...(flagAgents ? { flagAgents } : {}) }).activeAgents.find((agent) => agent.agentType === record.persona);
+export function resumeLaunch(record: TaskRecord, ctx: ExtensionContext, { catalog, keepsAlive }: ResumeContext): AgentLaunch | undefined {
+  const definition = catalog.discover(ctx).activeAgents.find((agent) => agent.agentType === record.persona);
   const resolved = definition ?? (record.persona === forkDefinition.agentType ? forkDefinition : undefined);
   if (!resolved) return undefined;
   return { definition: resolved, description: record.description ?? '', depth: record.depth ?? 1, onSettled: (finished) => finalizeRecordedWorktree(finished, keepsAlive(finished.id)) };

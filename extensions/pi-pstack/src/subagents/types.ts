@@ -26,7 +26,9 @@ export type RefusalCode =
   | 'subagent_name_invalid'
   | 'subagent_isolation_conflict'
   | 'subagent_fork_remote_isolation'
-  | 'subagent_recursive_fork';
+  | 'subagent_recursive_fork'
+  | 'subagent_nested_teammate'
+  | 'subagent_teammate_background_denied';
 
 export type Refusal = Readonly<{ code: RefusalCode; message: string }>;
 

@@ -1,5 +1,6 @@
 import { type Static, Type } from 'typebox';
 import { Check } from 'typebox/value';
+import { ToolStatsSchema } from './subagents/tool-stats.ts';
 import { ExecutorSchema } from './remote-executors.ts';
 
 export const taskEntryType = 'pstack-task';
@@ -37,9 +38,46 @@ export const TaskRecordSchema = Type.Object({
   sessionFile: Type.String(),
   outputFile: Type.String(),
   modelReference: Type.Optional(Type.String()),
+  modelsUsed: Type.Optional(Type.Array(Type.String())),
+  toolStats: Type.Optional(ToolStatsSchema),
+  abort: Type.Optional(Type.Object({ reason: Type.String(), telemetry: Type.String(), userInitiated: Type.Boolean(), cutoffNote: Type.Optional(Type.String()) })),
   status: Type.Union([Type.Literal('running'), Type.Literal('settled'), Type.Literal('failed'), Type.Literal('interrupted')]),
   output: Type.String(),
   usage: Type.Optional(UsageSchema),
+  agentName: Type.Optional(Type.String()),
+  spawnedWithWorktree: Type.Optional(Type.Boolean()),
+  worktreeCleanlyRemoved: Type.Optional(Type.Boolean()),
+  worktreePath: Type.Optional(Type.String()),
+  worktreeBranch: Type.Optional(Type.String()),
+  worktreeRepoRoot: Type.Optional(Type.String()),
+  worktreeBaseCommit: Type.Optional(Type.String()),
+  worktreeHookBased: Type.Optional(Type.Boolean()),
+  worktreeCleanupWarning: Type.Optional(Type.String()),
+  requestedIsolation: Type.Optional(Type.Union([Type.Literal('worktree'), Type.Literal('remote')])),
+  parentAgentId: Type.Optional(Type.String()),
+  destination: Type.Optional(
+    Type.Object({ kind: Type.Union([Type.Literal('remote'), Type.Literal('teammate')]), sessionUrl: Type.String(), sessionId: Type.String(), planMode: Type.Optional(Type.Boolean()), pane: Type.Optional(Type.String()), team: Type.Optional(Type.String()) }),
+  ),
+  inheritedWorktreePath: Type.Optional(Type.String()),
+  description: Type.Optional(Type.String()),
+  depth: Type.Optional(Type.Integer({ minimum: 1 })),
+  toolUseCount: Type.Optional(Type.Integer({ minimum: 0 })),
+  durationMs: Type.Optional(Type.Number({ minimum: 0 })),
+  startedAt: Type.Optional(Type.Number({ minimum: 0 })),
+  toolUseId: Type.Optional(Type.String()),
+  requestShape: Type.Optional(Type.Union([Type.Literal('foreground'), Type.Literal('background')])),
+  totalTokens: Type.Optional(Type.Number({ minimum: 0 })),
+  maxTurnsReached: Type.Optional(Type.Integer({ minimum: 1 })),
+  handback: Type.Optional(
+    Type.Object({
+      recipient: Type.String(),
+      delivered: Type.Boolean(),
+      flagged: Type.Boolean(),
+      bounces: Type.Integer({ minimum: 0 }),
+      waitingOnBackground: Type.Boolean(),
+      report: Type.Optional(Type.Object({ text: Type.String(), warning: Type.Optional(Type.String()) })),
+    }),
+  ),
   detached: Type.Optional(
     Type.Object({ directory: Type.String({ minLength: 1 }), invocation: Type.String({ minLength: 1 }), entryCursor: Type.Union([Type.String({ minLength: 1 }), Type.Null()]), remote: Type.Optional(RemotePlacementSchema) }),
   ),

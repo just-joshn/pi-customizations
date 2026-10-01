@@ -1,13 +1,24 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { discoverTasks, selectTask } from './task-discovery.ts';
+import { isCursorPersona } from './personas.ts';
+import { AgentResultSchema } from './subagents/results.ts';
+import { registerTaskPanel } from './subagents/task-panel.ts';
+import { type LaunchAgent, registerAgentTools } from './subagents/tools.ts';
+import { discoverTasks } from './task-discovery.ts';
 import { TaskParameters, TaskRecordSchema, taskSummary } from './worker-records.ts';
-import { WorkerRuntime } from './worker-runtime.ts';
+import { type TaskToolDetails, WorkerRuntime } from './worker-runtime.ts';
 
 export { restoreTaskRecords, taskSummary } from './worker-records.ts';
 
-function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime): void {
-  pi.registerTool({
+const cursorOnlyFields = ['resume', 'readonly', 'environment', 'cwd'];
+
+function carriesAgentContract(params: TaskParameters & { description?: unknown }): boolean {
+  if (typeof params.description !== 'string' || cursorOnlyFields.some((field) => field in params)) return false;
+  return params.subagent_type === undefined || !isCursorPersona(params.subagent_type);
+}
+
+function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime, launchAgent: LaunchAgent): void {
+  pi.registerTool<typeof TaskParameters, TaskToolDetails | Awaited<ReturnType<LaunchAgent>>['details']>({
     name: 'Task',
     label: 'Task',
     description:
@@ -19,11 +30,11 @@ function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime): void {
       'Task also supports the bundled ci-watcher and thermo-nuclear-code-quality-review personas. ci-watcher inherits the parent model unless the caller supplies a configured Pi model, matching observed Cursor plugin behavior. No model is silently substituted. The shell and explore personas are native. Collect the required diff and file contents with available tools before invoking the thermo review persona.',
     ],
     parameters: TaskParameters,
-    outputSchema: TaskRecordSchema,
+    outputSchema: Type.Union([TaskRecordSchema, AgentResultSchema]),
     exposure: 'direct',
     annotations: { openWorldHint: true },
     executionMode: 'parallel',
-    execute: (id, params, signal, _update, ctx) => runtime.start(id, params, signal, ctx),
+    execute: (id, params, signal, onUpdate, ctx) => (carriesAgentContract(params) ? launchAgent(id, params, signal, onUpdate, ctx) : runtime.start(id, params, signal, ctx, onUpdate)),
   });
 }
 
@@ -40,13 +51,18 @@ function registerControlTools(pi: ExtensionAPI, runtime: WorkerRuntime): void {
     executionMode: 'parallel',
     execute: (_id, params, signal) => runtime.output(params.task_id, params.block, signal),
   });
-  pi.registerTool({
+  const stopParameters = Type.Object({ task_id: Type.String() });
+  pi.registerTool<typeof stopParameters, Awaited<ReturnType<WorkerRuntime['stop']>>['details']>({
     name: 'TaskStop',
     label: 'Stop task',
-    description: 'Abort a running child task.',
+    description: 'Abort a running child task by ID or name. Unknown tasks return a failure result.',
     promptSnippet: 'Abort a running subagent',
-    parameters: Type.Object({ task_id: Type.String() }),
-    outputSchema: TaskRecordSchema,
+    parameters: stopParameters,
+    outputSchema: Type.Union([
+      Type.Intersect([TaskRecordSchema, Type.Object({ message: Type.String(), task_id: Type.String(), task_type: Type.Literal('local_agent'), command: Type.String() })]),
+      Type.Object({ status: Type.Literal('failed'), task_id: Type.String(), message: Type.String() }),
+      Type.Object({ status: Type.Literal('stop_pending'), task_id: Type.String(), message: Type.String(), task_type: Type.Literal('local_agent'), command: Type.String() }),
+    ]),
     exposure: 'direct',
     annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: false },
     executionMode: 'parallel',
@@ -78,7 +94,8 @@ function registerTaskList(pi: ExtensionAPI, runtime: WorkerRuntime): void {
     execute: async (_id, params, _signal, _update, ctx) => {
       if (!params.repository) {
         if (params.branch) throw new Error('Branch discovery requires repository: true.');
-        return runtime.list();
+        const tasks = runtime.list();
+        return { content: [{ type: 'text', text: JSON.stringify({ tasks: tasks.map((record) => JSON.parse(taskSummary(record))) }) }], details: { tasks } };
       }
       const receipts = await discoverTasks(ctx.cwd, params.branch);
       return { content: [{ type: 'text', text: JSON.stringify({ tasks: receipts.map((item) => ({ ...JSON.parse(taskSummary(item.record)), branch: item.branch, observed: 'launch receipt; TaskAttach reconciles live status' })) }) }], details: { tasks: receipts.map((item) => item.record) } };
@@ -86,21 +103,12 @@ function registerTaskList(pi: ExtensionAPI, runtime: WorkerRuntime): void {
   });
 }
 
-function registerTaskAttach(pi: ExtensionAPI, runtime: WorkerRuntime): void {
-  pi.registerTool({
-    name: 'TaskAttach', label: 'Attach remote task',
-    description: 'Explicitly attach one previously launched remote task in this repository by task_id or unambiguous branch. Reconciles status without sending a prompt.',
-    parameters: Type.Object({ task_id: Type.Optional(Type.String({ minLength: 1 })), branch: Type.Optional(Type.String({ minLength: 1 })) }),
-    outputSchema: TaskRecordSchema, exposure: 'direct', annotations: { openWorldHint: true },
-    execute: async (_id, params, _signal, _update, ctx) => runtime.attach((await selectTask(ctx.cwd, params)).record, ctx),
-  });
-}
-
 export function registerWorkers(pi: ExtensionAPI): void {
   const runtime = new WorkerRuntime(pi);
   runtime.registerLifecycle();
-  registerTaskTool(pi, runtime);
+  const launchAgent = registerAgentTools(pi, runtime);
+  registerTaskTool(pi, runtime, launchAgent);
   registerControlTools(pi, runtime);
+  registerTaskPanel(pi, runtime);
   registerTaskList(pi, runtime);
-  registerTaskAttach(pi, runtime);
 }

@@ -101,12 +101,6 @@ export default [
   ],
   [
     skill('reflect'),
-    '```bash\nls -t <session-dir>/*.jsonl <session-dir>/pstack-workers/*/*.jsonl 2>/dev/null | head -10\n```\n\n',
-    '',
-    'Remove the session directory glob.',
-  ],
-  [
-    skill('reflect'),
     "For each candidate, read the first JSONL line whose `message.role` is `user` and check that its `message.content` (a string, or the `text` of its first text block) contains the conversation's opening user prompt. Take the matching path.",
     "Check that the chosen file's first user line (the first JSONL line whose `message.role` is `user`, with `message.content` a string or the `text` of its first text block) contains the conversation's opening user prompt. Take the matching path.",
     'Verify the named transcript instead of scanning candidates.',

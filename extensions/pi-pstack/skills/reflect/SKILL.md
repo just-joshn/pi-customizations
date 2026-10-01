@@ -18,7 +18,11 @@ Invoke when the user says "reflect" or "/reflect". Skip when the conversation is
 
 The parent finds its own transcript file before fanning out. The host contract names this session's transcript file ("This session transcript is ..."). Use that exact path. When it says the session is in memory, or when you need an earlier session in this workspace, call `pstack_context({ history: true })` and use only its matching transcript paths. Do not glob the Pi session storage directory. It can hold other workspaces, and reading it crosses workspace boundaries and reads private chats from unrelated projects.
 
-Two transcript layouts: session (`<timestamp>_<id>.jsonl`) and Task subagent (`pstack-workers/<parent>/<timestamp>_<child>.jsonl`).
+```bash
+ 2>/dev/null | head -10
+```
+
+Two transcript layouts: session (`<timestamp>_<id>.jsonl`) and Task subagent (`<parent-id>/subagents/agent-<child>.jsonl`, with `agent-<child>.meta.json` beside it; older runs wrote `pstack-workers/<parent>/<timestamp>_<child>.jsonl`).
 
 Check that the chosen file's first user line (the first JSONL line whose `message.role` is `user`, with `message.content` a string or the `text` of its first text block) contains the conversation's opening user prompt. Take the matching path. If no path resolves, write a tight digest of the session and pass that instead.
 
