@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
-import { mkdtemp, readFile, realpath } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -232,25 +232,32 @@ async function openChildTranscript(options: OpenWorker, cwd: string, dir: string
   return { manager, sessionFile };
 }
 
-export async function openWorkerSession(options: OpenWorker): Promise<{ session: AgentSession; record: TaskRecord; modelsUsed: ModelHistory; handback?: HandbackContract }> {
-  const { id, params, prior, ctx, launch, appendedPrompt, agentDefinitions, depth = 1, onNestedStats = () => {}, log = () => {}, handback, onProcessGroup } = options;
-  validateId(id);
-  if (prior && !existsSync(prior.sessionFile)) throw new ResumeError('state', resumeMessages.transcriptMissing(id));
-  if (prior) await validateResumeWorktree(prior);
-  const cwd = await realpath(resolve(ctx.cwd, params.cwd ?? prior?.cwd ?? ctx.cwd));
+type Engine = 'local' | 'detached' | 'remote';
+
+function savedCwd(prior: TaskRecord | undefined, engine: Engine): string | undefined {
+  return engine === 'remote' ? prior?.detached?.remote?.localCwd : prior?.cwd;
+}
+
+async function resolveWorkspace(options: OpenWorker, engine: Engine): Promise<{ cwd: string; persona: string; readonly: boolean }> {
+  const { params, prior, ctx, launch } = options;
+  if (prior && params.environment && params.environment !== (prior.detached ? 'cloud' : 'local')) throw new Error('Resume must preserve the task execution environment.');
+  const cwd = await realpath(resolve(ctx.cwd, params.cwd ?? savedCwd(prior, engine) ?? ctx.cwd));
   const persona = launch?.definition.agentType ?? params.subagent_type ?? prior?.persona ?? 'generalPurpose';
   const readonly = params.readonly ?? prior?.readonly ?? false;
-  if (prior && (cwd !== prior.cwd || persona !== prior.persona || readonly !== prior.readonly)) throw new Error('Resume must preserve the task workspace, persona, and readonly policy.');
-  const fork = planFork({ id, prior, launch });
-  const profile = launch ? { instructions: agentSystemPrompt(launch.definition), defaultModel: undefined } : await readPersona(persona);
-  const selected = withAgentEffort(resolveModel(params.model ?? prior?.modelReference ?? profile.defaultModel, ctx), launch?.definition.effort, process.env, SettingsManager.create(cwd, getAgentDir()).getSettings());
-  const modelsUsed = new ModelHistory([...(prior?.modelsUsed ?? []), `${selected.model.provider}/${selected.model.id}`]);
+  if (prior && (cwd !== savedCwd(prior, engine) || persona !== prior.persona || readonly !== prior.readonly)) throw new Error('Resume must preserve the task workspace, persona, and readonly policy.');
+  return { cwd, persona, readonly };
+}
+
+async function workerLoader(options: OpenWorker, engine: Engine, workspace: { cwd: string; persona: string; readonly: boolean }, fork: ForkPlan | undefined, modelsUsed: ModelHistory, profile: { instructions: string }): Promise<DefaultResourceLoader> {
+  const { id, prior, launch, appendedPrompt, handback, log = () => {}, onNestedStats = () => {} } = options;
+  const { cwd, readonly } = workspace;
+  const providerExtensions = !readonly || engine !== 'local';
   const { pi: manifest } = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')) as { pi: Record<'extensions' | 'skills' | 'prompts', string[]> };
-  const loader = await loadWorkerResources({
+  return loadWorkerResources({
     eventBus: options.events ?? childStatsEvents(onNestedStats),
     cwd,
     agentDir: getAgentDir(),
-    noExtensions: readonly,
+    noExtensions: !providerExtensions,
     ...childPromptOptions({
       body: profile.instructions + (await memoryPrompt(launch?.definition, cwd, process.env, log)) + appendedSubagentPrompt(appendedPrompt, process.env),
       host: hostNotes(id, handback, prior),
@@ -258,20 +265,41 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
       fork: fork?.state,
       ordinary: launch !== undefined,
     }),
-    extensionFactories: [modelsUsed.extensionFactory(), ...(handback ? [handbackExtension(handback)] : [])],
-    additionalExtensionPaths: readonly ? [] : manifest.extensions.map((path) => join(root, path)),
+    extensionFactories: engine === 'local' ? [modelsUsed.extensionFactory(), ...(handback ? [handbackExtension(handback)] : [])] : [],
+    additionalExtensionPaths: providerExtensions ? manifest.extensions.map((path) => join(root, path)) : [],
     additionalSkillPaths: fork ? [] : manifest.skills.map((path) => join(root, path)),
     additionalPromptTemplatePaths: manifest.prompts.map((path) => join(root, path)),
     extensionsOverride: (result) => workerExtensions(result, join(root, 'src/index.ts')),
   });
-  const dir = await workerDirectory(ctx);
+}
+
+export async function prepareWorkerSession(options: OpenWorker, engine: Engine = 'local') {
+  const { id, params, prior, ctx, launch } = options;
+  validateId(id);
+  const workspace = await resolveWorkspace(options, engine);
+  const fork = planFork({ id, prior, launch });
+  const profile = launch ? { instructions: agentSystemPrompt(launch.definition), defaultModel: undefined } : await readPersona(workspace.persona);
+  const selected = withAgentEffort(resolveModel(params.model ?? prior?.modelReference ?? profile.defaultModel, ctx), launch?.definition.effort, process.env, SettingsManager.create(workspace.cwd, getAgentDir()).getSettings());
+  const modelsUsed = new ModelHistory([...(prior?.modelsUsed ?? []), `${selected.model.provider}/${selected.model.id}`]);
+  const loader = await workerLoader(options, engine, workspace, fork, modelsUsed, profile);
+  const base = await workerDirectory(ctx);
+  const dir = engine === 'local' ? base : join(base, id);
+  if (engine !== 'local') await mkdir(dir, { recursive: true });
+  return { ...workspace, selected, loader, dir, fork, modelsUsed };
+}
+
+export async function openWorkerSession(options: OpenWorker): Promise<{ session: AgentSession; record: TaskRecord; modelsUsed: ModelHistory; handback?: HandbackContract }> {
+  const { id, params, prior, ctx, launch, depth = 1, log = () => {}, handback, onProcessGroup } = options;
+  validateId(id);
+  if (prior && !existsSync(prior.sessionFile)) throw new ResumeError('state', resumeMessages.transcriptMissing(id));
+  if (prior) await validateResumeWorktree(prior);
+  const { cwd, persona, readonly, selected, loader, dir, fork, modelsUsed } = await prepareWorkerSession(options);
   const { manager, sessionFile } = await openChildTranscript(options, cwd, dir, depth, fork);
   const { usage: _priorUsage, abort: _priorAbort, toolStats: _priorToolStats, ...saved } = prior ?? {};
-  const inheritedWorktree = prior ? undefined : options.inheritedWorktree;
   const requestShape = params.run_in_background === false ? ('foreground' as const) : ('background' as const);
   const record = {
     ...saved,
-    ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), inheritedWorktree, ...(launch ? { launch } : {}) }),
+    ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), inheritedWorktree: prior ? undefined : options.inheritedWorktree, ...(launch ? { launch } : {}) }),
     ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}),
     requestShape,
   };
