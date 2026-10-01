@@ -7,11 +7,12 @@ export async function validateResumeWorktree(record: TaskRecord): Promise<void> 
   if (!record.spawnedWithWorktree) return;
   if (record.worktreeCleanlyRemoved) throw new Error('Cannot resume this isolated agent: its worktree was cleanly removed. Start a new Agent with worktree isolation.');
   const { worktreePath: path, worktreeBranch: branch, worktreeRepoRoot: repoRoot } = record;
-  if (!path || !branch || !repoRoot) throw new Error('Cannot resume this isolated agent: its worktree is not recorded for this isolated agent. Start a new Agent with worktree isolation.');
+  const hookBased = record.worktreeHookBased === true;
+  if (!path || (!hookBased && (!branch || !repoRoot))) throw new Error('Cannot resume this isolated agent: its worktree is not recorded for this isolated agent. Start a new Agent with worktree isolation.');
   const directory = await stat(path).catch((error) => {
     throw new Error(`Cannot resume this agent right now: its worktree could not be verified (${String(error)}). Re-run once git can answer.`);
   });
-  if (!directory.isDirectory() || record.cwd !== path || !(await verifiedWorktree({ path, branch, repoRoot }))) {
+  if (!directory.isDirectory() || record.cwd !== path || !(hookBased || (branch && repoRoot && (await verifiedWorktree({ path, branch, repoRoot }))))) {
     throw new Error('Cannot resume this agent right now: its worktree could not be verified (git identity does not match the recorded binding). Re-run once git can answer.');
   }
   try {

@@ -137,3 +137,21 @@ test('[C56] a nested child records the spawning agent as its parent', async () =
     expect(nested).toMatchObject({ description: 'nested depth', parentAgentId: done.agentId });
   });
 });
+
+test('[C52] a configured WorktreeCreate hook supplies the checkout outside git and the Agent keeps it', async () => {
+  await withFixture(async (fixture) => {
+    const hooked = join(fixture.dir, 'hooked');
+    const settings = JSON.parse(await readFile(join(fixture.dir, 'settings.json'), 'utf8'));
+    const hooks = { WorktreeCreate: [{ hooks: [{ type: 'command', command: `mkdir -p ${hooked} && echo ${hooked}` }] }] };
+    await writeFile(join(fixture.dir, 'settings.json'), JSON.stringify({ ...settings, hooks }));
+    const done = await agent(fixture, { prompt: 'WORKTREE_WRITE', isolation: 'worktree' });
+    const path = realpathSync(hooked);
+    expect(done).toMatchObject({ worktreePath: path, requestedIsolation: 'worktree', effectiveIsolation: 'worktree' });
+    expect(done).not.toHaveProperty('worktreeBranch');
+    expect(await readFile(join(path, 'child-change.txt'), 'utf8')).toBe('isolated-change');
+    expect((await fixture.call('TaskOutput', { task_id: done.agentId })).details).toMatchObject({ cwd: path, spawnedWithWorktree: true, worktreeHookBased: true, worktreeCleanlyRemoved: false, worktreePath: path });
+    expect(fixture.subagentLogs).toContain(`Hook-based agent worktree kept at: ${path}`);
+    await fixture.call('SendMessage', { to: done.agentId, message: 'resume hooked' });
+    expect((await fixture.call('TaskOutput', { task_id: done.agentId, block: true })).details).toMatchObject({ status: 'settled', cwd: path });
+  });
+});
