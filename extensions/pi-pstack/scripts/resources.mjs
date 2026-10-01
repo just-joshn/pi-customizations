@@ -59,6 +59,12 @@ const portableDates = 'Replace BSD-only stat and date calls with Perl so transcr
 const repositorySkills = 'Map the upstream repository path for the bundled skills to this repository layout.';
 const hostPaths = [
   [
+    /^skills\/pr-review-canvas\/SKILL\.md$/,
+    'Run this backgrounded, then navigate the in-app browser to',
+    'Run this backgrounded, then open a local browser. Follow the control-ui skill to connect to the browser and verify the page at',
+    'Map the review canvas browser step to the local control-ui workflow.',
+  ],
+  [
     markdownFiles,
     'Look recursively for `.upstream/skills/**/*-mode/SKILL.md` and `~/.upstream/skills/*-mode/SKILL.md`',
     'Look recursively for `.pi/skills/**/*-mode/SKILL.md`, `.agents/skills/**/*-mode/SKILL.md`, `<agent-dir>/skills/*-mode/SKILL.md` (`~/.pi/agent/skills` by default), and `~/.agents/skills/*-mode/SKILL.md`',
