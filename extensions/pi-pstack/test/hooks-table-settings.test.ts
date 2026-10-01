@@ -96,7 +96,11 @@ test.for([
     },
   },
   { name: 'an unknown event is noted and ignored', frontmatter: { hooks: { Bogus: [] } }, expected: { notes: ["Ignoring unknown hook event 'Bogus'"] } },
-  { name: 'a recognized but unsupported event is noted and ignored', frontmatter: { hooks: { Notification: [group({ type: 'command', command: 'x' })] } }, expected: { notes: ['Ignoring Notification hooks: the event does not fire for subagents in Pi'] } },
+  {
+    name: 'a recognized but unsupported event is noted and ignored',
+    frontmatter: { hooks: { Notification: [group({ type: 'command', command: 'x' })] } },
+    expected: { notes: ['Ignoring Notification hooks: the event does not fire for subagents in Pi'] },
+  },
   { name: 'a malformed non-guard event is noted and ignored', frontmatter: { hooks: { PostToolUse: 'x' } }, expected: { notes: ['Ignoring PostToolUse hooks: PostToolUse must be a list of hook groups'] } },
 ])('parsing hooks: $name', ({ frontmatter, expected }) => {
   expect(parseAgentHooks(frontmatter, 'reviewer')).toEqual(expected);
@@ -104,7 +108,11 @@ test.for([
 
 test.for([
   { name: 'a top-level PreToolUse key', frontmatter: { PreToolUse: [] }, message: `Agent 'reviewer': PreToolUse is declared at the frontmatter top level, outside "hooks" — declare guard hooks under "hooks:" with command handlers` },
-  { name: 'a top-level PermissionRequest key', frontmatter: { PermissionRequest: [] }, message: `Agent 'reviewer': PermissionRequest is declared at the frontmatter top level, outside "hooks" — declare guard hooks under "hooks:" with command handlers` },
+  {
+    name: 'a top-level PermissionRequest key',
+    frontmatter: { PermissionRequest: [] },
+    message: `Agent 'reviewer': PermissionRequest is declared at the frontmatter top level, outside "hooks" — declare guard hooks under "hooks:" with command handlers`,
+  },
   { name: 'a list instead of a mapping', frontmatter: { hooks: [] }, message: "Invalid hooks in agent 'reviewer': hooks must be a mapping of event names to hook groups" },
   { name: 'a scalar instead of a mapping', frontmatter: { hooks: 'x' }, message: "Invalid hooks in agent 'reviewer': hooks must be a mapping of event names to hook groups" },
   { name: 'a group that is not an object', frontmatter: { hooks: { PreToolUse: ['x'] } }, message: "Invalid hooks in agent 'reviewer': a hook group must be an object" },

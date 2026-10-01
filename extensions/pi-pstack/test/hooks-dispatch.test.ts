@@ -22,7 +22,12 @@ function tableFor(event: HookEventName, command: string, matcher?: string): Hook
 
 test('only hooks whose matcher fits the subject run', async () => {
   const { dispatcher, request } = await setup();
-  const settings: HookTable = { PreToolUse: [{ matcher: 'Read', hooks: [{ command: 'echo read' }] }, { matcher: 'Bash', hooks: [{ command: 'echo bash' }] }] };
+  const settings: HookTable = {
+    PreToolUse: [
+      { matcher: 'Read', hooks: [{ command: 'echo read' }] },
+      { matcher: 'Bash', hooks: [{ command: 'echo bash' }] },
+    ],
+  };
   const runs = await dispatcher.fire(request({ settings }));
   expect(runs.map((run) => run.stdout)).toEqual(['bash\n']);
 });
