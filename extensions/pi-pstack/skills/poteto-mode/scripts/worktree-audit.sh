@@ -67,8 +67,8 @@ git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt;
 	last="-"; last_ts=0
 	wt_sessions=$(session_dir "$wt")
 	if [ -d "$transcripts" ] || [ -d "$wt_sessions" ]; then
-		f=$(rg -l -e "${wt}/" -e "${wt}\"" "$transcripts" "$wt_sessions" 2>/dev/null \
-			| xargs perl -e 'printf "%d %s\n", (stat)[9], $_ for @ARGV' 2>/dev/null | sort -rn | head -1)
+		f=$(rg -l -0 -e "${wt}/" -e "${wt}\"" "$transcripts" "$wt_sessions" 2>/dev/null \
+			| xargs -0 perl -e 'printf "%d %s\n", (stat)[9], $_ for @ARGV' 2>/dev/null | sort -rn | head -1)
 		if [ -n "$f" ]; then last_ts=$(echo "$f" | awk '{print $1}')
 			last=$(perl -MPOSIX -e 'print strftime("%Y-%m-%d", localtime shift)' "$last_ts" 2>/dev/null); fi
 	fi

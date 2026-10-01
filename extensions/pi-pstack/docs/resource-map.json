@@ -607,7 +607,7 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/worktree-audit.sh",
     "destination": "skills/poteto-mode/scripts/worktree-audit.sh",
-    "sha256": "bec0f41891e97079bb7dc20961b2cfd0ecee119ab42d75c2081bf84a3da8e9b7",
+    "sha256": "17fb88ad0ebc3ff28ba50f0bf710b1e70bd591637c9f642692ad9c256c676a93",
     "executable": true,
     "transformations": [
       "Map Reference agent-transcripts to the Pi session store and pstack-workers child transcripts.",

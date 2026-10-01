@@ -107,10 +107,10 @@ const hostPaths = [
   [
     worktreeAudit,
     `\tif [ -d "$transcripts" ]; then\n\t\tf=$(rg -l -e "\${wt}/" -e "\${wt}\\"" "$transcripts" 2>/dev/null`,
-    `\twt_sessions=$(session_dir "$wt")\n\tif [ -d "$transcripts" ] || [ -d "$wt_sessions" ]; then\n\t\tf=$(rg -l -e "\${wt}/" -e "\${wt}\\"" "$transcripts" "$wt_sessions" 2>/dev/null`,
+    `\twt_sessions=$(session_dir "$wt")\n\tif [ -d "$transcripts" ] || [ -d "$wt_sessions" ]; then\n\t\tf=$(rg -l -0 -e "\${wt}/" -e "\${wt}\\"" "$transcripts" "$wt_sessions" 2>/dev/null`,
     transcripts,
   ],
-  [worktreeAudit, `| xargs stat -f '%m %N' 2>/dev/null`, `| xargs perl -e 'printf "%d %s\\n", (stat)[9], $_ for @ARGV' 2>/dev/null`, portableDates],
+  [worktreeAudit, `| xargs stat -f '%m %N' 2>/dev/null`, `| xargs -0 perl -e 'printf "%d %s\\n", (stat)[9], $_ for @ARGV' 2>/dev/null`, portableDates],
   [worktreeAudit, `last=$(date -r "$last_ts" '+%Y-%m-%d' 2>/dev/null)`, `last=$(perl -MPOSIX -e 'print strftime("%Y-%m-%d", localtime shift)' "$last_ts" 2>/dev/null)`, portableDates],
 ];
 const appliedHostPaths = new Set();
