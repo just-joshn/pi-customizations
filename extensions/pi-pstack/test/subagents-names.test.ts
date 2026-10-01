@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { Check } from 'typebox/value';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { buildAgentSchema } from '../src/subagents/schema.ts';
 import { workerFixture } from './worker-fixture.ts';
 
@@ -14,7 +14,18 @@ test('the addressable profile accepts names and ignored compatibility fields', (
   expect(Check(buildAgentSchema({ addressable: true }), { ...input, name: 42 })).toBe(false);
 });
 
+test('without agent teams the model is not offered name and a named call starts no child', async () => {
+  const fixture = await workerFixture();
+  try {
+    await fixture.session.prompt('NAMED_AGENT_CONTRACT');
+    expect(((await fixture.call('ListAgents', {})) as { details: { agents: unknown[] } }).details.agents).toEqual([]);
+  } finally {
+    await fixture.close();
+  }
+});
+
 test('native pi dispatch launches and resumes an agent by its offered name', async () => {
+  vi.stubEnv('CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS', '1');
   const fixture = await workerFixture();
   try {
     await fixture.session.prompt('NAMED_AGENT_CONTRACT');

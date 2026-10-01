@@ -54,9 +54,9 @@ test('[G2-01] project definition beats user definition and lists stay sorted', (
 });
 
 test('[G2-01] policy beats flag beats project', () => {
-  const policy = { ...builtinAgents({})[0], agentType: 'p', source: 'policySettings' as const, systemPrompt: 'policy' } as never;
+  write('managed/p.md', agent('p', '', 'policy'));
   const flag = { ...builtinAgents({})[0], agentType: 'p', source: 'flagSettings' as const, systemPrompt: 'flag' } as never;
-  const found = discoverAgents({ root: dir, userDirs: [], flagAgents: [flag], policyAgents: [policy], env: {} });
+  const found = discoverAgents({ root: dir, userDirs: [], flagAgents: [flag], policyDirs: [join(dir, 'managed')], env: {} });
   expect(found.activeAgents.find((entry) => entry.agentType === 'p')?.source).toBe('policySettings');
 });
 
@@ -82,7 +82,7 @@ test('[G2-02] unreadable agent directory falls back to built-ins with a log', ()
   chmodSync(join(dir, 'user'), 0o000);
   try {
     const found = discoverAgents({ root: dir, userDirs: [join(dir, 'user')], env: {} });
-    expect(found.activeAgents.map((entry) => entry.source)).toEqual(['built-in', 'built-in', 'built-in', 'built-in']);
+    expect(found.activeAgents.map((entry) => entry.source)).toEqual(['built-in', 'built-in', 'built-in', 'built-in', 'built-in']);
     expect(found.logs[0]).toContain('Error loading agent definitions: ');
   } finally {
     chmodSync(join(dir, 'user'), 0o755);
@@ -93,7 +93,7 @@ test('[G2-03] duplicate names in one directory are logged with the active path',
   const a = write('proj/.pi/agents/a/x.md', agent('x'));
   const b = write('proj/.pi/agents/b/x.md', agent('x'));
   const found = discoverAgents({ root: join(dir, 'proj'), userDirs: [], env: {} });
-  expect(found.logs).toContain(`[agents] Duplicate agent name 'x' (projectSettings): ${a}, ${b} \u2014 active: ${b}`);
+  expect(found.logs).toContain(`[agents] Duplicate agent name 'x' (projectSettings): ${b}, ${a} \u2014 active: ${b}`);
   expect(found.activeAgents.find((entry) => entry.agentType === 'x')?.filePath).toBe(b);
   expect(sanitizeDisplay(`a\u0000b${'c'.repeat(300)}`)).toHaveLength(200);
   expect(sanitizeDisplay('a\u0001b')).toBe('a b');
@@ -140,8 +140,8 @@ test('[G2-06] model inherit folds case, background true stores, Skill tool migra
 test('[G2-10] built-ins by mode, env and safe mode', () => {
   expect(builtinAgents({}, { mode: 'none' })).toEqual([]);
   const names = (env: NodeJS.ProcessEnv) => builtinAgents(env).map((entry) => entry.agentType);
-  expect(names({})).toEqual(['general-purpose', 'statusline-setup', 'Explore', 'Plan']);
-  expect(names({ CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS: '1' })).toEqual(['general-purpose', 'statusline-setup']);
+  expect(names({})).toEqual(['general-purpose', 'statusline-setup', 'Explore', 'Plan', 'claude-code-guide']);
+  expect(names({ CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS: '1' })).toEqual(['general-purpose', 'statusline-setup', 'claude-code-guide']);
   const safe = discoverAgents({ root: dir, safeMode: true, env: {} });
   expect(safe.activeAgents.every((entry) => entry.source === 'built-in')).toBe(true);
   expect(safe.warnings).toEqual(['Safe mode: all customizations are disabled (CLAUDE.md, skills, plugins, hooks, MCP, agents, and more)']);

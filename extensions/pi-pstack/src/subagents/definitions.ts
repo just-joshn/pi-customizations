@@ -1,13 +1,15 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { basename, join, resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { basename, resolve } from 'node:path';
 
 import { parseFrontmatter } from '@earendil-works/pi-coding-agent';
+import { duplicateLogs, resolvePrecedence } from './agent-precedence.ts';
+import { defaultUserDirs, markdownAgentFiles, policyAgentDirs, projectAgentDirs } from './agent-sources.ts';
 import { builtinAgents } from './builtins.ts';
 import { type AgentColor, parseAgentColor } from './colors.ts';
+import { safeModeEnabled } from './gates.ts';
 import { toolList } from './tool-specs.ts';
 
-export type AgentSource = 'built-in' | 'plugin' | 'userSettings' | 'projectSettings' | 'localSettings' | 'flagSettings' | 'policySettings';
+export type AgentSource = 'built-in' | 'plugin' | 'userSettings' | 'projectSettings' | 'flagSettings' | 'policySettings';
 
 export type AgentDefinition = Readonly<{
   agentType: string;
@@ -17,6 +19,10 @@ export type AgentDefinition = Readonly<{
   baseDir: string;
   filePath?: string;
   filename?: string;
+  fromAdditionalDirectory?: true;
+  plugin?: string;
+  registeredAtRunTime?: true;
+  loadDefinition?: () => Promise<AgentDefinition | undefined>;
   tools?: readonly string[];
   disallowedTools?: readonly string[];
   skills?: readonly string[];
@@ -33,6 +39,7 @@ export type AgentDefinition = Readonly<{
   criticalSystemReminder_EXPERIMENTAL?: string;
   observer?: string;
   observerMessage?: string;
+  observeSubagents?: false;
   cacheTtl?: '1h';
 }>;
 
@@ -42,17 +49,15 @@ export type DiscoveryOptions = Readonly<{
   root: string;
   userDirs?: readonly string[];
   additionalDirs?: readonly string[];
+  policyDirs?: readonly string[];
   flagAgents?: readonly AgentDefinition[];
-  policyAgents?: readonly AgentDefinition[];
-  pluginAgents?: readonly AgentDefinition[];
+  pluginAgents?: readonly AgentDefinition[] | ((warnings: string[]) => readonly AgentDefinition[]);
   env?: NodeJS.ProcessEnv;
   safeMode?: boolean;
 }>;
 
-const precedence: readonly AgentSource[] = ['built-in', 'plugin', 'userSettings', 'projectSettings', 'localSettings', 'flagSettings', 'policySettings'];
 const permissionModes = ['acceptEdits', 'auto', 'bypassPermissions', 'default', 'dontAsk', 'plan'];
 const efforts = ['low', 'medium', 'high', 'xhigh', 'max'];
-const maxFileBytes = 1048576;
 
 const cache = new Map<string, Discovery>();
 
@@ -60,9 +65,8 @@ export function clearAgentCache(): void {
   cache.clear();
 }
 
-export function sanitizeDisplay(text: string): string {
-  return text.replace(/[\p{Cc}\p{Cf}]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
-}
+export { defaultUserDirs } from './agent-sources.ts';
+export { sanitizeDisplay } from './agent-precedence.ts';
 
 function stringList(value: unknown): string[] | undefined {
   if (Array.isArray(value)) return value.filter((item): item is string => typeof item === 'string').map((item) => item.trim());
@@ -81,7 +85,7 @@ export type ParsedAgent = { agent?: AgentDefinition; warnings: string[]; error?:
 
 type Mutable = { -readonly [K in keyof AgentDefinition]: AgentDefinition[K] };
 
-function optionalFields(fm: Record<string, unknown>, path: string, warnings: string[]): Partial<AgentDefinition> {
+function lifecycleFields(fm: Record<string, unknown>, path: string, warnings: string[]): Partial<Mutable> {
   const agent: Partial<Mutable> = {};
   if (fm.background !== undefined) {
     if (fm.background === true || fm.background === 'true') agent.background = true;
@@ -100,6 +104,11 @@ function optionalFields(fm: Record<string, unknown>, path: string, warnings: str
     if (fm.isolation === 'worktree' || fm.isolation === 'remote') agent.isolation = fm.isolation;
     else warnings.push(`Agent file ${path} has invalid isolation value '${String(fm.isolation)}'. Valid options: worktree, remote`);
   }
+  return agent;
+}
+
+function behaviorFields(fm: Record<string, unknown>, path: string, warnings: string[]): Partial<Mutable> {
+  const agent: Partial<Mutable> = {};
   if (fm.effort !== undefined) {
     const raw = typeof fm.effort === 'string' ? fm.effort.trim().toLowerCase() : fm.effort;
     if (typeof raw === 'number' && Number.isInteger(raw)) agent.effort = raw;
@@ -115,153 +124,124 @@ function optionalFields(fm: Record<string, unknown>, path: string, warnings: str
     const value = fm[key];
     if (typeof value === 'string' && value.trim()) agent[key] = value.trim();
   }
+  if (fm.observeSubagents === false || fm.observeSubagents === 'false') agent.observeSubagents = false;
   if (fm.cacheTtl === '1h') agent.cacheTtl = fm.cacheTtl;
   return agent;
 }
 
-export function parseAgentFile(path: string, text: string, source: AgentSource, baseDir: string): ParsedAgent {
-  const warnings: string[] = [];
-  let parsed: ReturnType<typeof parseFrontmatter<Record<string, unknown>>>;
-  let tools: string[] | undefined;
-  let disallowed: string[] | undefined;
-  let model: string | undefined;
-  try {
-    parsed = parseFrontmatter<Record<string, unknown>>(text);
-    tools = toolList(parsed.frontmatter.tools);
-    disallowed = toolList(parsed.frontmatter.disallowedTools);
-    model = normalizedModel(parsed.frontmatter.model);
-  } catch (error) {
-    return { warnings, error: `Agent file ${path} has invalid frontmatter: ${String(error)}` };
-  }
-  const { frontmatter: fm, body } = parsed;
-  const executableFields = ['hooks', 'PreToolUse', 'PermissionRequest', 'mcpServers'].filter((key) => Object.hasOwn(fm, key));
-  if (executableFields.length > 0) return { warnings, error: `Agent file ${path} requires a native Pi adapter for executable configuration: ${executableFields.join(', ')}` };
-  const name = fm.name;
-  if (typeof name !== 'string' || !name.trim()) return { warnings, error: `Agent file ${path} is missing a name` };
-  const agentType = name.trim();
-  if (agentType.startsWith('-') || agentType.normalize('NFKC').includes(':')) return { warnings, error: `Agent file ${path} has an invalid name '${name}'` };
-  if (typeof fm.description !== 'string' || !fm.description.trim()) return { warnings, error: `Agent file ${path} is missing a description` };
+type Identity = { agentType: string; whenToUse: string } | { warnings: string[]; error?: string };
 
+function identity(fm: Record<string, unknown>, path: string): Identity {
+  const { name, description } = fm;
+  if (typeof name !== 'string' || !name.trim()) return { warnings: [] };
+  const failed = (warning: string, reason: string) => ({ warnings: [warning], error: `Failed to parse agent from ${path}: ${reason}` });
+  if (name.trim().startsWith('-')) return failed(`Agent file ${path} has invalid name '${name}': names must not start with '-'`, 'Invalid "name": names must not start with "-"');
+  if (name.normalize('NFKC').includes(':'))
+    return failed(`Agent file ${path} has invalid name '${name}': names must not contain ':' (reserved for plugin namespacing)`, 'Invalid "name": names must not contain ":" (reserved for plugin namespacing)');
+  if (typeof description !== 'string' || !description.trim()) return failed(`Agent file ${path} is missing required 'description' in frontmatter`, 'Missing required "description" field in frontmatter');
+  return { agentType: name.trim(), whenToUse: description.replace(/\\n/g, '\n') };
+}
+
+function toolFields(fm: Record<string, unknown>, path: string, warnings: string[]): Partial<Mutable> {
+  let tools = toolList(fm.tools);
+  const disallowed = toolList(fm.disallowedTools);
   let skills = stringList(fm.skills);
-  const hadSkillTool = tools?.includes('Skill') === true;
-  if (hadSkillTool) {
+  if (tools?.includes('Skill') === true) {
     warnings.push(`Agent file ${path}: 'Skill' in tools is deprecated; use the skills field instead.`);
-    tools = tools?.filter((tool) => tool !== 'Skill');
+    tools = tools.filter((tool) => tool !== 'Skill');
     skills = skills ?? [];
   }
+  return { ...(tools ? { tools } : {}), ...(disallowed ? { disallowedTools: disallowed } : {}), ...(skills ? { skills } : {}) };
+}
 
-  const agent: Mutable = {
-    ...optionalFields(fm, path, warnings),
+function frontmatterOf(text: string, path: string, warnings: string[]): { fm: Record<string, unknown>; body: string } {
+  try {
+    const parsed = parseFrontmatter<Record<string, unknown>>(text);
+    return { fm: parsed.frontmatter ?? {}, body: parsed.body };
+  } catch (error) {
+    warnings.push(`YAML frontmatter in ${path} failed to parse and was ignored: ${error instanceof Error ? error.message : String(error)}`);
+    return { fm: {}, body: text };
+  }
+}
+
+function presentationFields(fm: Record<string, unknown>): Partial<Mutable> {
+  const color = parseAgentColor(fm.color);
+  const model = normalizedModel(fm.model);
+  return {
+    ...(color ? { color } : {}),
     ...(model !== undefined ? { model } : {}),
-    agentType,
-    whenToUse: fm.description.replace(/\\n/g, '\n'),
+    ...(typeof fm.initialPrompt === 'string' && fm.initialPrompt.trim() ? { initialPrompt: fm.initialPrompt.trim() } : {}),
+    ...(fm.omitClaudeMd === true || fm.omitClaudeMd === 'true' ? { omitClaudeMd: true } : {}),
+  };
+}
+
+export function parseAgentFile(path: string, text: string, source: AgentSource, baseDir: string): ParsedAgent {
+  const warnings: string[] = [];
+  const { fm, body } = frontmatterOf(text, path, warnings);
+  const id = identity(fm, path);
+  if (!('agentType' in id)) return { warnings: [...warnings, ...id.warnings], ...(id.error ? { error: id.error } : {}) };
+  const executableFields = ['hooks', 'PreToolUse', 'PermissionRequest', 'mcpServers'].filter((key) => Object.hasOwn(fm, key));
+  if (executableFields.length > 0) return { warnings, error: `Agent file ${path} requires a native Pi adapter for executable configuration: ${executableFields.join(', ')}` };
+  let tools: Partial<Mutable>;
+  try {
+    tools = toolFields(fm, path, warnings);
+  } catch (error) {
+    return { warnings: [...warnings, `Error parsing agent from ${path}: ${error instanceof Error ? error.message : String(error)}`], error: `Failed to parse agent from ${path}: Unknown parsing error` };
+  }
+  const agent: AgentDefinition = {
+    ...lifecycleFields(fm, path, warnings),
+    ...behaviorFields(fm, path, warnings),
+    ...presentationFields(fm),
+    ...tools,
+    ...id,
     systemPrompt: body.trim(),
     source,
     baseDir,
     filePath: path,
     filename: basename(path, '.md'),
   };
-  if (tools) agent.tools = tools;
-  if (disallowed) agent.disallowedTools = disallowed;
-  if (skills) agent.skills = skills;
-  const color = parseAgentColor(fm.color);
-  if (color) agent.color = color;
-  if (typeof fm.initialPrompt === 'string' && fm.initialPrompt.trim()) agent.initialPrompt = fm.initialPrompt.trim();
-  if (fm.omitClaudeMd === true || fm.omitClaudeMd === 'true') agent.omitClaudeMd = true;
   return { agent, warnings };
 }
 
-function markdownFiles(dir: string): string[] {
-  const found: string[] = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const path = join(dir, entry.name);
-    if (entry.isDirectory()) found.push(...markdownFiles(path));
-    else if (entry.isFile() && entry.name.endsWith('.md')) found.push(path);
-  }
-  return found.toSorted();
-}
-
-function loadDirectory(dir: string, source: AgentSource, warnings: string[]): AgentDefinition[] {
-  let files: string[];
-  try {
-    if (!statSync(dir).isDirectory()) return [];
-    files = markdownFiles(dir);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
-    throw error;
-  }
-  const agents: AgentDefinition[] = [];
-  for (const file of files) {
-    if (statSync(file).size > maxFileBytes) continue;
+function loadDirectory(dir: string, source: AgentSource, warnings: string[], provenance: Partial<AgentDefinition> = {}): AgentDefinition[] {
+  return markdownAgentFiles(dir, warnings).flatMap((file) => {
     const parsed = parseAgentFile(file, readFileSync(file, 'utf8'), source, dir);
-    warnings.push(...parsed.warnings);
-    if (parsed.error) warnings.push(parsed.error);
-    if (parsed.agent) agents.push(parsed.agent);
+    warnings.push(...parsed.warnings, ...(parsed.error ? [parsed.error] : []));
+    return parsed.agent ? [{ ...parsed.agent, ...provenance }] : [];
+  });
+}
+
+function customCandidates(options: DiscoveryOptions, root: string, env: NodeJS.ProcessEnv, warnings: string[]): AgentDefinition[] {
+  return [
+    ...(typeof options.pluginAgents === 'function' ? options.pluginAgents(warnings) : (options.pluginAgents ?? [])),
+    ...(options.userDirs ?? defaultUserDirs(env)).flatMap((dir) => loadDirectory(dir, 'userSettings', warnings)),
+    ...(options.additionalDirs ?? []).flatMap((dir) => loadDirectory(dir, 'projectSettings', warnings, { fromAdditionalDirectory: true })),
+    ...projectAgentDirs(root).flatMap((dir) => loadDirectory(dir, 'projectSettings', warnings)),
+    ...(options.flagAgents ?? []),
+    ...(options.policyDirs ?? policyAgentDirs(env)).flatMap((dir) => loadDirectory(dir, 'policySettings', warnings)),
+  ];
+}
+
+function discover(options: DiscoveryOptions, root: string): Discovery {
+  const env = options.env ?? process.env;
+  const builtins = builtinAgents(env);
+  if (options.safeMode || safeModeEnabled(env))
+    return { allAgents: builtins, activeAgents: resolvePrecedence(builtins), logs: [], warnings: ['Safe mode: all customizations are disabled (CLAUDE.md, skills, plugins, hooks, MCP, agents, and more)'] };
+  const warnings: string[] = [];
+  try {
+    const candidates = [...builtins, ...customCandidates(options, root, env, warnings)];
+    const activeAgents = resolvePrecedence(candidates);
+    return { allAgents: candidates, activeAgents, logs: duplicateLogs(candidates, activeAgents), warnings };
+  } catch (error) {
+    return { allAgents: builtins, activeAgents: resolvePrecedence(builtins), logs: [`Error loading agent definitions: ${error instanceof Error ? error.message : String(error)}`], warnings };
   }
-  return agents;
-}
-
-export function defaultUserDirs(env: NodeJS.ProcessEnv = process.env): string[] {
-  const agentDir = env.PI_CODING_AGENT_DIR ?? join(homedir(), '.pi', 'agent');
-  return [join(agentDir, 'agents'), join(homedir(), '.claude', 'agents')];
-}
-
-function projectDirs(root: string): string[] {
-  return [join(root, '.pi', 'agents'), join(root, '.claude', 'agents')];
-}
-
-function definitionOrigin(agent: AgentDefinition): string {
-  return `${agent.source}\0${agent.baseDir}\0${agent.agentType}`;
-}
-
-function duplicateLogs(agents: readonly AgentDefinition[]): string[] {
-  const groups = new Map<string, AgentDefinition[]>();
-  for (const agent of agents) {
-    const key = definitionOrigin(agent);
-    groups.set(key, [...(groups.get(key) ?? []), agent]);
-  }
-  return [...groups.values()]
-    .filter((group) => group.length > 1)
-    .map((group) => {
-      const first = group[0];
-      const paths = group.map((agent) => agent.filePath ?? agent.baseDir);
-      return `[agents] Duplicate agent name '${sanitizeDisplay(first?.agentType ?? '')}' (${first?.source}): ${paths.join(', ')} — active: ${paths.at(-1)}`;
-    });
 }
 
 export function discoverAgents(options: DiscoveryOptions): Discovery {
   const root = resolve(options.root);
   const cached = cache.get(root);
   if (cached) return cached;
-  const env = options.env ?? process.env;
-  const warnings: string[] = [];
-  const logs: string[] = [];
-  let candidates: AgentDefinition[] = [...builtinAgents(env)];
-  if (!options.safeMode) {
-    try {
-      candidates = [
-        ...candidates,
-        ...(options.pluginAgents ?? []),
-        ...(options.userDirs ?? defaultUserDirs(env)).flatMap((dir) => loadDirectory(dir, 'userSettings', warnings)),
-        ...(options.additionalDirs ?? []).flatMap((dir) => loadDirectory(dir, 'projectSettings', warnings)),
-        ...projectDirs(root).flatMap((dir) => loadDirectory(dir, 'projectSettings', warnings)),
-        ...(options.flagAgents ?? []),
-        ...(options.policyAgents ?? []),
-      ];
-    } catch (error) {
-      logs.push(`Error loading agent definitions: ${String(error)}`);
-      candidates = [...builtinAgents(env)];
-    }
-  } else warnings.push('Safe mode: all customizations are disabled (CLAUDE.md, skills, plugins, hooks, MCP, agents, and more)');
-  logs.push(...duplicateLogs(candidates));
-  const winners = new Map<string, AgentDefinition>();
-  for (const source of precedence) for (const agent of candidates) if (agent.source === source) winners.set(agent.agentType, agent);
-  const result: Discovery = {
-    allAgents: candidates,
-    activeAgents: [...winners.values()].toSorted((left, right) => left.agentType.toLowerCase().localeCompare(right.agentType.toLowerCase())),
-    logs,
-    warnings,
-  };
+  const result = discover(options, root);
   cache.set(root, result);
   return result;
 }
