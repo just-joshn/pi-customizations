@@ -37,7 +37,7 @@ test('the journey verifier rejects an unknown selector instead of passing withou
 
 test('the shipped resource checker verifies both source inventories and generated resources', () => {
   expect(run('resources.mjs')).toBe('Verified 187 upstream files and 205 generated resources.\n');
-});
+}, verificationDeadlineMs);
 
 test('preserved helper behavior and its aggregate coverage pass without changing source files', () => {
   const output = run('verify-upstream.mjs');
@@ -58,7 +58,7 @@ test('the packed distribution loads in the actual Pi CLI and shuts down cleanly'
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
-});
+}, verificationDeadlineMs);
 
 test('the packed distribution ships every tracked file the manifest declares', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pstack-inventory-'));
@@ -71,4 +71,4 @@ test('the packed distribution ships every tracked file the manifest declares', a
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
-});
+}, verificationDeadlineMs);
