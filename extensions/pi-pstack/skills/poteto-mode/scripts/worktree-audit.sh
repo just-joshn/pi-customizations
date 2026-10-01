@@ -22,7 +22,7 @@ prs=$(mktemp)
 gh pr list --author "@me" --state all --limit 1000 \
 	--json number,state,headRefName 2>/dev/null > "$prs" || echo "[]" > "$prs"
 
-# Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including pstack-workers.
+# Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including child transcripts under <parent-id>/subagents and legacy pstack-workers.
 sessions="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"; sessions="${sessions/#\~/$HOME}/sessions"
 session_dir() { printf '%s/--%s--' "$sessions" "$(printf '%s' "$1" | sed 's#^/##; s#[/:]#-#g')"; }
 transcripts=$(session_dir "$main_wt")

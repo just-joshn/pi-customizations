@@ -53,7 +53,7 @@ const markdownFiles = /\.md$/;
 const worktreeAudit = /^skills\/poteto-mode\/scripts\/worktree-audit\.sh$/;
 const modelRule = 'Map model rule location to Pi agent configuration.';
 const skillDirectories = 'Map user and project skill directories to Pi discovery locations.';
-const transcripts = 'Map Reference agent-transcripts to the Pi session store and pstack-workers child transcripts.';
+const transcripts = 'Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.';
 const portableDates = 'Replace BSD-only stat and date calls with Perl so transcript dates survive GNU or uutils coreutils on PATH.';
 const repositorySkills = 'Map the upstream repository path for the bundled skills to this repository layout.';
 const hostPaths = [
@@ -70,14 +70,14 @@ const hostPaths = [
   [
     markdownFiles,
     'Transcripts live at `~/.upstream/projects/<slug>/agent-transcripts/<uuid>/<uuid>.jsonl`, where `<slug>` is the workspace path with the leading slash dropped and each "/" turned into "-" (so `/Users/you/proj` becomes `Users-you-proj`). Every line is one chat message.',
-    'Transcripts live in the workspace Pi session directory that the pstack host contract names. Read that path. Pi\'s `sessionDir` setting, `PI_CODING_AGENT_SESSION_DIR`, and `--session-dir` can move it. By default transcripts live at `~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`, with Task subagent transcripts under `<slug>/pstack-workers/<parent-uuid>/`. `<slug>` is the workspace path with the leading slash dropped, each "/", "\\", and ":" turned into "-", and `--` added at both ends (so `/Users/you/proj` becomes `--Users-you-proj--`). Every line is one session entry.',
+    'Transcripts live in the workspace Pi session directory that the pstack host contract names. Read that path. Pi\'s `sessionDir` setting, `PI_CODING_AGENT_SESSION_DIR`, and `--session-dir` can move it. By default transcripts live at `~/.pi/agent/sessions/<slug>/<timestamp>_<uuid>.jsonl`, with Task subagent transcripts under `<slug>/<parent-uuid>/subagents/agent-<child-id>.jsonl` (older runs used `<slug>/pstack-workers/<parent-uuid>/`). `<slug>` is the workspace path with the leading slash dropped, each "/", "\\", and ":" turned into "-", and `--` added at both ends (so `/Users/you/proj` becomes `--Users-you-proj--`). Every line is one session entry.',
     transcripts,
   ],
-  [markdownFiles, 'ls -t <agent-transcripts>/*.jsonl <agent-transcripts>/*/*.jsonl <agent-transcripts>/*/subagents/*.jsonl', 'ls -t <session-dir>/*.jsonl <session-dir>/pstack-workers/*/*.jsonl', transcripts],
+  [markdownFiles, 'ls -t <agent-transcripts>/*.jsonl <agent-transcripts>/*/*.jsonl <agent-transcripts>/*/subagents/*.jsonl', 'ls -t <session-dir>/*.jsonl <session-dir>/*/subagents/agent-*.jsonl <session-dir>/pstack-workers/*/*.jsonl', transcripts],
   [
     markdownFiles,
     'Three transcript layouts: legacy flat (`<id>.jsonl`), current nested (`<id>/<id>.jsonl`), and subagent (`<parent>/subagents/<child>.jsonl`).',
-    'Two transcript layouts: session (`<timestamp>_<id>.jsonl`) and Task subagent (`pstack-workers/<parent>/<timestamp>_<child>.jsonl`).',
+    'Two transcript layouts: session (`<timestamp>_<id>.jsonl`) and Task subagent (`<parent-id>/subagents/agent-<child>.jsonl`, with `agent-<child>.meta.json` beside it; older runs wrote `pstack-workers/<parent>/<timestamp>_<child>.jsonl`).',
     transcripts,
   ],
   [
@@ -93,7 +93,7 @@ const hostPaths = [
   [
     worktreeAudit,
     `# Transcripts dir: ~/.upstream/projects/<slugified-repo-path>/agent-transcripts.\nslug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')\ntranscripts="$HOME/.upstream/projects/$slug/agent-transcripts"`,
-    `# Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including pstack-workers.\nsessions="\${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"; sessions="\${sessions/#\\~/$HOME}/sessions"\nsession_dir() { printf '%s/--%s--' "$sessions" "$(printf '%s' "$1" | sed 's#^/##; s#[/:]#-#g')"; }\ntranscripts=$(session_dir "$main_wt")`,
+    `# Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including child transcripts under <parent-id>/subagents and legacy pstack-workers.\nsessions="\${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"; sessions="\${sessions/#\\~/$HOME}/sessions"\nsession_dir() { printf '%s/--%s--' "$sessions" "$(printf '%s' "$1" | sed 's#^/##; s#[/:]#-#g')"; }\ntranscripts=$(session_dir "$main_wt")`,
     transcripts,
   ],
   [
