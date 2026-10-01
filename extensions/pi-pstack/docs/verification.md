@@ -1,8 +1,51 @@
 # Verification
 
-The [comprehensive audit](comprehensive-audit.md) supersedes the historical results below. Run `make verify` from the repository root for the current runtime, packaged CLI, source-integrity, maintained-code structure, formatting and lint, and coverage checks.
+## Current audit evidence
 
-## Verified source and host contracts
+The current parity audit remains **NOT VERIFIED**. The [compatibility report](parity.md) lists outstanding host requirements. Local checks do not prove hosted execution, credential isolation, or instruction adherence.
+
+The audit prohibits subagents. Its allowed real RPC suite passes 427 assertions with zero findings. The suite also checks that recorded requests do not invoke `Task`. Actual Task startup, resume, steering, and descendant execution remain unverified by this audit.
+
+Fresh checks verify the following contracts:
+
+- `bun run check:resources` verifies 187 upstream files and 205 generated resources.
+- `bun run typecheck` passes against the package's pinned Pi SDK 0.99.2.
+- `bun run check:cli` verifies installed CLI package loading, RPC commands, status, mode off, and orderly shutdown without model calls.
+- `bun run check:upstream` passes 58 helper tests with 261 assertions in a temporary copy. These are deterministic helper checks, not live GitHub operations.
+- `bun pm pack --dry-run` passes. A package dry run does not verify an extracted package's runtime.
+
+The current cloud lifecycle regressions use saved records, idle transport processes, or a main-session SDK fixture with a mocked launch boundary. The latest focused run passes 19 tests. The fixtures do not launch AI workers.
+
+Cloud launch requests a macOS restriction on reads of known coordinator stores. Real idle transport tests verify custom session, global session, and orchestration-store exclusion. Unsupported platforms fail explicitly. Complete hosted filesystem and credential isolation remain unverified.
+
+Evidence is retained in `/tmp/pstack-e2e-evidence`. The current logs include `fresh-resources.log`, `fresh-typecheck.log`, `fresh-cli.log`, `fresh-upstream.log`, `fresh-pack.log`, and `cloud-startup-verification.log`. The real RPC results are in `full-rpc/results.json`.
+
+## Reproduce the no-subagent audit
+
+From the repository root, run the allowed real RPC suite:
+
+```sh
+node extensions/pi-pstack/scripts/verify-journeys.mjs extensions/pi-pstack --no-workers /tmp/pstack-e2e-evidence/full-rpc
+```
+
+From `extensions/pi-pstack`, run the focused lifecycle checks:
+
+```sh
+bunx vitest run test/cloud-startup.test.ts test/cloud-directory.test.ts test/cloud-filesystem.test.ts test/cloud-record-control.test.ts test/detached-rpc.test.ts
+bun run check:resources
+bun run typecheck
+bun run check:cli
+bun run check:upstream
+bun pm pack --dry-run
+```
+
+The unrestricted test suite includes worker execution. Do not run that suite under the audit's no-subagent constraint.
+
+## Historical verification
+
+The [comprehensive audit](comprehensive-audit.md) and the results below describe earlier verification runs. Their SDK versions, discovery counts, coverage percentages, and delegation results are historical, not results of the current no-subagent audit.
+
+### Historical source and host contracts
 
 The resource checker verifies all 187 upstream hashes and all 205 generated resources, including executable bits. The official Pi loader discovers 65 legal skill names and 64 prompt templates, including the Pi-authored loop skill and `/loop` template. Benny's three operational skills remain outside discovery. The [mechanism audit](mechanism-audit.md) records the current checks and invocation changes.
 
@@ -14,7 +57,7 @@ The upstream helper suite passed 52 tests with 206 assertions across orchestrati
 
 The packed inventory contains every tracked file the manifest declares except `upstream/.gitignore`. `bun pm pack` drops a file with that name even though `files` lists it explicitly, so the published tarball is one entry short. `test/cli.test.ts` asserts the omission is exactly that one entry, so a wider loss fails the suite.
 
-## Reproduce local checks
+### Historical local check commands
 
 Run from `extensions/pi-pstack`:
 
@@ -30,7 +73,7 @@ bun pm pack --dry-run
 
 To run the preserved helper tests without changing the snapshot, copy `upstream/skills/poteto-mode/scripts` to a temporary directory. In that copy, run `bun install --frozen-lockfile` and `bun test orch watch-pr`.
 
-## Limits
+### Historical limits
 
 No live multi-provider model comparison, paid provider inference, external service integration, interactive terminal dialog journey, cloud deployment, or Benny automation was run. Model setup dialogs have behavioral tests using scripted user answers. The same-family review is independent for the stated code scope but does not satisfy pstack's requested cross-family reviewer diversity.
 
