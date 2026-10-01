@@ -25,6 +25,11 @@ test.skipIf(!available)(
       expect(results.checks).toContain('accessibility heading');
       expect(results.checks).toContain('sampled CPU profile');
       expect(results.checks).toContain('heap snapshot graph');
+      expect(results.checks).toContain('network fixture bytes');
+      expect(results.checks).toContain('pointer click trace');
+      expect(await readFile(join(root, 'canvas-response.html'), 'utf8')).toBe(await readFile(join(root, 'canvas.html'), 'utf8'));
+      const trace = JSON.parse(await readFile(join(root, 'canvas.trace.json'), 'utf8'));
+      expect(trace.traceEvents.some((event: { name?: string; args?: { data?: { type?: string } } }) => event.name === 'EventDispatch' && event.args?.data?.type === 'click')).toBe(true);
       const accessibility = JSON.parse(await readFile(join(root, 'accessibility.json'), 'utf8'));
       expect(accessibility.nodes.some((node: { role?: { value?: string }; name?: { value?: string } }) => node.role?.value === 'heading' && node.name?.value === 'Pi review canvas probe')).toBe(true);
       const cpu = JSON.parse(await readFile(join(root, 'canvas.cpuprofile'), 'utf8'));
