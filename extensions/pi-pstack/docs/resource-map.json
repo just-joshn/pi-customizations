@@ -607,7 +607,7 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/worktree-audit.sh",
     "destination": "skills/poteto-mode/scripts/worktree-audit.sh",
-    "sha256": "17fb88ad0ebc3ff28ba50f0bf710b1e70bd591637c9f642692ad9c256c676a93",
+    "sha256": "212abecdda134df1f3b9ebf88d392e639b4d1c606ed9321aef08dfc5cd8d1a8c",
     "executable": true,
     "transformations": [
       "Map Cursor agent-transcripts to the Pi session store and pstack-workers child transcripts.",

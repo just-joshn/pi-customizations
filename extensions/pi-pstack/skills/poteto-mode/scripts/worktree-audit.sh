@@ -6,6 +6,7 @@
 #
 # Usage: worktree-audit.sh [repo-path] [session-dir]
 # Pass the host contract session directory when Pi uses --session-dir.
+# Otherwise PI_CODING_AGENT_SESSION_DIR overrides the default store.
 set -u
 
 repo="${1:-$(git rev-parse --show-toplevel 2>/dev/null)}"
@@ -26,7 +27,8 @@ gh pr list --author "@me" --state all --limit 1000 \
 # Pi session dirs: <agent-dir>/sessions/--<repo path with / and : as ->--, including pstack-workers.
 sessions="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"; sessions="${sessions/#\~/$HOME}/sessions"
 session_dir() { printf '%s/--%s--' "$sessions" "$(printf '%s' "$1" | sed 's#^/##; s#[/:]#-#g')"; }
-transcripts="${2:-$(session_dir "$main_wt")}"
+transcripts="${2:-${PI_CODING_AGENT_SESSION_DIR:-$(session_dir "$main_wt")}}"
+transcripts="${transcripts/#\~/$HOME}"
 now=$(date +%s)
 
 printf "SIZE\tAGE\tMERGED\tDIRTY\tREMOTE\tPR\tLAST_CHAT\tBUCKET\tWORKTREE\n"

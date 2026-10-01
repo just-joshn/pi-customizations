@@ -65,7 +65,7 @@ The comprehensive audit prohibits subagents. The permitted real RPC suite passes
 
 The test suite exercises the actual pi resource loader and SDK with a deterministic provider. It does not contact paid model providers or deploy external automations. Source helper test results and final verification counts are recorded in `verification.md`.
 
-The generated worktree audit searches the Pi session directories of the main worktree and of each worktree, including `pstack-workers`. It uses Perl for file dates, so GNU or uutils coreutils on PATH do not blank the LAST_CHAT column. It cannot see sessions moved by the `sessionDir` setting, `PI_CODING_AGENT_SESSION_DIR`, or `--session-dir`. The source `orch` CLI maintains an orchestration store; it does not itself provide the missing cloud scheduler.
+The generated worktree audit searches the Pi session directories of the main worktree and of each worktree, including `pstack-workers`. It uses Perl for file dates, so GNU or uutils coreutils on PATH do not blank the LAST_CHAT column. It honors `PI_CODING_AGENT_SESSION_DIR`, including a leading `~/`. An explicit second session-directory argument takes precedence. Supply the host contract directory for `sessionDir` settings or `--session-dir`, since this Bash helper does not read Pi settings or the parent CLI arguments. The source `orch` CLI maintains an orchestration store; it does not itself provide the missing cloud scheduler.
 
 ## Reference behavior audit
 

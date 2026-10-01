@@ -164,7 +164,7 @@ test('worktree audit dates agent activity from Pi sessions and worker transcript
     const output = execFileSync('bash', [join(root, 'skills/poteto-mode/scripts/worktree-audit.sh'), f.main], {
       encoding: 'utf8',
       stdio: 'pipe',
-      env: { ...process.env, HOME: f.directory, PI_CODING_AGENT_DIR: join(f.directory, 'agent'), GH_TOKEN: 'invalid' },
+      env: { ...process.env, HOME: f.directory, PI_CODING_AGENT_DIR: join(f.directory, 'agent'), PI_CODING_AGENT_SESSION_DIR: '', GH_TOKEN: 'invalid' },
     });
     const today = execFileSync('date', ['+%Y-%m-%d'], { encoding: 'utf8' }).trim();
     const rows = new Map(
@@ -184,16 +184,27 @@ test('worktree audit dates agent activity from Pi sessions and worker transcript
   }
 });
 
-test.each(['custom-sessions', 'custom sessions'])('worktree audit includes recent activity from explicit Pi session directory %s', async (name) => {
+test.each([
+  ['custom-sessions', 'argument'],
+  ['custom sessions', 'argument'],
+  ['custom sessions', 'environment'],
+  ['custom sessions', 'tilde environment'],
+])('worktree audit includes recent activity from Pi session directory %s via %s', async (name, mode) => {
   const f = await worktreeFixture();
   try {
     const custom = join(f.directory, name);
     await mkdir(custom);
     await writeFile(join(custom, 'active.jsonl'), JSON.stringify({ type: 'session', cwd: join(f.directory, 'idle') }));
-    const output = execFileSync('bash', [join(root, 'skills/poteto-mode/scripts/worktree-audit.sh'), f.main, custom], {
+    const output = execFileSync('bash', [join(root, 'skills/poteto-mode/scripts/worktree-audit.sh'), f.main, ...(mode === 'argument' ? [custom] : [])], {
       encoding: 'utf8',
       stdio: 'pipe',
-      env: { ...process.env, HOME: f.directory, PI_CODING_AGENT_DIR: join(f.directory, 'agent'), GH_TOKEN: 'invalid' },
+      env: {
+        ...process.env,
+        HOME: f.directory,
+        PI_CODING_AGENT_DIR: join(f.directory, 'agent'),
+        PI_CODING_AGENT_SESSION_DIR: mode === 'tilde environment' ? `~/${name}` : mode === 'environment' ? custom : join(f.directory, 'absent-store'),
+        GH_TOKEN: 'invalid',
+      },
     });
     const row = output
       .trim()
