@@ -8,6 +8,12 @@ Cursor loads `.cursor-plugin/plugin.json`, discovers the 47 skills and two agent
 
 There is no extension runtime or hidden plugin hook in the source manifest. Most behavior is specified as model instructions. Exact copied text therefore establishes content parity, not observable host behavior or proof that a model follows every instruction.
 
+## Current setup-pstack requirement audit
+
+The supplied setup source has an initial ledger of 41 clauses spanning detection, budgets, current-state preservation, role/panel semantics, validation, rule persistence, and the optional verification offer. Compound/default-role obligations and model-mediated branches remain unfinished. Fresh model/resolver tests pass. Two fresh real TUI runs pass eleven journeys each, including a detected fixture provider selection whose literal model and unlimited budget are persisted only after confirmation.
+
+The first new fixture used `.mjs` in automatic extension discovery, which the SDK ignores. Source inspection confirmed `.ts` and `.js` support; correcting the fixture suffix exposes the model without a production change. This evidence does not establish real subscription entitlement. The empty-model source fallback requests pasted slugs, while the exercised native UI offers valid aliases; that fallback equivalence remains unresolved. Optional project-harness inspection/offer is forwarded as model instructions and is not covered by direct setup-handler tests. Actual panel fan-out and cross-family execution remain unverified under the no-subagent constraint.
+
 ## Current Origin requirement audit
 
 The native Origin skill matches the supplied Cursor source byte for byte. The initial ledger groups 32 semantic clauses with source lines and hashes. Compound obligations and complete line review remain unfinished. Public installation/version/help, corrupt-archive rejection, native resource/prompt exclusion, and absolute-path invocation have receipts with explicit scopes.

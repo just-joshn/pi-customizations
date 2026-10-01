@@ -167,18 +167,50 @@ try {
     await writeFile(join(output, `setup-${mode}-answer.json`), JSON.stringify(actual, null, 2));
     await wait(() => !pane().includes('Write pstack model configuration?'));
   }
+  await mkdir(join(agent, 'extensions'), { recursive: true });
+  await writeFile(join(agent, 'extensions/available-model.js'), `export { default } from ${JSON.stringify(join(root, 'test/journey-provider.ts'))};\n`);
+  literal('/reload');
+  key('Enter');
+  await wait(() => pane().includes('Reloaded'));
+  await writeFile(config, initial);
+  await rm(answer, { force: true });
+  literal('/fixture-setup-cancel');
+  key('Enter');
+  await wait(() => pane().includes('pstack reasoning budget'));
+  key('Enter');
+  await wait(() => pane().includes('Accept model table or change a role'));
+  key('Down', 'Down', 'Enter');
+  await wait(() => pane().includes('bug-fix (current: auto)') && pane().includes('journey-test/recorder'));
+  await writeFile(join(output, 'setup-provider-picker.txt'), pane());
+  key('Enter');
+  await wait(() => pane().includes('Accept model table or change a role'));
+  key('Enter');
+  await wait(() => pane().includes('Write pstack model configuration?'));
+  key('Enter');
+  await wait(async () => {
+    try {
+      return JSON.parse(await readFile(answer, 'utf8'));
+    } catch {
+      return false;
+    }
+  });
+  const providerSelection = JSON.parse(await readFile(answer, 'utf8'));
+  assert.equal(providerSelection.completed, true);
+  assert.ok(providerSelection.configuration.includes('# budget: unlimited (max)'));
+  assert.ok(providerSelection.configuration.includes('bug-fix: journey-test/recorder\n'));
+  await writeFile(join(output, 'setup-provider-answer.json'), JSON.stringify(providerSelection, null, 2));
   await writeFile(
     join(output, 'results.json'),
     JSON.stringify(
       {
-        passes: [...cases.map((row) => row.name), 'setup-budget-cancel', 'setup-write-decline', 'setup-write-accept', 'setup-role-edit', 'setup-panel-duplicate-seats'],
+        passes: [...cases.map((row) => row.name), 'setup-budget-cancel', 'setup-write-decline', 'setup-write-accept', 'setup-role-edit', 'setup-panel-duplicate-seats', 'setup-detected-provider-model'],
         scope: 'Production question and setup handlers, real Pi TUI, no inference or subagents.',
       },
       null,
       2,
     ),
   );
-  process.stdout.write('Ten real terminal question and setup journeys passed\n');
+  process.stdout.write('Eleven real terminal question and setup journeys passed\n');
 } finally {
   try {
     await writeFile(join(output, 'final-terminal.txt'), pane());
