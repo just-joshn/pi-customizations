@@ -94,7 +94,7 @@ test('[G2-12] exact matches precede normalized lookup and ambiguous misses name 
   };
   expect(resolveAgentType(variants, 'explore')).toEqual({ type: 'explore' });
   expect(resolveAgentType({ ...base, agents: [{ agentType: 'explore', whenToUse: '' }] }, 'Explore')).toEqual({ type: 'explore' });
-  expect(resolveAgentType(variants, 'Explore')).toEqual({ refusal: { code: 'subagent_type_ambiguous', message: "Agent type 'Explore' is ambiguous — matches EX-PLORE, explore. Use the exact name." } });
+  expect(resolveAgentType(variants, 'Explore')).toEqual({ refusal: { code: 'subagent_type_ambiguous', message: "Agent type 'Explore' is ambiguous — matches explore, EX-PLORE. Use the exact name: explore or EX-PLORE" } });
 });
 
 test('[G2-12] default resolution accepts exactly one allowed normalized general-purpose definition', () => {
@@ -154,13 +154,23 @@ test('[G1-15] concurrency bypass admits beyond the cap', () => {
   expect(decideAdmission({ ...base, running: 25, concurrencyBypass: true }, request).ok).toBe(true);
 });
 
-test.each([
-  [5, 5, 'Budget limit reached ($5.00 spent of the $5 maximum). New agents cannot be started.'],
-  [1.5, 1, 'Budget limit reached ($1.50 spent of the $1 maximum). New agents cannot be started.'],
-])('[G1-17] budget %s of %s refuses', (spent, max, prefix) => {
-  const decision = decideAdmission({ ...base, spentUsd: spent, maxBudgetUsd: max }, request);
-  expect(decision).toMatchObject({ ok: false, counter: 'budget' });
-  expect(!decision.ok && decision.refusal.message.startsWith(prefix)).toBe(true);
+test.for([
+  { spent: 5, max: 5, amounts: '$5.00 spent of the $5 maximum' },
+  { spent: 1.5, max: 1, amounts: '$1.50 spent of the $1 maximum' },
+  { spent: 0.256, max: 0.25, amounts: '$0.26 spent of the $0.25 maximum' },
+])('[G1-17] budget $spent of $max refuses with the recovered message', ({ spent, max, amounts }) => {
+  expect(decideAdmission({ ...base, spentUsd: spent, maxBudgetUsd: max }, request)).toEqual({
+    ok: false,
+    counter: 'budget',
+    refusal: {
+      code: 'subagent_budget_exhausted',
+      message: `Budget limit reached (${amounts}). New agents cannot be started. Complete the remaining work directly with your tools, or wrap up with the results you already have.`,
+    },
+  });
+});
+
+test('budget below the maximum admits', () => {
+  expect(decideAdmission({ ...base, spentUsd: 4.99, maxBudgetUsd: 5 }, request).ok).toBe(true);
 });
 
 test('[G1-18] session spawn cap refuses the third spawn and counts as budget', () => {

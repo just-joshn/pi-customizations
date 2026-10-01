@@ -9,6 +9,7 @@ import type { TaskRecord } from '../worker-records.ts';
 import type { WorkerRuntime } from '../worker-runtime.ts';
 import type { AgentLaunch } from '../worker-support.ts';
 import { decideAdmission } from './admission.ts';
+import { maxBudgetUsd, sessionCostUsd } from './budget.ts';
 import { AdmissionSlots } from './admission-slots.ts';
 import { DefinitionCatalog } from './definition-catalog.ts';
 import type { AgentDefinition } from './definitions.ts';
@@ -17,6 +18,7 @@ import { agentGuidance } from './guidance.ts';
 import { concurrencyCap, sessionSpawnCap } from './limits.ts';
 import { chooseChildModel } from './models.ts';
 import { checkOptionPortability } from './option-portability.ts';
+import { pstackSetting } from './pstack-settings.ts';
 import { AgentPreconditionError, AgentTypeError } from './precondition-error.ts';
 import { type AgentResult, AgentResultSchema, asyncLaunched, completed, resultText } from './results.ts';
 import { type AgentInput, agentSchemaGates, buildAgentSchema, ListAgentsSchema, parseAgentInput, SendMessageSchema } from './schema.ts';
@@ -76,6 +78,7 @@ class AgentLauncher {
 
   private snapshot(ctx: ExtensionContext, agents: AdmissionSnapshot['agents']): AdmissionSnapshot {
     const sessionCap = sessionSpawnCap(this.env);
+    const budget = maxBudgetUsd(this.pi.getFlag('max-budget-usd'));
     return {
       agents,
       forkAvailable: false,
@@ -84,10 +87,11 @@ class AgentLauncher {
       depthCap: this.runtime.maximumDepth(ctx, this.env),
       running: this.runtime.runningCount() + this.slots.pending,
       concurrencyCap: concurrencyCap(this.env),
-      concurrencyBypass: false,
+      concurrencyBypass: pstackSetting(ctx.cwd, 'bypassSubagentConcurrencyCap') === true,
       ...(sessionCap !== undefined ? { sessionSpawnCap: sessionCap } : {}),
       spawnedThisSession: this.spawned + this.slots.pending,
-      spentUsd: 0,
+      spentUsd: sessionCostUsd(ctx.sessionManager.getEntries()),
+      ...(budget !== undefined ? { maxBudgetUsd: budget } : {}),
       hasProject: Boolean(ctx.cwd),
       stopPending: false,
     };
