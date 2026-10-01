@@ -22,6 +22,7 @@ export const TaskRecordSchema = Type.Object({
   status: Type.Union([Type.Literal('running'), Type.Literal('settled'), Type.Literal('failed'), Type.Literal('interrupted')]),
   output: Type.String(),
   usage: Type.Optional(UsageSchema),
+  detached: Type.Optional(Type.Object({ directory: Type.String({ minLength: 1 }), invocation: Type.String({ minLength: 1 }), entryCursor: Type.Union([Type.String({ minLength: 1 }), Type.Null()]) })),
 });
 export type TaskRecord = Static<typeof TaskRecordSchema>;
 export const TaskParameters = Type.Object({
@@ -41,7 +42,7 @@ export function restoreTaskRecords(entries: ReadonlyArray<{ type: string; custom
   const parsed = entries.flatMap((entry) => {
     if (entry.type !== 'custom' || entry.customType !== taskEntryType || !Check(TaskRecordSchema, entry.data)) return [];
     const record = structuredClone(entry.data);
-    const restored: TaskRecord = record.status === 'running' ? { ...record, status: 'interrupted', output: 'Parent session ended before completion. Resume this task to continue.' } : record;
+    const restored: TaskRecord = record.status === 'running' && !record.detached ? { ...record, status: 'interrupted', output: 'Parent session ended before completion. Resume this task to continue.' } : record;
     return [[record.id, restored] satisfies [string, TaskRecord]];
   });
   return new Map(parsed);

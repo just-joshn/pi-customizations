@@ -8,6 +8,19 @@ export const launchSchema = Type.Object({ executable: Type.String({ minLength: 1
 export const commandSchema = Type.Object({ id: Type.String({ pattern: '^[0-9a-f-]{36}$' }), command: Type.Object({ type: Type.String({ minLength: 1 }) }, { additionalProperties: true }) });
 const responseFields = { id: Type.String(), type: Type.Literal('response'), command: Type.String() };
 export const responseSchema = Type.Union([Type.Object({ ...responseFields, success: Type.Literal(true), data: Type.Optional(Type.Unknown()) }), Type.Object({ ...responseFields, success: Type.Literal(false), error: Type.String() })]);
+export const activitySchema = Type.Union([
+  Type.Object({ kind: Type.Literal('idle') }),
+  Type.Object({ kind: Type.Literal('accepted'), invocation: Type.String() }),
+  Type.Object({ kind: Type.Literal('running'), invocation: Type.String() }),
+  Type.Object({ kind: Type.Literal('settled'), invocation: Type.String() }),
+]);
+export function nextActivity(activity, event) {
+  if (activity.kind === 'idle' || !event || typeof event !== 'object') return activity;
+  if (event.type === 'agent_start') return { kind: 'running', invocation: activity.invocation };
+  if (event.type === 'agent_settled') return { kind: 'settled', invocation: activity.invocation };
+  return activity;
+}
+
 export const statusSchema = Type.Union([
   Type.Object({ kind: Type.Literal('starting'), pid: Type.Integer({ minimum: 1 }) }),
   Type.Object({ kind: Type.Literal('ready'), pid: Type.Integer({ minimum: 1 }), childPid: Type.Integer({ minimum: 1 }) }),

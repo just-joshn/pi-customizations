@@ -30,7 +30,10 @@ export function rpcProcess(child, policy = { requestDeadlineMs, shutdownDeadline
     failure ??= error;
     rejectPending(requests, failure);
   };
-  const reader = readRecords((record) => receiveResponse(record, requests), fail);
+  const reader = readRecords((record) => {
+    receiveResponse(record, requests);
+    policy.onRecord?.(record);
+  }, fail);
   child.stdout.setEncoding('utf8');
   child.stdout.on('data', reader.data);
   child.stdout.on('end', reader.end);

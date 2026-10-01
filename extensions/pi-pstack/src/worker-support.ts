@@ -99,7 +99,7 @@ async function workerDirectory(ctx: ExtensionContext): Promise<string> {
 
 type OpenWorker = { id: string; params: TaskParameters; prior: TaskRecord | undefined; ctx: ExtensionContext };
 
-export async function openWorkerSession({ id, params, prior, ctx }: OpenWorker): Promise<{ session: AgentSession; record: TaskRecord }> {
+export async function prepareWorkerSession({ id, params, prior, ctx }: OpenWorker, engine: 'local' | 'detached' = 'local') {
   const requested = resolve(ctx.cwd, params.cwd ?? prior?.cwd ?? ctx.cwd);
   const cwd = params.environment === 'cloud' && !prior ? await cloudCheckout(id, requested, params.cloud_base_branch, ctx) : await realpath(requested);
   const persona = params.subagent_type ?? prior?.persona ?? 'generalPurpose';
@@ -108,11 +108,12 @@ export async function openWorkerSession({ id, params, prior, ctx }: OpenWorker):
   const profile = await readPersona(persona);
   const selected = resolveModel(params.model ?? prior?.modelReference ?? profile.defaultModel, ctx);
   const { pi: manifest } = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')) as { pi: Record<'extensions' | 'skills' | 'prompts', string[]> };
+  const providerExtensions = !readonly || engine === 'detached';
   const loader = new DefaultResourceLoader({
     cwd,
     agentDir: getAgentDir(),
-    noExtensions: readonly,
-    additionalExtensionPaths: readonly ? [] : manifest.extensions.map((path) => join(root, path)),
+    noExtensions: !providerExtensions,
+    additionalExtensionPaths: providerExtensions ? manifest.extensions.map((path) => join(root, path)) : [],
     additionalSkillPaths: manifest.skills.map((path) => join(root, path)),
     additionalPromptTemplatePaths: manifest.prompts.map((path) => join(root, path)),
     appendSystemPrompt: [
@@ -132,6 +133,12 @@ export async function openWorkerSession({ id, params, prior, ctx }: OpenWorker):
         .join('; ')}`,
     );
   const dir = await workerDirectory(ctx);
+  return { cwd, persona, readonly, selected, loader, dir };
+}
+
+export async function openWorkerSession(options: OpenWorker): Promise<{ session: AgentSession; record: TaskRecord }> {
+  const { id, prior, ctx } = options;
+  const { cwd, persona, readonly, selected, loader, dir } = await prepareWorkerSession(options);
   const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
   const sessionFile = manager.getSessionFile();
   if (!sessionFile) throw new Error('Worker session did not provide a durable transcript path.');
