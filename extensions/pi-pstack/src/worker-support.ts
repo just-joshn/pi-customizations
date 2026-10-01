@@ -100,6 +100,7 @@ async function workerDirectory(ctx: ExtensionContext): Promise<string> {
 type OpenWorker = { id: string; params: TaskParameters; prior: TaskRecord | undefined; ctx: ExtensionContext };
 
 export async function prepareWorkerSession({ id, params, prior, ctx }: OpenWorker, engine: 'local' | 'detached' = 'local') {
+  if (prior && params.environment && params.environment !== (prior.detached ? 'cloud' : 'local')) throw new Error('Resume must preserve the task execution environment.');
   const requested = resolve(ctx.cwd, params.cwd ?? prior?.cwd ?? ctx.cwd);
   const cwd = params.environment === 'cloud' && !prior ? await cloudCheckout(id, requested, params.cloud_base_branch, ctx) : await realpath(requested);
   const persona = params.subagent_type ?? prior?.persona ?? 'generalPurpose';

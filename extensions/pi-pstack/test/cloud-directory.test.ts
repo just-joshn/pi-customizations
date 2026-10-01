@@ -25,6 +25,21 @@ test('detached preparations use task-owned directories without launching session
     const base = join(manager.getSessionDir(), 'pstack-workers', manager.getSessionId());
     expect(one.dir).toBe(join(base, 'task-one'));
     expect(two.dir).toBe(join(base, 'task-two'));
+    const prior = {
+      id: 'task-one',
+      persona: 'generalPurpose',
+      cwd: one.cwd,
+      readonly: false,
+      sessionFile: manager.getSessionFile() ?? '',
+      outputFile: join(base, 'output.txt'),
+      status: 'settled' as const,
+      output: '',
+      modelReference: 'pstack-integration/scripted',
+    };
+    await expect(prepareWorkerSession({ id: prior.id, params: { ...params, environment: 'cloud' }, prior, ctx: context }, 'detached')).rejects.toThrow('Resume must preserve the task execution environment');
+    const detached = { ...prior, detached: { directory: one.dir, invocation: 'fixture', entryCursor: null } };
+    await expect(prepareWorkerSession({ id: prior.id, params: { ...params, environment: 'local' }, prior: detached, ctx: context })).rejects.toThrow('Resume must preserve the task execution environment');
+    expect((await prepareWorkerSession({ id: prior.id, params, prior, ctx: context })).dir).toBe(base);
     expect(f.requests).toEqual([]);
   } finally {
     await f.close();
