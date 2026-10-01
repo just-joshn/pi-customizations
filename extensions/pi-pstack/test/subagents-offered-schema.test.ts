@@ -1,6 +1,7 @@
 import { Check } from 'typebox/value';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { agentSchemaGates, buildAgentSchema, parseAgentInput } from '../src/subagents/schema.ts';
+import { workerFixture } from './worker-fixture.ts';
 
 type JsonSchema = { properties: Record<string, { description?: string; pattern?: string }>; required: string[]; additionalProperties: boolean };
 const keys = (env: NodeJS.ProcessEnv) => Object.keys((buildAgentSchema(agentSchemaGates(env)) as unknown as JsonSchema).properties);
@@ -61,4 +62,14 @@ test.for([
   expect(schema.properties.model?.description).toBe(
     `Optional model override for this agent. Takes precedence over the agent definition's model frontmatter and the configured default subagent model. If omitted, uses the agent definition's model, else the default (inherits from the parent unless a default subagent model is configured). Ignored for subagent_type: "fork" \u2014 forks always inherit the parent model.${note}`,
   );
+});
+
+test('with background tasks disabled an Agent call runs in the foreground', async () => {
+  vi.stubEnv('CLAUDE_CODE_DISABLE_BACKGROUND_TASKS', '1');
+  const fixture = await workerFixture();
+  try {
+    expect(((await fixture.call('Agent', { description: 'foreground only', prompt: 'hello' })) as { details: Record<string, unknown> }).details).toMatchObject({ status: 'completed' });
+  } finally {
+    await fixture.close();
+  }
 });
