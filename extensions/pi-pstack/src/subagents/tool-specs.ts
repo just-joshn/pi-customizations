@@ -24,9 +24,11 @@ export function toolList(value: unknown): string[] | undefined {
     });
 }
 
+const launcherNames = ['agent', 'task'];
+
 export function agentTypeScope(tools: readonly string[] | undefined): readonly string[] | undefined {
-  if (!tools || tools.includes('*') || tools.some((tool) => tool.trim().toLowerCase() === 'agent')) return undefined;
-  const scoped = tools.filter((tool) => /^agent\(/i.test(tool.trim()));
+  if (!tools || tools.includes('*') || tools.some((tool) => launcherNames.includes(tool.trim().toLowerCase()))) return undefined;
+  const scoped = tools.filter((tool) => /^(?:agent|task)\(/i.test(tool.trim()));
   if (scoped.length === 0) return undefined;
   return [
     ...new Set(
@@ -42,7 +44,7 @@ export function agentTypeScope(tools: readonly string[] | undefined): readonly s
 }
 
 export function hasUnsupportedToolScope(value: string): boolean {
-  return hasToolScope(value) && !/^agent\([^()]*\)$/i.test(value.trim());
+  return hasToolScope(value) && !/^(?:agent|task)\([^()]*\)$/i.test(value.trim());
 }
 
 export function hasToolScope(value: string): boolean {

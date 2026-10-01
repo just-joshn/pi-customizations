@@ -27,7 +27,7 @@ test.for([
 const cases = [
   { label: 'under cap', tools: '["*"]', depth: '3', offered: true },
   { label: 'at cap', tools: '["*"]', depth: '1', offered: false },
-  { label: 'scoped without default', tools: 'Agent(Plan)', depth: '3', offered: false },
+  { label: 'scoped without default', tools: 'Agent(Plan)', depth: '3', offered: true },
   { label: 'scoped with default', tools: '["Agent(general-purpose, Plan)"]', depth: '3', offered: true },
   { label: 'explicit read only', tools: '[read]', depth: '3', offered: false },
 ];

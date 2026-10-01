@@ -31,7 +31,7 @@ test('[G2-23] scoped Agent without general-purpose refuses an implicit grandchil
     expect((await fixture.call('Agent', { description: 'denied nested scope', prompt: 'SPAWN_AGENT', subagent_type: 'scoped', run_in_background: false })).details).toMatchObject({ status: 'completed', totalToolUseCount: 1 });
     const results = JSON.parse(await readFile(join(fixture.dir, 'child-tool-results.json'), 'utf8'));
     expect(results).toMatchObject([{ toolName: 'Agent', isError: true }]);
-    expect(JSON.stringify(results)).toContain('Tool Agent not found');
+    expect(results[0]?.content?.[0]?.text).toBe('subagent_type is required: the general-purpose agent is not available in this session. Available agents: Plan');
   } finally {
     clearAgentCache();
     await fixture.close();

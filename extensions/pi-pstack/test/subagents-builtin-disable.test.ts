@@ -9,7 +9,7 @@ import { workerFixture } from './worker-fixture.ts';
 const switches = ['CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS', 'PI_DISABLE_BUILTIN_AGENTS'];
 
 test.for(switches)('[G2-11] %s omits all built-in definitions', (name) => {
-  expect(builtinAgents({}).map((agent) => agent.agentType)).toEqual(['general-purpose', 'statusline-setup', 'Explore', 'Plan']);
+  expect(builtinAgents({}).map((agent) => agent.agentType)).toEqual(['general-purpose', 'statusline-setup', 'Explore', 'Plan', 'claude-code-guide']);
   expect(builtinAgents({ [name]: '1' })).toStrictEqual([]);
 });
 
