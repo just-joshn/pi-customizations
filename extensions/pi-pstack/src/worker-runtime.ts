@@ -22,6 +22,7 @@ import { SubagentStats, type SubagentStatsDelta } from './subagents/stats.ts';
 import { registerStopControl } from './subagents/stop-control.ts';
 import { settleWithin, stillStoppingMessage, stopPendingDetails } from './subagents/stop-deadline.ts';
 import { stopPendingEvent, stopPendingFor } from './subagents/stop-pending.ts';
+import { RemoteTasks } from './subagents/remote-tasks.ts';
 import { applyToolPolicy } from './subagents/tool-pool.ts';
 import { countToolStats } from './subagents/tool-stats.ts';
 import { turnLimit } from './subagents/turn-limit.ts';
@@ -118,6 +119,7 @@ export class WorkerRuntime {
   private inheritedDefinitions: string | undefined;
   private readonly depthPolicy = new SessionDepthPolicy();
   readonly stats = new SubagentStats();
+  readonly remote = new RemoteTasks({ commit: (record) => this.commitRemote(record), settle: (record, output, notify) => this.settleRemote(record, output, notify), current: (id) => this.records.get(id) });
   constructor(private readonly pi: ExtensionAPI) {
     this.completions = new DeferredWakes(pi);
   }
@@ -152,6 +154,20 @@ export class WorkerRuntime {
 
   continuationState(id: string): ContinuationState {
     return { inFlight: this.starting.has(id), stopping: this.stopping.has(id), resumerStopping: this.selfStopPending };
+  }
+
+  private commitRemote(record: TaskRecord): void {
+    this.records.set(record.id, record);
+    this.pi.appendEntry(taskEntryType, structuredClone(record));
+    this.pi.events.emit('pstack:subagent-started', { agentId: record.id, spawnDepth: record.depth, agent_depth: record.depth });
+  }
+
+  private settleRemote(record: TaskRecord, output: string, notify: { send: boolean; parentIdle: () => boolean }): void {
+    if (this.lifecycle.kind !== 'active') return;
+    this.records.set(record.id, record);
+    this.persistFinished(record);
+    this.pi.events.emit('pstack:subagent-settled', { agentId: record.id, status: record.status });
+    if (notify.send) this.notifyCompletion(record, output, notify.parentIdle());
   }
 
   settleCompleted(id: string, output: string): void {
@@ -232,6 +248,7 @@ export class WorkerRuntime {
           worker.stop('shutdown');
         }
         const outcomes = await Promise.allSettled([
+          this.remote.shutdown(),
           ...starting.map((operation) =>
             operation.then((outcome) => {
               if (outcome) throw outcome.error;
@@ -626,7 +643,7 @@ export class WorkerRuntime {
   }
 
   async output(id: string, block: boolean | undefined, signal: AbortSignal | undefined) {
-    const worker = this.workers.get(id);
+    const worker = this.workers.get(id) ?? (this.remote.has(id) ? { completion: this.remote.completion(id) as Promise<TaskRecord> } : undefined);
     if (block && worker) {
       if (signal?.aborted) throw new Error('Wait cancelled.');
       await new Promise<void>((resolveWait, reject) => {
@@ -675,6 +692,7 @@ export class WorkerRuntime {
 
   async stop(reference: string, stoppedBy: StoppedBy = 'parent') {
     const target = this.find(reference);
+    if (target && reference !== this.agentId && this.remote.has(target.id)) return this.stopRemote(target, stoppedBy);
     const worker = target && this.workers.get(target.id);
     if (reference === this.agentId || !worker) {
       const message = reference === this.agentId ? `Agent ${reference} cannot stop itself; use the task UI or a main-session TaskStop.` : `No live task: ${reference}`;
@@ -703,6 +721,21 @@ export class WorkerRuntime {
     return { ...result, details, structuredContent: details as unknown as JsonValue };
   }
 
+  private async stopRemote(target: TaskRecord, stoppedBy: StoppedBy) {
+    const wasRunning = target.status === 'running';
+    const record = await this.remote.stop(target.id);
+    if (wasRunning) this.pi.sendMessage(taskNotification(record, '', stoppedBy).message, { triggerTurn: false });
+    const result = this.result(record);
+    const details = {
+      ...result.details,
+      message: wasRunning ? `Stopped task ${record.id}` : `Task ${record.id} already finished with status ${record.status}`,
+      task_id: record.id,
+      task_type: 'local_agent' as const,
+      command: record.description ?? record.persona,
+    };
+    return { ...result, details, structuredContent: details as unknown as JsonValue };
+  }
+
   private markStopping(id: string, worker: Worker): void {
     if (this.stopping.has(id)) return;
     this.stopping = new Set([...this.stopping, id]);
@@ -721,6 +754,11 @@ export class WorkerRuntime {
 
   async message(id: string, message: string, mode: 'steer' | 'followUp' | undefined) {
     const worker = this.workers.get(id);
+    if (this.remote.has(id) && this.records.get(id)?.status === 'running') {
+      await this.remote.message(id, message, mode === 'steer' ? 'steer' : 'followUp');
+      const details = { task_id: id };
+      return { content: [{ type: 'text' as const, text: `Message queued for ${id}` }], details, structuredContent: details as unknown as JsonValue };
+    }
     if (this.stopping.has(id)) throw new ResumeError('still_stopping', resumeMessages.targetStopping(id));
     if (!worker || this.records.get(id)?.status !== 'running') throw new Error('Task is not running. Use Task with resume.');
     if (mode === 'steer') await worker.session.steer(message);

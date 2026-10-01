@@ -24,7 +24,9 @@ export type RefusalCode =
   | 'subagent_no_directory_in_cwd_scope'
   | 'subagent_stop_pending'
   | 'subagent_name_invalid'
-  | 'subagent_isolation_conflict';
+  | 'subagent_isolation_conflict'
+  | 'subagent_nested_teammate'
+  | 'subagent_teammate_background_denied';
 
 export type Refusal = Readonly<{ code: RefusalCode; message: string }>;
 
