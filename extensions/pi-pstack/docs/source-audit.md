@@ -8,6 +8,14 @@ Reference loads `plugin-metadata/plugin.json`, discovers the 47 skills and two a
 
 There is no extension runtime or hidden plugin hook in the source manifest. Most behavior is specified as model instructions. Exact copied text therefore establishes content parity, not observable host behavior or proof that a model follows every instruction.
 
+## Current create-skill requirement audit
+
+The supplied Reference built-in create-skill source has an initial ledger of 56 semantic clauses. These include requirements, guidance, and optional examples. The native port differs in host names, skill directories, question-tool availability, and package-edit protection. Source and port hashes and line references are retained in the audit ledger. The grouping is not an exhaustive completed source-line audit.
+
+Fresh real RPC checks verify discovery of scaffolded personal and project skills, trust denial/approval, complete body and argument delivery, support-script execution from the skill directory, and explicit-only metadata. The ambient prompt omits both skills when `disable-model-invocation: true` is present. Removing that field produces exactly two failing ambient-discovery checks. Restoring it yields 430 assertions with zero findings. No Task or AI inference runs.
+
+The harness creates skill files directly. It does not prove model-authored quality, discovery questions, exact user-wording preservation, progressive-disclosure behavior, or automatic writing-policy adherence. The current creation journey starts a new process rather than testing `/reload` after an edit. Those requirements remain unverified.
+
 ## Runtime capability matrix
 
 | Contract | Source | Pi port requirement / limit |
