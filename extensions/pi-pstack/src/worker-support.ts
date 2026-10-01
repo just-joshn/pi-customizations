@@ -1,10 +1,11 @@
+import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { Usage } from '@earendil-works/pi-ai';
-import { type AgentSession, createAgentSession, DefaultResourceLoader, type ExtensionContext, getAgentDir, ModelRuntime, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
+import { type AgentSession, createAgentSession, type createEventBus, DefaultResourceLoader, type ExtensionContext, getAgentDir, ModelRuntime, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { cursorToolNames } from './host.ts';
 import { resolveModel } from './models.ts';
 import { readPersona } from './personas.ts';
@@ -15,12 +16,14 @@ import { validateId } from './subagents/identifiers.ts';
 import { memoryPrompt } from './subagents/memory.ts';
 import { ModelHistory } from './subagents/model-history.ts';
 import { childStatsEvents } from './subagents/nested-depth.ts';
+import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
 import { validateResumeWorktree } from './subagents/resume-worktree.ts';
 import { saveChildContext } from './subagents/session-context.ts';
 import { preloadSkills } from './subagents/skill-preload.ts';
 import type { SubagentStatsDelta } from './subagents/stats.ts';
 import { agentSystemPrompt, appendedSubagentPrompt } from './subagents/system-prompt.ts';
 import { provenanceFields } from './subagents/worktree-metadata.ts';
+import { trackedBashTool } from './subagents/tracked-bash.ts';
 import type { AgentCheckout } from './subagents/worktree-hooks.ts';
 import type { TaskParameters, TaskRecord } from './worker-records.ts';
 
@@ -105,11 +108,25 @@ type OpenWorker = {
   log?: (message: string) => void;
   handback?: HandbackContract;
   toolUseId?: string;
+  events?: ReturnType<typeof createEventBus>;
+  onProcessGroup?: (pid: number) => void;
+  inheritedWorktree?: string;
 };
 
-type RecordInputs = { id: string; persona: string; cwd: string; readonly: boolean; selected: ReturnType<typeof resolveModel>; depth: number; sessionFile: string; outputFile: string; launch?: AgentLaunch };
+type RecordInputs = {
+  id: string;
+  persona: string;
+  cwd: string;
+  readonly: boolean;
+  selected: ReturnType<typeof resolveModel>;
+  depth: number;
+  sessionFile: string;
+  outputFile: string;
+  launch?: AgentLaunch;
+  inheritedWorktree: string | undefined;
+};
 
-function initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile, launch }: RecordInputs): TaskRecord {
+function initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile, launch, inheritedWorktree }: RecordInputs): TaskRecord {
   return {
     id,
     persona,
@@ -123,6 +140,7 @@ function initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFil
     startedAt: Date.now(),
     output: '',
     ...(launch ? { description: launch.description, ...(launch.name ? { agentName: launch.name } : {}) } : {}),
+    ...(!launch?.worktree && inheritedWorktree ? { inheritedWorktreePath: inheritedWorktree } : {}),
     ...provenanceFields(launch),
   };
 }
@@ -140,9 +158,28 @@ function handbackPrompt(handback: HandbackContract | undefined, prior: TaskRecor
   return prior?.handback ? [handbackUnavailable()] : [];
 }
 
+function openChildTranscript(options: OpenWorker, cwd: string, dir: string, depth: number): { manager: SessionManager; sessionFile: string } {
+  const { id, params, prior, launch, appendedPrompt, agentDefinitions } = options;
+  const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
+  const worktree = launch?.worktree?.path ?? prior?.worktreePath ?? prior?.inheritedWorktreePath ?? options.inheritedWorktree;
+  saveChildContext(manager, {
+    id,
+    depth,
+    foreground: params.run_in_background === false,
+    ...(worktree ? { worktree } : {}),
+    ...(launch ? { definition: launch.definition } : {}),
+    ...(appendedPrompt !== undefined ? { appendedPrompt } : {}),
+    ...(agentDefinitions !== undefined ? { agentDefinitions } : {}),
+  });
+  const sessionFile = manager.getSessionFile();
+  if (!sessionFile) throw new Error('Worker session did not provide a durable transcript path.');
+  return { manager, sessionFile };
+}
+
 export async function openWorkerSession(options: OpenWorker): Promise<{ session: AgentSession; record: TaskRecord; modelsUsed: ModelHistory; handback?: HandbackContract }> {
-  const { id, params, prior, ctx, launch, appendedPrompt, agentDefinitions, depth = 1, onNestedStats = () => {}, log = () => {}, handback } = options;
+  const { id, params, prior, ctx, launch, appendedPrompt, agentDefinitions, depth = 1, onNestedStats = () => {}, log = () => {}, handback, onProcessGroup } = options;
   validateId(id);
+  if (prior && !existsSync(prior.sessionFile)) throw new ResumeError('state', resumeMessages.transcriptMissing(id));
   if (prior) await validateResumeWorktree(prior);
   const cwd = await realpath(resolve(ctx.cwd, params.cwd ?? prior?.cwd ?? ctx.cwd));
   const persona = launch?.definition.agentType ?? params.subagent_type ?? prior?.persona ?? 'generalPurpose';
@@ -153,7 +190,7 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
   const modelsUsed = new ModelHistory([...(prior?.modelsUsed ?? []), `${selected.model.provider}/${selected.model.id}`]);
   const { pi: manifest } = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')) as { pi: Record<'extensions' | 'skills' | 'prompts', string[]> };
   const loader = await loadWorkerResources({
-    eventBus: childStatsEvents(onNestedStats),
+    eventBus: options.events ?? childStatsEvents(onNestedStats),
     cwd,
     agentDir: getAgentDir(),
     noExtensions: readonly,
@@ -171,14 +208,13 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
     extensionsOverride: (result) => ({ ...result, extensions: deduplicateExtensions(result.extensions) }),
   });
   const dir = await workerDirectory(ctx);
-  const manager = prior ? SessionManager.open(prior.sessionFile, dir, cwd) : SessionManager.create(cwd, dir);
-  saveChildContext(manager, { id, depth, ...(launch ? { definition: launch.definition } : {}), ...(appendedPrompt !== undefined ? { appendedPrompt } : {}), ...(agentDefinitions !== undefined ? { agentDefinitions } : {}) });
-  const sessionFile = manager.getSessionFile();
-  if (!sessionFile) throw new Error('Worker session did not provide a durable transcript path.');
+  const { manager, sessionFile } = openChildTranscript(options, cwd, dir, depth);
   const { usage: _priorUsage, abort: _priorAbort, toolStats: _priorToolStats, ...saved } = prior ?? {};
-  const record = { ...saved, ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), ...(launch ? { launch } : {}) }), ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}) };
+  const inheritedWorktree = prior ? undefined : options.inheritedWorktree;
+  const record = { ...saved, ...initialRecord({ id, persona, cwd, readonly, selected, depth, sessionFile, outputFile: join(dir, `${id}.output.txt`), inheritedWorktree, ...(launch ? { launch } : {}) }), ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}) };
   const modelRuntime = await childModelRuntime(readonly, selected.model.provider, ctx);
-  const { session } = await createAgentSession({ cwd, modelRuntime, resourceLoader: loader, sessionManager: manager, ...selected, ...(readonly ? { tools: ['read', 'grep', 'find', 'ls'] } : {}) });
+  const tools = readonly ? { tools: ['read', 'grep', 'find', 'ls'] } : onProcessGroup ? { customTools: [trackedBashTool(cwd, onProcessGroup)] } : {};
+  const { session } = await createAgentSession({ cwd, modelRuntime, resourceLoader: loader, sessionManager: manager, ...selected, ...tools });
   if (launch?.definition.skills?.length) await preloadSkills(session, loader.getSkills().skills, launch.definition, log);
   return { session, record: { ...record, modelsUsed: modelsUsed.snapshot() }, modelsUsed, ...(handback ? { handback } : {}) };
 }

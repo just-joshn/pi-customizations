@@ -187,8 +187,21 @@ function agentStopCalls(context: Context): PlannedCall[] {
   return [];
 }
 
+function agentStopResumeCalls(context: Context): PlannedCall[] {
+  const results = toolResults(context);
+  const started = results.find((message) => message.toolName === 'Agent');
+  if (!started) return [{ name: 'Agent', arguments: { description: 'stop resume probe', prompt: 'JOURNEY:agentstop-child' } }];
+  const id = taskIdOf(started);
+  if (!id) return [];
+  if (!results.some((message) => message.toolName === 'TaskStop')) return [{ name: 'TaskStop', arguments: { task_id: id } }];
+  if (!results.some((message) => message.toolName === 'SendMessage')) return [{ name: 'SendMessage', arguments: { to: id, message: 'JOURNEY:model-restart' } }];
+  return [];
+}
+
 function dispatch(requested: string, context: Context): { calls: PlannedCall[] | undefined; sequenced: boolean } {
   if (requested === 'JOURNEY:agentstop') return { calls: agentStopCalls(context), sequenced: true };
+  // The stopped notification arrives as a later user-role message, so the probe is keyed on its opening prompt.
+  if (context.messages.some((message) => message.role === 'user' && JSON.stringify(message.content).includes('JOURNEY:agentstopresume'))) return { calls: agentStopResumeCalls(context), sequenced: true };
   if (requested === 'JOURNEY:progress-child') return { calls: progressChildCalls(context), sequenced: true };
   if (requested === 'JOURNEY:tasklist') return { calls: backgroundTaskCalls(context), sequenced: true };
   if (requested === 'JOURNEY:taskresume') return { calls: taskResumeCalls(context), sequenced: true };

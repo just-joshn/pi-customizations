@@ -178,6 +178,14 @@ test('[G1-11] preconditions refuse before a plan exists', () => {
   expect(decideAdmission(base, { ...request, cwd: '/x', isolation: 'worktree' })).toMatchObject({ ok: false, refusal: { code: 'subagent_isolation_conflict' } });
 });
 
+test('a still-stopping spawner is refused after the depth check with the native message', () => {
+  expect(decideAdmission({ ...base, stopPending: true }, request)).toEqual({
+    ok: false,
+    refusal: { code: 'subagent_stop_pending', message: 'This agent has been stopped and its stop is still completing; it cannot launch new agents.' },
+  });
+  expect(decideAdmission({ ...base, stopPending: true, depth: 3 }, request)).toMatchObject({ ok: false, counter: 'depth_limit', refusal: { code: 'subagent_depth_cap' } });
+});
+
 test('[G1-11] omitted background flag plans a background run', () => {
   const omitted = decideAdmission(base, request);
   const foreground = decideAdmission(base, { ...request, runInBackground: false });

@@ -65,6 +65,48 @@ test.each([
   await expect(validateResumeWorktree(record)).rejects.toThrow(`Cannot resume this agent: its worktree could not be touched (${reason}). Re-run once the directory is accessible.`);
 });
 
+test.for([
+  { name: 'cleanly removed', patch: { worktreeCleanlyRemoved: true }, code: 'permanent' },
+  { name: 'unrecorded', patch: { worktreePath: undefined }, code: 'permanent' },
+  { name: 'unverifiable', patch: { worktreePath: '/nonexistent-pstack-worktree' }, code: 'transient' },
+])('a $name worktree refusal is classified $code', async ({ patch, code }) => {
+  const record = await isolatedRecord();
+  await expect(validateResumeWorktree({ ...record, ...patch })).rejects.toMatchObject({ code });
+});
+
+test('a binding that names the shared checkout itself is refused permanently', async () => {
+  const record = await isolatedRecord();
+  const branch = execFileSync('git', ['symbolic-ref', '--short', 'HEAD'], { cwd: repo }).toString().trim();
+  await expect(validateResumeWorktree({ ...record, cwd: repo, worktreePath: repo, worktreeBranch: branch })).rejects.toMatchObject({
+    name: 'AgentResumePermanentlyRefusedError',
+    code: 'permanent',
+    message: `This agent cannot be resumed: its recorded worktree ${repo} is the shared checkout, not an agent worktree.`,
+  });
+  expect(vi.mocked(utimes).mock.calls).toEqual([]);
+});
+
+test('an inherited worktree that no longer exists is refused under the isolation fences', async () => {
+  const gone = join(repo, '.pi/worktrees/agent-parent');
+  const record: TaskRecord = { id: 'nested', persona: 'general-purpose', cwd: gone, readonly: false, sessionFile: 's.jsonl', outputFile: 'o.txt', status: 'settled', output: '', inheritedWorktreePath: gone };
+  await expect(validateResumeWorktree(record)).rejects.toMatchObject({
+    name: 'AgentResumePermanentlyRefusedError',
+    code: 'permanent',
+    message: "This agent cannot be resumed: its worktree no longer exists, and the fallback directory is not covered by the session's isolation fences.",
+  });
+});
+
+test('an inherited worktree that exists keeps the nested agent resumable', async () => {
+  const record = await isolatedRecord();
+  const nested: TaskRecord = { id: 'nested', persona: 'general-purpose', cwd: record.cwd, readonly: false, sessionFile: 's.jsonl', outputFile: 'o.txt', status: 'settled', output: '', inheritedWorktreePath: record.cwd };
+  await expect(validateResumeWorktree(nested)).resolves.toBeUndefined();
+});
+
+test('a nested agent whose directory escaped its inherited worktree is refused', async () => {
+  const record = await isolatedRecord();
+  const nested: TaskRecord = { id: 'nested', persona: 'general-purpose', cwd: repo, readonly: false, sessionFile: 's.jsonl', outputFile: 'o.txt', status: 'settled', output: '', inheritedWorktreePath: record.cwd };
+  await expect(validateResumeWorktree(nested)).rejects.toMatchObject({ code: 'permanent', message: `This agent cannot be resumed: its directory ${repo} is outside its inherited worktree ${record.cwd}.` });
+});
+
 test('[G6-20] missing binding is refused without touching any directory', async () => {
   const record = await isolatedRecord();
   await expect(validateResumeWorktree({ ...record, worktreePath: undefined })).rejects.toThrow('is not recorded for this isolated agent');

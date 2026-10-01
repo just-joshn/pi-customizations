@@ -584,6 +584,7 @@ test('all pstack tools declare outputSchema, exposure, and annotations conformin
       tools.push(t);
     },
     on() {},
+    registerCommand() {},
   } as unknown as ExtensionAPI;
   registerStateTools(pi, createState(pi));
   registerContext(pi);
