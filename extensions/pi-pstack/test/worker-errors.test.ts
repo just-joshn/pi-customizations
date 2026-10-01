@@ -7,6 +7,78 @@ import { workerFixture } from './worker-fixture.ts';
 import { releasePendingWork } from './worker-gates.ts';
 import { workerTiming } from './worker-timing.ts';
 
+test('native child depth blocks a nested Agent at the configured cap', async () => {
+  vi.stubEnv('PI_MAX_SUBAGENT_SPAWN_DEPTH', '1');
+  const fixture = await workerFixture();
+  try {
+    await fixture.call('Task', { prompt: 'SPAWN_AGENT', run_in_background: false });
+    const results = JSON.parse(await readFile(join(fixture.dir, 'child-tool-results.json'), 'utf8')) as { toolName: string; isError: boolean; content: { text: string }[] }[];
+    const nested = results.find((result) => result.toolName === 'Agent');
+    expect(nested).toMatchObject({ isError: true });
+    expect(nested?.content[0]?.text).toBe('Tool Agent not found');
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('[G5-02] a resumed child cannot stop its own agent and finishes normally', async () => {
+  const fixture = await workerFixture();
+  try {
+    const initial = await fixture.call('Task', { prompt: 'first', run_in_background: false });
+    const { id } = initial.details as { id: string };
+    const resumed = await fixture.call('Task', { prompt: `SELF_STOP=${id}`, resume: id, run_in_background: false });
+    expect(resumed.details).toMatchObject({ id, status: 'settled' });
+    const results = JSON.parse(await readFile(join(fixture.dir, 'child-tool-results.json'), 'utf8')) as { toolName: string; isError: boolean; content: { text: string }[] }[];
+    const stop = results.find((result) => result.toolName === 'TaskStop');
+    expect(stop).toMatchObject({ isError: true });
+    expect(stop?.content[0]?.text).toBe(`Agent ${id} cannot stop itself; use the task UI or a main-session TaskStop.`);
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('pre-aborted launch creates no child session or task record', async () => {
+  const fixture = await workerFixture();
+  const create = vi.spyOn(SessionManager, 'create');
+  try {
+    const controller = new AbortController();
+    controller.abort('permission-stop');
+    await expect(fixture.call('Task', { prompt: 'never runs' }, controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
+    expect(create.mock.calls).toEqual([]);
+    const listed = await fixture.call('ListAgents', {});
+    expect(listed.details).toEqual({ agents: [] });
+  } finally {
+    create.mockRestore();
+    await fixture.close();
+  }
+});
+
+test.each(['Task', 'Agent'])('background %s may launch after an interrupt signal', async (tool) => {
+  const fixture = await workerFixture();
+  try {
+    const controller = new AbortController();
+    controller.abort('interrupt');
+    const started = await fixture.call(tool, { description: 'interrupt probe', prompt: 'after interrupt' }, controller.signal);
+    const details = started.details as { id?: string; agentId?: string };
+    const done = await fixture.call('TaskOutput', { task_id: details.id ?? details.agentId, block: true });
+    expect(done.details).toMatchObject({ status: 'settled', output: 'users=1' });
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('pre-aborted Agent refuses before attempting worktree creation', async () => {
+  const fixture = await workerFixture();
+  try {
+    const controller = new AbortController();
+    controller.abort('permission-stop');
+    await expect(fixture.call('Agent', { description: 'never isolate', prompt: 'never runs', isolation: 'worktree' }, controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
+    expect((await fixture.call('ListAgents', {})).details).toEqual({ agents: [] });
+  } finally {
+    await fixture.close();
+  }
+});
+
 test('stopping a completed task does not abort the disposed session again', async () => {
   const f = await workerFixture();
   try {
@@ -17,7 +89,8 @@ test('stopping a completed task does not abort the disposed session again', asyn
     await new Promise<void>((resolve) => setImmediate(resolve));
     expect(abort.mock.calls.length).toBe(0);
     expect(stopped.usage).toBeUndefined();
-    expect(stopped.details).toEqual(completed.details);
+    expect(stopped.details).toMatchObject(completed.details as Record<string, unknown>);
+    expect(stopped.details).toMatchObject({ message: `Task ${record.id} already finished with status settled`, task_id: record.id, task_type: 'local_agent' });
   } finally {
     await f.close();
   }
