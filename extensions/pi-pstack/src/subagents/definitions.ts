@@ -51,7 +51,7 @@ export type DiscoveryOptions = Readonly<{
   additionalDirs?: readonly string[];
   policyDirs?: readonly string[];
   flagAgents?: readonly AgentDefinition[];
-  pluginAgents?: readonly AgentDefinition[];
+  pluginAgents?: readonly AgentDefinition[] | ((warnings: string[]) => readonly AgentDefinition[]);
   env?: NodeJS.ProcessEnv;
   safeMode?: boolean;
 }>;
@@ -213,7 +213,7 @@ function loadDirectory(dir: string, source: AgentSource, warnings: string[], pro
 
 function customCandidates(options: DiscoveryOptions, root: string, env: NodeJS.ProcessEnv, warnings: string[]): AgentDefinition[] {
   return [
-    ...(options.pluginAgents ?? []),
+    ...(typeof options.pluginAgents === 'function' ? options.pluginAgents(warnings) : (options.pluginAgents ?? [])),
     ...(options.userDirs ?? defaultUserDirs(env)).flatMap((dir) => loadDirectory(dir, 'userSettings', warnings)),
     ...(options.additionalDirs ?? []).flatMap((dir) => loadDirectory(dir, 'projectSettings', warnings, { fromAdditionalDirectory: true })),
     ...projectAgentDirs(root).flatMap((dir) => loadDirectory(dir, 'projectSettings', warnings)),

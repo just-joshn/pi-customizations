@@ -10,10 +10,10 @@ import type { WorkerRuntime } from '../worker-runtime.ts';
 import type { AgentLaunch } from '../worker-support.ts';
 import { decideAdmission } from './admission.ts';
 import { AdmissionSlots } from './admission-slots.ts';
-import { type AgentDefinition, type Discovery, discoverAgents } from './definitions.ts';
+import { DefinitionCatalog } from './definition-catalog.ts';
+import type { AgentDefinition } from './definitions.ts';
 import { backgroundTasksDisabled } from './gates.ts';
 import { agentGuidance } from './guidance.ts';
-import { parseJsonAgents } from './json-definitions.ts';
 import { concurrencyCap, sessionSpawnCap } from './limits.ts';
 import { chooseChildModel } from './models.ts';
 import { checkOptionPortability } from './option-portability.ts';
@@ -59,13 +59,14 @@ class AgentLauncher {
   }
   private spawned = 0;
   private readonly slots = new AdmissionSlots();
-  private readonly reportedDiscoveries = new WeakSet<Discovery>();
+  readonly catalog: DefinitionCatalog;
 
   constructor(
     private readonly runtime: WorkerRuntime,
     private readonly env: NodeJS.ProcessEnv,
     private readonly pi: ExtensionAPI,
   ) {
+    this.catalog = new DefinitionCatalog(pi, env, () => runtime.agentDefinitions());
     this.publishStats();
   }
 
@@ -93,13 +94,7 @@ class AgentLauncher {
   }
 
   admit(params: AgentParams, ctx: ExtensionContext): Admitted {
-    const flags = this.runtime.agentDefinitions();
-    const flagAgents = typeof flags === 'string' ? parseJsonAgents(flags, ctx.cwd, (message) => this.pi.events.emit('pstack:subagent-log', message)) : [];
-    const found = discoverAgents({ root: ctx.cwd, env: this.env, flagAgents });
-    if (!this.reportedDiscoveries.has(found)) {
-      for (const message of [...found.logs, ...found.warnings]) this.pi.events.emit('pstack:subagent-log', message);
-      this.reportedDiscoveries.add(found);
-    }
+    const found = this.catalog.discover(ctx);
     const decision = decideAdmission(this.snapshot(ctx, found.activeAgents), toRequest(params));
     if (!decision.ok) {
       if (decision.counter) {
@@ -121,6 +116,7 @@ class AgentLauncher {
     if (params.subagent_type && params.subagent_type !== plan.agentType) this.pi.events.emit('pstack:subagent-type-normalized', { requested: params.subagent_type, resolved: plan.agentType });
     const selected = found.activeAgents.find((agent) => agent.agentType === plan.agentType);
     if (!selected) throw new Error(`Agent type '${plan.agentType}' not found.`);
+    if (params.subagent_type && params.subagent_type !== plan.agentType && selected.color) this.pi.events.emit('pstack:subagent-color', { agentType: params.subagent_type, color: selected.color });
     const definition = withMaxTurns(selected, params.max_turns);
     checkOptionPortability(definition, (message) => this.pi.events.emit('pstack:subagent-log', message));
     const available = ctx.modelRegistry.getAvailable().map((model) => `${model.provider}/${model.id}`);
@@ -159,7 +155,7 @@ class AgentLauncher {
     signal = launchSignal(signal, admitted.background);
     const release = this.slots.reserve();
     try {
-      return await this.dispatch(callId, admitted, signal, onUpdate, ctx, release);
+      return await this.dispatch(callId, await loadDeferredDefinition(admitted, params.subagent_type), signal, onUpdate, ctx, release);
     } finally {
       release();
     }
@@ -205,6 +201,15 @@ class AgentLauncher {
   }
 }
 
+async function loadDeferredDefinition(admitted: Admitted, requested: string | undefined): Promise<Admitted> {
+  const { definition } = admitted;
+  if (definition.source !== 'plugin' || definition.loadDefinition === undefined) return admitted;
+  const loaded = await definition.loadDefinition();
+  if (loaded === undefined || loaded.agentType !== definition.agentType || loaded.source !== 'plugin')
+    throw new AgentTypeError({ code: 'subagent_type_not_found', message: `Agent type '${requested ?? 'general-purpose'}' could not be loaded from its plugin.` });
+  return { ...admitted, definition: loaded };
+}
+
 function registerAgent(pi: ExtensionAPI, launcher: AgentLauncher, env: NodeJS.ProcessEnv): void {
   pi.registerTool({
     name: 'Agent',
@@ -220,13 +225,12 @@ function registerAgent(pi: ExtensionAPI, launcher: AgentLauncher, env: NodeJS.Pr
   });
 }
 
-function resumeLaunch(record: TaskRecord, ctx: ExtensionContext, env: NodeJS.ProcessEnv, flags: string | undefined): AgentLaunch | undefined {
-  const flagAgents = flags === undefined ? undefined : parseJsonAgents(flags, ctx.cwd);
-  const definition = discoverAgents({ root: ctx.cwd, env, ...(flagAgents ? { flagAgents } : {}) }).activeAgents.find((agent) => agent.agentType === record.persona);
+function resumeLaunch(record: TaskRecord, ctx: ExtensionContext, catalog: DefinitionCatalog): AgentLaunch | undefined {
+  const definition = catalog.discover(ctx).activeAgents.find((agent) => agent.agentType === record.persona);
   return definition ? { definition, description: record.description ?? '', depth: record.depth ?? 1 } : undefined;
 }
 
-function registerSendMessage(pi: ExtensionAPI, runtime: WorkerRuntime, env: NodeJS.ProcessEnv): void {
+function registerSendMessage(pi: ExtensionAPI, runtime: WorkerRuntime, catalog: DefinitionCatalog): void {
   pi.registerTool({
     name: 'SendMessage',
     label: 'Send message',
@@ -242,7 +246,7 @@ function registerSendMessage(pi: ExtensionAPI, runtime: WorkerRuntime, env: Node
       if (!record) throw new Error(`No agent found with ID or name: ${params.to}`);
       const live = record.status === 'running';
       if (live) await runtime.message(record.id, params.message, 'followUp');
-      else await runtime.start(id, { prompt: params.message, resume: record.id }, signal, ctx, undefined, resumeLaunch(record, ctx, env, runtime.agentDefinitions()));
+      else await runtime.start(id, { prompt: params.message, resume: record.id }, signal, ctx, undefined, resumeLaunch(record, ctx, catalog));
       const details = { success: true, message: live ? `Message queued for ${record.id}` : `Agent ${record.id} resumed in the background` };
       return wrap(details, details.message);
     },
@@ -287,7 +291,7 @@ export function registerAgentTools(pi: ExtensionAPI, runtime: WorkerRuntime, env
     }
   });
   registerAgent(pi, launcher, env);
-  registerSendMessage(pi, runtime, env);
+  registerSendMessage(pi, runtime, launcher.catalog);
   registerListAgents(pi, runtime);
   return (callId, params, signal, onUpdate, ctx) => launcher.launch(callId, agentParams(params), signal, onUpdate, ctx);
 }
