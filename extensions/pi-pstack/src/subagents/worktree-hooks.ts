@@ -32,7 +32,7 @@ export function commandHooks(settings: Record<string, unknown>, event: string): 
 }
 
 function failure(command: string, result: ShellResult): string {
-  return `${command}: ${(result.stderr.trim() || result.stdout.trim()) || 'no output'}`;
+  return `${command}: ${result.stderr.trim() || result.stdout.trim() || 'no output'}`;
 }
 
 async function hookPath(hooks: readonly CommandHook[], context: CheckoutContext, name: string): Promise<string> {
