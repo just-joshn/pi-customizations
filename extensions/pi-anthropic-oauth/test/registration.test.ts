@@ -46,6 +46,18 @@ test('the provider id differs from the built-in anthropic id', async () => {
   expect(provider.id).not.toBe('anthropic');
 });
 
+test('the login choice is labeled Claude subscription (Claude Code)', () => {
+  expect(captureProvider(extension).auth.oauth?.name).toBe('Claude subscription (Claude Code)');
+});
+
+test('the login keeps the built-in subscription flag', () => {
+  expect(captureProvider(extension).auth.oauth?.isSubscription).toBe(true);
+});
+
+test('the only login method is OAuth', () => {
+  expect(Object.keys(captureProvider(extension).auth)).toStrictEqual(['oauth']);
+});
+
 test('every model belongs to the registered provider', async () => {
   const provider = captureProvider(extension);
   expect(new Set(provider.getModels().map((model) => model.provider))).toStrictEqual(new Set([provider.id]));
