@@ -98,7 +98,11 @@ test('an inherited worktree that no longer exists is refused under the isolation
 test('an inherited worktree that exists keeps the nested agent resumable', async () => {
   const record = await isolatedRecord();
   const nested: TaskRecord = { id: 'nested', persona: 'general-purpose', cwd: record.cwd, readonly: false, sessionFile: 's.jsonl', outputFile: 'o.txt', status: 'settled', output: '', inheritedWorktreePath: record.cwd };
-  await expect(validateResumeWorktree(nested)).resolves.toBeUndefined();
+  const outcome = await validateResumeWorktree(nested).then(
+    () => 'resumable',
+    (error: { code: string }) => error.code,
+  );
+  expect(outcome).toBe('resumable');
 });
 
 test('a nested agent whose directory escaped its inherited worktree is refused', async () => {

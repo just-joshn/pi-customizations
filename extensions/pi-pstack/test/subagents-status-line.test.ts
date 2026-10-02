@@ -76,6 +76,9 @@ test.for([
   await poller.tick();
   expect(runs).toEqual([]);
   expect(logs).toEqual([]);
+  const control = harness();
+  await control.poller.tick();
+  expect(control.runs.map((run) => run.command)).toEqual(['status-cmd']);
 });
 
 test('[C100] the command receives project, terminal and per-task data as JSON stdin', async () => {

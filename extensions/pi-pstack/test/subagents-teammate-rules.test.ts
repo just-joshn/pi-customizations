@@ -5,14 +5,14 @@ import { assertTeammateSpawnAllowed, dispatchesTeammate, teammateCaller } from '
 const teammate = { teammate: true, addressableWorkers: false };
 const lead = { teammate: false, addressableWorkers: false };
 
-function refusal(run: () => void): { code: string; message: string } | undefined {
+function refusal(run: () => void): { code: string; message: string } | { allowed: true } {
   try {
     run();
   } catch (error) {
     if (error instanceof AgentPreconditionError) return { code: error.code, message: error.message };
     throw error;
   }
-  return undefined;
+  return { allowed: true };
 }
 
 test.for([
@@ -44,15 +44,15 @@ test.for([
   { name: 'a rewrite that went remote', spawn: { rewritten: { background: true, remote: true } } },
   { name: 'a foreground rewrite', spawn: { rewritten: { background: false, remote: false } } },
 ])('a teammate making $name is allowed', ({ spawn }) => {
-  expect(refusal(() => assertTeammateSpawnAllowed(spawn, teammate))).toBeUndefined();
+  expect(refusal(() => assertTeammateSpawnAllowed(spawn, teammate))).toEqual({ allowed: true });
 });
 
 test('a lead session is never restricted by the teammate rules', () => {
-  expect(refusal(() => assertTeammateSpawnAllowed({ name: 'a', runInBackground: true, definition: { agentType: 'x', background: true } }, lead))).toBeUndefined();
+  expect(refusal(() => assertTeammateSpawnAllowed({ name: 'a', runInBackground: true, definition: { agentType: 'x', background: true } }, lead))).toEqual({ allowed: true });
 });
 
-test('named spawns stay allowed for a teammate once addressable workers are rolled out', () => {
-  expect(refusal(() => assertTeammateSpawnAllowed({ name: 'helper' }, { teammate: true, addressableWorkers: true }))).toBeUndefined();
+test('a teammate may spawn named workers once addressable workers roll out', () => {
+  expect(refusal(() => assertTeammateSpawnAllowed({ name: 'helper' }, { teammate: true, addressableWorkers: true }))).toEqual({ allowed: true });
 });
 
 test('the caller is a teammate only when the child process says so', () => {

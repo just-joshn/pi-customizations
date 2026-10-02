@@ -128,9 +128,12 @@ test('[G2-07] the turn limiter logs and stops exactly at the configured turn', a
 test('[B72] a child that finishes its report on the last allowed turn is not cut off', async () => {
   const { turnLimit } = await import('../src/subagents/turn-limit.ts');
   const stop = vi.fn();
-  const listener = turnLimit('short', 1, () => {}, stop);
+  const logs: string[] = [];
+  const listener = turnLimit('short', 1, (message) => logs.push(message), stop);
   listener({ type: 'turn_end', toolResults: [] } as never);
-  expect(stop).toHaveBeenCalledTimes(0);
+  expect(logs).toEqual([]);
+  expect(stop.mock.calls).toEqual([]);
   listener({ type: 'turn_end', toolResults: [{ role: 'toolResult' }] } as never);
-  expect(stop).toHaveBeenCalledTimes(1);
+  expect(logs).toEqual(['[Agent: short] Reached max turns limit (1)']);
+  expect(stop.mock.calls).toEqual([[]]);
 });
