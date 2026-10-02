@@ -1,11 +1,11 @@
-import { type AgentSession, createEventBus, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { type AgentSession, type AgentSessionRuntime, createEventBus, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from '../deferred-wakes.ts';
 import { overdueAfterMs, workerControl } from '../worker-control.ts';
 import { type AgentNode, agentEntryType, repairInterrupted, restoreNodes } from './agent-node.ts';
 import { completedData, failedData, initialNode, measure, startedData, viewOf } from './agent-records.ts';
 import { EventBridge, textOf } from './child-events.ts';
 import { type OpenedChild, type OpenInput, openChildSession } from './child-session.ts';
-import { closeSession } from './close-session.ts';
+import { closeRuntime } from './close-session.ts';
 import { noticeFor } from './completion-wake.ts';
 import type { ChildPlan } from './context-builder.ts';
 import { asEnvelope, type EventLog, eventChannel } from './events.ts';
@@ -77,7 +77,7 @@ class LiveChild {
 
   constructor(
     readonly id: string,
-    readonly session: AgentSession,
+    readonly runtime: AgentSessionRuntime,
     readonly control: ReturnType<typeof workerControl>,
     readonly groups: ProcessGroups,
     readonly ctx: ExtensionContext,
@@ -90,6 +90,10 @@ class LiveChild {
       resolve = done;
     });
     this.promote = resolve;
+  }
+
+  get session(): AgentSession {
+    return this.runtime.session;
   }
 
   markLimited(): void {
@@ -207,7 +211,7 @@ export class SubagentScheduler {
       log: this.deps.log,
       killGroups: () => groups.killAll(),
     });
-    const child = new LiveChild(plan.agentId, opened.session, control, groups, ctx, limit, input.release);
+    const child = new LiveChild(plan.agentId, opened.runtime, control, groups, ctx, limit, input.release);
     holder.child = child;
     this.live.set(plan.agentId, child);
     if (plan.mode === 'sync' && this.deps.registry.get(plan.agentId)?.mode === 'background') child.promote();
@@ -301,7 +305,7 @@ export class SubagentScheduler {
     this.live.delete(child.id);
     child.control.unsubscribe();
     await child.control.drain();
-    await closeSession(child.session).catch((error: unknown) => this.log(`Subagent session close failed: ${String(error)}`));
+    await closeRuntime(child.runtime).catch((error: unknown) => this.log(`Subagent session close failed: ${String(error)}`));
   }
 
   private retireOverflow(): void {
