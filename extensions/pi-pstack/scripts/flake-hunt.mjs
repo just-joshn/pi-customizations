@@ -5,16 +5,20 @@
 //
 // Usage (from extensions/pi-pstack):
 //   node scripts/flake-hunt.mjs [--runs N] [--hogs K] [--modes plain,shuffle]
-//                               [--seed S] [--keep-going-on-error] <file|all>...
+//                               <file|all>...
 //
 //   --runs N     runs per file per mode (default 10)
 //   --hogs K     busy-loop processes kept alive for the whole hunt (default 0)
-//   --modes      comma list of plain and shuffle (default plain,shuffle)
+//   --modes      comma list of plain and shuffle (default plain,shuffle). Shuffle
+//                run i uses --sequence.seed=i+1, so a failing seed is reproducible
+//   exit code    1 when any run failed, else 0
 //   <file>       a path such as test/child-task-lifecycle.test.ts, or "all" for
 //                the whole vitest suite
 //
-// Every hog is a child this script spawned. Their pids are printed and only
-// those pids are killed on exit, SIGINT or SIGTERM.
+// Every hog and every vitest run is a child this script spawned. Their pids are
+// printed or tracked, and only those are killed on exit, SIGINT, SIGTERM or a
+// crash. If this script is SIGKILLed, a hog notices its parent changed within a
+// second and exits on its own.
 import { spawn } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -44,16 +48,34 @@ function parseOptions(argv) {
   return { runs, hogs, modes, targets: positionals };
 }
 
+function hogSource(parentPid) {
+  return [`const parent = ${parentPid};`, 'let checked = Date.now();', 'for (;;) {', '  if (Date.now() - checked > 500) {', '    checked = Date.now();', '    if (process.ppid !== parent) process.exit(0);', '  }', '}'].join('\n');
+}
+
+const liveRuns = new Set();
+
 function startHogs(count) {
+  const source = hogSource(process.pid);
   const hogs = [];
   for (let i = 0; i < count; i += 1) {
-    hogs.push(spawn(process.execPath, ['-e', 'for(;;){}'], { stdio: 'ignore' }));
+    hogs.push(spawn(process.execPath, ['-e', source], { stdio: 'ignore' }));
   }
   return hogs;
 }
 
 function stopHogs(hogs) {
   for (const hog of hogs) hog.kill('SIGKILL');
+}
+
+function stopRuns() {
+  for (const pid of liveRuns) {
+    try {
+      process.kill(-pid, 'SIGKILL');
+    } catch (error) {
+      if (error.code !== 'ESRCH') throw error;
+    }
+  }
+  liveRuns.clear();
 }
 
 function readReport(reportPath) {
@@ -82,13 +104,15 @@ function failureMessages(reportPath, result) {
   const report = readReport(reportPath);
   const messages = report ? reportMessages(report) : [];
   if (messages.length > 0) return messages;
-  const tail = `${result.stdout}${result.stderr}`.trim().split('\n').slice(-6).join(' | ');
+  const lines = `${result.stdout}\n${result.stderr}`.split('\n').filter((line) => line.trim() && !line.startsWith('JSON report written'));
+  const tail = lines.slice(-6).join(' | ');
   return [`exit ${result.status}: ${tail}`];
 }
 
 function execute(args) {
   return new Promise((resolve) => {
-    const child = spawn('bunx', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn('bunx', args, { stdio: ['ignore', 'pipe', 'pipe'], detached: true });
+    liveRuns.add(child.pid);
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (chunk) => {
@@ -97,36 +121,46 @@ function execute(args) {
     child.stderr.on('data', (chunk) => {
       stderr += chunk;
     });
-    child.on('close', (status) => resolve({ status, stdout, stderr }));
+    child.on('error', (error) => {
+      stderr += String(error);
+    });
+    child.on('close', (status) => {
+      stopRuns();
+      resolve({ status, stdout, stderr });
+    });
   });
 }
 
-async function runOnce({ target, shuffle, workdir }) {
+async function runOnce({ target, shuffleSeed, workdir }) {
   const reportPath = join(workdir, 'report.json');
   const args = ['vitest', 'run', '--reporter=json', `--outputFile=${reportPath}`];
   if (target !== 'all') args.push(target);
-  if (shuffle) args.push('--sequence.shuffle');
+  if (shuffleSeed !== undefined) args.push('--sequence.shuffle', `--sequence.seed=${shuffleSeed}`);
   const result = await execute(args);
   return result.status === 0 ? [] : failureMessages(reportPath, result);
 }
 
 async function hunt({ target, shuffle, runs, workdir }) {
   const distinct = new Map();
+  const failedSeeds = [];
   let failed = 0;
   for (let i = 0; i < runs; i += 1) {
-    const messages = await runOnce({ target, shuffle, workdir });
+    const shuffleSeed = shuffle ? i + 1 : undefined;
+    const messages = await runOnce({ target, shuffleSeed, workdir });
     if (messages.length === 0) continue;
     failed += 1;
+    if (shuffle) failedSeeds.push(shuffleSeed);
     for (const message of messages) {
       const key = message.slice(0, MESSAGE_WIDTH);
       distinct.set(key, (distinct.get(key) ?? 0) + 1);
     }
   }
-  return { passed: runs - failed, failed, distinct };
+  return { passed: runs - failed, failed, distinct, failedSeeds };
 }
 
-function report({ target, mode, hogs, runs }, { passed, failed, distinct }) {
+function report({ target, mode, hogs, runs }, { passed, failed, distinct, failedSeeds }) {
   process.stdout.write(`${target}\tmode=${mode}\thogs=${hogs}\truns=${runs}\tpass=${passed}\tfail=${failed}\n`);
+  if (failedSeeds.length > 0) process.stdout.write(`  failing seeds: ${failedSeeds.join(' ')}\n`);
   for (const [message, count] of [...distinct].slice(0, MAX_MESSAGES)) {
     process.stdout.write(`  x${count} ${message}\n`);
   }
@@ -137,26 +171,25 @@ async function main() {
   const workdir = mkdtempSync(join(tmpdir(), 'flake-hunt-'));
   const hogs = startHogs(hogCount);
   const cleanup = () => {
+    stopRuns();
     stopHogs(hogs);
     rmSync(workdir, { recursive: true, force: true });
   };
+  process.on('exit', cleanup);
   for (const signal of ['SIGINT', 'SIGTERM']) {
-    process.on(signal, () => {
-      cleanup();
-      process.exit(130);
-    });
+    process.on(signal, () => process.exit(130));
   }
   process.stdout.write(`hog pids: ${hogs.map((hog) => hog.pid).join(' ') || 'none'}\n`);
-  try {
-    for (const target of targets) {
-      for (const mode of modes) {
-        const shuffle = mode === 'shuffle';
-        report({ target, mode, hogs: hogCount, runs }, await hunt({ target, shuffle, runs, workdir }));
-      }
+  let totalFailed = 0;
+  for (const target of targets) {
+    for (const mode of modes) {
+      const shuffle = mode === 'shuffle';
+      const result = await hunt({ target, shuffle, runs, workdir });
+      totalFailed += result.failed;
+      report({ target, mode, hogs: hogCount, runs }, result);
     }
-  } finally {
-    cleanup();
   }
+  process.exit(totalFailed > 0 ? 1 : 0);
 }
 
 await main();
