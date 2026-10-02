@@ -1,6 +1,6 @@
 # pi-tui-skin: design and decision trail
 
-Package: `extensions/pi-tui-skin`. Contract: `extensions/pi-tui-parity/docs/PI_TUI_SKIN_IMPLEMENTATION_SPEC.md`.
+Package: `extensions/pi-tui-skin`. Contract: `extensions/pi-tui-skin/docs/PI_TUI_SKIN_IMPLEMENTATION_SPEC.md`.
 
 ## Goal and predicate
 
