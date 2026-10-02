@@ -32,10 +32,9 @@ export interface ToolRowState {
   invalidated?: boolean;
 }
 
-// agents-compliance-ignore parameter-mutation: pi persists renderer state by reading back the context.state the renderer wrote
+// agents-compliance-ignore parameter-mutation: pi hands every render a fresh context over one shared state object, so the row state must be filled in place
 export function ensureState(context: ToolRenderContextLike): ToolRowState {
-  if (!context.state || Object.keys(context.state).length === 0) context.state = { verb: '', primary: '' };
-  return context.state;
+  return seedState(context, { verb: '', primary: '' });
 }
 
 /**
@@ -51,9 +50,11 @@ export function invalidateOnce(context: ToolRenderContextLike): void {
   context.invalidate();
 }
 
-// agents-compliance-ignore parameter-mutation: pi persists the seed row state by reading back the context.state the renderer wrote
-export function seedState(context: ToolRenderContextLike, seed: ToolRowState): void {
-  if (!context.state || Object.keys(context.state).length === 0) context.state = seed;
+// agents-compliance-ignore parameter-mutation: pi hands every render a fresh context over one shared state object, so the seed must be written into that object
+export function seedState(context: ToolRenderContextLike, seed: ToolRowState): ToolRowState {
+  if (!context.state) context.state = {} as ToolRowState;
+  if (Object.keys(context.state).length === 0) Object.assign(context.state, seed);
+  return context.state;
 }
 
 type TextLike = { setText: (text: string) => void };
