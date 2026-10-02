@@ -82,7 +82,9 @@ function sleep(seconds) {
   execFileSync('sleep', [String(seconds)]);
 }
 
-const THEME_SECTION = '[Themes]';
+const LISTING_SECTION = '[Extensions]';
+const SGR = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g');
+const plain = (text) => text.replace(SGR, '');
 
 function readUntilIdle(session) {
   let text = '';
@@ -91,7 +93,7 @@ function readUntilIdle(session) {
     text = capture(session);
     // The footer only paints once startup finished, and it repaints on every tick,
     // so a second identical sample means the screen has settled.
-    if (text.includes(THEME_SECTION) && text === capture(session)) return text;
+    if (text.includes(LISTING_SECTION) && text === capture(session)) return text;
   }
   return text;
 }
@@ -122,16 +124,55 @@ function runPi(label, extraArgs, session) {
   return readUntilIdle(session);
 }
 
+/** Polls the pane until the plain-text screen satisfies the predicate, so no step runs on a guessed delay. */
+function waitForScreen(session, label, predicate) {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const text = capture(session);
+    if (predicate(plain(text))) return text;
+    execFileSync('sleep', ['0.25']);
+  }
+  throw new Error(`Timed out waiting for ${label}`);
+}
+
+/**
+ * Pi 1.0.0 no longer lists themes in the verbose startup listing, so the loaded package
+ * theme is read from the /settings theme picker, which marks the active theme with a check.
+ */
+function openThemeSelector(session) {
+  const hasSuggestion = (screen) => screen.includes('→ settings');
+  tmux(['send-keys', '-l', '-t', session, '/settings']);
+  waitForScreen(session, '/settings suggestion', hasSuggestion);
+  tmux(['send-keys', '-t', session, 'Enter']);
+  waitForScreen(session, 'accepted suggestion closing the menu', (screen) => !hasSuggestion(screen));
+  tmux(['send-keys', '-t', session, 'Enter']);
+  waitForScreen(session, 'settings list', (screen) => screen.includes('Type to search'));
+  tmux(['send-keys', '-l', '-t', session, 'theme']);
+  waitForScreen(session, 'theme setting row', (screen) => screen.includes('→ Theme'));
+  tmux(['send-keys', '-t', session, 'Enter']);
+  return waitForScreen(session, 'theme picker', (screen) => screen.includes('Select a theme'));
+}
+
+function closeThemeSelector(session) {
+  tmux(['send-keys', '-t', session, 'Escape']);
+  waitForScreen(session, 'settings list after leaving the picker', (screen) => screen.includes('Type to search') && !screen.includes('Select a theme'));
+  tmux(['send-keys', '-t', session, 'Escape']);
+  waitForScreen(session, 'editor after closing settings', (screen) => !screen.includes('Type to search'));
+}
+
 function exerciseThemePath() {
   const session = 'theme-path';
   const idle = runPi('path', ['--theme', path.join(PACKAGE_ROOT, 'themes')], session);
   saveCapture('01-theme-path-idle', idle);
 
-  record('pi reaches an idle TUI without exiting', idle.includes(THEME_SECTION) && !idle.includes('PI-EXITED'), '01-theme-path-idle');
-  record('verbose resource listing names the package theme', idle.includes('[Themes]') && idle.includes('one-dark-pro-flat'), '01-theme-path-idle');
+  record('pi reaches an idle TUI without exiting', idle.includes(LISTING_SECTION) && !idle.includes('PI-EXITED'), '01-theme-path-idle');
   record('accent #61afef reaches the terminal', idle.includes(ACCENT), '01-theme-path-idle');
   record('dim tier #6b717d reaches the terminal', idle.includes(DIM), '01-theme-path-idle');
   record('built-in dark accent never appears', !idle.includes(BUILT_IN_DARK_ACCENT), '01-theme-path-idle');
+
+  const selector = openThemeSelector(session);
+  saveCapture('01b-theme-path-selector', selector);
+  record('theme selector marks the package theme active', plain(selector).includes('✓ one-dark-pro-flat'), '01b-theme-path-selector');
+  closeThemeSelector(session);
 
   tmux(['send-keys', '-l', '-t', session, 'trace the palette']);
   tmux(['send-keys', '-t', session, 'Enter']);

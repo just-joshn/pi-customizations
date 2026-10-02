@@ -1,4 +1,4 @@
-// Vendored from @earendil-works/pi-ai 0.99.2 src/utils/provider-retry.ts (MIT) by scripts/vendor-pi-ai.mjs. Only import specifiers differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 1.0.0 src/utils/provider-retry.ts (MIT) by scripts/vendor-pi-ai.mjs. Only import specifiers differ. Do not edit.
 const DEFAULT_MAX_RETRY_DELAY_MS = 60_000;
 
 interface ProviderRetryOptions {

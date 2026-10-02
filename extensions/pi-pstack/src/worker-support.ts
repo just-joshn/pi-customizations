@@ -1,12 +1,12 @@
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
-import { mkdir, mkdtemp, readFile, realpath } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, readFile, realpath } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { Usage } from '@earendil-works/pi-ai';
 import { type AgentSession, createAgentSession, type createEventBus, DefaultResourceLoader, type ExtensionContext, getAgentDir, ModelRuntime, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { skillCatalog } from './catalog.ts';
+import { EphemeralDirs } from './ephemeral-dirs.ts';
 import { referenceToolNames } from './host.ts';
 import { resolveModel } from './models.ts';
 import { readPersona } from './personas.ts';
@@ -108,11 +108,13 @@ export function sumUsage(messages: ReadonlyArray<{ role: string; usage?: Usage }
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
+export const workerDirs = new EphemeralDirs('pstack-workers-');
+
 async function workerDirectory(ctx: ExtensionContext): Promise<string> {
   const manager = ctx.sessionManager;
   // An unpersisted parent has no session directory, and a relative one would scatter
   // child transcripts into the working directory.
-  if (!manager.getSessionFile()) return mkdtemp(join(tmpdir(), 'pstack-workers-'));
+  if (!manager.getSessionFile()) return workerDirs.create(manager);
   return childStorageDir(manager.getSessionDir(), manager.getSessionId());
 }
 
