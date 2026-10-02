@@ -7,11 +7,13 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { SKIP_DIRECTORIES } from './skip-directories.mjs';
+
 const FOREIGN_LOCKFILES = ['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'];
 const FOREIGN_COMMAND = /\b(?:npm|npx|yarn|pnpm)\b/;
 const FOREIGN_COMMAND_LINE = /^(?:npm|npx|yarn|pnpm)(?:\s|$)/;
 const FOREIGN_LAUNCH = /\b(?:execFileSync|execFile|execSync|exec|spawnSync|spawn)\s*\(\s*['"](?:npm|npx|yarn|pnpm)['"]/;
-const SKIP_SEGMENTS = new Set(['node_modules', 'coverage', 'dist', '.git', '.audit', 'upstream', 'upstream-team-kit', 'skills']);
+const SKIP_SEGMENTS = new Set([...SKIP_DIRECTORIES, 'skills']);
 // Generated from the pinned snapshots, where the checker rejects any edit.
 const SKIP_PREFIXES = ['extensions/pi-pstack/prompts'];
 // Dated records keep the commands a past run actually executed.

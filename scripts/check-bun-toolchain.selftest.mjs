@@ -38,6 +38,7 @@ const cases = [
   ['npm in a make recipe', { Makefile: 'verify:\n\tnpm run test\n' }, ['runs another package manager']],
   ['npm in a readme fence', { 'README.md': '## Verify\n\n```sh\nnpm install\n```\n' }, ['documents another package manager']],
   ['npm in a guide fence', { 'docs/guide.md': '## Verify\n\n```sh\nnpm install\n```\n' }, ['documents another package manager']],
+  ['npm in an agent worktree copy', { '.claude/worktrees/x/doc.md': '## Verify\n\n```sh\nnpm run test\n```\n' }, []],
   [
     'npm launched from a script',
     {
