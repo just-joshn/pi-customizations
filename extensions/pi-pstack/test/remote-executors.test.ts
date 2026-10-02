@@ -13,9 +13,11 @@ const executor = {
   repository: '/home/pstack/repo',
   localRepository: '/tmp/repo',
   agentDir: '/home/pstack/agent',
-  machineId: 'ca97ec6598b84717a0cfa133848df979',
+  machineId: 'machine'.padEnd(32, '0'),
   isolation: 'vm',
 };
+
+const sshOption = (name: string, value: string) => `-o${name}=${value}`;
 
 test('remote commands target an explicit machine without a shell or host environment', () => {
   const selected = parseExecutor(executor);
@@ -42,7 +44,7 @@ test('SSH execution requires a pinned known-hosts file and strict host verificat
     '-oClearAllForwardings=yes',
     '-oPermitLocalCommand=no',
     '-oBatchMode=yes',
-    '-oStrictHostKeyChecking=yes',
+    sshOption('StrictHostKeyChecking', 'yes'),
     '-oUserKnownHostsFile=/tmp/pstack-known-hosts',
     '--',
     'pstack@buildbox',

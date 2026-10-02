@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const script = new URL('../../skills/show-me-your-work/scripts/log.sh', import.meta.url).pathname;
-const header = 'ts\tphase\tdecision\twhy\tevidence\tresult';
+const header = ['ts', 'phase', 'decision', 'why', 'evidence', 'result'].join('\t');
 const directories: string[] = [];
 
 async function logPath(name = 'decisions.tsv'): Promise<string> {

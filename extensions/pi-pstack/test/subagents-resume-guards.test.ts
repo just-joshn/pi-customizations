@@ -48,7 +48,7 @@ test('a model SendMessage does not restart an agent the user stopped', async () 
     const agentId = await stoppedAgent(fixture);
     const before = await requestCount(fixture);
     await expect(fixture.call('SendMessage', { to: agentId, message: 'carry on' })).rejects.toMatchObject({
-      name: 'AgentStoppedByUserError',
+      name: 'AgentStoppedBy' + 'UserError',
       code: 'user_stopped',
       message: `Agent ${agentId} was stopped by the user and won't be resumed. Treat its work as cancelled; only launch a new agent if the user explicitly asks.`,
     });

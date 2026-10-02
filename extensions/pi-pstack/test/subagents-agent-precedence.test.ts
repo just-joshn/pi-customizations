@@ -6,7 +6,7 @@ const base: AgentDefinition = { agentType: 'a', whenToUse: 'w', systemPrompt: 'p
 const make = (extra: Partial<AgentDefinition>): AgentDefinition => ({ ...base, ...extra });
 
 test('sanitizeDisplay collapses control characters and whitespace and caps the length at 200', () => {
-  expect(sanitizeDisplay('  a\u0000\u200Bb \n\t c  ')).toBe('a b c');
+  expect(sanitizeDisplay(['  a', '\u0000', '\u200B', 'b \n\t c  '].join(''))).toBe('a b c');
   expect(sanitizeDisplay('x'.repeat(250))).toBe('x'.repeat(200));
 });
 

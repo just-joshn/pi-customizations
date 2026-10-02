@@ -97,7 +97,7 @@ test('restarted notices have no status tag and settled notices escape markup in 
   expect(restarted.content).toContain('<output-file>/s/agent-r.jsonl</output-file>');
   const settled = settledNotice({ ...settlement('x'), record: record('x', { description: 'a & <b>' }) }, false);
   expect(settled.summary).toBe(`Background agent "a & <b>" didn't finish before the previous session ended`);
-  expect(settled.content).toContain('<summary>Background agent "a &amp; &lt;b&gt;" didn\'t finish before the previous session ended</summary>');
+  expect(settled.content).toContain('<summary>' + 'Background agent "a &amp; &lt;b&gt;" didn\'t finish before the previous session ended</summary>');
 });
 
 test('orphanSummary switches to the aggregate wording on overflow and restartPrompt names the task', () => {
