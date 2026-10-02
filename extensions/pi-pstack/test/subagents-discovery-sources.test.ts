@@ -26,13 +26,20 @@ const agent = (name: string, prompt = 'Prompt body', extra = '') => `---\nname: 
 const plugin = { ...builtinAgents({})[0], agentType: 'shared', source: 'plugin' as const, baseDir: 'plugin', systemPrompt: 'plugin' } as never;
 const flag = { ...builtinAgents({})[0], agentType: 'shared', source: 'flagSettings' as const, baseDir: 'flag', systemPrompt: 'flag' } as never;
 
+const tierFile =
+  (path: string, prompt: string, options: () => Record<string, unknown> = () => ({})) =>
+  () => {
+    write(path, agent('shared', prompt));
+    return options();
+  };
+
 const tiers = {
   plugin: () => ({ pluginAgents: [plugin] }),
-  user: () => (write('user/shared.md', agent('shared', 'user')), {}),
-  additional: () => (write('extra/.claude/agents/shared.md', agent('shared', 'additional')), { additionalDirs: [join(dir, 'extra/.claude/agents')] }),
-  project: () => (write('proj/.claude/agents/shared.md', agent('shared', 'project')), {}),
+  user: tierFile('user/shared.md', 'user'),
+  additional: tierFile('extra/.claude/agents/shared.md', 'additional', () => ({ additionalDirs: [join(dir, 'extra/.claude/agents')] })),
+  project: tierFile('proj/.claude/agents/shared.md', 'project'),
   flag: () => ({ flagAgents: [flag] }),
-  policy: () => (write('managed/.claude/agents/shared.md', agent('shared', 'policy')), {}),
+  policy: tierFile('managed/.claude/agents/shared.md', 'policy'),
 };
 
 test.for([
