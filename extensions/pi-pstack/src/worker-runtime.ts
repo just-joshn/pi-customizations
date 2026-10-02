@@ -58,7 +58,7 @@ export class WorkerRuntime {
   private lifecycle: Lifecycle = { kind: 'stopped' };
   private stopping: ReadonlySet<string> = new Set();
   private readonly completions: DeferredWakes;
-  private readonly settings = new SettingsStore();
+  private readonly settings: SettingsStore;
   depth = currentDepth();
   agentId: string | undefined;
   readonly remote = new RemoteTasks({ commit: (record) => this.commitRemote(record), settle: (record, output, notify) => this.settleRemote(record, output, notify), current: (id) => this.records.get(id) });
@@ -71,6 +71,7 @@ export class WorkerRuntime {
   });
   constructor(private readonly pi: ExtensionAPI) {
     this.completions = new DeferredWakes(pi);
+    this.settings = new SettingsStore(() => pi.getSettings());
   }
 
   runningCount(): number {
@@ -287,7 +288,7 @@ export class WorkerRuntime {
   async start(callId: string, params: TaskParameters, signal: AbortSignal | undefined, ctx: ExtensionContext, onUpdate: TaskUpdate | undefined): Promise<AgentToolResult<TaskRecord>> {
     signal = launchSignal(signal, params.run_in_background !== false);
     const prior = this.priorTask(params);
-    this.checkDepth(prior, ctx);
+    this.checkDepth(prior);
     const id = prior?.id ?? randomUUID();
     if (this.starting.has(id) || (this.workers.has(id) && this.records.get(id)?.status === 'running') || (this.cloud.has(id) && this.records.get(id)?.status === 'running'))
       throw new Error(`Task ${id} is running. Use TaskMessage to queue input.`);
@@ -370,9 +371,9 @@ export class WorkerRuntime {
     this.pi.events.emit('pstack:subagent-started', { agentId: record.id, spawnDepth: record.depth, agent_depth: record.depth });
   }
 
-  private checkDepth(prior: TaskRecord | undefined, ctx: ExtensionContext): void {
+  private checkDepth(prior: TaskRecord | undefined): void {
     if (prior) return;
-    const cap = this.settings.read(ctx.cwd).settings.subagents.maxDepth ?? defaultMaxDepth;
+    const cap = this.settings.read().settings.subagents.maxDepth ?? defaultMaxDepth;
     if (this.depth < cap) return;
     this.pi.events.emit('pstack:subagent-refused', { code: 'subagent_depth_cap', reason: 'depth_limit' });
     throw new AgentPreconditionError({ code: 'subagent_depth_cap', message: depthMessage(cap) });

@@ -1,4 +1,4 @@
-import { mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -34,10 +34,10 @@ const record = (overrides: Partial<TaskRecord> = {}): TaskRecord => ({
   ...overrides,
 });
 
-function harness(options: { hasUI?: boolean; trusted?: boolean } = {}) {
+function harness(options: { hasUI?: boolean; trusted?: boolean; settings?: object } = {}) {
   const handlers = new Map<string, ((event: unknown, ctx: unknown) => unknown)[]>();
   const events = createEventBus();
-  const pi = { on: (name: string, handler: (event: unknown, ctx: unknown) => unknown) => handlers.set(name, [...(handlers.get(name) ?? []), handler]), events } as unknown as ExtensionAPI;
+  const pi = { on: (name: string, handler: (event: unknown, ctx: unknown) => unknown) => handlers.set(name, [...(handlers.get(name) ?? []), handler]), events, getSettings: () => options.settings ?? {} } as unknown as ExtensionAPI;
   let records: TaskRecord[] = [record()];
   const setWidget = vi.fn();
   const ctx = {
@@ -83,9 +83,8 @@ test('[C97] without a UI the panel never draws', async () => {
 });
 
 test('[C101] status-line output decorates the matching panel row', async () => {
-  writeFileSync(join(dir, 'settings.json'), JSON.stringify({ subagentStatusLine: { type: 'command', command: `cat > ${join(dir, 'stdin.json')}; echo '{"id":"t1","content":"ctx 5%"}'` } }));
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-  const { fire, setWidget } = harness();
+  const { fire, setWidget } = harness({ settings: { subagentStatusLine: { type: 'command', command: `cat > ${join(dir, 'stdin.json')}; echo '{"id":"t1","content":"ctx 5%"}'` } } });
   await fire('session_start');
   await vi.advanceTimersByTimeAsync(300);
   await vi.waitFor(() => expect(setWidget).toHaveBeenLastCalledWith('pstack-agents', ['● Explore: map the repo · ctx 5%']));
@@ -94,9 +93,8 @@ test('[C101] status-line output decorates the matching panel row', async () => {
 });
 
 test('[C99] an untrusted workspace never runs the configured status-line command', async () => {
-  writeFileSync(join(dir, 'settings.json'), JSON.stringify({ subagentStatusLine: { type: 'command', command: `touch ${join(dir, 'ran')}` } }));
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-  const { fire, events } = harness({ trusted: false });
+  const { fire, events } = harness({ trusted: false, settings: { subagentStatusLine: { type: 'command', command: `touch ${join(dir, 'ran')}` } } });
   const logs: unknown[] = [];
   events.on('pstack:subagent-log', (message) => logs.push(message));
   await fire('session_start');

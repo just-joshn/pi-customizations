@@ -81,7 +81,7 @@ export class SubagentFactory {
 
   offered(ctx: ExtensionContext): readonly AgentDefinition[] {
     if (this.offeredCache) return this.offeredCache;
-    const { settings } = this.deps.settings.read(ctx.cwd);
+    const { settings } = this.deps.settings.read();
     this.offeredCache = offeredAgents(this.registryInputs(ctx, settings));
     return this.offeredCache;
   }
@@ -114,7 +114,7 @@ export class SubagentFactory {
 
   async create(call: TaskCall, toolCallId: string, signal: AbortSignal | undefined, ctx: ExtensionContext, extras: CreateExtras = {}): Promise<Created> {
     if (this.deps.scheduler.blocksStart()) throw new Error(rewindingStartMessage);
-    const { settings, raw } = this.deps.settings.read(ctx.cwd);
+    const { settings, raw } = this.deps.settings.read();
     const host = this.host(ctx, settings);
     for (const action of ['checkStartAllowed', 'prepareTools']) this.effect(host, action);
     const inputs = this.registryInputs(ctx, settings);
@@ -124,7 +124,7 @@ export class SubagentFactory {
     const depth = scope?.depth ?? 0;
     const gathered = await gatherParentServers(this.deps.pi);
     const inheritedServers = this.deps.scheduler.blocksStart() ? [] : serversForChild(gathered, resolved.agent);
-    const lease = this.deps.limiters.get(ctx.cwd).tryAcquire({ kind: 'spawn', depth });
+    const lease = this.deps.limiters.get().tryAcquire({ kind: 'spawn', depth });
     if (!lease.ok) throw new Error(lease.message);
     try {
       const plan = await this.plan({

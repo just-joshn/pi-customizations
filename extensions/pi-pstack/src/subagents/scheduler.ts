@@ -42,7 +42,7 @@ export type SchedulerDeps = Readonly<{
   pi: ExtensionAPI;
   events: EventLog;
   registry: TaskRegistry;
-  limiter: (cwd: string) => LimiterLike;
+  limiter: () => LimiterLike;
   open?: (input: OpenInput) => Promise<OpenedChild>;
   now?: () => number;
   maxIdle?: number;
@@ -150,7 +150,7 @@ export class SubagentScheduler {
   }
 
   /** Bridges the child bus onto the parent stream: child events, hook re-emissions, inbox messages and the slot link. */
-  private wireChildBus(events: ReturnType<typeof createEventBus>, agentId: string, ctx: ExtensionContext): void {
+  private wireChildBus(events: ReturnType<typeof createEventBus>, agentId: string): void {
     events.on(eventChannel, (payload) => {
       const envelope = asEnvelope(payload);
       if (envelope) this.relay(envelope, agentId);
@@ -165,7 +165,7 @@ export class SubagentScheduler {
       if (message !== undefined) this.deps.onInbox?.(agentId, message);
     });
     events.on(linkChannel, (payload) => {
-      if (isLinkAcquire(payload)) payload.reply(this.deps.limiter(ctx.cwd).tryAcquire(payload.request));
+      if (isLinkAcquire(payload)) payload.reply(this.deps.limiter().tryAcquire(payload.request));
     });
   }
 
@@ -180,7 +180,7 @@ export class SubagentScheduler {
   private async open(input: LaunchInput): Promise<{ child: LiveChild; sessionFile: string }> {
     const { plan, ctx } = input;
     const events = createEventBus();
-    this.wireChildBus(events, plan.agentId, ctx);
+    this.wireChildBus(events, plan.agentId);
     if (!this.deps.entryType) this.deps.events.emit('capability_absent_subagent', { agentId: plan.agentId }, { agentId: plan.agentId });
     const groups = new ProcessGroups(plan.agentId, () => {});
     const opened = await (this.deps.open ?? openChildSession)({
@@ -333,7 +333,7 @@ export class SubagentScheduler {
       await child.session.followUp(message);
       return node;
     }
-    const acquired = this.deps.limiter(ctx.cwd).tryAcquire({ kind: 'resume' });
+    const acquired = this.deps.limiter().tryAcquire({ kind: 'resume' });
     if (!acquired.ok) throw new Error(acquired.message);
     child.lease = acquired.release;
     const running = this.deps.registry.transition(id, 'running', {});

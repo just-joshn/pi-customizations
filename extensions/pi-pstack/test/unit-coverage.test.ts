@@ -187,6 +187,7 @@ function indexApi() {
       listeners[event].push(handler);
     },
     appendEntry() {},
+    getSettings: () => ({}),
     getCommands: () => [],
     getAllTools: () => [],
     getActiveTools: () => [],
