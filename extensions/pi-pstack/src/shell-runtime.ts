@@ -1,13 +1,13 @@
 import { type ChildProcess, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { once } from 'node:events';
-import { appendFile, mkdir, mkdtemp, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Readable } from 'node:stream';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from './deferred-wakes.ts';
+import { EphemeralDirs } from './ephemeral-dirs.ts';
 import { signalProcess } from './process-signal.ts';
 import { descendants, killSurvivors } from './shell-descendants.ts';
 import { processGroupEvent } from './subagents/process-groups.ts';
@@ -46,9 +46,11 @@ function requireText(value: string, name: string): void {
   if (!value.trim()) throw new Error(`BackgroundShell ${name} must not be blank.`);
 }
 
+export const shellDirs = new EphemeralDirs('pstack-shells-');
+
 async function outputDirectory(ctx: ExtensionContext): Promise<string> {
   const manager = ctx.sessionManager;
-  if (!manager.getSessionFile()) return mkdtemp(join(tmpdir(), 'pstack-shells-'));
+  if (!manager.getSessionFile()) return shellDirs.create(manager);
   const dir = join(manager.getSessionDir(), 'pstack-shells', manager.getSessionId());
   await mkdir(dir, { recursive: true });
   return dir;
