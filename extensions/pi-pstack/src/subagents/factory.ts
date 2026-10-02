@@ -122,13 +122,12 @@ export class SubagentFactory {
     if (!resolved.ok) throw new Error(resolved.message);
     const scope = this.deps.scope();
     const depth = scope?.depth ?? 0;
-    const gathered = await gatherParentServers(this.deps.pi);
+    const gathered = gatherParentServers(this.deps.pi);
     const inheritedServers = this.deps.scheduler.blocksStart() ? [] : serversForChild(gathered, resolved.agent);
     const lease = this.deps.limiters.get().tryAcquire({ kind: 'spawn', depth });
     if (!lease.ok) throw new Error(lease.message);
     try {
       const plan = await this.plan({
-        gathered,
         call,
         definition: resolved.agent,
         settings,
@@ -206,7 +205,6 @@ export class SubagentFactory {
   }
 
   private async plan(input: {
-    gathered: readonly ParentServer[];
     call: TaskCall;
     definition: AgentDefinition;
     settings: Reference AssistantSettings;
@@ -225,7 +223,6 @@ export class SubagentFactory {
     if (refusal) throw new Error(refusal);
     const agentId = randomUUID();
     const hookContext = await this.startHooks(input.raw, agentId, definition, ctx, input.rootSessionId);
-    for (const server of input.gathered) this.deps.pi.events.emit('mcp_inherited', { name: server.name });
     return buildChildPlan({
       definition,
       selection,
