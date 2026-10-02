@@ -1,5 +1,7 @@
 import { spawn } from 'node:child_process';
 
+import { signalProcess } from '../process-signal.ts';
+
 export type ShellResult = Readonly<{ code: number; stdout: string; stderr: string }>;
 export type ShellOptions = Readonly<{ cwd: string; input: string; env: NodeJS.ProcessEnv; timeoutMs: number }>;
 
@@ -49,8 +51,6 @@ export function runShellCommand(command: string, { cwd, input, env, timeoutMs }:
 }
 
 function signalGroup(child: ReturnType<typeof spawn>, signal: NodeJS.Signals): void {
-  try {
-    if (process.platform === 'win32' || child.pid === undefined) child.kill(signal);
-    else process.kill(-child.pid, signal);
-  } catch {}
+  if (process.platform === 'win32' || child.pid === undefined) child.kill(signal);
+  else signalProcess(-child.pid, signal);
 }

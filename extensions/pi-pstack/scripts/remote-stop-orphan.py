@@ -37,5 +37,5 @@ def stop_owned_child(directory, owner, pid):
 try:
     stop_owned_child(sys.argv[1], sys.argv[2], int(sys.argv[3]))
 except Exception as error:
-    print(str(error), file=sys.stderr)
+    sys.stderr.write(f'{error}\n')
     sys.exit(1)

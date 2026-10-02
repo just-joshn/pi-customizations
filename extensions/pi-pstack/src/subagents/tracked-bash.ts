@@ -2,17 +2,14 @@ import { spawn } from 'node:child_process';
 import { access } from 'node:fs/promises';
 
 import { type BashOperations, createBashToolDefinition, getShellConfig, type ToolDefinition } from '@earendil-works/pi-coding-agent';
+import { signalProcess } from '../process-signal.ts';
 
 const exitStdioGraceMs = 100;
 type ExecOptions = Parameters<BashOperations['exec']>[2];
 
 function killTree(pid: number | undefined): void {
   if (!pid) return;
-  try {
-    process.kill(-pid, 'SIGKILL');
-  } catch {
-    // The group already exited.
-  }
+  signalProcess(-pid, 'SIGKILL');
 }
 
 function run(command: string, cwd: string, options: ExecOptions, onGroup: (pid: number) => void): Promise<{ exitCode: number | null }> {

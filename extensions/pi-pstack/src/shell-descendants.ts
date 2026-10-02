@@ -1,6 +1,8 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
+import { signalProcess } from './process-signal.ts';
+
 const run = promisify(execFile);
 
 function childrenByParent(table: string): ReadonlyMap<number, readonly number[]> {
@@ -27,11 +29,5 @@ export async function descendants(root: number): Promise<readonly number[]> {
 }
 
 export function killSurvivors(pids: readonly number[]): void {
-  for (const pid of pids) {
-    try {
-      process.kill(pid, 'SIGKILL');
-    } catch {
-      // Already exited with its group.
-    }
-  }
+  for (const pid of pids) signalProcess(pid, 'SIGKILL');
 }
