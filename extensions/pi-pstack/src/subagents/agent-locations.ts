@@ -2,12 +2,13 @@ import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
+import { CONFIG_DIR_NAME } from '@earendil-works/pi-coding-agent';
 import type { AgentSourceKind } from './agent-definition.ts';
 
 export type AgentDirectory = Readonly<{ dir: string; source: AgentSourceKind }>;
 export type LocationInputs = Readonly<{ cwd: string; agentDir: string; home?: string; additionalRoots?: readonly string[] }>;
 
-const projectSubdirectories = [join('.github', 'agents'), join('.pi', 'agents')];
+const projectSubdirectories = [join('.github', 'agents'), join(CONFIG_DIR_NAME, 'agents')];
 
 function ancestorsToRepositoryRoot(cwd: string, home: string): readonly string[] {
   const found: string[] = [];
