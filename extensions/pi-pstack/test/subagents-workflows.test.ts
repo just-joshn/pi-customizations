@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { expect, test, vi } from 'vitest';
+import type { EventEnvelope } from '../src/subagents/events.ts';
 import { rpcChannel, rpcResultChannel } from '../src/subagents/rpc.ts';
 import type { WorkflowLimits } from '../src/subagents/settings.ts';
 import { checkLimits, effectiveLimits, overCredits } from '../src/subagents/workflows/limits.ts';
@@ -13,6 +14,12 @@ import { workerFixture } from './worker-fixture.ts';
 
 const limits: WorkflowLimits = { maxConcurrentSubagents: 2, maxTotalSubagents: 3, timeoutSeconds: 60, maxAiCredits: 2 };
 const consumption = (subagents: number, credits: number, startedAt = 1000) => ({ subagents, credits, startedAt, elapsedSeconds: 0 });
+
+function collect(fixture: Awaited<ReturnType<typeof workerFixture>>): EventEnvelope[] {
+  const seen: EventEnvelope[] = [];
+  fixture.eventBus.on('copilot:event', (payload) => seen.push(payload as EventEnvelope));
+  return seen;
+}
 
 test.for([
   { name: 'a fresh run passes', subagents: 0, credits: 0, now: 2000, expected: true },
@@ -397,9 +404,10 @@ test('unknown workflows, duplicate active runs and run detail of nothing are ref
   }
 });
 
-test('cancelling a running workflow settles it as cancelled', async () => {
+test('cancelling a running workflow stops its in-flight child', async () => {
   vi.stubEnv('COPILOT_DYNAMIC_WORKFLOWS', '1');
   const fixture = await workerFixture();
+  const seen = collect(fixture);
   fixture.eventBus.emit('copilot:register-workflow', {
     name: 'slow-flow',
     description: 'Waits on a blocked agent',
@@ -416,6 +424,7 @@ test('cancelling a running workflow settles it as cancelled', async () => {
     const cancelled = await rpc(fixture, 'session.workflow.cancel', { id });
     expect([cancelled.ok, (cancelled.result as { status: string }).status]).toEqual([true, 'cancelled']);
     await expect(pending).resolves.toMatchObject({ ok: true, result: { status: 'cancelled' } });
+    expect(seen.find((event) => event.type === 'subagent.completed')?.data).toMatchObject({ cancelled: true });
   } finally {
     await fixture.close();
   }

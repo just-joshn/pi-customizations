@@ -249,6 +249,7 @@ export class SubagentScheduler {
   }
 
   private async turn(child: LiveChild, text: string): Promise<Outcome> {
+    if (child.control.stopped()) return { kind: 'cancelled' };
     try {
       await child.session.prompt(text);
       await child.session.waitForIdle();
