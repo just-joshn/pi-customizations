@@ -184,7 +184,9 @@ describe('cursor-ui extension chrome lifecycle', () => {
     expect(widget.render(80)).toEqual([]);
     expect(consoleError.mock.calls).toEqual([]);
   });
+});
 
+describe('cursor-ui extension repeated session start', () => {
   test('a second session_start keeps the installed chrome working', () => {
     const { pi, handlers } = fakePi();
     cursorUi(pi);
