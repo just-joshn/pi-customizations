@@ -9,7 +9,7 @@ The audit prohibits subagents. Its allowed real RPC suite passes 427 assertions 
 Fresh checks verify the following contracts:
 
 - `bun run check:resources` verifies 187 upstream files and 205 generated resources.
-- `bun run typecheck` passes against the package's pinned Pi SDK 0.99.2.
+- `bun run typecheck` passes against the package's pinned Pi SDK 1.0.0.
 - `bun run check:cli` verifies installed CLI package loading, RPC commands, status, mode off, and orderly shutdown without model calls.
 - `bun run check:upstream` passes 58 helper tests with 261 assertions in a temporary copy. These are deterministic helper checks, not live GitHub operations.
 - `bun pm pack --dry-run` passes. A package dry run does not verify an extracted package's runtime.

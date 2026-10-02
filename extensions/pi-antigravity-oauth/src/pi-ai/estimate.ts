@@ -1,4 +1,4 @@
-// Vendored from @earendil-works/pi-ai 0.99.2 src/utils/estimate.ts (MIT) by scripts/vendor-pi-ai.mjs. Only import specifiers differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 1.0.0 src/utils/estimate.ts (MIT) by scripts/vendor-pi-ai.mjs. Only import specifiers differ. Do not edit.
 import type { AssistantMessage, ImageContent, Message, TextContent, TranscriptContext, Usage } from "@earendil-works/pi-ai";
 import { getSystemMessageText } from "@earendil-works/pi-ai";
 

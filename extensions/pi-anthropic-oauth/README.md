@@ -30,7 +30,7 @@ The package also checks the payload that Pi's Anthropic implementation hands ove
 
 ## Verify it
 
-Run `bun install` first. It installs the Pi packages the tests import, pinned to 0.99.2. Pi does not install development dependencies when it loads the package. The tests also pass against Pi 1.0.0. To check that, copy the package to a scratch directory, set both `@earendil-works/*` devDependencies to `1.0.0`, and run `bun install` there.
+Run `bun install` first. It installs the Pi packages the tests import, pinned to 1.0.0. Pi does not install development dependencies when it loads the package. The tests also pass against Pi 1.0.0. To check that, copy the package to a scratch directory, set both `@earendil-works/*` devDependencies to `1.0.0`, and run `bun install` there.
 
 - `bun run typecheck` runs `tsc` in strict mode.
 - `bun run test` calls the extension factory with a small typed fake of `registerProvider` to get the provider. Requests then go through Pi's `Models` to a local Messages server. The stored OAuth credential, bearer header, and refresh run the real path. Only the HTTP peer is faked. One test runs Pi's public `discoverAndLoadExtensions` on a temporary copy of the package to prove that Pi loads the file the `pi.extensions` manifest in `package.json` declares. A type check in the same suite fails if the default export stops being a Pi `ExtensionFactory`.
