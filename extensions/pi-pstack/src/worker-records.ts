@@ -75,16 +75,6 @@ export const TaskRecordSchema = Type.Object({
   requestShape: Type.Optional(Type.Union([Type.Literal('foreground'), Type.Literal('background')])),
   totalTokens: Type.Optional(Type.Number({ minimum: 0 })),
   maxTurnsReached: Type.Optional(Type.Integer({ minimum: 1 })),
-  handback: Type.Optional(
-    Type.Object({
-      recipient: Type.String(),
-      delivered: Type.Boolean(),
-      flagged: Type.Boolean(),
-      bounces: Type.Integer({ minimum: 0 }),
-      waitingOnBackground: Type.Boolean(),
-      report: Type.Optional(Type.Object({ text: Type.String(), warning: Type.Optional(Type.String()) })),
-    }),
-  ),
   detached: Type.Optional(
     Type.Object({ directory: Type.String({ minLength: 1 }), invocation: Type.String({ minLength: 1 }), entryCursor: Type.Union([Type.String({ minLength: 1 }), Type.Null()]), remote: Type.Optional(RemotePlacementSchema) }),
   ),

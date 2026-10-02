@@ -1,13 +1,10 @@
-import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { promisify } from 'node:util';
 
 import { SessionManager, VERSION } from '@earendil-works/pi-coding-agent';
+import type { Exec } from './environment-facts.ts';
 import { validateId } from './identifiers.ts';
-
-const run = promisify(execFile);
 
 export type AgentMeta = Readonly<{
   agentType: string;
@@ -48,15 +45,11 @@ export async function writeAgentMeta(dir: string, agentId: string, meta: AgentMe
   if (!existsSync(path)) await writeFile(path, JSON.stringify(meta));
 }
 
-async function gitBranch(cwd: string): Promise<string> {
-  try {
-    const { stdout } = await run('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd });
-    return stdout.trim() || 'HEAD';
-  } catch {
-    return 'HEAD';
-  }
+async function gitBranch(exec: Exec, cwd: string): Promise<string> {
+  const result = await exec('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd }).catch(() => undefined);
+  return (result?.code === 0 && result.stdout.trim()) || 'HEAD';
 }
 
-export async function agentEnvironment(agentId: string, parentSessionId: string, cwd: string): Promise<AgentEnvironment> {
-  return { agentId, isSidechain: true, sessionId: parentSessionId, cwd, version: VERSION, gitBranch: await gitBranch(cwd) };
+export async function agentEnvironment(agentId: string, parentSessionId: string, cwd: string, exec: Exec): Promise<AgentEnvironment> {
+  return { agentId, isSidechain: true, sessionId: parentSessionId, cwd, version: VERSION, gitBranch: await gitBranch(exec, cwd) };
 }

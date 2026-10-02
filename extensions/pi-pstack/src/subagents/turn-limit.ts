@@ -1,21 +1,24 @@
-import type { AgentSessionEventListener } from '@earendil-works/pi-coding-agent';
-import type { AgentDefinition } from './definitions.ts';
+export const defaultLastTurnWarning = 'This is your last turn. Stop calling tools and report your findings now.';
 
-export function withMaxTurns(definition: AgentDefinition, value: unknown): AgentDefinition {
-  if (value === undefined) return definition;
-  if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) throw new Error('max_turns must be a positive integer.');
-  return { ...definition, maxTurns: value };
-}
+export type TurnVerdict = 'continue' | 'warn' | 'stop';
 
-export function turnLimit(agentType: string, maxTurns: number, log: (message: string) => void, stop: () => void): AgentSessionEventListener {
-  let turns = 0;
-  let reached = false;
-  return (event) => {
-    if (event.type !== 'turn_end' || reached) return;
-    turns += 1;
-    if (turns < maxTurns || !event.toolResults?.length) return;
-    reached = true;
-    log(`[Agent: ${agentType}] Reached max turns limit (${maxTurns})`);
-    stop();
-  };
+/** Counts the turns of a child that called tools and tells the scheduler when to warn it and when to stop it. */
+export class TurnLimit {
+  private turns = 0;
+
+  constructor(
+    readonly max: number,
+    readonly warning: string = defaultLastTurnWarning,
+  ) {}
+
+  onTurnEnd(toolCalls: number): TurnVerdict {
+    if (toolCalls === 0) return 'continue';
+    this.turns += 1;
+    if (this.turns >= this.max) return 'stop';
+    return this.turns === this.max - 1 ? 'warn' : 'continue';
+  }
+
+  note(): string {
+    return `Note: this agent stopped at its ${this.max}-turn limit, so the text above may be partial.`;
+  }
 }

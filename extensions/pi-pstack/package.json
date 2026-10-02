@@ -1,6 +1,6 @@
 {
   "name": "pi-pstack",
-  "version": "0.15.5-pi.2",
+  "version": "0.15.5-pi.3",
   "description": "pstack workflows for pi with preserved upstream sources and explicit host compatibility limits",
   "type": "module",
   "license": "MIT",
@@ -53,7 +53,6 @@
     "check:cli": "node scripts/verify-cli.mjs",
     "check:journeys": "node scripts/verify-journeys.mjs",
     "check:progress-tui": "node scripts/verify-progress-tui.mjs",
-    "check:agent-render-tui": "node scripts/verify-agent-render-tui.mjs",
     "check:journeys:no-workers": "node scripts/verify-journeys.mjs . --no-workers",
     "check:native-parity": "node scripts/check-native-parity.mjs",
     "check:upstream": "node scripts/verify-upstream.mjs",
@@ -61,7 +60,8 @@
     "test": "vitest run && bun run test:helpers",
     "test:helpers": "bun test --preload ./test/helpers/leak-preload.ts test/helpers",
     "test:coverage": "vitest run --coverage",
-    "check:parity": "node scripts/check-subagent-parity.mjs"
+    "check:parity": "node scripts/check-subagent-parity.mjs",
+    "check:native-first": "node scripts/check-subagent-native-first.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",

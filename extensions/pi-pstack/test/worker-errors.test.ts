@@ -45,7 +45,7 @@ test('pre-aborted launch creates no child session or task record', async () => {
     controller.abort('permission-stop');
     await expect(fixture.call('Task', { prompt: 'never runs' }, controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
     expect(create.mock.calls).toEqual([]);
-    const listed = await fixture.call('ListAgents', {});
+    const listed = await fixture.call('list_agents', { scope: 'all' });
     expect(listed.details).toEqual({ agents: [] });
   } finally {
     create.mockRestore();
@@ -53,27 +53,39 @@ test('pre-aborted launch creates no child session or task record', async () => {
   }
 });
 
-test.each(['Task', 'Agent'])('background %s may launch after an interrupt signal', async (tool) => {
+test('a background Task may launch after an interrupt signal', async () => {
   const fixture = await workerFixture();
   try {
     const controller = new AbortController();
     controller.abort('interrupt');
-    const started = await fixture.call(tool, { description: 'interrupt probe', prompt: 'after interrupt' }, controller.signal);
-    const details = started.details as { id?: string; agentId?: string };
-    const done = await fixture.call('TaskOutput', { task_id: details.id ?? details.agentId, block: true });
+    const started = await fixture.call('Task', { description: 'interrupt probe', prompt: 'after interrupt' }, controller.signal);
+    const done = await fixture.call('TaskOutput', { task_id: (started.details as { id: string }).id, block: true });
     expect(done.details).toMatchObject({ status: 'settled', output: 'users=1' });
   } finally {
     await fixture.close();
   }
 });
 
-test('pre-aborted Agent refuses before attempting worktree creation', async () => {
+test('a background task may launch after an interrupt signal', async () => {
+  const fixture = await workerFixture();
+  try {
+    const controller = new AbortController();
+    controller.abort('interrupt');
+    const started = await fixture.call('task', { agent_type: 'general-purpose', name: 'late', description: 'interrupt probe', prompt: 'after interrupt', mode: 'background' }, controller.signal);
+    const read = await fixture.call('read_agent', { agent_id: (started.details as { agent_id: string }).agent_id, wait: true });
+    expect(read.content[0]).toMatchObject({ text: expect.stringContaining('[Turn 0]\nusers=1') });
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('a pre-aborted sync task starts no agent', async () => {
   const fixture = await workerFixture();
   try {
     const controller = new AbortController();
     controller.abort('permission-stop');
-    await expect(fixture.call('Agent', { description: 'never isolate', prompt: 'never runs', isolation: 'worktree' }, controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
-    expect((await fixture.call('ListAgents', {})).details).toEqual({ agents: [] });
+    await expect(fixture.call('task', { agent_type: 'general-purpose', name: 'never', description: 'never runs', prompt: 'never runs' }, controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
+    expect((await fixture.call('list_agents', { scope: 'all' })).details).toEqual({ agents: [] });
   } finally {
     await fixture.close();
   }
