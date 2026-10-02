@@ -21,11 +21,13 @@ const matrixPath = argument('--matrix') ?? join(packageRoot, 'docs/subagents-par
 const root = argument('--root') ?? packageRoot;
 const allowOpen = process.argv.includes('--allow-open');
 
-const entries = (cell) => (cell === '-' || cell === '' ? [] : cell.split(' | '));
+const entries = (cell) => (cell === '-' || cell === '' ? [] : cell.split(/; \|| \| |;/).map((entry) => entry.trim()).filter(Boolean));
 const pathOf = (entry) => entry.replace(/::.*$/, '').replace(/:\d+(?:-\d+)?$/, '');
 
 function pointerProblems(record) {
   const problems = [];
+  if (record.status !== 'done-tested' && (record.gap === '-' || record.gap === '')) problems.push(`${record.status} row must explain itself in gap`);
+  if (record.status !== 'done-tested') return problems;
   const impl = entries(record.impl_pointer);
   const tests = entries(record.test_pointer);
   if (impl.length === 0) problems.push('closed row names no impl pointer');
@@ -40,7 +42,6 @@ function pointerProblems(record) {
     const title = entry.includes('::') ? entry.slice(entry.indexOf('::') + 2) : undefined;
     if (title && !readFileSync(file, 'utf8').includes(title)) problems.push(`test title not found in ${pathOf(entry)}: ${title}`);
   }
-  if (record.status !== 'done-tested' && (record.gap === '-' || record.gap === '')) problems.push(`${record.status} row must explain itself in gap`);
   return problems;
 }
 

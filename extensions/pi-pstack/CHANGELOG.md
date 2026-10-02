@@ -2,6 +2,12 @@
 
 Revisions follow the pinned upstream pstack version, then `-pi.N` for this package's own releases.
 
+## 0.15.5-pi.3
+
+- Rebuilds `pi-subagents` for parity with the Copilot CLI 1.0.91 subagent reconstruction: `task`, `read_agent`, `write_agent`, and `list_agents` over a factory, scheduler, and task registry, with the documented limits, statuses, events, settings, hooks, model provenance, sidekicks, and dynamic workflow runs.
+- Replaces the Claude-reference `Agent`, `SendMessage`, and `ListAgents` tools and retires their modules. The Cursor-style `Task` workers keep their runtime.
+- Adds `/tasks`, `/subagents`, `/rubber-duck`, `/fleet`, `/workflows`, and `/factories`, the `session.tasks`, `session.tools`, `session.agent`, and `session.workflow` RPC methods, the context board with the rem-agent launcher, and the nested depth and concurrency link to the root limiter.
+
 ## 0.15.5-pi.2
 
 - Makes poteto mode trigger on Anthropic models at any effort. Below `high`, those models skipped the playbook read and the todolist. In poteto mode, each prompt to an `anthropic-messages` model now carries a hidden first-action rule, sent from `before_agent_start`. Other model families are unchanged.

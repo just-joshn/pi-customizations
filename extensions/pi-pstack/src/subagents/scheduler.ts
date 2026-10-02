@@ -128,7 +128,7 @@ export class SubagentScheduler {
       ...initialNode(plan, { toolCallId: input.toolCallId, description: input.description, name: input.name, depth: input.depth, now: this.now() }),
       ...(input.workflowRunId !== undefined ? { workflowRunId: input.workflowRunId } : {}),
     };
-    this.deps.events.emit('subagent.started', startedData(node));
+    this.deps.events.emit('subagent.started', startedData(node), { agentId: node.id });
     this.deps.registry.register(node);
     this.deps.events.emit('subagent.configured', { model: node.model, ...(node.effort ? { reasoningEffort: node.effort } : {}), contextTier: node.contextTier, multiTurn: true as const });
     this.deps.events.emit('subagent.selected', { agentName: node.agentType, agentDisplayName: node.agentDisplayName, tools: plan.tools.declared });
@@ -283,10 +283,16 @@ export class SubagentScheduler {
     }
   }
 
-  async write(id: string, message: string, ctx: ExtensionContext): Promise<AgentNode> {
-    if (this.blocksStart()) throw new Error(rewindingDeliverMessage);
+  private visible(id: string): AgentNode {
     const node = this.deps.registry.get(id);
     if (!node) throw new Error(`Agent not found: ${id}`);
+    if (node.workflowRunId !== undefined) throw new Error(`Agent ${id} is managed by workflow run ${node.workflowRunId}.`);
+    return node;
+  }
+
+  async write(id: string, message: string, ctx: ExtensionContext): Promise<AgentNode> {
+    if (this.blocksStart()) throw new Error(rewindingDeliverMessage);
+    const node = this.visible(id);
     if (node.retired === true) throw new Error(retiredText);
     if (!acceptsMessages(node)) throw new Error(writeAgentRefusal(viewOf(node, this.now())));
     const child = this.live.get(id);
@@ -304,8 +310,7 @@ export class SubagentScheduler {
   }
 
   async read(id: string, options: ReadOptions, signal: AbortSignal | undefined): Promise<AgentNode> {
-    const node = this.deps.registry.get(id);
-    if (!node) throw new Error(`Agent not found: ${id}`);
+    const node = this.visible(id);
     const child = this.live.get(id);
     if (options.wait && node.status === 'running' && child) {
       const deadline = new Promise<void>((resolve) => setTimeout(resolve, options.timeoutSeconds * 1000));
@@ -339,8 +344,7 @@ export class SubagentScheduler {
   }
 
   async cancel(id: string, reason: 'user-cancel' | 'shutdown' = 'user-cancel'): Promise<AgentNode> {
-    const node = this.deps.registry.get(id);
-    if (!node) throw new Error(`Agent not found: ${id}`);
+    const node = this.visible(id);
     const child = this.live.get(id);
     if (!child) return node;
     child.control.stop(reason);

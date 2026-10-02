@@ -46,9 +46,14 @@ test('a test title absent from the named file is reported', () => {
   expect(result.err).toBe('problem\tT04: test title not found in test/real.test.ts: a title nobody wrote\n');
 });
 
-test('a closed row with no test pointer is reported', () => {
+test('a done-tested row with no test pointer is reported', () => {
   const result = gate([['T05', 'c', 'L5', 'done-tested', 'src/real.ts', '-', '-', '-']]);
   expect(result.err).toBe('problem\tT05: closed row names no test pointer\n');
+});
+
+test('an unspecified row needs only a gap explanation', () => {
+  expect(gate([['T09', 'c', 'L9', 'unspecified', '-', '-', 'the source leaves this open; the port chooses x', '-']])).toEqual({ code: 0, out: 'unspecified\t1\n', err: '' });
+  expect(gate([['T10', 'c', 'L10', 'pi-na', '-', '-', 'impossible in pi because y', '-']]).out).toBe('pi-na\t1\n');
 });
 
 test('an unspecified row must explain itself in gap', () => {

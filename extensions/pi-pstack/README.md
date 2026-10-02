@@ -156,6 +156,14 @@ Readonly tasks copy the selected provider registration into an isolated model ru
 
 `environment: "cloud"` starts a detached Pi root on a configured isolated VM executor, at `cloud_base_branch` (the local branch, else `origin/<branch>`) or the parent's committed HEAD. `remote_executor` selects the executor from `executors.json`. Uncommitted parent changes are not copied. Without a configured executor the Task fails with an explicit error and never falls back to local execution. Resume keeps the executor and checkout SHA, `TaskAttach` re-attaches a task launched earlier in the same repository, and the detached root outlives the parent session.
 
+## Copilot subagents
+
+The `task`, `read_agent`, `write_agent`, and `list_agents` tools implement the subagent contract reconstructed from GitHub Copilot CLI 1.0.91. `task` dispatches one of the eight built-in agents (`general-purpose`, `explore`, `task`, `code-review`, `security-review`, `research`, `rubber-duck`, `rem-agent`) or any custom agent defined in `~/.copilot/agents`, `~/.pi/agent/agents`, or a repository's `.github/agents` or `.pi/agents` directories. `mode: "sync"` waits for the child's final message; `mode: "background"` returns an `agent_id` at once and wakes the parent when the agent goes idle. `read_agent` reads responses with `wait`, `timeout`, and `since_turn`; `write_agent` sends follow-ups to background agents that are running or idle; `list_agents` lists them.
+
+A root session configures the depth and concurrency limiter once from `subagents.maxDepth` and `subagents.maxConcurrency`; nested spawns reach the same slots through their parent. Model choice resolves per call from the task argument, `subagents.agents.<type>` settings (`model`, `modelPolicy`, `effortLevel`, `contextTier`), and the definition's own candidates, then reports its provenance on `subagent.started`. `/subagents` edits the preferences, `/tasks` lists agents, `/rubber-duck` and `/fleet` inject delegation prompts, and the `session.tasks`, `session.tools`, `session.agent`, and `session.workflow` RPC methods answer over the extension bus. Execution and search subagents exist behind their feature flags with their own model and turn caps. Sidekicks run on their own task store and deliver through `send_inbox`. `defineWorkflow` registers dynamic workflows with durable runs behind `COPILOT_DYNAMIC_WORKFLOWS=1`.
+
+The parity matrix in `docs/subagents-parity.tsv` is the contract: one row per behavior in the reconstruction, closed only when its implementation and test pointers resolve. `bun run check:parity` enforces it.
+
 ## Models and state
 
 The model rule lives in `~/.pi/agent/pstack/models.mdc`, or the corresponding directory under `PI_CODING_AGENT_DIR`. It retains all upstream role names and panel ordering. Repeated `auto` or `inherit-parent` entries remain separate seats.
