@@ -101,13 +101,16 @@ describe('check-parity through the real CLI', () => {
   });
 });
 
-describe('checkParity negative controls', () => {
-  const base = {
-    upstreamText,
-    schema,
-    themeLabel: 'themes/one-dark-pro-flat.json',
-  };
-  const built = buildTheme(upstream, rows);
+const parityBase = {
+  upstreamText,
+  schema,
+  themeLabel: 'themes/one-dark-pro-flat.json',
+};
+const parityBuilt = buildTheme(upstream, rows);
+
+describe('checkParity artifact controls', () => {
+  const base = parityBase;
+  const built = parityBuilt;
   const baseline = checkParity({ ...base, rows, committed: built });
 
   it('passes on the committed artifacts', () => {
@@ -144,6 +147,11 @@ describe('checkParity negative controls', () => {
     });
     expect(problems).toContain('role map role madeUp is not a color in the pi theme schema');
   });
+});
+
+describe('checkParity role coverage controls', () => {
+  const base = parityBase;
+  const built = parityBuilt;
 
   it('reports a schema role with no role map row', () => {
     const problems = checkParity({
