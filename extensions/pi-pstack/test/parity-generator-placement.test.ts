@@ -32,13 +32,13 @@ test('shipping runs one unbatched verifier per PR against parent versus head wit
 test('shipping defaults each verifier to a cloud worker and keeps local only for lanes that need this machine', async () => {
   const shipping = await playbook('shipping');
   expect(shipping).toContain('Default each verifier to `environment: "cloud"` when the host contract shows a configured remote executor.');
-  expect(shipping).toContain('Run a local app lane on the machine that can reach the app when the lane needs this machine\'s app, simulator, credentials, transcripts, or IDE state.');
+  expect(shipping).toContain("Run a local app lane on the machine that can reach the app when the lane needs this machine's app, simulator, credentials, transcripts, or IDE state.");
   expect(shipping).toContain(fallback);
 });
 
 test('shipping treats every non-terminal queued watcher event as a wake and waits for merge evidence', async () => {
   const shipping = await playbook('shipping');
-  expect(shipping).toContain('ignoring the watcher\'s non-terminal `QUEUE`, `STATUS`, `WAITING`, and `ADVANCE` wakes (queued mode never emits `READY`) until `mergedAt` is non-null or `state` is `MERGED`');
+  expect(shipping).toContain("ignoring the watcher's non-terminal `QUEUE`, `STATUS`, `WAITING`, and `ADVANCE` wakes (queued mode never emits `READY`) until `mergedAt` is non-null or `state` is `MERGED`");
   expect(shipping).not.toContain('ignoring `READY` until');
 });
 

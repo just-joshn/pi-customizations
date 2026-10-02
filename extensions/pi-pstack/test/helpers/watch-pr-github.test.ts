@@ -3,45 +3,27 @@ import { expect, test } from 'bun:test';
 import { failedCheck, fakeReader, passingCheck } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
 import {
   ChecksUnavailable,
-  GhGitHubReader,
-  REVIEW_THREADS_QUERY,
-  WatcherQueryError,
   discoverStack,
+  GhGitHubReader,
   isNoChecksReading,
   mapRollupNode,
   orderStack,
   parseFastCheck,
   parseReviewThreads,
+  REVIEW_THREADS_QUERY,
   resolveChecks,
   resolveContext,
+  WatcherQueryError,
 } from '../../skills/poteto-mode/scripts/watch-pr/github.ts';
 import { readSnapshot } from '../../skills/poteto-mode/scripts/watch-pr/policy.ts';
 import type { Check } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
-import {
-  commitsPage,
-  emptyBin,
-  fakeEnv,
-  fastCheck,
-  installFakeBin,
-  ok,
-  prView,
-  rollupPage,
-  thread,
-  threadsPage,
-  withEnv,
-  type FakeBin,
-  type FakeRule,
-} from './watch-pr-fakes.test-helper.ts';
+import { commitsPage, emptyBin, type FakeBin, type FakeRule, fakeEnv, fastCheck, installFakeBin, ok, prView, rollupPage, thread, threadsPage, withEnv } from './watch-pr-fakes.test-helper.ts';
 
 const ctx = { owner: 'o', repo: 'r', number: parsePrNumber(7) };
 const pr = (n: number) => ({ owner: 'o', repo: 'r', number: parsePrNumber(n) });
 
-async function withFakes<T>(
-  rules: readonly FakeRule[],
-  body: (bin: FakeBin) => Promise<T>,
-  extra: Record<string, string> = {},
-): Promise<T> {
+async function withFakes<T>(rules: readonly FakeRule[], body: (bin: FakeBin) => Promise<T>, extra: Record<string, string> = {}): Promise<T> {
   const bin = installFakeBin(rules);
   return withEnv(fakeEnv(bin, extra), () => body(bin));
 }
@@ -142,11 +124,17 @@ test('GhGitHubReader.reviewThreads sends the threads query with -f owner repo an
 });
 
 test('GhGitHubReader.commitRollups reads the last 50 commits and maps a null rollup to null', async () => {
-  const page = commitsPage([{ oid: 'a', state: 'SUCCESS' }, { oid: 'b', state: null }]);
+  const page = commitsPage([
+    { oid: 'a', state: 'SUCCESS' },
+    { oid: 'b', state: null },
+  ]);
   await withFakes([gh(['query PrCommitStatuses'], ok(page))], async (bin) => {
     const rollups = await new GhGitHubReader().commitRollups(ctx);
     expect(argvOf(bin)[3]).toContain('commits(last: 50)');
-    expect(rollups).toEqual([{ oid: 'a', state: 'SUCCESS' }, { oid: 'b', state: null }]);
+    expect(rollups).toEqual([
+      { oid: 'a', state: 'SUCCESS' },
+      { oid: 'b', state: null },
+    ]);
   });
 });
 
@@ -226,15 +214,16 @@ test('GhGitHubReader.originRepo returns null when git is not on PATH', async () 
 });
 
 test('GhGitHubReader runs gh with GH_HOST accepted for remotes and PR URLs on GitHub Enterprise', async () => {
-  const rules = [
-    git(['remote'], { stdout: 'git@ghe.example.com:own/rep.git\n' }),
-    gh(['pr view'], ok({ number: 3, url: 'https://ghe.example.com/own/rep/pull/3' })),
-  ];
-  await withFakes(rules, async () => {
-    const reader = new GhGitHubReader();
-    expect(await reader.originRepo()).toEqual({ owner: 'own', repo: 'rep' });
-    expect(await reader.currentPr(null)).toEqual({ owner: 'own', repo: 'rep', number: parsePrNumber(3) });
-  }, { GH_HOST: 'ghe.example.com' });
+  const rules = [git(['remote'], { stdout: 'git@ghe.example.com:own/rep.git\n' }), gh(['pr view'], ok({ number: 3, url: 'https://ghe.example.com/own/rep/pull/3' }))];
+  await withFakes(
+    rules,
+    async () => {
+      const reader = new GhGitHubReader();
+      expect(await reader.originRepo()).toEqual({ owner: 'own', repo: 'rep' });
+      expect(await reader.currentPr(null)).toEqual({ owner: 'own', repo: 'rep', number: parsePrNumber(3) });
+    },
+    { GH_HOST: 'ghe.example.com' },
+  );
 });
 
 test('GhGitHubReader maps a non-zero gh exit to command-exit with the first stderr line cut to 240 characters', async () => {
@@ -261,20 +250,28 @@ test('GhGitHubReader turns a missing gh binary into a non-retryable gh-missing f
 
 test('GhGitHubReader kills a hung gh after the command timeout and raises a retryable command-exit failure', async () => {
   const started = performance.now();
-  await withFakes([gh(['pr view'], { stdout: '{}', delayMs: 2500 })], async () => {
-    const error = await failureOf(new GhGitHubReader().pullRequest(ctx));
-    expect(error.failure).toMatchObject({ kind: 'command-exit', retryable: true });
-    expect(error.failure.detail).toContain('timed out');
-  }, { WATCH_PR_COMMAND_TIMEOUT_SECONDS: '0.3' });
+  await withFakes(
+    [gh(['pr view'], { stdout: '{}', delayMs: 2500 })],
+    async () => {
+      const error = await failureOf(new GhGitHubReader().pullRequest(ctx));
+      expect(error.failure).toMatchObject({ kind: 'command-exit', retryable: true });
+      expect(error.failure.detail).toContain('timed out');
+    },
+    { WATCH_PR_COMMAND_TIMEOUT_SECONDS: '0.3' },
+  );
   expect(performance.now() - started).toBeLessThan(1800);
 });
 
-const page = (ids: [string, boolean][], pageInfo?: Record<string, unknown>) => ok(threadsPage(ids.map(([id, resolved]) => thread(id, resolved)), pageInfo));
+const page = (ids: [string, boolean][], pageInfo?: Record<string, unknown>) =>
+  ok(
+    threadsPage(
+      ids.map(([id, resolved]) => thread(id, resolved)),
+      pageInfo,
+    ),
+  );
 
 test('GhGitHubReader.reviewThreads follows endCursor so an unresolved thread on page two is not hidden', async () => {
-  const rules = [
-    gh(['query ReviewThreads'], page([['t1', true]], { hasNextPage: true, endCursor: 'C1' }), page([['t2', false]], { hasNextPage: false, endCursor: null })),
-  ];
+  const rules = [gh(['query ReviewThreads'], page([['t1', true]], { hasNextPage: true, endCursor: 'C1' }), page([['t2', false]], { hasNextPage: false, endCursor: null }))];
   await withFakes(rules, async (bin) => {
     const threads = await new GhGitHubReader().reviewThreads(ctx);
     expect(threads.map((t) => t.id)).toEqual(['t2']);

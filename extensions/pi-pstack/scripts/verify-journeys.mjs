@@ -476,7 +476,11 @@ async function journeyDelegation(ctx) {
   check('tool: Task rejects an unsupported persona by name', JSON.stringify(unsupported.find((m) => m.toolName === 'Task')).includes('not-a-persona'), JSON.stringify(unsupported).slice(0, 300));
   const cloud = await ctx.callTool('JOURNEY:cloud');
   const cloudResult = cloud.find((message) => message.toolName === 'Task');
-  check('tool: Task cloud execution without a configured remote executor refuses local fallback', cloudResult?.isError === true && JSON.stringify(cloudResult).includes('No local fallback is permitted'), JSON.stringify(cloudResult).slice(0, 300));
+  check(
+    'tool: Task cloud execution without a configured remote executor refuses local fallback',
+    cloudResult?.isError === true && JSON.stringify(cloudResult).includes('No local fallback is permitted'),
+    JSON.stringify(cloudResult).slice(0, 300),
+  );
   const badModel = await ctx.callTool('JOURNEY:badmodel');
   const badModelResult = badModel.find((message) => message.toolName === 'Task');
   check('tool: Task reports an unavailable model with the available choices', badModelResult?.isError === true && JSON.stringify(badModelResult).includes('Unavailable model'), JSON.stringify(badModelResult).slice(0, 300));

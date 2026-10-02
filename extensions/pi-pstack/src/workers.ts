@@ -98,7 +98,10 @@ function registerTaskList(pi: ExtensionAPI, runtime: WorkerRuntime): void {
         return { content: [{ type: 'text', text: JSON.stringify({ tasks: tasks.map((record) => JSON.parse(taskSummary(record))) }) }], details: { tasks } };
       }
       const receipts = await discoverTasks(ctx.cwd, params.branch);
-      return { content: [{ type: 'text', text: JSON.stringify({ tasks: receipts.map((item) => ({ ...JSON.parse(taskSummary(item.record)), branch: item.branch, observed: 'launch receipt; TaskAttach reconciles live status' })) }) }], details: { tasks: receipts.map((item) => item.record) } };
+      return {
+        content: [{ type: 'text', text: JSON.stringify({ tasks: receipts.map((item) => ({ ...JSON.parse(taskSummary(item.record)), branch: item.branch, observed: 'launch receipt; TaskAttach reconciles live status' })) }) }],
+        details: { tasks: receipts.map((item) => item.record) },
+      };
     },
   });
 }

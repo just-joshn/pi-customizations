@@ -73,7 +73,16 @@ test('a restarted timer service does not repeat a terminal CI wake it already de
   await expect.poll(async () => (await timerCommand(directory, { type: 'list' }))[0]?.ci?.state).toBe('success');
   const status = JSON.parse(await readFile(join(directory, 'status.json'), 'utf8'));
   process.kill(status.pid, 'SIGKILL');
-  await expect.poll(() => { try { process.kill(status.pid, 0); return true; } catch { return false; } }).toBe(false);
+  await expect
+    .poll(() => {
+      try {
+        process.kill(status.pid, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    })
+    .toBe(false);
   await restartTimerService(directory);
   await polledAgain(forge);
   expect(await wakes(receipt, 'success')).toHaveLength(1);
@@ -147,5 +156,9 @@ test('SubscribeOriginCI states that the live Origin path is unsupported without 
 });
 
 test('the CI subscription tools are registered next to the timer tools', () => {
-  expect(toolDefinitions().map((tool) => tool.name).sort()).toEqual(['ListSubscriptions', 'RestartSubscriptions', 'SubscribeGithubCI', 'SubscribeOriginCI', 'SubscribeTimer', 'Unsubscribe']);
+  expect(
+    toolDefinitions()
+      .map((tool) => tool.name)
+      .sort(),
+  ).toEqual(['ListSubscriptions', 'RestartSubscriptions', 'SubscribeGithubCI', 'SubscribeOriginCI', 'SubscribeTimer', 'Unsubscribe']);
 });

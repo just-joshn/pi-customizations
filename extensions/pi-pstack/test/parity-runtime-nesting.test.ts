@@ -19,10 +19,16 @@ async function nestingFixture() {
   await loader.reload();
   const { session } = await createAgentSession({ cwd: dir, agentDir: dir, resourceLoader: loader, sessionManager: SessionManager.create(dir, join(dir, 'sessions')) });
   await session.bindExtensions({ mode: 'print' });
-  const model = session.extensionRunner.createContext().modelRegistry.getAvailable().find((item) => item.provider === 'worker-test');
+  const model = session.extensionRunner
+    .createContext()
+    .modelRegistry.getAvailable()
+    .find((item) => item.provider === 'worker-test');
   if (!model) throw new Error('missing worker-test model');
   await session.setModel(model);
-  const task = loader.getExtensions().extensions.flatMap((extension) => [...extension.tools.values()]).find((tool) => tool.definition.name === 'Task');
+  const task = loader
+    .getExtensions()
+    .extensions.flatMap((extension) => [...extension.tools.values()])
+    .find((tool) => tool.definition.name === 'Task');
   if (!task) throw new Error('Task tool is not registered');
   const call = (params: Record<string, unknown>) => task.definition.execute('nest', params, undefined, undefined, session.extensionRunner.createToolContext('nest', undefined));
   const close = async () => {

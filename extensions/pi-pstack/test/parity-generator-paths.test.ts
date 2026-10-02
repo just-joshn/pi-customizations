@@ -12,7 +12,10 @@ const modeDirectory = join(root, 'skills/poteto-mode');
 
 async function markdownFiles(directory: string): Promise<string[]> {
   const names = await readdir(join(root, directory), { recursive: true });
-  return names.filter((name) => name.endsWith('.md')).map((name) => join(directory, name)).toSorted();
+  return names
+    .filter((name) => name.endsWith('.md'))
+    .map((name) => join(directory, name))
+    .toSorted();
 }
 
 async function playbook(name: string): Promise<string> {
@@ -108,7 +111,9 @@ test('plan skeleton keeps the trunk read, the 30-minute tick, and the review gat
 test('both autopilots re-read their own playbook from trunk or the bundled copy, never a repository-root path', async () => {
   for (const name of ['autopilot-full', 'autopilot-stack']) {
     const text = await playbook(name);
-    expect(text).toContain(`re-read this playbook. When the target repository commits it, read it from trunk with \`git show origin/main:<repo path>\`. Otherwise read the bundled \`playbooks/${name}.md\` in the poteto-mode skill directory the host contract names, then re-read the armed \`/goal\`.`);
+    expect(text).toContain(
+      `re-read this playbook. When the target repository commits it, read it from trunk with \`git show origin/main:<repo path>\`. Otherwise read the bundled \`playbooks/${name}.md\` in the poteto-mode skill directory the host contract names, then re-read the armed \`/goal\`.`,
+    );
   }
 });
 

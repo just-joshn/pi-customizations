@@ -22,7 +22,8 @@ const CiSchema = Type.Intersect([
 ]);
 
 export function parseCi(input) {
-  if (!Check(CiSchema, input) || (input.name !== undefined && !input.name.trim()) || (input.prompt !== undefined && !input.prompt.trim())) throw new Error('Invalid CI subscription: forge, pr, repo, pollSeconds and cwd must be well formed.');
+  if (!Check(CiSchema, input) || (input.name !== undefined && !input.name.trim()) || (input.prompt !== undefined && !input.prompt.trim()))
+    throw new Error('Invalid CI subscription: forge, pr, repo, pollSeconds and cwd must be well formed.');
   if (input.forge === 'origin' && !input.command) throw new Error('Invalid CI subscription: an origin subscription needs the forge-neutral command contract.');
   const label = ciLabel(input);
   return { ...input, pollSeconds: input.pollSeconds ?? 30, name: input.name ?? `ci-${input.forge}-${input.repo ?? 'cwd'}-${input.pr}`, prompt: input.prompt ?? `Check the CI result for ${label} and act on it.` };

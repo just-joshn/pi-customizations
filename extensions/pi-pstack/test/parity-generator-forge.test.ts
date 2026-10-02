@@ -20,7 +20,9 @@ test('every forge-resolving playbook detects the origin CLI at its installed pat
 
 test('an the origin host repository never falls back to gh and keeps its work where the origin CLI is authenticated', async () => {
   for (const name of forgeDetection) {
-    expect(await playbook(name)).toContain('A repository whose remote is `the origin host` is an Origin repository. Keep its owners and verifiers local, or on an executor with the origin CLI authenticated, and never fall back to `gh` for it. Mark the lane BLOCKED instead.');
+    expect(await playbook(name)).toContain(
+      'A repository whose remote is `the origin host` is an Origin repository. Keep its owners and verifiers local, or on an executor with the origin CLI authenticated, and never fall back to `gh` for it. Mark the lane BLOCKED instead.',
+    );
   }
 });
 
@@ -62,6 +64,8 @@ test('a cloud root arms its audit tick from its own Pi root on the remote VM', a
 test('plan lanes prefer a committed verify skill, name their input commands, and keep their screenshots', async () => {
   const plan = await playbook('multi-phase-plan');
   expect(plan).toContain("Prefer the repository's committed `verify-<app>` skill when it exists. Otherwise pick it by surface.");
-  expect(plan).toContain("<Deliver input only through the commands of the generated `verify-<app>` skill from `create-verification-skill` when the repository has one, otherwise through the harness commands this lane writes down before driving. Name the read-only diagnostics.>");
-  expect(plan).toContain("Keep these files. This brief overrides the control skill cleanup default.");
+  expect(plan).toContain(
+    '<Deliver input only through the commands of the generated `verify-<app>` skill from `create-verification-skill` when the repository has one, otherwise through the harness commands this lane writes down before driving. Name the read-only diagnostics.>',
+  );
+  expect(plan).toContain('Keep these files. This brief overrides the control skill cleanup default.');
 });

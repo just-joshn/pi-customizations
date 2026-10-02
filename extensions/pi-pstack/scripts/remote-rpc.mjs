@@ -1,15 +1,15 @@
 import { execFile } from 'node:child_process';
-import { mkdir, readFile, readdir, realpath, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, realpath, writeFile } from 'node:fs/promises';
 import { hostname } from 'node:os';
 import { basename, join, resolve } from 'node:path';
-import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
 import { Type } from 'typebox';
 import { Check } from 'typebox/value';
-import { parseExecutor } from './remote-executor-schema.mjs';
-import { readRecord, statusSchema } from './detached-rpc-protocol.mjs';
 import { openDetachedRpc, startDetachedRpc } from './detached-rpc-client.mjs';
+import { readRecord, statusSchema } from './detached-rpc-protocol.mjs';
+import { parseExecutor } from './remote-executor-schema.mjs';
 
 const run = promisify(execFile);
 const Request = Type.Object({
@@ -62,7 +62,15 @@ async function start(request, executor, identity, directory) {
   if ((await git(cwdRoot, 'rev-parse', 'HEAD')) !== request.sha) throw new Error('Remote checkout is not at the requested exact SHA.');
   const systemFile = join(directory, 'system.txt');
   await writeFile(systemFile, request.systemPrompt, { mode: 0o600 });
-  const handle = await startDetachedRpc({ directory, cwd, agentDir: executor.agentDir, ownerId: request.taskId, headless: true, closeAfterSettle: true, args: [...request.args, '--append-system-prompt', systemFile, '--session-dir', join(directory, 'session'), ...(request.sessionFile ? ['--session', request.sessionFile] : [])] });
+  const handle = await startDetachedRpc({
+    directory,
+    cwd,
+    agentDir: executor.agentDir,
+    ownerId: request.taskId,
+    headless: true,
+    closeAfterSettle: true,
+    args: [...request.args, '--append-system-prompt', systemFile, '--session-dir', join(directory, 'session'), ...(request.sessionFile ? ['--session', request.sessionFile] : [])],
+  });
   try {
     const state = await handle.send({ type: 'get_state' });
     if (!state.success || state.command !== 'get_state' || !state.data.sessionFile) throw new Error('Remote Pi did not provide a durable session.');
@@ -117,7 +125,8 @@ async function dispatch(request) {
       throw error;
     }
   }
-  if (!request.directory?.startsWith(`${directory}/rpc-`) || !/^rpc-[a-zA-Z0-9]+$/.test(basename(request.directory)) || (await realpath(request.directory)) !== request.directory) throw new Error('Remote RPC directory is outside its owned job.');
+  if (!request.directory?.startsWith(`${directory}/rpc-`) || !/^rpc-[a-zA-Z0-9]+$/.test(basename(request.directory)) || (await realpath(request.directory)) !== request.directory)
+    throw new Error('Remote RPC directory is outside its owned job.');
   const handle = openDetachedRpc(request.directory);
   if (request.operation === 'send') return handle.send(request.command, request.invocation);
   if (request.operation === 'close') await stopOrphan(handle, directory, request.taskId);

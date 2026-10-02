@@ -1,10 +1,10 @@
 import { expect, test } from 'bun:test';
 
-import { main, parseArgs, type CliRuntime } from '../../skills/poteto-mode/scripts/watch-pr/cli.ts';
-import { failedCheck, fakeReader, pendingCheck, type FakeReaderOptions } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
-import { renderStatusTable } from '../../skills/poteto-mode/scripts/watch-pr/render.ts';
-import { readSnapshot } from '../../skills/poteto-mode/scripts/watch-pr/policy.ts';
+import { type CliRuntime, main, parseArgs } from '../../skills/poteto-mode/scripts/watch-pr/cli.ts';
+import { type FakeReaderOptions, failedCheck, fakeReader, pendingCheck } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
 import { GhGitHubReader, WatcherQueryError } from '../../skills/poteto-mode/scripts/watch-pr/github.ts';
+import { readSnapshot } from '../../skills/poteto-mode/scripts/watch-pr/policy.ts';
+import { renderStatusTable } from '../../skills/poteto-mode/scripts/watch-pr/render.ts';
 import type { GitHubReader, PrContext, ReviewThread } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { emptyBin, withEnv } from './watch-pr-fakes.test-helper.ts';
@@ -38,7 +38,12 @@ async function run(argv: string[], reader: GitHubReader): Promise<Run> {
   };
   const code = await main(argv, runtime);
   const text = out.join('');
-  const lines = text.startsWith('{') ? text.trim().split('\n').map((line) => JSON.parse(line)) : [];
+  const lines = text.startsWith('{')
+    ? text
+        .trim()
+        .split('\n')
+        .map((line) => JSON.parse(line))
+    : [];
   return { code, lines, text, sleeps };
 }
 const last = (r: Run) => r.lines[r.lines.length - 1];
@@ -59,7 +64,12 @@ for (const value of ['0', '1.5', '-2', 'abc', '#0']) {
   });
 }
 
-for (const argv of [['--interval', '0'], ['--stack', '--queued-stack'], ['--stack-prs', '1,2'], ['--timeout', '-1']]) {
+for (const argv of [
+  ['--interval', '0'],
+  ['--stack', '--queued-stack'],
+  ['--stack-prs', '1,2'],
+  ['--timeout', '-1'],
+]) {
   test(`main exits 64 and prints nothing to stdout for ${argv.join(' ')}`, async () => {
     const r = await run(argv, fakeReader());
     expect(r).toMatchObject({ code: 64, text: '' });

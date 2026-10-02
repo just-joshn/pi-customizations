@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -19,7 +19,10 @@ function append(file: string, cells: string[]) {
 }
 
 async function rows(file: string): Promise<string[][]> {
-  return (await readFile(file, 'utf8')).split('\n').filter(Boolean).map((line) => line.split('\t'));
+  return (await readFile(file, 'utf8'))
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => line.split('\t'));
 }
 
 afterEach(async () => {
@@ -61,7 +64,6 @@ describe('log.sh rows', () => {
     expect(table).toHaveLength(2);
     expect(table[1]?.slice(1)).toEqual(['a b', 'c d', 'e f', 'g', 'h']);
   });
-
 });
 
 describe('log.sh formula guard', () => {
@@ -80,7 +82,6 @@ describe('log.sh formula guard', () => {
     append(file, ['p', cell, 'w', 'e', 'r']);
     expect((await rows(file))[1]?.[2]).toBe(stored);
   });
-
 });
 
 describe('log.sh concurrency', () => {
@@ -88,15 +89,24 @@ describe('log.sh concurrency', () => {
     const file = await logPath();
     const writers = 60;
     await Promise.all(
-      Array.from({ length: writers }, (_, index) => new Promise<void>((resolve, reject) => {
-        const child = spawn('bash', [script, file, `p${index}`, 'd', 'w', 'e', 'r']);
-        child.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`writer ${index} exited ${code}`))));
-      })),
+      Array.from(
+        { length: writers },
+        (_, index) =>
+          new Promise<void>((resolve, reject) => {
+            const child = spawn('bash', [script, file, `p${index}`, 'd', 'w', 'e', 'r']);
+            child.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`writer ${index} exited ${code}`))));
+          }),
+      ),
     );
     expect(await readdir(join(file, '..'))).toEqual(['decisions.tsv']);
     const table = await rows(file);
     expect(table.filter((row) => row.join('\t') === header)).toHaveLength(1);
     expect(table[0]?.join('\t')).toBe(header);
-    expect(table.slice(1).map((row) => row[1]).toSorted()).toEqual(Array.from({ length: writers }, (_, index) => `p${index}`).toSorted());
+    expect(
+      table
+        .slice(1)
+        .map((row) => row[1])
+        .toSorted(),
+    ).toEqual(Array.from({ length: writers }, (_, index) => `p${index}`).toSorted());
   });
 });

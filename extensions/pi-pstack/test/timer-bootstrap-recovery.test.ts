@@ -6,7 +6,9 @@ import { expect, onTestFinished, test, vi } from 'vitest';
 
 vi.mock(import('../scripts/detached-rpc-client.mjs'), async (original) => ({
   ...(await original()),
-  startDetachedRpc: vi.fn(async () => { throw new Error('A second writer was attempted.'); }),
+  startDetachedRpc: vi.fn(async () => {
+    throw new Error('A second writer was attempted.');
+  }),
 }));
 
 import { openTimerRoot } from '../scripts/timer-root.mjs';

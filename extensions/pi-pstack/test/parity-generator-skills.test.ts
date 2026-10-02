@@ -36,11 +36,15 @@ test('the bugbot triage reference has no semicolons or long dashes in its prose'
 });
 
 test('the bugbot triage reference says how an ask resolves under a full-autonomy grant', async () => {
-  expect(await triage()).toContain('Under a full-autonomy grant, decide an `ask` finding outside security, privacy, auth, billing, data, and migrations, and log the decision with its reason in the decision trail. Park an `ask` finding inside those categories as an operator gate and keep working the rest.');
+  expect(await triage()).toContain(
+    'Under a full-autonomy grant, decide an `ask` finding outside security, privacy, auth, billing, data, and migrations, and log the decision with its reason in the decision trail. Park an `ask` finding inside those categories as an operator gate and keep working the rest.',
+  );
 });
 
 test('babysit runs a prose-pinning contract test before the third-pass dismissal lean', async () => {
-  expect(await read('poteto-mode/playbooks/babysit.md')).toContain('Run any prose-pinning contract test first per `references/bugbot-triage.md`, because a drift claim against such a test is cheap to verify and the lean toward dismissal does not apply to it.');
+  expect(await read('poteto-mode/playbooks/babysit.md')).toContain(
+    'Run any prose-pinning contract test first per `references/bugbot-triage.md`, because a drift claim against such a test is cheap to verify and the lean toward dismissal does not apply to it.',
+  );
 });
 
 test('tdd and principle headings use sentence case', async () => {
@@ -81,28 +85,36 @@ test('prove-it-works states the delegation rule and experience-first links found
 });
 
 test('sequencing defines green as the declared phase-boundary check under outcome-oriented execution', async () => {
-  expect(await read('principle-sequence-verifiable-units/SKILL.md')).toContain('Green means the check the plan declares for the unit. Under the **outcome-oriented-execution** principle skill, green at a declared phase boundary is the phase-boundary check that plan names, and breakage the plan scoped as temporary between boundaries is not red.');
+  expect(await read('principle-sequence-verifiable-units/SKILL.md')).toContain(
+    'Green means the check the plan declares for the unit. Under the **outcome-oriented-execution** principle skill, green at a declared phase boundary is the phase-boundary check that plan names, and breakage the plan scoped as temporary between boundaries is not red.',
+  );
 });
 
 test('the how skill drops the explorer wording from a simple explain prompt', async () => {
-  expect(await read('how/SKILL.md')).toContain('Drop the sentence that begins "Multiple explorer agents have traced", the paragraph that begins "The explorers each investigated", and the sentence "The explorers did the work, so you shouldn\'t need to re-explore from scratch." No explorer ran, so the explainer explores for itself.');
+  expect(await read('how/SKILL.md')).toContain(
+    'Drop the sentence that begins "Multiple explorer agents have traced", the paragraph that begins "The explorers each investigated", and the sentence "The explorers did the work, so you shouldn\'t need to re-explore from scratch." No explorer ran, so the explainer explores for itself.',
+  );
 });
 
 test('the why skill allows a scoped-ask skip and one investigator per category of a multi-category MCP', async () => {
   const why = await read('why/SKILL.md');
   expect(why).toContain('Three valid reasons:');
   expect(why).toContain('**The caller narrowed the ask.** The invoking skill or user scoped the question so a category cannot bear on it. Name the scoping ask in the justification.');
-  expect(why).toContain('An MCP that fits several categories gets one investigator per category, each with that category\'s playbook, so no investigator covers more than one category.');
+  expect(why).toContain("An MCP that fits several categories gets one investigator per category, each with that category's playbook, so no investigator covers more than one category.");
 });
 
 test('architect forces one alternative re-run before arena may ship a converged consensus', async () => {
-  expect(await read('architect/SKILL.md')).toContain('When arena reports that the runners converged on one shape, run the runners once more with a forced alternative direction before arena ships the consensus. That forced re-run satisfies this rule, and the arena rule that ships a converged shape applies only after it.');
+  expect(await read('architect/SKILL.md')).toContain(
+    'When arena reports that the runners converged on one shape, run the runners once more with a forced alternative direction before arena ships the consensus. That forced re-run satisfies this rule, and the arena rule that ships a converged shape applies only after it.',
+  );
 });
 
 test('interrogate infers and states intent without reading it from the code, and reports a rejected default instead of opening a PR', async () => {
   const skill = await read('interrogate/SKILL.md');
   expect(skill).not.toContain('- The code itself');
-  expect(skill).toContain('If the sources leave the intent unclear, state your inferred intent in the paragraph, mark it as inferred, and proceed. Ask the user only when none of these sources exists. Never derive intent from the code alone, because that can bake a visible bug into the accepted intent.');
+  expect(skill).toContain(
+    'If the sources leave the intent unclear, state your inferred intent in the paragraph, mark it as inferred, and proceed. Ask the user only when none of these sources exists. Never derive intent from the code alone, because that can bake a visible bug into the accepted intent.',
+  );
   expect(skill).not.toContain('separate PR');
   expect(skill).toContain('report the rejected default in the review summary and suggest running `/setup-pstack`, because the table default lives in the package');
 });
@@ -116,11 +128,15 @@ test('reflect reads only the named transcript and files Backlog items after appr
   expect(reflect).not.toMatch(/<session-dir>\/\*\.jsonl/);
   expect(reflect).toContain('Use that exact path.');
   expect(reflect).toContain('Do not glob the Pi session storage directory.');
-  expect(reflect).toContain('File Backlog items to GitHub issues through `gh` after the same approval as the Accepted edits, because filing is an external write. When no tracker is configured, list the Backlog items in the summary unfiled.');
+  expect(reflect).toContain(
+    'File Backlog items to GitHub issues through `gh` after the same approval as the Accepted edits, because filing is an external write. When no tracker is configured, list the Backlog items in the summary unfiled.',
+  );
 });
 
 test('teach names a fallback when the host has no image tool', async () => {
-  expect(await read('teach/SKILL.md')).toContain('reach for an image tool only when the host contract names one. Pi registers no image-generation tool, so otherwise draw it as an SVG or mermaid sketch with a few short labels and say that you substituted it for an image.');
+  expect(await read('teach/SKILL.md')).toContain(
+    'reach for an image tool only when the host contract names one. Pi registers no image-generation tool, so otherwise draw it as an SVG or mermaid sketch with a few short labels and say that you substituted it for an image.',
+  );
 });
 
 test('the trail reviewer, figure-it-out judge, and recall miners each read a named role line', async () => {

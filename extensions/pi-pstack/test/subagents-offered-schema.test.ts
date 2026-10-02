@@ -11,9 +11,7 @@ test('the public Agent schema only offers supported worktree isolation', () => {
   expect(Object.keys(schema.properties)).toEqual(['description', 'prompt', 'subagent_type', 'model', 'run_in_background', 'isolation']);
   expect(schema.required).toEqual(['description', 'prompt']);
   expect(schema.additionalProperties).toBe(false);
-  expect(schema.properties.isolation?.description).toBe(
-    'Isolation mode. "worktree" creates a temporary git worktree so the agent works on an isolated copy of the repo.',
-  );
+  expect(schema.properties.isolation?.description).toBe('Isolation mode. "worktree" creates a temporary git worktree so the agent works on an isolated copy of the repo.');
 });
 
 test.for([

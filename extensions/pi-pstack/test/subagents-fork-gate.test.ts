@@ -57,7 +57,10 @@ test('[A74] fork type matching ignores case and separators', () => {
 test('[A74] fork refuses remote isolation', () => {
   expect(decideAdmission(snapshot, { description: 'd', prompt: 'p', subagentType: 'fork', isolation: 'remote' })).toEqual({
     ok: false,
-    refusal: { code: 'subagent_fork_remote_isolation', message: 'Fork cannot use isolation: "remote" — a remote session cannot inherit the conversation context. Omit isolation (or use "worktree"), or spawn a named agent type for remote work.' },
+    refusal: {
+      code: 'subagent_fork_remote_isolation',
+      message: 'Fork cannot use isolation: "remote" — a remote session cannot inherit the conversation context. Omit isolation (or use "worktree"), or spawn a named agent type for remote work.',
+    },
   });
 });
 
