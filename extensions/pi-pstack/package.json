@@ -58,7 +58,8 @@
     "check:native-parity": "node scripts/check-native-parity.mjs",
     "check:upstream": "node scripts/verify-upstream.mjs",
     "typecheck": "tsc --noEmit && tsc --noEmit -p test/helpers",
-    "test": "vitest run",
+    "test": "vitest run && bun run test:helpers",
+    "test:helpers": "bun test --preload ./test/helpers/leak-preload.ts test/helpers",
     "test:coverage": "vitest run --coverage",
     "check:parity": "node scripts/check-subagent-parity.mjs"
   },
