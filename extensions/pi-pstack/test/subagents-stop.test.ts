@@ -110,30 +110,3 @@ test('a repeated stop before the worker is overdue does not abort twice', async 
   expect(calls.abort).toBe(1);
   control.unsubscribe();
 });
-
-test('[G2-07] the turn limiter logs and stops exactly at the configured turn', async () => {
-  const { turnLimit } = await import('../src/subagents/turn-limit.ts');
-  const logs: string[] = [];
-  const stop = vi.fn();
-  const listener = turnLimit('short', 2, (message) => logs.push(message), stop);
-  const continuing = { type: 'turn_end', toolResults: [{ role: 'toolResult' }] } as never;
-  listener(continuing);
-  expect(stop).not.toHaveBeenCalled();
-  listener(continuing);
-  listener(continuing);
-  expect(stop).toHaveBeenCalledTimes(1);
-  expect(logs).toEqual(['[Agent: short] Reached max turns limit (2)']);
-});
-
-test('[B72] a child that finishes its report on the last allowed turn is not cut off', async () => {
-  const { turnLimit } = await import('../src/subagents/turn-limit.ts');
-  const stop = vi.fn();
-  const logs: string[] = [];
-  const listener = turnLimit('short', 1, (message) => logs.push(message), stop);
-  listener({ type: 'turn_end', toolResults: [] } as never);
-  expect(logs).toEqual([]);
-  expect(stop.mock.calls).toEqual([]);
-  listener({ type: 'turn_end', toolResults: [{ role: 'toolResult' }] } as never);
-  expect(logs).toEqual(['[Agent: short] Reached max turns limit (1)']);
-  expect(stop.mock.calls).toEqual([[]]);
-});

@@ -1,7 +1,7 @@
-import type { TaskRecord } from '../worker-records.ts';
+import type { AgentNode } from './agent-node.ts';
 
-export type TaskStatus = 'running' | 'idle' | 'completed' | 'failed' | 'cancelled';
-export type ExecutionMode = 'sync' | 'background';
+export type TaskStatus = AgentNode['status'];
+export type ExecutionMode = AgentNode['mode'];
 
 const edges: Readonly<Record<TaskStatus, readonly TaskStatus[]>> = {
   running: ['idle', 'completed', 'failed', 'cancelled'],
@@ -19,35 +19,18 @@ export function isTerminal(status: TaskStatus): boolean {
   return edges[status].length === 0;
 }
 
-type Projectable = Pick<TaskRecord, 'status' | 'reference-assistant'>;
-
-export function taskStatus(record: Projectable): TaskStatus {
-  switch (record.status) {
-    case 'running':
-      return 'running';
-    case 'failed':
-      return 'failed';
-    case 'interrupted':
-      return 'cancelled';
-    case 'settled':
-      return record.reference-assistant?.mode === 'background' && record.reference-assistant.retired !== true ? 'idle' : 'completed';
-    default: {
-      const exhaustive: never = record.status;
-      return exhaustive;
-    }
-  }
+export function acceptsMessages(node: Pick<AgentNode, 'status' | 'mode' | 'retired'>): boolean {
+  return node.mode === 'background' && node.retired !== true && (node.status === 'running' || node.status === 'idle');
 }
 
-export function acceptsMessages(record: Projectable): boolean {
-  const status = taskStatus(record);
-  return record.reference-assistant?.mode === 'background' && (status === 'running' || status === 'idle');
+export function moveTo(node: AgentNode, to: TaskStatus): AgentNode {
+  if (!canTransition(node.status, to)) throw new Error(`Agent ${node.id} cannot move from ${node.status} to ${to}.`);
+  return { ...node, status: to };
 }
 
 export type Transition = Readonly<{ id: string; from: TaskStatus | 'registered'; to: TaskStatus }>;
 
-export function transitionBetween(id: string, before: Projectable | undefined, after: Projectable): Transition | undefined {
-  const to = taskStatus(after);
-  if (!before) return { id, from: 'registered', to };
-  const from = taskStatus(before);
-  return from === to ? undefined : { id, from, to };
+export function transitionBetween(id: string, before: Pick<AgentNode, 'status'> | undefined, after: Pick<AgentNode, 'status'>): Transition | undefined {
+  if (!before) return { id, from: 'registered', to: after.status };
+  return before.status === after.status ? undefined : { id, from: before.status, to: after.status };
 }

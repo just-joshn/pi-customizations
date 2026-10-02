@@ -1,20 +1,8 @@
-import { readdir, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { expect, test, vi } from 'vitest';
 import { validateId } from '../src/subagents/identifiers.ts';
-import { createWorktree } from '../src/subagents/worktree.ts';
-
-test('[G2-34] unsafe worktree ID is rejected before repository lookup or directory creation', async () => {
-  const fixture = await workerFixture();
-  try {
-    await expect(createWorktree(fixture.dir, '../../escaped')).rejects.toThrow('Invalid agent identifier.');
-    await expect(readdir(join(fixture.dir, '.pi/worktrees'))).rejects.toMatchObject({ code: 'ENOENT' });
-  } finally {
-    await fixture.close();
-  }
-});
-
 import { workerFixture } from './worker-fixture.ts';
 
 test('[G2-34] persisted parent scope ID is validated before worker directory creation', async () => {

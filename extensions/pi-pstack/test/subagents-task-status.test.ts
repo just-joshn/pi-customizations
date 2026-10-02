@@ -1,9 +1,34 @@
 import { expect, test } from 'vitest';
-import { acceptsMessages, canTransition, isTerminal, type TaskStatus, taskStatus, transitionBetween } from '../src/subagents/task-status.ts';
-import type { TaskRecord } from '../src/worker-records.ts';
+import { type AgentNode, repairInterrupted, restoreNodes } from '../src/subagents/agent-node.ts';
+import { acceptsMessages, canTransition, isTerminal, moveTo, type TaskStatus, transitionBetween } from '../src/subagents/task-status.ts';
 
-const reference-assistant = (mode: 'sync' | 'background', retired?: boolean) => ({ mode, agentType: 'explore', name: 'n', turns: [], ...(retired === undefined ? {} : { retired }) });
-const view = (status: TaskRecord['status'], mode?: 'sync' | 'background', retired?: boolean): Pick<TaskRecord, 'status' | 'reference-assistant'> => ({ status, ...(mode ? { reference-assistant: reference-assistant(mode, retired) } : {}) });
+function node(overrides: Partial<AgentNode> = {}): AgentNode {
+  return {
+    id: 'a1',
+    registryId: 'r1',
+    toolCallId: 'call-1',
+    agentType: 'explore',
+    agentDisplayName: 'alpha',
+    agentDescription: 'Explore',
+    description: 'find files',
+    prompt: 'look',
+    mode: 'background',
+    status: 'running',
+    depth: 1,
+    turns: [],
+    startedAt: 1,
+    model: 'p/m',
+    modelSource: 'session_inheritance',
+    taskModelSource: 'unset',
+    contextTier: 'inherit',
+    firstDispatchedModel: 'p/m',
+    totalToolCalls: 0,
+    totalTokens: 0,
+    sessionFile: '/s.jsonl',
+    cwd: '/repo',
+    ...overrides,
+  };
+}
 
 test.for([
   { from: 'running', to: 'idle', allowed: true },
@@ -31,31 +56,52 @@ test.for([
   expect(isTerminal(status)).toBe(terminal);
 });
 
-test.for([
-  { record: view('running', 'sync'), expected: 'running' },
-  { record: view('settled', 'background'), expected: 'idle' },
-  { record: view('settled', 'sync'), expected: 'completed' },
-  { record: view('settled', 'background', true), expected: 'completed' },
-  { record: view('failed', 'background'), expected: 'failed' },
-  { record: view('interrupted', 'background'), expected: 'cancelled' },
-  { record: view('settled'), expected: 'completed' },
-])('record %j projects to $expected', ({ record, expected }) => {
-  expect(taskStatus(record)).toBe(expected);
+test('moveTo returns a new node and refuses an impossible edge', () => {
+  const before = node();
+  const after = moveTo(before, 'idle');
+  expect({ before: before.status, after: after.status }).toEqual({ before: 'running', after: 'idle' });
+  expect(() => moveTo(node({ status: 'completed' }), 'running')).toThrow('Agent a1 cannot move from completed to running.');
 });
 
 test.for([
-  { record: view('running', 'background'), expected: true },
-  { record: view('settled', 'background'), expected: true },
-  { record: view('settled', 'background', true), expected: false },
-  { record: view('running', 'sync'), expected: false },
-  { record: view('failed', 'background'), expected: false },
-  { record: view('interrupted', 'background'), expected: false },
-])('write_agent accepts $expected for $record', ({ record, expected }) => {
-  expect(acceptsMessages(record)).toBe(expected);
+  { overrides: { status: 'running', mode: 'background' }, expected: true },
+  { overrides: { status: 'idle', mode: 'background' }, expected: true },
+  { overrides: { status: 'idle', mode: 'background', retired: true }, expected: false },
+  { overrides: { status: 'running', mode: 'sync' }, expected: false },
+  { overrides: { status: 'failed', mode: 'background' }, expected: false },
+  { overrides: { status: 'cancelled', mode: 'background' }, expected: false },
+] satisfies { overrides: Partial<AgentNode>; expected: boolean }[])('write_agent accepts $expected for $overrides', ({ overrides, expected }) => {
+  expect(acceptsMessages(node(overrides))).toBe(expected);
 });
 
 test('a first sighting is a registration and an unchanged status is no transition', () => {
-  expect(transitionBetween('a', undefined, view('running', 'background'))).toEqual({ id: 'a', from: 'registered', to: 'running' });
-  expect(transitionBetween('a', view('running', 'background'), view('running', 'background'))).toBeUndefined();
-  expect(transitionBetween('a', view('running', 'background'), view('settled', 'background'))).toEqual({ id: 'a', from: 'running', to: 'idle' });
+  expect(transitionBetween('a', undefined, node())).toEqual({ id: 'a', from: 'registered', to: 'running' });
+  expect(transitionBetween('a', node(), node())).toBe(undefined);
+  expect(transitionBetween('a', node(), node({ status: 'idle' }))).toEqual({ id: 'a', from: 'running', to: 'idle' });
+});
+
+test('restoring keeps the last entry per id and ignores foreign or invalid entries', () => {
+  const restored = restoreNodes([
+    { type: 'custom', customType: 'reference-assistant-agent', data: node({ turns: [] }) },
+    { type: 'custom', customType: 'reference-assistant-agent', data: node({ status: 'idle', turns: ['done'] }) },
+    { type: 'custom', customType: 'other', data: node({ id: 'z' }) },
+    { type: 'custom', customType: 'reference-assistant-agent', data: { id: 'broken' } },
+    { type: 'message' },
+  ]);
+  expect([...restored.keys()]).toEqual(['a1']);
+  expect(restored.get('a1')).toMatchObject({ status: 'idle', turns: ['done'] });
+});
+
+test('repair closes running nodes as cancelled and retires idle ones', () => {
+  const nodes = new Map([
+    ['a', node({ id: 'a', status: 'running' })],
+    ['b', node({ id: 'b', status: 'idle', turns: ['x'] })],
+    ['c', node({ id: 'c', status: 'completed' })],
+  ]);
+  const { nodes: repaired, closed, dangling } = repairInterrupted(nodes, 99);
+  expect({ closed, dangling }).toEqual({ closed: ['a'], dangling: ['b'] });
+  expect(repaired.get('a')).toMatchObject({ status: 'cancelled', cancelled: true, endedAt: 99, error: 'Parent session ended before the agent finished.' });
+  expect(repaired.get('b')).toMatchObject({ status: 'idle', retired: true });
+  expect(repaired.get('c')).toMatchObject({ status: 'completed' });
+  expect(nodes.get('a')?.status).toBe('running');
 });

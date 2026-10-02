@@ -24,7 +24,6 @@ export function finishedRecord(worker: Awaited<ReturnType<typeof openWorkerSessi
     modelsUsed: modelsUsed.snapshot(),
     ...(totalTokens !== undefined ? { totalTokens } : {}),
     ...(end.limited ? { maxTurnsReached: end.limited } : {}),
-    ...(worker.handback ? { handback: structuredClone(worker.handback.snapshot()) } : {}),
     ...(abort ? { abort } : {}),
     ...(toolStats ? { toolStats } : {}),
   };

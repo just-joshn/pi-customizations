@@ -11,48 +11,18 @@ function custom(customType: string, data: unknown): Entry {
 }
 
 test('an empty branch restores no identity and depth zero', () => {
-  expect(restoredContext([])).toEqual({
-    appendedPrompt: undefined,
-    inheritedDefinitions: undefined,
-    agentId: undefined,
-    ownWorktree: undefined,
-    depth: 0,
-    allowedAgentTypes: undefined,
-    invalidScope: false,
-  });
+  expect(restoredContext([])).toEqual({ agentId: undefined, depth: 0 });
 });
 
 test('the latest saved value of each context entry wins', () => {
-  const branch = [
-    custom('pstack-agent-identity', 'old-agent'),
-    custom('pstack-agent-identity', 'agent-7'),
-    custom('pstack-agent-depth', 2),
-    custom('pstack-agent-worktree', '/work/tree'),
-    custom('pstack-append-subagent-system-prompt', 'extra rules'),
-    custom('pstack-agent-definition-overrides', '{"a":{}}'),
-    custom('pstack-agent-allowed-types', ['reviewer', 'explorer']),
-  ];
-  expect(restoredContext(branch)).toEqual({
-    appendedPrompt: 'extra rules',
-    inheritedDefinitions: '{"a":{}}',
-    agentId: 'agent-7',
-    ownWorktree: '/work/tree',
-    depth: 2,
-    allowedAgentTypes: ['reviewer', 'explorer'],
-    invalidScope: false,
-  });
-});
-
-test.for([
-  { name: 'a null scope allows every type', data: null, allowed: undefined, invalid: false },
-  { name: 'a scope with a non-string entry permits no child type', data: ['reviewer', 3], allowed: [], invalid: true },
-  { name: 'a scope that is not a list permits no child type', data: 'reviewer', allowed: [], invalid: true },
-])('$name', ({ data, allowed, invalid }) => {
-  const restored = restoredContext([custom('pstack-agent-allowed-types', data)]);
-  expect(restored.allowedAgentTypes).toEqual(allowed);
-  expect(restored.invalidScope).toBe(invalid);
+  const branch = [custom('pstack-agent-identity', 'old-agent'), custom('pstack-agent-identity', 'agent-7'), custom('pstack-agent-depth', 1), custom('pstack-agent-depth', 2)];
+  expect(restoredContext(branch)).toEqual({ agentId: 'agent-7', depth: 2 });
 });
 
 test.for([{ depth: 0 }, { depth: -1 }, { depth: 1.5 }, { depth: 'two' }])('a saved depth of $depth restores as zero', ({ depth }) => {
   expect(restoredContext([custom('pstack-agent-depth', depth)]).depth).toBe(0);
+});
+
+test('a non-string identity restores as undefined', () => {
+  expect(restoredContext([custom('pstack-agent-identity', 7)]).agentId).toBe(undefined);
 });
