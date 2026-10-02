@@ -5,7 +5,8 @@ import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil
 import type { AgentDefinition } from './agent-definition.ts';
 import type { AgentNode } from './agent-node.ts';
 import { type AgentGates, offeredAgents, type RegistryInputs, resolveAgentType } from './agent-registry.ts';
-import { buildChildPlan, type ChildPlan } from './context-builder.ts';
+import type { ChildContextEntry } from './child-session.ts';
+import { buildChildPlan, type ChildLimits, type ChildPlan } from './context-builder.ts';
 import { DiscoveryCache } from './custom-discovery.ts';
 import { gatherEnvironment } from './environment-facts.ts';
 import { rubberDuckRollout, subconsciousEnabled } from './feature-flags.ts';
@@ -15,14 +16,23 @@ import { type ModelOption, type ModelSelection, selectModel } from './model-sele
 import type { Launched, SubagentScheduler } from './scheduler.ts';
 import type { ContextTier, Reference AssistantSettings } from './settings.ts';
 import type { SettingsStore } from './settings-store.ts';
-import { currentScope } from './subagent-context.ts';
 import { parseSubagentHooks, runHooks } from './subagent-hooks.ts';
 import { planTools, zeroToolsMessage } from './tool-mapping.ts';
 import { rewindingStartMessage } from './tool-results.ts';
 
 export type TaskCall = Readonly<{ agent_type: string; name: string; description: string; prompt: string; mode?: 'sync' | 'background'; model?: string; context_tier?: ContextTier }>;
 export type Created = Readonly<{ launched: Launched; node: AgentNode }>;
-export type FactoryDeps = Readonly<{ pi: ExtensionAPI; scheduler: SubagentScheduler; settings: SettingsStore; env: NodeJS.ProcessEnv; log: (message: string) => void; discovery?: DiscoveryCache; limiters: LimiterProvider }>;
+export type CreateExtras = Readonly<{ limits?: ChildLimits; workflowRunId?: string }>;
+export type FactoryDeps = Readonly<{
+  scope: () => ChildContextEntry | undefined;
+  pi: ExtensionAPI;
+  scheduler: SubagentScheduler;
+  settings: SettingsStore;
+  env: NodeJS.ProcessEnv;
+  log: (message: string) => void;
+  discovery?: DiscoveryCache;
+  limiters: LimiterProvider;
+}>;
 
 const toolNames = { grep: 'grep', glob: 'find', shell: 'bash', view: 'read' };
 
@@ -41,6 +51,10 @@ export class SubagentFactory {
 
   clearDiscovery(): void {
     this.discovery.clear();
+  }
+
+  resetLimiters(): void {
+    this.deps.limiters.reset();
   }
 
   gates(settings: Reference AssistantSettings): AgentGates {
@@ -78,7 +92,7 @@ export class SubagentFactory {
     runHostEffect(host, request);
   }
 
-  async create(call: TaskCall, toolCallId: string, signal: AbortSignal | undefined, ctx: ExtensionContext): Promise<Created> {
+  async create(call: TaskCall, toolCallId: string, signal: AbortSignal | undefined, ctx: ExtensionContext, extras: CreateExtras = {}): Promise<Created> {
     if (this.deps.scheduler.blocksStart()) throw new Error(rewindingStartMessage);
     const { settings, raw } = this.deps.settings.read(ctx.cwd);
     const host = this.host(ctx, settings);
@@ -86,7 +100,7 @@ export class SubagentFactory {
     const inputs = this.registryInputs(ctx, settings);
     const resolved = resolveAgentType(call.agent_type, inputs);
     if (!resolved.ok) throw new Error(resolved.message);
-    const scope = currentScope();
+    const scope = this.deps.scope();
     const depth = scope?.depth ?? 0;
     const lease = this.deps.limiters.get(ctx.cwd).tryAcquire({ kind: 'spawn', depth });
     if (!lease.ok) throw new Error(lease.message);
@@ -101,6 +115,7 @@ export class SubagentFactory {
         parentAgentId: scope?.agentId ?? this.rootAgentId,
         parentRegistryId: scope?.registryId,
         rootSessionId: scope?.rootSessionId ?? ctx.sessionManager.getSessionId(),
+        extras,
       });
       const launched = await this.deps.scheduler.launch({
         plan,
@@ -114,6 +129,7 @@ export class SubagentFactory {
         parentTools: this.deps.pi.getActiveTools(),
         contextManagement: settings.subagents.contextManagementTools,
         release: lease.release,
+        ...(extras.workflowRunId !== undefined ? { workflowRunId: extras.workflowRunId } : {}),
       });
       const node = this.deps.scheduler.get(launched.id);
       return { launched, node };
@@ -154,6 +170,7 @@ export class SubagentFactory {
     parentAgentId: string;
     parentRegistryId: string | undefined;
     rootSessionId: string;
+    extras: CreateExtras;
   }): Promise<ChildPlan> {
     const { call, definition, settings, ctx } = input;
     const selection = this.choose(call, definition, settings, ctx);
@@ -180,6 +197,7 @@ export class SubagentFactory {
       now: new Date(),
       headless: call.mode === 'background' || !ctx.hasUI,
       ...(hookContext ? { hookContext } : {}),
+      ...(input.extras.limits ? { limits: input.extras.limits } : {}),
     });
   }
 }
