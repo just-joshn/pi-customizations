@@ -30,12 +30,16 @@ async function stoppedAgent(fixture: Fixture): Promise<string> {
   return agentId;
 }
 
+function gate(): { promise: Promise<void>; open: () => void } {
+  let open = () => {};
+  const promise = new Promise<void>((resolve) => {
+    open = resolve;
+  });
+  return { promise, open };
+}
+
 async function until(check: () => Promise<boolean>): Promise<void> {
-  const deadline = Date.now() + workerTiming.settlementDeadlineMs;
-  while (!(await check())) {
-    if (Date.now() > deadline) throw new Error('condition never held');
-    await new Promise((resolve) => setTimeout(resolve, workerTiming.pollIntervalMs));
-  }
+  await vi.waitFor(async () => expect(await check()).toBe(true), { timeout: workerTiming.settlementDeadlineMs, interval: workerTiming.pollIntervalMs });
 }
 
 test('a model SendMessage does not restart an agent the user stopped', async () => {
@@ -125,21 +129,27 @@ test('two concurrent resumes of one agent start only one continuation', async ()
   }
 });
 
-test('a message sent while a stop drains is refused instead of reported as queued', async () => {
+test('a message sent during a stop drain is refused, not queued', async () => {
   const fixture = await workerFixture();
   const abort = AgentSession.prototype.abort;
+  const drainEntered = gate();
+  const drainGate = gate();
   const spy = vi.spyOn(AgentSession.prototype, 'abort').mockImplementation(async function (this: AgentSession) {
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    drainEntered.open();
+    await drainGate.promise;
     await abort.call(this);
   });
   try {
     const { agentId } = (await fixture.call('Agent', { description: 'draining', prompt: 'WAIT_BLOCKED' })).details as Launched;
     const stopping = fixture.call('TaskStop', { task_id: agentId });
+    await drainEntered.promise;
     const still = `Agent ${agentId} is still stopping — its previous run was stopped but has not exited. Re-run TaskStop on it or wait for it to exit before resuming.`;
     await expect(fixture.call('SendMessage', { to: agentId, message: 'late' })).rejects.toMatchObject({ name: 'AgentStillStoppingError', code: 'still_stopping', message: still });
     await expect(fixture.call('TaskMessage', { task_id: agentId, message: 'late' })).rejects.toMatchObject({ code: 'still_stopping' });
+    drainGate.open();
     await stopping;
   } finally {
+    drainGate.open();
     spy.mockRestore();
     await fixture.close();
   }

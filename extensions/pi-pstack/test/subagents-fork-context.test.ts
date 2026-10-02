@@ -54,4 +54,6 @@ test('[B94] a malformed fork entry is treated as missing', () => {
   const manager = SessionManager.inMemory('/tmp');
   manager.appendCustomEntry(forkEntryType, { prompt: '', tools: [], parentSessionId: 'x' });
   expect(readForkState(manager.getEntries())).toBeUndefined();
+  manager.appendCustomEntry(forkEntryType, { prompt: 'valid', tools: ['read'], parentSessionId: 'x' });
+  expect(readForkState(manager.getEntries())).toEqual({ prompt: 'valid', tools: ['read'], parentSessionId: 'x' });
 });
