@@ -25,11 +25,16 @@ test('removeAll deletes only the directories created for that owner', async () =
   expect(existsSync(other)).toBe(false);
 });
 
-test('removeAll is idempotent for an owner with no directories', async () => {
-  await expect(new EphemeralDirs('pstack-ephemeral-test-').removeAll({})).resolves.toBeUndefined();
+test('removeAll can run twice for one owner', async () => {
+  const dirs = new EphemeralDirs('pstack-ephemeral-test-');
+  const owner = {};
+  const dir = await dirs.create(owner);
+  await dirs.removeAll(owner);
+  await dirs.removeAll(owner);
+  expect(existsSync(dir)).toBe(false);
 });
 
-test('a shell log of an unpersisted session is removed when the session shuts down', async () => {
+test('an unpersisted session shell log is removed at shutdown', async () => {
   const f = await fixture({ extensionOnly: true });
   const { session } = await f.open(SessionManager.inMemory());
   try {

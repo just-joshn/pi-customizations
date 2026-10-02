@@ -12,7 +12,7 @@ test.for([
   expect(leakPrefix(name)).toBe(prefix);
 });
 
-test('groupLeaks counts and sums sizes per prefix, largest first', () => {
+test('groupLeaks sums each prefix, largest first', () => {
   const groups = groupLeaks([
     { name: 'a-aaaaaa', kb: 4 },
     { name: 'b-bbbbbb', kb: 40 },
@@ -24,7 +24,7 @@ test('groupLeaks counts and sums sizes per prefix, largest first', () => {
   ]);
 });
 
-test('parseDu skips the directory total and returns children relative to the run directory', () => {
+test('parseDu returns children relative to the run directory', () => {
   const output = `4\t${DIR}/x-aaaaaa\n12\t${DIR}/y.log\n20\t${DIR}\n`;
   expect(parseDu(output, DIR)).toStrictEqual([
     { name: 'x-aaaaaa', kb: 4 },
@@ -32,27 +32,27 @@ test('parseDu skips the directory total and returns children relative to the run
   ]);
 });
 
-test('parseLiveProcesses keeps only processes that mention the run directory and are not ignored', () => {
+test('parseLiveProcesses keeps processes naming the run directory', () => {
   const output = [`  101 node server.js TMPDIR=${DIR} HOME=/h`, '  102 node unrelated.js HOME=/h', `  103 ps -axwwE TMPDIR=${DIR}`].join('\n');
   expect(parseLiveProcesses(output, DIR, new Set([103]))).toStrictEqual([{ pid: 101, command: `node server.js TMPDIR=${DIR} HOME=/h` }]);
 });
 
-test('parseLsofCwd reports processes whose working directory is under the run directory', () => {
+test('parseLsofCwd keeps processes inside the run directory', () => {
   const output = `p201\nn${DIR}/work\np202\nn/elsewhere\np203\nn${DIR}\n`;
   expect(parseLsofCwd(output, DIR, new Set([203]))).toStrictEqual([{ pid: 201, command: `cwd ${DIR}/work` }]);
 });
 
-test('formatLeakReport prints groups and live processes, or an empty marker', () => {
+test('formatLeakReport lists groups and live processes', () => {
   expect(formatLeakReport(DIR, [], [])).toBe(`[leak-report] run directory ${DIR}\n[leak-report] no leftover entries\n`);
   expect(formatLeakReport(DIR, [{ prefix: 'a', count: 2, kb: 12 }], [{ pid: 9, command: 'node x' }])).toBe(`[leak-report] run directory ${DIR}\n[leak-report]     2 x a 12 KB\n[leak-report] LIVE pid 9: node x\n`);
 });
 
-test('isToolCache recognises the node and jiti caches only', () => {
+test('isToolCache matches the node and jiti caches', () => {
   expect(isToolCache('node-compile-cache')).toBe(true);
   expect(isToolCache('jiti')).toBe(true);
   expect(isToolCache('pstack-workers-aB3dE9')).toBe(false);
 });
 
-test('formatLeakReport lists tool caches apart from leaks', () => {
+test('formatLeakReport lists tool caches apart', () => {
   expect(formatLeakReport(DIR, [], [], [{ prefix: 'jiti', count: 1, kb: 3064 }])).toBe(`[leak-report] run directory ${DIR}\n[leak-report] tool cache jiti 3064 KB\n[leak-report] no leftover entries\n`);
 });
