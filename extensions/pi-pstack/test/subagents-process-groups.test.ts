@@ -3,7 +3,7 @@ import { once } from 'node:events';
 import { tmpdir } from 'node:os';
 
 import { expect, test, vi } from 'vitest';
-import { ProcessGroups } from '../src/subagents/process-groups.ts';
+import { groupSpawned, ProcessGroups } from '../src/subagents/process-groups.ts';
 import { trackedBashOperations } from '../src/subagents/tracked-bash.ts';
 
 function alive(pid: number): boolean {
@@ -47,6 +47,16 @@ test('killAll clears groups before signaling so a retry cannot signal a reused P
 
 test('an agent with no tracked groups still reports itself', () => {
   expect(new ProcessGroups('solo', () => {}).killAll()).toBe(1);
+});
+
+test('a spawned process-group event is accepted only with a positive leader pid and optional owner', () => {
+  expect(groupSpawned({ pid: 42 })).toEqual({ pid: 42 });
+  expect(groupSpawned({ pid: 42, agentId: 'grandchild' })).toEqual({ pid: 42, agentId: 'grandchild' });
+  expect(groupSpawned({ pid: 0 })).toBe(undefined);
+  expect(groupSpawned({ pid: 1.5 })).toBe(undefined);
+  expect(groupSpawned({ pid: 42, agentId: '' })).toBe(undefined);
+  expect(groupSpawned({ agentId: 'grandchild' })).toBe(undefined);
+  expect(groupSpawned(null)).toBe(undefined);
 });
 
 test('tracked bash reports the process group leader it spawned', async () => {

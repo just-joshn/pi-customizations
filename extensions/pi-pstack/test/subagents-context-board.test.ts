@@ -1,3 +1,4 @@
+import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
@@ -37,4 +38,13 @@ test('the tool persists the board between calls and reports it as text', async (
 test('a missing or malformed board file reads as empty and non-string values are dropped', () => {
   const dir = scratchDir('pstack-board-');
   expect(readBoard(join(dir, 'missing.json'))).toEqual({});
+  const arrayFile = join(dir, 'array.json');
+  const nullFile = join(dir, 'null.json');
+  const mixedFile = join(dir, 'mixed.json');
+  writeFileSync(arrayFile, '[1,2]');
+  writeFileSync(nullFile, 'null');
+  writeFileSync(mixedFile, JSON.stringify({ keep: 'yes', drop: 7, nested: { a: 1 }, nil: null }));
+  expect(readBoard(arrayFile)).toEqual({});
+  expect(readBoard(nullFile)).toEqual({});
+  expect(readBoard(mixedFile)).toEqual({ keep: 'yes' });
 });

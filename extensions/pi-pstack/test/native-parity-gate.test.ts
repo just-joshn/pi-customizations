@@ -62,6 +62,16 @@ test('an external-service clause keeps the gate failing with its reason', async 
   expect(result).toMatchObject({ code: 1, stdout: expect.stringContaining('L2.1 is external: Needs a live Slack workspace.') });
 });
 
+test('an external-service clause stops blocking when the caller allows externals', async () => {
+  const result = await gate([{ ...clause, verdict: 'external', note: 'Needs a live Slack workspace.' }], ['--allow-external']);
+  expect(result).toMatchObject({ code: 0, stdout: expect.stringContaining('L2.1 is external: Needs a live Slack workspace.') });
+});
+
+test('a gap still blocks when the caller allows externals', async () => {
+  const result = await gate([{ ...clause, verdict: 'gap', note: 'GAP: missing. FIX: add it.' }], ['--allow-external']);
+  expect(result.code).toBe(1);
+});
+
 test('a test check passes only when the named test passed in the report', async () => {
   const withTest = { ...clause, runtime: true, checks: [present, testCheck] };
   expect((await gate([withTest], [], passing('passed'))).code).toBe(0);

@@ -74,6 +74,7 @@ test('the bridge numbers turns and maps child session events to Reference Assist
   expect(bridge.translate({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text: 'hi' }] } } as never)).toEqual({ type: 'assistant.message', data: { content: 'hi' } });
   expect(bridge.translate({ type: 'message_end', message: { role: 'user', content: 'hello' } } as never)).toEqual({ type: 'user.message', data: { content: 'hello' } });
   expect(bridge.translate({ type: 'message_end', message: { role: 'toolResult', content: [] } } as never)).toBe(undefined);
+  expect(bridge.translate({ type: 'message_end', message: { role: 'assistant' } } as never)).toEqual({ type: 'assistant.message', data: { content: '' } });
   expect(bridge.translate({ type: 'message_update', message: {}, assistantMessageEvent: { type: 'text_delta', delta: 'h' } } as never)).toEqual({ type: 'assistant.message_delta', data: { delta: 'h' }, ephemeral: true });
   expect(bridge.translate({ type: 'tool_execution_start', toolCallId: 't', toolName: 'read', args: { path: 'a' } } as never)).toEqual({ type: 'tool.execution_start', data: { toolCallId: 't', toolName: 'read', arguments: { path: 'a' } } });
   expect(bridge.translate({ type: 'tool_execution_end', toolCallId: 't', toolName: 'read', isError: true } as never)).toEqual({ type: 'tool.execution_complete', data: { toolCallId: 't', toolName: 'read', success: false } });

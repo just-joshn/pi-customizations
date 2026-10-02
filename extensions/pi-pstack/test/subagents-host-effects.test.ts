@@ -48,3 +48,12 @@ test('section transforms and background work are answered by the host', () => {
   expect(runHostEffect(host(), { kind: 'system_prompt_section_transform', section: 'tools', text: 'x' })).toEqual({ text: 'tools:x' });
   expect(runHostEffect(host(), { kind: 'has_active_background_work' })).toEqual({ active: true });
 });
+
+test('an unavailable custom prompt content answers with an empty string', () => {
+  expect(runHostEffect(host({ customPrompt: () => undefined }), { kind: 'custom_agent_prompt', agent: 'mine' })).toEqual({ text: '' });
+});
+
+test('an unresolved selected model and idle background work are reported as undefined and false', () => {
+  expect(runHostEffect(host({ selectedModel: () => undefined }), start('resolveSelectedModel'))).toEqual({ model: undefined });
+  expect(runHostEffect(host({ hasActiveBackgroundWork: () => false }), { kind: 'has_active_background_work' })).toEqual({ active: false });
+});

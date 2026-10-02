@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { type ModelOption, matchModel, type SelectionRequest, selectModel } from '../src/subagents/model-selection.ts';
+import { type ModelOption, matchModel, type SelectionRequest, sameModel, selectModel } from '../src/subagents/model-selection.ts';
 
 function option(reference: string, cost = 10, contextWindow = 200000): ModelOption {
   const slash = reference.indexOf('/');
@@ -133,4 +133,63 @@ test.for([
 test('a bare id prefers the session provider', () => {
   const twin = [option('other/shared', 1), option('anthropic/shared', 1)];
   expect(matchModel('shared', session, twin)?.reference).toBe('anthropic/shared');
+});
+
+test('sameModel ignores case, dots, surrounding space and provider prefixes', () => {
+  expect(sameModel('claude-sonnet-5', 'anthropic/claude-sonnet-5')).toBe(true);
+  expect(sameModel('CLAUDE.SONNET-5', 'anthropic/claude-sonnet-5')).toBe(true);
+  expect(sameModel('  anthropic/claude-sonnet-5  ', 'anthropic/claude-sonnet-5')).toBe(true);
+  expect(sameModel('claude-opus-5', 'anthropic/claude-sonnet-5')).toBe(false);
+});
+
+test('a bare id with no session-provider twin falls back to the first reference alphabetically', () => {
+  const catalog = [option('zeta/shared', 1), option('alpha/shared', 1), option('beta/other', 1)];
+  expect(matchModel('shared', session, catalog)?.reference).toBe('alpha/shared');
+});
+
+test('long_context recognizes the bracketed long-context suffix', () => {
+  const standard = option('anthropic/claude-sonnet-5', 8, 200000);
+  const long = option('anthropic/claude-sonnet-5[1m]', 8, 1000000);
+  const selection = chosen(run({ agent: { name: 'mine', source: 'user', model: 'claude-sonnet-5' }, available: [session, standard, long], taskContextTier: 'long_context' }));
+  expect(selection).toMatchObject({ model: { reference: 'anthropic/claude-sonnet-5[1m]' }, contextTier: 'long_context' });
+});
+
+test('a cost guard scales the acceptable cost relative to the session model', () => {
+  const session10 = option('anthropic/claude-opus-5', 10);
+  const expensive = option('openai/gpt-6-luna', 15);
+  const agent = { name: 'mine', source: 'user', model: 'gpt-6-luna' } as const;
+  expect(chosen(selectModel({ agent, session: session10, available: [session10, expensive], costGuard: 2 })).model.reference).toBe('openai/gpt-6-luna');
+  expect(chosen(selectModel({ agent, session: session10, available: [session10, expensive], costGuard: 1 })).model.reference).toBe(session10.reference);
+});
+
+test('a preferred setting over the cost guard falls through to the definition list', () => {
+  const small = option('openai/gpt-5-4-mini', 1);
+  const expensive = option('anthropic/claude-opus-5', 99);
+  const selection = chosen(selectModel({ agent: explore, session: small, available: [small, expensive, option('openai/gpt-6-luna', 4)], setting: { model: 'claude-opus-5', modelPolicy: 'preferred' } }));
+  expect(selection).toMatchObject({ model: { reference: 'openai/gpt-5-4-mini' }, source: 'agent_definition_default', configured: 'claude-opus-5' });
+});
+
+test('a complementary agent with a configured preference stays on the preference', () => {
+  const selection = chosen(run({ agent: { name: 'rubber-duck', source: 'built-in', dynamicModel: 'complementary' }, setting: { model: 'claude-haiku-4.5' } }));
+  expect(selection).toMatchObject({ model: { reference: 'anthropic/claude-haiku-4-5' }, source: 'configured_preference' });
+});
+
+test('a task required policy without a task model falls back to the configured setting', () => {
+  const selection = chosen(run({ taskModelPolicy: 'required', setting: { model: 'gpt-6-luna' } }));
+  expect(selection).toMatchObject({ model: { reference: 'openai/gpt-6-luna' }, source: 'configured_required', taskSource: 'subagent_configuration', configured: 'gpt-6-luna' });
+});
+
+test('a required policy with no model anywhere falls back to the normal layers', () => {
+  expect(chosen(run({ taskModelPolicy: 'required' }))).toMatchObject({ source: 'agent_definition_default' });
+});
+
+test('an explicit task model with no preference reports no configured source', () => {
+  const selection = chosen(run({ taskModel: 'claude-sonnet-5' }));
+  expect(selection).toMatchObject({ model: { reference: 'anthropic/claude-sonnet-5' }, source: 'explicit_override', taskSource: 'task_argument' });
+  expect(selection).not.toHaveProperty('configured');
+});
+
+test('the setting context tier applies unless the task chooses one', () => {
+  expect(chosen(run({ setting: { contextTier: 'long_context' } })).contextTier).toBe('long_context');
+  expect(chosen(run({ setting: { contextTier: 'long_context' }, taskContextTier: 'default' })).contextTier).toBe('default');
 });

@@ -1,5 +1,25 @@
 import { expect, test } from 'vitest';
-import { type AgentView, backgroundStartedText, listAgentsText, listAgentsTooManyText, movedToBackgroundText, promptDetail, readAgentText, syncResultText, writeAgentRefusal, writeAgentSentText } from '../src/subagents/tool-results.ts';
+import {
+  type AgentView,
+  backgroundStartedText,
+  listAgentsText,
+  listAgentsTooManyText,
+  maxListedAgents,
+  movedToBackgroundSuffix,
+  movedToBackgroundText,
+  noResponseText,
+  promptDetail,
+  readAgentText,
+  readWaitDefaultSeconds,
+  readWaitMaxSeconds,
+  retiredText,
+  rewindingDeliverMessage,
+  rewindingStartMessage,
+  rewindingSubagentMessage,
+  syncResultText,
+  writeAgentRefusal,
+  writeAgentSentText,
+} from '../src/subagents/tool-results.ts';
 
 const view = (overrides: Partial<AgentView> = {}): AgentView => ({ id: 'a1', agentType: 'explore', name: 'alpha', status: 'idle', mode: 'background', description: 'find files', elapsedMs: 4200, turns: ['two files'], ...overrides });
 
@@ -51,6 +71,10 @@ test('a failed agent carries its error and an empty completion carries the no-re
   expect(readAgentText(view({ status: 'completed', turns: [''] })).split('\n')[0]).toBe('Agent completed but produced no response.');
 });
 
+test('a failed agent without an error says the failure is unknown', () => {
+  expect(readAgentText(view({ status: 'failed' })).split('\n')[0]).toBe('Agent failed: Unknown error');
+});
+
 test('write_agent refusals name the background-only rule', () => {
   expect(writeAgentRefusal({ id: 'a1', mode: 'sync', status: 'completed' })).toBe('write_agent only supports background agents. Agent a1 was started in sync mode.');
   expect(writeAgentRefusal({ id: 'a1', mode: 'background', status: 'failed' })).toBe('write_agent only supports background agents that are running or idle. Agent a1 is failed.');
@@ -61,11 +85,29 @@ test('the write_agent confirmation differs for idle and running agents', () => {
   expect(writeAgentSentText({ id: 'a1', status: 'running' })).toContain('queued for its next turn');
 });
 
-test('list_agents prints one line per agent and a placeholder for none', () => {
-  expect(listAgentsText([view()])).toBe('agent_id: a1 | agent_type: explore | name: alpha | mode: background | status: idle | description: find files');
+test('list_agents prints one line per agent in order and a placeholder for none', () => {
+  expect(listAgentsText([view(), view({ id: 'b2', name: 'beta', mode: 'sync', status: 'running', description: 'build it' })])).toBe(
+    'agent_id: a1 | agent_type: explore | name: alpha | mode: background | status: idle | description: find files\nagent_id: b2 | agent_type: explore | name: beta | mode: sync | status: running | description: build it',
+  );
   expect(listAgentsText([])).toBe('No agents.');
 });
 
 test('a scope that matches too many agents asks for an explicit list', () => {
   expect(listAgentsTooManyText(80)).toBe('The requested scope matches 80 agents, which exceeds the limit of 50. Pass an explicit agent_ids list.');
+});
+
+test('the published tool-result limits and refusal messages stay stable', () => {
+  expect({ noResponseText, movedToBackgroundSuffix, retiredText, maxListedAgents, readWaitDefaultSeconds, readWaitMaxSeconds }).toEqual({
+    noResponseText: 'Agent completed but produced no response.',
+    movedToBackgroundSuffix: ' Use read_agent to check for results.',
+    retiredText: 'Agent was retired after completing its turn to free memory and cannot receive follow-up messages.',
+    maxListedAgents: 50,
+    readWaitDefaultSeconds: 30,
+    readWaitMaxSeconds: 180,
+  });
+  expect([rewindingStartMessage, rewindingSubagentMessage, rewindingDeliverMessage]).toEqual([
+    'Cannot start a task while the session is rewinding or disposing',
+    'Cannot start subagent while the session is rewinding or disposing',
+    'Cannot deliver a task message while the session is rewinding or disposing',
+  ]);
 });

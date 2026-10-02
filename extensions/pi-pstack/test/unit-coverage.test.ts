@@ -419,6 +419,22 @@ test('AskQuestion single choice and freeText cancel branches', async () => {
   expect(cancelInputRes.details).toEqual([{ id: 'q2', answers: [], cancelled: true }]);
 });
 
+test('AskQuestion reports cancellation when the dialog is dismissed or returns an unknown choice', async () => {
+  let toolDef: ToolMock | undefined;
+  registerQuestions({
+    registerTool: (def: ToolMock) => {
+      toolDef = def;
+    },
+  } as never);
+  const question = { questions: [{ id: 'q1', prompt: 'Choose', options: [{ id: 'opt1', label: 'First' }] }] };
+  const dismissed = { hasUI: true, ui: { select: async () => undefined, input: async () => undefined }, sessionManager: { getSessionFile: () => null } } as never;
+  const dismissedRes = (await toolDef?.execute('dismiss', question, undefined, undefined, dismissed)) as { details: unknown };
+  expect(dismissedRes.details).toEqual([{ id: 'q1', answers: [], cancelled: true }]);
+  const unknown = { hasUI: true, ui: { select: async () => 'Not a listed choice', input: async () => undefined }, sessionManager: { getSessionFile: () => null } } as never;
+  const unknownRes = (await toolDef?.execute('unknown', question, undefined, undefined, unknown)) as { details: unknown };
+  expect(unknownRes.details).toEqual([{ id: 'q1', answers: [], cancelled: true }]);
+});
+
 test('resolveModel rejects an unavailable model request', async () => {
   const { resolveModel } = await import('../src/models.ts');
   const availableModel = { provider: 'p', id: 'm', reasoning: true };
