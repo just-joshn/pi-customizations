@@ -78,6 +78,8 @@ test('environment metadata is validated and does not hide unrestricted resources
     expect(availableInEnvironment(path, 'cloud')).toBe(true);
     await writeFile(path, '---\nname: example\ndescription: Fixture\ndisabled-environments: true\n---\nBody');
     expect(() => availableInEnvironment(path, 'cloud')).toThrow('Invalid disabled-environments');
+    await writeFile(path, '---\nname: 7\ndescription: Fixture\n---\nBody');
+    expect(availableInEnvironment(path, 'cloud')).toBe(true);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

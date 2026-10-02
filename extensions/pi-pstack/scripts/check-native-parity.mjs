@@ -17,7 +17,9 @@ const sourceRoots = [join(root, 'upstream'), join(root, 'upstream-team-kit'), jo
 const defaultRepo = join(home, 'src/experiments/plugins');
 const helperSuite = join(root, 'skills/poteto-mode/scripts');
 
-const { values } = parseArgs({ options: { parity: { type: 'string', default: join(root, 'docs/parity') }, slice: { type: 'string', multiple: true }, 'no-tests': { type: 'boolean' }, report: { type: 'string' } } });
+const { values } = parseArgs({
+  options: { parity: { type: 'string', default: join(root, 'docs/parity') }, slice: { type: 'string', multiple: true }, 'no-tests': { type: 'boolean' }, 'allow-external': { type: 'boolean' }, report: { type: 'string' } },
+});
 const directory = resolve(values.parity);
 const reference = JSON.parse(await readFile(join(directory, 'reference.json'), 'utf8'));
 const source = await readFile(expand(reference.source));
@@ -44,10 +46,12 @@ const tally = Object.entries(Object.groupBy(clauses, (clause) => clause.verdict)
   .map(([verdict, list]) => `${verdict} ${list.length}`)
   .join(', ');
 process.stdout.write(`${clauses.length} clauses in ${selected.length} slices (${tally}). ${findings.length} findings.\n`);
-if (findings.length) {
-  process.stdout.write(`${findings.join('\n')}\n`);
-  process.exitCode = 1;
-}
+if (findings.length) process.stdout.write(`${findings.join('\n')}\n`);
+// An external clause needs a live third-party service this machine does not have, so a verification run may allow it. Every
+// other finding still fails, and the default stays strict for the auditing pass.
+const external = new Set(open.filter((clause) => clause.verdict === 'external').map((clause) => `${clause.id} is external`));
+const blocking = values['allow-external'] ? findings.filter((finding) => ![...external].some((prefix) => finding.startsWith(prefix))) : findings;
+if (blocking.length) process.exitCode = 1;
 
 function expand(path) {
   if (path.startsWith('~/')) return join(home, path.slice(2));

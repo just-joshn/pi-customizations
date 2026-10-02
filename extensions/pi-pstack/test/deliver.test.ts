@@ -51,3 +51,17 @@ test('print delivery returns when no turn starts within the start timeout', asyn
   await createDelivery(pi, 10)(printCtx, 'task');
   expect(sent).toEqual(['task']);
 });
+
+test('a turn that starts before the timeout still settles through its own completion', async () => {
+  const { pi, sent, emit } = fakePi();
+  const events: string[] = [];
+  const done = createDelivery(pi, 10)(printCtx, 'task').then(() => events.push('returned'));
+  await flush();
+  emit('agent_start');
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  expect(events).toEqual([]);
+  emit('agent_settled');
+  await done;
+  expect(events).toEqual(['returned']);
+  expect(sent).toEqual(['task']);
+});

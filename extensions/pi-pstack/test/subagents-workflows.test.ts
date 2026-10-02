@@ -7,10 +7,11 @@ import type { EventEnvelope } from '../src/subagents/events.ts';
 import { rpcChannel, rpcResultChannel } from '../src/subagents/rpc.ts';
 import type { WorkflowLimits } from '../src/subagents/settings.ts';
 import { checkLimits, effectiveLimits, overCredits } from '../src/subagents/workflows/limits.ts';
-import { WorkflowRuntime, workflowsEnabled } from '../src/subagents/workflows/runtime.ts';
+import { publicWorkflow, WorkflowRuntime, workflowsEnabled } from '../src/subagents/workflows/runtime.ts';
 import { Slots } from '../src/subagents/workflows/slots.ts';
 import { type Change, WorkflowStore, workflowEntryType } from '../src/subagents/workflows/store.ts';
-import { defineWorkflow, type WorkflowDeclaration, WorkflowPause } from '../src/subagents/workflows/types.ts';
+import { workflowTools } from '../src/subagents/workflows/tools.ts';
+import { defineWorkflow, type RunRecord, type WorkflowDeclaration, WorkflowPause } from '../src/subagents/workflows/types.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 const limits: WorkflowLimits = { maxConcurrentSubagents: 2, maxTotalSubagents: 3, timeoutSeconds: 60, maxAiCredits: 2 };
@@ -38,6 +39,11 @@ test('a soft credit ceiling only bites after the paying turn settles', () => {
   expect(overCredits({ effectiveLimits: limits, consumption: consumption(1, 2) })).toBeUndefined();
 });
 
+test('a run with no total or timeout limit keeps admitting subagents', () => {
+  const unbounded = { effectiveLimits: { maxTotalSubagents: undefined, timeoutSeconds: undefined }, consumption: consumption(99, 0) };
+  expect(checkLimits(unbounded, 10_000_000)).toEqual({ ok: true });
+});
+
 test('effective limits layer per run over declared over configured defaults', () => {
   const defaults: WorkflowLimits = { maxConcurrentSubagents: 9, maxTotalSubagents: 9 };
   expect(effectiveLimits({ declaration: {}, defaults })).toEqual({ ...defaults, maxAiCredits: 5, timeoutSeconds: 1800 });
@@ -57,6 +63,10 @@ test.for([
 
 test('a pause carries its checkpoint key', () => {
   expect(new WorkflowPause('gate').key).toBe('gate');
+});
+
+test('defineWorkflow refuses a declaration whose run is not callable', () => {
+  expect(() => defineWorkflow({ name: 'no-run', description: 'd', run: 'nope' as never })).toThrow("Workflow 'no-run' needs a run function.");
 });
 
 test('workflows need the dynamic workflows switch', () => {
@@ -277,6 +287,21 @@ test('an aborted waiter leaves the line without blocking the waiters behind it',
 test('a limit of undefined never makes a caller wait', async () => {
   const slots = new Slots(undefined);
   await expect(Promise.all([slots.acquire(new AbortController().signal), slots.acquire(new AbortController().signal)])).resolves.toHaveLength(2);
+});
+
+test('closing wakes a waiter and refuses it instead of hanging', async () => {
+  const slots = new Slots(1);
+  await slots.acquire(new AbortController().signal);
+  const waiting = slots.acquire(new AbortController().signal);
+  slots.close();
+  await expect(waiting).rejects.toThrow('Factory subagent limiter is closed');
+  await expect(slots.acquire(new AbortController().signal)).rejects.toThrow('Factory subagent limiter is closed');
+});
+
+test('an already-aborted caller is cancelled even when a slot is free', async () => {
+  const controller = new AbortController();
+  controller.abort();
+  await expect(new Slots(undefined).acquire(controller.signal)).rejects.toThrow('The workflow was cancelled.');
 });
 
 type Fixture = Awaited<ReturnType<typeof workerFixture>>;
@@ -569,4 +594,94 @@ test('a schema call retries once on a parse or match failure', async () => {
   } finally {
     await fixture.close();
   }
+});
+
+function workflowToolsFixture() {
+  const run: RunRecord = {
+    id: 'run-1',
+    name: 'probe',
+    attempt: 1,
+    status: 'completed',
+    arguments: { a: 1 },
+    ownerEpoch: 1,
+    declaredLimits: {},
+    effectiveLimits: {},
+    consumption: { subagents: 0, credits: 0, startedAt: 0, elapsedSeconds: 0 },
+    logs: [],
+    phases: ['verify'],
+    result: 'done',
+    createdAt: 1,
+    updatedAt: 2,
+  };
+  const calls: string[] = [];
+  const runtime = {
+    start: async (name: string, args: unknown, _ctx: unknown, source: string) => {
+      calls.push(`start:${name}:${JSON.stringify(args)}:${source}`);
+      return run;
+    },
+    runs: () => [run, { ...run, id: 'run-2' }],
+    cancel: async (id: string) => {
+      calls.push(`cancel:${id}`);
+      return { ...run, id, status: 'cancelled' as const };
+    },
+    pause: async (id: string) => {
+      calls.push(`pause:${id}`);
+      return { ...run, id, status: 'paused' as const };
+    },
+    resume: async (id: string, _ctx: unknown) => {
+      calls.push(`resume:${id}`);
+      return { ...run, id, status: 'completed' as const, attempt: 2 };
+    },
+    get: (id: string) => (id === 'run-1' ? run : undefined),
+    journal: (id: string) => ({ step: id }),
+  };
+  const tools = workflowTools(runtime as never);
+  const tool = (name: string) => {
+    const found = tools.find((candidate) => candidate.name === name);
+    if (!found) throw new Error(`workflow tool ${name} is not registered`);
+    return found;
+  };
+  return { tool, run, calls };
+}
+
+function textOf(result: unknown): string {
+  const content = (result as { content?: readonly { text?: string }[] }).content ?? [];
+  return content.map((part) => part.text ?? '').join('');
+}
+
+test('run_dynamic_workflow returns the started run as text and structured content', async () => {
+  const { tool, run, calls } = workflowToolsFixture();
+  const result = await tool('run_dynamic_workflow').execute('call-1', { name: 'probe', arguments: { a: 1 } }, undefined, undefined, {} as never);
+  const started = publicWorkflow(run);
+  expect(textOf(result)).toBe(JSON.stringify(started));
+  expect((result as { details: unknown }).details).toEqual({ run: started });
+  expect((result as { structuredContent: unknown }).structuredContent).toEqual({ run: started });
+  expect(calls).toEqual(['start:probe:{"a":1}:tool']);
+});
+
+test('dynamic_workflows_manage lists runs and forwards cancel, pause and resume by id', async () => {
+  const { tool, run, calls } = workflowToolsFixture();
+  const manage = tool('dynamic_workflows_manage');
+  const list = await manage.execute('call-1', { action: 'list' }, undefined, undefined, {} as never);
+  expect(JSON.parse(textOf(list))).toEqual([publicWorkflow(run), publicWorkflow({ ...run, id: 'run-2' })]);
+  const cancelled = await manage.execute('call-2', { action: 'cancel', run_id: 'run-1' }, undefined, undefined, {} as never);
+  expect((cancelled as { details: { run: { status: string } } }).details.run.status).toBe('cancelled');
+  const paused = await manage.execute('call-3', { action: 'pause', run_id: 'run-1' }, undefined, undefined, {} as never);
+  expect((paused as { details: { run: { status: string } } }).details.run.status).toBe('paused');
+  const resumed = await manage.execute('call-4', { action: 'resume', run_id: 'run-1' }, undefined, undefined, {} as never);
+  expect((resumed as { details: { run: { status: string; attempt: number } } }).details.run).toMatchObject({ status: 'completed', attempt: 2 });
+  expect(calls).toEqual(['cancel:run-1', 'pause:run-1', 'resume:run-1']);
+});
+
+test('dynamic_workflows_manage refuses an action without a run id', async () => {
+  const { tool } = workflowToolsFixture();
+  await expect(tool('dynamic_workflows_manage').execute('call-1', { action: 'pause' }, undefined, undefined, {} as never)).rejects.toThrow('dynamic_workflows_manage pause needs a run_id.');
+});
+
+test('read_workflow_run returns the public run with its journal and rejects an unknown id', async () => {
+  const { tool, run } = workflowToolsFixture();
+  const read = tool('read_workflow_run');
+  const found = await read.execute('call-1', { run_id: 'run-1' }, undefined, undefined, {} as never);
+  expect((found as { details: unknown }).details).toEqual({ run: { ...publicWorkflow(run), journal: { step: 'run-1' } } });
+  await expect(read.execute('call-2', { run_id: 'ghost' }, undefined, undefined, {} as never)).rejects.toThrow('Unknown workflow run: ghost');
 });

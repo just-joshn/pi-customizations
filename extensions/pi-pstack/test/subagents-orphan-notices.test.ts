@@ -104,3 +104,23 @@ test('orphanSummary switches to the aggregate wording on overflow and restartPro
   expect(orphanSummary(record('a'), true)).toBe('Orphaned by a previous Claude Code process exit and reported in an aggregate summary.');
   expect(restartPrompt(record('a'))).toBe('Your previous session ended before you finished "job a". Continue the task from where you left off and report when it is complete.');
 });
+
+test('restarted notices omit the output file when the reader cannot read it', () => {
+  const blind = restartedNotice(record('r'), false);
+  expect(blind.content).not.toContain('<output-file>');
+  expect(blind.content).toContain('<task-id>r</task-id>');
+  expect(blind.content).toContain('was automatically restarted from its saved transcript');
+});
+
+test('settled notices name the persona when the record has no description', () => {
+  const settled = settledNotice({ ...settlement('x'), record: record('x', { description: undefined }) }, false);
+  expect(settled.summary).toBe(`Background agent "general-purpose" didn't finish before the previous session ended`);
+});
+
+test('the overflow notice handles an empty orphan list', () => {
+  const notice = overflowNotice([], true);
+  expect(notice.summary).toBe("0 background agent tasks didn't finish before the previous session ended. Task ids: .");
+  expect(notice.taskIds).toEqual(['__orphan_summary__:agent']);
+  expect(notice.content).toContain('Check each worktree/output for partial work before assuming a task landed.');
+  expect(notice.content).not.toContain('<task-id>a</task-id>');
+});

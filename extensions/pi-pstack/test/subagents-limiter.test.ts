@@ -49,3 +49,15 @@ test('a rejected acquire holds no slot', () => {
   pool.tryAcquire({ kind: 'spawn', depth: 0 });
   expect(pool.info().active).toBe(1);
 });
+
+test('a zero-concurrency pool refuses a resume immediately', () => {
+  const pool = limiter(0);
+  expect(pool.info()).toEqual({ maxConcurrent: 0, maxDepth: 4, active: 0 });
+  expect(pool.tryAcquire({ kind: 'resume' })).toEqual({ ok: false, limit: 'concurrent', message: 'Cannot resume agent \u2014 all 0 concurrent agent slots are in use. Try again after an active agent completes.' });
+});
+
+test('a spawn far past the depth limit is refused while slots stay free', () => {
+  const pool = limiter(5, 4);
+  expect(pool.tryAcquire({ kind: 'spawn', depth: 10 })).toEqual({ ok: false, limit: 'depth', message: 'Maximum sub-agent depth of 4 reached. Complete this task without spawning further sub-agents.' });
+  expect(pool.info().active).toBe(0);
+});

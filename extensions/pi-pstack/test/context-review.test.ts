@@ -213,6 +213,36 @@ test('/pstack todos reports an empty list and an unknown argument shows usage in
   expect(notices).toEqual([['Unknown /pstack argument "bogus". Use /pstack, /pstack status, or /pstack todos.', 'error']]);
 });
 
+test('/pstack todos marks cancelled and pending todos distinctly', async () => {
+  let command: { handler: (args: string, ctx: ExtensionContext) => Promise<void> } | undefined;
+  const messages: Array<{ content: string }> = [];
+  const pi = {
+    registerCommand: (_name: string, options: typeof command) => {
+      command = options;
+    },
+    on() {},
+    sendMessage: (msg: { content: string }) => {
+      messages.push(msg);
+    },
+  } as unknown as ExtensionAPI;
+  const ctx = { ui: { setStatus: () => {}, setWidget: () => {} } } as unknown as ExtensionContext;
+  const store = createState({ appendEntry() {} } as unknown as ExtensionAPI);
+  store.update(
+    {
+      enabled: false,
+      todos: [
+        { id: '1', content: 'Dropped', status: 'cancelled' },
+        { id: '2', content: 'Later', status: 'pending' },
+      ],
+    },
+    ctx,
+  );
+  registerStatus(pi, store);
+  await command?.handler('todos', ctx);
+  expect(messages.at(-1)?.content).toContain('[-] Dropped (cancelled)');
+  expect(messages.at(-1)?.content).toContain('[ ] Later (pending)');
+});
+
 test('context summarizes custom entries and named sessions in history', async () => {
   const f = await historyFixture();
   try {
@@ -220,9 +250,11 @@ test('context summarizes custom entries and named sessions in history', async ()
     const sessionInfo = { type: 'session_info', name: 'My named session', id: 's1', timestamp: new Date(0).toISOString() };
     await writeFile(join(f.directory, 'named.jsonl'), `${JSON.stringify(header)}\n${JSON.stringify(sessionInfo)}\n`);
     f.manager.appendCustomEntry('custom-entry', { val: 1 });
+    f.manager.appendMessage({ role: 'user', content: 'plain user text' } as never);
     f.manager.appendMessage({ role: 'assistant', content: [{ type: 'text', text: 'my assistant text' }] } as never);
     f.manager.appendMessage({ role: 'toolResult', toolName: 'my-tool', content: [] } as never);
     const result = await call(f.manager, { history: true });
+    expect(result.entries.some((h: unknown) => (h as { summary?: string }).summary === 'plain user text')).toBe(true);
     expect(result.history.some((h: unknown) => (h as { name?: string }).name === 'My named session')).toBe(true);
     expect(result.entries.some((e: unknown) => (e as { type?: string }).type === 'custom')).toBe(true);
     expect(result.entries.some((e: unknown) => (e as { toolName?: string }).toolName === 'my-tool')).toBe(true);

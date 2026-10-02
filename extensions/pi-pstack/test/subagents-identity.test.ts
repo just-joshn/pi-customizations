@@ -21,6 +21,9 @@ test('the copilot wire provider also gets the body fields and others do not', ()
   call('model_select', { type: 'model_select', model: { provider: 'github-copilot', id: 'gpt-5' } });
   const changed = call('before_provider_request', { type: 'before_provider_request', payload: { messages: [] } }) as Record<string, unknown>;
   expect(changed).toEqual({ messages: [], agent_task_id: 'a1', parent_agent_id: 'root' });
+  expect(call('before_provider_request', { type: 'before_provider_request', payload: 'already text' })).toBe('already text');
+  expect(call('before_provider_request', { type: 'before_provider_request', payload: null })).toBe(null);
+  expect(call('before_provider_request', { type: 'before_provider_request', payload: [1] })).toEqual([1]);
   call('model_select', { type: 'model_select', model: { provider: 'anthropic', id: 'm' } });
   expect(call('before_provider_request', { type: 'before_provider_request', payload: { messages: [] } })).toBe(undefined);
 });

@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { expect, test } from 'vitest';
-import { readPersona } from '../src/personas.ts';
+import { isCursorPersona, readPersona } from '../src/personas.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
@@ -45,4 +45,8 @@ test('unknown roles do not silently become general purpose', async () => {
   for (const name of ['', 'other', '../poteto-agent']) {
     await expect(readPersona(name)).rejects.toThrow(/Unsupported agent .*Available:/);
   }
+});
+
+test('cursor persona names are recognized case-sensitively by their exact keys', () => {
+  expect([isCursorPersona('poteto-agent'), isCursorPersona('ci-watcher'), isCursorPersona('Comment Sicko'), isCursorPersona('comment sicko'), isCursorPersona('nobody')]).toEqual([true, true, true, false, false]);
 });

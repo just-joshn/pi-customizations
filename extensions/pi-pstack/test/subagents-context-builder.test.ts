@@ -61,3 +61,17 @@ test.for([
 test('missingField names the first empty required field', () => {
   expect(missingField({ agentId: '', registryId: 'r', rootSessionId: 's', cwd: 'c', prompt: { text: 'x', mode: 'append', sections: [] } })).toBe('agentId');
 });
+
+test('a plan threads the parent registry, system transform and write gate it was given', () => {
+  const bare = plan();
+  const built = plan({
+    parentRegistryId: 'parent-r',
+    systemMessage: { environment_context: { action: 'remove' } },
+    customInstructions: 'Use bun.',
+    writeGate: () => false,
+  });
+  expect(built.parentRegistryId).toBe('parent-r');
+  expect(built.writeGate()).toBe(false);
+  expect(bare.prompt.sections).toContain('environment_context');
+  expect(built.prompt.sections).not.toContain('environment_context');
+});
