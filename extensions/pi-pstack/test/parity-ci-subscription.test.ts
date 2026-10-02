@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { expect, test, vi } from 'vitest';
 import { restartTimerService, startTimerService, timerCommand } from '../scripts/timer-client.mjs';
 import { registerTimers } from '../src/timers.ts';
-import { type FakeCheck, type FakeForge, fakeForge, timerOwner, userEntries } from './parity-ci-fixtures.ts';
+import { type FakeCheck, fakeForge, timerOwner, userEntries } from './parity-ci-fixtures.ts';
 
 const pass: FakeCheck = { name: 'build', bucket: 'pass' };
 const fail: FakeCheck = { name: 'test', bucket: 'fail' };

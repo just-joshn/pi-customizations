@@ -1,4 +1,3 @@
-const stale = 'Resolve a stale or contradictory upstream instruction natively.';
 const skill = (name) => new RegExp(`^skills/${name}/SKILL\\.md$`);
 
 export default [

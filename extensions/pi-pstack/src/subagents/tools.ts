@@ -7,7 +7,6 @@ import { Type } from 'typebox';
 import { launchSignal } from '../worker-control.ts';
 import type { TaskRecord } from '../worker-records.ts';
 import type { WorkerRuntime } from '../worker-runtime.ts';
-import type { AgentLaunch } from '../worker-support.ts';
 import { concurrencyMessage, decideAdmission } from './admission.ts';
 import { AdmissionSlots } from './admission-slots.ts';
 import { type ContinueOutcome, continueAgent } from './agent-continue.ts';
