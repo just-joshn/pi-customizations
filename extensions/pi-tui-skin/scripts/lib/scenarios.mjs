@@ -135,7 +135,7 @@ export const SCENARIOS = new Map([
     'slash',
     {
       description: 'slash opens the command menu',
-      steps: [idle, { name: 'slash menu', capture: '02-slash', actions: [{ kind: 'type', text: '/' }], expect: ['Open settings menu', '(1/25)'], chrome: true }],
+      steps: [idle, { name: 'slash menu', capture: '02-slash', actions: [{ kind: 'type', text: '/' }], expect: ['Open settings menu', '(1/26)'], chrome: true }],
     },
   ],
   [
