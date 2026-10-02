@@ -23,12 +23,6 @@ const html = template
 const file = join(output, 'canvas.html');
 await writeFile(file, html, { flag: 'wx' });
 const url = pathToFileURL(file).href;
-const profile = await mkdtemp(join(tmpdir(), 'pstack-canvas-chrome-'));
-const child = spawn(
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-  ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--disable-background-networking', url],
-  { stdio: 'ignore' },
-);
 let socket;
 const pending = new Map();
 const heapChunks = [];
@@ -36,6 +30,7 @@ const networkResponses = [];
 const finishedRequests = new Set();
 const traceEvents = [];
 let traceComplete = false;
+// Handlers must exist before Chrome does. A signal that lands after the spawn but before they are installed kills this process and orphans Chrome.
 const controller = new AbortController();
 const interrupt = () => {
   controller.abort(new Error('Canvas browser verification interrupted'));
@@ -47,6 +42,12 @@ const interrupt = () => {
 };
 process.on('SIGINT', interrupt);
 process.on('SIGTERM', interrupt);
+const profile = await mkdtemp(join(tmpdir(), 'pstack-canvas-chrome-'));
+const child = spawn(
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--disable-background-networking', url],
+  { stdio: 'ignore' },
+);
 let next = 0;
 function selectPage(pages, expected) {
   const page = pages.find((entry) => entry.type === 'page' && entry.url === expected);
