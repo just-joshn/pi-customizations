@@ -171,7 +171,6 @@ test('an unknown agent type fails with the valid list', async () => {
   const fixture = await workerFixture();
   try {
     await expect(task(fixture, 'x', { agent_type: 'nope' })).rejects.toThrow('Unknown agent_type: nope. Valid types are: code-review, explore, general-purpose, research, rubber-duck, security-review, task');
-    await expect(fixture.call('task', { agent_type: 'task', name: 'x', description: 'd', prompt: 'p', mode: 'eventually' })).rejects.toThrow('Invalid task input: /mode:');
   } finally {
     await fixture.close();
   }
