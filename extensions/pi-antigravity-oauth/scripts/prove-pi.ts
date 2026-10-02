@@ -41,7 +41,7 @@ const listedIds = listed.stdout
 if (listed.code !== 0 || !listedIds.includes('gemini-3.1-pro-low') || !listedIds.includes('claude-sonnet-4-6')) {
   throw new Error(`pi --list-models did not list google-antigravity models.\nexit=${listed.code}\n${listed.stdout}\n${listed.stderr}`);
 }
-console.log(`pi --list-models lists ${listedIds.length} google-antigravity models: ${listedIds.join(', ')}`);
+process.stdout.write(`pi --list-models lists ${listedIds.length} google-antigravity models: ${listedIds.join(', ')}\n`);
 
 const pinged = await pi(['--print', 'ping', '--model', model]);
 const output = `${pinged.stdout}\n${pinged.stderr}`;
@@ -50,4 +50,5 @@ const answered = pinged.code === 0 && pinged.stdout.trim().length > 0;
 if (output.includes('Unknown model') || (!askedForLogin && !answered)) {
   throw new Error(`pi did not resolve ${model}.\nexit=${pinged.code}\n${output}`);
 }
-console.log(askedForLogin ? `pi resolved ${model} and asked for login` : `pi answered through ${model}: ${pinged.stdout.trim()}`);
+const outcome = askedForLogin ? `pi resolved ${model} and asked for login` : `pi answered through ${model}: ${pinged.stdout.trim()}`;
+process.stdout.write(`${outcome}\n`);

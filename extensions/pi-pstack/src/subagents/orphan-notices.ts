@@ -22,7 +22,9 @@ export function singleNote({ redispatched, transcriptSaved }: Settlement, canRea
     return `No completion record was found for it after it was re-dispatched via SendMessage in the previous session. It may have been stopped (via the UI, an SDK interrupt, or agent teardown — these leave no transcript marker), or it may have been running when the previous Provider CLI process exited. ${tail}`;
   }
   if (transcriptSaved) {
-    const tail = canRead ? 'Resume it by sending it a message with SendMessage, or check its worktree/output for partial work before assuming the task landed.' : 'Resume it by sending it a message with SendMessage and ask for a status report before assuming the task landed.';
+    const tail = canRead
+      ? 'Resume it by sending it a message with SendMessage, or check its worktree/output for partial work before assuming the task landed.'
+      : 'Resume it by sending it a message with SendMessage and ask for a status report before assuming the task landed.';
     return `No completion record was found for it in the previous session. It may have been stopped, or it may have been running when the previous Provider CLI process exited — either way its transcript is saved, so its progress is not lost. ${tail}`;
   }
   const tail = canRead ? 'Check its worktree/output for partial work before assuming the task landed.' : 'Do not assume the task landed; launch it again if its result is still needed.';
@@ -50,7 +52,9 @@ export function settledNotice(item: Settlement, canRead: boolean): OrphanNotice 
 
 function groupNote(status: 'stopped' | 'failed', canRead: boolean): string {
   if (status === 'stopped') {
-    const tail = canRead ? 'Resume any of them by sending a message to its id with SendMessage, or check its worktree/output for partial work before assuming the task landed.' : 'Resume any of them by sending a message to its id with SendMessage and ask for a status report before assuming the task landed.';
+    const tail = canRead
+      ? 'Resume any of them by sending a message to its id with SendMessage, or check its worktree/output for partial work before assuming the task landed.'
+      : 'Resume any of them by sending a message to its id with SendMessage and ask for a status report before assuming the task landed.';
     return `No completion record was found for them in the previous session. They may have been stopped, or they may have been running when the previous Provider CLI process exited — either way their transcripts are saved, so their progress is not lost. ${tail}`;
   }
   const tail = canRead ? "Check each agent's worktree/output for partial work before assuming the tasks landed." : 'Do not assume the tasks landed; launch them again if their results are still needed.';
@@ -77,7 +81,8 @@ export function overflowNotice(items: readonly Settlement[], canRead: boolean): 
 }
 
 export function restartedNotice(record: TaskRecord, canRead: boolean): OrphanNotice {
-  const note = 'It had no completion record after the previous Provider CLI process exited, and was automatically restarted from its saved transcript. It is running in the background again; its result will arrive as a separate task notification.';
+  const note =
+    'It had no completion record after the previous Provider CLI process exited, and was automatically restarted from its saved transcript. It is running in the background again; its result will arrive as a separate task notification.';
   return notice(record, undefined, `Background agent "${describe(record)}" was restarted after the previous session ended`, note, canRead);
 }
 

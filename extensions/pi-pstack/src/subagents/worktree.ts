@@ -8,9 +8,7 @@ import { validateId } from './identifiers.ts';
 const git = promisify(execFile);
 
 export type AgentWorktree = Readonly<{ path: string; branch: string; repoRoot: string; baseCommit: string }>;
-export type WorktreeOutcome =
-  | Readonly<{ kept: false; branchCleanupError?: string }>
-  | Readonly<{ kept: true; path: string; branch?: string }>;
+export type WorktreeOutcome = Readonly<{ kept: false; branchCleanupError?: string }> | Readonly<{ kept: true; path: string; branch?: string }>;
 
 async function run(cwd: string, args: readonly string[]): Promise<string> {
   const { stdout } = await git('git', [...args], { cwd });

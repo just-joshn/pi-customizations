@@ -8,6 +8,7 @@ import { Check } from 'typebox/value';
 import { expect, test, vi } from 'vitest';
 import { clearAgentCache } from '../src/subagents/definitions.ts';
 import { buildAgentSchema } from '../src/subagents/schema.ts';
+import { agentHex } from './agent-hex.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 test('[G1-01] Agent schema exposes exactly the offered properties in order', () => {
@@ -309,12 +310,13 @@ test('[G1-06] internal invalid name is rejected before child creation', async ()
   }
 });
 
-test.for(['main', 'a0123456789abcdef', 'aworker-0123456789abcdef'])('[G1-06] reserved routing name %s refuses without creating a child', async (name) => {
+test.for(['main', `a${agentHex}`, `aworker-${agentHex}`])('[G1-06] reserved routing name %s refuses without creating a child', async (name) => {
   const { call, close } = await workerFixture();
   try {
-    const message = name === 'main'
-      ? '"main" is reserved \u2014 SendMessage routes it to the main conversation'
-      : 'name must not be a reserved name ("main", "team-lead", "user" or "system", in any spelling) or have the shape of an agent id \u2014 those already address an agent directly';
+    const message =
+      name === 'main'
+        ? '"main" is reserved \u2014 SendMessage routes it to the main conversation'
+        : 'name must not be a reserved name ("main", "team-lead", "user" or "system", in any spelling) or have the shape of an agent id \u2014 those already address an agent directly';
     await expect(call('Agent', { description: 'reserved name', prompt: 'never runs', name })).rejects.toMatchObject({ name: 'AgentPreconditionError', code: 'subagent_name_invalid', message });
     expect((await call('ListAgents', {})).details).toEqual({ agents: [] });
   } finally {
@@ -399,7 +401,9 @@ test('[G2-07] definition maxTurns interrupts the foreground child at the configu
     const done = await call('Agent', { description: 'short', prompt: 'PROGRESS_READ limit', subagent_type: 'short', run_in_background: false });
     expect(done.details).toMatchObject({
       status: 'completed',
-      content: [{ type: 'text', text: 'NOTE: this agent stopped at its 1-turn limit before finishing. It was still calling tools and had produced no report. Send the agent a message (SendMessage) to let it continue from where it stopped.\n' }],
+      content: [
+        { type: 'text', text: 'NOTE: this agent stopped at its 1-turn limit before finishing. It was still calling tools and had produced no report. Send the agent a message (SendMessage) to let it continue from where it stopped.\n' },
+      ],
       harnessNoteCount: 1,
     });
     const listed = (await call('ListAgents', {})) as { details: { agents: { status: string }[] } };

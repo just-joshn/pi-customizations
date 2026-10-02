@@ -2,12 +2,9 @@
 
 Revisions follow the pinned upstream pstack version, then `-pi.N` for this package's own releases.
 
-## Unreleased
-
-- Makes poteto mode trigger on Anthropic models at any effort. Below `high`, those models skipped the playbook read and the todolist. In poteto mode, each prompt to an `anthropic-messages` model now carries a hidden first-action rule, sent from `before_agent_start`. Other model families are unchanged.
-
 ## 0.15.5-pi.2
 
+- Makes poteto mode trigger on Anthropic models at any effort. Below `high`, those models skipped the playbook read and the todolist. In poteto mode, each prompt to an `anthropic-messages` model now carries a hidden first-action rule, sent from `before_agent_start`. Other model families are unchanged.
 - Integrates the team-kit 1.2.0 workflows, including the CI and PR skills, `/pr-review-canvas`, and the strict code-review rubric.
 - Adds the local `/loop` skill and template on native `BackgroundShell` wakes, and the `/goal` command with `CreateGoal`, `GetGoal`, and `UpdateGoal`.
 - Adds native `Task` workers with the `generalPurpose`, `poteto-agent`, `comment-sicko`, `ci-watcher`, and thermo review personas, plus `environment: "cloud"` detached worktrees.

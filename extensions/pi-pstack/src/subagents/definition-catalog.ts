@@ -39,7 +39,10 @@ export class DefinitionCatalog {
 
   private register(payload: unknown): void {
     const registration = parseRegistration(payload);
-    if (!registration) return this.log('Ignored pstack:register-agent: expected { plugin, name, spec } with non-empty plugin and name');
+    if (!registration) {
+      this.log('Ignored pstack:register-agent: expected { plugin, name, spec } with non-empty plugin and name');
+      return;
+    }
     this.runtimeAgents.register(registration);
     clearAgentCache();
   }

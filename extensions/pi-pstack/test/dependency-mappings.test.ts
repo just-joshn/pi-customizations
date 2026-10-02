@@ -12,18 +12,7 @@ async function generatedFixture() {
   const directory = await mkdtemp(join(tmpdir(), 'pstack-dependency-mappings-'));
   await mkdir(join(directory, 'docs'));
   await mkdir(join(directory, 'scripts'));
-  for (const path of [
-    'upstream',
-    'upstream-team-kit',
-    'skills',
-    'prompts',
-    'host/adapters',
-    'package.json',
-    'scripts',
-    'docs/source-inventory.json',
-    'docs/team-kit-source-inventory.json',
-    'docs/resource-map.json',
-  ]) {
+  for (const path of ['upstream', 'upstream-team-kit', 'skills', 'prompts', 'host/adapters', 'package.json', 'scripts', 'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json']) {
     await cp(join(root, path), join(directory, path), {
       recursive: true,
       filter: (source) => !source.split('/').includes('node_modules'),
@@ -51,7 +40,7 @@ test('dependency mappings close documented host gaps without changing source sna
       fixture.read('upstream-team-kit/skills/deslop/SKILL.md'),
     ]);
 
-    expect(deslop).toContain('Find the pull request\'s actual base branch');
+    expect(deslop).toContain("Find the pull request's actual base branch");
     expect(deslop).toContain('except comments that document invariants, constraints, security, compatibility, or user intent');
     expect(deslop).toContain('Preserve all comments that document constraints, invariants, security, compatibility, or user intent. Do not delete or rewrite them.');
     expect(originalDeslop).toContain('Check the diff against main');

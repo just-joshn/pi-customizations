@@ -11,6 +11,7 @@ test('content lines skip blanks, headings, table rules, and fence markers but ke
 
 test('a verified behavior clause with a native check has no findings', () => {
   expect(auditClause(clause, range)).toEqual([]);
+  expect(auditClause({ ...clause, checks: [] }, range)).toEqual(['L2.1 needs a native quote or test check.']);
 });
 
 test.for([

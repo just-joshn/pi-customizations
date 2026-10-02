@@ -1,5 +1,6 @@
 import { Type } from 'typebox';
 import { Check } from 'typebox/value';
+import { signalProcess } from '../process-signal.ts';
 
 export const processGroupEvent = 'pstack:process-group';
 
@@ -8,14 +9,6 @@ export type GroupSpawned = Readonly<{ pid: number; agentId?: string }>;
 
 export function groupSpawned(payload: unknown): GroupSpawned | undefined {
   return Check(GroupSpawned, payload) ? payload : undefined;
-}
-
-function killGroup(pid: number): void {
-  try {
-    process.kill(-pid, 'SIGKILL');
-  } catch {
-    // The group already exited; there is nothing left to kill.
-  }
 }
 
 /** OS process groups spawned during one agent run and by its descendants, keyed by group leader pid. */
@@ -37,7 +30,7 @@ export class ProcessGroups {
     const owners = new Set([this.agentId, ...this.groups.values()]);
     const groups = this.groups;
     this.groups = new Map();
-    for (const pid of groups.keys()) killGroup(pid);
+    for (const pid of groups.keys()) signalProcess(-pid, 'SIGKILL');
     return owners.size;
   }
 }

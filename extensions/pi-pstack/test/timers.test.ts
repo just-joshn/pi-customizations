@@ -3,12 +3,16 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { DefaultResourceLoader, type Extension, type ExtensionAPI, type ExtensionToolContext, SessionManager } from '@earendil-works/pi-coding-agent';
-import { expect, onTestFinished, test, vi } from 'vitest';
+import { beforeEach, expect, onTestFinished, test, vi } from 'vitest';
 import { restartTimerService, startTimerService, timerCommand, timerRecord } from '../scripts/timer-client.mjs';
 import { registerTimers, rootExtensions } from '../src/timers.ts';
 import { model } from './session-fixture.ts';
 
 vi.mock(import('../scripts/timer-client.mjs'), () => ({ restartTimerService: vi.fn(), startTimerService: vi.fn(), timerCommand: vi.fn(), timerRecord: vi.fn() }));
+
+beforeEach(() => {
+  for (const mocked of [restartTimerService, startTimerService, timerCommand, timerRecord]) vi.mocked(mocked).mockReset();
+});
 
 async function tools() {
   const root = await mkdtemp(join(tmpdir(), 'pstack-timer-tools-'));
@@ -33,10 +37,11 @@ async function tools() {
   };
 }
 
-test('registering timers and listing an unused owner starts no process', async () => {
+test('listing subscriptions for an unused owner starts no process', async () => {
   const f = await tools();
   vi.mocked(timerRecord).mockResolvedValue(undefined);
-  expect((await f.invoke('ListSubscriptions')).details).toEqual([]);
+  const listed = await f.invoke('ListSubscriptions');
+  expect(listed.content).toEqual([{ type: 'text', text: '[]' }]);
   expect(startTimerService).not.toHaveBeenCalled();
   expect(timerCommand).not.toHaveBeenCalled();
 });

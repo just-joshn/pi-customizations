@@ -42,18 +42,9 @@ function defaults(): Parts {
   return {
     h1: ['# Demo plan'],
     intro: ['Changes one thing for one user.'],
-    howToRead: [
-      'One box is one unit of work. Every box names the evidence that checks it.',
-      'Check a box only when its evidence exists, a file or a log line.',
-      'The program runs `playbooks/autopilot-full.md`.',
-      RULE,
-    ],
+    howToRead: ['One box is one unit of work. Every box names the evidence that checks it.', 'Check a box only when its evidence exists, a file or a log line.', 'The program runs `playbooks/autopilot-full.md`.', RULE],
     programH3: ['Arm the program', 'Spawn owners', 'PR mechanics', 'Verdict and merge', 'Boot recipe'],
-    programBody: [
-      box('Arm the `/goal` and the 30-minute audit tick.'),
-      box('Read `git show origin/main:path/to/playbook.md` first.'),
-      box('Post a status message only on a tracked change.'),
-    ],
+    programBody: [box('Arm the `/goal` and the 30-minute audit tick.'), box('Read `git show origin/main:path/to/playbook.md` first.'), box('Post a status message only on a tracked change.')],
     prs: [blocks()],
     close: ['## Close the program', '', box('Report the result.')],
     tail: [['## Appendix A. Prototype evidence', '', 'Branch and SHA recorded.']],
@@ -81,7 +72,12 @@ function render(parts: Parts): string {
   return sections.join('\n');
 }
 
-const block = (parts: Parts, head: string): Block => parts.prs[0]!.find((b) => b.head === head)!;
+const withBlock = (parts: Parts, head: string, patch: (b: Block) => Block): Parts => ({
+  ...parts,
+  prs: parts.prs.map((pr, index) => (index === 0 ? pr.map((b) => (b.head === head ? patch(b) : b)) : pr)),
+});
+const withLine = (parts: Parts, head: string, index: number, line: string): Parts => withBlock(parts, head, (b) => ({ ...b, lines: b.lines.with(index, line) }));
+const addIntro = (parts: Parts, ...lines: string[]): Parts => ({ ...parts, intro: [...parts.intro, ...lines] });
 
 async function run(text: string) {
   const directory = await mkdtemp(join(tmpdir(), 'check-plan-'));
@@ -89,18 +85,22 @@ async function run(text: string) {
   const file = join(directory, 'plan.md');
   await writeFile(file, text);
   const result = spawnSync('node', [script, file], { encoding: 'utf8' });
-  return { status: result.status, stdout: result.stdout, problems: result.stderr.trim().split('\n').filter(Boolean).map((line) => line.replace(`${file}:`, '')) };
+  return {
+    status: result.status,
+    stdout: result.stdout,
+    problems: result.stderr
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => line.replace(`${file}:`, '')),
+  };
 }
 
 afterEach(async () => {
   for (const directory of directories.splice(0)) await rm(directory, { recursive: true, force: true });
 });
 
-const mutate = (change: (parts: Parts) => void): string => {
-  const parts = defaults();
-  change(parts);
-  return render(parts);
-};
+const mutate = (change: (parts: Parts) => Parts): string => render(change(defaults()));
 
 describe('check-plan.mjs on a valid plan', () => {
   test('exits 0 with one report line per PR section and a summary', async () => {
@@ -111,7 +111,7 @@ describe('check-plan.mjs on a valid plan', () => {
   });
 
   test('reports one line per PR section', async () => {
-    const result = await run(mutate((parts) => parts.prs.push(blocks())));
+    const result = await run(mutate((parts) => ({ ...parts, prs: [...parts.prs, blocks()] })));
     expect(result.stdout.split('\n').filter((line) => line.includes('boxes='))).toHaveLength(2);
     expect(result.stdout).toContain('2 PR sections, 0 problems');
   });
@@ -127,58 +127,58 @@ describe('check-plan.mjs on a valid plan', () => {
   });
 });
 
-const fails: { name: string; change: (parts: Parts) => void; message: string }[] = [
-  { name: 'no H1', change: (p) => (p.h1 = []), message: 'no H1 title' },
-  { name: 'an intro of ten lines', change: (p) => (p.intro = Array.from({ length: 10 }, (_, i) => `Line ${i}.`)), message: 'intro is 10 lines, under ten required' },
+const fails: { name: string; change: (parts: Parts) => Parts; message: string }[] = [
+  { name: 'no H1', change: (p) => ({ ...p, h1: [] }), message: 'no H1 title' },
+  { name: 'an intro of ten lines', change: (p) => ({ ...p, intro: Array.from({ length: 10 }, (_, i) => `Line ${i}.`) }), message: 'intro is 10 lines, under ten required' },
   ...['One box is one unit of work', 'names the evidence', 'Check a box only when its evidence exists', 'playbooks/', RULE].map((marker) => ({
     name: `How to read this missing "${marker.slice(0, 24)}"`,
-    change: (p: Parts) => (p.howToRead = p.howToRead.map((line) => line.replace(marker, 'x')).filter((line) => line !== 'x')),
+    change: (p: Parts) => ({ ...p, howToRead: p.howToRead.map((line) => line.replace(marker, 'x')).filter((line) => line !== 'x') }),
     message: `How to read this lacks "${marker}"`,
   })),
-  { name: 'no Close section', change: (p) => (p.close = []), message: 'no "## Close the program" section' },
-  { name: 'no PR sections', change: (p) => (p.prs = []), message: 'no PR sections between Program checklist and Close the program' },
-  { name: 'a missing Prototype evidence appendix', change: (p) => (p.tail = [['## Appendix B. Risks']]), message: 'no "## Appendix ... Prototype evidence" section' },
-  { name: 'a non-appendix H2 after Close', change: (p) => p.tail.push(['## Notes']), message: '"## Notes" after Close the program is not an appendix' },
-  { name: 'Program checklist missing /goal', change: (p) => (p.programBody = p.programBody.filter((line) => !line.includes('/goal'))), message: 'Program checklist lacks "/goal"' },
-  { name: 'Program checklist missing the origin trunk read', change: (p) => (p.programBody = p.programBody.filter((line) => !line.includes('git show'))), message: 'Program checklist lacks "/git show origin' },
-  { name: 'Program checklist missing the 30-minute tick', change: (p) => (p.programBody[0] = box('Arm the `/goal`.')), message: 'Program checklist lacks "/30' },
-  { name: 'Program checklist missing the status message', change: (p) => (p.programBody = p.programBody.filter((line) => !line.includes('status message'))), message: 'Program checklist lacks "status message"' },
-  { name: 'a Program checklist H3 missing', change: (p) => (p.programH3 = p.programH3.filter((name) => name !== 'PR mechanics')), message: 'Program checklist lacks "### PR mechanics" in order' },
-  { name: 'Program checklist H3s out of order', change: (p) => p.programH3.splice(3, 2, p.programH3[4]!, p.programH3[3]!), message: 'Program checklist lacks "### Boot recipe" in order' },
-  { name: 'empty Depends on', change: (p) => (block(p, 'Depends on.').rest = undefined), message: 'Depends on names nothing' },
-  { name: 'sub-blocks out of order', change: (p) => p.prs[0]!.reverse(), message: 'sub-blocks are [' },
+  { name: 'no Close section', change: (p) => ({ ...p, close: [] }), message: 'no "## Close the program" section' },
+  { name: 'no PR sections', change: (p) => ({ ...p, prs: [] }), message: 'no PR sections between Program checklist and Close the program' },
+  { name: 'a missing Prototype evidence appendix', change: (p) => ({ ...p, tail: [['## Appendix B. Risks']] }), message: 'no "## Appendix ... Prototype evidence" section' },
+  { name: 'a non-appendix H2 after Close', change: (p) => ({ ...p, tail: [...p.tail, ['## Notes']] }), message: '"## Notes" after Close the program is not an appendix' },
+  { name: 'Program checklist missing /goal', change: (p) => ({ ...p, programBody: p.programBody.filter((line) => !line.includes('/goal')) }), message: 'Program checklist lacks "/goal"' },
+  { name: 'Program checklist missing the origin trunk read', change: (p) => ({ ...p, programBody: p.programBody.filter((line) => !line.includes('git show')) }), message: 'Program checklist lacks "/git show origin' },
+  { name: 'Program checklist missing the 30-minute tick', change: (p) => ({ ...p, programBody: p.programBody.with(0, box('Arm the `/goal`.')) }), message: 'Program checklist lacks "/30' },
+  { name: 'Program checklist missing the status message', change: (p) => ({ ...p, programBody: p.programBody.filter((line) => !line.includes('status message')) }), message: 'Program checklist lacks "status message"' },
+  { name: 'a Program checklist H3 missing', change: (p) => ({ ...p, programH3: p.programH3.filter((name) => name !== 'PR mechanics') }), message: 'Program checklist lacks "### PR mechanics" in order' },
+  { name: 'Program checklist H3s out of order', change: (p) => ({ ...p, programH3: p.programH3.toSpliced(3, 2, p.programH3[4], p.programH3[3]) }), message: 'Program checklist lacks "### Boot recipe" in order' },
+  { name: 'empty Depends on', change: (p) => withBlock(p, 'Depends on.', (b) => ({ head: b.head, lines: b.lines })), message: 'Depends on names nothing' },
+  { name: 'sub-blocks out of order', change: (p) => ({ ...p, prs: p.prs.with(0, p.prs[0].toReversed()) }), message: 'sub-blocks are [' },
   ...['Files.', 'Build.', 'You see.', 'Verify, unit.', 'Merge.'].map((head) => ({
     name: `${head} without a box`,
-    change: (p: Parts) => (block(p, head).lines = []),
+    change: (p: Parts) => withBlock(p, head, (b) => ({ ...b, lines: [] })),
     message: `${head} has no box`,
   })),
   ...['Verify, unit.', 'Verify, live.', 'Verify, perf.'].map((head) => ({
     name: `${head} not opening with the rule`,
-    change: (p: Parts) => (block(p, head).rest = (block(p, head).rest ?? '').replace(RULE, 'Looks fine.')),
+    change: (p: Parts) => withBlock(p, head, (b) => ({ ...b, rest: (b.rest ?? '').replace(RULE, 'Looks fine.') })),
     message: `${head} does not open with the rule`,
   })),
-  { name: 'the live block with the model placeholder unfilled', change: (p) => (block(p, 'Verify, live.').rest = `${RULE} Ten lanes on \`<swarm workers model>\` at the PR head.`), message: 'Verify, live lacks "Ten lanes on' },
-  { name: 'the live block without the lanes line', change: (p) => (block(p, 'Verify, live.').rest = RULE), message: 'Verify, live lacks "Ten lanes on' },
-  { name: 'nine lanes', change: (p) => block(p, 'Verify, live.').lines.pop(), message: 'lanes are [1,2,3,4,5,6,7,8,9], expected 1 to 10' },
-  { name: 'a lane without a screenshot', change: (p) => (block(p, 'Verify, live.').lines[2] = box('Lane 3. Drive it. Pass when it renders.')), message: 'lane 3 names no screenshot' },
-  { name: 'a lane without a pass predicate', change: (p) => (block(p, 'Verify, live.').lines[3] = box('Lane 4. Drive it. Save `x.png`.')), message: 'lane 4 has no pass predicate' },
-  { name: 'a live box that is not a lane', change: (p) => block(p, 'Verify, live.').lines.push(box('Extra step.')), message: 'live box is not a lane' },
-  { name: 'perf boxes out of order', change: (p) => block(p, 'Verify, perf.').lines.reverse(), message: 'perf boxes are [' },
-  { name: 'a Review gate of None with boxes', change: (p) => (block(p, 'Review gate.').lines = [box('screenshot video operator')]), message: 'Review gate says None but has boxes' },
-  { name: 'a Review gate with no box', change: (p) => (block(p, 'Review gate.').rest = 'Operator reviews.'), message: 'Review gate has no box' },
+  {
+    name: 'the live block with the model placeholder unfilled',
+    change: (p) => withBlock(p, 'Verify, live.', (b) => ({ ...b, rest: `${RULE} Ten lanes on \`<swarm workers model>\` at the PR head.` })),
+    message: 'Verify, live lacks "Ten lanes on',
+  },
+  { name: 'the live block without the lanes line', change: (p) => withBlock(p, 'Verify, live.', (b) => ({ ...b, rest: RULE })), message: 'Verify, live lacks "Ten lanes on' },
+  { name: 'nine lanes', change: (p) => withBlock(p, 'Verify, live.', (b) => ({ ...b, lines: b.lines.slice(0, -1) })), message: 'lanes are [1,2,3,4,5,6,7,8,9], expected 1 to 10' },
+  { name: 'a lane without a screenshot', change: (p) => withLine(p, 'Verify, live.', 2, box('Lane 3. Drive it. Pass when it renders.')), message: 'lane 3 names no screenshot' },
+  { name: 'a lane without a pass predicate', change: (p) => withLine(p, 'Verify, live.', 3, box('Lane 4. Drive it. Save `x.png`.')), message: 'lane 4 has no pass predicate' },
+  { name: 'a live box that is not a lane', change: (p) => withBlock(p, 'Verify, live.', (b) => ({ ...b, lines: [...b.lines, box('Extra step.')] })), message: 'live box is not a lane' },
+  { name: 'perf boxes out of order', change: (p) => withBlock(p, 'Verify, perf.', (b) => ({ ...b, lines: b.lines.toReversed() })), message: 'perf boxes are [' },
+  { name: 'a Review gate of None with boxes', change: (p) => withBlock(p, 'Review gate.', (b) => ({ ...b, lines: [box('screenshot video operator')] })), message: 'Review gate says None but has boxes' },
+  { name: 'a Review gate with no box', change: (p) => withBlock(p, 'Review gate.', (b) => ({ ...b, rest: 'Operator reviews.' })), message: 'Review gate has no box' },
   ...['screenshot', 'video', 'operator'].map((word) => ({
     name: `a Review gate lacking ${word}`,
-    change: (p: Parts) => {
-      const gate = block(p, 'Review gate.');
-      gate.rest = 'Required.';
-      gate.lines = [box(['screenshot', 'video', 'operator'].filter((w) => w !== word).join(' '))];
-    },
+    change: (p: Parts) => withBlock(p, 'Review gate.', (b) => ({ ...b, rest: 'Required.', lines: [box(['screenshot', 'video', 'operator'].filter((w) => w !== word).join(' '))] })),
     message: `Review gate lacks "${word}"`,
   })),
-  { name: 'a long dash outside a fence', change: (p) => p.intro.push('One — two.'), message: 'long dash' },
-  { name: 'an en dash outside a fence', change: (p) => p.intro.push('One – two.'), message: 'long dash' },
-  { name: 'a curly quote', change: (p) => p.intro.push('It’s here.'), message: 'curly quote' },
-  { name: 'a mid-sentence colon', change: (p) => p.intro.push('Finish the first part before the second: then ship.'), message: 'mid-sentence colon' },
+  { name: 'a long dash outside a fence', change: (p) => addIntro(p, 'One — two.'), message: 'long dash' },
+  { name: 'an en dash outside a fence', change: (p) => addIntro(p, 'One – two.'), message: 'long dash' },
+  { name: 'a curly quote', change: (p) => addIntro(p, 'It’s here.'), message: 'curly quote' },
+  { name: 'a mid-sentence colon', change: (p) => addIntro(p, 'Finish the first part before the second: then ship.'), message: 'mid-sentence colon' },
 ];
 
 describe('check-plan.mjs failures', () => {
@@ -194,7 +194,7 @@ describe('check-plan.mjs failures', () => {
   });
 
   test('a mutation reports only its own problem', async () => {
-    const result = await run(mutate((p) => (block(p, 'Merge.').lines = [])));
+    const result = await run(mutate((p) => withBlock(p, 'Merge.', (b) => ({ ...b, lines: [] }))));
     expect(result.problems).toHaveLength(1);
     expect(result.stdout).toContain('merge=0');
   });
@@ -215,34 +215,34 @@ describe('check-plan.mjs prose rules and fences', () => {
     { name: 'a four-backtick fence holding a three-backtick fence', open: '````text', close: '````', inner: '```' },
     { name: 'a fence indented three spaces', open: '   ```', close: '   ```' },
   ])('prose findings are exempt inside $name', async ({ open, close, inner }) => {
-    const result = await run(mutate((p) => p.intro.push(open, 'Dash — quote “q” colon: here', ...(inner ? [inner, 'Still — inside: yes', inner] : []), close)));
+    const result = await run(mutate((p) => addIntro(p, open, 'Dash — quote “q” colon: here', ...(inner ? [inner, 'Still — inside: yes', inner] : []), close)));
     expect(result.problems).toEqual([]);
     expect(result.status).toBe(0);
   });
 
   test('prose findings resume after a fence closes', async () => {
-    const result = await run(mutate((p) => p.intro.push('```', 'inside — ok', '```', 'outside — flagged')));
+    const result = await run(mutate((p) => addIntro(p, '```', 'inside — ok', '```', 'outside — flagged')));
     expect(result.problems).toHaveLength(1);
     expect(result.problems[0]).toContain('long dash');
   });
 
   test.each(['`a — b: c`', '![alt — text](x—y.png)', '[doc](path/with—dash)'])('inline code, image, and link targets are exempt: %s', async (text) => {
-    const result = await run(mutate((p) => p.intro.push(`See ${text}.`)));
+    const result = await run(mutate((p) => addIntro(p, `See ${text}.`)));
     expect(result.problems).toEqual([]);
   });
 
   test.each(['Owner: Josh', '- Owner: Josh', '**Owner:** Josh'])('a leading Label value line is allowed: %s', async (line) => {
-    const result = await run(mutate((p) => (p.intro = [line])));
+    const result = await run(mutate((p) => ({ ...p, intro: [line] })));
     expect(result.problems).toEqual([]);
   });
 
   test('a second colon after a leading label is still flagged', async () => {
-    const result = await run(mutate((p) => (p.intro = ['Owner: finish the first part before the second: then ship.'])));
+    const result = await run(mutate((p) => ({ ...p, intro: ['Owner: finish the first part before the second: then ship.'] })));
     expect(result.problems.filter((line) => line.includes('mid-sentence colon'))).toHaveLength(1);
   });
 
   test('a repository whose trunk is not main satisfies the trunk read', async () => {
-    const result = await run(mutate((p) => (p.programBody[1] = box('Read `git show origin/master:docs/playbook.md` first.'))));
+    const result = await run(mutate((p) => ({ ...p, programBody: p.programBody.with(1, box('Read `git show origin/master:docs/playbook.md` first.')) })));
     expect(result.problems).toEqual([]);
   });
 });
@@ -263,7 +263,7 @@ describe('check-plan.mjs location independence', () => {
 describe('check-plan.mjs against the generated skeleton', () => {
   const skeleton = async () => {
     const playbook = await readFile(join(root, 'skills/poteto-mode/playbooks/multi-phase-plan.md'), 'utf8');
-    return playbook.split('\n````markdown\n')[1]!.split('\n````')[0]!;
+    return playbook.split('\n````markdown\n')[1].split('\n````')[0];
   };
 
   test('the unfilled skeleton reports its box counts and exactly one problem, the LANES placeholder', async () => {

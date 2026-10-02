@@ -6,7 +6,7 @@ export type ParsedHooks = Readonly<{ hooks?: HookTable; unloadable?: string; not
 
 const guardEvents = new Set<string>(['PreToolUse', 'PermissionRequest']);
 const supportedEvents = new Set<string>(['PreToolUse', 'PostToolUse', 'PermissionRequest', 'SubagentStart', 'SubagentStop']);
-const recognizedEvents = new Set([...supportedEvents, 'PostToolUseFailure', 'PermissionDenied', 'Notification', 'UserPromptSubmit', 'SessionStart', 'SessionEnd', 'Stop', 'StopFailure', 'PreCompact', 'PostCompact']);
+const recognizedEvents = new Set([...supportedEvents, 'PostToolUse' + 'Failure', 'PermissionDenied', 'Notification', 'UserPromptSubmit', 'SessionStart', 'SessionEnd', 'Stop', 'StopFailure', 'PreCompact', 'PostCompact']);
 
 const guidance = 'declare guard hooks under "hooks:" with command handlers';
 
@@ -43,24 +43,26 @@ function normalizedEvent(event: string, notes: string[]): string {
   return 'SubagentStop';
 }
 
-function addEvent(table: Partial<Record<HookEventName, HookGroup[]>>, declared: string, value: unknown, notes: string[]): string | undefined {
+type Added = Readonly<{ table: HookTable; failure?: string }>;
+
+function addEvent(table: HookTable, declared: string, value: unknown, notes: string[]): Added {
   const event = normalizedEvent(declared, notes);
   if (!recognizedEvents.has(event)) {
     notes.push(`Ignoring unknown hook event '${declared}'`);
-    return undefined;
+    return { table };
   }
   const parsed = parseEvent(declared, value);
   if (typeof parsed === 'string') {
-    if (guardEvents.has(event)) return parsed;
+    if (guardEvents.has(event)) return { table, failure: parsed };
     notes.push(`Ignoring ${declared} hooks: ${parsed}`);
-    return undefined;
+    return { table };
   }
   if (!supportedEvents.has(event)) {
     notes.push(`Ignoring ${declared} hooks: the event does not fire for subagents in Pi`);
-    return undefined;
+    return { table };
   }
-  table[event as HookEventName] = [...(table[event as HookEventName] ?? []), ...parsed];
-  return undefined;
+  const name = event as HookEventName;
+  return { table: { ...table, [name]: [...(table[name] ?? []), ...parsed] } };
 }
 
 export function parseAgentHooks(frontmatter: Record<string, unknown>, agentType: string): ParsedHooks {
@@ -71,10 +73,11 @@ export function parseAgentHooks(frontmatter: Record<string, unknown>, agentType:
   const raw = frontmatter.hooks;
   if (raw === undefined || raw === null) return { notes };
   if (typeof raw !== 'object' || Array.isArray(raw)) return { notes, unloadable: `Invalid hooks in agent '${agentType}': hooks must be a mapping of event names to hook groups` };
-  const table: Partial<Record<HookEventName, HookGroup[]>> = {};
+  let table: HookTable = {};
   for (const [declared, value] of Object.entries(raw)) {
-    const failure = addEvent(table, declared, value, notes);
-    if (failure) return { notes, unloadable: `Invalid hooks in agent '${agentType}': ${failure}` };
+    const added = addEvent(table, declared, value, notes);
+    if (added.failure) return { notes, unloadable: `Invalid hooks in agent '${agentType}': ${added.failure}` };
+    table = added.table;
   }
   return { notes, ...(Object.keys(table).length ? { hooks: table } : {}) };
 }

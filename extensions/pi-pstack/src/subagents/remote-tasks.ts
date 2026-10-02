@@ -1,7 +1,7 @@
 import { hostname } from 'node:os';
 
 import type { TaskRecord } from '../worker-records.ts';
-import { ChildTask, type ChildHost, type ChildKind, type ChildLaunch } from './child-task.ts';
+import { type ChildHost, type ChildKind, type ChildLaunch, ChildTask } from './child-task.ts';
 import type { RelayDeps } from './permission-relay.ts';
 
 export function sessionUrl(sessionId: string): string {

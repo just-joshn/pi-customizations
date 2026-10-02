@@ -1,5 +1,5 @@
 
-pi v0.87.1
+pi v1.0.0
 
 [Extensions]
   scripted-provider.ts, src
@@ -16,21 +16,21 @@ pi v0.87.1
  $ echo parity-smoke in .
 
 
+
+
+
+
+
+
  ⠠⠜ Working
 
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
  $ echo parity-smoke
- in /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-smoke-ws-60382-1790554410435
+ in /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-smoke-ws-76556-1790902793712
  Run this command?
  → Run (once) (y)
    Add Shell(echo parity-smoke) to allowlist? (tab)
    Skip & tell the agent what to do instead (esc or n)
  ↑/↓ to navigate • Enter to select • y approve • tab allowlist • esc reject
-  Test Model · 128k · 1.4%                                                                       -- INSERT --
-  /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-smoke-ws-60382-1790554410435
-
-
-
-
-
-
+  Test Model · 128k · 1.6%                                                                       -- INSERT --
+  /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-smoke-ws-76556-1790902793712

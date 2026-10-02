@@ -62,10 +62,12 @@ function makeTheme(): Theme {
   return new Theme(colors as never, colors as never, 'truecolor', { name: 'tui-skin' });
 }
 
+function restoreEnvironment(): void {
+  vi.unstubAllEnvs();
+}
+
 describe('tool renderer registration', () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
+  afterEach(restoreEnvironment);
 
   test('registers only the four default active tools when the override is unset', () => {
     vi.stubEnv(OVERRIDES_ENV, undefined);
@@ -84,6 +86,10 @@ describe('tool renderer registration', () => {
 
     expect(registeredToolNames().sort()).toEqual(['bash', 'edit', 'grep', 'read', 'write']);
   });
+});
+
+describe('tool renderer registration rows', () => {
+  afterEach(restoreEnvironment);
 
   test('every registered definition renders its own call row', () => {
     vi.stubEnv(OVERRIDES_ENV, 'grep,find,ls,powershell');

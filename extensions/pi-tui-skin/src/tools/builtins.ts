@@ -26,23 +26,22 @@ import {
 
 export type BuiltinName = 'read' | 'bash' | 'powershell' | 'edit' | 'write' | 'grep' | 'find' | 'ls';
 
-let settingsFailureReported = false;
+export type ToolSettings = { readonly kind: 'loaded'; readonly manager: SettingsManager } | { readonly kind: 'fallback'; readonly manager: SettingsManager; readonly reason: string };
 
-/** Settings-backed options. A settings failure falls back to Pi's defaults and reports once. */
-function settingsManager(cwd: string): SettingsManager {
+/**
+ * Settings-backed options. A settings failure falls back to Pi's defaults and
+ * returns the reason, so the caller that owns a session can report it.
+ */
+export function loadToolSettings(cwd: string): ToolSettings {
   try {
-    return SettingsManager.create(cwd);
+    return { kind: 'loaded', manager: SettingsManager.create(cwd) };
   } catch (error) {
-    if (!settingsFailureReported) {
-      settingsFailureReported = true;
-      console.error('[tui-skin] falling back to default tool settings', error);
-    }
-    return SettingsManager.inMemory();
+    return { kind: 'fallback', manager: SettingsManager.inMemory(), reason: error instanceof Error ? error.message : String(error) };
   }
 }
 
 function createBuiltins(cwd: string) {
-  const settings = settingsManager(cwd);
+  const { manager: settings } = loadToolSettings(cwd);
   return {
     read: createReadToolDefinition(cwd, { autoResizeImages: settings.getImageAutoResize() }),
     bash: createBashToolDefinition(cwd, { commandPrefix: settings.getShellCommandPrefix(), shellPath: settings.getShellPath() }),

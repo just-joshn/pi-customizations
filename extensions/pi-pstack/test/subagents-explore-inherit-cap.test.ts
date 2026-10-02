@@ -4,7 +4,10 @@ import { workerFixture } from './worker-fixture.ts';
 async function exploreUnder(parentId: string) {
   const fixture = await workerFixture();
   try {
-    const parent = fixture.session.extensionRunner.createContext().modelRegistry.getAvailable().find((model) => model.provider === 'worker-test' && model.id === parentId);
+    const parent = fixture.session.extensionRunner
+      .createContext()
+      .modelRegistry.getAvailable()
+      .find((model) => model.provider === 'worker-test' && model.id === parentId);
     if (!parent) throw new Error(`missing ${parentId}`);
     await fixture.session.setModel(parent);
     const done = (await fixture.call('Agent', { description: 'capped explore', prompt: 'hello', subagent_type: 'Explore', run_in_background: false })) as { details: Record<string, unknown> };

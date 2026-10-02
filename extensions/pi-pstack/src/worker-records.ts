@@ -1,7 +1,7 @@
 import { type Static, Type } from 'typebox';
 import { Check } from 'typebox/value';
-import { ToolStatsSchema } from './subagents/tool-stats.ts';
 import { ExecutorSchema } from './remote-executors.ts';
+import { ToolStatsSchema } from './subagents/tool-stats.ts';
 
 export const taskEntryType = 'pstack-task';
 export const taskOwnerEntryType = 'pstack-worker-owner';
@@ -56,7 +56,14 @@ export const TaskRecordSchema = Type.Object({
   requestedIsolation: Type.Optional(Type.Union([Type.Literal('worktree'), Type.Literal('remote')])),
   parentAgentId: Type.Optional(Type.String()),
   destination: Type.Optional(
-    Type.Object({ kind: Type.Union([Type.Literal('remote'), Type.Literal('teammate')]), sessionUrl: Type.String(), sessionId: Type.String(), planMode: Type.Optional(Type.Boolean()), pane: Type.Optional(Type.String()), team: Type.Optional(Type.String()) }),
+    Type.Object({
+      kind: Type.Union([Type.Literal('remote'), Type.Literal('teammate')]),
+      sessionUrl: Type.String(),
+      sessionId: Type.String(),
+      planMode: Type.Optional(Type.Boolean()),
+      pane: Type.Optional(Type.String()),
+      team: Type.Optional(Type.String()),
+    }),
   ),
   inheritedWorktreePath: Type.Optional(Type.String()),
   description: Type.Optional(Type.String()),

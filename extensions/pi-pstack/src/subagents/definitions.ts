@@ -70,8 +70,8 @@ export function clearAgentCache(): void {
   cache.clear();
 }
 
-export { defaultUserDirs } from './agent-sources.ts';
 export { sanitizeDisplay } from './agent-precedence.ts';
+export { defaultUserDirs } from './agent-sources.ts';
 
 function stringList(value: unknown): string[] | undefined {
   if (Array.isArray(value)) return value.filter((item): item is string => typeof item === 'string').map((item) => item.trim());
@@ -176,6 +176,7 @@ function presentationFields(fm: Record<string, unknown>): Partial<Mutable> {
     ...(color ? { color } : {}),
     ...(model !== undefined ? { model } : {}),
     ...(typeof fm.initialPrompt === 'string' && fm.initialPrompt.trim() ? { initialPrompt: fm.initialPrompt.trim() } : {}),
+    ...(typeof fm.criticalSystemReminder_EXPERIMENTAL === 'string' && fm.criticalSystemReminder_EXPERIMENTAL.trim() ? { criticalSystemReminder_EXPERIMENTAL: fm.criticalSystemReminder_EXPERIMENTAL.trim() } : {}),
     ...(fm.omitContextFiles === true || fm.omitContextFiles === 'true' ? { omitContextFiles: true } : {}),
   };
 }

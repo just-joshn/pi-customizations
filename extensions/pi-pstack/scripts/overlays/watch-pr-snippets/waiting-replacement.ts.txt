@@ -1,0 +1,4 @@
+    case "WAITING":
+      if (verdict.reason.kind === "no-checks-unconfirmed")
+        return `WAITING: frontier=#${verdict.frontier.number}; no checks reported (${verdict.reason.readings}/${verdict.reason.required} readings at this head); waiting to confirm none are coming\n`;
+      return verdict.reason.kind === "pending-checks"

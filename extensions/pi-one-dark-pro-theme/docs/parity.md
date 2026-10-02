@@ -1,6 +1,6 @@
 # Parity report: pi-one-dark-pro-theme
 
-Pi package `extensions/pi-one-dark-pro-theme` (pi 0.99.2) reproduces the Visual Studio Code theme
+Pi package `extensions/pi-one-dark-pro-theme` (pi 1.0.0) reproduces the Visual Studio Code theme
 **One Dark Pro Flat** as a Pi theme. Every value in `themes/one-dark-pro-flat.json` is computed
 from the pinned file in `upstream/`, so the theme cannot drift from the source without failing
 `bun run check:parity`.

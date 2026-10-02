@@ -1,6 +1,6 @@
-import { envEnabled } from './gates.ts';
+import { envEnabled } from "./gates.ts";
 
-export const modelFamilies = ['sonnet', 'opus', 'haiku', 'fable'] as const;
+export const modelFamilies = ["sonnet", "opus", "haiku", "fable"] as const;
 const familyRank: Readonly<Record<string, number>> = { haiku: 1, sonnet: 2, opus: 3, fable: 4 };
 
 export type ModelChoice = Readonly<{ request: string | undefined; steppedFrom?: string; dropped?: string; ignoredOverride?: string }>;
@@ -18,22 +18,22 @@ type ModelInputs = Readonly<{
 type ModelId = Readonly<{ reference: string; provider: string; prefix: string; core: string; longContext: boolean }>;
 
 function parseModelId(reference: string): ModelId {
-  const slash = reference.indexOf('/');
-  const provider = slash === -1 ? '' : reference.slice(0, slash);
+  const slash = reference.indexOf("/");
+  const provider = slash === -1 ? "" : reference.slice(0, slash);
   const id = reference.slice(slash + 1);
-  const at = id.indexOf('claude-');
-  const prefix = at > 0 ? id.slice(0, at) : '';
+  const at = id.indexOf("claude-");
+  const prefix = at > 0 ? id.slice(0, at) : "";
   const longContext = /\[1m\]$/i.test(id);
-  return { reference, provider, prefix, core: id.slice(prefix.length).replace(/\[1m\]$/i, ''), longContext };
+  return { reference, provider, prefix, core: id.slice(prefix.length).replace(/\[1m\]$/i, ""), longContext };
 }
 
 function envModel(env: NodeJS.ProcessEnv): string | undefined {
   const value = (env.CLAUDE_CODE_SUBAGENT_MODEL ?? env.PI_SUBAGENT_MODEL)?.trim();
-  return value && value.toLowerCase() !== 'inherit' ? value : undefined;
+  return value && value.toLowerCase() !== "inherit" ? value : undefined;
 }
 
 function isInherit(value: string | undefined): boolean {
-  return value === undefined || value.trim().toLowerCase() === 'inherit';
+  return value === undefined || value.trim().toLowerCase() === "inherit";
 }
 
 function modelFamily(value: string): string | undefined {
@@ -51,9 +51,9 @@ function newestInFamily(family: string, available: readonly string[], parent: st
   const origin = parent === undefined ? undefined : parseModelId(parent);
   const onProvider = origin ? preferred(members, (member) => member.provider === origin.provider) : members;
   const decorated = origin ? preferred(onProvider, (member) => member.prefix === origin.prefix) : onProvider;
-  const wantsLong = family === 'opus' && origin?.longContext === true;
+  const wantsLong = family === "opus" && origin?.longContext === true;
   const context = preferred(decorated, (member) => member.longContext === wantsLong);
-  return context.toSorted((left, right) => left.core.localeCompare(right.core, 'en', { numeric: true })).at(-1)?.reference;
+  return context.toSorted((left, right) => left.core.localeCompare(right.core, "en", { numeric: true })).at(-1)?.reference;
 }
 
 function materialize(value: string | undefined, input: ModelInputs): ModelChoice {
@@ -72,7 +72,7 @@ function capped(input: ModelInputs): ModelChoice {
 }
 
 function forced(input: ModelInputs): ModelChoice {
-  if (input.toolModel?.trim().toLowerCase() === 'inherit') return { request: undefined };
+  if (input.toolModel?.trim().toLowerCase() === "inherit") return { request: undefined };
   const overridden = input.toolModel ?? input.definitionModel;
   const ignoredOverride = overridden && !isInherit(overridden) ? { ignoredOverride: overridden } : {};
   const configured = envModel(input.env);

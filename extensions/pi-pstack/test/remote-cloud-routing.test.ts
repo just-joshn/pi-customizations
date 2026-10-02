@@ -1,5 +1,5 @@
-import { expect, test, vi } from 'vitest';
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { expect, test, vi } from 'vitest';
 import { openCloudWorker } from '../src/cloud-worker.ts';
 import { resolveRemotePlacement } from '../src/remote-worker.ts';
 

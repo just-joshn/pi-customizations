@@ -29,9 +29,7 @@ test('[G1-02] native model receives the public parameter contract and supported 
     );
     expect(fields.run_in_background).not.toHaveProperty('default');
     expect(fields.run_in_background.description.startsWith('Agents run in the background by default')).toBe(true);
-    expect(fields.isolation.description).toBe(
-      'Isolation mode. "worktree" creates a temporary git worktree so the agent works on an isolated copy of the repo.',
-    );
+    expect(fields.isolation.description).toBe('Isolation mode. "worktree" creates a temporary git worktree so the agent works on an isolated copy of the repo.');
     expect(fields.isolation.const).toBe('worktree');
     expect(['worktree', 'remote'].map((isolation) => Check(schema, { description: 'task', prompt: 'task', isolation }))).toEqual([true, false]);
     expect(['sonnet', 'opus', 'haiku', 'fable'].map((model) => Check(schema, { description: 'task', prompt: 'task', model }))).toEqual([true, true, true, true]);

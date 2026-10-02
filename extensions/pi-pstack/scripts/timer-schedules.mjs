@@ -51,7 +51,7 @@ export function nextOccurrence(timer, after) {
   const fields = cronFields(timer.cron ?? '');
   const format = new Intl.DateTimeFormat('en-US', { timeZone: timer.timezone ?? 'UTC', month: 'numeric', day: 'numeric', weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' });
   const limit = after + 8 * 366 * 86400000;
-  for (let time = Math.floor(after / 60000) * 60000 + 60000; time <= limit;) {
+  for (let time = Math.floor(after / 60000) * 60000 + 60000; time <= limit; ) {
     const parts = Object.fromEntries(format.formatToParts(time).map((part) => [part.type, part.value]));
     const minute = Number(parts.minute);
     const calendar = fields[3].values.includes(Number(parts.month)) && matchesDay(fields, Number(parts.day), ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(parts.weekday));

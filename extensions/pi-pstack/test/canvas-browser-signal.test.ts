@@ -21,6 +21,26 @@ function alive(pid: number) {
   }
 }
 
+type Allocation = { pid: number; profile: string };
+
+async function release(child: ReturnType<typeof spawn>, exited: Promise<unknown>, allocation: Allocation | undefined, root: string): Promise<void> {
+  if (child.exitCode === null && child.signalCode === null) {
+    child.kill('SIGTERM');
+    await exited;
+  }
+  if (allocation) {
+    if (alive(allocation.pid)) process.kill(allocation.pid, 'SIGTERM');
+    await vi.waitFor(
+      () => {
+        expect(alive(allocation.pid)).toBe(false);
+      },
+      { timeout: 10000 },
+    );
+    await rm(allocation.profile, { recursive: true, force: true });
+  }
+  await rm(root, { recursive: true, force: true });
+}
+
 test.skipIf(!available).each(['SIGINT', 'SIGTERM'] as const)(
   'interrupting the browser harness with %s cleans its owned Chrome allocation',
   async (signal) => {
@@ -36,7 +56,7 @@ test.skipIf(!available).each(['SIGINT', 'SIGTERM'] as const)(
       child.once('error', reject);
     });
     let output = '';
-    let allocation: { pid: number; profile: string } | undefined;
+    let allocation: Allocation | undefined;
     child.stdout.on('data', (chunk) => {
       output += String(chunk);
     });
@@ -48,28 +68,14 @@ test.skipIf(!available).each(['SIGINT', 'SIGTERM'] as const)(
         { timeout: 10000 },
       );
       allocation = JSON.parse(output.split('\n')[0]);
-      if (!allocation) throw new Error('missing owned Chrome allocation'); expect(alive(allocation.pid)).toBe(true);
+      if (!allocation) throw new Error('missing owned Chrome allocation');
+      expect(alive(allocation.pid)).toBe(true);
       expect(child.kill(signal)).toBe(true);
       await exited;
       expect(alive(allocation.pid)).toBe(false);
       await expect(stat(allocation.profile)).rejects.toMatchObject({ code: 'ENOENT' });
     } finally {
-      if (child.exitCode === null && child.signalCode === null) {
-        child.kill('SIGTERM');
-        await exited;
-      }
-      if (allocation) {
-        const owned = allocation;
-        if (alive(owned.pid)) process.kill(owned.pid, 'SIGTERM');
-        await vi.waitFor(
-          () => {
-            expect(alive(owned.pid)).toBe(false);
-          },
-          { timeout: 10000 },
-        );
-        await rm(allocation.profile, { recursive: true, force: true });
-      }
-      await rm(root, { recursive: true, force: true });
+      await release(child, exited, allocation, root);
     }
   },
   30000,

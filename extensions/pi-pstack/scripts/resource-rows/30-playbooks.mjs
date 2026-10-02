@@ -42,12 +42,7 @@ export default [
     stale,
   ],
   [playbooks('opening-a-pr'), 'Run `/deslop` from `team-kit` over the diff', 'Run `/deslop` over the diff', referenceNouns],
-  [
-    playbooks('babysit'),
-    'Undeclared defaults to `drive`. Small or docs-only PRs get `check`, not `drive`.',
-    'Undeclared defaults to `drive`, except that an undeclared request on a small or docs-only PR defaults to `check`.',
-    stale,
-  ],
+  [playbooks('babysit'), 'Undeclared defaults to `drive`. Small or docs-only PRs get `check`, not `drive`.', 'Undeclared defaults to `drive`, except that an undeclared request on a small or docs-only PR defaults to `check`.', stale],
   [
     playbooks('session-pickup'),
     `4. Route the remaining work to the matching playbook and pick the verdict: continue the execution, ship a finished recommendation, ratify or override a prior conclusion, or postmortem a failed run. The pickup playbook ends here. The routed playbook owns the rest.
@@ -56,12 +51,7 @@ export default [
 5. Route the remaining work to the matching playbook and pick the verdict: continue the execution, ship a finished recommendation, ratify or override a prior conclusion, or postmortem a failed run. The pickup playbook ends here. The routed playbook owns the rest.`,
     stale,
   ],
-  [
-    playbooks('pause-safely'),
-    'This is explicit only. On',
-    'This is explicit only. Explicit only contrasts with keep-going phrases, not with the compaction trigger, which is automatic. On',
-    stale,
-  ],
+  [playbooks('pause-safely'), 'This is explicit only. On', 'This is explicit only. Explicit only contrasts with keep-going phrases, not with the compaction trigger, which is automatic. On', stale],
   [
     playbooks('hillclimb'),
     'A `decision.tsv`, one row per attempt: id, hypothesis, change, before, after, delta, tests, verdict (kept or reverted), note.',
@@ -70,18 +60,8 @@ export default [
   ],
   [playbooks('hillclimb'), 'the `decision.tsv` path', 'the `decisions.tsv` path', 'Use the show-me-your-work log name instead of a second schema.'],
   [playbooks('bug-fix'), "with Reference's `/loop` command.", 'with the `/loop` command the host contract names.', referenceNouns],
-  [
-    playbooks('autonomous-run'),
-    "Pick the wake mechanism using Reference's `/loop` command (a built-in, not a pstack skill).",
-    'Pick the wake mechanism using the local `loop` skill the host contract names (`/loop`).',
-    referenceNouns,
-  ],
-  [
-    playbooks('worktree-cleanup'),
-    'misses one that lives at `.upstream/worktrees/myrepo/x`',
-    'misses one that lives under a different worktree root, such as a Pi Task cloud checkout under `pstack-workers`',
-    referenceNouns,
-  ],
+  [playbooks('autonomous-run'), "Pick the wake mechanism using Reference's `/loop` command (a built-in, not a pstack skill).", 'Pick the wake mechanism using the local `loop` skill the host contract names (`/loop`).', referenceNouns],
+  [playbooks('worktree-cleanup'), 'misses one that lives at `.upstream/worktrees/myrepo/x`', 'misses one that lives under a different worktree root, such as a Pi Task cloud checkout under `pstack-workers`', referenceNouns],
   [
     playbooks('worktree-cleanup'),
     'Get that set from the user or sidebar and cross-check every candidate.',
@@ -96,7 +76,7 @@ export default [
   ],
   [
     playbooks('worktree-cleanup'),
-    "`~/Library/Application Support/Reference` (`state.vscdb.backup`, and `snapshots/roots/<root>` where a `<root>` named for a folder you opened as a workspace balloons)",
+    '`~/Library/Application Support/Reference` (`state.vscdb.backup`, and `snapshots/roots/<root>` where a `<root>` named for a folder you opened as a workspace balloons)',
     '`~/.pi/agent` growth (`sessions/` transcripts, `pstack-workers/` child transcripts and Task worktrees, and timer roots)',
     referenceNouns,
   ],
@@ -114,18 +94,8 @@ export default [
     'Browser, Electron, and web UIs use the bundled `control-ui` skill. CLIs and TUIs use the bundled `control-cli` skill.',
     referenceNouns,
   ],
-  [
-    playbooks('multi-phase-plan'),
-    "write the file under the agent store's `docs/`.",
-    'write the file under `docs/` in the agent store directory the host contract names.',
-    store,
-  ],
-  [
-    playbooks('orchestrate'),
-    "runtime verification (from `team-kit`)",
-    'runtime verification (the bundled control skills)',
-    referenceNouns,
-  ],
+  [playbooks('multi-phase-plan'), "write the file under the agent store's `docs/`.", 'write the file under `docs/` in the agent store directory the host contract names.', store],
+  [playbooks('orchestrate'), 'runtime verification (from `team-kit`)', 'runtime verification (the bundled control skills)', referenceNouns],
   [
     playbooks('orchestrate'),
     "in the current agent's store (path in the system prompt).",
