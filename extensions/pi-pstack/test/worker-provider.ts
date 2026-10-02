@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { type AssistantMessage, createAssistantMessageEventStream, type ToolCall } from '@earendil-works/pi-ai';
 import { type ExtensionAPI, getAgentDir, type ProviderConfig } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { clearPendingWork, registerPendingWork } from './worker-gates.ts';
+import { announceStreamStart, clearPendingWork, registerPendingWork } from './worker-gates.ts';
 import { workerTiming } from './worker-timing.ts';
 
 type StreamArguments = Parameters<NonNullable<ProviderConfig['streamSimple']>>;
@@ -168,6 +168,7 @@ function streamWorker(model: StreamArguments[0], context: StreamArguments[1], op
   const users = context.messages.filter((message) => message.role === 'user');
   const text = JSON.stringify(users.at(-1));
   saveRequest(context, dir);
+  announceStreamStart(text);
   writeFileSync(join(dir, 'child-options.json'), JSON.stringify({ reasoning: options?.reasoning }));
   appendFileSync(join(dir, 'child-requests.jsonl'), `${JSON.stringify({ model: model.id, reasoning: options?.reasoning, messages: context.messages })}\n`);
   const calls = requestedTools(text, context);

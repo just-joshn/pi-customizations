@@ -5,6 +5,7 @@ import { AgentSession } from '@earendil-works/pi-coding-agent';
 import { expect, test, vi } from 'vitest';
 import { abortInfo } from '../src/subagents/abort-reasons.ts';
 import { workerFixture } from './worker-fixture.ts';
+import { streamStarted } from './worker-gates.ts';
 
 test('[G5-06] child-owned ctx.abort becomes a native tool error without aborting the parent', async () => {
   const fixture = await workerFixture();
@@ -139,10 +140,9 @@ test.each([
   fixture.eventBus.on('pstack:subagent-abort', (event) => events.push(event));
   const controller = new AbortController();
   try {
+    const childRunning = streamStarted('WAIT_BLOCKED');
     const rejected = expect(fixture.call('Agent', { description: 'abort classification', prompt: 'WAIT_BLOCKED', run_in_background: false }, controller.signal)).rejects.toThrow('interrupted');
-    await vi.waitFor(async () => {
-      expect(await readFile(join(fixture.dir, 'child-input.txt'), 'utf8')).toContain('WAIT_BLOCKED');
-    });
+    await childRunning;
     controller.abort(reason);
     await rejected;
     expect(fixture.subagentStats.at(-1)).toEqual({ spawned: 1, completed: 0, failed: 0, killed: reason === 'permission-stop' ? 0 : 1, max_depth: 1, refused: { depth_limit: 0, concurrency_limit: 0, budget: 0 } });
