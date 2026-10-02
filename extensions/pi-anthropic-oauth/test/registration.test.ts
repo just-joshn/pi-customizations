@@ -23,7 +23,7 @@ test('the default export is a Pi extension factory', () => {
 // files npm would publish. Pi aliases its own packages, so the copy needs no node_modules.
 // Pi falls back to scanning subdirectories when the manifest names a missing file, so the test
 // also requires the loaded path to be the one the manifest declares.
-test('Pi loads the manifest-declared extension as one provider', async ({ onTestFinished }) => {
+test('Pi loads the manifest extensions with one provider', async ({ onTestFinished }) => {
   const [cwd, agentDir, packageDir] = await Promise.all(['cwd', 'agent', 'package'].map((name) => mkdtemp(join(tmpdir(), `pi-oauth-${name}-`))));
   onTestFinished(async () => {
     await Promise.all([cwd, agentDir, packageDir].map((dir) => rm(dir, { recursive: true, force: true })));
@@ -33,7 +33,8 @@ test('Pi loads the manifest-declared extension as one provider', async ({ onTest
   expect(errors).toStrictEqual([]);
   const declared = declaredExtensions(JSON.parse(await readFile(join(packageDir, 'package.json'), 'utf8')));
   expect(extensions.map((loaded) => loaded.path)).toStrictEqual(declared.map((entry) => resolve(packageDir, entry)));
-  expect(extensions).toHaveLength(1);
+  expect(extensions).toHaveLength(2);
+  expect(extensions.map((loaded) => [...loaded.handlers.keys()])).toStrictEqual([[], ['tool_result']]);
   const registrations = runtime.pendingNativeProviderRegistrations;
   expect(registrations).toHaveLength(1);
   const models = registrations.flatMap(({ provider }) => provider.getModels().map((model) => ({ provider: provider.id, owner: model.provider })));
