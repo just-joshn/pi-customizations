@@ -25,12 +25,15 @@ describe('tui layout constants', () => {
     expect(c.SPINNER_INTERVAL_MS).toBe(250);
   });
 
-  it('carries key hint abbreviations verbatim', () => {
-    expect(c.KEY_HINT_ABBREVIATIONS.NAV).toBe('↑/↓ to navigate');
-    expect(c.KEY_HINT_ABBREVIATIONS.SEL).toBe('Enter to select');
-    expect(c.KEY_HINT_ABBREVIATIONS.CLOSE).toBe('Esc to close');
-    expect(c.KEY_HINT_ABBREVIATIONS.BACK).toBe('Esc to go back');
-    expect(c.HINT_SEPARATOR).toBe(' • ');
+  it('carries composer and palette geometry', () => {
+    expect(c.COMPOSER_MAX_VISUAL_LINES).toBe(6);
+    expect(c.COMPOSER_WIDTH_MARGIN).toBe(7);
+    expect(c.PALETTE_LABEL_COLS).toBe(24);
+    expect(c.PALETTE_PAGE_ROWS).toBe(10);
+    expect(c.AT_PALETTE_WINDOW).toBe(6);
+    expect(c.PASTE_COLLAPSE_CHARS).toBe(800);
+    expect(c.SWITCH_MODE_COUNTDOWN_S).toBe(15);
+    expect(c.EPHEMERAL_TIMEOUT_MS).toBe(3000);
   });
 });
 
@@ -57,5 +60,13 @@ describe('tui copy constants', () => {
     expect(c.DECISION_TITLES.write).toBe('Write to this file?');
     expect(c.DECISION_TITLES.delete).toBe('Delete this file?');
     expect(c.DECISION_TITLES.image).toBe('Proceed with this edit?');
+  });
+
+  it('carries key hint abbreviations verbatim', () => {
+    expect(c.KEY_HINT_ABBREVIATIONS.NAV).toBe('↑/↓ to navigate');
+    expect(c.KEY_HINT_ABBREVIATIONS.SEL).toBe('Enter to select');
+    expect(c.KEY_HINT_ABBREVIATIONS.CLOSE).toBe('Esc to close');
+    expect(c.KEY_HINT_ABBREVIATIONS.BACK).toBe('Esc to go back');
+    expect(c.HINT_SEPARATOR).toBe(' • ');
   });
 });
