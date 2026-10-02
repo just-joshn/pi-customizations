@@ -1,5 +1,5 @@
 
-pi v0.87.1
+pi v1.0.0
 
 [Extensions]
   scripted-provider.ts, src
@@ -13,7 +13,7 @@ pi v0.87.1
 
 
 
- $ echo parity-smoke in .
+ $ echo parity-smoke 0.0s in .
    parity-smoke
 
 
@@ -26,11 +26,11 @@ pi v0.87.1
 
  Parity smoke complete.
 
+
+
 ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
  → Add a follow-up
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
   Plan (shift+tab to cycle)
-  Test Model · 128k · 1.5%                                                                       -- INSERT --
-  /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-smoke-ws-60382-1790554410435
-
-
+  Test Model · 128k · 1.6%                                                                       -- INSERT --
+  /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-smoke-ws-76556-1790902793712
