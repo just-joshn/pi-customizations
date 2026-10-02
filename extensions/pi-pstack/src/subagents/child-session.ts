@@ -115,7 +115,7 @@ async function openTranscript(input: OpenInput, dir: string): Promise<{ manager:
 }
 
 export const deferThreshold = 30;
-const deferredCore = ['read', 'grep', 'bash', 'task', 'read_agent', 'write_agent', 'list_agents'];
+export const deferredCore = ['read', 'grep', 'bash', 'task', 'read_agent', 'write_agent', 'list_agents'];
 
 /** Aggressive tool deferral: past the threshold only the core surface stays declared and the rest load through tool search. */
 export function deferTools(effective: readonly string[], options: { aggressive?: boolean; threshold?: number } = {}): { active: readonly string[]; deferred: readonly string[] } {
