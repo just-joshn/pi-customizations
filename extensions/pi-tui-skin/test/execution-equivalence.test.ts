@@ -208,7 +208,7 @@ describe('built-in bash execution equivalence', () => {
   });
 });
 
-describe('built-in edit and write execution equivalence', () => {
+describe('built-in edit, write execution equivalence', () => {
   test('edit execution matches the built-in', async () => {
     const directory = await tempDir();
     const file = join(directory, 'edit-me.txt');
@@ -247,7 +247,7 @@ describe('built-in edit and write execution equivalence', () => {
   });
 });
 
-describe('built-in search and list execution equivalence', () => {
+describe('built-in search, list execution equivalence', () => {
   test('grep execution matches the built-in', async () => {
     const directory = await tempDir();
     await writeFile(join(directory, 'greeting.txt'), 'hello world\nsecond line\n');
@@ -280,7 +280,7 @@ describe('built-in search and list execution equivalence', () => {
   });
 });
 
-describe('built-in ls and powershell execution equivalence', () => {
+describe('built-in ls, powershell execution equivalence', () => {
   test('ls execution matches the built-in', async () => {
     const directory = await tempDir();
     await writeFile(join(directory, 'one.txt'), '1\n');

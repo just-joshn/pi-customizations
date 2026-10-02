@@ -119,7 +119,7 @@ describe('SkinStyleEditor layout', () => {
   });
 });
 
-describe('SkinStyleEditor shell and scrolling', () => {
+describe('SkinStyleEditor shell, scrolling', () => {
   test('leaves the band in whatever accent Pi set for a shell prefix', () => {
     const { editor } = editorHarness();
     editor.setText('!ls');
@@ -212,7 +212,7 @@ describe('SkinStyleEditor narrow widths', () => {
   });
 });
 
-describe('SkinStyleEditor padding and band geometry', () => {
+describe('SkinStyleEditor padding, band geometry', () => {
   test('turns a host setPaddingX into indent the text column still matches', () => {
     for (const userPadding of [0, 1, 3]) {
       const { editor } = editorHarness();

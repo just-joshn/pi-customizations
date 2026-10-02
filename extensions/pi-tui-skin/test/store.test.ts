@@ -54,7 +54,7 @@ describe('presentation store', () => {
   });
 });
 
-describe('presentation store reset and subscriptions', () => {
+describe('presentation store reset, subscriptions', () => {
   test('reset returns the idle presentation state', () => {
     const store = createPresentationStore();
     start(store, 'a', 'edit', { path: 'src/a.ts' });

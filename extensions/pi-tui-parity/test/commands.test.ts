@@ -119,7 +119,7 @@ describe('command registry', () => {
   });
 });
 
-describe('help and registration commands', () => {
+describe('help, registration commands', () => {
   it('/help prints the Commands header, one line per entry, and the hint', async () => {
     const theme = await makeTheme();
     const state = createSession();
