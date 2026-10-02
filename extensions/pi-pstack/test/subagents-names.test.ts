@@ -14,11 +14,13 @@ test('the addressable profile accepts names and ignored compatibility fields', (
   expect(Check(buildAgentSchema({ addressable: true }), { ...input, name: 42 })).toBe(false);
 });
 
-test('without agent teams the model is not offered name and a named call starts no child', async () => {
+test('without agent teams the Agent schema refuses a named call', async () => {
   const fixture = await workerFixture();
   try {
     await fixture.session.prompt('NAMED_AGENT_CONTRACT');
     expect(((await fixture.call('ListAgents', {})) as { details: { agents: unknown[] } }).details.agents).toEqual([]);
+    const refusal = fixture.session.messages.find((message) => message.role === 'toolResult');
+    expect(JSON.stringify(refusal?.content)).toContain('Validation failed for tool \\"Agent\\":\\n  - name: schema is false');
   } finally {
     await fixture.close();
   }

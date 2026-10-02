@@ -5,21 +5,36 @@ import { assertTeammateSpawnAllowed, dispatchesTeammate, teammateCaller } from '
 const teammate = { teammate: true, addressableWorkers: false };
 const lead = { teammate: false, addressableWorkers: false };
 
-function refusal(run: () => void): { code: string; message: string } | undefined {
+function refusal(run: () => void): { code: string; message: string } | { allowed: true } {
   try {
     run();
   } catch (error) {
     if (error instanceof AgentPreconditionError) return { code: error.code, message: error.message };
     throw error;
   }
-  return undefined;
+  return { allowed: true };
 }
 
 test.for([
   { name: 'a named spawn from a teammate', spawn: { name: 'helper' }, code: 'subagent_nested_teammate', message: 'Teammates cannot spawn other teammates — the team roster is flat. To spawn a subagent instead, omit the `name` parameter.' },
-  { name: 'an explicit background spawn', spawn: { runInBackground: true }, code: 'subagent_teammate_background_denied', message: 'In-process teammates cannot spawn background agents. Use run_in_background=false for synchronous subagents.' },
-  { name: 'a background:true definition', spawn: { definition: { agentType: 'watcher', background: true } }, code: 'subagent_teammate_background_denied', message: "In-process teammates cannot spawn background agents. Agent 'watcher' has background: true in its definition." },
-  { name: 'a rewrite that backgrounded the spawn', spawn: { rewritten: { background: true, remote: false } }, code: 'subagent_teammate_background_denied', message: "In-process teammates cannot spawn background agents; a plugin's agent.spawn hook backgrounded this one." },
+  {
+    name: 'an explicit background spawn',
+    spawn: { runInBackground: true },
+    code: 'subagent_teammate_background_denied',
+    message: 'In-process teammates cannot spawn background agents. Use run_in_background=false for synchronous subagents.',
+  },
+  {
+    name: 'a background:true definition',
+    spawn: { definition: { agentType: 'watcher', background: true } },
+    code: 'subagent_teammate_background_denied',
+    message: "In-process teammates cannot spawn background agents. Agent 'watcher' has background: true in its definition.",
+  },
+  {
+    name: 'a rewrite that backgrounded the spawn',
+    spawn: { rewritten: { background: true, remote: false } },
+    code: 'subagent_teammate_background_denied',
+    message: "In-process teammates cannot spawn background agents; a plugin's agent.spawn hook backgrounded this one.",
+  },
 ])('a teammate making $name is refused with the recovered message', ({ spawn, code, message }) => {
   expect(refusal(() => assertTeammateSpawnAllowed(spawn, teammate))).toEqual({ code, message });
 });
@@ -29,15 +44,15 @@ test.for([
   { name: 'a rewrite that went remote', spawn: { rewritten: { background: true, remote: true } } },
   { name: 'a foreground rewrite', spawn: { rewritten: { background: false, remote: false } } },
 ])('a teammate making $name is allowed', ({ spawn }) => {
-  expect(refusal(() => assertTeammateSpawnAllowed(spawn, teammate))).toBeUndefined();
+  expect(refusal(() => assertTeammateSpawnAllowed(spawn, teammate))).toEqual({ allowed: true });
 });
 
 test('a lead session is never restricted by the teammate rules', () => {
-  expect(refusal(() => assertTeammateSpawnAllowed({ name: 'a', runInBackground: true, definition: { agentType: 'x', background: true } }, lead))).toBeUndefined();
+  expect(refusal(() => assertTeammateSpawnAllowed({ name: 'a', runInBackground: true, definition: { agentType: 'x', background: true } }, lead))).toEqual({ allowed: true });
 });
 
-test('named spawns stay allowed for a teammate once addressable workers are rolled out', () => {
-  expect(refusal(() => assertTeammateSpawnAllowed({ name: 'helper' }, { teammate: true, addressableWorkers: true }))).toBeUndefined();
+test('a teammate may spawn named workers once addressable workers roll out', () => {
+  expect(refusal(() => assertTeammateSpawnAllowed({ name: 'helper' }, { teammate: true, addressableWorkers: true }))).toEqual({ allowed: true });
 });
 
 test('the caller is a teammate only when the child process says so', () => {

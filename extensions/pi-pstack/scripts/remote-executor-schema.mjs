@@ -1,4 +1,5 @@
 import { isAbsolute } from 'node:path';
+
 import { Type } from 'typebox';
 import { Check } from 'typebox/value';
 
@@ -16,10 +17,12 @@ export const ExecutorSchema = Type.Object({
   extensions: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
 });
 
+const hasControlCharacter = (text) => Array.from(text).some((char) => char.charCodeAt(0) <= 0x1f);
+
 export function parseExecutor(input) {
   if (!Check(ExecutorSchema, input)) throw new Error('Invalid remote executor. Supply a configured VM, machine identity, and absolute paths.');
   for (const path of [input.packageRoot, input.repository, input.localRepository, input.agentDir, ...(input.knownHosts ? [input.knownHosts] : []), ...(input.extensions ?? [])]) {
-    if (!isAbsolute(path) || /[\x00-\x1f]/.test(path)) throw new Error('Invalid remote executor. Paths must be absolute and contain no control characters.');
+    if (!isAbsolute(path) || hasControlCharacter(path)) throw new Error('Invalid remote executor. Paths must be absolute and contain no control characters.');
   }
   if (input.transport === 'ssh' && !input.knownHosts) throw new Error('SSH executor requires knownHosts with the independently verified target host key.');
   return structuredClone(input);

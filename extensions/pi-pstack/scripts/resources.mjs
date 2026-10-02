@@ -128,24 +128,14 @@ const hostPaths = [
     `Fan out N parallel workers. Default each worker to \`environment: "cloud"\` when the host contract shows a configured remote executor. Use a local worker when the task needs an app, simulator, credentials, transcripts, or IDE state available only on this machine. Verify a cloud worker's host, working directory, and exact commit SHA. ${cloudVm} ${remoteFallback} If a required machine is unavailable, mark the lane BLOCKED.`,
     dependencyCorrections,
   ],
-  [
-    /^skills\/swarm\/SKILL\.md$/,
-    'N is total workers, not the cloud concurrency limit.',
-    'N is the total worker count, not the current concurrency limit.',
-    dependencyCorrections,
-  ],
+  [/^skills\/swarm\/SKILL\.md$/, 'N is total workers, not the cloud concurrency limit.', 'N is the total worker count, not the current concurrency limit.', dependencyCorrections],
   [
     /^skills\/swarm\/SKILL\.md$/,
     'Spawn all N workers in one message with `subagent_type: generalPurpose`, `environment: "cloud"`, `run_in_background: true`, and the step 4 model, left unset for `auto` or `inherit-parent`. Use `environment: "local"` only when the worker needs access to something on the user\'s computer.',
     'Spawn all N workers in one message with `subagent_type: generalPurpose`, `run_in_background: true`, and the step 4 model, left unset for `auto` or `inherit-parent`, using the Pi `Task` tool. Default `environment` to `"cloud"` when the host contract shows a configured remote executor. Use `environment: "local"` only when the worker needs access to something on this machine, or when no remote executor is configured, and record that fallback. Use `environment: "cloud"` for a configured independent VM. Its receipt must match the expected machine identity and exact checkout SHA. If a required machine is unavailable, mark the lane BLOCKED.',
     dependencyCorrections,
   ],
-  [
-    /^skills\/poteto-mode\/playbooks\/autopilot-(?:full|stack)\.md$/,
-    'One Cursor cloud agent per PR',
-    'One Pi worker per PR',
-    dependencyCorrections,
-  ],
+  [/^skills\/poteto-mode\/playbooks\/autopilot-(?:full|stack)\.md$/, 'One Cursor cloud agent per PR', 'One Pi worker per PR', dependencyCorrections],
   [
     /^skills\/poteto-mode\/playbooks\/autopilot-(?:full|stack)\.md$/,
     'Never require Graphite (`gt`).',
@@ -172,14 +162,14 @@ const hostPaths = [
   ],
   [
     /^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/,
-    '- [ ] Hold the review gate. <PR ids> change an interaction. They wait for the operator\'s review in chat with screenshots and a video before merge.',
-    '- [ ] Hold the review gate. <PR ids> change an interaction. Before capturing or storing screenshots or video from a privacy-sensitive workspace, get the operator\'s explicit agreement. Without agreement, do not store the media and mark the review gate BLOCKED. The operator reviews approved screenshots and video in chat before merge.',
+    "- [ ] Hold the review gate. <PR ids> change an interaction. They wait for the operator's review in chat with screenshots and a video before merge.",
+    "- [ ] Hold the review gate. <PR ids> change an interaction. Before capturing or storing screenshots or video from a privacy-sensitive workspace, get the operator's explicit agreement. Without agreement, do not store the media and mark the review gate BLOCKED. The operator reviews approved screenshots and video in chat before merge.",
     dependencyCorrections,
   ],
   [
     /^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/,
     '- [ ] Save every screenshot to `/tmp/swarm-<pr-id>/worker-<n>/<slug>.png` and return the paths with the report.',
-    '- [ ] Check whether the workspace is privacy-sensitive before capturing or storing media. Without the operator\'s explicit agreement, do not store screenshots or video from a privacy-sensitive workspace and mark the lane BLOCKED. Otherwise save each screenshot to `/tmp/swarm-<pr-id>/worker-<n>/<slug>.png` and return the paths with the report.',
+    "- [ ] Check whether the workspace is privacy-sensitive before capturing or storing media. Without the operator's explicit agreement, do not store screenshots or video from a privacy-sensitive workspace and mark the lane BLOCKED. Otherwise save each screenshot to `/tmp/swarm-<pr-id>/worker-<n>/<slug>.png` and return the paths with the report.",
     dependencyCorrections,
   ],
   [
@@ -233,7 +223,11 @@ function mapHostPaths(entry, text) {
 }
 
 function markdown(entry) {
-  if (entry.path === 'skills/make-bot-ui/SKILL.md') return { generated: Buffer.from(routineAdapter.toString('utf8').replaceAll('../../../upstream/', '../../upstream/')), transformations: ['Replace Cursor routine panel and secret card with the native reviewed Pi routine adapter at host/adapters/make-bot-ui/SKILL.md.'] };
+  if (entry.path === 'skills/make-bot-ui/SKILL.md')
+    return {
+      generated: Buffer.from(routineAdapter.toString('utf8').replaceAll('../../../upstream/', '../../upstream/')),
+      transformations: ['Replace Cursor routine panel and secret card with the native reviewed Pi routine adapter at host/adapters/make-bot-ui/SKILL.md.'],
+    };
   let text = entry.original.toString('utf8');
   let transformations = [];
   if (/^skills\/[^/]+\/SKILL\.md$/.test(entry.path)) {
@@ -247,8 +241,11 @@ function markdown(entry) {
     text = portable;
     if (pathTriggered) transformations = [...transformations, 'Pi has no file-path skill trigger. Keep the skill hidden from model selection, and the host contract requires reading it before editing matching files.'];
     if (slug === 'setup-pstack') {
-      text = text.replace('# Setup pstack', '# Setup pstack\n\nCall `pstack_setup` to perform these steps through native Pi dialogs and validated writes. This skill may be selected when the user asks to configure models. Do not bypass the confirmation by manually writing the rule. The steps below document the contract owned by that tool; /setup-pstack and /skill:setup-pstack use the same implementation.');
-      transformations = [...transformations, "Preserve ambient setup invocation and route it through the same native validated dialogs as the slash entry points."];
+      text = text.replace(
+        '# Setup pstack',
+        '# Setup pstack\n\nCall `pstack_setup` to perform these steps through native Pi dialogs and validated writes. This skill may be selected when the user asks to configure models. Do not bypass the confirmation by manually writing the rule. The steps below document the contract owned by that tool; /setup-pstack and /skill:setup-pstack use the same implementation.',
+      );
+      transformations = [...transformations, 'Preserve ambient setup invocation and route it through the same native validated dialogs as the slash entry points.'];
     }
   }
   const mapped = mapHostPaths(entry, text);

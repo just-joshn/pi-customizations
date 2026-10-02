@@ -2,15 +2,19 @@ import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 
 import type { JsonValue, Usage } from '@earendil-works/pi-ai';
-import type { AgentSession, AgentSessionEvent, AgentSessionEventListener, AgentToolResult, AgentToolUpdateCallback, createEventBus, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { AgentSession, AgentSessionEventListener, AgentToolResult, createEventBus, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { readCloudOutcome } from './cloud-worker.ts';
 import { DeferredWakes } from './deferred-wakes.ts';
 import { asShellHandoff, shellHandoffEvent } from './shell-ownership.ts';
 import { depthMessage } from './subagents/admission.ts';
-import { flaggedOutput, lastMeteredTokens, lastReportText, type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
+import { closeSession } from './subagents/close-session.ts';
+import { CloudTasks, type CloudWorker } from './subagents/cloud-tasks.ts';
+import { flaggedOutput, lastReportText, type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
 import { currentDepth, depthStore } from './subagents/context.ts';
-import { isForkDefinition } from './subagents/fork-context.ts';
 import type { ContinuationState } from './subagents/continuation.ts';
 import { SessionDepthPolicy } from './subagents/depth-policy.ts';
+import { finishedRecord } from './subagents/finished-record.ts';
+import { isForkDefinition } from './subagents/fork-context.ts';
 import { HandbackContract, handbackActive, runUntilReported } from './subagents/handback.ts';
 import { validateId } from './subagents/identifiers.ts';
 import { AgentInvocations } from './subagents/invocations.ts';
@@ -19,6 +23,8 @@ import { childStatsEvents } from './subagents/nested-depth.ts';
 import { type ResumeHandler, reconcileOrphans } from './subagents/orphan-recovery.ts';
 import { AgentPreconditionError } from './subagents/precondition-error.ts';
 import { groupSpawned, ProcessGroups, processGroupEvent } from './subagents/process-groups.ts';
+import { RemoteTasks } from './subagents/remote-tasks.ts';
+import { restoredContext } from './subagents/restored-context.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
 import { SdkEvents } from './subagents/sdk-events.ts';
 import { SubagentStats, type SubagentStatsDelta } from './subagents/stats.ts';
@@ -26,84 +32,36 @@ import { registerStopControl } from './subagents/stop-control.ts';
 import { settleWithin, stillStoppingMessage, stopPendingDetails } from './subagents/stop-deadline.ts';
 import { stopPendingEvent, stopPendingFor } from './subagents/stop-pending.ts';
 import { frameStatus, notificationBody, startedBody, taskFeed, updatedBody } from './subagents/task-frames.ts';
-import { RemoteTasks } from './subagents/remote-tasks.ts';
+import { progressObserver, type TaskUpdate } from './subagents/task-progress.ts';
 import { applyToolPolicy } from './subagents/tool-pool.ts';
-import { countToolStats } from './subagents/tool-stats.ts';
 import { turnLimit } from './subagents/turn-limit.ts';
-import { launchSignal, overdueAfterMs, workerControl } from './worker-control.ts';
-import { restoreTaskRecords, type TaskParameters, type TaskRecord, taskEntryType, taskOutputLimit, taskSummary } from './worker-records.ts';
-import { type AgentLaunch, openWorkerSession, sumUsage } from './worker-support.ts';
+import { launchSignal, overdueAfterMs, waitFor, workerControl } from './worker-control.ts';
+import { restoreTaskRecords, type TaskParameters, type TaskRecord, taskCleanupErrorType, taskCleanupUsageType, taskEntryType, taskOutputLimit, taskOwner, taskOwnerEntryType, taskSummary } from './worker-records.ts';
+import { type AgentLaunch, openWorkerSession, workerDirs } from './worker-support.ts';
+
+export type { TaskProgressSnapshot, TaskToolDetails } from './subagents/task-progress.ts';
 
 type OpenedWorker = Awaited<ReturnType<typeof openWorkerSession>>;
 type ChildChannel = Readonly<{ events: ReturnType<typeof createEventBus>; groups: ProcessGroups }>;
 type Worker = ChildChannel & { readonly id: string; readonly session: AgentSession; readonly completion: Promise<TaskRecord>; readonly stop: ReturnType<typeof workerControl>['stop']; readonly drain: () => Promise<string[]> };
 type StartupOutcome = { error: unknown } | undefined;
-type Lifecycle = { kind: 'active' } | { kind: 'stopped' } | { kind: 'stopping'; completion: Promise<void> };
-type SafeToolName = string & { readonly __brand: 'SafeToolName' };
-type TaskActivity =
-  | Readonly<{ kind: 'tool-started'; tool: SafeToolName }>
-  | Readonly<{ kind: 'tool-finished'; tool: SafeToolName; failed: boolean }>
-  | Readonly<{ kind: 'retry-started'; attempt: number; maxAttempts: number }>
-  | Readonly<{ kind: 'retry-finished'; attempt: number; recovered: boolean }>;
-export type TaskProgressSnapshot = Readonly<{
-  kind: 'progress';
-  task_id: TaskRecord['id'];
-  status: 'running';
-  active_tools: readonly SafeToolName[];
-  latest: TaskActivity;
-}>;
-export type TaskToolDetails = TaskRecord | TaskProgressSnapshot;
-type TaskUpdate = AgentToolUpdateCallback<TaskToolDetails>;
-type ProgressTransition = Readonly<{ activeCalls: ReadonlyMap<string, SafeToolName>; latest: TaskActivity }>;
-const toolNamePattern = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,31}$/;
+type StartRequest = Readonly<{ callId: string; id: string; params: TaskParameters; prior: TaskRecord | undefined; signal: AbortSignal | undefined; ctx: ExtensionContext; owner: number }>;
 
-function safeToolName(name: string): SafeToolName {
-  return (toolNamePattern.test(name) ? name : 'extension tool') as SafeToolName;
-}
-
-function projectProgressEvent(activeCalls: ReadonlyMap<string, SafeToolName>, event: AgentSessionEvent): ProgressTransition | undefined {
-  if ((event.type === 'tool_execution_start' || event.type === 'tool_execution_end') && event.parentToolCallId !== undefined) return undefined;
-  switch (event.type) {
-    case 'tool_execution_start': {
-      const tool = safeToolName(event.toolName);
-      const next = new Map(activeCalls);
-      next.set(event.toolCallId, tool);
-      return { activeCalls: next, latest: Object.freeze({ kind: 'tool-started', tool }) };
-    }
-    case 'tool_execution_end': {
-      const tool = activeCalls.get(event.toolCallId) ?? safeToolName(event.toolName);
-      const next = new Map(activeCalls);
-      next.delete(event.toolCallId);
-      return { activeCalls: next, latest: Object.freeze({ kind: 'tool-finished', tool, failed: event.isError }) };
-    }
-    case 'auto_retry_start':
-      return { activeCalls, latest: Object.freeze({ kind: 'retry-started', attempt: event.attempt, maxAttempts: event.maxAttempts }) };
-    case 'auto_retry_end':
-      return { activeCalls, latest: Object.freeze({ kind: 'retry-finished', attempt: event.attempt, recovered: event.success }) };
-    default:
-      return undefined;
+class StartupCleanupError extends AggregateError {
+  constructor(
+    error: unknown,
+    readonly cleanup: unknown,
+  ) {
+    super([error, cleanup], `${String(error)}; Worker cleanup failed: ${String(cleanup)}`);
   }
 }
-
-function progressText(snapshot: TaskProgressSnapshot): string {
-  const active = snapshot.active_tools.length ? snapshot.active_tools.join(', ') : 'none';
-  const latest = snapshot.latest;
-  const description =
-    latest.kind === 'tool-started'
-      ? `${latest.tool} started`
-      : latest.kind === 'tool-finished'
-        ? `${latest.tool} ${latest.failed ? 'failed' : 'finished'}`
-        : latest.kind === 'retry-started'
-          ? `retry ${latest.attempt}/${latest.maxAttempts} started`
-          : `retry ${latest.attempt} ${latest.recovered ? 'recovered' : 'failed'}`;
-  return `Task ${snapshot.task_id} running. Active tools: ${active}. Latest: ${description}.`;
-}
-
+type Lifecycle = { kind: 'active' } | { kind: 'stopped' } | { kind: 'stopping'; completion: Promise<void> };
 export class WorkerRuntime {
   private records = new Map<string, TaskRecord>();
   private workers = new Map<string, Worker>();
   private starting = new Map<string, Promise<StartupOutcome>>();
   private generation = 0;
+  private owned = false;
   private failedUsage = new Map<string, Usage>();
   private settledHooks = new Map<string, (record: TaskRecord) => Promise<Partial<TaskRecord>>>();
   private claimedUsage = new WeakSet<TaskRecord>();
@@ -112,7 +70,6 @@ export class WorkerRuntime {
   private stopping: ReadonlySet<string> = new Set();
   private keepalive: ReadonlySet<string> = new Set();
   private selfStopPending = false;
-  private closing = new WeakMap<AgentSession, Promise<void>>();
   private readonly completions: DeferredWakes;
   depth = currentDepth();
   agentId: string | undefined;
@@ -126,6 +83,13 @@ export class WorkerRuntime {
   private readonly frames: SdkEvents;
   private resumeHandler: ResumeHandler | undefined;
   readonly remote = new RemoteTasks({ commit: (record) => this.commitRemote(record), settle: (record, output, notify) => this.settleRemote(record, output, notify), current: (id) => this.records.get(id) });
+  private readonly cloud = new CloudTasks({
+    generation: () => this.generation,
+    current: (id) => this.records.get(id),
+    commit: (record) => this.commitRecord(record),
+    pendingUsage: (owner, record) => this.pendingUsage(owner, record),
+    notify: (record, parentIdle) => this.notifyCompletion(record, record.output, parentIdle),
+  });
   constructor(private readonly pi: ExtensionAPI) {
     this.completions = new DeferredWakes(pi);
     this.frames = new SdkEvents(pi);
@@ -172,9 +136,17 @@ export class WorkerRuntime {
     return { inFlight: this.starting.has(id), stopping: this.stopping.has(id), resumerStopping: this.selfStopPending };
   }
 
-  private commitRemote(record: TaskRecord): void {
+  private commitRecord(record: TaskRecord): void {
     this.records.set(record.id, record);
     this.pi.appendEntry(taskEntryType, structuredClone(record));
+  }
+
+  private pendingUsage(owner: number, record: TaskRecord): Usage | undefined {
+    return owner === this.generation ? this.records.get(record.id)?.usage : this.claimedUsage.has(record) ? undefined : record.usage;
+  }
+
+  private commitRemote(record: TaskRecord): void {
+    this.commitRecord(record);
     this.pi.events.emit('pstack:subagent-started', { agentId: record.id, spawnDepth: record.depth, agent_depth: record.depth });
   }
 
@@ -195,6 +167,16 @@ export class WorkerRuntime {
   }
 
   registerLifecycle(): void {
+    if (process.env.PI_PSTACK_WORKER_OWNER)
+      this.pi.registerCommand('pstack-worker-finalize', {
+        handler: async () => {
+          try {
+            await this.stopAll();
+          } catch (error) {
+            this.pi.appendEntry(taskCleanupErrorType, { error: String(error) });
+          }
+        },
+      });
     this.frames.listen();
     const detachControl = registerStopControl(this.pi, (reference) => this.stop(reference, 'user'));
     this.pi.events.on(stopPendingEvent, (payload) => {
@@ -209,34 +191,14 @@ export class WorkerRuntime {
     });
     this.pi.on('session_start', async (_event, ctx) => this.restore(ctx, true));
     this.pi.on('session_tree', async (_event, ctx) => this.restore(ctx));
-    this.pi.on('session_shutdown', async () => {
+    this.pi.on('session_shutdown', async (_event, ctx) => {
       detachControl();
-      await this.stopAll();
-    });
-  }
-
-  private close(session: AgentSession): Promise<void> {
-    const pending = this.closing.get(session);
-    if (pending) return pending;
-    const operation = (async () => {
-      const failures: unknown[] = [];
-      const unsubscribe = session.extensionRunner.onError((error) => failures.push(error.error));
       try {
-        await session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' });
-      } catch (error) {
-        failures.push(error);
+        await this.stopAll();
       } finally {
-        unsubscribe();
-        try {
-          session.dispose();
-        } catch (error) {
-          failures.push(error);
-        }
+        await workerDirs.removeAll(ctx.sessionManager);
       }
-      if (failures.length) throw new AggregateError(failures, failures.map(String).join('; '));
-    })();
-    this.closing.set(session, operation);
-    return operation;
+    });
   }
 
   private claimUsage(record: TaskRecord): Usage | undefined {
@@ -266,6 +228,7 @@ export class WorkerRuntime {
         }
         const outcomes = await Promise.allSettled([
           this.remote.shutdown(),
+          ...this.cloud.shutdown(this.owned, (record) => this.claimCleanupUsage(record)),
           ...starting.map((operation) =>
             operation.then((outcome) => {
               if (outcome) throw outcome.error;
@@ -287,15 +250,22 @@ export class WorkerRuntime {
     return completion;
   }
 
+  private claimCleanupUsage(record: TaskRecord): void {
+    if (!this.owned) return;
+    const usage = this.claimUsage(record);
+    if (usage) this.pi.appendEntry(taskCleanupUsageType, { taskId: record.id, usage });
+  }
+
   private async shutdownWorker(worker: Worker): Promise<void> {
     const outcome = await settleWithin(worker.completion, overdueAfterMs);
     if (!outcome.settled) {
       worker.groups.killAll();
       throw new Error(stillStoppingMessage(worker.id));
     }
+    this.claimCleanupUsage(outcome.value);
     const failures = await worker.drain();
     try {
-      await this.close(worker.session);
+      await closeSession(worker.session);
     } catch (error) {
       failures.push(String(error));
     }
@@ -310,30 +280,44 @@ export class WorkerRuntime {
     } finally {
       if (owner === this.generation) {
         this.frames.attach(ctx.sessionManager.getSessionId());
+        this.restoreOwnership(ctx);
         const branch = ctx.sessionManager.getBranch();
         this.invocations.restore(branch);
-        const appended = branch.findLast((entry) => entry.type === 'custom' && entry.customType === 'pstack-append-subagent-system-prompt');
-        this.appendedPrompt = appended?.type === 'custom' && typeof appended.data === 'string' ? appended.data : undefined;
-        const definitions = branch.findLast((entry) => entry.type === 'custom' && entry.customType === 'pstack-agent-definition-overrides');
-        this.inheritedDefinitions = definitions?.type === 'custom' && typeof definitions.data === 'string' ? definitions.data : undefined;
-        const identity = branch.findLast((entry) => entry.type === 'custom' && entry.customType === 'pstack-agent-identity');
-        this.agentId = identity?.type === 'custom' && typeof identity.data === 'string' ? identity.data : undefined;
-        const worktree = branch.findLast((entry) => entry.type === 'custom' && entry.customType === 'pstack-agent-worktree');
-        this.ownWorktree = worktree?.type === 'custom' && typeof worktree.data === 'string' ? worktree.data : undefined;
-        const depthEntry = branch.findLast((entry) => entry.type === 'custom' && entry.customType === 'pstack-agent-depth');
-        this.depth = depthEntry?.type === 'custom' && typeof depthEntry.data === 'number' && Number.isSafeInteger(depthEntry.data) && depthEntry.data > 0 ? depthEntry.data : 0;
-        const scope = branch.findLast((entry) => entry.type === 'custom' && entry.customType === 'pstack-agent-allowed-types');
-        const data = scope?.type === 'custom' ? scope.data : null;
-        const valid = Array.isArray(data) && data.every((name) => typeof name === 'string');
-        this.allowedAgentTypes = data === null || data === undefined ? undefined : valid ? ([...data] as string[]) : [];
-        if (data !== null && data !== undefined && !valid) this.pi.events.emit('pstack:subagent-log', 'Invalid native agent type scope; no child types are permitted.');
+        const saved = restoredContext(branch);
+        this.appendedPrompt = saved.appendedPrompt;
+        this.inheritedDefinitions = saved.inheritedDefinitions;
+        this.agentId = saved.agentId;
+        this.ownWorktree = saved.ownWorktree;
+        this.depth = saved.depth;
+        this.allowedAgentTypes = saved.allowedAgentTypes;
+        if (saved.invalidScope) this.pi.events.emit('pstack:subagent-log', 'Invalid native agent type scope; no child types are permitted.');
         this.records = restoreTaskRecords(branch);
         this.failedUsage = new Map();
         this.completions.clear();
         this.lifecycle = { kind: 'active' };
+        for (const record of this.records.values()) if (record.detached && record.status === 'running') this.cloud.attach(record, owner, () => ctx.isIdle());
         if (reconcile) this.recoverOrphans(ctx, branch);
       }
     }
+  }
+
+  private restoreOwnership(ctx: ExtensionContext): void {
+    const marker = process.env.PI_PSTACK_WORKER_OWNER;
+    const recorded = taskOwner(ctx.sessionManager.getEntries());
+    this.owned = Boolean(marker || recorded);
+    if (marker && recorded !== marker) this.pi.appendEntry(taskOwnerEntryType, { id: marker });
+  }
+
+  async attach(record: TaskRecord, ctx: ExtensionContext) {
+    if (this.lifecycle.kind !== 'active') throw new Error('Parent session is not active.');
+    const existing = this.records.get(record.id);
+    if (existing) return this.result(existing);
+    if (!record.detached?.remote) throw new Error('Only a remote task can be attached from repository discovery.');
+    const outcome = await readCloudOutcome(record);
+    const attached: TaskRecord = outcome ? { ...record, ...outcome } : { ...record, status: 'running' };
+    this.commitRecord(attached);
+    if (!outcome) this.cloud.attach(attached, this.generation, () => ctx.isIdle());
+    return this.result(attached);
   }
 
   private recoverOrphans(ctx: ExtensionContext, branch: ReturnType<ExtensionContext['sessionManager']['getBranch']>): void {
@@ -349,7 +333,6 @@ export class WorkerRuntime {
   private priorTask(params: TaskParameters): TaskRecord | undefined {
     if (params.resume !== undefined) validateId(params.resume);
     if (this.lifecycle.kind !== 'active') throw new Error('Parent session is not active. Wait for session startup or tree restoration before starting a task.');
-    if (params.environment === 'cloud') throw new Error('Cursor cloud execution is unavailable in Pi. Explicitly choose environment local only when local execution satisfies the task.');
     const prior = params.resume ? this.records.get(params.resume) : undefined;
     if (params.resume && !prior) throw new Error(`Unknown task in this branch: ${params.resume}`);
     return prior;
@@ -365,7 +348,8 @@ export class WorkerRuntime {
     const prior = this.priorTask(params);
     this.checkDepth(prior, ctx);
     const id = prior?.id ?? randomUUID();
-    if (this.starting.has(id) || (this.workers.has(id) && this.records.get(id)?.status === 'running')) throw new Error(`Task ${id} is running. Use TaskMessage to queue input.`);
+    if (this.starting.has(id) || (this.workers.has(id) && this.records.get(id)?.status === 'running') || (this.cloud.has(id) && this.records.get(id)?.status === 'running'))
+      throw new Error(`Task ${id} is running. Use TaskMessage to queue input.`);
     let finishStarting = (_outcome: StartupOutcome) => {};
     let startupOutcome: StartupOutcome;
     this.starting.set(
@@ -374,40 +358,82 @@ export class WorkerRuntime {
         finishStarting = resolveStart;
       }),
     );
-    const owner = this.generation;
-    let session: AgentSession | undefined;
+    const request = { callId, id, params, prior, signal, ctx, owner: this.generation };
     try {
       if (launch?.onSettled) this.settledHooks.set(id, launch.onSettled);
-      if (launch) this.invocations.mark(this.pi, launch.definition.agentType, id);
-      const opened = await this.openChild({ id, params, prior, ctx, toolUseId: callId, ...(launch ? { launch } : {}) });
-      session = opened.session;
-      this.publishMemory(launch, id);
-      if (launch && !isForkDefinition(launch.definition)) applyToolPolicy(session, launch.definition, { isContinuation: prior !== undefined, isAsync: params.run_in_background !== false, ...(launch.parentTools ? { parentTools: launch.parentTools } : {}), report: (diagnostic) => this.pi.events.emit('pstack:subagent-zero-tools', diagnostic) });
-      signal = this.checkStartup(owner, signal, params.run_in_background !== false);
-      await session.bindExtensions({ mode: 'print' });
-      signal = this.checkStartup(owner, signal, params.run_in_background !== false);
-      const previous = this.workers.get(id);
-      if (previous) await this.close(previous.session);
-      signal = this.checkStartup(owner, signal, params.run_in_background !== false);
-      const worker = this.launch(opened, params, signal, owner, () => ctx.isIdle(), onUpdate, launch);
-      this.publishStart(opened.record, prior, launch, params);
-      launch?.onStarted?.();
-      const record = params.run_in_background === false ? await this.foreground(callId, worker) : this.records.get(id);
-      if (!record) throw new Error(`Failed to create task record for ${id}`);
-      return this.result(record, owner);
+      if (params.environment === 'cloud' || prior?.detached) return await this.startCloud(request);
+      return await this.startLocal(request, onUpdate, launch);
     } catch (error) {
       this.settledHooks.delete(id);
-      try {
-        if (session) await this.close(session);
-      } catch (cleanup) {
-        startupOutcome = { error: cleanup };
-        throw new AggregateError([error, cleanup], `${String(error)}; Worker cleanup failed: ${String(cleanup)}`);
-      }
+      if (error instanceof StartupCleanupError) startupOutcome = { error: error.cleanup };
       throw error;
     } finally {
       this.starting.delete(id);
       finishStarting(startupOutcome);
     }
+  }
+
+  private async startCloud({ callId, id, params, prior, signal, ctx, owner }: StartRequest): Promise<AgentToolResult<TaskRecord>> {
+    const background = params.run_in_background !== false;
+    const worker = await this.cloud.launch(
+      {
+        id,
+        params,
+        prior,
+        ctx,
+        owner,
+        checkStartup: () => {
+          signal = this.checkStartup(owner, signal, background);
+        },
+      },
+      () => ctx.isIdle(),
+    );
+    const record = background ? this.records.get(id) : await this.foreground(callId, worker, signal);
+    if (!record) throw new Error(`Failed to create task record for ${id}`);
+    return this.result(record, owner);
+  }
+
+  private async startLocal({ callId, id, params, prior, signal, ctx, owner }: StartRequest, onUpdate: TaskUpdate | undefined, launch: AgentLaunch | undefined): Promise<AgentToolResult<TaskRecord>> {
+    const background = params.run_in_background !== false;
+    let session: AgentSession | undefined;
+    try {
+      if (launch) this.invocations.mark(this.pi, launch.definition.agentType, id);
+      const opened = await this.openChild({ id, params, prior, ctx, toolUseId: callId, ...(launch ? { launch } : {}) });
+      session = opened.session;
+      this.publishMemory(launch, id);
+      if (launch && !isForkDefinition(launch.definition))
+        applyToolPolicy(session, launch.definition, {
+          isContinuation: prior !== undefined,
+          isAsync: background,
+          ...(launch.parentTools ? { parentTools: launch.parentTools } : {}),
+          report: (diagnostic) => this.pi.events.emit('pstack:subagent-zero-tools', diagnostic),
+        });
+      signal = this.checkStartup(owner, signal, background);
+      await session.bindExtensions({ mode: 'print' });
+      signal = this.checkStartup(owner, signal, background);
+      const previous = this.workers.get(id);
+      if (previous) await closeSession(previous.session);
+      signal = this.checkStartup(owner, signal, background);
+      const worker = this.launch(opened, params, signal, owner, () => ctx.isIdle(), onUpdate, launch);
+      this.publishStart(opened.record, prior, launch, params);
+      launch?.onStarted?.();
+      const record = background ? this.records.get(id) : await this.foreground(callId, worker);
+      if (!record) throw new Error(`Failed to create task record for ${id}`);
+      return this.result(record, owner);
+    } catch (error) {
+      const opened = session;
+      if (opened) await this.abandon(error, () => closeSession(opened));
+      throw error;
+    }
+  }
+
+  private async abandon(error: unknown, cleanup: () => Promise<void>): Promise<never> {
+    try {
+      await cleanup();
+    } catch (cleanupError) {
+      throw new StartupCleanupError(error, cleanupError);
+    }
+    throw error;
   }
 
   private publishStart(record: TaskRecord, prior: TaskRecord | undefined, launch: AgentLaunch | undefined, params: TaskParameters): void {
@@ -507,8 +533,8 @@ export class WorkerRuntime {
     return typeof configured === 'string' ? configured : this.appendedPrompt;
   }
 
-  private async foreground(callId: string, worker: Worker): Promise<TaskRecord> {
-    const record = await worker.completion;
+  private async foreground(callId: string, worker: { readonly completion: Promise<TaskRecord> }, signal?: AbortSignal): Promise<TaskRecord> {
+    const record = await waitFor(worker.completion, signal, 'Wait cancelled. Cloud task continues.');
     if (record.status === 'settled') return record;
     const usage = this.claimUsage(record);
     if (usage) this.failedUsage.set(callId, usage);
@@ -516,12 +542,12 @@ export class WorkerRuntime {
   }
 
   private launch(opened: Awaited<ReturnType<WorkerRuntime['openChild']>>, params: TaskParameters, signal: AbortSignal | undefined, owner: number, parentIdle: () => boolean, onUpdate: TaskUpdate | undefined, agent?: AgentLaunch): Worker {
-    const { session, modelsUsed } = opened;
+    const { session } = opened;
     const usage = this.records.get(opened.record.id)?.usage;
     const record: TaskRecord = { ...opened.record, ...(usage ? { usage } : {}) };
     this.records.set(record.id, record);
     this.pi.appendEntry(taskEntryType, structuredClone(record));
-    const progress = params.run_in_background === false && onUpdate ? this.progressObserver(record.id, owner, onUpdate) : undefined;
+    const progress = params.run_in_background === false && onUpdate ? progressObserver(record.id, () => owner === this.generation, onUpdate) : undefined;
     const maxTurns = agent?.definition.maxTurns;
     let limitReached: number | undefined;
     const limit = maxTurns
@@ -554,24 +580,6 @@ export class WorkerRuntime {
     return worker;
   }
 
-  private progressObserver(taskId: TaskRecord['id'], owner: number, onUpdate: TaskUpdate): AgentSessionEventListener {
-    let activeCalls: ReadonlyMap<string, SafeToolName> = new Map();
-    return (event) => {
-      if (owner !== this.generation) return;
-      const transition = projectProgressEvent(activeCalls, event);
-      if (!transition) return;
-      activeCalls = transition.activeCalls;
-      const snapshot: TaskProgressSnapshot = Object.freeze({
-        kind: 'progress',
-        task_id: taskId,
-        status: 'running',
-        active_tools: Object.freeze([...activeCalls.values()]),
-        latest: transition.latest,
-      });
-      onUpdate({ content: [{ type: 'text', text: progressText(snapshot) }], details: snapshot });
-    };
-  }
-
   private async run(session: AgentSession, prompt: string): Promise<{ status: TaskRecord['status']; output: string }> {
     try {
       await session.prompt(prompt);
@@ -600,7 +608,7 @@ export class WorkerRuntime {
     const limited = limitReached();
     if (limited) outcome = { status: 'settled', output: lastReportText(session.messages.slice(initialCount)) };
     try {
-      await this.close(session);
+      await closeSession(session);
     } catch (error) {
       outcome = { status: 'failed' as const, output: `${outcome.output}\nWorker shutdown failed: ${String(error)}` };
     } finally {
@@ -610,7 +618,7 @@ export class WorkerRuntime {
     if (abortFailures.length) outcome = { status: 'failed', output: `${outcome.output}\n${abortFailures.join('\n')}` };
     const { output } = outcome;
     const status = control.stopped() && !limited ? 'interrupted' : outcome.status;
-    let finished = this.finishedRecord(worker, owner, control, { status, output, messages: session.messages.slice(initialCount), startedAt, ...(limited ? { limited } : {}) });
+    let finished = finishedRecord(worker, this.pendingUsage(owner, record), limited ? undefined : control.abortInfo(), { status, output, messages: session.messages.slice(initialCount), startedAt, ...(limited ? { limited } : {}) });
     try {
       await writeFile(finished.outputFile, output);
     } catch (error) {
@@ -625,30 +633,6 @@ export class WorkerRuntime {
     if (finished.status !== 'running') this.frames.emit(updatedBody(record.id, { status: frameStatus(finished.status), end_time: Date.now() }));
     if (params.run_in_background !== false && (!control.stopped() || limited)) this.notifyCompletion(finished, output, parentIdle());
     return finished;
-  }
-
-  private finishedRecord(worker: OpenedWorker, owner: number, control: ReturnType<typeof workerControl>, end: { status: TaskRecord['status']; output: string; messages: AgentSession['messages']; startedAt: number; limited?: number }): TaskRecord {
-    const { session, record, modelsUsed } = worker;
-    const pendingUsage = owner === this.generation ? this.records.get(record.id)?.usage : this.claimedUsage.has(record) ? undefined : record.usage;
-    const { totalToolUseCount: toolUseCount, toolStats } = countToolStats(end.messages);
-    if (session.model) modelsUsed.record(`${session.model.provider}/${session.model.id}`);
-    const totalTokens = lastMeteredTokens(end.messages);
-    const abort = end.limited ? undefined : control.abortInfo();
-    return {
-      ...record,
-      status: end.status,
-      output: end.output.slice(0, taskOutputLimit),
-      usage: sumUsage(end.messages, pendingUsage),
-      toolUseCount,
-      durationMs: Date.now() - end.startedAt,
-      modelReference: session.model ? `${session.model.provider}/${session.model.id}:${session.thinkingLevel}` : record.modelReference,
-      modelsUsed: modelsUsed.snapshot(),
-      ...(totalTokens !== undefined ? { totalTokens } : {}),
-      ...(end.limited ? { maxTurnsReached: end.limited } : {}),
-      ...(worker.handback ? { handback: structuredClone(worker.handback.snapshot()) } : {}),
-      ...(abort ? { abort } : {}),
-      ...(toolStats ? { toolStats } : {}),
-    };
   }
 
   private notifyCompletion(record: TaskRecord, output: string, parentIdle: boolean): void {
@@ -674,24 +658,8 @@ export class WorkerRuntime {
   }
 
   async output(id: string, block: boolean | undefined, signal: AbortSignal | undefined) {
-    const worker = this.workers.get(id) ?? (this.remote.has(id) ? { completion: this.remote.completion(id) as Promise<TaskRecord> } : undefined);
-    if (block && worker) {
-      if (signal?.aborted) throw new Error('Wait cancelled.');
-      await new Promise<void>((resolveWait, reject) => {
-        const abort = () => reject(new Error('Wait cancelled.'));
-        signal?.addEventListener('abort', abort, { once: true });
-        void worker.completion.then(
-          () => {
-            signal?.removeEventListener('abort', abort);
-            resolveWait();
-          },
-          (error) => {
-            signal?.removeEventListener('abort', abort);
-            reject(error);
-          },
-        );
-      });
-    }
+    const worker = this.workers.get(id) ?? this.cloud.get(id) ?? (this.remote.has(id) ? { completion: this.remote.completion(id) as Promise<TaskRecord> } : undefined);
+    if (block && worker) await waitFor(worker.completion, signal, 'Wait cancelled.');
     const record = this.records.get(id);
     if (!record) throw new Error(`Unknown task in this branch: ${id}`);
     return this.result(record);
@@ -723,8 +691,10 @@ export class WorkerRuntime {
 
   async stop(reference: string, stoppedBy: StoppedBy = 'parent') {
     const target = this.find(reference);
-    if (target && reference !== this.agentId && this.remote.has(target.id)) return this.stopRemote(target, stoppedBy);
     const worker = target && this.workers.get(target.id);
+    const detached = target && reference !== this.agentId ? this.cloud.get(target.id) : undefined;
+    if (target && reference !== this.agentId && this.remote.has(target.id)) return this.stopRemote(target, stoppedBy);
+    if (target && detached) return this.stopCloud(target, detached, stoppedBy);
     if (reference === this.agentId || !worker) {
       const message = reference === this.agentId ? `Agent ${reference} cannot stop itself; use the task UI or a main-session TaskStop.` : `No live task: ${reference}`;
       const details = { status: 'failed' as const, task_id: reference, message };
@@ -735,12 +705,18 @@ export class WorkerRuntime {
     if (wasRunning) this.markStopping(target.id, worker);
     worker.stop();
     const outcome = await settleWithin(worker.completion, overdueAfterMs);
-    if (!outcome.settled) {
-      const details = stopPendingDetails(target);
-      return { content: [{ type: 'text' as const, text: details.message }], details, structuredContent: details, isError: false };
-    }
+    if (!outcome.settled) return this.stopOverdue(target);
     const record = outcome.value;
     if (wasRunning && owner === this.generation) this.notifyStopped(worker, record, stoppedBy);
+    return this.stopped(record, wasRunning, owner);
+  }
+
+  private stopOverdue(target: TaskRecord) {
+    const details = stopPendingDetails(target);
+    return { content: [{ type: 'text' as const, text: details.message }], details, structuredContent: details, isError: false };
+  }
+
+  private stopped(record: TaskRecord, wasRunning: boolean, owner = this.generation) {
     const result = this.result(record, owner);
     const details = {
       ...result.details,
@@ -756,15 +732,17 @@ export class WorkerRuntime {
     const wasRunning = target.status === 'running';
     const record = await this.remote.stop(target.id);
     if (wasRunning) this.pi.sendMessage(taskNotification(record, '', stoppedBy).message, { triggerTurn: false });
-    const result = this.result(record);
-    const details = {
-      ...result.details,
-      message: wasRunning ? `Stopped task ${record.id}` : `Task ${record.id} already finished with status ${record.status}`,
-      task_id: record.id,
-      task_type: 'local_agent' as const,
-      command: record.description ?? record.persona,
-    };
-    return { ...result, details, structuredContent: details as unknown as JsonValue };
+    return this.stopped(record, wasRunning);
+  }
+
+  private async stopCloud(target: TaskRecord, worker: CloudWorker, stoppedBy: StoppedBy) {
+    const owner = this.generation;
+    const wasRunning = target.status === 'running';
+    worker.stop();
+    const outcome = await settleWithin(worker.completion, overdueAfterMs);
+    if (!outcome.settled) return this.stopOverdue(target);
+    if (wasRunning && owner === this.generation) this.pi.sendMessage(taskNotification(outcome.value, '', stoppedBy).message, { triggerTurn: false });
+    return this.stopped(outcome.value, wasRunning, owner);
   }
 
   private markStopping(id: string, worker: Worker): void {
@@ -787,16 +765,22 @@ export class WorkerRuntime {
 
   async message(id: string, message: string, mode: 'steer' | 'followUp' | undefined) {
     const worker = this.workers.get(id);
-    if (this.remote.has(id) && this.records.get(id)?.status === 'running') {
-      await this.remote.message(id, message, mode === 'steer' ? 'steer' : 'followUp');
-      const details = { task_id: id };
-      return { content: [{ type: 'text' as const, text: `Message queued for ${id}` }], details, structuredContent: details as unknown as JsonValue };
+    const cloud = this.cloud.get(id);
+    const running = this.records.get(id)?.status === 'running';
+    if (this.remote.has(id) && running) await this.remote.message(id, message, mode === 'steer' ? 'steer' : 'followUp');
+    else if (cloud && running) await this.messageCloud(cloud, message, mode);
+    else {
+      if (this.stopping.has(id)) throw new ResumeError('still_stopping', resumeMessages.targetStopping(id));
+      if (!worker || !running) throw new Error('Task is not running. Use Task with resume.');
+      if (mode === 'steer') await worker.session.steer(message);
+      else await worker.session.followUp(message);
     }
-    if (this.stopping.has(id)) throw new ResumeError('still_stopping', resumeMessages.targetStopping(id));
-    if (!worker || this.records.get(id)?.status !== 'running') throw new Error('Task is not running. Use Task with resume.');
-    if (mode === 'steer') await worker.session.steer(message);
-    else await worker.session.followUp(message);
     const details = { task_id: id };
     return { content: [{ type: 'text' as const, text: `Message queued for ${id}` }], details, structuredContent: details as unknown as JsonValue };
+  }
+
+  private async messageCloud(worker: CloudWorker, message: string, mode: 'steer' | 'followUp' | undefined): Promise<void> {
+    const response = await worker.handle.send({ type: mode === 'steer' ? 'steer' : 'follow_up', message });
+    if (!response.success) throw new Error(response.error);
   }
 }

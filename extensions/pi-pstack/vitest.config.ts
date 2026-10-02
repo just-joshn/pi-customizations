@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['test/*.test.ts'],
+    globalSetup: ['test/global-setup.ts'],
 
     // Vitest 5 already defaults clearMocks to true.
     restoreMocks: true,

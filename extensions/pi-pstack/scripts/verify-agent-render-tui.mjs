@@ -41,7 +41,13 @@ async function run(directory) {
   await waitFor('typed parallel Agent journey', (text) => text.includes('JOURNEY:agentpair'));
   tmux(['send-keys', '-t', session, 'Enter']);
   const running = await waitFor('grouped running Agent rows', (text) => text.includes('Running 2 agents…') && text.includes('└─ Agent pair two'));
-  process.stdout.write(`RUNNING FRAME\n${running.split('\n').filter((line) => line.trim()).slice(-14).join('\n')}\n`);
+  process.stdout.write(
+    `RUNNING FRAME\n${running
+      .split('\n')
+      .filter((line) => line.trim())
+      .slice(-14)
+      .join('\n')}\n`,
+  );
   checks.push(['parallel Agent calls share one Running 2 agents header', running.includes('Running 2 agents…')]);
   checks.push(['each grouped row shows the user-facing name and activity', running.includes('├─ Explore pair one') && running.includes('└─ Agent pair two')]);
   const panel = await waitFor('running agent task panel', (text) => text.includes('● Explore: pair one') && text.includes('● general-purpose: pair two')).catch(() => '');
@@ -49,7 +55,13 @@ async function run(directory) {
   const finished = await waitFor('grouped Agent completion', (text) => text.includes('2 agents finished') && text.includes('recorded JOURNEY:agentpair'));
   checks.push(['the group header reports completion', finished.includes('2 agents finished')]);
   checks.push(['completed Agent rows summarise tool use and tokens', /Done · 1 tool use · \d+ tokens/.test(finished)]);
-  process.stdout.write(`${finished.split('\n').filter((line) => line.trim()).slice(-24).join('\n')}\n`);
+  process.stdout.write(
+    `${finished
+      .split('\n')
+      .filter((line) => line.trim())
+      .slice(-24)
+      .join('\n')}\n`,
+  );
 }
 
 const directory = await mkdtemp(join(tmpdir(), 'pi-pstack-agent-render-'));

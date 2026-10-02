@@ -12,7 +12,10 @@ export function forkRequest(snapshot: AdmissionSnapshot, requested: string): { t
 
 export function forkRefusal(snapshot: AdmissionSnapshot, request: SpawnRequest): Refusal | undefined {
   if (request.isolation === 'remote')
-    return { code: 'subagent_fork_remote_isolation', message: 'Fork cannot use isolation: "remote" — a remote session cannot inherit the conversation context. Omit isolation (or use "worktree"), or spawn a named agent type for remote work.' };
+    return {
+      code: 'subagent_fork_remote_isolation',
+      message: 'Fork cannot use isolation: "remote" — a remote session cannot inherit the conversation context. Omit isolation (or use "worktree"), or spawn a named agent type for remote work.',
+    };
   if (snapshot.insideFork) return { code: 'subagent_recursive_fork', message: 'Fork is not available inside a forked worker. Complete your task directly using your tools.' };
   return undefined;
 }

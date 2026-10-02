@@ -1,6 +1,8 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { toolNames } from './journey-requests.mjs';
+
 export function agentJsonJourney(check, startPi) {
   return async function journeyAgentJson(ctx) {
     const definitions = JSON.stringify({ 'probe-worker': { description: 'JSON probe', prompt: 'Complete the task.', tools: ['Read'], model: ' INHERIT ', memory: 'project', criticalSystemReminder_EXPERIMENTAL: 'CRITICAL_JSON_SENTINEL' } });
@@ -15,7 +17,7 @@ export function agentJsonJourney(check, startPi) {
       const system = JSON.stringify(child?.messages.filter((message) => message.role === 'system')) ?? '';
       check(
         'RPC: JSON memory reaches the native child prompt and tool pool',
-        system.includes('Persistent Agent Memory') && system.includes('project-scope') && ['read', 'write', 'edit'].every((name) => system.includes(`- ${name}:`)),
+        system.includes('Persistent Agent Memory') && system.includes('project-scope') && ['edit', 'read', 'write'].every((name) => toolNames(child).includes(name)),
         system.slice(0, 400),
       );
       check('RPC: JSON critical reminder reaches actual child system input', system.includes('CRITICAL_JSON_SENTINEL') && system.includes('critical-system-reminder'), system.slice(0, 400));

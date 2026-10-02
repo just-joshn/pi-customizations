@@ -135,6 +135,16 @@ async function openFixtureSession(opts: { scripted: Model<Api>; cwd: string; age
   return { session, manager: opts.manager, loader: opts.loader };
 }
 
+function fixtureSettings(extensionOnly: boolean, projectTrusted: boolean) {
+  const settingsManager = SettingsManager.inMemory({
+    packages: extensionOnly ? [] : [packageRoot],
+    compaction: { enabled: false },
+    retry: { enabled: false },
+  });
+  settingsManager.setProjectTrusted(projectTrusted);
+  return settingsManager;
+}
+
 export async function fixture({ usage, extensionOnly = false, extensionDisabled = false, createDirectory = mkdir, includeNativePromptTemplates = false, extensionFactories = [], api = model.api }: FixtureOptions = {}) {
   const scripted: Model<Api> = { ...model, api };
   const root = await mkdtemp(join(tmpdir(), 'pstack-integration-'));
@@ -155,12 +165,7 @@ export async function fixture({ usage, extensionOnly = false, extensionDisabled 
     ),
     ...extensionFactories,
   ];
-  const settingsManager = SettingsManager.inMemory({
-    packages: extensionOnly ? [] : [packageRoot],
-    compaction: { enabled: false },
-    retry: { enabled: false },
-  });
-  settingsManager.setProjectTrusted(includeNativePromptTemplates);
+  const settingsManager = fixtureSettings(extensionOnly, includeNativePromptTemplates);
   const load = () => loadFixtureLoader(cwd, agentDir, settingsManager, fixtureFactories, extensionOnly, includeNativePromptTemplates, extensionDisabled);
   const open = async (manager = SessionManager.create(cwd, join(root, 'sessions'))) => {
     const loader = await load();

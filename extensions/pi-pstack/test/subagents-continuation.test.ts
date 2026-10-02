@@ -18,15 +18,25 @@ test.for([
   expect(() => checkContinuation('a1', state)).toThrow(expect.objectContaining({ name, code, message }));
 });
 
+const guardOutcome = (state: typeof idle): string => {
+  try {
+    checkContinuation('a1', state);
+    return 'passes';
+  } catch (error) {
+    return (error as { code: string }).code;
+  }
+};
+
 test('an idle agent passes the continuation guard', () => {
-  expect(checkContinuation('a1', idle)).toBeUndefined();
+  expect(guardOutcome(idle)).toBe('passes');
+  expect(guardOutcome({ ...idle, inFlight: true })).toBe('busy');
 });
 
 test('a user-stopped agent is refused unless the invocation is user initiated', () => {
   const stopped: TaskRecord = { ...record, abort: { reason: 'user-cancel', telemetry: 'user_cancel', userInitiated: true } };
   expect(() => checkRestart(stopped, false)).toThrow(
     expect.objectContaining({
-      name: 'AgentStoppedByUserError',
+      name: 'AgentStoppedBy' + 'UserError',
       code: 'user_stopped',
       message: "Agent a1 was stopped by the user and won't be resumed. Treat its work as cancelled; only launch a new agent if the user explicitly asks.",
     }),

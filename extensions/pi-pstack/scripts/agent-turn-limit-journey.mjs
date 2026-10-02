@@ -22,7 +22,11 @@ export function agentTurnLimitJourney(startPi, check) {
       await client.send({ type: 'set_model', provider: 'journey-test', modelId: 'recorder' });
       const messages = await client.callTool('JOURNEY:agentturnlimit');
       const result = messages.find((message) => message.toolName === 'Agent');
-      check('RPC: bounded Agent completes with a turn-limit note at its limit', result?.isError !== true && JSON.stringify(result).includes('NOTE: this agent stopped at its 2-turn limit before finishing.'), JSON.stringify(result).slice(0, 300));
+      check(
+        'RPC: bounded Agent completes with a turn-limit note at its limit',
+        result?.isError !== true && JSON.stringify(result).includes('NOTE: this agent stopped at its 2-turn limit before finishing.'),
+        JSON.stringify(result).slice(0, 300),
+      );
       const requests = await client.requests();
       const child = requests.filter((request) => lastUserText(request) === 'JOURNEY:progress-child');
       check('RPC: definition maxTurns two permits exactly two child queries', child.length === 2, `child queries=${child.length}`);

@@ -37,7 +37,14 @@ async function checkPanel(client, directory, check) {
   const task = stdin.tasks?.[0];
   check(
     'RPC: the status-line command receives project, terminal and task data on stdin',
-    stdin.cwd === directory && typeof stdin.columns === 'number' && task?.type === 'local_agent' && task.status === 'running' && task.description === 'slow probe' && task.model === 'journey-test/recorder' && typeof task.startTime === 'number' && Array.isArray(task.tokenSamples),
+    stdin.cwd === directory &&
+      typeof stdin.columns === 'number' &&
+      task?.type === 'local_agent' &&
+      task.status === 'running' &&
+      task.description === 'slow probe' &&
+      task.model === 'journey-test/recorder' &&
+      typeof task.startTime === 'number' &&
+      Array.isArray(task.tokenSamples),
     JSON.stringify(stdin).slice(0, 400),
   );
 }
@@ -52,7 +59,7 @@ export function agentWorktreeUiJourney(check, startPi) {
   return async function journeyAgentWorktreeUi(ctx) {
     const { directory, hooked } = await journeyDirectory(ctx);
     const log = await mkdtemp(join(ctx.log, 'worktree-ui-'));
-    const client = await startPi(directory, log, ['--no-session', '--no-context-files']);
+    const client = await startPi(directory, log, ['--no-session', '--no-context-files', '--approve']);
     try {
       await client.send({ type: 'set_model', provider: 'journey-test', modelId: 'recorder' });
       await checkPanel(client, directory, check);

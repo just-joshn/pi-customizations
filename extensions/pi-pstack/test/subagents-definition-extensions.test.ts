@@ -27,7 +27,9 @@ test.for([
 });
 
 test('[A47][C42] hooks in Claude format load with matchers and timeouts', () => {
-  const parsed = parse('hooks:\n  PreToolUse:\n    - matcher: Bash\n      hooks:\n        - type: command\n          command: ./guard.sh\n          timeout: 5\n  SubagentStop:\n    - hooks:\n        - type: command\n          command: ./done.sh\n');
+  const parsed = parse(
+    'hooks:\n  PreToolUse:\n    - matcher: Bash\n      hooks:\n        - type: command\n          command: ./guard.sh\n          timeout: 5\n  SubagentStop:\n    - hooks:\n        - type: command\n          command: ./done.sh\n',
+  );
   expect(parsed.agent?.hooks).toEqual({
     PreToolUse: [{ matcher: 'Bash', hooks: [{ command: './guard.sh', timeoutMs: 5000 }] }],
     SubagentStop: [{ hooks: [{ command: './done.sh' }] }],
@@ -65,7 +67,14 @@ test('[A47] an invalid non-guard hook is dropped with a note', () => {
 
 test('[B26] JSON agent definitions accept mcpServers, permissionMode and requiredMcpServers', () => {
   const [definition] = parseJsonAgents(JSON.stringify({ probe: { description: 'Probe', prompt: 'Task', mcpServers: ['docs', { files: { command: 'npx' } }], permissionMode: 'plan', requiredMcpServers: ['docs'] } }), '/tmp');
-  expect(definition).toMatchObject({ permissionMode: 'plan', requiredMcpServers: ['docs'], mcpServers: [{ kind: 'ref', name: 'docs' }, { kind: 'inline', name: 'files', config: { command: 'npx' } }] });
+  expect(definition).toMatchObject({
+    permissionMode: 'plan',
+    requiredMcpServers: ['docs'],
+    mcpServers: [
+      { kind: 'ref', name: 'docs' },
+      { kind: 'inline', name: 'files', config: { command: 'npx' } },
+    ],
+  });
 });
 
 test('[C44] a runtime-registered plugin agent cannot gain MCP servers or a permission mode', () => {

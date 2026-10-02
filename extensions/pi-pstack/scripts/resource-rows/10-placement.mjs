@@ -21,10 +21,5 @@ export default [
     'Treat a lane that errors, or that passes its expected runtime without a side effect, as stuck.',
     'Align the stack stuck test with the full autopilot, so an erroring lane is stuck.',
   ],
-  [
-    /^skills\/poteto-mode\/playbooks\/orchestrate\.md$/,
-    "Run a unit's verifier on a different model family from its worker.",
-    `Run a unit's verifier on a different model family from its worker. ${remoteFallback}`,
-    placement,
-  ],
+  [/^skills\/poteto-mode\/playbooks\/orchestrate\.md$/, "Run a unit's verifier on a different model family from its worker.", `Run a unit's verifier on a different model family from its worker. ${remoteFallback}`, placement],
 ];

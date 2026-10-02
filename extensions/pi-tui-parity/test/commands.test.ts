@@ -119,7 +119,7 @@ describe('command registry', () => {
   });
 });
 
-describe('commands', () => {
+describe('help, registration commands', () => {
   it('/help prints the Commands header, one line per entry, and the hint', async () => {
     const theme = await makeTheme();
     const state = createSession();
@@ -144,6 +144,18 @@ describe('commands', () => {
     expect(strip(lines.at(-1) ?? '').startsWith('Hint: /help')).toBe(true);
   });
 
+  it('installCommands registers exactly the implemented entries with the reference CLI descriptions', () => {
+    const commands = captureCommands(createSession());
+    const implemented = TUI_COMMANDS.filter((c) => c.status === 'implemented' && !c.registeredBy);
+    expect(commands.size).toBe(implemented.length);
+    expect(commands.get('run-everything')?.description).toBe('Toggle Run Everything (currently …)');
+    expect(commands.has('model')).toBe(false);
+    expect(commands.has('goal')).toBe(false);
+    expect(commands.has('commit')).toBe(false);
+  });
+});
+
+describe('state toggle commands', () => {
   it('/run-everything toggles state.runEverything', async () => {
     const state = createSession();
     const commands = captureCommands(state);
@@ -168,7 +180,9 @@ describe('commands', () => {
     expect(state.read().autoReview).toBe(false);
     expect(fake.notified[1]?.message).toBe('Auto-review: OFF');
   });
+});
 
+describe('mode toggle commands', () => {
   it('/plan sets plan mode', async () => {
     const state = createSession();
     const commands = captureCommands(state);
@@ -207,7 +221,9 @@ describe('commands', () => {
     expect(state.read().vim).toBe('insert');
     expect(fake.notified[3]?.message).toBe('Vim keys: OFF');
   });
+});
 
+describe('session info commands', () => {
   it('/about reports the pi version, model, provider, and session', async () => {
     const commands = captureCommands(createSession());
     const fake = fakeCtx({ sessionFile: '/tmp/.pi/sessions/a.jsonl' });
@@ -223,6 +239,19 @@ describe('commands', () => {
     expect(strip(fake.notified[0]?.message)).toBe('No active tasks');
   });
 
+  it('/copy-conversation-id prints the session file or No session', async () => {
+    const state = createSession();
+    const commands = captureCommands(state);
+    const withFile = fakeCtx({ sessionFile: '/tmp/.pi/sessions/a.jsonl' });
+    await commands.get('copy-conversation-id')?.handler('', withFile.ctx);
+    expect(withFile.notified[0]?.message).toBe('/tmp/.pi/sessions/a.jsonl');
+    const withoutFile = fakeCtx();
+    await commands.get('copy-conversation-id')?.handler('', withoutFile.ctx);
+    expect(withoutFile.notified[0]?.message).toBe('No session');
+  });
+});
+
+describe('process commands', () => {
   it('/changes reports a git failure when the cwd is missing', async () => {
     const commands = captureCommands(createSession());
     const fake = fakeCtx({ cwd: join(tmpdir(), `pi-tui-parity-missing-${randomUUID()}`) });
@@ -248,27 +277,6 @@ describe('commands', () => {
     const fake = fakeCtx({ entries });
     await entry('usage')?.handler?.('', fake.ctx, state);
     expect(fake.notified[0]?.message).toBe('Usage: 11 input · 7 output tokens · $0.7500');
-  });
-
-  it('/copy-conversation-id prints the session file or No session', async () => {
-    const state = createSession();
-    const commands = captureCommands(state);
-    const withFile = fakeCtx({ sessionFile: '/tmp/.pi/sessions/a.jsonl' });
-    await commands.get('copy-conversation-id')?.handler('', withFile.ctx);
-    expect(withFile.notified[0]?.message).toBe('/tmp/.pi/sessions/a.jsonl');
-    const withoutFile = fakeCtx();
-    await commands.get('copy-conversation-id')?.handler('', withoutFile.ctx);
-    expect(withoutFile.notified[0]?.message).toBe('No session');
-  });
-
-  it('installCommands registers exactly the implemented entries with the reference CLI descriptions', () => {
-    const commands = captureCommands(createSession());
-    const implemented = TUI_COMMANDS.filter((c) => c.status === 'implemented' && !c.registeredBy);
-    expect(commands.size).toBe(implemented.length);
-    expect(commands.get('run-everything')?.description).toBe('Toggle Run Everything (currently …)');
-    expect(commands.has('model')).toBe(false);
-    expect(commands.has('goal')).toBe(false);
-    expect(commands.has('commit')).toBe(false);
   });
 });
 

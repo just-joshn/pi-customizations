@@ -48,12 +48,15 @@ test('source coordinates stay immutable and a reply cannot replace the original 
   expect(() => freezeSource(config, { source_channel_id: 'C-report' })).toThrow('timestamp');
 });
 
+const valid = { user: 'U-triage', channel: 'C-report', thread_ts: '100.000001', text: '[benny:bug]' };
+
 test.for([
-  { user: 'U-untrusted', channel: 'C-report', thread_ts: '100.000001', text: '[benny:bug]' },
-  { user: 'U-triage', channel: 'C-report', thread_ts: 'other', text: '[benny:bug]' },
-  { user: 'U-triage', channel: 'C-report', thread_ts: '100.000001', text: '[benny:bug] [benny:performance]' },
-  { user: 'U-triage', channel: 'C-report', thread_ts: '100.000001', text: '[benny:other]' },
-])('untrusted or non-actionable verdicts cannot start repro %j', (message) => {
+  { flaw: 'an untrusted author', message: { ...valid, user: 'U-untrusted' } },
+  { flaw: 'a reply outside the original thread', message: { ...valid, thread_ts: 'other' } },
+  { flaw: 'two conflicting markers', message: { ...valid, text: '[benny:bug] [benny:performance]' } },
+  { flaw: 'a non-actionable marker', message: { ...valid, text: '[benny:other]' } },
+])('$flaw cannot start repro', ({ message }) => {
+  expect(trustedVerdict(config, source, valid)).toEqual({ kind: 'bug' });
   expect(trustedVerdict(config, source, message)).toBeUndefined();
 });
 

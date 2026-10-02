@@ -56,6 +56,42 @@ describe('todos tool', () => {
   });
 });
 
+function driveVia(keys: string[], record: (outcome: unknown) => void = () => {}): ExtensionContext['ui']['custom'] {
+  return (factory) => {
+    return new Promise((resolve, reject) => {
+      void makeTheme().then((theme) => {
+        const tui = { requestRender: () => {} } as never;
+        const surface = factory(tui, theme, {} as never, (outcome) => {
+          record(outcome);
+          resolve(outcome);
+        }) as DecisionSurface;
+        for (const k of keys) surface.handleInput(k);
+      }, reject);
+    });
+  };
+}
+
+function gateFor(
+  _ctx: ExtensionContext,
+  initial: Partial<TuiSessionState> = {},
+): { handler: (event: unknown, ctx2: ExtensionContext) => Promise<unknown>; session: ReturnType<typeof createSession>; allowlist: ReturnType<typeof createAllowlist> } {
+  let captured: ((event: unknown, ctx: ExtensionContext) => Promise<unknown>) | undefined;
+  const pi = {
+    on: (event: string, handler: never) => {
+      if (event === 'tool_call') captured = handler;
+    },
+  } as unknown as ExtensionAPI;
+  const session = createSession(createSessionState(initial));
+  const allowlist = createAllowlist();
+  installDecisionGate(pi, session, allowlist);
+  if (!captured) throw new Error('tool_call handler not captured');
+  return { handler: captured, session, allowlist };
+}
+
+function tuiCtx(uiCustom: ExtensionContext['ui']['custom']): ExtensionContext {
+  return { mode: 'tui', hasUI: true, ui: { custom: uiCustom } } as unknown as ExtensionContext;
+}
+
 describe('decision gate', () => {
   it('allowlists exact shell commands and paths', () => {
     const allowlist = createAllowlist();
@@ -83,46 +119,12 @@ describe('decision gate', () => {
     expect(write[0]?.label).toBe('Proceed');
     expect(write[1]?.label).toBe('Add write(/a/b.ts) to allowlist');
   });
+});
 
-  function driveVia(keys: string[], outcomes: unknown[] = []): ExtensionContext['ui']['custom'] {
-    return (factory) => {
-      return new Promise((resolve, reject) => {
-        void makeTheme().then((theme) => {
-          const tui = { requestRender: () => {} } as never;
-          const surface = factory(tui, theme, {} as never, (outcome) => {
-            outcomes.push(outcome);
-            resolve(outcome);
-          }) as DecisionSurface;
-          for (const k of keys) surface.handleInput(k);
-        }, reject);
-      });
-    };
-  }
-
-  function gateFor(
-    _ctx: ExtensionContext,
-    initial: Partial<TuiSessionState> = {},
-  ): { handler: (event: unknown, ctx2: ExtensionContext) => Promise<unknown>; session: ReturnType<typeof createSession>; allowlist: ReturnType<typeof createAllowlist> } {
-    let captured: ((event: unknown, ctx: ExtensionContext) => Promise<unknown>) | undefined;
-    const pi = {
-      on: (event: string, handler: never) => {
-        if (event === 'tool_call') captured = handler;
-      },
-    } as unknown as ExtensionAPI;
-    const session = createSession(createSessionState(initial));
-    const allowlist = createAllowlist();
-    installDecisionGate(pi, session, allowlist);
-    if (!captured) throw new Error('tool_call handler not captured');
-    return { handler: captured, session, allowlist };
-  }
-
-  function tuiCtx(uiCustom: ExtensionContext['ui']['custom']): ExtensionContext {
-    return { mode: 'tui', hasUI: true, ui: { custom: uiCustom } } as unknown as ExtensionContext;
-  }
-
+describe('decision gate keys', () => {
   it('y approves through the real surface', async () => {
     const outcomes: unknown[] = [];
-    const ctx = tuiCtx(driveVia(['y'], outcomes));
+    const ctx = tuiCtx(driveVia(['y'], (o) => outcomes.push(o)));
     const { handler } = gateFor(ctx);
     const result = await handler({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'echo hi' } }, ctx);
     expect(outcomes).toEqual([{ action: 'approve' }]);
@@ -141,15 +143,17 @@ describe('decision gate', () => {
     expect(result).toBeUndefined();
     expect(g.allowlist.shells.has('npm test')).toBe(true);
   });
+});
 
+describe('decision gate modes', () => {
   it('runEverything bypasses the gate while the same command still asks otherwise', async () => {
     const bypassedOutcomes: unknown[] = [];
-    const bypassCtx = tuiCtx(driveVia(['y'], bypassedOutcomes));
+    const bypassCtx = tuiCtx(driveVia(['y'], (o) => bypassedOutcomes.push(o)));
     const bypass = gateFor(bypassCtx, { runEverything: true });
     const bypassed = await bypass.handler({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'anything' } }, bypassCtx);
 
     const gatedOutcomes: unknown[] = [];
-    const gatedCtx = tuiCtx(driveVia(['n'], gatedOutcomes));
+    const gatedCtx = tuiCtx(driveVia(['n'], (o) => gatedOutcomes.push(o)));
     const gated = await gateFor(gatedCtx).handler({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'anything' } }, gatedCtx);
 
     expect(bypassed).toBeUndefined();
@@ -163,7 +167,7 @@ describe('decision gate', () => {
     const printed = await gateFor(printCtx).handler({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'ls' } }, printCtx);
 
     const outcomes: unknown[] = [];
-    const tui = tuiCtx(driveVia(['n'], outcomes));
+    const tui = tuiCtx(driveVia(['n'], (o) => outcomes.push(o)));
     const gated = await gateFor(tui).handler({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'ls' } }, tui);
 
     expect(printed).toBeUndefined();

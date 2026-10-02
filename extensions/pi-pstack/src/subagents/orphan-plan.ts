@@ -1,5 +1,5 @@
-import { type TaskRecord, TaskRecordSchema, taskEntryType } from '../worker-records.ts';
 import { Check } from 'typebox/value';
+import { type TaskRecord, TaskRecordSchema, taskEntryType } from '../worker-records.ts';
 
 export const orphanLimit = 20;
 export const resumeWindowMs = 172_800_000;

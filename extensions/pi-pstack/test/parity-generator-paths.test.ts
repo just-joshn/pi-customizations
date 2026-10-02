@@ -12,7 +12,10 @@ const modeDirectory = join(root, 'skills/poteto-mode');
 
 async function markdownFiles(directory: string): Promise<string[]> {
   const names = await readdir(join(root, directory), { recursive: true });
-  return names.filter((name) => name.endsWith('.md')).map((name) => join(directory, name)).toSorted();
+  return names
+    .filter((name) => name.endsWith('.md'))
+    .map((name) => join(directory, name))
+    .toSorted();
 }
 
 async function playbook(name: string): Promise<string> {
@@ -41,25 +44,33 @@ async function withPlan<T>(text: string, run: (path: string) => T): Promise<T> {
   }
 }
 
-test('no generated skill or prompt names a repository-root pstack path in a command or git show', async () => {
+test('no generated skill or prompt names a repository-root pstack path', async () => {
   const offenders: string[] = [];
+  const scanned: string[] = [];
   for (const directory of ['skills', 'prompts']) {
     for (const path of await markdownFiles(directory)) {
+      scanned.push(path);
       const text = await readFile(join(root, path), 'utf8');
       if (/extensions\/pi-pstack\/|(?<![\w/-])pstack\/skills\//.test(text)) offenders.push(path);
     }
   }
+  expect(scanned).toContain('skills/poteto-mode/SKILL.md');
+  expect(scanned).toContain('prompts/deslop.md');
   expect(offenders).toEqual([]);
 });
 
-test('playbooks and references name no file-relative parent path, so every bundled path resolves from the poteto-mode skill directory', async () => {
+test('every bundled playbook path resolves from the poteto-mode directory', async () => {
   const unresolved: string[] = [];
+  const resolved: string[] = [];
   for (const path of [...(await markdownFiles('skills/poteto-mode/playbooks')), ...(await markdownFiles('skills/poteto-mode/references')), 'skills/poteto-mode/SKILL.md']) {
     const text = await readFile(join(root, path), 'utf8');
     for (const [, token] of text.matchAll(/`((?:\.\.\/|scripts\/|playbooks\/|references\/)[^`\s<>]*)[^`]*`/g)) {
+      resolved.push(token ?? '');
       if (token?.startsWith('../') || !existsSync(join(modeDirectory, token ?? ''))) unresolved.push(`${path} ${token}`);
     }
   }
+  expect(resolved).toContain('playbooks/babysit.md');
+  expect(resolved).toContain('references/bugbot-triage.md');
   expect(unresolved).toEqual([]);
 });
 
@@ -108,7 +119,9 @@ test('plan skeleton keeps the trunk read, the 30-minute tick, and the review gat
 test('both autopilots re-read their own playbook from trunk or the bundled copy, never a repository-root path', async () => {
   for (const name of ['autopilot-full', 'autopilot-stack']) {
     const text = await playbook(name);
-    expect(text).toContain(`re-read this playbook. When the target repository commits it, read it from trunk with \`git show origin/main:<repo path>\`. Otherwise read the bundled \`playbooks/${name}.md\` in the poteto-mode skill directory the host contract names, then re-read the armed \`/goal\`.`);
+    expect(text).toContain(
+      `re-read this playbook. When the target repository commits it, read it from trunk with \`git show origin/main:<repo path>\`. Otherwise read the bundled \`playbooks/${name}.md\` in the poteto-mode skill directory the host contract names, then re-read the armed \`/goal\`.`,
+    );
   }
 });
 

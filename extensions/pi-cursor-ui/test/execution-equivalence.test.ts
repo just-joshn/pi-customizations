@@ -159,7 +159,9 @@ describe('built-in execution equivalence', () => {
     expect(wrappedError).toBe(originalError);
     expect(originalError).toContain('missing.txt');
   });
+});
 
+describe('built-in bash execution equivalence', () => {
   test('bash execution matches the built-in', async () => {
     const directory = await tempDir();
     await writeFile(join(directory, 'seed.txt'), 'seed\n');
@@ -204,7 +206,9 @@ describe('built-in execution equivalence', () => {
       vi.unstubAllEnvs();
     }
   });
+});
 
+describe('built-in edit, write execution equivalence', () => {
   test('edit execution matches the built-in', async () => {
     const directory = await tempDir();
     const file = join(directory, 'edit-me.txt');
@@ -241,7 +245,9 @@ describe('built-in execution equivalence', () => {
     expect(actual.details).toEqual(expected.details);
     expect(await readFile(join(directory, 'created.txt'), 'utf8')).toBe('hello\nworld\n');
   });
+});
 
+describe('built-in search, list execution equivalence', () => {
   test('grep execution matches the built-in', async () => {
     const directory = await tempDir();
     await writeFile(join(directory, 'greeting.txt'), 'hello world\nsecond line\n');
@@ -272,7 +278,9 @@ describe('built-in execution equivalence', () => {
     expect(actual.details).toEqual(expected.details);
     expect(JSON.stringify(actual.content)).toContain('alpha.txt');
   });
+});
 
+describe('built-in ls, powershell execution equivalence', () => {
   test('ls execution matches the built-in', async () => {
     const directory = await tempDir();
     await writeFile(join(directory, 'one.txt'), '1\n');

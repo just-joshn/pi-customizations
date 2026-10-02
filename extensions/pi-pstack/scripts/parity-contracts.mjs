@@ -27,7 +27,8 @@ function checkShape(check) {
     return undefined;
   }
   if (check.type === 'file' || check.type === 'source-file') return typeof check.path === 'string' && check.path.trim() ? undefined : 'has no path';
-  if (check.type === 'test') return typeof check.path === 'string' && typeof check.name === 'string' && check.name.trim() && [undefined, 'bun', 'journey'].includes(check.runner) ? undefined : 'needs a test path, full name, and known runner';
+  if (check.type === 'test')
+    return typeof check.path === 'string' && typeof check.name === 'string' && check.name.trim() && [undefined, 'bun', 'journey'].includes(check.runner) ? undefined : 'needs a test path, full name, and known runner';
   if (check.type === 'commit') return typeof check.rev === 'string' && /^[0-9a-f]{7,40}$/.test(check.rev) ? undefined : 'needs a commit rev';
   return `has unknown type ${String(check.type)}`;
 }

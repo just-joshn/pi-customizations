@@ -1,7 +1,7 @@
 import type { AgentSessionEvent, AgentSessionEventListener } from '@earendil-works/pi-coding-agent';
 import type { TaskRecord } from '../worker-records.ts';
 import { lastMeteredTokens } from './completion-notice.ts';
-import { forwardTextFlag, type FrameBody, type SdkEvents } from './sdk-events.ts';
+import { type FrameBody, forwardTextFlag, type SdkEvents } from './sdk-events.ts';
 
 export type FrameStatus = 'completed' | 'failed' | 'stopped';
 

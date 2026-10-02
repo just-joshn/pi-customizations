@@ -3,7 +3,7 @@ import { chmodSync, existsSync, mkdtempSync, realpathSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 
-import { afterEach, beforeEach, expect, test } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { createWorktree, finalizeWorktree } from '../src/subagents/worktree.ts';
 
 let repo = '';
@@ -18,7 +18,10 @@ beforeEach(() => {
   git(repo, 'add', '.');
   git(repo, 'commit', '-qm', 'init');
 });
-afterEach(() => rmSync(repo, { recursive: true, force: true }));
+afterEach(() => {
+  vi.unstubAllEnvs();
+  rmSync(repo, { recursive: true, force: true });
+});
 
 test('[G6-14] worktree directory is named agent-<id> and leaves the caller checkout untouched', async () => {
   const worktree = await createWorktree(repo, 'abc123');
@@ -46,14 +49,14 @@ test('[G6-18] unchanged worktree is removed and a changed one is kept with path 
   expect(await finalizeWorktree(committed)).toMatchObject({ kept: true });
 });
 
-test('branch deletion failure records partial cleanup after removing an unchanged worktree', async () => {
+test('a failed branch delete records partial cleanup of a clean worktree', async () => {
   const gitPath = execFileSync('which', ['git'], { encoding: 'utf8' }).trim();
   const wrapper = mkdtempSync(join(tmpdir(), 'subagent-git-wrapper-'));
   const originalPath = process.env.PATH;
   const wrappedGit = join(wrapper, 'git');
   writeFileSync(wrappedGit, `#!/bin/sh\nif [ "$1" = "branch" ] && [ "$2" = "-D" ]; then echo branch-delete-failed >&2; exit 1; fi\nexec ${gitPath} "$@"\n`);
   chmodSync(wrappedGit, 0o755);
-  process.env.PATH = `${wrapper}:${originalPath ?? ''}`;
+  vi.stubEnv('PATH', `${wrapper}:${originalPath ?? ''}`);
   try {
     const worktree = await createWorktree(repo, 'branch-delete-failure');
     const outcome = await finalizeWorktree(worktree);
@@ -61,7 +64,7 @@ test('branch deletion failure records partial cleanup after removing an unchange
     expect(existsSync(worktree.path)).toBe(false);
     expect(git(repo, 'branch', '--list', worktree.branch)).toBe(worktree.branch);
   } finally {
-    process.env.PATH = originalPath;
+    vi.unstubAllEnvs();
     rmSync(wrapper, { recursive: true, force: true });
   }
 });
