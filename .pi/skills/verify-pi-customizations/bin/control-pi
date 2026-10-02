@@ -326,6 +326,7 @@ async function driveOauthProviders(artifactDir) {
     const auth = {
       'claude-subscription': credential,
       'google-antigravity': { ...credential, projectId: 'fixture-project', email: 'fixture@example.com' },
+      'grok-build': credential,
     };
     await writeFile(join(scratchDir, 'auth.json'), JSON.stringify(auth), { mode: 0o600 });
 
@@ -345,8 +346,17 @@ async function driveOauthProviders(artifactDir) {
     });
     assert.match(antigravityOutput, /google-antigravity\s+gemini-3-flash-agent/, 'Expected google-antigravity models not found');
 
+    const grokPkg = join(REPO_ROOT, 'extensions/pi-xai-oauth');
+    const grokOutput = execFileSync('pi', ['--no-extensions', '-e', grokPkg, '--list-models', 'grok-build'], {
+      cwd: scratchDir,
+      env: { ...process.env, PI_CODING_AGENT_DIR: scratchDir },
+      encoding: 'utf8',
+    });
+    assert.match(grokOutput, /grok-build\s+grok-4\.7-build-fast/, 'Expected grok-build models not found');
+
     await writeFile(join(outDir, 'claude-models.txt'), claudeOutput, 'utf8');
     await writeFile(join(outDir, 'antigravity-models.txt'), antigravityOutput, 'utf8');
+    await writeFile(join(outDir, 'grok-build-models.txt'), grokOutput, 'utf8');
     process.stdout.write(`✓ Captured OAuth provider model registration evidence in ${outDir}\n`);
   } finally {
     await rm(scratchDir, { recursive: true, force: true });
