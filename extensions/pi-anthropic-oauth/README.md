@@ -75,5 +75,6 @@ Run `bun install` first. It installs the Pi packages the tests import, pinned to
 - `bunx vitest run --sequence.shuffle` runs the tests in random order to check that they are independent.
 - `node --experimental-strip-types scripts/equivalence.ts` prints each captured request and result as JSON. To compare two versions, run it on both and diff the output.
 - `node --experimental-strip-types scripts/prove-pi.ts` loads the extension in `pi`. If you are logged in, it sends one live prompt. If not, it confirms that Pi asks you to log in.
+- `node --experimental-strip-types scripts/prove-request-paths.ts` starts Pi with `RpcClient` against a local gateway stub and runs three prompts, one compaction, and one prompt through a virtual model. It checks that every request carries the billing block, that `before_provider_request` does not fire for compaction, that it names the virtual model's provider for a virtual route, and that a `user-agent` header from `models.json` reaches every request.
 
 From the repository root, `bunx biome ci extensions/pi-anthropic-oauth --error-on-warnings --max-diagnostics=none`, `bun run check:agents`, `bun run check:tests`, and `node scripts/check-pi-mechanisms.mjs` check style and Pi packaging rules.
