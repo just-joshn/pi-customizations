@@ -433,7 +433,7 @@ export const SCENARIOS = new Map([
           name: 'picker open',
           capture: '02-theme-picker',
           actions: [send('/settings'), { kind: 'type', text: 'theme' }, keys('Enter')],
-          expect: ['Select a theme', 'Automatic'],
+          expect: ['Select a theme', 'automatic'],
           chrome: true,
         },
         { name: 'picker closed', capture: '03-theme-closed', actions: [keys('Escape'), keys('Escape')], expect: ['Pi Coding Agent', '→ Plan, search, build anything'], chrome: 'top' },
