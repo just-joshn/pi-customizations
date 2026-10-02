@@ -196,7 +196,9 @@ describe('footer', () => {
     const footer = createFooter(ctx, storeWithOneEdit())({ requestRender: () => {} } as never, makeTheme(), footerData('main'));
     expect(stripTerminalSequences(footer.render(80)[0] ?? '')).toBe('  gpt-6-sol · 8%');
   });
+});
 
+describe('footer with missing or unusual inputs', () => {
   test('survives a deactivated session runtime', () => {
     vi.stubEnv('HOME', '/home/u');
     const deactivated = () => {
