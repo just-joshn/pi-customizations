@@ -73,10 +73,17 @@ export const scenarios: readonly Scenario[] = [
   },
   { name: 'aborted before send', modelId: SONNET, context: ask('hi'), options: { signal: AbortSignal.abort() }, reply: sseReply(textMessage('late')) },
   {
-    name: 'onPayload replacement and CLAUDE_CODE_VERSION',
+    name: 'caller headers override the user agent',
     modelId: SONNET,
     context: ask('hi'),
-    options: { env: { CLAUDE_CODE_VERSION: '9.9.9' }, onPayload: replaceMetadata },
+    options: { headers: { 'user-agent': 'claude-cli/9.9.9' } },
+    reply: sseReply(textMessage('ok')),
+  },
+  {
+    name: 'onPayload replacement',
+    modelId: SONNET,
+    context: ask('hi'),
+    options: { onPayload: replaceMetadata },
     reply: sseReply(textMessage('ok')),
   },
 ];
