@@ -119,7 +119,7 @@ describe('CursorStyleEditor layout', () => {
   });
 });
 
-describe('CursorStyleEditor shell and scrolling', () => {
+describe('CursorStyleEditor shell, scrolling', () => {
   test('leaves the band in whatever accent Pi set for a shell prefix', () => {
     const { editor } = editorHarness();
     editor.setText('!ls');
@@ -212,7 +212,7 @@ describe('CursorStyleEditor narrow widths', () => {
   });
 });
 
-describe('CursorStyleEditor padding and band geometry', () => {
+describe('CursorStyleEditor padding, band geometry', () => {
   test('turns a host setPaddingX into indent the text column still matches', () => {
     for (const userPadding of [0, 1, 3]) {
       const { editor } = editorHarness();
