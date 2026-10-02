@@ -4,10 +4,6 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
 export const PROVIDER_ID = 'claude-subscription';
 
-// Dotted digits, 2 to 4 groups. The value becomes the user-agent header, so
-// anything looser could smuggle other characters into a request header.
-const CLAUDE_CODE_VERSION_PATTERN = /^\d+(?:\.\d+){1,3}$/;
-
 // Anthropic's subscription gateway attributes a request to the Claude Code plan
 // by this first system block. Without it the request is billed against extra
 // usage and refused, so the captured string must stay byte-for-byte intact.
@@ -29,15 +25,6 @@ function describeType(value: unknown): string {
 
 function unexpectedPayload(expectation: string, received: unknown): Error {
   return new Error(`Unexpected request payload from Pi's anthropic provider: expected ${expectation}, received ${describeType(received)}.`);
-}
-
-function claudeCodeVersion(options: StreamOptions | undefined): string | undefined {
-  const version = options?.env?.CLAUDE_CODE_VERSION || process.env.CLAUDE_CODE_VERSION;
-  if (!version) return undefined;
-  if (!CLAUDE_CODE_VERSION_PATTERN.test(version)) {
-    throw new Error(`CLAUDE_CODE_VERSION must be dotted digits with 2 to 4 groups, such as 2.1.280. Received ${JSON.stringify(version)}.`);
-  }
-  return version;
 }
 
 function withBillingBlock(payload: unknown): unknown {
@@ -80,11 +67,9 @@ function withUniqueToolNames(payload: unknown): unknown {
   return { ...payload, tools: unique };
 }
 
-function billingOverrides(options: StreamOptions | undefined): Pick<StreamOptions, 'headers' | 'onPayload' | 'cacheRetention'> {
-  const version = claudeCodeVersion(options);
+function billingOverrides(options: StreamOptions | undefined): Pick<StreamOptions, 'onPayload' | 'cacheRetention'> {
   return {
     cacheRetention: options?.cacheRetention === 'none' ? 'none' : 'long',
-    headers: version ? { 'user-agent': `claude-cli/${version}`, ...options?.headers } : options?.headers,
     onPayload: async (payload, model) => {
       const billed = withBillingBlock(withUniqueToolNames(payload));
       return (await options?.onPayload?.(billed, model)) ?? billed;
