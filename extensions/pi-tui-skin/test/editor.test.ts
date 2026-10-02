@@ -86,7 +86,9 @@ describe('SkinStyleEditor', () => {
     expect(lines.some((line) => line.includes(CURSOR_MARKER))).toBe(true);
     expect(lines.every((line) => visibleWidth(line) === 24)).toBe(true);
   });
+});
 
+describe('SkinStyleEditor layout', () => {
   test("glyph and text columns follow Pi's clamped padding across the width ladder", () => {
     const { editor } = editorHarness();
     editor.setText('h');
@@ -115,7 +117,9 @@ describe('SkinStyleEditor', () => {
     expect(lines.map(strip).some((line) => line.includes('→'))).toBe(false);
     expect(lines.every((line) => visibleWidth(line) === 60)).toBe(true);
   });
+});
 
+describe('SkinStyleEditor shell and scrolling', () => {
   test('leaves the band in whatever accent Pi set for a shell prefix', () => {
     const { editor } = editorHarness();
     editor.setText('!ls');
@@ -139,7 +143,9 @@ describe('SkinStyleEditor', () => {
     editor.setText('a\nb');
     expect(editor.getText()).toBe('a\nb');
   });
+});
 
+describe('SkinStyleEditor running state', () => {
   test('running editor keeps the hidden-line indicator in the bottom band', () => {
     const { editor, store } = editorHarness({ rows: 20 });
     const text = Array.from({ length: 12 }, (_, index) => `line ${index}`).join('\n');
@@ -180,7 +186,9 @@ describe('SkinStyleEditor', () => {
     expect(strip(content).indexOf('→')).toBe(2);
     expect(visibleWidth(content)).toBe(60);
   });
+});
 
+describe('SkinStyleEditor narrow widths', () => {
   test('drops the stop hint when the row cannot fit it', () => {
     const { editor, store } = editorHarness();
     store.setAgentRunning(1);
@@ -202,7 +210,9 @@ describe('SkinStyleEditor', () => {
     expect(editor.getPaddingX()).toBe(4);
     expect(strip(editor.render(60)[1] ?? '').indexOf('hello world')).toBe(editor.getPaddingX());
   });
+});
 
+describe('SkinStyleEditor padding and band geometry', () => {
   test('turns a host setPaddingX into indent the text column still matches', () => {
     for (const userPadding of [0, 1, 3]) {
       const { editor } = editorHarness();
@@ -213,7 +223,9 @@ describe('SkinStyleEditor', () => {
       expect(strip(editor.render(40)[1] ?? '').indexOf('hello world')).toBe(editor.getPaddingX());
     }
   });
+});
 
+describe('SkinStyleEditor row geometry', () => {
   test('every row is exactly the requested width across a width sweep', () => {
     const { editor, store } = editorHarness();
     for (const width of [6, 8, 12, 20, 40, 79, 120, 200]) {
