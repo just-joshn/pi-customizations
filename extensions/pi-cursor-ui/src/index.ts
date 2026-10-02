@@ -17,8 +17,11 @@ export default function cursorUi(pi: ExtensionAPI): void {
       ui.install(ctx);
     },
     onSessionShutdown(ctx) {
-      ui.uninstall(ctx);
-      store.reset();
+      try {
+        ui.uninstall(ctx);
+      } finally {
+        store.reset();
+      }
     },
   });
 }
