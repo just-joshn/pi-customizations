@@ -163,7 +163,7 @@ describe('install-ui controller', () => {
   });
 });
 
-describe('install-ui controller removal and rendering', () => {
+describe('install-ui controller removal, rendering', () => {
   test('ignores a repeated or never-installed removal', () => {
     const { ctx, calls } = fakeContext('tui');
     const controller = createUiController(createPresentationStore());

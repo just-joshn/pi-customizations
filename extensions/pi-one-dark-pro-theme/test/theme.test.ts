@@ -72,7 +72,7 @@ describe('resolveScope', () => {
   });
 });
 
-describe('resolveScope scope fields and errors', () => {
+describe('resolveScope scope fields, errors', () => {
   it('reads an array scope field', () => {
     expect(resolveScope(document, 'meta.embedded')).toBe('#555555');
     expect(resolveScope(document, 'markup.raw')).toBe('#555555');

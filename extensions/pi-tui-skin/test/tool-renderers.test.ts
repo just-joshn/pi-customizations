@@ -69,7 +69,7 @@ describe('tui-skin tool renderers', () => {
   });
 });
 
-describe('tui-skin image and shell tool rows', () => {
+describe('tui-skin image, shell tool rows', () => {
   test('read result row marks an image instead of rendering it', () => {
     const image = renderReadResult(
       {
@@ -105,7 +105,7 @@ describe('tui-skin image and shell tool rows', () => {
   });
 });
 
-describe('tui-skin edit, write, search and list call rows', () => {
+describe('tui-skin edit, write, search, list call rows', () => {
   test('edit call row shows path with diff coloring', () => {
     const call = renderEditCall({ path: 'src/ui/editor.ts' }, theme, rowContext());
     expect(plainLine(call, 80)).toBe('◇ Edit src/ui/editor.ts');
@@ -143,7 +143,7 @@ describe('tui-skin edit, write, search and list call rows', () => {
   });
 });
 
-describe('tui-skin long paths and write and grep result rows', () => {
+describe('tui-skin long paths, write, grep result rows', () => {
   test('long paths truncate to one line at the terminal width', () => {
     const longPath = renderReadCall({ path: '/Users/someone/projects/very-long-directory-name/src/components/JapaneseButton.tsx' }, theme, rowContext());
     expect(plainLine(longPath, 20)).toBe('◇ Read /Users/som...');
@@ -190,7 +190,7 @@ describe('tui-skin long paths and write and grep result rows', () => {
   });
 });
 
-describe('tui-skin find, ls and powershell result rows', () => {
+describe('tui-skin find, ls, powershell result rows', () => {
   test('find result row hides output until it is needed', () => {
     const partial = renderFindResult({ content: [{ type: 'text', text: 'src/a.ts' }], details: undefined }, { expanded: true, isPartial: true }, theme, rowContext());
     expect(renderLines(partial, 80).length).toBe(0);
@@ -304,7 +304,7 @@ describe('tui-skin tool row fidelity', () => {
   });
 });
 
-describe('tui-skin tool row fidelity for diffs and errors', () => {
+describe('tui-skin tool row fidelity for diffs, errors', () => {
   test('call rows and diffs carry no carriage returns or terminal escapes', () => {
     const crlf = renderBashCall({ command: 'echo one\r\necho two' }, theme, rowContext());
     expect(plainLines(crlf, 80)).toEqual(['◇ Bash echo one']);

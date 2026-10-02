@@ -72,7 +72,7 @@ describe('rule wizard command', () => {
     expect(registerRule().has('rule')).toBe(true);
   });
 
-  it('drives the wizard through pi dialogs and writes AGENTS.md', async () => {
+  it('writes AGENTS.md by driving the wizard through pi dialogs', async () => {
     const dirPath = makeRuleDir();
     const target = `${dirPath}/AGENTS.md`;
     const { ctx, calls } = dialogContext(dirPath);
@@ -84,7 +84,7 @@ describe('rule wizard command', () => {
     expect(readFileSync(target, 'utf8')).toBe(writtenSection);
   });
 
-  it('warns and leaves AGENTS.md untouched when the rule already exists', async () => {
+  it('warns without rewriting AGENTS.md when the rule already exists', async () => {
     const dirPath = makeRuleDir();
     const target = `${dirPath}/AGENTS.md`;
     const { ctx, calls } = dialogContext(dirPath);
