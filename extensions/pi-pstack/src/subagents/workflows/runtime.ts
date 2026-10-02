@@ -29,7 +29,7 @@ export type WorkflowPorts = Readonly<{
   events: EventLog;
   factory: SubagentFactory;
   env: () => NodeJS.ProcessEnv;
-  settings: { read: (cwd: string) => { settings: { workflows: { maxConcurrentRuns: number; defaultLimits: WorkflowLimits } } } };
+  settings: { read: () => { settings: { workflows: { maxConcurrentRuns: number; defaultLimits: WorkflowLimits } } } };
   log: (message: string) => void;
   storeFile: () => string | undefined;
   now?: () => number;
@@ -105,14 +105,14 @@ export class WorkflowRuntime {
     const declaration = this.declared(name);
     if (declaration.arguments && !Check(declaration.arguments, args)) throw new Error(`Invalid arguments for workflow ${name}.`);
     if (this.store.list().some((run) => run.name === name && ['pending', 'running', 'paused'].includes(run.status))) throw new Error(`Workflow ${name} already has an active run. Resume or cancel it first.`);
-    const cap = this.ports.settings.read(ctx.cwd).settings.workflows.maxConcurrentRuns;
+    const cap = this.ports.settings.read().settings.workflows.maxConcurrentRuns;
     if (this.store.list().filter((run) => ['pending', 'running', 'paused'].includes(run.status)).length >= cap) throw new Error(`The active workflow run cap (${cap}) is reached.`);
     if (
       via === 'tool' &&
       ctx.hasUI &&
       !(await ctx.ui.confirm(
         `Run workflow ${name}?`,
-        `${declaration.description}\nEffective limits: ${JSON.stringify(effectiveLimits({ declaration, ...(Object.keys(overrides).length ? { overrides } : {}), defaults: this.ports.settings.read(ctx.cwd).settings.workflows.defaultLimits }))}`,
+        `${declaration.description}\nEffective limits: ${JSON.stringify(effectiveLimits({ declaration, ...(Object.keys(overrides).length ? { overrides } : {}), defaults: this.ports.settings.read().settings.workflows.defaultLimits }))}`,
       ))
     )
       throw new Error('The user declined to run this workflow.');

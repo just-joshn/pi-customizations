@@ -1,7 +1,6 @@
 import { join } from 'node:path';
 
-import type { ExtensionAPI, ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
-import { getAgentDir } from '@earendil-works/pi-coding-agent';
+import { type ExtensionAPI, type ExtensionCommandContext, getAgentDir, withFileMutationQueue } from '@earendil-works/pi-coding-agent';
 import { viewOf } from './agent-records.ts';
 import type { SubagentFactory } from './factory.ts';
 import type { SubagentScheduler } from './scheduler.ts';
@@ -33,18 +32,23 @@ function tasks(parts: Parts, args: string, ctx: ExtensionCommandContext): void {
   ctx.ui.notify(listAgentsText(visible.map((node) => viewOf(node, Date.now()))), 'info');
 }
 
-function subagents(parts: Parts, args: string, ctx: ExtensionCommandContext): void {
+async function subagents(parts: Parts, args: string, ctx: ExtensionCommandContext): Promise<void> {
   const parsed = parsePreferenceCommand(args);
   if ('error' in parsed) {
     ctx.ui.notify(parsed.error, 'warning');
     return;
   }
   if (parsed.kind !== 'show') {
-    persistPreference(join(getAgentDir(), 'settings.json'), parsed);
-    ctx.ui.notify('Saved. The change applies to the next subagent.', 'info');
+    const file = join(getAgentDir(), 'settings.json');
+    try {
+      parts.settings.adopt(await withFileMutationQueue(file, async () => persistPreference(file, parsed)));
+      ctx.ui.notify('Saved. The change applies to the next subagent.', 'info');
+    } catch (error) {
+      ctx.ui.notify(`Could not save the preference: ${error instanceof Error ? error.message : String(error)}`, 'error');
+    }
     return;
   }
-  const { settings } = parts.settings.read(ctx.cwd);
+  const { settings } = parts.settings.read();
   ctx.ui.notify(renderPreferences(settings, parts.factory.offered(ctx)), 'info');
 }
 

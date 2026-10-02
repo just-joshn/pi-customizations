@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { type AgentToolUpdateCallback, createAgentSession, createEventBus, DefaultResourceLoader, type ExtensionFactory, SessionManager } from '@earendil-works/pi-coding-agent';
+import { type AgentToolUpdateCallback, createAgentSession, createEventBus, DefaultResourceLoader, type ExtensionFactory, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { expect, vi } from 'vitest';
 import { registerShells } from '../src/shells.ts';
 import { registerWorkers } from '../src/workers.ts';
@@ -33,7 +33,7 @@ async function closeFixture(session: Awaited<ReturnType<typeof createAgentSessio
   }
 }
 
-function workerLoader(dir: string, flags: Readonly<Record<string, string>>, shells: boolean, extensions: readonly ExtensionFactory[]) {
+function workerLoader(dir: string, settingsManager: SettingsManager, flags: Readonly<Record<string, string>>, shells: boolean, extensions: readonly ExtensionFactory[]) {
   const eventBus = createEventBus();
   const normalizedTypes: unknown[] = [];
   const subagentLogs: unknown[] = [];
@@ -42,6 +42,7 @@ function workerLoader(dir: string, flags: Readonly<Record<string, string>>, shel
   const loader = new DefaultResourceLoader({
     cwd: dir,
     agentDir: dir,
+    settingsManager,
     eventBus,
     noSkills: true,
     noContextFiles: true,
@@ -69,26 +70,44 @@ function workerLoader(dir: string, flags: Readonly<Record<string, string>>, shel
   return { loader, eventBus, normalizedTypes, subagentLogs, modelResolutions, subagentStats };
 }
 
-export async function workerFixture(
-  options: { retry?: boolean; flags?: Readonly<Record<string, string>>; shells?: boolean; extensions?: readonly ExtensionFactory[]; settings?: Readonly<Record<string, unknown>>; agents?: Readonly<Record<string, string>> } = {},
-) {
+type FixtureOptions = {
+  retry?: boolean;
+  flags?: Readonly<Record<string, string>>;
+  shells?: boolean;
+  extensions?: readonly ExtensionFactory[];
+  settings?: Readonly<Record<string, unknown>>;
+  projectSettings?: Readonly<Record<string, unknown>>;
+  projectTrusted?: boolean;
+  agents?: Readonly<Record<string, string>>;
+};
+
+async function seedAgentDir(dir: string, options: FixtureOptions): Promise<void> {
+  await mkdir(join(dir, 'extensions'));
+  if (options.agents) {
+    await mkdir(join(dir, 'agents'), { recursive: true });
+    for (const [name, text] of Object.entries(options.agents)) await writeFile(join(dir, 'agents', `${name}.agent.md`), text);
+  }
+  await writeFile(join(dir, 'settings.json'), JSON.stringify({ retry: { enabled: options.retry ?? false, maxRetries: 1, baseDelayMs: 0 }, compaction: { enabled: false }, ...options.settings }));
+  await writeProvider(dir);
+  if (options.projectSettings) {
+    await mkdir(join(dir, '.pi'));
+    await writeFile(join(dir, '.pi', 'settings.json'), JSON.stringify(options.projectSettings));
+  }
+}
+
+export async function workerFixture(options: FixtureOptions = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'pstack-child-'));
   vi.stubEnv('PI_CODING_AGENT_DIR', dir);
   vi.stubEnv('HOME', join(dir, 'home'));
   let session: Awaited<ReturnType<typeof createAgentSession>>['session'] | undefined;
   const close = () => closeFixture(session, dir);
   try {
-    await mkdir(join(dir, 'extensions'));
-    if (options.agents) {
-      await mkdir(join(dir, 'agents'), { recursive: true });
-      for (const [name, text] of Object.entries(options.agents)) await writeFile(join(dir, 'agents', `${name}.agent.md`), text);
-    }
-    await writeFile(join(dir, 'settings.json'), JSON.stringify({ retry: { enabled: options.retry ?? false, maxRetries: 1, baseDelayMs: 0 }, compaction: { enabled: false }, ...options.settings }));
-    await writeProvider(dir);
-    const { loader, eventBus, normalizedTypes, subagentLogs, modelResolutions, subagentStats } = workerLoader(dir, options.flags ?? {}, options.shells ?? false, options.extensions ?? []);
+    await seedAgentDir(dir, options);
+    const settingsManager = SettingsManager.create(dir, dir, { projectTrusted: options.projectTrusted ?? true });
+    const { loader, eventBus, normalizedTypes, subagentLogs, modelResolutions, subagentStats } = workerLoader(dir, settingsManager, options.flags ?? {}, options.shells ?? false, options.extensions ?? []);
     await loader.reload();
     expect(loader.getExtensions().errors).toEqual([]);
-    session = (await createAgentSession({ cwd: dir, agentDir: dir, resourceLoader: loader, sessionManager: SessionManager.create(dir, join(dir, 'sessions')) })).session;
+    session = (await createAgentSession({ cwd: dir, agentDir: dir, resourceLoader: loader, settingsManager, sessionManager: SessionManager.create(dir, join(dir, 'sessions')) })).session;
     await session.bindExtensions({ mode: 'print' });
     const context = session.extensionRunner.createContext();
     const model = context.modelRegistry.getAvailable().find((model) => model.provider === 'worker-test' && model.id === 'deterministic');

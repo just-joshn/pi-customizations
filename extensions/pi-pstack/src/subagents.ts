@@ -118,7 +118,7 @@ type SidekickStack = Readonly<{ pi: ExtensionAPI; env: NodeJS.ProcessEnv; events
 function buildSidekicks(stack: SidekickStack): { sidekicks: SidekickManager; sidekickScheduler: SubagentScheduler } {
   const { pi, env, events, settings, limiters, session, log, holder } = stack;
   const registry = new TaskRegistry({ persist: (node) => pi.appendEntry(sidekickEntryType, structuredClone(node)) });
-  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: (cwd) => limiters.get(cwd), onInbox: (agentId, message) => holder.sidekicks?.inbox(agentId, message), entryType: sidekickEntryType, quiet: true, log });
+  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: () => limiters.get(), onInbox: (agentId, message) => holder.sidekicks?.inbox(agentId, message), entryType: sidekickEntryType, quiet: true, log });
   const factory = new SubagentFactory({ scope: () => session.child, pi, scheduler, settings, env, log, limiters });
   const sidekicks = createSidekickManager({ pi, env, factory, scheduler, events, cwd: () => session.latest?.cwd ?? process.cwd(), log });
   return { sidekicks, sidekickScheduler: scheduler };
@@ -137,15 +137,15 @@ function buildCore(pi: ExtensionAPI, env: NodeJS.ProcessEnv, session: Session): 
     },
   });
   const registry = new TaskRegistry({ persist: (node) => pi.appendEntry(agentEntryType, structuredClone(node)) });
-  const settings = new SettingsStore();
+  const settings = new SettingsStore(() => pi.getSettings());
   const limiters = new LimiterProvider(settings, () => (session.child ? parentLimiter(pi.events) : undefined));
   const onSettled = async (node: AgentNode) => {
-    const hooks = parseSubagentHooks(settings.read(node.cwd).raw).stop;
+    const hooks = parseSubagentHooks(settings.read().raw).stop;
     const report = await runHooks(hooks, { agentId: node.id, agentType: node.agentType, sessionId: session.id, cwd: node.cwd, timestamp: new Date().toISOString(), transcriptPath: node.sessionFile });
     for (const failure of report.failures) log(`subagentStop hook failed: ${failure}`);
   };
   const holder: { sidekicks?: SidekickManager } = {};
-  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: (cwd) => limiters.get(cwd), onSettled, includeHookEvents: () => eventsLogIncludesSubagents(env), extraWork: () => holder.sidekicks?.hasActiveWork() ?? false, log });
+  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: () => limiters.get(), onSettled, includeHookEvents: () => eventsLogIncludesSubagents(env), extraWork: () => holder.sidekicks?.hasActiveWork() ?? false, log });
   const factory = new SubagentFactory({ scope: () => session.child, pi, scheduler, settings, env, log, limiters });
   const { sidekicks, sidekickScheduler } = buildSidekicks({ pi, env, events, settings, limiters, session, log, holder });
   holder.sidekicks = sidekicks;
@@ -238,7 +238,7 @@ function registerPromptSections(pi: ExtensionAPI, system: SubagentSystem): void 
   pi.on('before_agent_start', (event, ctx) => {
     const offered = factory.offered(ctx);
     if (selection.refresh(offered)) pi.events.emit('pstack:subagent-log', 'The selected agent is no longer available and was cleared.');
-    const { settings: loaded } = settings.read(ctx.cwd);
+    const { settings: loaded } = settings.read();
     const current = selection.getCurrent();
     if (current) event.systemPromptOptions.sections.selected_agent = current.prompt;
     else delete event.systemPromptOptions.sections.selected_agent;

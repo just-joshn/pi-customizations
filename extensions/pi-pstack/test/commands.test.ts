@@ -306,6 +306,7 @@ test('pstack index entry point wires extension hooks and registers all tools', a
       listeners[event].push(handler);
     },
     appendEntry() {},
+    getSettings: () => ({}),
     getCommands: () => [],
     getAllTools: () => [],
     getActiveTools: () => [],

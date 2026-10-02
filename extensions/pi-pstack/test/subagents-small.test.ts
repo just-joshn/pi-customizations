@@ -81,11 +81,20 @@ test('the bridge numbers turns and maps child session events to Reference Assist
 test('settings overrides layer over the files per agent and per field', () => {
   const store = new SettingsStore(() => ({ subagents: { agents: { explore: { model: 'm', effortLevel: 'low' } }, disabledSubagents: ['a'] } }));
   store.update({ agents: { explore: { effortLevel: 'high' }, task: { model: 't' } }, disabledSubagents: ['b'], contextManagementTools: true });
-  const { settings, warnings } = store.read('/repo');
+  const { settings, warnings } = store.read();
   expect(warnings).toEqual([]);
   expect(settings.subagents).toEqual({ agents: { explore: { model: 'm', effortLevel: 'high' }, task: { model: 't' } }, disabledSubagents: ['b'], contextManagementTools: true });
   store.update({ agents: { explore: { contextTier: 'default' } } });
-  expect(store.read('/repo').settings.subagents.agents.explore).toEqual({ model: 'm', effortLevel: 'high', contextTier: 'default' });
+  expect(store.read().settings.subagents.agents.explore).toEqual({ model: 'm', effortLevel: 'high', contextTier: 'default' });
+});
+
+test('saved preferences shadow the settings Pi loaded and leave other keys alone', () => {
+  const store = new SettingsStore(() => ({ theme: 'dark', subagents: { disabledSubagents: ['a'] }, builtInAgents: { rubberDuck: false } }));
+  store.adopt({ subagents: { disabledSubagents: ['b'] }, builtInAgents: { rubberDuck: true }, theme: 'light' });
+  const { settings, raw } = store.read();
+  expect(settings.subagents.disabledSubagents).toEqual(['b']);
+  expect(settings.builtInAgents.rubberDuck).toBe(true);
+  expect(raw).toMatchObject({ theme: 'dark' });
 });
 
 test('the limiter provider builds one root limiter from the first settings and a child uses its parent', () => {
@@ -95,12 +104,12 @@ test('the limiter provider builds one root limiter from the first settings and a
     () => undefined,
     () => 8,
   );
-  const first = provider.get('/repo');
-  expect(provider.get('/other')).toBe(first);
+  const first = provider.get();
+  expect(provider.get()).toBe(first);
   provider.reset();
-  expect(provider.get('/repo')).not.toBe(first);
+  expect(provider.get()).not.toBe(first);
   const parent = new SubagentLimiter({ maxConcurrent: 1, maxDepth: 1 });
-  expect(new LimiterProvider(settings, () => parent).get('/repo')).toBe(parent);
+  expect(new LimiterProvider(settings, () => parent).get()).toBe(parent);
   expect(limiterConfig(parseReference AssistantSettings({}).settings, 8)).toEqual({ maxConcurrent: 8, maxDepth: 4 });
 });
 

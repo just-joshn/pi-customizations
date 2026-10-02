@@ -90,15 +90,25 @@ export function applyPreference(settings: Json, command: Exclude<PreferenceComma
   }
 }
 
-export function persistPreference(file: string, command: Exclude<PreferenceCommand, { kind: 'show' }>): void {
-  let current: Json = {};
+function readSettingsFile(file: string): Json {
+  let text: string;
   try {
-    current = record(JSON.parse(readFileSync(file, 'utf8')));
-  } catch {
-    current = {};
+    text = readFileSync(file, 'utf8');
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return {};
+    throw error;
   }
+  const parsed: unknown = JSON.parse(text.replace(/^\uFEFF/, ''));
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error(`${file} does not hold a JSON object.`);
+  return record(parsed);
+}
+
+/** Writes the change into the settings file and returns what it now holds. A file that cannot be read is left untouched and the error surfaces. */
+export function persistPreference(file: string, command: Exclude<PreferenceCommand, { kind: 'show' }>): Json {
+  const next = applyPreference(readSettingsFile(file), command);
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, `${JSON.stringify(applyPreference(current, command), null, 2)}\n`);
+  writeFileSync(file, `${JSON.stringify(next, null, 2)}\n`);
+  return next;
 }
 
 export function renderPreferences(settings: Reference AssistantSettings, agents: readonly AgentDefinition[]): string {

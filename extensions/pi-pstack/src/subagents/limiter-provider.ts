@@ -44,10 +44,10 @@ export class LimiterProvider {
     private readonly parallelism: () => number = availableParallelism,
   ) {}
 
-  get(cwd: string): LimiterLike {
+  get(): LimiterLike {
     const inherited = this.parent();
     if (inherited) return inherited;
-    this.root ??= new SubagentLimiter(limiterConfig(this.settings.read(cwd).settings, this.parallelism()));
+    this.root ??= new SubagentLimiter(limiterConfig(this.settings.read().settings, this.parallelism()));
     return this.root;
   }
 

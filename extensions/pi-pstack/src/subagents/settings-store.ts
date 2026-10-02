@@ -1,4 +1,3 @@
-import { getAgentDir, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { type Reference AssistantSettings, parseReference AssistantSettings, type SubagentSettingsEntry } from './settings.ts';
 
 export type SettingsUpdate = Readonly<{ agents?: Readonly<Record<string, SubagentSettingsEntry>>; disabledSubagents?: readonly string[]; contextManagementTools?: boolean }>;
@@ -22,16 +21,26 @@ function merged(base: Reference AssistantSettings, update: SettingsUpdate): Refe
   };
 }
 
-/** Settings read from the pi settings files at each use, with the live overrides of updateSubagentSettings layered on top. */
+const savedKeys = ['subagents', 'builtInAgents'] as const;
+
+/**
+ * Pi's merged settings for the session, which already honour project trust, with the preferences saved by /subagents and the live
+ * overrides of updateSubagentSettings layered on top. Pi reads its settings files once, so saved edits need the overlay to apply at once.
+ */
 export class SettingsStore {
   private override: SettingsUpdate = {};
+  private saved: Readonly<Record<string, unknown>> = {};
 
-  constructor(private readonly load: (cwd: string) => unknown = (cwd) => SettingsManager.create(cwd, getAgentDir()).getSettings()) {}
+  constructor(private readonly load: () => object) {}
 
-  read(cwd: string): { settings: Reference AssistantSettings; warnings: readonly string[]; raw: unknown } {
-    const raw = this.load(cwd);
+  read(): { settings: Reference AssistantSettings; warnings: readonly string[]; raw: unknown } {
+    const raw = { ...this.load(), ...this.saved };
     const { settings, warnings } = parseReference AssistantSettings(raw);
     return { settings: merged(settings, this.override), warnings, raw };
+  }
+
+  adopt(written: Readonly<Record<string, unknown>>): void {
+    this.saved = Object.fromEntries(savedKeys.flatMap((key) => (key in written ? [[key, written[key]]] : [])));
   }
 
   update(update: SettingsUpdate): void {
