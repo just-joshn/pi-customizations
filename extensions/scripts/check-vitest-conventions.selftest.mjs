@@ -58,6 +58,8 @@ describe('outer', () => {
 const clean = `
 import { describe, expect, it, test, vi } from 'vitest';
 
+vi.mock('node:fs', () => ({ readFileSync: () => '' }));
+
 describe('parseArgs', () => {
   it('returns the parsed value', () => {
     expect(parseArgs(['--count', '2'])).toEqual({ count: 2 });

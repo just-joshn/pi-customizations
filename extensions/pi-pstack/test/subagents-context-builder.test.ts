@@ -75,3 +75,7 @@ test('a plan threads the parent registry, system transform and write gate it was
   expect(bare.prompt.sections).toContain('environment_context');
   expect(built.prompt.sections).not.toContain('environment_context');
 });
+
+test('a plan without a write gate defaults to allowing writes', () => {
+  expect(plan().writeGate()).toBe(true);
+});

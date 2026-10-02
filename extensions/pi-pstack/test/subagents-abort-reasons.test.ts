@@ -16,6 +16,10 @@ test('a foreground user cancel becomes user_cancel_sync while background stops k
   expect(abortInfo('permission-stop', false)).toEqual({ reason: 'permission-stop', userInitiated: false, telemetry: 'turn_teardown' });
 });
 
+test('a foreground stop that is not a permission stop reports sync user-cancel telemetry', () => {
+  expect(abortInfo('interrupt', true)).toEqual({ reason: 'interrupt', userInitiated: true, telemetry: 'user_cancel_sync' });
+});
+
 test('an AbortError unwraps its message while unrelated values fall back to unknown', () => {
   expect(abortInfo(new DOMException('subagent-park', 'AbortError'), false)).toEqual({ reason: 'subagent-park', userInitiated: true, telemetry: 'subagent_park' });
   expect(abortInfo(new DOMException('unlisted', 'AbortError'), true)).toEqual({ reason: 'unknown', userInitiated: false, telemetry: 'user_cancel_sync' });

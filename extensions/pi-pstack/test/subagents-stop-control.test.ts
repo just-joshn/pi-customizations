@@ -69,5 +69,7 @@ test('detaching before a slow stop resolves publishes nothing', async () => {
   pipe.detach();
   resolveStop({ stopped: true });
   await new Promise<void>((resolve) => setImmediate(resolve));
-  expect(pipe.results).toEqual([]);
+  const outcome = await Promise.race([pipe.nextResult.then(() => 'published' as const), Promise.resolve('pending' as const)]);
+  expect(outcome).toBe('pending');
+  expect(pipe.results).toHaveLength(0);
 });

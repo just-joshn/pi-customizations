@@ -205,7 +205,9 @@ function checkTimerCall(node, report) {
 }
 
 function checkModuleMock(name, node, report) {
-  if ((name === 'vi.mock' || name === 'vi.doMock') && ts.isStringLiteral(node.arguments[0])) {
+  // A Node built-in has no module file to import, and the import form does not type-check for a CJS built-in, so a string
+  // specifier is the only way to mock it. The rule still applies to every resolvable module path.
+  if ((name === 'vi.mock' || name === 'vi.doMock') && ts.isStringLiteral(node.arguments[0]) && !node.arguments[0].text.startsWith('node:')) {
     report('violation', 'string-module-mock', node, 'prefer vi.mock(import("./module.js")) over a string specifier');
   }
   if (name !== 'vi.mock' && name !== 'vi.unmock' && name !== 'vi.hoisted') return;
