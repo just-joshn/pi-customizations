@@ -204,7 +204,7 @@ if (!isCheck) {
       2,
     )}\n`,
   );
-  console.log(`captured ${version} into ${referenceDir}`);
+  process.stdout.write(`captured ${version} into ${referenceDir}\n`);
 } else {
   const baselineDir = join(REFERENCE_ROOT, `reference-agent-${version}`);
   const mismatched = (existsSync(baselineDir) ? readdirSync(baselineDir) : [])
@@ -214,7 +214,7 @@ if (!isCheck) {
       if (!existsSync(after)) return true;
       return normalize(readFileSync(join(baselineDir, name), 'utf8')) !== normalize(readFileSync(after, 'utf8'));
     });
-  console.log(`baseline: ${baselineDir}`);
-  console.log(`mismatched states: ${mismatched.length === 0 ? 'none' : mismatched.join(', ')}`);
+  process.stdout.write(`baseline: ${baselineDir}\n`);
+  process.stdout.write(`mismatched states: ${mismatched.length === 0 ? 'none' : mismatched.join(', ')}\n`);
   process.exitCode = mismatched.length === 0 ? 0 : 1;
 }

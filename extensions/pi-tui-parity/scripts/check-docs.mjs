@@ -78,7 +78,7 @@ for (const file of files) {
 }
 
 if (errors.length > 0) {
-  console.error(errors.join('\n'));
+  process.stderr.write(`${errors.join('\n')}\n`);
   process.exit(1);
 }
-console.log(`check-docs: ${files.length} source files conform to installed pi declarations`);
+process.stdout.write(`check-docs: ${files.length} source files conform to installed pi declarations\n`);
