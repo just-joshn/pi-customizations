@@ -1,5 +1,5 @@
 
-pi v0.87.1
+pi v1.0.0
 
 [Extensions]
   scripted-provider.ts, src
@@ -8,29 +8,29 @@ pi v0.87.1
  Warning: tmux extended-keys is off. Modified Enter keys may not work. Add `set -g extended-keys on` to
  ~/.tmux.conf and restart tmux.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
  → Plan, search, build anything
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
   Test Model · 128k · 0%                                                                         -- INSERT --
-  /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-smoke-ws-60382-1790554410435
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-smoke-ws-76556-1790902793712
