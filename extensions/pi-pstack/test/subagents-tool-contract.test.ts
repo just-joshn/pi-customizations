@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { validateToolArguments } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
@@ -62,6 +65,15 @@ test('a long reply keeps its head within Pi limits and names the transcript', ()
   expect(lines.some((line) => line.startsWith('line 2000'))).toBe(false);
   expect(bounded).toContain("The agent's full transcript is at /sessions/agent-a.jsonl.");
   expect(boundedForModel('short', '/sessions/agent-a.jsonl')).toBe('short');
+});
+test('a child writes files while its parent has a write tool active', async () => {
+  const fixture = await workerFixture();
+  try {
+    await fixture.call('task', { agent_type: 'general-purpose', name: 'writer', description: 'write a file', prompt: 'WORKTREE_WRITE', mode: 'sync' });
+    expect(existsSync(join(fixture.dir, 'child-change.txt'))).toBe(true);
+  } finally {
+    await fixture.close();
+  }
 });
 test('the tools that manage agents form one namespace', async () => {
   let api: ExtensionAPI | undefined;
