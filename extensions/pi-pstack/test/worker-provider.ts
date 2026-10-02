@@ -61,6 +61,11 @@ function workspaceCalls(text: string): ToolCall[] {
   ];
 }
 
+function sidekickInbox(context: StreamArguments[1]): ToolCall[] {
+  if (!JSON.stringify(context).includes('one concise message per finding with send_inbox')) return [];
+  return [{ type: 'toolCall', id: 'sidekick-inbox', name: 'send_inbox', arguments: { message: 'found it' } }];
+}
+
 function requestedTools(text: string, context: StreamArguments[1]): ToolCall[] {
   const last = context.messages.at(-1);
   const failedChild = text.includes('BROKEN_CHILD_PARENT');
@@ -68,7 +73,7 @@ function requestedTools(text: string, context: StreamArguments[1]): ToolCall[] {
   const controls = text.includes('CONTROL_BATCH_PARENT');
   if (text.includes('NEST_TOOL_SUM') && last?.role === 'user') return [{ type: 'toolCall', id: 'stats-child', name: 'Agent', arguments: { description: 'nested tool statistics', prompt: 'TOOL_STATS', run_in_background: false } }];
   if (text.includes('SPAWN_SELF_ABORT') && last?.role === 'user') return [{ type: 'toolCall', id: 'self-abort-child', name: 'Agent', arguments: { description: 'self abort child', prompt: 'SELF_ABORT', run_in_background: false } }];
-  const direct = last?.role === 'user' ? directCalls(text) : [];
+  const direct = last?.role === 'user' ? [...sidekickInbox(context), ...directCalls(text)] : [];
   if (direct.length) return direct;
   if (text.includes('SPAWN_JSON_LEAF') && last?.role === 'user')
     return [{ type: 'toolCall', id: 'json-leaf', name: 'Agent', arguments: { description: 'JSON leaf', prompt: 'leaf request', subagent_type: 'json-leaf', run_in_background: false } }];

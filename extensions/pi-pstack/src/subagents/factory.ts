@@ -22,7 +22,7 @@ import { rewindingStartMessage } from './tool-results.ts';
 
 export type TaskCall = Readonly<{ agent_type: string; name: string; description: string; prompt: string; mode?: 'sync' | 'background'; model?: string; context_tier?: ContextTier }>;
 export type Created = Readonly<{ launched: Launched; node: AgentNode }>;
-export type CreateExtras = Readonly<{ limits?: ChildLimits; workflowRunId?: string }>;
+export type CreateExtras = Readonly<{ limits?: ChildLimits; workflowRunId?: string; definition?: AgentDefinition }>;
 export type FactoryDeps = Readonly<{
   scope: () => ChildContextEntry | undefined;
   pi: ExtensionAPI;
@@ -47,6 +47,10 @@ export class SubagentFactory {
 
   constructor(private readonly deps: FactoryDeps) {
     this.discovery = deps.discovery ?? new DiscoveryCache();
+  }
+
+  isChild(): boolean {
+    return this.deps.scope() !== undefined;
   }
 
   clearDiscovery(): void {
@@ -98,7 +102,7 @@ export class SubagentFactory {
     const host = this.host(ctx, settings);
     for (const action of ['checkStartAllowed', 'prepareTools']) this.effect(host, action);
     const inputs = this.registryInputs(ctx, settings);
-    const resolved = resolveAgentType(call.agent_type, inputs);
+    const resolved = extras.definition ? { ok: true as const, agent: extras.definition } : resolveAgentType(call.agent_type, inputs);
     if (!resolved.ok) throw new Error(resolved.message);
     const scope = this.deps.scope();
     const depth = scope?.depth ?? 0;
