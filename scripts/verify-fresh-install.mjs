@@ -16,6 +16,7 @@ const cli = join(root, 'extensions/pi-pstack/node_modules/@earendil-works/pi-cod
 const providers = [
   { dir: 'extensions/pi-anthropic-oauth', provider: 'claude-subscription' },
   { dir: 'extensions/pi-antigravity-oauth', provider: 'google-antigravity' },
+  { dir: 'extensions/pi-xai-oauth', provider: 'grok-build' },
 ];
 
 async function exportWorkingTree(target) {
@@ -32,6 +33,7 @@ async function writeFixtureCredentials(agentDir) {
   const auth = {
     'claude-subscription': credential,
     'google-antigravity': { ...credential, projectId: 'fixture-project', email: 'fixture@example.com' },
+    'grok-build': credential,
   };
   await writeFile(join(agentDir, 'auth.json'), JSON.stringify(auth), { mode: 0o600 });
 }

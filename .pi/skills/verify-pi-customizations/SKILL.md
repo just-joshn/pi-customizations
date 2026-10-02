@@ -75,6 +75,7 @@ Every drive captures user-observable evidence written directly to `artifacts/ver
 - **oauth-providers:**
   - `claude-models.txt`: table of registered `claude-subscription` models.
   - `antigravity-models.txt`: table of registered `google-antigravity` models.
+  - `grok-build-models.txt`: table of registered `grok-build` models.
 
 Proof standards:
 - All commands execute through real CLI/RPC calls, not unit test stubs.
