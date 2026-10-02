@@ -1,7 +1,7 @@
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { chmodSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { scratchDir } from './scratch.ts';
 export interface FakeReply {
   readonly code?: number;
   readonly stdout?: string;
@@ -51,7 +51,7 @@ process.exit(reply.code ?? 0);
 `;
 
 export function installFakeBin(rules: readonly FakeRule[]): FakeBin {
-  const dir = mkdtempSync(join(tmpdir(), 'watch-pr-fakes-'));
+  const dir = scratchDir('watch-pr-fakes-');
   writeFileSync(join(dir, 'rules.json'), JSON.stringify(rules));
   writeFileSync(join(dir, 'calls.jsonl'), '');
   for (const tool of ['gh', 'git']) {
@@ -67,9 +67,7 @@ export function installFakeBin(rules: readonly FakeRule[]): FakeBin {
 }
 
 export function emptyBin(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'watch-pr-empty-'));
-  mkdirSync(dir, { recursive: true });
-  return dir;
+  return scratchDir('watch-pr-empty-');
 }
 
 export function fakeEnv(bin: FakeBin, extra: Record<string, string> = {}): Record<string, string> {
