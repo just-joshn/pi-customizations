@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import type { AgentDefinition } from '../src/subagents/agent-definition.ts';
 import { resolveAgentType } from '../src/subagents/agent-registry.ts';
 import { parseCustomAgent } from '../src/subagents/custom-agents.ts';
-import { type AssemblyInput, assembleSystemPrompt, type EnvironmentFacts, substituteTemplates, transformFrom } from '../src/subagents/prompt-assembly.ts';
+import { type AssemblyInput, assembleSystemPrompt, type EnvironmentFacts, promptSections, substituteTemplates, transformFrom } from '../src/subagents/prompt-assembly.ts';
 
 const toolNames = { grep: 'grep', glob: 'find', shell: 'bash', view: 'read' };
 const environment: EnvironmentFacts = { cwd: '/repo', gitRoot: '/repo', os: 'Darwin', listing: 'src/\nREADME.md', tools: ['git', 'gh'] };
@@ -103,4 +103,9 @@ test('a transform exists only when a systemMessage option was given', () => {
   expect(transformFrom({ tools: { action: 'remove' } })?.('tools', 'text')).toBe(undefined);
   expect(transformFrom({})?.('tools', 'text')).toBe('text');
   expect(transformFrom(undefined)).toBe(undefined);
+});
+
+test('the section table holds the twelve named sections of the report', () => {
+  expect(promptSections).toHaveLength(12);
+  expect(promptSections.at(-1)).toBe('environment_context');
 });

@@ -41,6 +41,7 @@ test('a sync task emits the documented event order with its provenance', async (
     expect(types).toEqual(expect.arrayContaining(['system.message', 'session.model_change', 'user.message', 'assistant.turn_start', 'assistant.message', 'assistant.turn_end', 'subagent.completed']));
     expect(seen[0]).toMatchObject({ data: { agentType: 'general-purpose', executionMode: 'sync', resumable: false, modelSelectionSource: 'session_inheritance', taskModelSource: 'unset', agentDisplayName: 'probe' } });
     expect(seen[0]?.data).not.toHaveProperty('parentId');
+    expect(seen.find((event) => event.type === 'subagent.selected')?.data).toMatchObject({ agentName: 'general-purpose', tools: ['*'] });
     const completed = seen.find((event) => event.type === 'subagent.completed');
     expect(completed?.data).toMatchObject({ agentName: 'general-purpose', configuredModelMatchesActual: true, totalToolCalls: 0 });
     const childOwned = seen.filter((event) => event.type.startsWith('assistant.') || event.type === 'user.message');

@@ -16,6 +16,7 @@ export type EffortLevel = Static<typeof EffortSchema>;
 export type ContextTier = Static<typeof TierSchema>;
 export type SubagentSettingsEntry = Readonly<{ model?: string; modelPolicy?: ModelPolicy; effortLevel?: EffortLevel; contextTier?: ContextTier; autoInvoke?: boolean }>;
 export type WorkflowLimits = Readonly<{ maxConcurrentSubagents?: number; maxTotalSubagents?: number; timeoutSeconds?: number; maxAiCredits?: number }>;
+export const defaultWorkflowLimits: WorkflowLimits = { maxConcurrentSubagents: 4, maxTotalSubagents: 20, timeoutSeconds: 1800, maxAiCredits: 5 };
 export type Reference AssistantSettings = Readonly<{
   subagents: Readonly<{ agents: Readonly<Record<string, SubagentSettingsEntry>>; disabledSubagents: readonly string[]; maxConcurrency?: number; maxDepth?: number; contextManagementTools: boolean }>;
   builtInAgents: Readonly<{ rubberDuck: boolean; rubberDuckAutoInvoke: boolean }>;

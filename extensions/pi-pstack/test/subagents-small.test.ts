@@ -8,8 +8,11 @@ import { EventLog } from '../src/subagents/events.ts';
 import { featureEnabled, rubberDuckRollout, subconsciousEnabled } from '../src/subagents/feature-flags.ts';
 import { SubagentLimiter } from '../src/subagents/limiter.ts';
 import { isLinkAcquire, LimiterProvider, limiterConfig, linkChannel, parentLimiter } from '../src/subagents/limiter-provider.ts';
+import { SubagentScheduler } from '../src/subagents/scheduler.ts';
 import { parseReference AssistantSettings } from '../src/subagents/settings.ts';
 import { SettingsStore } from '../src/subagents/settings-store.ts';
+import { TaskRegistry } from '../src/subagents/task-registry.ts';
+import { waitSeconds } from '../src/subagents.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 const log = () => {
@@ -149,4 +152,73 @@ test('a persisted running agent is closed as cancelled when the session restarts
   } finally {
     await fixture.close();
   }
+});
+
+function node(id: string, status: 'running' | 'idle') {
+  return {
+    id,
+    registryId: `r-${id}`,
+    toolCallId: id,
+    agentType: 'explore',
+    agentDisplayName: id,
+    agentDescription: 'd',
+    description: 'd',
+    prompt: 'p',
+    mode: 'background',
+    status,
+    depth: 1,
+    turns: status === 'idle' ? ['t'] : [],
+    startedAt: 1,
+    model: 'p/m',
+    modelSource: 'session_inheritance',
+    taskModelSource: 'unset',
+    contextTier: 'inherit',
+    firstDispatchedModel: 'p/m',
+    totalToolCalls: 0,
+    totalTokens: 0,
+    sessionFile: '/s',
+    cwd: '/r',
+  } as const;
+}
+
+function schedulerHarness(running: readonly string[] = []) {
+  const registry = new TaskRegistry({ persist: () => {} });
+  const pi = { on: () => () => {}, events: { emit: () => {}, on: () => () => {} }, appendEntry: () => {}, sendMessage: () => {} };
+  const scheduler = new SubagentScheduler({ pi: pi as never, events: new EventLog({ emit: () => {}, persist: () => {} }), registry, limiter: () => new SubagentLimiter({ maxConcurrent: 2, maxDepth: 4 }), log: () => {} });
+  for (const id of running) registry.register(node(id, 'running'));
+  return { registry, scheduler, node };
+}
+
+test('rewind is refused while agents run and blocks starts once begun', async () => {
+  const { registry, scheduler } = schedulerHarness(['a']);
+  expect(scheduler.beginRewind()).toEqual({ cancel: true });
+  expect(scheduler.blocksStart()).toBe(false);
+  registry.transition('a', 'idle');
+  expect(scheduler.beginRewind()).toEqual({ cancel: false });
+  expect(scheduler.blocksStart()).toBe(true);
+});
+
+test('cancelAll can include idle agents and leaves finished ones alone', async () => {
+  const { registry, scheduler, node } = schedulerHarness([]);
+  registry.register(node('idle-1', 'running'));
+  registry.transition('idle-1', 'idle', { turns: ['t'] });
+  const cancelled = await scheduler.cancelAll(true);
+  expect(cancelled.map((node) => node.id)).toEqual(['idle-1']);
+  expect(registry.get('idle-1')?.status).toBe('cancelled');
+});
+
+test('waiting for background work drains or times out', async () => {
+  const running = schedulerHarness(['a']);
+  expect(await running.scheduler.waitForWork(50)).toBe(false);
+  const idle = schedulerHarness([]);
+  expect(await idle.scheduler.waitForWork(50)).toBe(true);
+});
+
+test.for([
+  { value: undefined, expected: 300 },
+  { value: '45', expected: 45 },
+  { value: '0', expected: 300 },
+  { value: 'later', expected: 300 },
+])('COPILOT_TASK_WAIT_TIMEOUT_SECONDS=$value gives $expected seconds', ({ value, expected }) => {
+  expect(waitSeconds(value === undefined ? {} : { COPILOT_TASK_WAIT_TIMEOUT_SECONDS: value })).toBe(expected);
 });

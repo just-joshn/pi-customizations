@@ -8,6 +8,7 @@ import type { SubagentScheduler } from './scheduler.ts';
 import type { SettingsStore } from './settings-store.ts';
 import { parsePreferenceCommand, persistPreference, renderPreferences } from './subagent-preferences.ts';
 import { listAgentsText } from './tool-results.ts';
+import { publicWorkflow, type WorkflowRuntime } from './workflows/runtime.ts';
 
 export const rubberDuckPrompt = (focus: string) =>
   `Call the task tool now with agent_type "rubber-duck" and mode "sync". Give it the current plan or the work so far, the goal, and what you want challenged${focus ? `: ${focus}` : ''}. Then address its critique before you continue.`;
@@ -15,7 +16,7 @@ export const rubberDuckPrompt = (focus: string) =>
 export const fleetPrompt = (goal: string) =>
   `Fleet mode. Goal: ${goal}\nSplit the goal into independent subtasks and start each one with the task tool in mode "background" in a single turn so they run in parallel, within the concurrency limit. Then read each result with read_agent and combine them. Do not poll.`;
 
-type Parts = Readonly<{ factory: SubagentFactory; scheduler: SubagentScheduler; settings: SettingsStore }>;
+type Parts = Readonly<{ factory: SubagentFactory; scheduler: SubagentScheduler; settings: SettingsStore; workflows: () => WorkflowRuntime }>;
 
 function tasks(parts: Parts, args: string, ctx: ExtensionCommandContext): void {
   const [action, id] = args.trim().split(/\s+/);
@@ -47,7 +48,22 @@ function subagents(parts: Parts, args: string, ctx: ExtensionCommandContext): vo
   ctx.ui.notify(renderPreferences(settings, parts.factory.offered(ctx)), 'info');
 }
 
+function workflowList(parts: Parts, ctx: ExtensionCommandContext): void {
+  const runs = parts.workflows().runs();
+  ctx.ui.notify(
+    runs.length === 0
+      ? 'No workflow runs.'
+      : runs
+          .map(publicWorkflow)
+          .map((run) => `${run.id} ${run.status} attempt ${run.attempt} subagents ${run.consumption.subagents}`)
+          .join('\n'),
+    'info',
+  );
+}
+
 export function registerSubagentCommands(pi: ExtensionAPI, parts: Parts): void {
+  pi.registerCommand('workflows', { description: 'List dynamic workflow runs and their status', handler: async (_args, ctx) => workflowList(parts, ctx) });
+  pi.registerCommand('factories', { description: 'List dynamic workflow runs (internally factories); pause or resume one with dynamic_workflows_manage', handler: async (_args, ctx) => workflowList(parts, ctx) });
   pi.registerCommand('tasks', { description: 'List running subagents, move the current one to the background, or cancel one', handler: async (args, ctx) => tasks(parts, args, ctx) });
   pi.registerCommand('subagents', { description: 'Show or edit the subagent models, effort, tier and disabled agents', handler: async (args, ctx) => subagents(parts, args, ctx) });
   pi.registerCommand('rubber-duck', {

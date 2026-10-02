@@ -2,6 +2,8 @@ import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
+import { Type } from 'typebox';
+import { Check } from 'typebox/value';
 import type { AgentNode } from './subagents/agent-node.ts';
 import { agentEntryType } from './subagents/agent-node.ts';
 import { AgentSelection } from './subagents/agent-selection.ts';
@@ -23,6 +25,7 @@ import { executionSubagent, type Specialized, searchSubagent, specializedEnabled
 import { fleetPrompt, registerSubagentCommands } from './subagents/subagent-commands.ts';
 import { parseSubagentHooks, runHooks } from './subagents/subagent-hooks.ts';
 import { TaskRegistry } from './subagents/task-registry.ts';
+import { WorkflowRuntime } from './subagents/workflows/runtime.ts';
 
 export type SubagentSystem = Readonly<{
   factory: SubagentFactory;
@@ -34,6 +37,7 @@ export type SubagentSystem = Readonly<{
   rpc: SubagentRpc;
   sidekicks: SidekickManager;
   sidekickScheduler: SubagentScheduler;
+  workflows: () => WorkflowRuntime;
 }>;
 
 const defaultWaitSeconds = 300;
@@ -76,6 +80,34 @@ class Session {
   }
 }
 
+const Declaration = Type.Object({ name: Type.String({ minLength: 1 }), description: Type.String({ minLength: 1 }), run: Type.Function([Type.Unknown(), Type.Unknown()], Type.Unknown()) });
+
+type WorkflowStack = Readonly<{ pi: ExtensionAPI; env: NodeJS.ProcessEnv; factory: SubagentFactory; settings: SettingsStore; events: EventLog; session: Session; log: (message: string) => void }>;
+
+function buildWorkflows(stack: WorkflowStack): WorkflowRuntime {
+  const runtime = new WorkflowRuntime({
+    pi: stack.pi,
+    events: stack.events,
+    factory: stack.factory,
+    env: () => stack.env,
+    settings: stack.settings,
+    log: stack.log,
+    storeFile: () => (stack.session.latest ? join(stack.session.latest.sessionManager.getSessionDir(), 'workflows.json') : undefined),
+  });
+  stack.pi.events.on('reference-assistant:register-workflow', (payload) => {
+    if (!Check(Declaration, payload)) return;
+    const declaration = { ...payload, run: async (context: unknown, args: unknown) => payload.run(context, args) };
+    if (runtime.register(declaration) !== true) stack.log(`Workflow '${String((payload as { name?: unknown }).name)}' was dropped because dynamic workflows are disabled.`);
+  });
+  stack.pi.on('session_start', () => {
+    runtime.reconcile();
+  });
+  stack.pi.on('session_shutdown', () => {
+    void runtime.haltAll();
+  });
+  return runtime;
+}
+
 type SidekickStack = Readonly<{ pi: ExtensionAPI; env: NodeJS.ProcessEnv; events: EventLog; settings: SettingsStore; limiters: LimiterProvider; session: Session; log: (message: string) => void; holder: { sidekicks?: SidekickManager } }>;
 
 function buildSidekicks(stack: SidekickStack): { sidekicks: SidekickManager; sidekickScheduler: SubagentScheduler } {
@@ -112,6 +144,7 @@ function buildCore(pi: ExtensionAPI, env: NodeJS.ProcessEnv, session: Session): 
   const factory = new SubagentFactory({ scope: () => session.child, pi, scheduler, settings, env, log, limiters });
   const { sidekicks, sidekickScheduler } = buildSidekicks({ pi, env, events, settings, limiters, session, log, holder });
   holder.sidekicks = sidekicks;
+  const workflows = buildWorkflows({ pi, env, factory, settings, events, session, log });
   const selection = new AgentSelection(events);
   const rpc = new SubagentRpc({
     factory,
@@ -119,12 +152,13 @@ function buildCore(pi: ExtensionAPI, env: NodeJS.ProcessEnv, session: Session): 
     settings,
     registry,
     selection,
+    workflows: () => workflows,
     context: () => session.latest,
     toolNames: () => pi.getAllTools().map((tool) => tool.name),
     startFleet: (goal) => pi.sendUserMessage(fleetPrompt(goal)),
     reload: () => factory.clearDiscovery(),
   });
-  return { factory, scheduler, settings, registry, events, selection, rpc, sidekicks, sidekickScheduler };
+  return { factory, scheduler, settings, registry, events, selection, rpc, sidekicks, sidekickScheduler, workflows: () => workflows };
 }
 
 function registerLifecycle(pi: ExtensionAPI, env: NodeJS.ProcessEnv, system: SubagentSystem, session: Session, limiters: () => void): void {
@@ -198,7 +232,7 @@ export function createSubagentSystem(pi: ExtensionAPI, env: NodeJS.ProcessEnv): 
   const session = new Session();
   const system = buildCore(pi, env, session);
   serveRpc(pi, system.rpc);
-  registerSubagentCommands(pi, { factory: system.factory, scheduler: system.scheduler, settings: system.settings });
+  registerSubagentCommands(pi, { factory: system.factory, scheduler: system.scheduler, settings: system.settings, workflows: system.workflows });
   registerLifecycle(pi, env, system, session, () => system.factory.resetLimiters());
   registerPromptSections(pi, system);
   return system;
