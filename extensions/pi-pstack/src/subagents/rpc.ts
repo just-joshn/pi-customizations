@@ -121,8 +121,7 @@ export class SubagentRpc {
         return input.id === '*' ? (await this.parts.scheduler.cancelAll(input.includeIdle ?? false)).map((node) => publicTask(node)) : publicTask(await this.parts.scheduler.cancel(input.id));
       }
       case 'session.tasks.remove':
-        this.parts.registry.remove(parse(method, Id, params).id);
-        return {};
+        return publicTask(await this.parts.scheduler.remove(parse(method, Id, params).id));
       case 'session.tasks.sendMessage': {
         const input = parse(method, SendMessage, params);
         return publicTask(await this.parts.scheduler.write(input.id, input.message, this.ctx()));

@@ -382,11 +382,20 @@ export class SubagentScheduler {
 
   async cancel(id: string, reason: 'user-cancel' | 'shutdown' = 'user-cancel'): Promise<AgentNode> {
     const node = this.visible(id);
+    if (this.deps.registry.get(id)?.status === 'idle') return this.cancelIdle(node);
     const child = this.live.get(id);
     if (!child) return node;
     child.control.stop(reason);
     await settleWithin(child.settled, overdueAfterMs);
     return this.deps.registry.get(id) ?? node;
+  }
+
+  /** Removes a record, stopping and disposing a live child first so no settle path outlives its node. */
+  async remove(id: string): Promise<AgentNode> {
+    const node = this.visible(id);
+    if (this.live.has(id)) await this.cancel(id);
+    this.deps.registry.remove(id);
+    return node;
   }
 
   waitForWork(timeoutMs: number): Promise<boolean> {
@@ -406,7 +415,7 @@ export class SubagentScheduler {
 
   async cancelAll(includeIdle: boolean): Promise<readonly AgentNode[]> {
     const targets = this.list().filter((node) => node.status === 'running' || (includeIdle && node.status === 'idle'));
-    return Promise.all(targets.map((node) => (node.status === 'idle' ? this.cancelIdle(node) : this.cancel(node.id))));
+    return Promise.all(targets.map((node) => this.cancel(node.id)));
   }
 
   private async cancelIdle(node: AgentNode): Promise<AgentNode> {
