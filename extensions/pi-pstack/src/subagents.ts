@@ -26,7 +26,9 @@ import { executionSubagent, type Specialized, searchSubagent, specializedEnabled
 import { fleetPrompt, registerSubagentCommands } from './subagents/subagent-commands.ts';
 import { parseSubagentHooks, runHooks } from './subagents/subagent-hooks.ts';
 import { TaskRegistry } from './subagents/task-registry.ts';
-import { WorkflowRuntime } from './subagents/workflows/runtime.ts';
+import { WorkflowRuntime, workflowsEnabled } from './subagents/workflows/runtime.ts';
+import { workflowEntryType } from './subagents/workflows/store.ts';
+import { workflowTools } from './subagents/workflows/tools.ts';
 
 export type SubagentSystem = Readonly<{
   factory: SubagentFactory;
@@ -97,19 +99,16 @@ function buildWorkflows(stack: WorkflowStack): WorkflowRuntime {
     env: () => stack.env,
     settings: stack.settings,
     log: stack.log,
-    storeFile: () => (stack.session.latest ? join(stack.session.latest.sessionManager.getSessionDir(), 'workflows.json') : undefined),
+    persist: (change) => stack.pi.appendEntry(workflowEntryType, change),
   });
   stack.pi.events.on('reference-assistant:register-workflow', (payload) => {
     if (!Check(Declaration, payload)) return;
     const declaration = { ...payload, run: async (context: unknown, args: unknown) => payload.run(context, args) };
     if (runtime.register(declaration) !== true) stack.log(`Workflow '${String((payload as { name?: unknown }).name)}' was dropped because dynamic workflows are disabled.`);
   });
-  stack.pi.on('session_start', () => {
-    runtime.reconcile();
-  });
-  stack.pi.on('session_shutdown', () => {
-    void runtime.haltAll();
-  });
+  stack.pi.on('session_start', (_event, ctx) => runtime.restore(ctx.sessionManager.getBranch()));
+  stack.pi.on('session_tree', (_event, ctx) => runtime.restore(ctx.sessionManager.getBranch()));
+  stack.pi.on('session_shutdown', () => runtime.haltAll());
   return runtime;
 }
 
@@ -292,5 +291,6 @@ export function registerSubagents(pi: ExtensionAPI, env: NodeJS.ProcessEnv = pro
     ),
   );
   registerSpecialized(pi, system, env);
+  if (workflowsEnabled(env)) for (const tool of workflowTools(system.workflows())) pi.registerTool(tool);
   return system;
 }

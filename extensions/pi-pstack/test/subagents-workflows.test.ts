@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { expect, test, vi } from 'vitest';
@@ -5,9 +6,9 @@ import { rpcChannel, rpcResultChannel } from '../src/subagents/rpc.ts';
 import type { WorkflowLimits } from '../src/subagents/settings.ts';
 import { checkLimits, effectiveLimits, overCredits } from '../src/subagents/workflows/limits.ts';
 import { WorkflowRuntime, workflowsEnabled } from '../src/subagents/workflows/runtime.ts';
-import { WorkflowStore } from '../src/subagents/workflows/store.ts';
+import { Slots } from '../src/subagents/workflows/slots.ts';
+import { type Change, WorkflowStore, workflowEntryType } from '../src/subagents/workflows/store.ts';
 import { defineWorkflow, type WorkflowDeclaration, WorkflowPause } from '../src/subagents/workflows/types.ts';
-import { scratchDir } from './support/scratch.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 const limits: WorkflowLimits = { maxConcurrentSubagents: 2, maxTotalSubagents: 3, timeoutSeconds: 60, maxAiCredits: 2 };
@@ -56,46 +57,80 @@ test('workflows need the dynamic workflows switch', () => {
   expect(workflowsEnabled({ COPILOT_CLI_ENABLED_FEATURE_FLAGS: 'dynamic_workflows' })).toBe(true);
 });
 
-test('the store claims pending runs, heartbeats a lease, settles and persists across instances', () => {
-  const file = join(scratchDir('pstack-workflows-'), 'nested', 'workflows.json');
-  const first = new WorkflowStore(() => file);
-  const declaration = { limits };
-  const created = first.create('build', declaration, { a: 1 }, {}, 1000);
-  expect(first.claim(created.id, 1, 15_000, 1000)).toMatchObject({ status: 'running', ownerEpoch: 1 });
-  expect(first.claim(created.id, 1, 15_000, 1001)).toBeUndefined();
-  first.heartbeat(created.id, 1, 15_000, 2000);
-  expect(first.get(created.id)?.leaseExpiresAt).toBe(17_000);
-  first.putJournal(created.id, 'step', 'kept');
-  first.settle(created.id, 1, { status: 'completed', result: 7 });
-  const second = new WorkflowStore(() => file);
-  expect(second.get(created.id)).toMatchObject({ status: 'completed', result: 7 });
-  expect(second.journalOf(created.id)).toEqual({ step: 'kept' });
-  expect(second.journalOf('nothing')).toEqual({});
+function journaledStore() {
+  const entries: { type: string; customType: string; data: Change }[] = [];
+  const store = new WorkflowStore((change) => entries.push({ type: 'custom', customType: workflowEntryType, data: change }));
+  return { store, entries };
+}
+
+function restoredFrom(entries: readonly { type: string; customType: string; data: Change }[]): WorkflowStore {
+  const store = new WorkflowStore(() => {});
+  store.restore(entries);
+  return store;
+}
+
+test('the store claims pending runs, settles, and rebuilds every run from the session entries', () => {
+  const { store, entries } = journaledStore();
+  const created = store.create('build', { limits }, { a: 1 }, {}, 1000);
+  expect(store.claim(created.id, 1, 1000)).toMatchObject({ status: 'running', ownerEpoch: 1 });
+  expect(store.claim(created.id, 1, 1001)).toBeUndefined();
+  store.log(created.id, 'Phase verify.', 'verify');
+  store.putJournal(created.id, 'step', 'kept');
+  store.settle(created.id, 1, { status: 'completed', result: 7 });
+  const restored = restoredFrom(entries);
+  expect(restored.get(created.id)).toMatchObject({ status: 'completed', result: 7, arguments: { a: 1 }, logs: ['Phase verify.'], phases: ['verify'] });
+  expect(restored.journalOf(created.id)).toEqual({ step: 'kept' });
+  expect(restored.journalOf('nothing')).toEqual({});
+});
+
+test('a run snapshot never repeats the logs the log entries already carry', () => {
+  const { store, entries } = journaledStore();
+  const created = store.create('build', { limits }, undefined, {}, 1000);
+  store.claim(created.id, 1, 1000);
+  store.log(created.id, 'one');
+  store.log(created.id, 'two');
+  store.settle(created.id, 1, { status: 'completed' });
+  const snapshots = entries.flatMap((entry) => (entry.data.kind === 'run' ? [entry.data.run] : []));
+  expect(snapshots.every((run) => run.logs.length === 0 && run.phases.length === 0)).toBe(true);
+  expect(restoredFrom(entries).get(created.id)?.logs).toEqual(['one', 'two']);
+});
+
+test('a run another process left open settles as interrupted, except the runs this process executes', () => {
+  const { store, entries } = journaledStore();
+  const stale = store.create('stale', { limits }, undefined, {}, 1000);
+  store.claim(stale.id, 1, 1000);
+  const live = store.create('live', { limits }, undefined, {}, 2000);
+  store.claim(live.id, 1, 2000);
+  const restored = restoredFrom(entries);
+  const interrupted = restored.interruptOpen(new Set([live.id]));
+  expect(interrupted.map((run) => run.id)).toEqual([stale.id]);
+  expect(restored.get(stale.id)).toMatchObject({ status: 'error', failure: { type: 'interrupted' } });
+  expect(restored.get(live.id)?.status).toBe('running');
 });
 
 test('admission counts subagents atomically and refuses past the total', () => {
-  const store = new WorkflowStore(() => undefined);
+  const store = new WorkflowStore(() => {});
   const created = store.create('build', { limits }, undefined, {}, 1000);
-  store.claim(created.id, 1, 15_000, 1000);
-  store.admitSubagent(created.id, 'one', 1000);
-  store.admitSubagent(created.id, 'two', 1000);
+  store.claim(created.id, 1, 1000);
+  store.admitSubagent(created.id);
+  store.admitSubagent(created.id);
   expect(store.get(created.id)?.consumption.subagents).toBe(2);
-  store.finishSubagent(created.id, 'a', 1, 1001);
+  store.finishSubagent(created.id, 1);
   expect(store.get(created.id)?.consumption.credits).toBe(1);
   expect(store.list().filter((entry) => entry.id === created.id)).toHaveLength(1);
 });
 
 test('a maxTotalSubagents of zero refuses the first subagent', () => {
-  const store = new WorkflowStore(() => undefined);
+  const store = new WorkflowStore(() => {});
   const created = store.create('build', { limits: { ...limits, maxTotalSubagents: 0 } }, undefined, {}, 1000);
-  store.claim(created.id, 1, 15_000, 1000);
-  expect(() => store.admitSubagent(created.id, 'one', 1000)).toThrow('The workflow reached its maxTotalSubagents limit (0).');
+  store.claim(created.id, 1, 1000);
+  expect(() => store.admitSubagent(created.id)).toThrow('The workflow reached its maxTotalSubagents limit (0).');
 });
 
 test('a stale epoch settles nothing and unknown ids are refused', () => {
-  const store = new WorkflowStore(() => undefined);
+  const store = new WorkflowStore(() => {});
   const created = store.create('build', { limits }, undefined, {}, 1000);
-  store.claim(created.id, 1, 15_000, 1000);
+  store.claim(created.id, 1, 1000);
   expect(store.settle(created.id, 9, { status: 'completed' })).toBeUndefined();
   expect(store.get(created.id)).toMatchObject({ status: 'running', ownerEpoch: 1 });
   expect(store.get('ghost')).toBe(undefined);
@@ -109,10 +144,43 @@ test('the runtime registers nothing while dynamic workflows are off', () => {
     env: () => ({}) as NodeJS.ProcessEnv,
     settings: { read: () => ({ settings: { workflows: { maxConcurrentRuns: 4, defaultLimits: {} } } }) },
     log: () => {},
-    storeFile: () => undefined,
+    persist: () => {},
   });
   expect(runtime.register(defineWorkflow({ name: 'w', description: 'd', run: async () => 1 }))).toBe(false);
   expect(runtime.runs()).toEqual([]);
+});
+
+test('a waiter takes a slot the moment a holder releases it and never on a timer', async () => {
+  const slots = new Slots(1);
+  const signal = new AbortController().signal;
+  const releaseFirst = await slots.acquire(signal);
+  const order: string[] = [];
+  const second = slots.acquire(signal).then((release) => {
+    order.push('second acquired');
+    release();
+  });
+  await Promise.resolve();
+  order.push('first still holds');
+  releaseFirst();
+  await second;
+  expect(order).toEqual(['first still holds', 'second acquired']);
+});
+
+test('an aborted waiter leaves the line without blocking the waiters behind it', async () => {
+  const slots = new Slots(1);
+  const release = await slots.acquire(new AbortController().signal);
+  const leaving = new AbortController();
+  const gone = slots.acquire(leaving.signal);
+  const staying = slots.acquire(new AbortController().signal);
+  leaving.abort();
+  await expect(gone).rejects.toThrow('The workflow was cancelled.');
+  release();
+  await expect(staying).resolves.toBeTypeOf('function');
+});
+
+test('a limit of undefined never makes a caller wait', async () => {
+  const slots = new Slots(undefined);
+  await expect(Promise.all([slots.acquire(new AbortController().signal), slots.acquire(new AbortController().signal)])).resolves.toHaveLength(2);
 });
 
 type Fixture = Awaited<ReturnType<typeof workerFixture>>;
@@ -177,6 +245,46 @@ test('a registered workflow runs, delegates, journals and settles completed', as
     const put = await rpc(fixture, 'session.workflow.journal.put', { id, key: 'manual', value: 7 });
     expect(put.ok).toBe(true);
     expect(((await rpc(fixture, 'session.workflow.getRunDetail', { id })).result as { journal: Record<string, unknown> }).journal.manual).toBe(7);
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('a workflow run is journaled as session entries and never as a side file', async () => {
+  const { fixture } = await workflowFixture();
+  try {
+    const started = await rpc(fixture, 'session.workflow.run', { name: 'probe-flow' });
+    const id = (started.result as { id: string }).id;
+    const entries = fixture.session.sessionManager.getEntries().flatMap((entry) => (entry.type === 'custom' && entry.customType === 'reference-assistant-workflow' ? [entry.data as Change] : []));
+    expect(entries.filter((change) => change.kind === 'journal').map((change) => change.kind === 'journal' && change.key)).toEqual(['probe-one', 'probe-two']);
+    expect(entries.some((change) => change.kind === 'run' && change.run.id === id && change.run.status === 'completed')).toBe(true);
+    expect(existsSync(join(fixture.dir, 'sessions', 'workflows.json'))).toBe(false);
+    const rebuilt = new WorkflowStore(() => {});
+    rebuilt.restore(fixture.session.sessionManager.getBranch());
+    expect(rebuilt.get(id)).toMatchObject({ status: 'completed', phases: ['verify'] });
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('a workflow never runs more subagents at once than its concurrency limit', async () => {
+  vi.stubEnv('COPILOT_DYNAMIC_WORKFLOWS', '1');
+  const fixture = await workerFixture();
+  const order: string[] = [];
+  fixture.eventBus.on('reference-assistant:event', (payload) => {
+    const { type } = payload as { type: string };
+    if (type === 'subagent.started' || type === 'subagent.completed') order.push(type);
+  });
+  fixture.eventBus.emit('reference-assistant:register-workflow', {
+    name: 'serial-flow',
+    description: 'Two delegates through one slot',
+    limits: { maxConcurrentSubagents: 1 },
+    run: async (ctx) => ctx.parallel([() => ctx.agent('one'), () => ctx.agent('two')]),
+  } satisfies WorkflowDeclaration);
+  try {
+    const started = await rpc(fixture, 'session.workflow.run', { name: 'serial-flow' });
+    expect(started.result).toMatchObject({ status: 'completed', consumption: { subagents: 2 } });
+    expect(order).toEqual(['subagent.started', 'subagent.completed', 'subagent.started', 'subagent.completed']);
   } finally {
     await fixture.close();
   }

@@ -12,7 +12,6 @@ export type RunRecord = Readonly<{
   status: RunStatus;
   arguments: unknown;
   ownerEpoch: number;
-  leaseExpiresAt: number;
   declaredLimits: WorkflowLimits;
   effectiveLimits: WorkflowLimits;
   consumption: Readonly<{ subagents: number; credits: number; startedAt: number; elapsedSeconds: number }>;
