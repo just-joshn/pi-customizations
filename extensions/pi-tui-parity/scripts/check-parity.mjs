@@ -61,10 +61,10 @@ for (const id of inventoryIds) {
 }
 
 if (problems.length > 0) {
-  console.error(`check:parity failed with ${problems.length} problem(s):`);
-  for (const problem of problems) console.error(`- ${problem}`);
+  process.stderr.write(`check:parity failed with ${problems.length} problem(s):\n`);
+  for (const problem of problems) process.stderr.write(`- ${problem}\n`);
   process.exit(1);
 }
 
-console.log(`parity matrix OK: ${matrixRows.length} rows for ${inventoryIds.length} inventory ids`);
-console.log(`counts: ${JSON.stringify(statusCounts)}`);
+process.stdout.write(`parity matrix OK: ${matrixRows.length} rows for ${inventoryIds.length} inventory ids\n`);
+process.stdout.write(`counts: ${JSON.stringify(statusCounts)}\n`);
