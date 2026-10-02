@@ -53,7 +53,6 @@
     "check:cli": "node scripts/verify-cli.mjs",
     "check:journeys": "node scripts/verify-journeys.mjs",
     "check:progress-tui": "node scripts/verify-progress-tui.mjs",
-    "check:agent-render-tui": "node scripts/verify-agent-render-tui.mjs",
     "check:journeys:no-workers": "node scripts/verify-journeys.mjs . --no-workers",
     "check:native-parity": "node scripts/check-native-parity.mjs",
     "check:upstream": "node scripts/verify-upstream.mjs",
