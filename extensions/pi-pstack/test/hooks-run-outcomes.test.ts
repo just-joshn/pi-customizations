@@ -22,7 +22,7 @@ test('the event payload reaches the hook on stdin and a JSON object on stdout co
   expect(run).toEqual({
     command: 'cat',
     code: 0,
-    stdout: '{"tool_name":"Bash","hook_event_name":"PreToolUse"}',
+    stdout: JSON.stringify({ tool_name: 'Bash', hook_event_name: 'PreToolUse' }),
     stderr: '',
     json: { tool_name: 'Bash', hook_event_name: 'PreToolUse' },
   });

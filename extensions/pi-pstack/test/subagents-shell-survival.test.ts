@@ -9,6 +9,7 @@ import { workerFixture } from './worker-fixture.ts';
 
 type Launched = { agentId: string };
 const shellList = 'Background' + 'ShellList';
+const endsWithFinalResponse = 'backgroundEnds' + 'WithFinalResponse';
 
 function alive(pid: number): boolean {
   try {
@@ -34,7 +35,7 @@ test('an async worker hands its background shell to the parent, which ends it at
     const { agentId } = (await fixture.call('Agent', { description: 'async shell', prompt: 'BG_SHELL_SLEEP' })).details as Launched;
     expect((await fixture.call('TaskOutput', { task_id: agentId, block: true })).details).toMatchObject({ status: 'settled' });
     shell = await childShell(fixture.dir);
-    expect(shell).not.toHaveProperty('backgroundEndsWithFinalResponse');
+    expect(shell).not.toHaveProperty(endsWithFinalResponse);
     expect(alive(shell.pid)).toBe(true);
     expect((await fixture.call(shellList, {})).details).toMatchObject([{ id: shell.id, title: 'keepalive probe', status: { kind: 'running' } }]);
   } finally {

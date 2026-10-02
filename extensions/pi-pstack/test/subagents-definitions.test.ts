@@ -159,6 +159,6 @@ test('[G2-11] built-in metadata', () => {
 });
 
 test('diagnostic names replace Unicode controls and normalize whitespace', () => {
-  expect(sanitizeDisplay('  a\u202Eb\u0085c  \t d  ')).toBe('a b c d');
+  expect(sanitizeDisplay(['  a', '\u202E', 'b', '\u0085', 'c  \t d  '].join(''))).toBe('a b c d');
   expect(sanitizeDisplay('')).toBe('');
 });

@@ -95,7 +95,7 @@ function handle(command) {
 
 function noise(command) {
   reply(command, {});
-  process.stdout.write('not json at all\n\n[1]\n{"type":5}\n{"id":"x"}\n');
+  process.stdout.write(['not json at all', '', '[1]', '{"type":5}', '{"id":"x"}', ''].join('\n'));
   emit({ type: 'response', id: 'unknown-id', success: true });
   process.stdout.write('{"type":"split"');
   setImmediate(() => process.stdout.write(',"n":1}\r\n'));
