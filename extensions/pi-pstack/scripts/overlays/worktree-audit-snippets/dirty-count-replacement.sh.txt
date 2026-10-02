@@ -1,0 +1,7 @@
+	# wip counts tracked edits. scratch counts untracked and ignored files. Neither is
+	# disposable, so both hold the worktree out of the safe bucket below.
+	porcelain=$(git -C "$wt" status --porcelain --untracked-files=all --ignored=matching 2>/dev/null)
+	if [ -z "$porcelain" ]; then dirty=clean
+	elif printf '%s\n' "$porcelain" | grep -qv '^[?!][?!]'; then
+		dirty="wip:$(printf '%s\n' "$porcelain" | grep -cv '^[?!][?!]')"
+	else dirty="scratch:$(printf '%s\n' "$porcelain" | grep -c '^[?!][?!]')"; fi

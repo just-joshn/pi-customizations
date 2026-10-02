@@ -1,0 +1,14 @@
+    const value = await runJson([
+      "gh",
+      "pr",
+      "list",
+      "--repo",
+      `${repository.owner}/${repository.repo}`,
+      "--state",
+      "open",
+      "--limit",
+      "300",
+      "--json",
+      "number,headRefName,baseRefName",
+    ]);
+    return list(value, "open PRs").map((item, index) => {

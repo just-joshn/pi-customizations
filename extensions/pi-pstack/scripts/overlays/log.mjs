@@ -1,3 +1,7 @@
+import { readFileSync } from 'node:fs';
+
+const snippet = (name) => readFileSync(new URL(`./log-snippets/${name}.sh.txt`, import.meta.url), 'utf8');
+
 export default [
   {
     path: 'skills/show-me-your-work/scripts/log.sh',
@@ -19,7 +23,7 @@ export default [
           'if [ ! -s "$logfile" ]; then',
         'Take a mkdir lock around the header test and the append so concurrent first writers write one header.',
       ],
-      ['\tcase "$v" in\n', '\tcase "${v#"${v%%[![:space:]]*}"}" in\n', 'Guard on the first non-blank character so leading whitespace cannot hide a formula prefix.'],
+      ['\tcase "$v" in\n', snippet('case-first-non-blank'), 'Guard on the first non-blank character so leading whitespace cannot hide a formula prefix.'],
     ],
   },
 ];

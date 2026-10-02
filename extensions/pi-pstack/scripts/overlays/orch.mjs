@@ -25,18 +25,7 @@ export default [
       ],
       [span(store, 'async function acquireLock(', 'async function readTsv('), snippet('acquire-lock'), 'Serialize stale-lock take-over behind a guard file, retry with backoff, and name the --force recovery for a reused pid.'],
       [span(store, 'function resolveFrontier(', 'function validateFrontierPin('), snippet('frontier'), 'Resolve the frontier from gh when gt is not installed, and record the remote PR head instead of a stale local branch.'],
-      [
-        pinFunction,
-        pinFunction
-          .replace(
-            'function validateFrontierPin({\n  actual,\n  expected,\n}: {\n  actual: readonly number[];\n  expected: readonly number[];\n}): void {',
-            'function validateFrontierPin({\n  actual,\n  expected,\n  source,\n}: {\n  actual: readonly number[];\n  expected: readonly number[];\n  source: string;\n}): void {',
-          )
-          .replace('`missing from gt: ${missing.join(",")}`', '`missing from ${source}: ${missing.join(",")}`')
-          .replace('`extra in gt: ${extra.join(",")}`', '`extra in ${source}: ${extra.join(",")}`')
-          .replace('gt ${actual.join(",")}`', '${source} ${actual.join(",")}`'),
-        'Name the frontier source in pin mismatch errors.',
-      ],
+      [pinFunction, snippet('validate-frontier-pin'), 'Name the frontier source in pin mismatch errors.'],
       ['        const prs = resolveFrontier(repo);\n', '        const { prs, source } = resolveFrontier(repo);\n', 'Read the frontier source alongside the rows.'],
       ['            actual: prs.map((row) => row.pr),\n            expected: pin,\n', '            actual: prs.map((row) => row.pr),\n            expected: pin,\n            source,\n', 'Pass the frontier source to the pin check.'],
     ],
@@ -51,7 +40,7 @@ export default [
       ],
       [
         'function storeDirectory(program: Command): string {\n  const value = program.opts<GlobalOptions>().store;\n  if (value === undefined || value.trim().length === 0) {\n    throw new UsageError("set --store <dir> or ORCH_STORE");\n  }\n  return value;\n}',
-        'function defaultStore(): string {\n  const configured = process.env.PI_CODING_AGENT_DIR;\n  const agent = configured\n    ? configured.replace(/^~(?=$|\\/)/, homedir())\n    : join(homedir(), ".pi", "agent");\n  const workspace = process.cwd();\n  const project = basename(workspace).replace(/[^\\w.-]+/g, "-");\n  const digest = createHash("sha256").update(workspace).digest("hex").slice(0, 8);\n  return join(agent, "pstack", "store", `${project}-${digest}`, "orchestrate", project);\n}\n\nfunction storeDirectory(program: Command): string {\n  const value = program.opts<GlobalOptions>().store;\n  if (value === undefined || value.trim().length === 0) {\n    return defaultStore();\n  }\n  return value;\n}',
+        snippet('default-store'),
         'Default the store to the pstack agent store for the workspace when neither --store nor ORCH_STORE is set.',
       ],
       [
