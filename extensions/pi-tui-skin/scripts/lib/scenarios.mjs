@@ -464,8 +464,8 @@ export const SCENARIOS = new Map([
             const band = ansi.split('\n').find((line) => line.includes('Working')) ?? '';
             const frame = /38;2;(\d+;\d+;\d+)m[·•●]/.exec(band)?.[1];
             if (frame === undefined) throw new Error(`no spinner frame inside the band row: ${band}`);
-            // The built-in dark theme's dim, muted, and success roles.
-            const darkFrames = ['102;102;102', '128;128;128', '181;189;104'];
+            // The built-in dark theme's dim, muted, and success roles as Pi 1.0.0 paints them.
+            const darkFrames = ['126;136;142', '157;165;169', '104;183;141'];
             if (!darkFrames.includes(frame)) throw new Error(`the spinner kept another theme's color: ${frame}`);
           },
         },
