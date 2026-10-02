@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { capResultText, concurrencyCap, defaultConcurrencyCap, defaultDepthCap, depthCap, environmentDepthCap, normalizeDescription, resultTextLimit, sessionSpawnCap, validateName } from '../src/subagents/limits.ts';
+import { agentHex } from './agent-hex.ts';
 
 test.for(['a', 'Agent_1', 'x-y', 'a'.repeat(64)])('name %s is valid', (name) => {
   expect(validateName(name)).toBe(undefined);
@@ -14,7 +15,7 @@ test('the name main is reserved for the main conversation', () => {
   expect(validateName('main')).toEqual({ code: 'subagent_name_invalid', message: '"main" is reserved \u2014 SendMessage routes it to the main conversation' });
 });
 
-test.for(['Main', 'TEAM-LEAD', 'User', 'system', 'a0123456789abcdef', 'ahelper-0123456789abcdef'])('name %s collides with a reserved name or agent id', (name) => {
+test.for(['Main', 'TEAM-LEAD', 'User', 'system', `a${agentHex}`, `ahelper-${agentHex}`])('name %s collides with a reserved name or agent id', (name) => {
   expect(validateName(name)?.message).toContain('must not be a reserved name');
 });
 
