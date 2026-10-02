@@ -26,7 +26,7 @@ class TaskPanel {
 
   constructor(
     private readonly registry: Registry,
-    private readonly log: (message: string) => void,
+    log: (message: string) => void,
     env: NodeJS.ProcessEnv,
   ) {
     this.poller = new StatusLinePoller({
