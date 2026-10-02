@@ -16,30 +16,31 @@ async function fixture(onTestFinished: (cleanup: () => Promise<void>) => void) {
   return { directory, repository };
 }
 
-const record = (id: string): TaskRecord => ({
-  id,
-  persona: 'generalPurpose',
-  cwd: '/guest/worktree',
-  readonly: false,
-  sessionFile: '/guest/session',
-  outputFile: '/local/output',
-  status: 'running',
-  output: '',
-  detached: {
-    directory: '/guest/rpc',
-    invocation: 'invocation',
-    entryCursor: null,
-    remote: {
-      executor: { id: 'vm', transport: 'lima', target: 'vm', isolation: 'vm', machineId: 'machine', packageRoot: '/guest/package', repository: '/guest/repository', localRepository: '/local/repository', agentDir: '/guest/agent' },
-      machineId: 'machine',
-      hostname: 'vm',
-      virtualization: 'apple',
-      bootId: 'boot',
-      sha: 'a'.repeat(40),
-      localCwd: '/local/repository',
+const record = (id: string) =>
+  ({
+    id,
+    persona: 'generalPurpose',
+    cwd: '/guest/worktree',
+    readonly: false,
+    sessionFile: '/guest/session',
+    outputFile: '/local/output',
+    status: 'running',
+    output: '',
+    detached: {
+      directory: '/guest/rpc',
+      invocation: 'invocation',
+      entryCursor: null,
+      remote: {
+        executor: { id: 'vm', transport: 'lima', target: 'vm', isolation: 'vm', machineId: 'machine', packageRoot: '/guest/package', repository: '/guest/repository', localRepository: '/local/repository', agentDir: '/guest/agent' },
+        machineId: 'machine',
+        hostname: 'vm',
+        virtualization: 'apple',
+        bootId: 'boot',
+        sha: 'a'.repeat(40),
+        localCwd: '/local/repository',
+      },
     },
-  },
-});
+  }) satisfies TaskRecord;
 
 test('remote launch discovery is scoped to the repository and retains branch placement', async ({ onTestFinished }) => {
   const { directory, repository } = await fixture(onTestFinished);
@@ -68,7 +69,7 @@ test('resume replaces only its launch receipt and invalid records fail closed', 
   const { repository } = await fixture(onTestFinished);
   const initial = record('task-one');
   const path = await publishTask(initial, repository);
-  await publishTask({ ...initial, sessionFile: '/guest/same-session', detached: { ...initial.detached!, invocation: 'next' } }, repository);
+  await publishTask({ ...initial, sessionFile: '/guest/same-session', detached: { ...initial.detached, invocation: 'next' } }, repository);
   expect((await selectTask(repository, { task_id: initial.id })).record.detached?.invocation).toBe('next');
   expect(JSON.parse(await readFile(path, 'utf8')).record.sessionFile).toBe('/guest/same-session');
   await expect(publishTask({ ...initial, id: '../escape' }, repository)).rejects.toThrow('Invalid');

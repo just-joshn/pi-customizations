@@ -13,9 +13,22 @@ const silent = { stdout: () => {}, stderr: () => {} };
 const PR = ['--owner', 'o', '--repo', 'r', '--pr', '1'];
 const MERGED = { state: 'MERGED', mergedAt: '2026-07-26T00:00:00Z' } as const;
 
+interface VerdictRow {
+  readonly context: { readonly owner: string; readonly repo: string; readonly number: number };
+  readonly facts: { readonly mergeable: string };
+}
+
+interface VerdictLine {
+  readonly kind: string;
+  readonly reason: string;
+  readonly blocker: { readonly kind: string; readonly reason: string; readonly failure: { readonly kind: string } };
+  readonly scope: { readonly pr: { readonly proof: { readonly gate: { readonly draft: string } } }; readonly prs: readonly VerdictRow[] };
+  readonly rows: readonly VerdictRow[];
+}
+
 interface Run {
   readonly code: number;
-  readonly lines: Record<string, any>[];
+  readonly lines: VerdictLine[];
   readonly text: string;
   readonly sleeps: number[];
 }
@@ -219,7 +232,7 @@ test('main in stack mode returns READY scope stack for two clean PRs discovered 
   const r = await run([...PR, '--stack'], fakeReader({ openPullRequests: open }));
   expect(r.code).toBe(0);
   expect(last(r)).toMatchObject({ kind: 'READY', mode: 'stack', scope: { kind: 'stack' } });
-  expect(last(r).scope.prs.map((p: any) => p.context.number)).toEqual([1, 2]);
+  expect(last(r).scope.prs.map((p) => p.context.number)).toEqual([1, 2]);
 });
 
 test('main --queued-stack without --stack-prs discovers the stack once and reports rows bottom to top', async () => {
@@ -227,13 +240,13 @@ test('main --queued-stack without --stack-prs discovers the stack once and repor
   const reader = fakeReader({ openPullRequests: open });
   const r = await run(['--owner', 'o', '--repo', 'r', '--pr', '2', '--queued-stack', '--status-only'], reader);
   expect(reader.calls.filter((call) => call === 'openPullRequests')).toHaveLength(1);
-  expect(last(r).rows.map((row: any) => row.context.number)).toEqual([1, 2, 3]);
+  expect(last(r).rows.map((row) => row.context.number)).toEqual([1, 2, 3]);
 });
 
 test('main seeds from the first --stack-prs entry and reuses the seed owner and repo for every entry', async () => {
   const reader = fakeReader({ origin: { owner: 'seedowner', repo: 'seedrepo' } });
   const r = await run(['--queued-stack', '--stack-prs', '7,8', '--status-only'], reader);
-  const contexts = last(r).rows.map((row: any) => row.context);
+  const contexts = last(r).rows.map((row) => row.context);
   expect(contexts).toEqual([
     { owner: 'seedowner', repo: 'seedrepo', number: 7 },
     { owner: 'seedowner', repo: 'seedrepo', number: 8 },

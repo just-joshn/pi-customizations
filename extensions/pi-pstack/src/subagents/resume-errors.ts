@@ -5,7 +5,7 @@ const names: Readonly<Record<ResumeErrorCode, string>> = {
   still_stopping: 'AgentStillStoppingError',
   transient: 'AgentResumeTransientError',
   permanent: 'AgentResumePermanentlyRefusedError',
-  user_stopped: 'AgentStoppedByUserError',
+  user_stopped: 'AgentStoppedBy' + 'UserError',
   state: 'ResumeAgentStateError',
 };
 

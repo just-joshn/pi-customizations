@@ -1,0 +1,69 @@
+const OPEN_PR_LIMIT_CEILING = 10_000;
+async function listOpenPullRequests(
+  repository: T.Repository
+): Promise<readonly unknown[]> {
+  let limit = 300;
+  while (true) {
+    const items = list(
+      await runJson([
+        "gh",
+        "pr",
+        "list",
+        "--repo",
+        `${repository.owner}/${repository.repo}`,
+        "--state",
+        "open",
+        "--limit",
+        String(limit),
+        "--json",
+        "number,headRefName,baseRefName",
+      ]),
+      "open PRs"
+    );
+    if (items.length < limit) return items;
+    if (limit >= OPEN_PR_LIMIT_CEILING)
+      throw new WatcherQueryError({
+        kind: "missing-key",
+        retryable: true,
+        detail: `open PR list was truncated at ${limit}`,
+      });
+    limit = Math.min(limit * 2, OPEN_PR_LIMIT_CEILING);
+  }
+}
+function nextThreadCursor(pageInfo: unknown, seen: Set<string>): string | null {
+  const info = record(pageInfo, "reviewThreads.pageInfo");
+  if (typeof info.hasNextPage !== "boolean")
+    missing("reviewThreads.pageInfo.hasNextPage", info.hasNextPage);
+  if (!info.hasNextPage) return null;
+  const reference = optionalString(
+    info.endCursor,
+    "reviewThreads.pageInfo.endCursor"
+  );
+  if (reference === null || reference === "" || seen.has(reference))
+    missing("reviewThreads.pageInfo.endCursor", info.endCursor);
+  seen.add(reference);
+  return reference;
+}
+async function allReviewThreadPages(context: T.PrContext): Promise<unknown> {
+  const nodes: unknown[] = [];
+  const seen = new Set<string>();
+  let after: string | null = null;
+  do {
+    const argv = graphqlArgs(REVIEW_THREADS_QUERY, context);
+    if (after !== null) argv.push("-f", `after=${after}`);
+    const connection = record(
+      at(await runJson(argv), [
+        "data",
+        "repository",
+        "pullRequest",
+        "reviewThreads",
+      ]),
+      "reviewThreads"
+    );
+    nodes.push(...list(connection.nodes, "reviewThreads.nodes"));
+    after = nextThreadCursor(connection.pageInfo, seen);
+  } while (after !== null);
+  return { data: { repository: { pullRequest: { reviewThreads: { nodes } } } } };
+}
+
+export class GhGitHubReader implements T.GitHubReader {

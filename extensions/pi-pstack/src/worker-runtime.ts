@@ -2,14 +2,14 @@ import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 
 import type { JsonValue, Usage } from '@earendil-works/pi-ai';
-import type { AgentSession, AgentSessionEvent, AgentSessionEventListener, AgentToolResult, AgentToolUpdateCallback, createEventBus, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { AgentSession, AgentSessionEventListener, AgentToolResult, createEventBus, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { readCloudOutcome } from './cloud-worker.ts';
 import { DeferredWakes } from './deferred-wakes.ts';
 import { asShellHandoff, shellHandoffEvent } from './shell-ownership.ts';
 import { depthMessage } from './subagents/admission.ts';
 import { closeSession } from './subagents/close-session.ts';
 import { CloudTasks, type CloudWorker } from './subagents/cloud-tasks.ts';
-import { flaggedOutput, lastMeteredTokens, lastReportText, type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
+import { flaggedOutput, lastReportText, type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
 import { currentDepth, depthStore } from './subagents/context.ts';
 import type { ContinuationState } from './subagents/continuation.ts';
 import { SessionDepthPolicy } from './subagents/depth-policy.ts';
@@ -34,11 +34,10 @@ import { stopPendingEvent, stopPendingFor } from './subagents/stop-pending.ts';
 import { frameStatus, notificationBody, startedBody, taskFeed, updatedBody } from './subagents/task-frames.ts';
 import { progressObserver, type TaskUpdate } from './subagents/task-progress.ts';
 import { applyToolPolicy } from './subagents/tool-pool.ts';
-import { countToolStats } from './subagents/tool-stats.ts';
 import { turnLimit } from './subagents/turn-limit.ts';
 import { launchSignal, overdueAfterMs, waitFor, workerControl } from './worker-control.ts';
 import { restoreTaskRecords, type TaskParameters, type TaskRecord, taskCleanupErrorType, taskCleanupUsageType, taskEntryType, taskOutputLimit, taskOwner, taskOwnerEntryType, taskSummary } from './worker-records.ts';
-import { type AgentLaunch, openWorkerSession, sumUsage } from './worker-support.ts';
+import { type AgentLaunch, openWorkerSession } from './worker-support.ts';
 
 export type { TaskProgressSnapshot, TaskToolDetails } from './subagents/task-progress.ts';
 

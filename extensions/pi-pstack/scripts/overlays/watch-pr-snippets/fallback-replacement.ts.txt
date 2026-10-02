@@ -1,0 +1,3 @@
+  if (fallback !== null) return { source: "graphql-rollup", checks: fallback };
+  if (allowEmpty && confirmsNoChecks(fast))
+    return { source: "graphql-rollup", checks: [NO_CHECKS_PLACEHOLDER] };

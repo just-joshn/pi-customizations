@@ -8,7 +8,9 @@ export type OutputPattern = Readonly<{
   provenanceOnly?: true;
 }>;
 
-const lineStart = '(?:^|[\\r\\n\\v\\f\\u0085\\u2028\\u2029\\u001c-\\u001e])';
+const lineBreakClass = '\\r\\n\\v\\f\\u0085\\u2028\\u2029\\u001c-\\u001e';
+const lineStart = `(?:^|[${lineBreakClass}])`;
+const notAfterWordChar = '(?<![\\w-])';
 const tagFiller = '[^A-Za-z0-9_\\-<>]*';
 const envelopeTags = [
   'task-notification',
@@ -83,7 +85,7 @@ export const controlPatterns: readonly OutputPattern[] = [
   { pattern: 'system-reminder-tag', category: 'control-tag', re: tagPattern(['system-reminder']), action: 'neutralize', neutralize: appendBackslash },
   { pattern: 'harness-envelope-tag', category: 'control-tag', re: tagPattern(envelopeTags), action: 'neutralize', neutralize: appendBackslash },
   { pattern: 'harness-signal-tag', category: 'control-tag', re: tagPattern(signalTags), action: 'neutralize', neutralize: appendBackslash },
-  { pattern: 'channel-source-tag', category: 'control-tag', re: tagPattern(['channel'], '[^>]{0,120}(?<![\\w-])source\\s*='), action: 'neutralize', neutralize: appendBackslash },
+  { pattern: 'channel-source-tag', category: 'control-tag', re: tagPattern(['channel'], `[^>]{0,120}${notAfterWordChar}source\\s*=`), action: 'neutralize', neutralize: appendBackslash },
   { pattern: 'marker-prefix-forgery', category: 'control-tag', re: bracketPrefix('harness'), action: 'neutralize', neutralize: appendBackslash },
   {
     pattern: 'max-turns-note-forgery',

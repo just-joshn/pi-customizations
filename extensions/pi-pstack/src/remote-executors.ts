@@ -9,6 +9,7 @@ export { ExecutorSchema, parseExecutor } from '../scripts/remote-executor-schema
 import { type ExecutorSchema, parseExecutor } from '../scripts/remote-executor-schema.mjs';
 export type RemoteExecutor = Static<typeof ExecutorSchema>;
 
+const sshOptions = (options: Readonly<Record<string, string | undefined>>): string[] => Object.entries(options).map(([name, value]) => `-o${name}=${value}`);
 const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
 
 export function remoteArguments(executor: RemoteExecutor): { executable: string; args: string[] } {
@@ -18,12 +19,14 @@ export function remoteArguments(executor: RemoteExecutor): { executable: string;
     : {
         executable: 'ssh',
         args: [
-          '-oForwardAgent=no',
-          '-oClearAllForwardings=yes',
-          '-oPermitLocalCommand=no',
-          '-oBatchMode=yes',
-          '-oStrictHostKeyChecking=yes',
-          `-oUserKnownHostsFile=${executor.knownHosts}`,
+          ...sshOptions({
+            ForwardAgent: 'no',
+            ClearAllForwardings: 'yes',
+            PermitLocalCommand: 'no',
+            BatchMode: 'yes',
+            StrictHostKeyChecking: 'yes',
+            UserKnownHostsFile: executor.knownHosts,
+          }),
           '--',
           executor.target,
           command.map(quote).join(' '),

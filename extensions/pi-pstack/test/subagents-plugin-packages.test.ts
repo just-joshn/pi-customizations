@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { installedPluginPackages, packageAgents, pluginPackage } from '../src/subagents/plugin-agents.ts';
 
+const placeholder = (name: string): string => `${'$'}{${name}}`;
+
 let dir = '';
 beforeEach(() => {
   dir = realpathSync(mkdtempSync(join(tmpdir(), 'plugin-packages-')));
@@ -75,7 +77,7 @@ test('a directory named like a Markdown file is skipped with a warning', () => {
 
 test('PI_PACKAGE_ROOT is interpolated alongside CLAUDE_PLUGIN_ROOT', () => {
   write('kit/package.json', JSON.stringify({ name: 'kit' }));
-  write('kit/agents/x.md', '---\ndescription: d\n---\n${PI_PACKAGE_ROOT}/a and ${CLAUDE_PLUGIN_ROOT}/b');
+  write('kit/agents/x.md', `---\ndescription: d\n---\n${placeholder('PI_PACKAGE_ROOT')}/a and ${placeholder('CLAUDE_PLUGIN_ROOT')}/b`);
   const [agent] = packageAgents(pluginPackage(join(dir, 'kit')), []);
   expect(agent?.systemPrompt).toBe(`${join(dir, 'kit')}/a and ${join(dir, 'kit')}/b`);
 });

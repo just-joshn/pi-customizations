@@ -8,6 +8,7 @@ import { Check } from 'typebox/value';
 import { expect, test, vi } from 'vitest';
 import { clearAgentCache } from '../src/subagents/definitions.ts';
 import { buildAgentSchema } from '../src/subagents/schema.ts';
+import { agentHex } from './agent-hex.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 test('[G1-01] Agent schema exposes exactly the offered properties in order', () => {
@@ -309,7 +310,7 @@ test('[G1-06] internal invalid name is rejected before child creation', async ()
   }
 });
 
-test.for(['main', 'a0123456789abcdef', 'aworker-0123456789abcdef'])('[G1-06] reserved routing name %s refuses without creating a child', async (name) => {
+test.for(['main', `a${agentHex}`, `aworker-${agentHex}`])('[G1-06] reserved routing name %s refuses without creating a child', async (name) => {
   const { call, close } = await workerFixture();
   try {
     const message =

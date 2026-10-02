@@ -17,7 +17,21 @@ import {
   type WatchClock,
 } from '../../skills/poteto-mode/scripts/watch-pr/policy.ts';
 import { renderStatusTable } from '../../skills/poteto-mode/scripts/watch-pr/render.ts';
-import type { Check, GitHubReader, MergeBlocker, NonEmpty, PollingOptions, PrContext, PrNumber, ProgressVerdict, PrSnapshot, PullRequestFacts, ReviewThread, RollupState } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
+import type {
+  Check,
+  ChecksFastPath,
+  GitHubReader,
+  MergeBlocker,
+  NonEmpty,
+  PollingOptions,
+  PrContext,
+  PrNumber,
+  ProgressVerdict,
+  PrSnapshot,
+  PullRequestFacts,
+  ReviewThread,
+  RollupState,
+} from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 
 const at = (n: number): PrContext => ({ owner: 'owner', repo: 'repo', number: parsePrNumber(n) });
@@ -339,7 +353,8 @@ test('readSnapshot flags review automation for a PR Review Automation check with
   expect(classifyPr(named).kind).toBe(classifyPr(plain).kind);
 });
 
-const noChecks: FakeReaderOptions = { fastPath: { kind: 'unusable', exitCode: 1, stderr: "no checks reported on the 'feature' branch" } };
+const noChecksFastPath: ChecksFastPath = { kind: 'unusable', exitCode: 1, stderr: "no checks reported on the 'feature' branch" };
+const noChecks: FakeReaderOptions = { fastPath: noChecksFastPath };
 test('a mergeable PR with zero checks reaches READY exit 0 through runSimple', async () => {
   const h = harness();
   const verdict = await runSimple({ dependencies: deps(h, fakeReader(noChecks)), contexts: [at(1)], mode: 'single', statusOnly: false, options: base });
@@ -348,7 +363,7 @@ test('a mergeable PR with zero checks reaches READY exit 0 through runSimple', a
 
 interface ZeroReading {
   readonly sha: string;
-  readonly checks?: Check[];
+  readonly checks?: NonEmpty<Check>;
 }
 function zeroReader(readings: ZeroReading[]): GitHubReader & { readonly reads: () => number } {
   const reader = fakeReader();
@@ -363,7 +378,7 @@ function zeroReader(readings: ZeroReading[]): GitHubReader & { readonly reads: (
     },
     async checksFastPath() {
       const checks = current().checks;
-      return checks === undefined ? noChecks.fastPath! : { kind: 'checks', checks: checks as unknown as NonEmpty<Check> };
+      return checks === undefined ? noChecksFastPath : { kind: 'checks', checks };
     },
   };
 }

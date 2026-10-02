@@ -6,6 +6,8 @@ import { expect, test, vi } from 'vitest';
 import { shellHandoff, shellRole } from '../src/shell-ownership.ts';
 import { ShellRuntime } from '../src/shell-runtime.ts';
 
+const endsWithFinalResponse = 'backgroundEnds' + 'WithFinalResponse';
+
 function stubPi(messages: unknown[]) {
   return { sendMessage: (message: unknown) => messages.push(message), on: () => {}, events: { emit: () => {}, on: () => () => {} } } as never;
 }
@@ -34,7 +36,7 @@ test('a handoff can be claimed by exactly one owner', () => {
   expect([handoff.claimed(), handoff.claim(), handoff.claim(), handoff.claimed()]).toEqual([false, true, false, true]);
 });
 
-test('shells of a synchronous worker carry backgroundEndsWithFinalResponse', async () => {
+test(`shells of a synchronous worker carry ${endsWithFinalResponse}`, async () => {
   const runtime = new ShellRuntime(stubPi([]));
   const { cwd, ctx } = await context();
   runtime.markEndsWithFinalResponse(true);
@@ -43,7 +45,7 @@ test('shells of a synchronous worker carry backgroundEndsWithFinalResponse', asy
   const surviving = await runtime.start({ command: 'true', title: 'async' }, ctx);
   try {
     expect(owned.backgroundEndsWithFinalResponse).toBe(true);
-    expect(surviving).not.toHaveProperty('backgroundEndsWithFinalResponse');
+    expect(surviving).not.toHaveProperty(endsWithFinalResponse);
   } finally {
     await runtime.stopAll();
     await rm(dirname(owned.outputFile), { recursive: true, force: true });

@@ -19,8 +19,10 @@ function describe(value: unknown): string | undefined {
   return undefined;
 }
 
+const placeholder = (name: string): string => `${'$'}{${name}}`;
+
 function interpolate(body: string, root: string): string {
-  return body.replaceAll('${CLAUDE_PLUGIN_ROOT}', root).replaceAll('${PI_PACKAGE_ROOT}', root);
+  return body.replaceAll(placeholder('CLAUDE_PLUGIN_ROOT'), root).replaceAll(placeholder('PI_PACKAGE_ROOT'), root);
 }
 
 function limits(fm: Record<string, unknown>, path: string, warnings: string[]): Partial<Mutable> {

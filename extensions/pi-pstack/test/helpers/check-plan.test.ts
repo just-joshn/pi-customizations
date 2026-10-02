@@ -144,9 +144,9 @@ const fails: { name: string; change: (parts: Parts) => Parts; message: string }[
   { name: 'Program checklist missing the 30-minute tick', change: (p) => ({ ...p, programBody: p.programBody.with(0, box('Arm the `/goal`.')) }), message: 'Program checklist lacks "/30' },
   { name: 'Program checklist missing the status message', change: (p) => ({ ...p, programBody: p.programBody.filter((line) => !line.includes('status message')) }), message: 'Program checklist lacks "status message"' },
   { name: 'a Program checklist H3 missing', change: (p) => ({ ...p, programH3: p.programH3.filter((name) => name !== 'PR mechanics') }), message: 'Program checklist lacks "### PR mechanics" in order' },
-  { name: 'Program checklist H3s out of order', change: (p) => ({ ...p, programH3: p.programH3.toSpliced(3, 2, p.programH3[4]!, p.programH3[3]!) }), message: 'Program checklist lacks "### Boot recipe" in order' },
+  { name: 'Program checklist H3s out of order', change: (p) => ({ ...p, programH3: p.programH3.toSpliced(3, 2, p.programH3[4], p.programH3[3]) }), message: 'Program checklist lacks "### Boot recipe" in order' },
   { name: 'empty Depends on', change: (p) => withBlock(p, 'Depends on.', (b) => ({ head: b.head, lines: b.lines })), message: 'Depends on names nothing' },
-  { name: 'sub-blocks out of order', change: (p) => ({ ...p, prs: p.prs.with(0, p.prs[0]!.toReversed()) }), message: 'sub-blocks are [' },
+  { name: 'sub-blocks out of order', change: (p) => ({ ...p, prs: p.prs.with(0, p.prs[0].toReversed()) }), message: 'sub-blocks are [' },
   ...['Files.', 'Build.', 'You see.', 'Verify, unit.', 'Merge.'].map((head) => ({
     name: `${head} without a box`,
     change: (p: Parts) => withBlock(p, head, (b) => ({ ...b, lines: [] })),
@@ -157,7 +157,11 @@ const fails: { name: string; change: (parts: Parts) => Parts; message: string }[
     change: (p: Parts) => withBlock(p, head, (b) => ({ ...b, rest: (b.rest ?? '').replace(RULE, 'Looks fine.') })),
     message: `${head} does not open with the rule`,
   })),
-  { name: 'the live block with the model placeholder unfilled', change: (p) => withBlock(p, 'Verify, live.', (b) => ({ ...b, rest: `${RULE} Ten lanes on \`<swarm workers model>\` at the PR head.` })), message: 'Verify, live lacks "Ten lanes on' },
+  {
+    name: 'the live block with the model placeholder unfilled',
+    change: (p) => withBlock(p, 'Verify, live.', (b) => ({ ...b, rest: `${RULE} Ten lanes on \`<swarm workers model>\` at the PR head.` })),
+    message: 'Verify, live lacks "Ten lanes on',
+  },
   { name: 'the live block without the lanes line', change: (p) => withBlock(p, 'Verify, live.', (b) => ({ ...b, rest: RULE })), message: 'Verify, live lacks "Ten lanes on' },
   { name: 'nine lanes', change: (p) => withBlock(p, 'Verify, live.', (b) => ({ ...b, lines: b.lines.slice(0, -1) })), message: 'lanes are [1,2,3,4,5,6,7,8,9], expected 1 to 10' },
   { name: 'a lane without a screenshot', change: (p) => withLine(p, 'Verify, live.', 2, box('Lane 3. Drive it. Pass when it renders.')), message: 'lane 3 names no screenshot' },
@@ -259,7 +263,7 @@ describe('check-plan.mjs location independence', () => {
 describe('check-plan.mjs against the generated skeleton', () => {
   const skeleton = async () => {
     const playbook = await readFile(join(root, 'skills/poteto-mode/playbooks/multi-phase-plan.md'), 'utf8');
-    return playbook.split('\n````markdown\n')[1]!.split('\n````')[0]!;
+    return playbook.split('\n````markdown\n')[1].split('\n````')[0];
   };
 
   test('the unfilled skeleton reports its box counts and exactly one problem, the LANES placeholder', async () => {
