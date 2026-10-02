@@ -32,13 +32,13 @@ const traceEvents = [];
 let traceComplete = false;
 // Handlers must exist before Chrome does. A signal that lands after the spawn but before they are installed kills this process and orphans Chrome.
 const controller = new AbortController();
+function rejectPending(reason) {
+  for (const waiter of pending.values()) waiter.reject(reason);
+  pending.clear();
+}
 const interrupt = () => {
   controller.abort(new Error('Canvas browser verification interrupted'));
-  for (const waiter of pending.values()) {
-    clearTimeout(waiter.timer);
-    waiter.reject(controller.signal.reason);
-  }
-  pending.clear();
+  rejectPending(controller.signal.reason);
 };
 process.on('SIGINT', interrupt);
 process.on('SIGTERM', interrupt);
@@ -48,21 +48,30 @@ const child = spawn(
   ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--disable-background-networking', url],
   { stdio: 'ignore' },
 );
+const chromeRunning = () => child.exitCode === null && child.signalCode === null;
+child.once('exit', () => rejectPending(new Error('Chrome exited before the harness finished')));
 let next = 0;
 function selectPage(pages, expected) {
   const page = pages.find((entry) => entry.type === 'page' && entry.url === expected);
   if (!page) throw new Error(`No matching app page. Available pages ${JSON.stringify(pages.map(({ title, url }) => ({ title, url })))}`);
   return page;
 }
+// Nothing here has a deadline of its own. A wait ends when its condition holds, the harness is interrupted, or
+// Chrome exits, so a slow machine only makes the run longer. The caller owns the overall time budget.
+async function until(description, probe) {
+  for (;;) {
+    controller.signal.throwIfAborted();
+    assert.ok(chromeRunning(), `Chrome stays running while waiting for ${description}`);
+    const value = await probe();
+    if (value) return value;
+    await new Promise((done) => setTimeout(done, 40));
+  }
+}
 function send(method, params = {}) {
   controller.signal.throwIfAborted();
   return new Promise((resolveCall, reject) => {
     const id = ++next;
-    const timer = setTimeout(() => {
-      pending.delete(id);
-      reject(new Error(`CDP command timed out. ${method}`));
-    }, 10000);
-    pending.set(id, { resolve: resolveCall, reject, timer });
+    pending.set(id, { resolve: resolveCall, reject });
     socket.send(JSON.stringify({ id, method, params }));
   });
 }
@@ -72,18 +81,7 @@ async function evaluate(expression) {
   return response.result.value;
 }
 try {
-  let port;
-  const deadline = Date.now() + 15000;
-  while (Date.now() < deadline) {
-    controller.signal.throwIfAborted();
-    const text = await readFile(join(profile, 'DevToolsActivePort'), 'utf8').catch(() => '');
-    if (text) {
-      port = text.split('\n')[0];
-      break;
-    }
-    await new Promise((done) => setTimeout(done, 40));
-  }
-  assert.ok(port, 'Chrome exposes its local debugging port');
+  const port = await until('Chrome to expose its local debugging port', async () => (await readFile(join(profile, 'DevToolsActivePort'), 'utf8').catch(() => '')).split('\n')[0]);
   const base = `http://127.0.0.1:${port}`;
   const decoy = await (await fetch(`${base}/json/new?about:blank`, { method: 'PUT' })).json();
   const pages = await (await fetch(`${base}/json/list`)).json();
@@ -118,37 +116,20 @@ try {
     const waiter = pending.get(response.id);
     if (!waiter) return;
     pending.delete(response.id);
-    clearTimeout(waiter.timer);
     if (response.error) waiter.reject(new Error(JSON.stringify(response.error)));
     else waiter.resolve(response.result);
   });
   await send('Page.enable');
-  const readyDeadline = Date.now() + 15000;
-  while ((await evaluate('document.readyState === "complete" && document.querySelector("h1")?.textContent')) !== 'Pi review canvas probe') {
-    assert.ok(Date.now() < readyDeadline, 'the selected canvas loads its positive app marker');
-    await new Promise((done) => setTimeout(done, 40));
-  }
+  await until('the selected canvas to load its positive app marker', async () => (await evaluate('document.readyState === "complete" && document.querySelector("h1")?.textContent')) === 'Pi review canvas probe');
   await send('Network.enable');
   await send('Page.reload', { ignoreCache: true });
-  const networkDeadline = Date.now() + 15000;
-  let documentResponse;
-  while (!documentResponse) {
-    controller.signal.throwIfAborted();
-    documentResponse = networkResponses.find((entry) => entry.response.url === url && entry.type === 'Document' && finishedRequests.has(entry.requestId));
-    if (documentResponse) break;
-    assert.ok(Date.now() < networkDeadline, 'the selected app document completes its network load');
-    await new Promise((done) => setTimeout(done, 40));
-  }
+  const documentResponse = await until('the selected app document to complete its network load', () => networkResponses.find((entry) => entry.response.url === url && entry.type === 'Document' && finishedRequests.has(entry.requestId)));
   const responseBody = await send('Network.getResponseBody', { requestId: documentResponse.requestId });
   assert.equal(responseBody.base64Encoded, false, 'fixture response is text');
   assert.equal(responseBody.body, html, 'network capture returns exact canvas fixture bytes');
   await writeFile(join(output, 'canvas-response.html'), responseBody.body);
   await writeFile(join(output, 'network.json'), JSON.stringify(documentResponse, null, 2));
-  const renderDeadline = Date.now() + 15000;
-  while (!(await evaluate('document.readyState === "complete" && document.querySelector("h1")?.textContent === "Pi review canvas probe"'))) {
-    assert.ok(Date.now() < renderDeadline, 'the reloaded app completes rendering');
-    await new Promise((done) => setTimeout(done, 40));
-  }
+  await until('the reloaded app to complete rendering', () => evaluate('document.readyState === "complete" && document.querySelector("h1")?.textContent === "Pi review canvas probe"'));
   assert.equal(await evaluate('document.querySelector("h1").textContent'), 'Pi review canvas probe');
   assert.equal(await evaluate('document.querySelectorAll(".diff-add").length'), 2);
   assert.equal(await evaluate('document.querySelectorAll("img").length'), 0);
@@ -201,12 +182,7 @@ try {
   await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...target, button: 'left', clickCount: 1 });
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".file-body")).display'), 'none');
   await send('Tracing.end');
-  const traceDeadline = Date.now() + 15000;
-  while (!traceComplete) {
-    controller.signal.throwIfAborted();
-    assert.ok(Date.now() < traceDeadline, 'Chrome completes the selected app interaction trace');
-    await new Promise((done) => setTimeout(done, 40));
-  }
+  await until('Chrome to complete the selected app interaction trace', () => traceComplete);
   assert.ok(
     traceEvents.some((entry) => entry.name === 'EventDispatch' && entry.args?.data?.type === 'click'),
     'trace contains the actual pointer click',
@@ -221,13 +197,10 @@ try {
   process.stdout.write('Canvas browser passes fourteen checks.\n');
   await send('Browser.close');
 } finally {
-  for (const waiter of pending.values()) {
-    clearTimeout(waiter.timer);
-    waiter.reject(new Error('Browser harness closed'));
-  }
+  rejectPending(new Error('Browser harness closed'));
   socket?.close();
-  if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
-  await new Promise((done) => (child.exitCode !== null || child.signalCode !== null ? done() : child.once('exit', done)));
+  if (chromeRunning()) child.kill('SIGTERM');
+  await new Promise((done) => (chromeRunning() ? child.once('exit', done) : done()));
   try {
     await rm(profile, { recursive: true, force: true });
   } finally {

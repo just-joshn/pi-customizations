@@ -1,9 +1,9 @@
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { expect, test } from 'vitest';
+import { expect, onTestFinished, test } from 'vitest';
 import { packageRoot } from './session-fixture.ts';
 
 const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -14,13 +14,32 @@ const available =
     () => false,
   ));
 
+function runHarness(root: string): Promise<{ status: number | null; stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [join(packageRoot, 'scripts/verify-canvas-browser.mjs'), root], { stdio: ['ignore', 'pipe', 'pipe'] });
+    onTestFinished(() => {
+      child.kill('SIGTERM');
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (chunk) => {
+      stdout += String(chunk);
+    });
+    child.stderr.on('data', (chunk) => {
+      stderr += String(chunk);
+    });
+    child.once('error', reject);
+    child.once('close', (status) => resolve({ status, stdout, stderr }));
+  });
+}
+
 test.skipIf(!available)(
   'real canvas browser saves accessibility and profiling evidence',
   async () => {
     const root = await mkdtemp(join(tmpdir(), 'pstack-canvas-evidence-'));
     try {
-      const run = spawnSync(process.execPath, [join(packageRoot, 'scripts/verify-canvas-browser.mjs'), root], { encoding: 'utf8', timeout: 30000 });
-      expect(run.status).toBe(0);
+      const run = await runHarness(root);
+      expect(run.status, `stdout ${run.stdout} stderr ${run.stderr}`).toBe(0);
       const results = JSON.parse(await readFile(join(root, 'results.json'), 'utf8'));
       expect(results.checks).toContain('accessibility heading');
       expect(results.checks).toContain('sampled CPU profile');
@@ -41,5 +60,5 @@ test.skipIf(!available)(
       await rm(root, { recursive: true, force: true });
     }
   },
-  40000,
+  120000,
 );

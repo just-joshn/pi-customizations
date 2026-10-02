@@ -55,19 +55,17 @@ test.skipIf(!available).each(['SIGINT', 'SIGTERM'] as const)(
       child.once('exit', resolve);
       child.once('error', reject);
     });
-    let output = '';
     let allocation: Allocation | undefined;
-    child.stdout.on('data', (chunk) => {
-      output += String(chunk);
+    const allocationLine = new Promise<string>((resolve, reject) => {
+      let output = '';
+      child.stdout.on('data', (chunk) => {
+        output += String(chunk);
+        if (output.includes('\n')) resolve(output.split('\n')[0] ?? '');
+      });
+      child.once('exit', () => reject(new Error('the harness exited before it spawned Chrome')));
     });
     try {
-      await vi.waitFor(
-        () => {
-          expect(output.includes('\n')).toBe(true);
-        },
-        { timeout: 10000 },
-      );
-      allocation = JSON.parse(output.split('\n')[0]);
+      allocation = JSON.parse(await allocationLine);
       if (!allocation) throw new Error('missing owned Chrome allocation');
       expect(alive(allocation.pid)).toBe(true);
       expect(child.kill(signal)).toBe(true);
