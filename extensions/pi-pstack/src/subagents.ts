@@ -84,6 +84,7 @@ class Session {
 
   close(): void {
     this.closed = true;
+    this.latest = undefined;
   }
 }
 
@@ -212,12 +213,6 @@ function registerLifecycle(pi: ExtensionAPI, env: NodeJS.ProcessEnv, system: Sub
   });
   registerSidekickTriggers(pi, system, factory, log);
   registerSettleWiring(pi, env, scheduler, log);
-  pi.on('session_before_tree', () => scheduler.beginRewind());
-  pi.on('agent_before_settle', async (_event, ctx) => {
-    if (ctx.hasUI || !scheduler.hasActiveWork()) return;
-    log('Run complete; waiting for background tasks to finish; exiting');
-    await scheduler.waitForWork(waitSeconds(env) * 1000);
-  });
   pi.on('tool_execution_start', (event) => {
     if (!session.fileTracking || event.parentToolCallId !== undefined) return;
     if ((event.toolName === 'edit' || event.toolName === 'write') && typeof (event.args as { path?: unknown } | undefined)?.path === 'string')
