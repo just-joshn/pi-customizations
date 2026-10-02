@@ -31,6 +31,8 @@ const finishedRequests = new Set();
 const traceEvents = [];
 let traceComplete = false;
 // Handlers must exist before Chrome does. A signal that lands after the spawn but before they are installed kills this process and orphans Chrome.
+import { appendFileSync } from 'node:fs';
+const dbg = (m) => appendFileSync(`/tmp/u11/cvdebug-${process.pid}.log`, `${m}\n`);
 const controller = new AbortController();
 function rejectPending(reason) {
   for (const waiter of pending.values()) waiter.reject(reason);
@@ -59,6 +61,7 @@ function selectPage(pages, expected) {
 // Nothing here has a deadline of its own. A wait ends when its condition holds, the harness is interrupted, or
 // Chrome exits, so a slow machine only makes the run longer. The caller owns the overall time budget.
 async function until(description, probe) {
+  dbg(`DEBUG until ${description} ${new Date().toISOString()}`);
   for (;;) {
     controller.signal.throwIfAborted();
     assert.ok(chromeRunning(), `Chrome stays running while waiting for ${description}`);
@@ -72,6 +75,7 @@ function send(method, params = {}) {
   return new Promise((resolveCall, reject) => {
     const id = ++next;
     pending.set(id, { resolve: resolveCall, reject });
+    dbg(`DEBUG send ${id} ${method} ${new Date().toISOString()}`);
     socket.send(JSON.stringify({ id, method, params }));
   });
 }
@@ -113,6 +117,7 @@ try {
       heapChunks.push(response.params.chunk);
       return;
     }
+    if (response.id) dbg(`DEBUG recv ${response.id} ${new Date().toISOString()}`);
     const waiter = pending.get(response.id);
     if (!waiter) return;
     pending.delete(response.id);
