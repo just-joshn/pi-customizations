@@ -103,6 +103,27 @@ describe('tui-skin extension chrome lifecycle', () => {
     expect(ui.setHiddenThinkingLabel).toHaveBeenLastCalledWith();
   });
 
+  test('a failing restore is reported by throwing and still clears the activity state', () => {
+    const consoleError = vi.spyOn(console, 'error');
+    const { pi, handlers } = fakePi();
+    tuiSkin(pi);
+    const { ctx, ui } = sessionContext('tui');
+    handlers.get('session_start')?.({}, ctx);
+    const widgetFactory = ui.setWidget.mock.calls[0]?.[1] as ((tui: unknown, theme: unknown) => { render(width: number): string[] }) | undefined;
+    if (widgetFactory === undefined) throw new Error('no activity widget was installed');
+    const widget = widgetFactory({ requestRender: () => {} }, themeStub);
+    handlers.get('tool_execution_start')?.({ toolCallId: 'a', toolName: 'read', args: { path: '/tmp/a.ts' } }, ctx);
+    expect(widget.render(80)).toHaveLength(1);
+
+    ui.setFooter.mockImplementation(() => {
+      throw new Error('footer boom');
+    });
+    expect(() => handlers.get('session_shutdown')?.({}, ctx)).toThrow('footer boom');
+
+    expect(widget.render(80)).toEqual([]);
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
   test('a second session_start keeps the installed chrome working', () => {
     const { pi, handlers } = fakePi();
     tuiSkin(pi);
