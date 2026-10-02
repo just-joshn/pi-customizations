@@ -106,16 +106,12 @@ async function waitForExit(pid, timeoutMs = 10000) {
 async function showStatus() {
   await waitFor('journey model in the Pi TUI', (screen) => screen.includes('recorder') && screen.includes('Extensions'));
   tmux(['send-keys', '-l', '-t', session, '/pstack status']);
-  await waitFor('typed /pstack status command', (screen) => screen.includes('/pstack status'));
+  const hasSuggestion = (screen) => screen.includes('→ status Show pstack status');
+  await waitFor('/pstack subcommand suggestion', hasSuggestion);
   tmux(['send-keys', '-t', session, 'Enter']);
-  const statusText = (text) => text.includes(STATUS_CENSUS);
-  let screen;
-  try {
-    screen = await waitFor('/pstack status output', statusText, 1000, true);
-  } catch {
-    tmux(['send-keys', '-t', session, 'Enter']);
-    screen = await waitFor('/pstack status output', statusText, 30000, true);
-  }
+  await waitFor('accepted suggestion closing the menu', (screen) => screen.includes('/pstack status') && !hasSuggestion(screen));
+  tmux(['send-keys', '-t', session, 'Enter']);
+  const screen = await waitFor('/pstack status output', (text) => text.includes(STATUS_CENSUS), 30000, true);
   check('/pstack status renders in the installed Pi TUI', flatten(screen).includes(STATUS_CENSUS));
 }
 
