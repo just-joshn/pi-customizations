@@ -88,7 +88,7 @@ export class WorkflowRuntime {
   runAgent(id: string, prompt: string, options: WorkflowAgentOptions, ctx: ExtensionContext): Promise<AgentOutcome> {
     const run = this.store.get(id);
     if (!run) throw new Error(`Unknown workflow run: ${id}`);
-    return this.agentOnce(id, run.ownerEpoch, prompt, options, new AbortController().signal, ctx);
+    return this.agentOnce(id, run.ownerEpoch, prompt, options, this.cancelled.get(id)?.signal ?? new AbortController().signal, ctx);
   }
 
   /** Declarations are silently dropped while dynamic workflows are disabled. */
@@ -175,13 +175,12 @@ export class WorkflowRuntime {
   }
 
   private settle(id: string, epoch: number, patch: Partial<Omit<RunRecord, 'id'>>): RunRecord {
+    const before = this.store.get(id);
+    if (!before) throw new Error(`Unknown workflow run: ${id}`);
+    if (before.ownerEpoch !== epoch) throw new Error(`Execution token for run ${id} is stale.`);
+    if (before.status !== 'running') return before;
     const settled = this.store.settle(id, epoch, patch);
-    const current = this.store.get(id);
-    if (!current) throw new Error(`Unknown workflow run: ${id}`);
-    if (settled === undefined) {
-      if (!['completed', 'failed', 'cancelled', 'halted'].includes(current.status)) throw new Error(`Execution token for run ${id} is stale.`);
-      return current;
-    }
+    if (settled === undefined) return before;
     this.emit('workflow.run_settled', settled);
     if (settled.status !== 'paused') this.ports.events.emit('system.notification', { kind: 'workflow_completed', runId: settled.id, summary: `Workflow ${settled.name} ${settled.status === 'completed' ? 'completed' : settled.status}.` });
     return settled;
@@ -228,7 +227,7 @@ export class WorkflowRuntime {
     let settled: AgentNode;
     try {
       this.store.admitSubagent(runId);
-      const created = await this.ports.factory.create(call, `workflow-${randomUUID().slice(0, 8)}`, undefined, ctx, { workflowRunId: runId });
+      const created = await this.ports.factory.create(call, `workflow-${randomUUID().slice(0, 8)}`, signal, ctx, { workflowRunId: runId });
       settled = await created.launched.settled;
     } finally {
       release();
