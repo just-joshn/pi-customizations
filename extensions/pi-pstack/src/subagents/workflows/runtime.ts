@@ -277,7 +277,7 @@ export class WorkflowRuntime {
   async resume(id: string, ctx: ExtensionContext): Promise<RunRecord> {
     const run = this.store.get(id);
     if (!run) throw new Error(`Unknown workflow run: ${id}`);
-    if (run.status !== 'paused' && !(run.status === 'error' && run.failure?.type === 'workflow_limit_reached')) throw new Error(`Run ${id} cannot be resumed from ${run.status}.`);
+    if (run.status !== 'paused' && !(run.status === 'error' && (run.failure?.type === 'workflow_limit_reached' || run.failure?.type === 'interrupted'))) throw new Error(`Run ${id} cannot be resumed from ${run.status}.`);
     this.declared(run.name);
     const restarted = this.store.settle(id, run.ownerEpoch, { status: 'pending', attempt: run.attempt + 1 }) ?? run;
     return this.launch(restarted.id, ctx);

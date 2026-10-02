@@ -164,6 +164,28 @@ test('the runtime registers nothing while dynamic workflows are off', () => {
   expect(runtime.runs()).toEqual([]);
 });
 
+test('a run the previous process left interrupted can be resumed', async () => {
+  const persisted: { type: string; customType: string; data: Change }[] = [];
+  const persist = (change: Change) => persisted.push({ type: 'custom', customType: workflowEntryType, data: change });
+  const runtime = new WorkflowRuntime({
+    pi: { events: { emit: () => {}, on: () => () => {} } } as never,
+    events: { emit: () => {} } as never,
+    factory: {} as never,
+    env: () => ({ COPILOT_DYNAMIC_WORKFLOWS: '1' }) as NodeJS.ProcessEnv,
+    settings: { read: () => ({ settings: { workflows: { maxConcurrentRuns: 4, defaultLimits: {} } } }) },
+    log: () => {},
+    persist,
+  });
+  const store = new WorkflowStore(persist);
+  const created = store.create('resumable', { limits: {} }, undefined, {}, {}, 1000);
+  store.claim(created.id, 1, 1000);
+  runtime.register(defineWorkflow({ name: 'resumable', description: 'A run a previous process left open', run: async () => 'done' }));
+  runtime.restore(persisted);
+  expect(runtime.get(created.id)).toMatchObject({ status: 'error', failure: { type: 'interrupted' } });
+  const resumed = await runtime.resume(created.id, {} as never);
+  expect(resumed).toMatchObject({ status: 'completed', attempt: 2, result: 'done' });
+});
+
 test('a waiter takes a slot the moment a holder releases it and never on a timer', async () => {
   const slots = new Slots(1);
   const signal = new AbortController().signal;
