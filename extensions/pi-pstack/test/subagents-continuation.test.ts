@@ -18,8 +18,18 @@ test.for([
   expect(() => checkContinuation('a1', state)).toThrow(expect.objectContaining({ name, code, message }));
 });
 
+const guardOutcome = (state: typeof idle): string => {
+  try {
+    checkContinuation('a1', state);
+    return 'passes';
+  } catch (error) {
+    return (error as { code: string }).code;
+  }
+};
+
 test('an idle agent passes the continuation guard', () => {
-  expect(checkContinuation('a1', idle)).toBeUndefined();
+  expect(guardOutcome(idle)).toBe('passes');
+  expect(guardOutcome({ ...idle, inFlight: true })).toBe('busy');
 });
 
 test('a user-stopped agent is refused unless the invocation is user initiated', () => {

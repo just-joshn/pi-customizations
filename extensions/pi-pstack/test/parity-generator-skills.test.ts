@@ -17,9 +17,12 @@ function prose(text: string): string {
   return text.replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]*`/g, '');
 }
 
-test('generated skill prose contains no long dash outside the setup-pstack budget labels', async () => {
+test('generated skill prose has no long dash outside the setup-pstack labels', async () => {
   const offenders: string[] = [];
-  for (const name of await generatedSkillMarkdown()) if (prose(await read(name)).includes('—')) offenders.push(name);
+  const scanned = await generatedSkillMarkdown();
+  for (const name of scanned) if (prose(await read(name)).includes('—')) offenders.push(name);
+  expect(scanned).toContain('poteto-mode/SKILL.md');
+  expect(scanned).not.toContain('setup-pstack/SKILL.md');
   expect(offenders).toEqual([]);
 });
 

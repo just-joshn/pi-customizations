@@ -44,25 +44,33 @@ async function withPlan<T>(text: string, run: (path: string) => T): Promise<T> {
   }
 }
 
-test('no generated skill or prompt names a repository-root pstack path in a command or git show', async () => {
+test('no generated skill or prompt names a repository-root pstack path', async () => {
   const offenders: string[] = [];
+  const scanned: string[] = [];
   for (const directory of ['skills', 'prompts']) {
     for (const path of await markdownFiles(directory)) {
+      scanned.push(path);
       const text = await readFile(join(root, path), 'utf8');
       if (/extensions\/pi-pstack\/|(?<![\w/-])pstack\/skills\//.test(text)) offenders.push(path);
     }
   }
+  expect(scanned).toContain('skills/poteto-mode/SKILL.md');
+  expect(scanned).toContain('prompts/deslop.md');
   expect(offenders).toEqual([]);
 });
 
-test('playbooks and references name no file-relative parent path, so every bundled path resolves from the poteto-mode skill directory', async () => {
+test('every bundled playbook path resolves from the poteto-mode directory', async () => {
   const unresolved: string[] = [];
+  const resolved: string[] = [];
   for (const path of [...(await markdownFiles('skills/poteto-mode/playbooks')), ...(await markdownFiles('skills/poteto-mode/references')), 'skills/poteto-mode/SKILL.md']) {
     const text = await readFile(join(root, path), 'utf8');
     for (const [, token] of text.matchAll(/`((?:\.\.\/|scripts\/|playbooks\/|references\/)[^`\s<>]*)[^`]*`/g)) {
+      resolved.push(token ?? '');
       if (token?.startsWith('../') || !existsSync(join(modeDirectory, token ?? ''))) unresolved.push(`${path} ${token}`);
     }
   }
+  expect(resolved).toContain('playbooks/babysit.md');
+  expect(resolved).toContain('references/bugbot-triage.md');
   expect(unresolved).toEqual([]);
 });
 
