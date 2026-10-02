@@ -10,6 +10,7 @@ const provider = join(packageRoot, 'test', 'journey-provider.ts');
 const progressFixture = join(packageRoot, 'test', 'fixtures', 'task-progress-sentinel.txt');
 const session = `progress-${process.pid}`;
 const socket = `pstack-progress-${process.pid}`;
+const STATUS_CENSUS = '68 skills, 66 prompt templates';
 const checks = [];
 let directory;
 
@@ -90,7 +91,7 @@ async function showStatus() {
   tmux(['send-keys', '-l', '-t', session, '/pstack status']);
   await waitFor('typed /pstack status command', (screen) => screen.includes('/pstack status'));
   tmux(['send-keys', '-t', session, 'Enter']);
-  const statusText = (text) => text.includes('65 skills, 64 prompt templates');
+  const statusText = (text) => text.includes(STATUS_CENSUS);
   let screen;
   try {
     screen = await waitFor('/pstack status output', statusText, 1000, true);
@@ -98,7 +99,7 @@ async function showStatus() {
     tmux(['send-keys', '-t', session, 'Enter']);
     screen = await waitFor('/pstack status output', statusText, 30000, true);
   }
-  check('/pstack status renders in the installed Pi TUI', flatten(screen).includes('65 skills, 64 prompt templates'));
+  check('/pstack status renders in the installed Pi TUI', flatten(screen).includes(STATUS_CENSUS));
 }
 
 async function childRequestCount(log) {
