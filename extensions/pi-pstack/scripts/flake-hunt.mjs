@@ -9,6 +9,7 @@
 //
 //   --runs N     runs per file per mode (default 10)
 //   --hogs K     busy-loop processes kept alive for the whole hunt (default 0)
+//   --save-failures DIR  write the raw output of every failed run to DIR
 //   --modes      comma list of plain and shuffle (default plain,shuffle). Shuffle
 //                run i uses --sequence.seed=i+1, so a failing seed is reproducible
 //   exit code    1 when any run failed, else 0
@@ -20,13 +21,14 @@
 // crash. If this script is SIGKILLed, a hog notices its parent changed within a
 // second and exits on its own.
 import { spawn } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { parseArgs } from 'node:util';
 
-const MAX_MESSAGES = 3;
+const MAX_MESSAGES = 8;
 const MESSAGE_WIDTH = 240;
+const TEMP_PATH = /(?:\/private)?\/var\/folders\/\S+?\/T\/[^\s'"]+/g;
 
 function parseOptions(argv) {
   const { values, positionals } = parseArgs({
@@ -36,6 +38,7 @@ function parseOptions(argv) {
       runs: { type: 'string', default: '10' },
       hogs: { type: 'string', default: '0' },
       modes: { type: 'string', default: 'plain,shuffle' },
+      'save-failures': { type: 'string' },
     },
   });
   const runs = Number(values.runs);
@@ -45,7 +48,7 @@ function parseOptions(argv) {
   if (!Number.isInteger(hogs) || hogs < 0) throw new Error(`--hogs must be a non-negative integer, got ${values.hogs}`);
   for (const mode of modes) if (mode !== 'plain' && mode !== 'shuffle') throw new Error(`unknown mode ${mode}`);
   if (positionals.length === 0) throw new Error('name at least one test file, or "all"');
-  return { runs, hogs, modes, targets: positionals };
+  return { runs, hogs, modes, targets: positionals, saveFailures: values['save-failures'] };
 }
 
 function hogSource(parentPid) {
@@ -131,27 +134,35 @@ function execute(args) {
   });
 }
 
-async function runOnce({ target, shuffleSeed, workdir }) {
+function saveFailure(dir, name, result) {
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, name), `exit ${result.status}\n${result.stdout}\n${result.stderr}`);
+}
+
+async function runOnce({ target, shuffleSeed, workdir, saveAs }) {
   const reportPath = join(workdir, 'report.json');
   const args = ['vitest', 'run', '--reporter=json', `--outputFile=${reportPath}`];
   if (target !== 'all') args.push(target);
   if (shuffleSeed !== undefined) args.push('--sequence.shuffle', `--sequence.seed=${shuffleSeed}`);
   const result = await execute(args);
-  return result.status === 0 ? [] : failureMessages(reportPath, result);
+  if (result.status === 0) return [];
+  if (saveAs) saveFailure(saveAs.dir, saveAs.name, result);
+  return failureMessages(reportPath, result);
 }
 
-async function hunt({ target, shuffle, runs, workdir }) {
+async function hunt({ target, shuffle, runs, workdir, saveFailures }) {
   const distinct = new Map();
   const failedSeeds = [];
   let failed = 0;
   for (let i = 0; i < runs; i += 1) {
     const shuffleSeed = shuffle ? i + 1 : undefined;
-    const messages = await runOnce({ target, shuffleSeed, workdir });
+    const saveAs = saveFailures && { dir: saveFailures, name: `${basename(target)}.${shuffle ? 'shuffle' : 'plain'}.${i + 1}.log` };
+    const messages = await runOnce({ target, shuffleSeed, workdir, saveAs });
     if (messages.length === 0) continue;
     failed += 1;
     if (shuffle) failedSeeds.push(shuffleSeed);
     for (const message of messages) {
-      const key = message.slice(0, MESSAGE_WIDTH);
+      const key = message.replace(TEMP_PATH, (path) => `<tmp>/${path.split('/').pop()}`).slice(0, MESSAGE_WIDTH);
       distinct.set(key, (distinct.get(key) ?? 0) + 1);
     }
   }
@@ -167,7 +178,7 @@ function report({ target, mode, hogs, runs }, { passed, failed, distinct, failed
 }
 
 async function main() {
-  const { runs, hogs: hogCount, modes, targets } = parseOptions(process.argv.slice(2));
+  const { runs, hogs: hogCount, modes, targets, saveFailures } = parseOptions(process.argv.slice(2));
   const workdir = mkdtempSync(join(tmpdir(), 'flake-hunt-'));
   const hogs = startHogs(hogCount);
   const cleanup = () => {
@@ -184,7 +195,7 @@ async function main() {
   for (const target of targets) {
     for (const mode of modes) {
       const shuffle = mode === 'shuffle';
-      const result = await hunt({ target, shuffle, runs, workdir });
+      const result = await hunt({ target, shuffle, runs, workdir, saveFailures });
       totalFailed += result.failed;
       report({ target, mode, hogs: hogCount, runs }, result);
     }
