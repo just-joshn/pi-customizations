@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test';
+import { afterEach, expect, test } from 'bun:test';
 
 import { failedCheck, fakeReader, passingCheck } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
 import {
@@ -18,7 +18,10 @@ import {
 import { readSnapshot } from '../../skills/poteto-mode/scripts/watch-pr/policy.ts';
 import type { Check } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
+import { removeScratch } from './scratch.ts';
 import { commitsPage, emptyBin, type FakeBin, type FakeRule, fakeEnv, fastCheck, installFakeBin, ok, prView, rollupPage, thread, threadsPage, withEnv } from './watch-pr-fakes.test-helper.ts';
+
+afterEach(removeScratch);
 
 const rollupQuery = ['query', 'Pr' + 'CheckRollup'].join(' ');
 const ctx = { owner: 'o', repo: 'r', number: parsePrNumber(7) };

@@ -10,8 +10,10 @@ const provider = join(packageRoot, 'test', 'journey-provider.ts');
 const progressFixture = join(packageRoot, 'test', 'fixtures', 'task-progress-sentinel.txt');
 const session = `progress-${process.pid}`;
 const socket = `pstack-progress-${process.pid}`;
+const STATUS_CENSUS = '68 skills, 66 prompt templates';
 const checks = [];
 let directory;
+let panePid;
 
 function shellQuote(value) {
   return `'${String(value).replaceAll("'", `'\\''`)}'`;
@@ -83,22 +85,34 @@ function startTui(pi, env, cwd) {
     '--offline',
   ].join(' ');
   tmux(['-f', '/dev/null', 'new-session', '-d', '-x', '120', '-y', '40', '-s', session, '-c', cwd, command]);
+  panePid = Number(tmux(['display-message', '-p', '-t', session, '#{pane_pid}']));
+}
+
+function isAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === 'EPERM';
+  }
+}
+
+async function waitForExit(pid, timeoutMs = 10000) {
+  const deadline = Date.now() + timeoutMs;
+  while (isAlive(pid) && Date.now() < deadline) await new Promise((resolveWait) => setTimeout(resolveWait, 50));
+  if (isAlive(pid)) throw new Error(`Pi process ${pid} still running ${timeoutMs}ms after the tmux server was killed.`);
 }
 
 async function showStatus() {
   await waitFor('journey model in the Pi TUI', (screen) => screen.includes('recorder') && screen.includes('Extensions'));
   tmux(['send-keys', '-l', '-t', session, '/pstack status']);
-  await waitFor('typed /pstack status command', (screen) => screen.includes('/pstack status'));
+  const hasSuggestion = (screen) => screen.includes('→ status Show pstack status');
+  await waitFor('/pstack subcommand suggestion', hasSuggestion);
   tmux(['send-keys', '-t', session, 'Enter']);
-  const statusText = (text) => text.includes('65 skills, 64 prompt templates');
-  let screen;
-  try {
-    screen = await waitFor('/pstack status output', statusText, 1000, true);
-  } catch {
-    tmux(['send-keys', '-t', session, 'Enter']);
-    screen = await waitFor('/pstack status output', statusText, 30000, true);
-  }
-  check('/pstack status renders in the installed Pi TUI', flatten(screen).includes('65 skills, 64 prompt templates'));
+  await waitFor('accepted suggestion closing the menu', (screen) => screen.includes('/pstack status') && !hasSuggestion(screen));
+  tmux(['send-keys', '-t', session, 'Enter']);
+  const screen = await waitFor('/pstack status output', (text) => text.includes(STATUS_CENSUS), 30000, true);
+  check('/pstack status renders in the installed Pi TUI', flatten(screen).includes(STATUS_CENSUS));
 }
 
 async function childRequestCount(log) {
@@ -168,5 +182,6 @@ try {
 } finally {
   spawnSync('tmux', ['-L', socket, 'kill-session', '-t', session], { stdio: 'ignore' });
   spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
+  if (panePid) await waitForExit(panePid);
   if (directory) await rm(directory, { recursive: true, force: true });
 }

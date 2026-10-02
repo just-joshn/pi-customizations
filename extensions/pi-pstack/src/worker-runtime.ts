@@ -37,7 +37,7 @@ import { applyToolPolicy } from './subagents/tool-pool.ts';
 import { turnLimit } from './subagents/turn-limit.ts';
 import { launchSignal, overdueAfterMs, waitFor, workerControl } from './worker-control.ts';
 import { restoreTaskRecords, type TaskParameters, type TaskRecord, taskCleanupErrorType, taskCleanupUsageType, taskEntryType, taskOutputLimit, taskOwner, taskOwnerEntryType, taskSummary } from './worker-records.ts';
-import { type AgentLaunch, openWorkerSession } from './worker-support.ts';
+import { type AgentLaunch, openWorkerSession, workerDirs } from './worker-support.ts';
 
 export type { TaskProgressSnapshot, TaskToolDetails } from './subagents/task-progress.ts';
 
@@ -191,9 +191,13 @@ export class WorkerRuntime {
     });
     this.pi.on('session_start', async (_event, ctx) => this.restore(ctx, true));
     this.pi.on('session_tree', async (_event, ctx) => this.restore(ctx));
-    this.pi.on('session_shutdown', async () => {
+    this.pi.on('session_shutdown', async (_event, ctx) => {
       detachControl();
-      await this.stopAll();
+      try {
+        await this.stopAll();
+      } finally {
+        await workerDirs.removeAll(ctx.sessionManager);
+      }
     });
   }
 

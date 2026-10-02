@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+
 import { expect, onTestFinished, vi } from 'vitest';
 import { RpcChild, type RpcRecord } from '../src/subagents/rpc-child.ts';
 import { loggedCommands, rpcChild, spawnEnv, test } from './child-harness.ts';
@@ -79,6 +81,15 @@ test('a child exit rejects pending commands, then reports the exit', async ({ wo
     child.respond('late', { confirmed: true });
     child.kill('SIGTERM');
   }).not.toThrow();
+});
+
+test('a write to a child that closed its stdin rejects with the child exit, not the pipe error', async ({ workspace }) => {
+  const script = fileURLToPath(new URL('./fixtures/close-stdin-child.mjs', import.meta.url));
+  const child = RpcChild.start({ command: { command: process.execPath, args: [script] }, args: [], cwd: workspace.dir, env: spawnEnv(workspace) });
+  const seen = collect(child);
+  await vi.waitFor(() => expect(seen).toEqual([{ type: 'stdin_closed' }]));
+
+  await expect(child.send({ type: 'echo' })).rejects.toThrow(/^pi exited 5/);
 });
 
 test('a signalled child closes with that signal', async ({ workspace }) => {
