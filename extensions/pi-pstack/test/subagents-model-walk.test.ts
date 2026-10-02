@@ -49,6 +49,21 @@ test('a preferred setting beats the definition list', () => {
   expect(selection).toMatchObject({ model: { reference: 'anthropic/claude-haiku-4-5' }, source: 'configured_preference', taskSource: 'subagent_configuration', effort: 'low' });
 });
 
+test('a task-level required policy forces its model and reports the configured source', () => {
+  const selection = chosen(run({ taskModel: 'gpt-6-luna', taskModelPolicy: 'required' }));
+  expect(selection).toMatchObject({ model: { reference: 'openai/gpt-6-luna' }, source: 'configured_required', taskSource: 'subagent_configuration', configured: 'gpt-6-luna' });
+});
+
+test('a required setting beats a task-level preferred policy', () => {
+  const selection = chosen(run({ taskModel: 'anthropic/claude-sonnet-5', taskModelPolicy: 'preferred', setting: { model: 'gpt-6-luna', modelPolicy: 'required' } }));
+  expect(selection).toMatchObject({ model: { reference: 'openai/gpt-6-luna' }, source: 'configured_required', requested: 'anthropic/claude-sonnet-5', overrideReason: 'required_policy_replaced_request' });
+});
+
+test('a task-level effort level beats the setting and the definition', () => {
+  expect(chosen(run({ taskEffortLevel: 'high' }))).toMatchObject({ effort: 'high' });
+  expect(chosen(run({ taskEffortLevel: 'high', setting: { effortLevel: 'medium' } }))).toMatchObject({ effort: 'high' });
+});
+
 test('the first available definition model wins and a built-in reports an unset task source', () => {
   const selection = chosen(run({ available: [session, option('openai/gpt-5-4-mini', 1)] }));
   expect(selection).toMatchObject({ model: { reference: 'openai/gpt-5-4-mini' }, source: 'agent_definition_default', taskSource: 'unset', effort: 'low' });

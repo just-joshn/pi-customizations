@@ -17,13 +17,23 @@ import type { ParentServer } from './mcp-inheritance.ts';
 import { gatherParentServers, serversForChild } from './mcp-inheritance.ts';
 import { type ModelOption, type ModelSelection, selectModel } from './model-selection.ts';
 import type { Launched, SubagentScheduler } from './scheduler.ts';
-import type { ContextTier, Reference AssistantSettings } from './settings.ts';
+import type { ContextTier, Reference AssistantSettings, EffortLevel, ModelPolicy } from './settings.ts';
 import type { SettingsStore } from './settings-store.ts';
 import { parseSubagentHooks, runHooks } from './subagent-hooks.ts';
 import { planTools, zeroToolsMessage } from './tool-mapping.ts';
 import { rewindingStartMessage } from './tool-results.ts';
 
-export type TaskCall = Readonly<{ agent_type: string; name: string; description: string; prompt: string; mode?: 'sync' | 'background'; model?: string; context_tier?: ContextTier }>;
+export type TaskCall = Readonly<{
+  agent_type: string;
+  name: string;
+  description: string;
+  prompt: string;
+  mode?: 'sync' | 'background';
+  model?: string;
+  modelPolicy?: ModelPolicy;
+  effortLevel?: EffortLevel;
+  context_tier?: ContextTier;
+}>;
 export type Created = Readonly<{ launched: Launched; node: AgentNode }>;
 export type CreateExtras = Readonly<{ limits?: ChildLimits; workflowRunId?: string; definition?: AgentDefinition }>;
 export type FactoryDeps = Readonly<{
@@ -201,6 +211,8 @@ export class SubagentFactory {
     const result = selectModel({
       agent: definition,
       ...(call.model !== undefined ? { taskModel: call.model } : {}),
+      ...(call.modelPolicy !== undefined ? { taskModelPolicy: call.modelPolicy } : {}),
+      ...(call.effortLevel !== undefined ? { taskEffortLevel: call.effortLevel } : {}),
       ...(call.context_tier !== undefined ? { taskContextTier: call.context_tier } : {}),
       ...(settings.subagents.agents[definition.name] ? { setting: settings.subagents.agents[definition.name] } : {}),
       session: modelOption(ctx.model),
