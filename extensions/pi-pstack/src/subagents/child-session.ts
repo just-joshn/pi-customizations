@@ -27,6 +27,7 @@ import { agentEnvironment, childStorageDir, createChildTranscript, environmentEn
 import { childSettings } from './child-settings.ts';
 import { contentExclusionExtension } from './content-exclusion.ts';
 import type { ChildPlan } from './context-builder.ts';
+import type { Exec } from './environment-facts.ts';
 import { type ChildIdentity, identityExtension } from './identity-extension.ts';
 import { inheritedMcpExtension, type ParentServer } from './mcp-inheritance.ts';
 import { ModelHistory } from './model-history.ts';
@@ -66,6 +67,7 @@ export type OpenInput = Readonly<{
   contextManagement: boolean;
   parentAgentId: string;
   onProcessGroup: (pid: number) => void;
+  exec: Exec;
   log: (message: string) => void;
   inheritedServers: readonly ParentServer[];
   exclusionPatterns: readonly string[];
@@ -113,7 +115,7 @@ async function openTranscript(input: OpenInput, dir: string): Promise<{ manager:
   const { plan, ctx } = input;
   const path = await createChildTranscript(plan.cwd, dir, plan.agentId, ctx.sessionManager.getSessionFile());
   const manager = SessionManager.open(path, dir, plan.cwd);
-  manager.appendCustomEntry(environmentEntryType, await agentEnvironment(plan.agentId, plan.rootSessionId, plan.cwd));
+  manager.appendCustomEntry(environmentEntryType, await agentEnvironment(plan.agentId, plan.rootSessionId, plan.cwd, input.exec));
   const entry: ChildContextEntry = {
     agentId: plan.agentId,
     registryId: plan.registryId,

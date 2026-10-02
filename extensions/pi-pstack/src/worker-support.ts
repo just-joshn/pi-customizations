@@ -25,6 +25,7 @@ import { resolveModel } from './models.ts';
 import { readPersona } from './personas.ts';
 import { agentEnvironment, childStorageDir, createChildTranscript, environmentEntryType, writeAgentMeta } from './subagents/agent-storage.ts';
 import { childSettings } from './subagents/child-settings.ts';
+import type { Exec } from './subagents/environment-facts.ts';
 import { validateId } from './subagents/identifiers.ts';
 import { ModelHistory } from './subagents/model-history.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
@@ -128,6 +129,8 @@ type OpenWorker = {
   onProcessGroup?: (pid: number) => void;
 };
 
+type LocalWorker = OpenWorker & { exec: Exec };
+
 type RecordInputs = {
   id: string;
   persona: string;
@@ -177,12 +180,12 @@ function childTools(input: { readonly: boolean; cwd: string; onProcessGroup: ((p
   return readonly ? { tools: ['read', 'grep', 'find', 'ls'] } : custom;
 }
 
-async function openChildTranscript(options: OpenWorker, cwd: string, dir: string, depth: number): Promise<{ manager: SessionManager; sessionFile: string }> {
-  const { id, params, prior, ctx } = options;
+async function openChildTranscript(options: LocalWorker, cwd: string, dir: string, depth: number): Promise<{ manager: SessionManager; sessionFile: string }> {
+  const { id, params, prior, ctx, exec } = options;
   const path = prior?.sessionFile ?? (await createChildTranscript(cwd, dir, id, ctx.sessionManager.getSessionFile()));
   const manager = SessionManager.open(path, dir, cwd);
   if (!prior) {
-    manager.appendCustomEntry(environmentEntryType, await agentEnvironment(id, ctx.sessionManager.getSessionId(), cwd));
+    manager.appendCustomEntry(environmentEntryType, await agentEnvironment(id, ctx.sessionManager.getSessionId(), cwd, exec));
     manager.appendCustomEntry(taskOwnerEntryType, { id });
   }
   saveChildContext(manager, { id, depth, foreground: params.run_in_background === false });
@@ -249,7 +252,7 @@ export async function prepareWorkerSession(options: OpenWorker, engine: Engine =
   return { ...workspace, selected, loader, settingsManager, dir, modelsUsed };
 }
 
-export async function openWorkerSession(options: OpenWorker): Promise<{ runtime: AgentSessionRuntime; session: AgentSession; record: TaskRecord; modelsUsed: ModelHistory }> {
+export async function openWorkerSession(options: LocalWorker): Promise<{ runtime: AgentSessionRuntime; session: AgentSession; record: TaskRecord; modelsUsed: ModelHistory }> {
   const { id, params, prior, ctx, depth = 1, onProcessGroup } = options;
   validateId(id);
   if (prior && !existsSync(prior.sessionFile)) throw new ResumeError('state', resumeMessages.transcriptMissing(id));

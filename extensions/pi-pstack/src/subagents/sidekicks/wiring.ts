@@ -1,7 +1,6 @@
-import { execFileSync } from 'node:child_process';
-
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { type AgentDefinition, builtInPromptParts, namedTools } from '../agent-definition.ts';
+import type { Exec } from '../environment-facts.ts';
 import type { EventLog } from '../events.ts';
 import type { SubagentFactory } from '../factory.ts';
 import type { SubagentScheduler } from '../scheduler.ts';
@@ -24,13 +23,9 @@ export function sidekickDefinition(spec: SidekickSpec): AgentDefinition {
   };
 }
 
-export function repositoryFacts(cwd: string): LaunchFacts {
-  try {
-    const url = execFileSync('git', ['remote', 'get-url', 'origin'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-    return { 'git-repo': true, 'github-remote': url.includes('github.com') };
-  } catch {
-    return { 'git-repo': false, 'github-remote': false };
-  }
+export async function repositoryFacts(exec: Exec, cwd: string): Promise<LaunchFacts> {
+  const result = await exec('git', ['remote', 'get-url', 'origin'], { cwd }).catch(() => undefined);
+  return result?.code === 0 ? { 'git-repo': true, 'github-remote': result.stdout.includes('github.com') } : { 'git-repo': false, 'github-remote': false };
 }
 
 export type SidekickParts = Readonly<{ pi: ExtensionAPI; env: NodeJS.ProcessEnv; factory: SubagentFactory; scheduler: SubagentScheduler; events: EventLog; cwd: () => string; log: (message: string) => void }>;
@@ -54,7 +49,7 @@ export function createSidekickManager(parts: SidekickParts): SidekickManager {
       const status = scheduler.list().find((node) => node.id === agentId)?.status;
       return status === 'running' || status === 'idle' ? status : undefined;
     },
-    facts: () => repositoryFacts(parts.cwd()),
+    facts: () => repositoryFacts((command, args, options) => pi.exec(command, args, options), parts.cwd()),
     deliver: (spec, message, truncated) => {
       events.emit('system.notification', { kind: 'new_inbox_message', summary: `Sidekick ${spec.name} sent a message.`, sidekick: spec.name });
       const note = truncated ? `${message}\n[message cut at ${spec.inlineForwardMaxChars} characters]` : message;
