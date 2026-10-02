@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { validateToolArguments } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { TaskSchema } from '../src/subagents/agent-tools.ts';
 import { boardPath, readBoard } from '../src/subagents/context-board.ts';
 import { boundedForModel } from '../src/subagents/tool-results.ts';
@@ -29,6 +29,7 @@ test('each subagent tool returns the structuredContent its outputSchema promises
     await fixture.close();
   }
 });
+
 test('a sync task reports the usage of its nested model calls so Pi can total them', async () => {
   const fixture = await workerFixture();
   try {
@@ -38,6 +39,7 @@ test('a sync task reports the usage of its nested model calls so Pi can total th
     await fixture.close();
   }
 });
+
 test('the context board returns its entries as structured content', async () => {
   const fixture = await workerFixture();
   try {
@@ -48,6 +50,7 @@ test('the context board returns its entries as structured content', async () => 
     await fixture.close();
   }
 });
+
 test.for([
   { name: 'a valid call', mode: 'background', valid: true },
   { name: 'an unknown mode', mode: 'eventually', valid: false },
@@ -57,6 +60,7 @@ test.for([
   if (valid) expect(validate()).toMatchObject({ mode });
   else expect(validate).toThrow(/mode/);
 });
+
 test('a long reply keeps its head within Pi limits and names the transcript', () => {
   const reply = Array.from({ length: 3000 }, (_, index) => `line ${index}`).join('\n');
   const bounded = boundedForModel(reply, '/sessions/agent-a.jsonl');
@@ -66,6 +70,23 @@ test('a long reply keeps its head within Pi limits and names the transcript', ()
   expect(bounded).toContain("The agent's full transcript is at /sessions/agent-a.jsonl.");
   expect(boundedForModel('short', '/sessions/agent-a.jsonl')).toBe('short');
 });
+
+test('the dynamic workflow tools are registered only when workflows are enabled', async () => {
+  const off = await workerFixture();
+  try {
+    expect(off.session.getAllTools().map((tool) => tool.name)).not.toContain('run_dynamic_workflow');
+  } finally {
+    await off.close();
+  }
+  vi.stubEnv('COPILOT_DYNAMIC_WORKFLOWS', '1');
+  const on = await workerFixture();
+  try {
+    expect(on.session.getAllTools().map((tool) => tool.name)).toEqual(expect.arrayContaining(['run_dynamic_workflow', 'dynamic_workflows_manage', 'read_workflow_run']));
+  } finally {
+    await on.close();
+  }
+});
+
 test('a child writes files while its parent has a write tool active', async () => {
   const fixture = await workerFixture();
   try {
@@ -75,6 +96,7 @@ test('a child writes files while its parent has a write tool active', async () =
     await fixture.close();
   }
 });
+
 test('the tools that manage agents form one namespace', async () => {
   let api: ExtensionAPI | undefined;
   const fixture = await workerFixture({
