@@ -1,6 +1,6 @@
 # pi-cursor-ui: design and decision trail
 
-Package: `extensions/pi-cursor-ui`. Contract: `extensions/pi-tui-parity/docs/PI_CURSOR_UI_IMPLEMENTATION_SPEC.md`.
+Package: `extensions/pi-cursor-ui`. Contract: `extensions/pi-cursor-ui/docs/PI_CURSOR_UI_IMPLEMENTATION_SPEC.md`.
 
 ## Goal and predicate
 
