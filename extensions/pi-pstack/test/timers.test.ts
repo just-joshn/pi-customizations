@@ -33,10 +33,11 @@ async function tools() {
   };
 }
 
-test('registering timers and listing an unused owner starts no process', async () => {
+test('listing subscriptions for an unused owner starts no process', async () => {
   const f = await tools();
   vi.mocked(timerRecord).mockResolvedValue(undefined);
-  expect((await f.invoke('ListSubscriptions')).details).toEqual([]);
+  const listed = await f.invoke('ListSubscriptions');
+  expect(listed.content).toEqual([{ type: 'text', text: '[]' }]);
   expect(startTimerService).not.toHaveBeenCalled();
   expect(timerCommand).not.toHaveBeenCalled();
 });
