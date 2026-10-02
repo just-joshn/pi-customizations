@@ -49,6 +49,10 @@ export class SubagentFactory {
     this.discovery = deps.discovery ?? new DiscoveryCache();
   }
 
+  get scheduler() {
+    return this.deps.scheduler;
+  }
+
   isChild(): boolean {
     return this.deps.scope() !== undefined;
   }

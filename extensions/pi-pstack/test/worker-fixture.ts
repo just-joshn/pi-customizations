@@ -69,7 +69,9 @@ function workerLoader(dir: string, flags: Readonly<Record<string, string>>, shel
   return { loader, eventBus, normalizedTypes, subagentLogs, modelResolutions, subagentStats };
 }
 
-export async function workerFixture(options: { retry?: boolean; flags?: Readonly<Record<string, string>>; shells?: boolean; extensions?: readonly ExtensionFactory[]; settings?: Readonly<Record<string, unknown>> } = {}) {
+export async function workerFixture(
+  options: { retry?: boolean; flags?: Readonly<Record<string, string>>; shells?: boolean; extensions?: readonly ExtensionFactory[]; settings?: Readonly<Record<string, unknown>>; agents?: Readonly<Record<string, string>> } = {},
+) {
   const dir = await mkdtemp(join(tmpdir(), 'pstack-child-'));
   vi.stubEnv('PI_CODING_AGENT_DIR', dir);
   vi.stubEnv('HOME', join(dir, 'home'));
@@ -77,6 +79,10 @@ export async function workerFixture(options: { retry?: boolean; flags?: Readonly
   const close = () => closeFixture(session, dir);
   try {
     await mkdir(join(dir, 'extensions'));
+    if (options.agents) {
+      await mkdir(join(dir, 'agents'), { recursive: true });
+      for (const [name, text] of Object.entries(options.agents)) await writeFile(join(dir, 'agents', `${name}.agent.md`), text);
+    }
     await writeFile(join(dir, 'settings.json'), JSON.stringify({ retry: { enabled: options.retry ?? false, maxRetries: 1, baseDelayMs: 0 }, compaction: { enabled: false }, ...options.settings }));
     await writeProvider(dir);
     const { loader, eventBus, normalizedTypes, subagentLogs, modelResolutions, subagentStats } = workerLoader(dir, options.flags ?? {}, options.shells ?? false, options.extensions ?? []);

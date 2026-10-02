@@ -11,6 +11,7 @@ import type { SubagentScheduler } from './scheduler.ts';
 import { EffortSchema, PolicySchema, TierSchema } from './settings.ts';
 import type { SettingsStore } from './settings-store.ts';
 import type { TaskRegistry } from './task-registry.ts';
+import type { WorkflowRuntime } from './workflows/runtime.ts';
 
 export const rpcChannel = 'copilot:rpc';
 export const rpcResultChannel = 'copilot:rpc-result';
@@ -34,6 +35,10 @@ const Settings = Type.Object({
 const Goal = Type.Object({ goal: Type.String({ minLength: 1 }) });
 const Name = Type.Object({ name: Type.String({ minLength: 1 }) });
 const SetPrompt = Type.Object({ name: Type.String({ minLength: 1 }), prompt: Type.String() });
+const WorkflowStart = Type.Object({ name: Type.String({ minLength: 1 }), arguments: Type.Optional(Type.Unknown()) });
+const WorkflowLog = Type.Object({ id: Type.String({ minLength: 1 }), message: Type.String() });
+const WorkflowAgentCall = Type.Object({ id: Type.String({ minLength: 1 }), prompt: Type.String(), options: Type.Optional(Type.Unknown()) });
+const JournalPut = Type.Object({ id: Type.String({ minLength: 1 }), key: Type.String({ minLength: 1 }), value: Type.Unknown() });
 const Request = Type.Object({ id: Type.String(), method: Type.String(), params: Type.Optional(Type.Unknown()) });
 
 export function publicTask(node: AgentNode) {
@@ -53,15 +58,26 @@ export function publicTask(node: AgentNode) {
   };
 }
 
+function parse<T extends TSchema>(method: string, schema: T, params: unknown): Static<T> {
+  if (Check(schema, params)) return params;
+  throw new Error(`Invalid ${method} parameters.`);
+}
+
 function promotableTask(scheduler: SubagentScheduler) {
   const node = scheduler.currentPromotable();
   return node ? publicTask(node) : null;
 }
 
-function parse<T extends TSchema>(method: string, schema: T, params: unknown): Static<T> {
-  if (Check(schema, params)) return params;
-  throw new Error(`Invalid ${method} parameters.`);
-}
+const workflowSummary = (run: NonNullable<ReturnType<WorkflowRuntime['get']>>) => ({
+  id: run.id,
+  name: run.name,
+  status: run.status,
+  attempt: run.attempt,
+  consumption: run.consumption,
+  phases: run.phases,
+  ...(run.checkpoint !== undefined ? { checkpoint: run.checkpoint } : {}),
+  ...(run.failure !== undefined ? { failure: run.failure } : {}),
+});
 
 type Parts = Readonly<{
   factory: SubagentFactory;
@@ -69,15 +85,16 @@ type Parts = Readonly<{
   settings: SettingsStore;
   registry: TaskRegistry;
   selection: AgentSelection;
+  workflows: () => WorkflowRuntime;
   context: () => ExtensionContext | undefined;
   toolNames: () => readonly string[];
   startFleet: (goal: string) => void;
   reload: () => void;
 }>;
 
-const summary = (agent: AgentDefinition) => ({ name: agent.name, displayName: agent.displayName, description: agent.description, source: agent.source });
+const agentSummary = (agent: AgentDefinition) => ({ name: agent.name, displayName: agent.displayName, description: agent.description, source: agent.source });
 
-/** The session.tasks and session.tools surface of the report, served over the extension event bus. */
+/** The session.tasks, session.tools, session.agent and session.workflow surface of the report, served over the extension event bus. */
 export class SubagentRpc {
   constructor(private readonly parts: Parts) {}
 
@@ -88,7 +105,6 @@ export class SubagentRpc {
   }
 
   async call(method: string, params: unknown): Promise<unknown> {
-    const { scheduler, registry } = this.parts;
     switch (method) {
       case 'session.tasks.startAgent': {
         const input = parse(method, StartAgent, params);
@@ -98,63 +114,63 @@ export class SubagentRpc {
       }
       case 'session.tasks.list':
       case 'session.tasks.refresh':
-        return scheduler.list().map(publicTask);
+        return this.parts.scheduler.list().map(publicTask);
       case 'session.tasks.cancel': {
         const input = parse(method, Cancel, params);
-        return input.id === '*' ? (await scheduler.cancelAll(input.includeIdle ?? false)).map(publicTask) : publicTask(await scheduler.cancel(input.id));
+        return input.id === '*' ? (await this.parts.scheduler.cancelAll(input.includeIdle ?? false)).map(publicTask) : publicTask(await this.parts.scheduler.cancel(input.id));
       }
       case 'session.tasks.remove':
-        registry.remove(parse(method, Id, params).id);
+        this.parts.registry.remove(parse(method, Id, params).id);
         return {};
       case 'session.tasks.sendMessage': {
         const input = parse(method, SendMessage, params);
-        return publicTask(await scheduler.write(input.id, input.message, this.ctx()));
+        return publicTask(await this.parts.scheduler.write(input.id, input.message, this.ctx()));
       }
       case 'session.tasks.getCurrentPromotable':
-        return promotableTask(scheduler);
+        return promotableTask(this.parts.scheduler);
       case 'session.tasks.promoteCurrentToBackground': {
-        const promoted = scheduler.promoteCurrent();
+        const promoted = this.parts.scheduler.promoteCurrent();
         return promoted ? publicTask(promoted) : { message: noPromotableMessage };
       }
       case 'session.tasks.promoteToBackground':
-        return publicTask(registry.promote(parse(method, Id, params).id));
+        return publicTask(this.parts.registry.promote(parse(method, Id, params).id));
       case 'session.tasks.getProgress': {
-        const node = scheduler.get(parse(method, Id, params).id);
+        const node = this.parts.scheduler.get(parse(method, Id, params).id);
         return { intent: node.intent ?? null, toolCalls: node.totalToolCalls, tokens: node.totalTokens };
       }
       case 'session.tasks.waitForPending':
-        return { drained: await scheduler.waitForWork(parse(method, Wait, params).timeoutMs ?? 30_000) };
+        return { drained: await this.parts.scheduler.waitForWork(parse(method, Wait, params).timeoutMs ?? 30_000) };
       case 'session.tools.updateSubagentSettings':
         this.parts.settings.update(parse(method, Settings, params));
         return {};
       case 'session.tools.initializeAndValidate':
         return { tools: this.parts.toolNames() };
       default:
-        return this.session(method, params);
+        return this.agent(method, params);
     }
   }
 
-  private session(method: string, params: unknown): unknown {
+  private agent(method: string, params: unknown): unknown {
     const { selection, factory } = this.parts;
     switch (method) {
       case 'session.fleet.start':
         this.parts.startFleet(parse(method, Goal, params).goal);
         return {};
       case 'session.agent.list':
-        return factory.offered(this.ctx()).map(summary);
+        return factory.offered(this.ctx()).map(agentSummary);
       case 'session.agent.select': {
         const name = parse(method, Name, params).name;
-        const found = factory.offered(this.ctx()).find((agent) => agent.name === name);
+        const found = factory.offered(this.ctx()).find((candidate) => candidate.name === name);
         if (!found) throw new Error(`Unknown agent: ${name}`);
         selection.select(found);
-        return summary(found);
+        return agentSummary(found);
       }
       case 'session.agent.deselect':
         selection.deselect();
         return {};
       case 'session.agent.getCurrent': {
         const current = selection.getCurrent();
-        return current ? summary(current.definition) : null;
+        return current ? agentSummary(current.definition) : null;
       }
       case 'session.agent.reload':
         this.parts.reload();
@@ -163,6 +179,54 @@ export class SubagentRpc {
         const input = parse(method, SetPrompt, params);
         selection.setPrompt(input.name, input.prompt);
         return {};
+      }
+      default:
+        return this.workflow(method, params);
+    }
+  }
+
+  private workflow(method: string, params: unknown): Promise<unknown> {
+    const runtime = this.parts.workflows();
+    const runId = () => parse(method, Id, params).id;
+    const run = () => {
+      const found = runtime.get(runId());
+      if (!found) throw new Error(`Unknown workflow run: ${runId()}`);
+      return found;
+    };
+    switch (method) {
+      case 'session.workflow.run': {
+        const input = parse(method, WorkflowStart, params);
+        return runtime.start(input.name, input.arguments, this.ctx(), 'rpc').then(workflowSummary);
+      }
+      case 'session.workflow.resume':
+        return runtime.resume(runId(), this.ctx()).then(workflowSummary);
+      case 'session.workflow.getRun':
+        return Promise.resolve(runtime.get(runId()) ? workflowSummary(runtime.get(runId()) as NonNullable<ReturnType<WorkflowRuntime['get']>>) : null);
+      case 'session.workflow.listRuns':
+        return Promise.resolve(runtime.runs().map(workflowSummary));
+      case 'session.workflow.getRunDetail':
+        return Promise.resolve({ ...workflowSummary(run()), journal: runtime.journal(runId()) });
+      case 'session.workflow.getRunProgress':
+        return Promise.resolve(runtime.progress(runId()) ?? null);
+      case 'session.workflow.cancel':
+        return runtime.cancel(runId()).then(workflowSummary);
+      case 'session.workflow.pause':
+        return runtime.pause(runId()).then(workflowSummary);
+      case 'session.workflow.log': {
+        const input = parse(method, WorkflowLog, params);
+        runtime.appendLog(input.id, input.message);
+        return Promise.resolve({});
+      }
+      case 'session.workflow.agent': {
+        const input = parse(method, WorkflowAgentCall, params);
+        return runtime.runAgent(input.id, input.prompt, {}, this.ctx());
+      }
+      case 'session.workflow.journal.get':
+        return Promise.resolve(runtime.journal(runId()));
+      case 'session.workflow.journal.put': {
+        const input = parse(method, JournalPut, params);
+        runtime.putJournal(input.id, input.key, input.value);
+        return Promise.resolve({});
       }
       default:
         throw new Error(`Unknown RPC method: ${method}`);
