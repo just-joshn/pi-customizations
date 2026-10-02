@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test';
+import { afterEach, expect, test } from 'bun:test';
 
 import { type CliRuntime, main, parseArgs } from '../../skills/poteto-mode/scripts/watch-pr/cli.ts';
 import { type FakeReaderOptions, failedCheck, fakeReader, pendingCheck } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
@@ -7,7 +7,10 @@ import { readSnapshot } from '../../skills/poteto-mode/scripts/watch-pr/policy.t
 import { renderStatusTable } from '../../skills/poteto-mode/scripts/watch-pr/render.ts';
 import type { GitHubReader, PrContext, ReviewThread } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
+import { removeScratch } from './scratch.ts';
 import { emptyBin, withEnv } from './watch-pr-fakes.test-helper.ts';
+
+afterEach(removeScratch);
 
 const silent = { stdout: () => {}, stderr: () => {} };
 const PR = ['--owner', 'o', '--repo', 'r', '--pr', '1'];

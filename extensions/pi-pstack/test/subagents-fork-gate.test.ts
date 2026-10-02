@@ -1,16 +1,16 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
 import { decideAdmission, resolveAgentType } from '../src/subagents/admission.ts';
 import { forkAvailability, forkGateEnabled } from '../src/subagents/fork-gate.ts';
 import type { AdmissionSnapshot } from '../src/subagents/types.ts';
+import { scratchDir } from './support/scratch.ts';
 
 const agents = [{ agentType: 'general-purpose', whenToUse: 'any' }];
 const snapshot: AdmissionSnapshot = { agents, forkAvailable: true, depth: 0, depthCap: 3, running: 0, concurrencyCap: 20, concurrencyBypass: false, spawnedThisSession: 0, spentUsd: 0, hasProject: true, stopPending: false };
-const emptyRoot = mkdtempSync(join(tmpdir(), 'fork-gate-'));
-const gateOn = { CLAUDE_CODE_FORK_SUBAGENT: '1', HOME: emptyRoot };
+
+const gateOnFor = (root: string) => ({ CLAUDE_CODE_FORK_SUBAGENT: '1', HOME: root });
 
 test.for([
   { label: 'unset', env: {}, enabled: false },
@@ -22,24 +22,32 @@ test.for([
 });
 
 test('[A74] fork is unavailable without the gate', () => {
+  const emptyRoot = scratchDir('fork-gate-');
   expect(forkAvailability({ env: { HOME: emptyRoot }, root: emptyRoot, agents, allowedAgentTypes: undefined })).toEqual({ available: false });
 });
 
 test('[A74] fork is available with the gate and no conflicting agent', () => {
+  const emptyRoot = scratchDir('fork-gate-');
+  const gateOn = gateOnFor(emptyRoot);
   expect(forkAvailability({ env: gateOn, root: emptyRoot, agents, allowedAgentTypes: undefined })).toEqual({ available: true });
 });
 
 test('[A74] an active agent named fork (normalized) disables the fork type', () => {
+  const emptyRoot = scratchDir('fork-gate-');
+  const gateOn = gateOnFor(emptyRoot);
   expect(forkAvailability({ env: gateOn, root: emptyRoot, agents: [...agents, { agentType: 'Fork', whenToUse: '' }], allowedAgentTypes: undefined })).toEqual({ available: false });
 });
 
 test('[A74] an allowed list must permit fork', () => {
+  const emptyRoot = scratchDir('fork-gate-');
+  const gateOn = gateOnFor(emptyRoot);
   expect(forkAvailability({ env: gateOn, root: emptyRoot, agents, allowedAgentTypes: ['general-purpose'] })).toEqual({ available: false });
   expect(forkAvailability({ env: gateOn, root: emptyRoot, agents, allowedAgentTypes: ['fork'] })).toEqual({ available: true });
 });
 
 test('[A74] an Agent(fork) deny rule in project settings blocks fork and names its source', () => {
-  const root = mkdtempSync(join(tmpdir(), 'fork-deny-'));
+  const root = scratchDir('fork-deny-');
+  const gateOn = gateOnFor(scratchDir('fork-gate-'));
   mkdirSync(join(root, '.claude'));
   writeFileSync(join(root, '.claude/settings.json'), JSON.stringify({ permissions: { deny: ['Agent(fork)'] } }));
   expect(forkAvailability({ env: gateOn, root, agents, allowedAgentTypes: undefined })).toEqual({ available: false, denied: { rule: 'Agent(fork)', source: 'projectSettings' } });
