@@ -89,17 +89,18 @@ test('RPC goal delivery waits for its independent active turn to settle', async 
   const agentDir = join(directory, 'agent');
   let handle: Awaited<ReturnType<typeof startDetachedRpc>> | undefined;
   try {
-    handle = await startDetachedRpc({
+    const started = await startDetachedRpc({
       directory,
       cwd: directory,
       agentDir,
       args: ['--no-session', '--no-extensions', '-e', packageRoot, '-e', join(packageRoot, 'test/held-journey-provider.ts'), '--provider', 'journey-test', '--model', 'recorder'],
     });
-    const submitted = handle.send({ type: 'prompt', message: '/goal Prove automatic goal continuation' });
+    handle = started;
+    const submitted = started.send({ type: 'prompt', message: '/goal Prove automatic goal continuation' });
     await expect
       .poll(
         async () => {
-          const state = await handle!.send({ type: 'get_state' });
+          const state = await started.send({ type: 'get_state' });
           return state.success && state.command === 'get_state' && state.data.isStreaming;
         },
         { timeout: 5000 },
