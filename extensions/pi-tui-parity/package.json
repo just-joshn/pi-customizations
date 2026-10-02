@@ -16,9 +16,9 @@
     "check:smoke": "node scripts/tmux-smoke.mjs"
   },
   "devDependencies": {
-    "@earendil-works/pi-ai": "0.99.2",
-    "@earendil-works/pi-coding-agent": "0.99.2",
-    "@earendil-works/pi-tui": "0.99.2",
+    "@earendil-works/pi-ai": "1.0.0",
+    "@earendil-works/pi-coding-agent": "1.0.0",
+    "@earendil-works/pi-tui": "1.0.0",
     "@types/node": "^22.19.0",
     "@vitest/coverage-v8": "^5.0.2",
     "typebox": "1.3.27",
