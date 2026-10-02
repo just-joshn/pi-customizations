@@ -16,6 +16,12 @@ const BILLING_BLOCK = {
   text: 'x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;',
 };
 
+// Claude Code writes its prompt cache with a one-hour lifetime, and Pi's own
+// default is five minutes. The models declare the lifetime the request really
+// gets, so Pi's cache warmer does not refresh an entry that is still alive.
+const CACHE_LIFETIME_SECONDS = 3600;
+const PROMPT_CACHE = { short: CACHE_LIFETIME_SECONDS, long: CACHE_LIFETIME_SECONDS };
+
 function describeType(value: unknown): string {
   if (value === null) return 'null';
   return Array.isArray(value) ? 'array' : typeof value;
@@ -41,9 +47,10 @@ function withBillingBlock(payload: unknown): unknown {
   return { ...payload, system: [BILLING_BLOCK, ...payload.system] };
 }
 
-function billingOverrides(options: StreamOptions | undefined): Pick<StreamOptions, 'headers' | 'onPayload'> {
+function billingOverrides(options: StreamOptions | undefined): Pick<StreamOptions, 'headers' | 'onPayload' | 'cacheRetention'> {
   const version = claudeCodeVersion(options);
   return {
+    cacheRetention: options?.cacheRetention === 'none' ? 'none' : 'long',
     headers: version ? { 'user-agent': `claude-cli/${version}`, ...options?.headers } : options?.headers,
     onPayload: async (payload, model) => {
       const billed = withBillingBlock(payload);
@@ -62,7 +69,7 @@ export default function (pi: Pick<ExtensionAPI, 'registerProvider'>) {
       name: 'Claude subscription',
       baseUrl: anthropic.baseUrl,
       auth: { oauth: { ...oauth, name: 'Claude subscription (Claude Code)' } },
-      models: anthropic.getModels().map((model) => ({ ...model, provider: PROVIDER_ID })),
+      models: anthropic.getModels().map((model) => ({ ...model, provider: PROVIDER_ID, promptCache: PROMPT_CACHE })),
       api: {
         stream: (model, context, options) => anthropic.stream(model, context, { ...options, ...billingOverrides(options) }),
         streamSimple: (model, context, options) => anthropic.streamSimple(model, context, { ...options, ...billingOverrides(options) }),
