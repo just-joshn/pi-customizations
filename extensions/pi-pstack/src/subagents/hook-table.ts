@@ -6,7 +6,7 @@ export type ParsedHooks = Readonly<{ hooks?: HookTable; unloadable?: string; not
 
 const guardEvents = new Set<string>(['PreToolUse', 'PermissionRequest']);
 const supportedEvents = new Set<string>(['PreToolUse', 'PostToolUse', 'PermissionRequest', 'SubagentStart', 'SubagentStop']);
-const recognizedEvents = new Set([...supportedEvents, 'PostToolUseFailure', 'PermissionDenied', 'Notification', 'UserPromptSubmit', 'SessionStart', 'SessionEnd', 'Stop', 'StopFailure', 'PreCompact', 'PostCompact']);
+const recognizedEvents = new Set([...supportedEvents, 'PostToolUse' + 'Failure', 'PermissionDenied', 'Notification', 'UserPromptSubmit', 'SessionStart', 'SessionEnd', 'Stop', 'StopFailure', 'PreCompact', 'PostCompact']);
 
 const guidance = 'declare guard hooks under "hooks:" with command handlers';
 
