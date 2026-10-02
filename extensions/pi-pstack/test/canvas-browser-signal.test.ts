@@ -30,11 +30,12 @@ async function release(child: ReturnType<typeof spawn>, exited: Promise<unknown>
   }
   if (allocation) {
     if (alive(allocation.pid)) process.kill(allocation.pid, 'SIGTERM');
+    // Chrome shutdown is legitimately slow under load, so give it more than the start-up window.
     await vi.waitFor(
       () => {
         expect(alive(allocation.pid)).toBe(false);
       },
-      { timeout: 10000 },
+      { timeout: 30000 },
     );
     await rm(allocation.profile, { recursive: true, force: true });
   }

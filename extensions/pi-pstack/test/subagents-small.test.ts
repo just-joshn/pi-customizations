@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { createEventBus } from '@earendil-works/pi-coding-agent';
 import { expect, test, vi } from 'vitest';
-import { AgentSelection } from '../src/subagents/agent-selection.ts';
+import { AgentSelection, generalPurposePromptLocked } from '../src/subagents/agent-selection.ts';
 import { builtInAgents } from '../src/subagents/builtin-agents.ts';
 import { EventBridge } from '../src/subagents/child-events.ts';
 import { noticeFor } from '../src/subagents/completion-wake.ts';
@@ -59,6 +59,20 @@ test('a user-invisible agent cannot be selected and setPrompt targets only the s
   expect(selection.setPrompt('explore', 'new').prompt).toBe('new');
 });
 
+test('the general-purpose prompt stays locked even while it is selected', () => {
+  const { events } = log();
+  const selection = new AgentSelection(events);
+  selection.select(agent('general-purpose'));
+  expect(() => selection.setPrompt('general-purpose', 'new')).toThrow(generalPurposePromptLocked);
+});
+
+test('selecting an all-tools agent publishes the wildcard tool list', () => {
+  const emitted: Array<Readonly<{ type: string; data: unknown }>> = [];
+  const selection = new AgentSelection(new EventLog({ emit: (envelope) => emitted.push({ type: envelope.type, data: envelope.data }), persist: () => {} }));
+  selection.select(agent('task'));
+  expect(emitted).toEqual([{ type: 'subagent.selected', data: expect.objectContaining({ agentName: 'task', tools: ['*'] }) }]);
+});
+
 test('the idle and terminal notices carry the documented sentence and kind', () => {
   const node = { id: 'a1', agentType: 'explore', agentDisplayName: 'alpha', mode: 'background', status: 'idle' } as Parameters<typeof noticeFor>[0];
   expect(noticeFor(node)?.data).toEqual({ kind: 'agent_idle', agentId: 'a1', summary: 'Agent "alpha" (explore) has finished processing and is now idle.' });
@@ -66,6 +80,11 @@ test('the idle and terminal notices carry the documented sentence and kind', () 
   expect(noticeFor({ ...node, status: 'completed' })?.data).toMatchObject({ kind: 'agent_completed' });
   expect(noticeFor({ ...node, mode: 'sync' })).toBe(undefined);
   expect(noticeFor({ ...node, status: 'cancelled', cancelled: true })).toBe(undefined);
+});
+
+test('a failed background agent without a recorded error says the error is unknown', () => {
+  const node = { id: 'a1', agentType: 'explore', agentDisplayName: 'alpha', mode: 'background', status: 'failed' } as Parameters<typeof noticeFor>[0];
+  expect(noticeFor(node)?.data).toEqual({ kind: 'agent_completed', agentId: 'a1', summary: 'Agent "alpha" (explore) failed: Unknown error.' });
 });
 
 test('the bridge numbers turns and maps child session events to Reference Assistant events', () => {
@@ -76,6 +95,7 @@ test('the bridge numbers turns and maps child session events to Reference Assist
   expect(bridge.translate({ type: 'message_end', message: { role: 'toolResult', content: [] } } as never)).toBe(undefined);
   expect(bridge.translate({ type: 'message_end', message: { role: 'assistant' } } as never)).toEqual({ type: 'assistant.message', data: { content: '' } });
   expect(bridge.translate({ type: 'message_update', message: {}, assistantMessageEvent: { type: 'text_delta', delta: 'h' } } as never)).toEqual({ type: 'assistant.message_delta', data: { delta: 'h' }, ephemeral: true });
+  expect(bridge.translate({ type: 'message_update', message: {}, assistantMessageEvent: { type: 'thinking_delta', delta: 'h' } } as never)).toBe(undefined);
   expect(bridge.translate({ type: 'tool_execution_start', toolCallId: 't', toolName: 'read', args: { path: 'a' } } as never)).toEqual({ type: 'tool.execution_start', data: { toolCallId: 't', toolName: 'read', arguments: { path: 'a' } } });
   expect(bridge.translate({ type: 'tool_execution_end', toolCallId: 't', toolName: 'read', isError: true } as never)).toEqual({ type: 'tool.execution_complete', data: { toolCallId: 't', toolName: 'read', success: false } });
   expect(bridge.translate({ type: 'tool_execution_start', toolCallId: 'n', toolName: 'x', args: {}, parentToolCallId: 'p' } as never)).toBe(undefined);

@@ -1,5 +1,5 @@
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { createDelivery } from '../src/deliver.ts';
 
 function fakePi() {
@@ -53,15 +53,20 @@ test('print delivery returns when no turn starts within the start timeout', asyn
 });
 
 test('a turn that starts before the timeout still settles through its own completion', async () => {
-  const { pi, sent, emit } = fakePi();
-  const events: string[] = [];
-  const done = createDelivery(pi, 10)(printCtx, 'task').then(() => events.push('returned'));
-  await flush();
-  emit('agent_start');
-  await new Promise((resolve) => setTimeout(resolve, 30));
-  expect(events).toEqual([]);
-  emit('agent_settled');
-  await done;
-  expect(events).toEqual(['returned']);
-  expect(sent).toEqual(['task']);
+  vi.useFakeTimers();
+  try {
+    const { pi, sent, emit } = fakePi();
+    const events: string[] = [];
+    const done = createDelivery(pi, 10)(printCtx, 'task').then(() => events.push('returned'));
+    await flush();
+    emit('agent_start');
+    await vi.advanceTimersByTimeAsync(30);
+    expect(events).toEqual([]);
+    emit('agent_settled');
+    await done;
+    expect(events).toEqual(['returned']);
+    expect(sent).toEqual(['task']);
+  } finally {
+    vi.useRealTimers();
+  }
 });

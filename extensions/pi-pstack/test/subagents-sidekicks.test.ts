@@ -1,9 +1,13 @@
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { expect, test, vi } from 'vitest';
 import type { Exec } from '../src/subagents/environment-facts.ts';
 import { sendInboxTool } from '../src/subagents/inbox.ts';
 import { type LaunchFacts, SidekickManager, type SidekickPorts, sidekickEnabled, triggerLimitMessage } from '../src/subagents/sidekicks/manager.ts';
 import { loadSidekicks, parseSidekick, type SidekickSpec } from '../src/subagents/sidekicks/spec.ts';
 import { repositoryFacts, sidekickDefinition } from '../src/subagents/sidekicks/wiring.ts';
+import { scratchDir } from './support/scratch.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 const shipped = loadSidekicks();
@@ -38,6 +42,19 @@ test.for([
   },
 ])('a malformed definition is reported: $error', ({ text, error }) => {
   expect(parseSidekick(text, 'bad.md')).toEqual({ error });
+});
+
+test('loading a directory keeps valid definitions and reports invalid files', () => {
+  const directory = scratchDir('pstack-sidekicks-');
+  writeFileSync(
+    join(directory, 'valid.md'),
+    '---\nname: valid\ndescription: d\nfeatureFlag: F\nbehavior: persistent\ntriggers:\n  user.message: 1\ncancelOnNewTurn: false\nmaxSendsPerTurn: 1\ninlineForwardMaxChars: 5\nlaunchConditions: []\ntools: []\n---\nbody',
+  );
+  writeFileSync(join(directory, 'invalid.md'), '---\nname: x\n---\nbody');
+  expect(loadSidekicks(directory)).toEqual({
+    specs: [expect.objectContaining({ name: 'valid' })],
+    errors: ['Failed to parse sidekick invalid.md: the frontmatter is missing or invalid fields.'],
+  });
 });
 
 const facts = (overrides: LaunchFacts = {}): LaunchFacts => ({ 'git-repo': false, 'github-remote': false, ...overrides });
