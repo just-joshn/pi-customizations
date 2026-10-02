@@ -38,6 +38,11 @@ test.for([
   expect(soleRequest(server).headers).toHaveProperty(header, value);
 });
 
+test('caller headers override the user agent Pi sends', async ({ models, model, server }) => {
+  await collect(models.streamSimple(model, prompt, { headers: { 'user-agent': 'claude-cli/9.9.9' } }));
+  expect(soleRequest(server).headers).toHaveProperty('user-agent', 'claude-cli/9.9.9');
+});
+
 test('no x-api-key header is sent', async ({ models, model, server }) => {
   await collect(models.streamSimple(model, prompt));
   expect(soleRequest(server).headers).not.toHaveProperty('x-api-key');

@@ -1,5 +1,5 @@
 import { type Api, createModels, InMemoryCredentialStore, type Model, type MutableModels, type Provider } from '@earendil-works/pi-ai';
-import { test as base, beforeEach, vi } from 'vitest';
+import { test as base, vi } from 'vitest';
 import extension from '../../src/index.ts';
 import { oauthCredential } from './credentials.ts';
 import { captureProvider } from './load-extension.ts';
@@ -18,10 +18,6 @@ interface Fixtures {
   model: Model<Api>;
   tokenEndpoint: TokenEndpoint;
 }
-
-beforeEach(() => {
-  vi.stubEnv('CLAUDE_CODE_VERSION', undefined);
-});
 
 export const test = base.extend<Fixtures>({
   server: async ({ onTestFinished }, use) => {
