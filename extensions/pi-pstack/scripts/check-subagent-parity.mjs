@@ -21,7 +21,13 @@ const matrixPath = argument('--matrix') ?? join(packageRoot, 'docs/subagents-par
 const root = argument('--root') ?? packageRoot;
 const allowOpen = process.argv.includes('--allow-open');
 
-const entries = (cell) => (cell === '-' || cell === '' ? [] : cell.split(/; \|| \| |;/).map((entry) => entry.trim()).filter(Boolean));
+const entries = (cell) =>
+  cell === '-' || cell === ''
+    ? []
+    : cell
+        .split(/; \|| \| |;/)
+        .map((entry) => entry.trim())
+        .filter(Boolean);
 const pathOf = (entry) => entry.replace(/::.*$/, '').replace(/:\d+(?:-\d+)?$/, '');
 
 function pointerProblems(record) {

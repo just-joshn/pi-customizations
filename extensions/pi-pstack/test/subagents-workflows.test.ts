@@ -153,9 +153,9 @@ async function workflowFixture() {
 
 test('a registered workflow runs, delegates, journals and settles completed', async () => {
   const { fixture } = await workflowFixture();
-  const seen: { type: string; data?: Record<string, unknown> }[] = [];
+  const seen: { type: string; data?: Record<string, unknown>; agentId?: string }[] = [];
   fixture.eventBus.on('reference-assistant:event', (payload) => {
-    const event = payload as { type: string; data?: Record<string, unknown> };
+    const _event = payload as { type: string; data?: Record<string, unknown> };
     seen.push(payload as { type: string; data?: Record<string, unknown> });
   });
   try {
