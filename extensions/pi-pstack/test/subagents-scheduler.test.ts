@@ -136,6 +136,34 @@ test('cancelling a running agent completes it with cancelled true and no notific
   }
 });
 
+test('cancelling an idle agent disposes its session and completes it as cancelled', async () => {
+  const fixture = await workerFixture();
+  const seen = collect(fixture);
+  try {
+    const started = await task(fixture, 'hello', { mode: 'background', name: 'idle-one' });
+    await fixture.call('read_agent', { agent_id: idOf(started), wait: true });
+    const reply = await rpc(fixture, 'session.tasks.cancel', { id: idOf(started) });
+    expect(reply).toMatchObject({ ok: true, result: { id: idOf(started), status: 'cancelled' } });
+    expect(seen.filter((event) => event.type === 'subagent.completed').at(-1)?.data).toMatchObject({ cancelled: true });
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('removing a running agent stops its child before the record goes', async () => {
+  const fixture = await workerFixture();
+  const seen = collect(fixture);
+  try {
+    const started = await task(fixture, 'WAIT_BLOCKED hold', { mode: 'background', name: 'remove-me' });
+    const reply = await rpc(fixture, 'session.tasks.remove', { id: idOf(started) });
+    expect(reply.ok).toBe(true);
+    expect(seen.filter((event) => event.type === 'subagent.completed').at(-1)?.data).toMatchObject({ cancelled: true });
+    expect((await rpc(fixture, 'session.tasks.list')).result).toEqual([]);
+  } finally {
+    await fixture.close();
+  }
+});
+
 test('a sync task moved to the background returns at once and the agent keeps running', async () => {
   const fixture = await workerFixture();
   try {
