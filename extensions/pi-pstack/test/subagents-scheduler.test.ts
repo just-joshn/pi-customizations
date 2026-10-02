@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import type { EventEnvelope } from '../src/subagents/events.ts';
 import { rpcChannel, rpcResultChannel } from '../src/subagents/rpc.ts';
 import { workerFixture } from './worker-fixture.ts';
@@ -140,11 +140,10 @@ test('a sync task moved to the background returns at once and the agent keeps ru
   const fixture = await workerFixture();
   try {
     const pending = task(fixture, 'WAIT_BLOCKED hold');
-    for (let attempts = 0; attempts < 100; attempts++) {
+    await vi.waitFor(async () => {
       const reply = await rpc(fixture, 'session.tasks.getCurrentPromotable');
-      if (reply.result) break;
-      await new Promise((resolve) => setImmediate(resolve));
-    }
+      expect(reply.result).not.toBeNull();
+    });
     const promoted = await rpc(fixture, 'session.tasks.promoteCurrentToBackground');
     expect(promoted).toMatchObject({ ok: true, result: { mode: 'background', status: 'running' } });
     expect(textOf(await pending)).toMatch(/was moved to the background and is still running\..* Use read_agent to check for results\.$/);

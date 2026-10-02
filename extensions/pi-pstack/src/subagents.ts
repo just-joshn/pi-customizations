@@ -11,8 +11,9 @@ import { listAgentsTool, readAgentTool, taskTool, writeAgentTool } from './subag
 import { type ChildContextEntry, readChildContext } from './subagents/child-session.ts';
 import { boardPath, contextBoardTool } from './subagents/context-board.ts';
 import { modelPreferencesBlock, subagentUsageBlock, taskToolDescription } from './subagents/delegation-guidance.ts';
-import { type EventEnvelope, EventLog, eventChannel, eventEntryType } from './subagents/events.ts';
+import { type EventEnvelope, EventLog, eventChannel, eventEntryType, eventsLogIncludesSubagents } from './subagents/events.ts';
 import { SubagentFactory } from './subagents/factory.ts';
+import { fileTrackingGate } from './subagents/file-tracking.ts';
 import { sendInboxTool } from './subagents/inbox.ts';
 import { LimiterProvider, parentLimiter } from './subagents/limiter-provider.ts';
 import { launchRemOnShutdown } from './subagents/rem-launcher.ts';
@@ -63,12 +64,16 @@ class Session {
   latest: ExtensionContext | undefined;
   child: ChildContextEntry | undefined;
   closed = false;
+  fileTracking = false;
 
-  begin(ctx: ExtensionContext): void {
+  begin(ctx: ExtensionContext, log: (message: string) => void): void {
     this.closed = false;
     this.id = ctx.sessionManager.getSessionId();
     this.latest = ctx;
     this.child = readChildContext(ctx.sessionManager.getEntries());
+    const gate = fileTrackingGate(this.child?.depth ?? 0, Boolean(ctx.sessionManager.getSessionFile()));
+    this.fileTracking = gate.enabled;
+    if (gate.refusal) log(gate.refusal);
   }
 
   track(ctx: ExtensionContext): void {
@@ -140,7 +145,7 @@ function buildCore(pi: ExtensionAPI, env: NodeJS.ProcessEnv, session: Session): 
     for (const failure of report.failures) log(`subagentStop hook failed: ${failure}`);
   };
   const holder: { sidekicks?: SidekickManager } = {};
-  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: (cwd) => limiters.get(cwd), onSettled, extraWork: () => holder.sidekicks?.hasActiveWork() ?? false, log });
+  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: (cwd) => limiters.get(cwd), onSettled, includeHookEvents: () => eventsLogIncludesSubagents(env), extraWork: () => holder.sidekicks?.hasActiveWork() ?? false, log });
   const factory = new SubagentFactory({ scope: () => session.child, pi, scheduler, settings, env, log, limiters });
   const { sidekicks, sidekickScheduler } = buildSidekicks({ pi, env, events, settings, limiters, session, log, holder });
   holder.sidekicks = sidekicks;
@@ -161,25 +166,7 @@ function buildCore(pi: ExtensionAPI, env: NodeJS.ProcessEnv, session: Session): 
   return { factory, scheduler, settings, registry, events, selection, rpc, sidekicks, sidekickScheduler, workflows: () => workflows };
 }
 
-function registerLifecycle(pi: ExtensionAPI, env: NodeJS.ProcessEnv, system: SubagentSystem, session: Session, limiters: () => void): void {
-  const { factory, scheduler } = system;
-  const log = (message: string) => {
-    if (!session.closed) pi.events.emit('pstack:subagent-log', message);
-  };
-  pi.on('session_start', (_event, ctx) => {
-    limiters();
-    factory.clearDiscovery();
-    scheduler.restore(ctx);
-    system.sidekickScheduler.restore(ctx);
-    session.begin(ctx);
-    pi.registerTool(taskTool(factory, scheduler, taskToolDescription(factory.offered(ctx))));
-  });
-  pi.on('resources_discover', () => factory.clearDiscovery());
-  pi.on('session_tree', (_event, ctx) => {
-    session.track(ctx);
-    scheduler.restore(ctx);
-    system.sidekickScheduler.restore(ctx);
-  });
+function registerSidekickTriggers(pi: ExtensionAPI, system: SubagentSystem, factory: SubagentFactory, log: (message: string) => void): void {
   pi.on('input', (event, ctx) => {
     if (event.source === 'extension' || factory.isChild()) return;
     void system.sidekicks.trigger('user.message', event.text, ctx).catch((error: unknown) => log(`Sidekick trigger failed: ${String(error)}`));
@@ -194,11 +181,48 @@ function registerLifecycle(pi: ExtensionAPI, env: NodeJS.ProcessEnv, system: Sub
   pi.on('agent_end', (event) => {
     if (event.messages.findLast((message) => message.role === 'assistant')?.stopReason === 'aborted') void system.sidekicks.cancelAll().catch((error: unknown) => log(`Sidekick cancel failed: ${String(error)}`));
   });
+}
+
+function registerSettleWiring(pi: ExtensionAPI, env: NodeJS.ProcessEnv, scheduler: SubagentScheduler, log: (message: string) => void): void {
   pi.on('session_before_tree', () => scheduler.beginRewind());
   pi.on('agent_before_settle', async (_event, ctx) => {
     if (ctx.hasUI || !scheduler.hasActiveWork()) return;
     log('Run complete; waiting for background tasks to finish; exiting');
     await scheduler.waitForWork(waitSeconds(env) * 1000);
+  });
+}
+
+function registerLifecycle(pi: ExtensionAPI, env: NodeJS.ProcessEnv, system: SubagentSystem, session: Session, limiters: () => void): void {
+  const { factory, scheduler } = system;
+  const log = (message: string) => {
+    if (!session.closed) pi.events.emit('pstack:subagent-log', message);
+  };
+  pi.on('session_start', (_event, ctx) => {
+    limiters();
+    factory.invalidateToolConfig();
+    scheduler.restore(ctx);
+    system.sidekickScheduler.restore(ctx);
+    session.begin(ctx, log);
+    pi.registerTool(taskTool(factory, scheduler, taskToolDescription(factory.offered(ctx))));
+  });
+  pi.on('resources_discover', () => factory.clearDiscovery());
+  pi.on('session_tree', (_event, ctx) => {
+    session.track(ctx);
+    scheduler.restore(ctx);
+    system.sidekickScheduler.restore(ctx);
+  });
+  registerSidekickTriggers(pi, system, factory, log);
+  registerSettleWiring(pi, env, scheduler, log);
+  pi.on('session_before_tree', () => scheduler.beginRewind());
+  pi.on('agent_before_settle', async (_event, ctx) => {
+    if (ctx.hasUI || !scheduler.hasActiveWork()) return;
+    log('Run complete; waiting for background tasks to finish; exiting');
+    await scheduler.waitForWork(waitSeconds(env) * 1000);
+  });
+  pi.on('tool_execution_start', (event) => {
+    if (!session.fileTracking || event.parentToolCallId !== undefined) return;
+    if ((event.toolName === 'edit' || event.toolName === 'write') && typeof (event.args as { path?: unknown } | undefined)?.path === 'string')
+      pi.appendEntry('reference-assistant-file-change', { path: (event.args as { path: string }).path, at: Date.now() });
   });
   pi.on('session_shutdown', async (_event, ctx) => {
     session.close();

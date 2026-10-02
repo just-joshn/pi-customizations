@@ -11,8 +11,10 @@ import type { ChildPlan } from './context-builder.ts';
 import { asEnvelope, type EventLog, eventChannel } from './events.ts';
 import { inboxChannel, inboxMessage } from './inbox.ts';
 import { isLinkAcquire, type LimiterLike, linkChannel } from './limiter-provider.ts';
+import type { ParentServer } from './mcp-inheritance.ts';
 import { ProcessGroups } from './process-groups.ts';
 import { settleWithin } from './stop-deadline.ts';
+import { hookEventChannel } from './subagent-hooks.ts';
 import type { TaskRegistry } from './task-registry.ts';
 import { acceptsMessages } from './task-status.ts';
 import { retiredText, rewindingDeliverMessage, writeAgentRefusal } from './tool-results.ts';
@@ -31,6 +33,9 @@ export type LaunchInput = Readonly<{
   contextManagement: boolean;
   release: () => void;
   workflowRunId?: string;
+  inheritedServers: readonly ParentServer[];
+  exclusionPatterns: readonly string[];
+  aggressiveTools: boolean;
 }>;
 export type Launched = Readonly<{ id: string; settled: Promise<AgentNode>; promoted: Promise<void> }>;
 export type SchedulerDeps = Readonly<{
@@ -45,6 +50,7 @@ export type SchedulerDeps = Readonly<{
   onInbox?: (agentId: string, message: string) => void;
   extraWork?: () => boolean;
   entryType?: string;
+  includeHookEvents?: () => boolean;
   quiet?: boolean;
   log: (message: string) => void;
 }>;
@@ -114,6 +120,10 @@ export class SubagentScheduler {
     return (this.deps.now ?? Date.now)();
   }
 
+  private log(message: string): void {
+    this.deps.log(`native-subagent: ${message}`);
+  }
+
   blocksStart(): boolean {
     return this.rewinding || this.disposing;
   }
@@ -139,20 +149,39 @@ export class SubagentScheduler {
     return { id: node.id, settled, promoted: live.child.promoted };
   }
 
-  private async open(input: LaunchInput): Promise<{ child: LiveChild; sessionFile: string }> {
-    const { plan, ctx } = input;
-    const events = createEventBus();
+  /** Bridges the child bus onto the parent stream: child events, hook re-emissions, inbox messages and the slot link. */
+  private wireChildBus(events: ReturnType<typeof createEventBus>, agentId: string, ctx: ExtensionContext): void {
     events.on(eventChannel, (payload) => {
       const envelope = asEnvelope(payload);
-      if (envelope) this.deps.events.relay(envelope, plan.agentId);
+      if (envelope) this.relay(envelope, agentId);
     });
+    if (this.deps.includeHookEvents?.()) {
+      events.on(hookEventChannel, (payload) => {
+        this.deps.events.emit('hook_event', payload, { agentId });
+      });
+    }
     events.on(inboxChannel, (payload) => {
       const message = inboxMessage(payload);
-      if (message !== undefined) this.deps.onInbox?.(plan.agentId, message);
+      if (message !== undefined) this.deps.onInbox?.(agentId, message);
     });
     events.on(linkChannel, (payload) => {
       if (isLinkAcquire(payload)) payload.reply(this.deps.limiter(ctx.cwd).tryAcquire(payload.request));
     });
+  }
+
+  private relay(envelope: Parameters<EventLog['relay']>[0], agentId: string): void {
+    try {
+      this.deps.events.relay(envelope, agentId);
+    } catch {
+      this.deps.log('ordered subagent bridge flush failed; falling back to durable progress');
+    }
+  }
+
+  private async open(input: LaunchInput): Promise<{ child: LiveChild; sessionFile: string }> {
+    const { plan, ctx } = input;
+    const events = createEventBus();
+    this.wireChildBus(events, plan.agentId, ctx);
+    if (!this.deps.entryType) this.deps.events.emit('capability_absent_subagent', { agentId: plan.agentId }, { agentId: plan.agentId });
     const groups = new ProcessGroups(plan.agentId, () => {});
     const opened = await (this.deps.open ?? openChildSession)({
       plan,
@@ -164,6 +193,9 @@ export class SubagentScheduler {
       parentAgentId: input.parentAgentId,
       onProcessGroup: (pid) => groups.add({ pid }),
       log: this.deps.log,
+      inheritedServers: input.inheritedServers,
+      exclusionPatterns: input.exclusionPatterns,
+      aggressiveTools: input.aggressiveTools,
     });
     const bridge = new EventBridge();
     const limit = plan.limits.maxAgentTurns ? new TurnLimit(plan.limits.maxAgentTurns, plan.limits.lastTurnWarning) : undefined;
@@ -238,7 +270,7 @@ export class SubagentScheduler {
     if (node.status === 'failed') this.deps.events.emit('subagent.failed', failedData(node));
     else this.deps.events.emit('subagent.completed', completedData(node));
     this.announce(node, ctx);
-    await this.deps.onSettled?.(node).catch((error: unknown) => this.deps.log(`subagentStop hook failed: ${String(error)}`));
+    await this.deps.onSettled?.(node).catch((error: unknown) => this.log(`subagentStop hook failed: ${String(error)}`));
     return node;
   }
 
@@ -269,7 +301,7 @@ export class SubagentScheduler {
     this.live.delete(child.id);
     child.control.unsubscribe();
     await child.control.drain();
-    await closeSession(child.session).catch((error: unknown) => this.deps.log(`Subagent session close failed: ${String(error)}`));
+    await closeSession(child.session).catch((error: unknown) => this.log(`Subagent session close failed: ${String(error)}`));
   }
 
   private retireOverflow(): void {
@@ -395,7 +427,7 @@ export class SubagentScheduler {
       const node = repaired.get(id);
       if (node) this.deps.pi.appendEntry(this.deps.entryType ?? agentEntryType, node);
     }
-    if (closed.length > 0 || dangling.length > 0) this.deps.log(`Closed interrupted sub-agent records on resume: closed ${closed.length}, dangling ${dangling.length}`);
+    if (closed.length > 0 || dangling.length > 0) this.log(`Closed interrupted sub-agent records on resume: closed ${closed.length}, dangling ${dangling.length}`);
   }
 
   beginRewind(): { cancel: boolean } {
@@ -413,7 +445,8 @@ export class SubagentScheduler {
 
   private async stopAndClose(child: LiveChild): Promise<void> {
     child.control.stop('shutdown');
-    await settleWithin(child.settled, overdueAfterMs);
+    const outcome = await settleWithin(child.settled, overdueAfterMs);
+    if (!outcome.settled) this.deps.log(`failed to join background subagent during session teardown: ${child.id}`);
     await this.dispose(child);
   }
 }

@@ -3,18 +3,21 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { clampThinkingLevel } from '@earendil-works/pi-ai';
-import { type AgentSession, createAgentSession, type createEventBus, DefaultResourceLoader, type ExtensionContext, getAgentDir, SessionManager } from '@earendil-works/pi-coding-agent';
+import { type AgentSession, createAgentSession, type createEventBus, DefaultResourceLoader, type ExtensionContext, type ExtensionUIContext, getAgentDir, SessionManager } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
 import { Check } from 'typebox/value';
 import { resolveModel } from '../models.ts';
 import { workerDirs, workerExtensions } from '../worker-support.ts';
 import { agentEnvironment, childStorageDir, createChildTranscript, environmentEntryType } from './agent-storage.ts';
+import { contentExclusionExtension } from './content-exclusion.ts';
 import type { ChildPlan } from './context-builder.ts';
 import { type ChildIdentity, identityExtension } from './identity-extension.ts';
+import { inheritedMcpExtension, type ParentServer } from './mcp-inheritance.ts';
 import { ModelHistory } from './model-history.ts';
 import { preloadSkills } from './skill-loading.ts';
 import { planTools, type ToolPlan, zeroToolsMessage } from './tool-mapping.ts';
 import { trackedBashTool } from './tracked-bash.ts';
+import { writeGateExtension } from './write-gate.ts';
 
 export const childContextEntryType = 'reference-assistant-child-context';
 const ChildContextSchema = Type.Object({
@@ -24,6 +27,9 @@ const ChildContextSchema = Type.Object({
   rootSessionId: Type.String({ minLength: 1 }),
   depth: Type.Integer({ minimum: 1 }),
   headers: Type.Record(Type.String(), Type.String()),
+  promptCacheLineageSessionId: Type.String(),
+  tools: Type.Array(Type.String()),
+  mcpServers: Type.Array(Type.String()),
 });
 export type ChildContextEntry = Static<typeof ChildContextSchema>;
 
@@ -44,6 +50,9 @@ export type OpenInput = Readonly<{
   parentAgentId: string;
   onProcessGroup: (pid: number) => void;
   log: (message: string) => void;
+  inheritedServers: readonly ParentServer[];
+  exclusionPatterns: readonly string[];
+  aggressiveTools: boolean;
 }>;
 export type OpenedChild = Readonly<{ session: AgentSession; sessionFile: string; modelReference: string; modelsUsed: ModelHistory; tools: ToolPlan }>;
 
@@ -65,7 +74,13 @@ async function loaderFor(input: OpenInput, cwd: string, modelsUsed: ModelHistory
     agentDir: getAgentDir(),
     eventBus: input.events,
     ...promptOptions(input.plan),
-    extensionFactories: [modelsUsed.extensionFactory(), identityExtension(identity)],
+    extensionFactories: [
+      modelsUsed.extensionFactory(),
+      identityExtension(identity),
+      ...(input.inheritedServers.length > 0 ? [inheritedMcpExtension(input.inheritedServers, input.log)] : []),
+      ...(input.exclusionPatterns.length > 0 ? [contentExclusionExtension(input.exclusionPatterns)] : []),
+      writeGateExtension(input.plan.writeGate),
+    ],
     additionalExtensionPaths: manifest.extensions.map((path) => join(root, path)),
     additionalSkillPaths: manifest.skills.map((path) => join(root, path)),
     additionalPromptTemplatePaths: manifest.prompts.map((path) => join(root, path)),
@@ -89,11 +104,38 @@ async function openTranscript(input: OpenInput, dir: string): Promise<{ manager:
     rootSessionId: plan.rootSessionId,
     depth: input.depth,
     headers: plan.identity,
+    promptCacheLineageSessionId: plan.rootSessionId,
+    tools: [...plan.tools.effective],
+    mcpServers: [...plan.mcpServers.map((spec) => spec.name), ...input.inheritedServers.map((server) => server.name)],
   };
   manager.appendCustomEntry(childContextEntryType, entry);
   const sessionFile = manager.getSessionFile();
   if (!sessionFile) throw new Error('Subagent session did not provide a durable transcript path.');
   return { manager, sessionFile };
+}
+
+export const deferThreshold = 30;
+const deferredCore = ['read', 'grep', 'bash', 'task', 'read_agent', 'write_agent', 'list_agents'];
+
+/** Aggressive tool deferral: past the threshold only the core surface stays declared and the rest load through tool search. */
+export function deferTools(effective: readonly string[], options: { aggressive?: boolean; threshold?: number } = {}): { active: readonly string[]; deferred: readonly string[] } {
+  if (!options.aggressive && effective.length <= (options.threshold ?? deferThreshold)) return { active: effective, deferred: [] };
+  const active = effective.filter((name) => deferredCore.includes(name));
+  return { active, deferred: effective.filter((name) => !active.includes(name)) };
+}
+
+/** Child permission and user-input requests route to the parent flow, attributed to the child, with no duplicate prompt. */
+export function forwardedUi(parent: ExtensionUIContext, agentName: string): ExtensionUIContext {
+  const titled = (title: string) => `subagent ${agentName}: ${title}`;
+  return new Proxy(parent, {
+    get(target, property) {
+      if (property === 'select' || property === 'confirm' || property === 'input') {
+        return (title: string, ...rest: unknown[]) => (target[property] as (t: string, ...rest: unknown[]) => unknown)(titled(title), ...rest);
+      }
+      const value = Reflect.get(target, property, target);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
 }
 
 export async function openChildSession(input: OpenInput): Promise<OpenedChild> {
@@ -105,14 +147,20 @@ export async function openChildSession(input: OpenInput): Promise<OpenedChild> {
   const loader = await loaderFor(input, plan.cwd, modelsUsed, identity);
   const { manager, sessionFile } = await openTranscript(input, await storageDirectory(ctx));
   const { session } = await createAgentSession({ cwd: plan.cwd, resourceLoader: loader, sessionManager: manager, ...selected, customTools: [trackedBashTool(plan.cwd, input.onProcessGroup)] });
+  input.log('tool_init_subagent_preferences');
+  input.log('tool_init_requested_tools');
+  input.log('tool_init_inherited_mcp_tools');
+  input.log('subagent_tool_filter');
   const tools = planTools({ definition: plan.definition, parentTools: input.parentTools, available: session.getAllTools().map((tool) => tool.name), contextManagement: input.contextManagement });
   const refusal = zeroToolsMessage(plan.definition.name, tools);
   if (refusal) {
     session.dispose();
     throw new Error(refusal);
   }
-  session.setActiveToolsByName([...tools.effective]);
-  await session.bindExtensions({ mode: 'print' });
+  const declared = deferTools([...tools.effective], { aggressive: input.aggressiveTools });
+  input.log('subagent_tool_surface_prepare');
+  session.setActiveToolsByName([...declared.active]);
+  await session.bindExtensions({ mode: 'print', uiContext: forwardedUi(input.ctx.ui, plan.definition.displayName) });
   await preloadSkills(session, loader.getSkills().skills, plan.skills, plan.definition.name, input.log);
   return { session, sessionFile, modelReference: `${selected.model.provider}/${selected.model.id}`, modelsUsed, tools };
 }
