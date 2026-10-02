@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { type AssistantMessage, createAssistantMessageEventStream, type ToolCall } from '@earendil-works/pi-ai';
 import { type ExtensionAPI, getAgentDir, type ProviderConfig } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { announceStreamStart, clearPendingWork, registerPendingWork } from './worker-gates.ts';
+import { announceStreamStart, clearPendingWork, registerPendingWork, streamStarted } from './worker-gates.ts';
 import { workerTiming } from './worker-timing.ts';
 
 type StreamArguments = Parameters<NonNullable<ProviderConfig['streamSimple']>>;
@@ -124,7 +124,7 @@ function saveRequest(context: StreamArguments[1], dir: string): void {
   appendFileSync(join(dir, 'child-tool-results-history.jsonl'), `${toolResults}\n`);
 }
 
-function scheduleWait(text: string, _nested: boolean, grandchild: boolean, options: StreamArguments[2], finish: (aborted?: boolean) => void) {
+function scheduleWait(text: string, nested: boolean, grandchild: boolean, options: StreamArguments[2], finish: (aborted?: boolean) => void) {
   if (grandchild) {
     registerPendingWork('grandchild', () => finish());
     options?.signal?.addEventListener(
@@ -138,10 +138,18 @@ function scheduleWait(text: string, _nested: boolean, grandchild: boolean, optio
     return;
   }
   const delay = text.includes('WAIT_BLOCKED') ? workerTiming.blockedRunMs : text.includes('NEST_STOP') ? workerTiming.descendantRunMs : text.includes('NEST_ROOT') ? workerTiming.parentRunMs : workerTiming.delayedRunMs;
-  const timer = setTimeout(() => finish(), delay);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let aborted = false;
+  const run = () => {
+    if (!aborted) timer = setTimeout(() => finish(), delay);
+  };
+  // A nested parent must not finish before its grandchild has started, or the drain has nothing to abort.
+  if (nested) void streamStarted(getAgentDir(), 'GRANDCHILD').then(run);
+  else run();
   options?.signal?.addEventListener(
     'abort',
     () => {
+      aborted = true;
       clearTimeout(timer);
       finish(true);
     },
@@ -168,7 +176,7 @@ function streamWorker(model: StreamArguments[0], context: StreamArguments[1], op
   const users = context.messages.filter((message) => message.role === 'user');
   const text = JSON.stringify(users.at(-1));
   saveRequest(context, dir);
-  announceStreamStart(text);
+  announceStreamStart(dir, text);
   writeFileSync(join(dir, 'child-options.json'), JSON.stringify({ reasoning: options?.reasoning }));
   appendFileSync(join(dir, 'child-requests.jsonl'), `${JSON.stringify({ model: model.id, reasoning: options?.reasoning, messages: context.messages })}\n`);
   const calls = requestedTools(text, context);

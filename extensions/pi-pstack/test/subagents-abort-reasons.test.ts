@@ -140,7 +140,7 @@ test.each([
   fixture.eventBus.on('pstack:subagent-abort', (event) => events.push(event));
   const controller = new AbortController();
   try {
-    const childRunning = streamStarted('WAIT_BLOCKED');
+    const childRunning = streamStarted(fixture.dir, 'WAIT_BLOCKED');
     const rejected = expect(fixture.call('Agent', { description: 'abort classification', prompt: 'WAIT_BLOCKED', run_in_background: false }, controller.signal)).rejects.toThrow('interrupted');
     await childRunning;
     controller.abort(reason);

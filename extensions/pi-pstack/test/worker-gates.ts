@@ -25,26 +25,32 @@ export function releasePendingWork(): string[] {
   return names;
 }
 
-type StreamWatcher = { marker: string; resolve: () => void };
+type StreamLog = { requests: string[]; watchers: { marker: string; resolve: () => void }[] };
 
-function watchers(): Set<StreamWatcher> {
-  const holder = globalThis as { __pstackStreamWatchers?: Set<StreamWatcher> };
-  holder.__pstackStreamWatchers ??= new Set();
-  return holder.__pstackStreamWatchers;
+function streamLog(dir: string): StreamLog {
+  const holder = globalThis as { __pstackStreamLogs?: Map<string, StreamLog> };
+  holder.__pstackStreamLogs ??= new Map();
+  const existing = holder.__pstackStreamLogs.get(dir);
+  if (existing) return existing;
+  const created: StreamLog = { requests: [], watchers: [] };
+  holder.__pstackStreamLogs.set(dir, created);
+  return created;
 }
 
-/** Called by the fixture model when it starts a response, so tests can wait on a child actually running. */
-export function announceStreamStart(request: string): void {
-  for (const watcher of [...watchers()]) {
-    if (!request.includes(watcher.marker)) continue;
-    watchers().delete(watcher);
-    watcher.resolve();
-  }
+/** Called by the fixture model when it starts a response in the agent directory, so tests and nested models can wait on a session actually running. */
+export function announceStreamStart(dir: string, request: string): void {
+  const log = streamLog(dir);
+  log.requests.push(request);
+  const ready = log.watchers.filter((watcher) => request.includes(watcher.marker));
+  log.watchers = log.watchers.filter((watcher) => !request.includes(watcher.marker));
+  for (const watcher of ready) watcher.resolve();
 }
 
-/** Resolves when a fixture model response starts for a request containing the marker. Register it before launching the work. */
-export function streamStarted(marker: string): Promise<void> {
+/** Resolves once a fixture model response containing the marker has started in the agent directory, including one that started earlier. */
+export function streamStarted(dir: string, marker: string): Promise<void> {
+  const log = streamLog(dir);
+  if (log.requests.some((request) => request.includes(marker))) return Promise.resolve();
   return new Promise((resolve) => {
-    watchers().add({ marker, resolve });
+    log.watchers.push({ marker, resolve });
   });
 }
