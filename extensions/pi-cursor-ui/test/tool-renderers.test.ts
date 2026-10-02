@@ -67,7 +67,9 @@ describe('cursor-ui tool renderers', () => {
     const expanded = renderReadResult({ content: [{ type: 'text', text: 'hello\nworld' }], details: undefined }, { expanded: true, isPartial: false }, theme, rowContext());
     expect(renderLines(expanded, 80).map((line) => strip(line).trimEnd())).toEqual(['hello', 'world']);
   });
+});
 
+describe('cursor-ui image and shell tool rows', () => {
   test('read result row marks an image instead of rendering it', () => {
     const image = renderReadResult(
       {
@@ -101,7 +103,9 @@ describe('cursor-ui tool renderers', () => {
     const expanded = renderBashResult({ content: [{ type: 'text', text: 'one\ntwo' }], details: undefined }, { expanded: true, isPartial: false }, theme, rowContext());
     expect(renderLines(expanded, 80).map((line) => strip(line).trimEnd())).toEqual(['one', 'two']);
   });
+});
 
+describe('cursor-ui edit, write, search and list call rows', () => {
   test('edit call row shows path with diff coloring', () => {
     const call = renderEditCall({ path: 'src/ui/editor.ts' }, theme, rowContext());
     expect(plainLine(call, 80)).toBe('◇ Edit src/ui/editor.ts');
@@ -137,7 +141,9 @@ describe('cursor-ui tool renderers', () => {
     expect(plainLine(renderLsCall({ path: 'src' }, theme, rowContext()), 80)).toBe('◇ List src');
     expect(plainLine(renderLsCall({}, theme, rowContext()), 80)).toBe('◇ List .');
   });
+});
 
+describe('cursor-ui long paths and write and grep result rows', () => {
   test('long paths truncate to one line at the terminal width', () => {
     const longPath = renderReadCall({ path: '/Users/someone/projects/very-long-directory-name/src/components/JapaneseButton.tsx' }, theme, rowContext());
     expect(plainLine(longPath, 20)).toBe('◇ Read /Users/som...');
@@ -182,7 +188,9 @@ describe('cursor-ui tool renderers', () => {
     const expanded = renderGrepResult({ content: [{ type: 'text', text: 'src/a.ts:1:hit\nsrc/b.ts:9:hit' }], details: undefined }, { expanded: true, isPartial: false }, theme, rowContext());
     expect(renderLines(expanded, 80).map((line) => strip(line).trimEnd())).toEqual(['src/a.ts:1:hit', 'src/b.ts:9:hit']);
   });
+});
 
+describe('cursor-ui find, ls and powershell result rows', () => {
   test('find result row hides output until it is needed', () => {
     const partial = renderFindResult({ content: [{ type: 'text', text: 'src/a.ts' }], details: undefined }, { expanded: true, isPartial: true }, theme, rowContext());
     expect(renderLines(partial, 80).length).toBe(0);
@@ -217,7 +225,9 @@ describe('cursor-ui tool renderers', () => {
     const image = renderPowerShellResult({ content: [{ type: 'image', data: 'x', mimeType: 'image/png' }], details: undefined }, { expanded: true, isPartial: false }, theme, rowContext());
     expect(renderLines(image, 80).map((line) => strip(line).trimEnd())).toEqual(['[image]']);
   });
+});
 
+describe('cursor-ui tool renderer registration', () => {
   test('registration replaces shell with both renderers', () => {
     const captured = new Map<string, ToolDefinition>();
     const fakePi = {
@@ -260,13 +270,13 @@ describe('cursor-ui tool renderers', () => {
   });
 });
 
-describe('cursor-ui tool row fidelity', () => {
-  const ESC = '\x1b';
-  const plainLines = (component: Component, width: number): string[] => renderLines(component, width).map((line) => strip(line).trimEnd());
-  const expanded = { expanded: true, isPartial: false };
-  const collapsed = { expanded: false, isPartial: false };
-  const body = (text: string) => ({ content: [{ type: 'text', text }], details: undefined });
+const ESC = '\x1b';
+const plainLines = (component: Component, width: number): string[] => renderLines(component, width).map((line) => strip(line).trimEnd());
+const expanded = { expanded: true, isPartial: false };
+const collapsed = { expanded: false, isPartial: false };
+const body = (text: string) => ({ content: [{ type: 'text', text }], details: undefined });
 
+describe('cursor-ui tool row fidelity', () => {
   test('write row counts the lines a file has', () => {
     const cases: [string, string][] = [
       ['x', '(1 line)'],
@@ -292,7 +302,9 @@ describe('cursor-ui tool row fidelity', () => {
     expect(plainLines(renderBashResult(body('a\tb'), expanded, theme, rowContext()), 80)).toEqual(['a   b']);
     expect(renderLines(renderBashResult(body(`${ESC}[2Jx`), expanded, theme, rowContext()), 80).join('')).not.toContain(`${ESC}[2J`);
   });
+});
 
+describe('cursor-ui tool row fidelity for diffs and errors', () => {
   test('call rows and diffs carry no carriage returns or terminal escapes', () => {
     const crlf = renderBashCall({ command: 'echo one\r\necho two' }, theme, rowContext());
     expect(plainLines(crlf, 80)).toEqual(['◇ Bash echo one']);
