@@ -1,7 +1,7 @@
 import { type AgentSession, createEventBus, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from '../deferred-wakes.ts';
 import { overdueAfterMs, workerControl } from '../worker-control.ts';
-import { type AgentNode, repairInterrupted, restoreNodes } from './agent-node.ts';
+import { type AgentNode, agentEntryType, repairInterrupted, restoreNodes } from './agent-node.ts';
 import { completedData, failedData, initialNode, measure, startedData, viewOf } from './agent-records.ts';
 import { EventBridge, textOf } from './child-events.ts';
 import { type OpenedChild, type OpenInput, openChildSession } from './child-session.ts';
@@ -9,6 +9,7 @@ import { closeSession } from './close-session.ts';
 import { noticeFor } from './completion-wake.ts';
 import type { ChildPlan } from './context-builder.ts';
 import { asEnvelope, type EventLog, eventChannel } from './events.ts';
+import { inboxChannel, inboxMessage } from './inbox.ts';
 import { isLinkAcquire, type LimiterLike, linkChannel } from './limiter-provider.ts';
 import { ProcessGroups } from './process-groups.ts';
 import { settleWithin } from './stop-deadline.ts';
@@ -41,6 +42,10 @@ export type SchedulerDeps = Readonly<{
   now?: () => number;
   maxIdle?: number;
   onSettled?: (node: AgentNode) => Promise<void>;
+  onInbox?: (agentId: string, message: string) => void;
+  extraWork?: () => boolean;
+  entryType?: string;
+  quiet?: boolean;
   log: (message: string) => void;
 }>;
 export type ReadOptions = Readonly<{ wait: boolean; timeoutSeconds: number }>;
@@ -140,6 +145,10 @@ export class SubagentScheduler {
     events.on(eventChannel, (payload) => {
       const envelope = asEnvelope(payload);
       if (envelope) this.deps.events.relay(envelope, plan.agentId);
+    });
+    events.on(inboxChannel, (payload) => {
+      const message = inboxMessage(payload);
+      if (message !== undefined) this.deps.onInbox?.(plan.agentId, message);
     });
     events.on(linkChannel, (payload) => {
       if (isLinkAcquire(payload)) payload.reply(this.deps.limiter(ctx.cwd).tryAcquire(payload.request));
@@ -251,7 +260,7 @@ export class SubagentScheduler {
 
   private announce(node: AgentNode, ctx: ExtensionContext): void {
     const notice = noticeFor(node);
-    if (!notice || this.disposing) return;
+    if (!notice || this.disposing || this.deps.quiet) return;
     this.deps.events.emit('system.notification', notice.data);
     this.wakes.send(node.id, ctx.isIdle(), notice.wake);
   }
@@ -372,7 +381,7 @@ export class SubagentScheduler {
     this.rewinding = false;
     this.disposing = false;
     this.wakes.clear();
-    this.reconcile(restoreNodes(branch));
+    this.reconcile(restoreNodes(branch, this.deps.entryType));
   }
 
   private reconcile(nodes: ReadonlyMap<string, AgentNode>): void {
@@ -380,13 +389,13 @@ export class SubagentScheduler {
     this.deps.registry.replace(repaired);
     for (const id of [...closed, ...dangling]) {
       const node = repaired.get(id);
-      if (node) this.deps.pi.appendEntry('reference-assistant-agent', node);
+      if (node) this.deps.pi.appendEntry(this.deps.entryType ?? agentEntryType, node);
     }
     if (closed.length > 0 || dangling.length > 0) this.deps.log(`Closed interrupted sub-agent records on resume: closed ${closed.length}, dangling ${dangling.length}`);
   }
 
   beginRewind(): { cancel: boolean } {
-    if (this.hasActiveWork()) return { cancel: true };
+    if (this.hasActiveWork() || this.deps.extraWork?.()) return { cancel: true };
     this.rewinding = true;
     return { cancel: false };
   }

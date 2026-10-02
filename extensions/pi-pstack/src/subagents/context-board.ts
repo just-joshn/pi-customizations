@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import type { ToolDefinition } from '@earendil-works/pi-coding-agent';
+import type { ExtensionContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
 
 export type Board = Readonly<Record<string, string>>;
@@ -50,7 +50,7 @@ export function applyBoardAction(board: Board, input: Static<typeof ContextBoard
   return { ...board, [input.key]: input.value };
 }
 
-export function contextBoardTool(path: (cwd: string) => string): ToolDefinition<typeof ContextBoardSchema, BoardDetails> {
+export function contextBoardTool(path: (cwd: string) => string, onChange: (ctx: ExtensionContext) => void = () => {}): ToolDefinition<typeof ContextBoardSchema, BoardDetails> {
   return {
     name: 'context_board',
     label: 'Context board',
@@ -63,7 +63,10 @@ export function contextBoardTool(path: (cwd: string) => string): ToolDefinition<
     execute: async (_id, params, _signal, _update, ctx) => {
       const file = path(ctx.cwd);
       const board = applyBoardAction(readBoard(file), params);
-      if (params.action !== 'read') writeBoard(file, board);
+      if (params.action !== 'read') {
+        writeBoard(file, board);
+        onChange(ctx);
+      }
       return { content: [{ type: 'text', text: render(board) }], details: { board } };
     },
   };

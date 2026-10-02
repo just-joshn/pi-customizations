@@ -11,19 +11,33 @@ import { boardPath, contextBoardTool } from './subagents/context-board.ts';
 import { modelPreferencesBlock, subagentUsageBlock, taskToolDescription } from './subagents/delegation-guidance.ts';
 import { type EventEnvelope, EventLog, eventChannel, eventEntryType } from './subagents/events.ts';
 import { SubagentFactory } from './subagents/factory.ts';
+import { sendInboxTool } from './subagents/inbox.ts';
 import { LimiterProvider, parentLimiter } from './subagents/limiter-provider.ts';
 import { launchRemOnShutdown } from './subagents/rem-launcher.ts';
 import { SubagentRpc, serveRpc } from './subagents/rpc.ts';
 import { SubagentScheduler } from './subagents/scheduler.ts';
 import { SettingsStore } from './subagents/settings-store.ts';
+import type { SidekickManager } from './subagents/sidekicks/manager.ts';
+import { createSidekickManager } from './subagents/sidekicks/wiring.ts';
 import { executionSubagent, type Specialized, searchSubagent, specializedEnabled, specializedTool } from './subagents/specialized-tools.ts';
 import { fleetPrompt, registerSubagentCommands } from './subagents/subagent-commands.ts';
 import { parseSubagentHooks, runHooks } from './subagents/subagent-hooks.ts';
 import { TaskRegistry } from './subagents/task-registry.ts';
 
-export type SubagentSystem = Readonly<{ factory: SubagentFactory; scheduler: SubagentScheduler; settings: SettingsStore; registry: TaskRegistry; events: EventLog; selection: AgentSelection; rpc: SubagentRpc }>;
+export type SubagentSystem = Readonly<{
+  factory: SubagentFactory;
+  scheduler: SubagentScheduler;
+  settings: SettingsStore;
+  registry: TaskRegistry;
+  events: EventLog;
+  selection: AgentSelection;
+  rpc: SubagentRpc;
+  sidekicks: SidekickManager;
+  sidekickScheduler: SubagentScheduler;
+}>;
 
 const defaultWaitSeconds = 300;
+const sidekickEntryType = 'reference-assistant-sidekick';
 
 function persistTo(env: NodeJS.ProcessEnv, sessionId: () => string): (envelope: EventEnvelope) => void {
   const directory = env.COPILOT_EVENTS_LOG_DIRECTORY;
@@ -44,8 +58,10 @@ class Session {
   id = 'session';
   latest: ExtensionContext | undefined;
   child: ChildContextEntry | undefined;
+  closed = false;
 
   begin(ctx: ExtensionContext): void {
+    this.closed = false;
     this.id = ctx.sessionManager.getSessionId();
     this.latest = ctx;
     this.child = readChildContext(ctx.sessionManager.getEntries());
@@ -54,10 +70,27 @@ class Session {
   track(ctx: ExtensionContext): void {
     this.latest = ctx;
   }
+
+  close(): void {
+    this.closed = true;
+  }
+}
+
+type SidekickStack = Readonly<{ pi: ExtensionAPI; env: NodeJS.ProcessEnv; events: EventLog; settings: SettingsStore; limiters: LimiterProvider; session: Session; log: (message: string) => void; holder: { sidekicks?: SidekickManager } }>;
+
+function buildSidekicks(stack: SidekickStack): { sidekicks: SidekickManager; sidekickScheduler: SubagentScheduler } {
+  const { pi, env, events, settings, limiters, session, log, holder } = stack;
+  const registry = new TaskRegistry({ persist: (node) => pi.appendEntry(sidekickEntryType, structuredClone(node)) });
+  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: (cwd) => limiters.get(cwd), onInbox: (agentId, message) => holder.sidekicks?.inbox(agentId, message), entryType: sidekickEntryType, quiet: true, log });
+  const factory = new SubagentFactory({ scope: () => session.child, pi, scheduler, settings, env, log, limiters });
+  const sidekicks = createSidekickManager({ pi, env, factory, scheduler, events, cwd: () => session.latest?.cwd ?? process.cwd(), log });
+  return { sidekicks, sidekickScheduler: scheduler };
 }
 
 function buildCore(pi: ExtensionAPI, env: NodeJS.ProcessEnv, session: Session): SubagentSystem {
-  const log = (message: string) => pi.events.emit('pstack:subagent-log', message);
+  const log = (message: string) => {
+    if (!session.closed) pi.events.emit('pstack:subagent-log', message);
+  };
   const toFile = persistTo(env, () => session.id);
   const events = new EventLog({
     emit: (envelope) => pi.events.emit(eventChannel, envelope),
@@ -74,8 +107,11 @@ function buildCore(pi: ExtensionAPI, env: NodeJS.ProcessEnv, session: Session): 
     const report = await runHooks(hooks, { agentId: node.id, agentType: node.agentType, sessionId: session.id, cwd: node.cwd, timestamp: new Date().toISOString(), transcriptPath: node.sessionFile });
     for (const failure of report.failures) log(`subagentStop hook failed: ${failure}`);
   };
-  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: (cwd) => limiters.get(cwd), onSettled, log });
+  const holder: { sidekicks?: SidekickManager } = {};
+  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: (cwd) => limiters.get(cwd), onSettled, extraWork: () => holder.sidekicks?.hasActiveWork() ?? false, log });
   const factory = new SubagentFactory({ scope: () => session.child, pi, scheduler, settings, env, log, limiters });
+  const { sidekicks, sidekickScheduler } = buildSidekicks({ pi, env, events, settings, limiters, session, log, holder });
+  holder.sidekicks = sidekicks;
   const selection = new AgentSelection(events);
   const rpc = new SubagentRpc({
     factory,
@@ -88,16 +124,19 @@ function buildCore(pi: ExtensionAPI, env: NodeJS.ProcessEnv, session: Session): 
     startFleet: (goal) => pi.sendUserMessage(fleetPrompt(goal)),
     reload: () => factory.clearDiscovery(),
   });
-  return { factory, scheduler, settings, registry, events, selection, rpc };
+  return { factory, scheduler, settings, registry, events, selection, rpc, sidekicks, sidekickScheduler };
 }
 
 function registerLifecycle(pi: ExtensionAPI, env: NodeJS.ProcessEnv, system: SubagentSystem, session: Session, limiters: () => void): void {
   const { factory, scheduler } = system;
-  const log = (message: string) => pi.events.emit('pstack:subagent-log', message);
+  const log = (message: string) => {
+    if (!session.closed) pi.events.emit('pstack:subagent-log', message);
+  };
   pi.on('session_start', (_event, ctx) => {
     limiters();
     factory.clearDiscovery();
     scheduler.restore(ctx);
+    system.sidekickScheduler.restore(ctx);
     session.begin(ctx);
     pi.registerTool(taskTool(factory, scheduler, taskToolDescription(factory.offered(ctx))));
   });
@@ -105,6 +144,21 @@ function registerLifecycle(pi: ExtensionAPI, env: NodeJS.ProcessEnv, system: Sub
   pi.on('session_tree', (_event, ctx) => {
     session.track(ctx);
     scheduler.restore(ctx);
+    system.sidekickScheduler.restore(ctx);
+  });
+  pi.on('input', (event, ctx) => {
+    if (event.source === 'extension' || factory.isChild()) return;
+    void system.sidekicks.trigger('user.message', event.text, ctx).catch((error: unknown) => log(`Sidekick trigger failed: ${String(error)}`));
+  });
+  pi.on('session_compact', (_event, ctx) => {
+    if (factory.isChild()) return;
+    void system.sidekicks.trigger('session.context_changed', 'The session context changed.', ctx).catch((error: unknown) => log(`Sidekick trigger failed: ${String(error)}`));
+  });
+  pi.on('model_select', () => {
+    void system.sidekicks.cancelAll().catch((error: unknown) => log(`Sidekick cancel failed: ${String(error)}`));
+  });
+  pi.on('agent_end', (event) => {
+    if (event.messages.findLast((message) => message.role === 'assistant')?.stopReason === 'aborted') void system.sidekicks.cancelAll().catch((error: unknown) => log(`Sidekick cancel failed: ${String(error)}`));
   });
   pi.on('session_before_tree', () => scheduler.beginRewind());
   pi.on('agent_before_settle', async (_event, ctx) => {
@@ -113,6 +167,9 @@ function registerLifecycle(pi: ExtensionAPI, env: NodeJS.ProcessEnv, system: Sub
     await scheduler.waitForWork(waitSeconds(env) * 1000);
   });
   pi.on('session_shutdown', async (_event, ctx) => {
+    session.close();
+    await system.sidekicks.cancelAll();
+    await system.sidekickScheduler.shutdown();
     await scheduler.shutdown();
     launchRemOnShutdown({ env, cwd: ctx.cwd, boardFile: boardPath(getAgentDir(), ctx.cwd) });
   });
@@ -147,6 +204,10 @@ export function createSubagentSystem(pi: ExtensionAPI, env: NodeJS.ProcessEnv): 
   return system;
 }
 
+function isChildSession(system: SubagentSystem): boolean {
+  return system.factory.isChild();
+}
+
 function registerSpecialized(pi: ExtensionAPI, system: SubagentSystem, env: NodeJS.ProcessEnv): void {
   const specs: readonly Specialized[] = [executionSubagent, searchSubagent];
   for (const spec of specs) if (specializedEnabled(env, spec)) pi.registerTool(specializedTool(spec, system.factory, env));
@@ -158,7 +219,20 @@ export function registerSubagents(pi: ExtensionAPI, env: NodeJS.ProcessEnv = pro
   pi.registerTool(readAgentTool(system.scheduler));
   pi.registerTool(writeAgentTool(system.scheduler));
   pi.registerTool(listAgentsTool(system.scheduler));
-  pi.registerTool(contextBoardTool((cwd) => boardPath(getAgentDir(), cwd)));
+  pi.registerTool(
+    contextBoardTool(
+      (cwd) => boardPath(getAgentDir(), cwd),
+      (ctx) => {
+        if (!isChildSession(system)) void system.sidekicks.trigger('session.memory_changed', 'The context board changed.', ctx);
+      },
+    ),
+  );
+  pi.registerTool(
+    sendInboxTool(
+      (channel, data) => pi.events.emit(channel, data),
+      () => isChildSession(system),
+    ),
+  );
   registerSpecialized(pi, system, env);
   return system;
 }

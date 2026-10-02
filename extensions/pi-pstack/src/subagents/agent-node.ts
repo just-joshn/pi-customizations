@@ -55,8 +55,8 @@ export const AgentNodeSchema = Type.Object({
 export type AgentNode = Static<typeof AgentNodeSchema>;
 export type Branch = ReadonlyArray<{ type: string; customType?: string; data?: unknown }>;
 
-export function restoreNodes(entries: Branch): ReadonlyMap<string, AgentNode> {
-  const nodes = entries.flatMap((entry) => (entry.type === 'custom' && entry.customType === agentEntryType && Check(AgentNodeSchema, entry.data) ? [[entry.data.id, structuredClone(entry.data)] as const] : []));
+export function restoreNodes(entries: Branch, entryType: string = agentEntryType): ReadonlyMap<string, AgentNode> {
+  const nodes = entries.flatMap((entry) => (entry.type === 'custom' && entry.customType === entryType && Check(AgentNodeSchema, entry.data) ? [[entry.data.id, structuredClone(entry.data)] as const] : []));
   return new Map(nodes);
 }
 
