@@ -161,7 +161,9 @@ describe('install-ui controller', () => {
     expect(callsFor(calls, 'setWidget').at(-1)?.args).toEqual(['cursor-ui.activity', undefined]);
     expect(callsFor(calls, 'setWorkingMessage').at(-1)?.args).toEqual([]);
   });
+});
 
+describe('install-ui controller removal and rendering', () => {
   test('ignores a repeated or never-installed removal', () => {
     const { ctx, calls } = fakeContext('tui');
     const controller = createUiController(createPresentationStore());
@@ -202,7 +204,9 @@ describe('install-ui controller', () => {
     expect(indicator.frames[2]).toBe('\u001b[38;2;62;208;122m●\u001b[39m');
     expect(callsFor(calls, 'setWorkingMessage')[0]?.args).toEqual(['Working']);
   });
+});
 
+describe('install-ui controller working frames on render', () => {
   test('a render with an unchanged theme leaves the frames alone', () => {
     const { ctx, calls } = fakeContext('tui');
     const controller = createUiController(createPresentationStore());
