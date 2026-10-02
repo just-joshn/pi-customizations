@@ -25,8 +25,8 @@ const strip = (s: string) => s.replace(ANSI, '');
 describe('header', () => {
   it('renders the bold title and dim version', () => {
     const theme = darkTheme();
-    const line = renderHeaderLine(theme, '0.99.2');
-    expect(strip(line)).toBe('pi v0.99.2');
+    const line = renderHeaderLine(theme, '1.0.0');
+    expect(strip(line)).toBe('pi v1.0.0');
     expect(line.includes('\x1b[1mpi')).toBe(true);
     expect(line.includes('38;2;110;110;112m')).toBe(true);
   });

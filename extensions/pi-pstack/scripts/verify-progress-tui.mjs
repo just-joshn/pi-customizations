@@ -48,7 +48,7 @@ async function prepare() {
   execFileSync('tmux', ['-V'], { encoding: 'utf8' });
   const pi = resolvePi();
   const version = execFileSync(pi, ['--version'], { encoding: 'utf8' }).trim();
-  if (version !== '0.99.1') throw new Error(`Pi 0.99.1 is required for this TUI check. Found ${version}`);
+  if (version !== '1.0.0') throw new Error(`Pi 1.0.0 is required for this TUI check. Found ${version}`);
 
   directory = await mkdtemp(join(tmpdir(), 'pi-pstack-progress-tui-'));
   const log = join(directory, 'requests');
@@ -142,7 +142,7 @@ function progressText(frame) {
 }
 
 function report(progress) {
-  process.stdout.write('Installed Pi version: 0.99.1\n');
+  process.stdout.write('Installed Pi version: 1.0.0\n');
   process.stdout.write(`Start snapshot: ${progressText(progress.startFrame)}\n`);
   process.stdout.write(`Finish snapshot: ${progressText(progress.finishFrame)}\n`);
   process.stdout.write(`Deterministic child provider turns: ${progress.childTurns}\n`);
