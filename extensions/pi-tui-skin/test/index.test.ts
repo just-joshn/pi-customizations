@@ -184,7 +184,9 @@ describe('tui-skin extension chrome lifecycle', () => {
     expect(widget.render(80)).toEqual([]);
     expect(consoleError.mock.calls).toEqual([]);
   });
+});
 
+describe('tui-skin extension repeated session start', () => {
   test('a second session_start keeps the installed chrome working', () => {
     const { pi, handlers } = fakePi();
     tuiSkin(pi);
