@@ -1,17 +1,10 @@
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { setTimeout as sleep } from 'node:timers/promises';
 import { join } from 'node:path';
-import {
-  formatLeakReport,
-  groupLeaks,
-  isToolCache,
-  type LiveProcess,
-  parseDu,
-  parseLiveProcesses,
-  parseLsofCwd,
-} from './leaks.ts';
+import { setTimeout as sleep } from 'node:timers/promises';
+
+import { formatLeakReport, groupLeaks, isToolCache, type LiveProcess, parseDu, parseLiveProcesses, parseLsofCwd } from './leaks.ts';
 
 // Vitest pool workers and test children exit shortly after teardown starts. A leaked server never does.
 const GRACE_MS = 5000;
@@ -21,7 +14,6 @@ export type RunDir = {
   readonly dir: string;
   readonly previous: Readonly<Record<string, string | undefined>>;
 };
-
 
 function capture(command: string, args: readonly string[]): { out: string; pid: number } {
   const result = spawnSync(command, args, { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
@@ -45,14 +37,9 @@ function liveProcesses(dir: string): LiveProcess[] {
   const ps = capture('ps', ['-axwwE', '-o', 'pid=,command=']);
   const lsof = capture('lsof', ['-d', 'cwd', '-Fpn']);
   const ignored = new Set([process.pid, process.ppid, ps.pid, lsof.pid]);
-  const found = new Set([
-    ...parseLiveProcesses(ps.out, dir, ignored).map((proc) => proc.pid),
-    ...parseLsofCwd(lsof.out, dir, ignored).map((proc) => proc.pid),
-  ]);
+  const found = new Set([...parseLiveProcesses(ps.out, dir, ignored).map((proc) => proc.pid), ...parseLsofCwd(lsof.out, dir, ignored).map((proc) => proc.pid)]);
   const lines = commandLines([...found]);
-  return [...found]
-    .filter((pid) => lines.has(pid))
-    .map((pid) => ({ pid, command: lines.get(pid) ?? '' }));
+  return [...found].filter((pid) => lines.has(pid)).map((pid) => ({ pid, command: lines.get(pid) ?? '' }));
 }
 
 async function liveProcessesAfterGrace(dir: string): Promise<LiveProcess[]> {

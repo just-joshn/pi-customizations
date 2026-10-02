@@ -45,11 +45,7 @@ export function parseDu(output: string, dir: string): Entry[] {
 }
 
 // `ps -axwwE -o pid=,command=` appends each process environment to its command line.
-export function parseLiveProcesses(
-  output: string,
-  dir: string,
-  ignoredPids: ReadonlySet<number>,
-): LiveProcess[] {
+export function parseLiveProcesses(output: string, dir: string, ignoredPids: ReadonlySet<number>): LiveProcess[] {
   const processes: LiveProcess[] = [];
   for (const line of output.split('\n')) {
     const match = /^\s*(\d+)\s+(.*)$/.exec(line);
@@ -61,11 +57,7 @@ export function parseLiveProcesses(
   return processes;
 }
 
-export function parseLsofCwd(
-  output: string,
-  dir: string,
-  ignoredPids: ReadonlySet<number>,
-): LiveProcess[] {
+export function parseLsofCwd(output: string, dir: string, ignoredPids: ReadonlySet<number>): LiveProcess[] {
   const processes: LiveProcess[] = [];
   let pid = 0;
   for (const line of output.split('\n')) {
@@ -77,19 +69,12 @@ export function parseLsofCwd(
   return processes;
 }
 
-export function formatLeakReport(
-  dir: string,
-  groups: readonly LeakGroup[],
-  processes: readonly LiveProcess[],
-  caches: readonly LeakGroup[] = [],
-): string {
+export function formatLeakReport(dir: string, groups: readonly LeakGroup[], processes: readonly LiveProcess[], caches: readonly LeakGroup[] = []): string {
   const lines = [`[leak-report] run directory ${dir}`];
   for (const cache of caches) lines.push(`[leak-report] tool cache ${cache.prefix} ${cache.kb} KB`);
   if (groups.length === 0) lines.push('[leak-report] no leftover entries');
   for (const group of groups) {
-    lines.push(
-      `[leak-report] ${String(group.count).padStart(5)} x ${group.prefix} ${group.kb} KB`,
-    );
+    lines.push(`[leak-report] ${String(group.count).padStart(5)} x ${group.prefix} ${group.kb} KB`);
   }
   for (const proc of processes) {
     lines.push(`[leak-report] LIVE pid ${proc.pid}: ${proc.command.slice(0, 300)}`);
