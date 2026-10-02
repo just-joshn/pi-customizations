@@ -20,12 +20,15 @@ async function generatedMarkdown(): Promise<string[]> {
 
 test('no generated skill, playbook, or prompt keeps a Cursor-only noun or path', async () => {
   const offenders: string[] = [];
-  for (const path of await generatedMarkdown()) {
+  const scanned = await generatedMarkdown();
+  for (const path of scanned) {
     const text = await readFile(join(root, path), 'utf8');
     for (const phrase of [/\bCursor\b/, /cursor-team-kit/, /\.cursor\//, /cloud-agent URL/, /state\.vscdb/]) {
       if (phrase.test(text)) offenders.push(`${path} ${phrase}`);
     }
   }
+  expect(scanned).toContain('skills/poteto-mode/playbooks/babysit.md');
+  expect(scanned).toContain('prompts/deslop.md');
   expect(offenders).toEqual([]);
 });
 
