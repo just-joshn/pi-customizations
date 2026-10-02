@@ -2,7 +2,7 @@
 
 This Pi package lets a Claude Pro or Max subscription answer in Pi. Requests identify as Provider CLI. It registers a separate provider, `claude-subscription`, so the subscription login stays apart from the credentials of Pi's built-in `anthropic` provider.
 
-The provider reuses Pi's own parts. It takes them from Pi's built-in `anthropic` provider, which `@earendil-works/pi-ai/providers/all` supplies to extensions. Pi's Claude Pro/Max OAuth flow handles login and refresh. Pi's Anthropic Messages implementation sends requests through `@anthropic-ai/sdk`, and the model list is Pi's bundled Anthropic catalog. Catalog updates that Pi downloads from pi.dev apply to Pi's own `anthropic` provider, not to this one. The package changes three things. It adds the Provider CLI billing block to each request, it caches the prompt for one hour, and it shrinks very large shell output before the model sees it.
+The provider reuses Pi's own parts. It takes them from Pi's built-in `anthropic` provider, which `@earendil-works/pi-ai/providers/all` supplies to extensions. Pi's Claude Pro/Max OAuth flow handles login and refresh. Pi's Anthropic Messages implementation sends requests through `@anthropic-ai/sdk`, and the model list is Pi's bundled Anthropic catalog. Catalog updates that Pi downloads from pi.dev apply to Pi's own `anthropic` provider, not to this one. The package changes four things. It adds the Provider CLI billing block to each request, it keeps tool names unique after Pi's OAuth renaming, it caches the prompt for one hour, and it shrinks very large shell output before the model sees it.
 
 ## Use it
 
@@ -27,6 +27,14 @@ To send a different version in the user agent, set `CLAUDE_CODE_VERSION`. The bi
 The version becomes a request header, so the package checks it. A valid value is dotted digits with 2 to 4 groups, such as `2.1.280`. The package reads `options.env.CLAUDE_CODE_VERSION` first and `process.env.CLAUDE_CODE_VERSION` second. An empty string counts as unset. Any other value fails the request with an error that says `CLAUDE_CODE_VERSION must be dotted digits with 2 to 4 groups, such as 2.1.280` and quotes the rejected value. No request leaves your machine. Pi reports the failure as an error result on the stream. Headers you pass on a request still override the generated `user-agent`.
 
 The package also checks the payload that Pi's Anthropic implementation hands over. It expects an object whose `system` is an array or absent. Any other shape ends the request with an error that names the unexpected shape.
+
+## Tool names
+
+For an OAuth token, Pi's Anthropic implementation renames tools to Provider CLI's names, so Pi's `read` tool goes out as `Read`. Two session tools whose names differ only in case fold into one name, and Anthropic rejects the request with `400` and the message `tools: Tool names must be unique.` Pi's own `Task` tool next to a custom tool named `task` is such a pair.
+
+The package drops each duplicate after the first, so the request carries one tool per name. Pi maps a tool call back to the first case-insensitive match in the session's tools, so the kept tool is also the one such a call reaches. The model never sees the dropped tool. The renaming is Pi's, so a fix that keeps both tools belongs in Pi. If the model needs both tools, rename one of them at its registration.
+
+A cache marker on a dropped last tool moves to the new last tool, so the request keeps its one-hour tool breakpoint.
 
 ## Prompt caching
 
