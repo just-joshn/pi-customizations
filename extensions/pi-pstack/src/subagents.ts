@@ -214,9 +214,9 @@ function registerLifecycle(pi: ExtensionAPI, env: NodeJS.ProcessEnv, system: Sub
   registerSidekickTriggers(pi, system, factory, log);
   registerSettleWiring(pi, env, scheduler, log);
   pi.on('tool_execution_start', (event) => {
-    if (!session.fileTracking || event.parentToolCallId !== undefined) return;
-    if ((event.toolName === 'edit' || event.toolName === 'write') && typeof (event.args as { path?: unknown } | undefined)?.path === 'string')
-      pi.appendEntry('reference-assistant-file-change', { path: (event.args as { path: string }).path, at: Date.now() });
+    if (!session.fileTracking || event.parentToolCallId !== undefined || (event.toolName !== 'edit' && event.toolName !== 'write')) return;
+    const path: unknown = event.args?.path;
+    if (typeof path === 'string') pi.appendEntry('reference-assistant-file-change', { path, at: Date.now() });
   });
   pi.on('session_shutdown', async (_event, ctx) => {
     session.close();
