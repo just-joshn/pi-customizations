@@ -1,4 +1,5 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { SettingsManager } from '@earendil-works/pi-coding-agent';
 import { stripTerminalSequences } from '@earendil-works/pi-tui';
 import { describe, expect, test, vi } from 'vitest';
 import cursorUi from '../src/index.ts';
@@ -36,9 +37,9 @@ function fakeUi() {
   };
 }
 
-function sessionContext(mode: 'tui' | 'print') {
-  const ui = fakeUi();
-  const ctx = { mode, cwd: '/tmp/workspace', ui, thinkingLevel: 'medium', model: undefined, getContextUsage: () => undefined };
+function sessionContext(mode: 'tui' | 'print', hasUI = mode === 'tui') {
+  const ui = { ...fakeUi(), notify: vi.fn() };
+  const ctx = { mode, hasUI, cwd: '/tmp/workspace', ui, thinkingLevel: 'medium', model: undefined, getContextUsage: () => undefined };
   return { ctx, ui };
 }
 
@@ -76,6 +77,66 @@ describe('cursor-ui extension entry point', () => {
   });
 });
 
+describe('cursor-ui extension settings fallback report', () => {
+  function failSettingsRead(message: string): void {
+    vi.spyOn(SettingsManager, 'create').mockImplementation(() => {
+      throw new Error(message);
+    });
+  }
+
+  test('unreadable settings raise one warning notification', () => {
+    const consoleError = vi.spyOn(console, 'error');
+    failSettingsRead('settings.json is not valid JSON');
+    const { pi, handlers } = fakePi();
+    cursorUi(pi);
+    const { ctx, ui } = sessionContext('tui');
+
+    handlers.get('session_start')?.({}, ctx);
+
+    expect(ui.notify).toHaveBeenCalledTimes(1);
+    expect(ui.notify).toHaveBeenCalledWith('cursor-ui: using default tool settings because settings could not be read (settings.json is not valid JSON)', 'warning');
+    expect(consoleError.mock.calls).toEqual([]);
+  });
+
+  test('each new session reports the fallback again', () => {
+    failSettingsRead('unreadable');
+    const { pi, handlers } = fakePi();
+    cursorUi(pi);
+    const first = sessionContext('tui');
+    const second = sessionContext('tui');
+
+    handlers.get('session_start')?.({}, first.ctx);
+    handlers.get('session_start')?.({}, second.ctx);
+
+    const notice = ['cursor-ui: using default tool settings because settings could not be read (unreadable)', 'warning'];
+    expect(first.ui.notify.mock.calls).toEqual([notice]);
+    expect(second.ui.notify.mock.calls).toEqual([notice]);
+  });
+
+  test('a session without a UI reports nothing', () => {
+    const consoleError = vi.spyOn(console, 'error');
+    failSettingsRead('unreadable');
+    const { pi, handlers } = fakePi();
+    cursorUi(pi);
+    const { ctx, ui } = sessionContext('print');
+
+    handlers.get('session_start')?.({}, ctx);
+
+    expect(ui.notify.mock.calls.length).toBe(0);
+    expect(consoleError.mock.calls).toEqual([]);
+  });
+
+  test('readable settings produce no notification', () => {
+    const { pi, handlers } = fakePi();
+    cursorUi(pi);
+    const { ctx, ui } = sessionContext('tui');
+
+    handlers.get('session_start')?.({}, ctx);
+
+    expect(ui.notify.mock.calls.length).toBe(0);
+  });
+});
+
 describe('cursor-ui extension chrome lifecycle', () => {
   test('a TUI session installs chrome and shutdown restores every setter', () => {
     const { pi, handlers } = fakePi();
@@ -103,7 +164,7 @@ describe('cursor-ui extension chrome lifecycle', () => {
     expect(ui.setHiddenThinkingLabel).toHaveBeenLastCalledWith();
   });
 
-  test('a failing restore is reported by throwing and still clears the activity state', () => {
+  test('a failing restore throws and still clears activity', () => {
     const consoleError = vi.spyOn(console, 'error');
     const { pi, handlers } = fakePi();
     cursorUi(pi);
@@ -121,7 +182,7 @@ describe('cursor-ui extension chrome lifecycle', () => {
     expect(() => handlers.get('session_shutdown')?.({}, ctx)).toThrow('footer boom');
 
     expect(widget.render(80)).toEqual([]);
-    expect(consoleError).not.toHaveBeenCalled();
+    expect(consoleError.mock.calls).toEqual([]);
   });
 
   test('a second session_start keeps the installed chrome working', () => {
