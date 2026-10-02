@@ -1,6 +1,6 @@
 # pstack for pi
 
-This Pi package ports pstack 0.15.5 and team-kit 1.2.0 workflows to Pi 0.99.2. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. Upstream-hosted facilities run as local Pi equivalents. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
+This Pi package ports pstack 0.15.5 and team-kit 1.2.0 workflows to Pi 1.0.0. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. Upstream-hosted facilities run as local Pi equivalents. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
 
 ## Install
 
@@ -26,7 +26,7 @@ Every turn, the host context lists each bundled skill, host skill, and playbook 
 
 With the package extension enabled, direct user invocations of pstack-owned prompt aliases preserve the raw argument suffix, including quotes, whitespace, newlines, backslashes, and dollar placeholders. The input hook quotes that suffix as one parser argument and leaves native prompt discovery and expansion in place. User-owned prompts, other extension commands, and `/bro` are not rewritten. Extension-generated messages keep Pi's normal literal delivery or opt-in expansion. When the extension is disabled, Pi's native prompt parser removes grouping quotes, joins parsed arguments with spaces, and converts unquoted line breaks to spaces. Use `/skill:name` to load a skill directly.
 
-The runtime uses current `@earendil-works` pi packages. Host dependencies are peers with a minimum of 0.99.2. SDK 0.99.2 is the development and verification target. Newer versions have not been verified.
+The runtime uses current `@earendil-works` pi packages. Host dependencies are peers with a minimum of 1.0.0. SDK 1.0.0 is the development and verification target. Newer versions have not been verified.
 
 ## Usage
 
@@ -186,7 +186,7 @@ bun run check:journeys
 bun run check:progress-tui
 ```
 
-`bun run check:journeys` starts the real Pi CLI against the package with a deterministic local provider. It loads every skill and prompt template as a user would, drives the mode, status, todo, context, dialog, delegation, shell, setup, helper-script, and worktree journeys, and reports one line per check. `bun run check:progress-tui` requires Pi 0.99.1 and tmux. It launches an isolated TUI with the deterministic provider and checks the visible foreground Task updates.
+`bun run check:journeys` starts the real Pi CLI against the package with a deterministic local provider. It loads every skill and prompt template as a user would, drives the mode, status, todo, context, dialog, delegation, shell, setup, helper-script, and worktree journeys, and reports one line per check. `bun run check:progress-tui` requires Pi 1.0.0 and tmux. It launches an isolated TUI with the deterministic provider and checks the visible foreground Task updates.
 
 `bun run generate` recreates the operational skills and prompts from the immutable snapshot. The checker rejects changed upstream hashes and generated resource drift. Do not edit generated resources directly.
 

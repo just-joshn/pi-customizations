@@ -128,6 +128,35 @@ describe('tui row invalidation', () => {
   });
 });
 
+describe('tui row state across per-render contexts', () => {
+  it('invalidates once when pi hands each render a fresh context over one shared state object', async () => {
+    const theme = await makeTheme();
+    const bash = capture().get('bash');
+    if (!bash) throw new Error('missing bash');
+    const sharedState = {} as ToolRowState;
+    let invalidations = 0;
+    const freshContext = () => ({ toolCallId: 'pi-call', invalidate: () => (invalidations += 1), state: sharedState, args: { command: 'echo hi' }, cwd: '/proj' });
+    const options = { expanded: false, isPartial: false };
+    bash.renderCall?.({ command: 'echo hi' }, theme, freshContext());
+    bash.renderResult?.(result('one'), options, theme, freshContext());
+    bash.renderResult?.(result('two'), options, theme, freshContext());
+    bash.renderResult?.(result('three'), options, theme, freshContext());
+    expect(invalidations).toBe(1);
+  });
+
+  it('keeps the bash call row command visible after a result render with a fresh context', async () => {
+    const theme = await makeTheme();
+    const bash = capture().get('bash');
+    if (!bash) throw new Error('missing bash');
+    const sharedState = {} as ToolRowState;
+    const freshContext = () => ({ toolCallId: 'pi-call', invalidate: () => undefined, state: sharedState, args: { command: 'echo hi' }, cwd: '/proj' });
+    const callRow = bash.renderCall?.({ command: 'echo hi' }, theme, freshContext()) as { render: (w: number) => string[] };
+    bash.renderResult?.(result('one\nexit code: 0'), { expanded: false, isPartial: false }, theme, freshContext());
+    expect(strip(callRow.render(200)[0] ?? '').startsWith('$ echo hi')).toBe(true);
+    expect(sharedState.invalidated).toBe(true);
+  });
+});
+
 describe('tui bash renderers', () => {
   it('bash: collapsed output shows 2 lines plus the hidden hint', async () => {
     const theme = await makeTheme();
