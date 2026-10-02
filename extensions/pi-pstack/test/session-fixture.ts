@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { type AssistantMessage, type Context, createAssistantMessageEventStream, type Model, type ToolCall } from '@earendil-works/pi-ai';
+import { type Api, type AssistantMessage, type Context, createAssistantMessageEventStream, type Model, type ToolCall } from '@earendil-works/pi-ai';
 import { type AgentSession, createAgentSession, DefaultResourceLoader, type ExtensionFactory, ModelRuntime, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { expect, vi } from 'vitest';
 
@@ -23,21 +23,21 @@ export const model: Model<'openai-completions'> = {
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 };
 
-export function providerFixture(capture: (request: Context) => void, next: () => ToolCall | ToolCall[] | undefined, usage?: AssistantMessage['usage']): ExtensionFactory {
+export function providerFixture(capture: (request: Context) => void, next: () => ToolCall | ToolCall[] | undefined, usage?: AssistantMessage['usage'], scripted: Model<Api> = model): ExtensionFactory {
   return (pi) => {
-    pi.registerProvider(model.provider, {
-      api: model.api,
-      baseUrl: model.baseUrl,
+    pi.registerProvider(scripted.provider, {
+      api: scripted.api,
+      baseUrl: scripted.baseUrl,
       apiKey: 'integration-only-not-a-credential',
-      models: [model],
+      models: [scripted],
       streamSimple: (_model, context) => {
         capture(structuredClone(context));
         const call = next();
         const message: AssistantMessage = {
           role: 'assistant',
-          api: model.api,
-          provider: model.provider,
-          model: model.id,
+          api: scripted.api,
+          provider: scripted.provider,
+          model: scripted.id,
           content: call ? (Array.isArray(call) ? call : [call]) : [{ type: 'text', text: 'Scripted reply.' }],
           stopReason: call ? 'toolUse' : 'stop',
           timestamp: Date.now(),
@@ -82,6 +82,7 @@ type FixtureOptions = {
   createDirectory?: (path: string) => Promise<unknown>;
   includeNativePromptTemplates?: boolean;
   extensionFactories?: ExtensionFactory[];
+  api?: Api;
 };
 
 async function setupDirs(root: string, cwd: string, agentDir: string, createDirectory: (path: string) => Promise<unknown>) {
@@ -112,7 +113,7 @@ async function loadFixtureLoader(cwd: string, agentDir: string, settingsManager:
   return loader;
 }
 
-async function openFixtureSession(opts: { cwd: string; agentDir: string; settingsManager: SettingsManager; loader: DefaultResourceLoader; manager: SessionManager; sessions: AgentSession[]; errors: string[] }) {
+async function openFixtureSession(opts: { scripted: Model<Api>; cwd: string; agentDir: string; settingsManager: SettingsManager; loader: DefaultResourceLoader; manager: SessionManager; sessions: AgentSession[]; errors: string[] }) {
   const modelRuntime = await ModelRuntime.create({
     authPath: join(opts.agentDir, 'auth.json'),
     modelsPath: null,
@@ -126,7 +127,7 @@ async function openFixtureSession(opts: { cwd: string; agentDir: string; setting
     sessionManager: opts.manager,
     resourceLoader: opts.loader,
     modelRuntime,
-    model,
+    model: opts.scripted,
     thinkingLevel: 'off',
   });
   opts.sessions.push(session);
@@ -134,7 +135,8 @@ async function openFixtureSession(opts: { cwd: string; agentDir: string; setting
   return { session, manager: opts.manager, loader: opts.loader };
 }
 
-export async function fixture({ usage, extensionOnly = false, extensionDisabled = false, createDirectory = mkdir, includeNativePromptTemplates = false, extensionFactories = [] }: FixtureOptions = {}) {
+export async function fixture({ usage, extensionOnly = false, extensionDisabled = false, createDirectory = mkdir, includeNativePromptTemplates = false, extensionFactories = [], api = model.api }: FixtureOptions = {}) {
+  const scripted: Model<Api> = { ...model, api };
   const root = await mkdtemp(join(tmpdir(), 'pstack-integration-'));
   const cwd = join(root, 'workspace');
   const agentDir = join(root, 'agent');
@@ -149,6 +151,7 @@ export async function fixture({ usage, extensionOnly = false, extensionDisabled 
       (request) => requests.push(request),
       () => calls.shift(),
       usage,
+      scripted,
     ),
     ...extensionFactories,
   ];
@@ -161,7 +164,7 @@ export async function fixture({ usage, extensionOnly = false, extensionDisabled 
   const load = () => loadFixtureLoader(cwd, agentDir, settingsManager, fixtureFactories, extensionOnly, includeNativePromptTemplates, extensionDisabled);
   const open = async (manager = SessionManager.create(cwd, join(root, 'sessions'))) => {
     const loader = await load();
-    return openFixtureSession({ cwd, agentDir, settingsManager, loader, manager, sessions, errors });
+    return openFixtureSession({ scripted, cwd, agentDir, settingsManager, loader, manager, sessions, errors });
   };
   return {
     root,

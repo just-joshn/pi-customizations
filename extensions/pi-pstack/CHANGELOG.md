@@ -12,6 +12,7 @@ Revisions follow the pinned upstream pstack version, then `-pi.N` for this packa
 - Moves the test suite to Vitest 5 with V8 coverage and adds the real-CLI journey checks.
 - Declares the repository and homepage, a gallery image, a minimum Pi version for the host peers, and a pull request workflow.
 - Ships a Pi adaptation of the ten-chapter guide under `docs/guide/` and a playbook and skill reference in the README.
+- Makes poteto mode trigger on Anthropic models at any effort. Below `high`, those models skipped the playbook read and the todolist. In poteto mode, each prompt to an `anthropic-messages` model now carries a hidden first-action rule, sent from `before_agent_start`. Other model families are unchanged.
 
 ## 0.15.5-pi.1
 
