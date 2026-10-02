@@ -1,6 +1,6 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { RpcClient } from '@earendil-works/pi-coding-agent';
@@ -16,7 +16,7 @@ const PROMPT_TIMEOUT_MS = 60_000;
 const USER_AGENT = 'claude-cli/9.9.9';
 const extension = fileURLToPath(new URL('../src/index.ts', import.meta.url));
 const probe = fileURLToPath(new URL('./request-event-probe.ts', import.meta.url));
-const cliPath = fileURLToPath(new URL('./cli.js', import.meta.resolve('@earendil-works/pi-coding-agent')));
+const cliPath = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 
 const root = await mkdtemp(join(tmpdir(), 'pi-oauth-paths-'));
 const server = await startMessagesServer(sseReply(textMessage('ok')));
