@@ -118,8 +118,8 @@ function run() {
   // shows pi's startup error instead of "can't find pane".
   const paneCommand = `${piCommand}; echo PI-EXITED-$?; sleep 900`;
 
-  console.log(`pi binary: ${piBin}`);
-  console.log(`tmux command: tmux -L ${SOCKET} -f /dev/null new-session -d -x 110 -y 36 -s ${SESSION} -c ${workspace} ${paneCommand}`);
+  process.stdout.write(`pi binary: ${piBin}\n`);
+  process.stdout.write(`tmux command: tmux -L ${SOCKET} -f /dev/null new-session -d -x 110 -y 36 -s ${SESSION} -c ${workspace} ${paneCommand}\n`);
 
   tmux(['-f', '/dev/null', 'new-session', '-d', '-x', '110', '-y', '36', '-s', SESSION, '-c', workspace, paneCommand]);
 
@@ -198,21 +198,21 @@ function diagnose() {
 }
 
 function summarize(exitError) {
-  console.log('\n=== smoke summary ===');
+  process.stdout.write('\n=== smoke summary ===\n');
   for (const r of results) {
     const capture = r.captureName ? ` (capture: scripts/smoke-captures/${r.captureName})` : '';
-    console.log(`[${r.status.toUpperCase()}] ${r.name}${capture}`);
+    process.stdout.write(`[${r.status.toUpperCase()}] ${r.name}${capture}\n`);
   }
   if (exitError) {
-    console.log(`\nFAIL: ${exitError.message}`);
+    process.stdout.write(`\nFAIL: ${exitError.message}\n`);
     return 1;
   }
   const failed = results.filter((r) => r.status === 'fail');
   if (failed.length > 0) {
-    console.log(`\nFAIL: ${failed.length} assertion(s) failed`);
+    process.stdout.write(`\nFAIL: ${failed.length} assertion(s) failed\n`);
     return 1;
   }
-  console.log('\nPASS: all smoke assertions held');
+  process.stdout.write('\nPASS: all smoke assertions held\n');
   return 0;
 }
 
