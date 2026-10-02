@@ -1,9 +1,36 @@
 import { expect, test } from 'vitest';
+import type { AgentNode } from '../src/subagents/agent-node.ts';
 import { rpcChannel, rpcResultChannel } from '../src/subagents/rpc.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 type Fixture = Awaited<ReturnType<typeof workerFixture>>;
 const idOf = (result: unknown) => String((result as { details: { agent_id: string } }).details.agent_id);
+
+/** A record created outside the scheduler, as an external RPC client would register it. */
+const externalTask = (id: string): AgentNode => ({
+  id,
+  registryId: `registry-${id}`,
+  toolCallId: `call-${id}`,
+  agentType: 'general-purpose',
+  agentDisplayName: id,
+  agentDescription: 'A record created outside the scheduler.',
+  description: 'probe',
+  prompt: 'hello',
+  mode: 'background',
+  status: 'running',
+  depth: 1,
+  turns: [],
+  startedAt: 1,
+  model: 'worker-test/deterministic',
+  modelSource: 'session_inheritance',
+  taskModelSource: 'unset',
+  contextTier: 'inherit',
+  firstDispatchedModel: 'worker-test/deterministic',
+  totalToolCalls: 0,
+  totalTokens: 0,
+  sessionFile: `/tmp/${id}.jsonl`,
+  cwd: '/repo',
+});
 
 function rpc(fixture: Fixture, method: string, params?: unknown): Promise<{ ok: boolean; result?: unknown; error?: string }> {
   const id = `${method}-${Math.random()}`;
@@ -74,8 +101,8 @@ test('startAgent over the bus starts a background agent and list shows it', asyn
     const agentId = (started.result as { agentId: string }).agentId;
     expect(started.ok).toBe(true);
     await rpc(fixture, 'session.tasks.waitForPending', { timeoutMs: 5000 });
-    const listed = (await rpc(fixture, 'session.tasks.list')).result as { id: string; status: string; mode: string; name: string }[];
-    expect(listed).toMatchObject([{ id: agentId, status: 'idle', mode: 'background', name: 'rpc-agent' }]);
+    const listed = (await rpc(fixture, 'session.tasks.list')).result as { id: string; taskStoreId: string; status: string; mode: string; name: string }[];
+    expect(listed).toMatchObject([{ id: agentId, taskStoreId: agentId, status: 'idle', mode: 'background', name: 'rpc-agent' }]);
     expect((await rpc(fixture, 'session.tasks.getProgress', { id: agentId })).result).toEqual({ intent: null, toolCalls: 0, tokens: 5 });
     expect((await rpc(fixture, 'session.tasks.sendMessage', { id: agentId, message: 'again' })).ok).toBe(true);
     expect((await rpc(fixture, 'session.tasks.remove', { id: agentId })).ok).toBe(true);
@@ -90,6 +117,34 @@ test('rpc reports malformed parameters, unknown methods and the tool set', async
     expect(await rpc(fixture, 'session.tasks.startAgent', { agentType: 1 })).toEqual({ id: expect.any(String), ok: false, error: 'Invalid session.tasks.startAgent parameters.' });
     expect((await rpc(fixture, 'session.nothing')).error).toBe('Unknown RPC method: session.nothing');
     expect(((await rpc(fixture, 'session.tools.initializeAndValidate')).result as { tools: string[] }).tools).toEqual(expect.arrayContaining(['task', 'read_agent', 'write_agent', 'list_agents']));
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('register adds an externally created task keyed by its native session id', async () => {
+  const fixture = await workerFixture();
+  try {
+    const task = externalTask('external-task');
+    const registered = await rpc(fixture, 'session.tasks.register', task);
+    expect(registered).toMatchObject({ ok: true, result: { id: 'external-task', taskStoreId: 'external-task', kind: 'agent', status: 'running' } });
+    expect((registered.result as { taskStoreId: string }).taskStoreId).not.toBe(task.registryId);
+    expect(await rpc(fixture, 'session.tasks.register', { id: 'broken' })).toMatchObject({ ok: false, error: 'Invalid session.tasks.register parameters.' });
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('update patches a registered task and list reflects it', async () => {
+  const fixture = await workerFixture();
+  try {
+    await rpc(fixture, 'session.tasks.register', externalTask('external-task'));
+    const updated = await rpc(fixture, 'session.tasks.update', { id: 'external-task', fields: { description: 'patched', totalTokens: 3 } });
+    expect(updated).toMatchObject({ ok: true, result: { id: 'external-task', taskStoreId: 'external-task', description: 'patched', kind: 'agent' } });
+    const listed = (await rpc(fixture, 'session.tasks.list')).result as { id: string; taskStoreId: string; description: string }[];
+    expect(listed.find((task) => task.id === 'external-task')).toMatchObject({ taskStoreId: 'external-task', description: 'patched' });
+    expect((await rpc(fixture, 'session.tasks.update', { id: 'ghost', fields: { description: 'x' } })).error).toBe('Agent not found: ghost');
+    expect((await rpc(fixture, 'session.tasks.update', { id: 'external-task', fields: { status: 'failed' } })).error).toBe('Invalid session.tasks.update parameters.');
   } finally {
     await fixture.close();
   }

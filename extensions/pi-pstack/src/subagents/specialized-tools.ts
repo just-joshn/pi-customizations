@@ -6,12 +6,13 @@ import type { SubagentFactory } from './factory.ts';
 import { featureEnabled } from './feature-flags.ts';
 import { boundedForModel, syncResultText } from './tool-results.ts';
 
-export type Specialized = Readonly<{ tool: 'execution_subagent' | 'search_subagent'; agentType: 'task' | 'explore'; flag: string; modelVariable: string; turnsVariable: string; defaultTurns: number; description: string }>;
+export type Specialized = Readonly<{ tool: 'execution_subagent' | 'search_subagent'; agentType: 'task' | 'explore'; flag: string; modelFlag: string; modelVariable: string; turnsVariable: string; defaultTurns: number; description: string }>;
 
 export const executionSubagent: Specialized = {
   tool: 'execution_subagent',
   agentType: 'task',
   flag: 'reference-assistant_cli_execution_subagent',
+  modelFlag: 'reference-assistant_cli_execution_subagent_model',
   modelVariable: 'EXECUTION_SUBAGENT_MODEL',
   turnsVariable: 'EXECUTION_SUBAGENT_MAX_TURNS',
   defaultTurns: 30,
@@ -21,6 +22,7 @@ export const searchSubagent: Specialized = {
   tool: 'search_subagent',
   agentType: 'explore',
   flag: 'reference-assistant_cli_search_subagent_model',
+  modelFlag: 'reference-assistant_cli_search_subagent_model',
   modelVariable: 'SEARCH_SUBAGENT_MODEL',
   turnsVariable: 'SEARCH_SUBAGENT_MAX_TURNS',
   defaultTurns: 20,
@@ -53,7 +55,7 @@ export function specializedTool(spec: Specialized, factory: SubagentFactory, env
     executionMode: 'parallel',
     annotations: { openWorldHint: true },
     execute: async (id, params, signal, _update, ctx): Promise<AgentToolResult<Static<typeof Details>>> => {
-      const model = env[spec.modelVariable]?.trim();
+      const model = featureEnabled(env, spec.modelFlag) ? env[spec.modelVariable]?.trim() : undefined;
       const limits: ChildLimits = { maxAgentTurns: specializedTurns(env, spec) };
       const call = { agent_type: spec.agentType, name: spec.tool, description: params.description, prompt: params.prompt, mode: 'sync' as const, ...(model ? { model } : {}) };
       const { launched, node } = await factory.create(call, id, signal, ctx, { limits });

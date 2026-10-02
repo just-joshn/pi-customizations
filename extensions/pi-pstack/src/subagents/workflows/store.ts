@@ -143,6 +143,14 @@ export class WorkflowStore {
     return this.save({ ...run, consumption: { ...run.consumption, subagents: run.consumption.subagents + 1 } });
   }
 
+  /** A failed preparation rolls its admission back; the guarded decrement never falls below zero. */
+  releaseSubagent(id: string): RunRecord | undefined {
+    const run = this.get(id);
+    if (!run) return undefined;
+    if (run.consumption.subagents <= 0) return run;
+    return this.save({ ...run, consumption: { ...run.consumption, subagents: run.consumption.subagents - 1 } });
+  }
+
   finishSubagent(id: string, credits: number): RunRecord | undefined {
     const run = this.get(id);
     return run ? this.save({ ...run, consumption: { ...run.consumption, credits: run.consumption.credits + credits } }) : undefined;

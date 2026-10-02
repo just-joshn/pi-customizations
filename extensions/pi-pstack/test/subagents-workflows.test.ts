@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { Type } from 'typebox';
 import { expect, test, vi } from 'vitest';
 import type { EventEnvelope } from '../src/subagents/events.ts';
 import { rpcChannel, rpcResultChannel } from '../src/subagents/rpc.ts';
@@ -184,6 +185,65 @@ test('a run the previous process left interrupted can be resumed', async () => {
   expect(runtime.get(created.id)).toMatchObject({ status: 'error', failure: { type: 'interrupted' } });
   const resumed = await runtime.resume(created.id, {} as never);
   expect(resumed).toMatchObject({ status: 'completed', attempt: 2, result: 'done' });
+});
+
+function stubRuntime(factory: unknown, emit: (type: string, data?: unknown) => void = () => {}): WorkflowRuntime {
+  return new WorkflowRuntime({
+    pi: { events: { emit: () => {}, on: () => () => {} } } as never,
+    events: { emit } as never,
+    factory: factory as never,
+    env: () => ({ COPILOT_DYNAMIC_WORKFLOWS: '1' }) as NodeJS.ProcessEnv,
+    settings: { read: () => ({ settings: { workflows: { maxConcurrentRuns: 4, defaultLimits: {} } } }) },
+    log: () => {},
+    persist: () => {},
+  });
+}
+
+test('pausing and halting every run emit workflow.run_settled', async () => {
+  const settled: unknown[] = [];
+  const holds: (() => void)[] = [];
+  const runtime = stubRuntime({}, (type, data) => {
+    if (type === 'workflow.run_settled') settled.push((data as { status?: unknown }).status);
+  });
+  const holding = (name: string) => defineWorkflow({ name, description: 'Holds until the test releases it', run: async () => new Promise<string>((resolve) => holds.push(() => resolve(name))) });
+  runtime.register(holding('pause-hold'));
+  runtime.register(holding('halt-hold'));
+  const pausing = runtime.start('pause-hold', undefined, {} as never, 'rpc');
+  const paused = await runtime.pause(runtime.runs()[0].id);
+  holds.shift()?.();
+  await pausing;
+  const halting = runtime.start('halt-hold', undefined, {} as never, 'rpc');
+  await runtime.haltAll();
+  holds.shift()?.();
+  await halting;
+  expect(paused.status).toBe('paused');
+  expect(settled).toEqual(['paused', 'halted']);
+});
+
+test('a failed preparation releases its admission and the guard never goes below zero', async () => {
+  const runtime = stubRuntime({
+    create: async () => {
+      throw new Error('preparation failed');
+    },
+  });
+  runtime.register(defineWorkflow({ name: 'failing-prep', description: 'Fails before the child starts', run: async (ctx) => ctx.agent('hello') }));
+  const failed = await runtime.start('failing-prep', undefined, {} as never, 'rpc');
+  expect(failed).toMatchObject({ status: 'error', failure: { type: 'error', message: 'preparation failed' }, consumption: { subagents: 0 } });
+  const store = new WorkflowStore(() => {});
+  const created = store.create('build', { limits }, undefined, {}, {}, 1000);
+  store.claim(created.id, 1, 1000);
+  expect(store.releaseSubagent(created.id)?.consumption.subagents).toBe(0);
+});
+
+test('a credit limit ends the run as workflow_limit_reached and a raised limit resumes it', async () => {
+  const runtime = stubRuntime({
+    create: async () => ({ launched: { settled: Promise.resolve({ status: 'completed', turns: ['ok'] }) } }),
+  });
+  runtime.register(defineWorkflow({ name: 'credit-flow', description: 'Spends past a zero credit ceiling', limits: { maxAiCredits: 0 }, run: async (ctx) => ctx.agent('hello') }));
+  const stopped = await runtime.start('credit-flow', undefined, {} as never, 'rpc');
+  expect(stopped).toMatchObject({ status: 'error', failure: { type: 'workflow_limit_reached', message: expect.stringContaining('maxAiCredits (0) was exceeded') }, consumption: { credits: 1 } });
+  const resumed = await runtime.resume(stopped.id, {} as never, { maxAiCredits: 5 });
+  expect(resumed).toMatchObject({ status: 'completed', attempt: 2, effectiveLimits: { maxAiCredits: 5 }, consumption: { credits: 2 } });
 });
 
 test('a waiter takes a slot the moment a holder releases it and never on a timer', async () => {
@@ -466,6 +526,46 @@ test('cancelling a running workflow stops its in-flight child', async () => {
     expect([cancelled.ok, (cancelled.result as { status: string }).status]).toEqual([true, 'cancelled']);
     await expect(pending).resolves.toMatchObject({ ok: true, result: { status: 'cancelled' } });
     expect(seen.find((event) => event.type === 'subagent.completed')?.data).toMatchObject({ cancelled: true });
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('a workflow subagent admitted after the run settled reports the closed limiter', async () => {
+  const { fixture } = await workflowFixture();
+  try {
+    const started = await rpc(fixture, 'session.workflow.run', { name: 'probe-flow' });
+    const id = (started.result as { id: string }).id;
+    expect((started.result as { status: string }).status).toBe('completed');
+    const late = await rpc(fixture, 'session.workflow.agent', { id, prompt: 'late' });
+    expect(late).toMatchObject({ ok: false, error: 'Factory subagent limiter is closed' });
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('a schema call retries once on a parse or match failure', async () => {
+  vi.stubEnv('COPILOT_DYNAMIC_WORKFLOWS', '1');
+  const fixture = await workerFixture();
+  const spawned: string[] = [];
+  fixture.eventBus.on('reference-assistant:event', (payload) => {
+    const { type } = payload as { type: string };
+    if (type === 'subagent.started') spawned.push(type);
+  });
+  fixture.eventBus.emit('reference-assistant:register-workflow', {
+    name: 'schema-flow',
+    description: 'A schema call the deterministic child never satisfies',
+    limits: { maxTotalSubagents: 4 },
+    run: async (ctx) => ctx.agent('hello', { schema: Type.Object({ ok: Type.Boolean() }) }),
+  } satisfies WorkflowDeclaration);
+  try {
+    const started = await rpc(fixture, 'session.workflow.run', { name: 'schema-flow' });
+    expect(spawned).toEqual(['subagent.started', 'subagent.started']);
+    expect(started.result).toMatchObject({
+      status: 'error',
+      failure: { type: 'error', message: expect.stringContaining('did not match the requested schema') },
+      consumption: { subagents: 2 },
+    });
   } finally {
     await fixture.close();
   }

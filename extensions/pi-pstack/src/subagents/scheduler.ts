@@ -111,10 +111,12 @@ export class SubagentScheduler {
   private readonly wakes: DeferredWakes;
   private rewinding = false;
   private disposing = false;
+  private announcing = false;
 
   constructor(private readonly deps: SchedulerDeps) {
     this.wakes = new DeferredWakes(deps.pi);
     deps.registry.subscribe((change) => {
+      if (this.announcing) return; // launch emits this one after subagent.started
       const hidden = deps.registry.get(change.id)?.workflowRunId !== undefined;
       if (!hidden) deps.events.emit('session.background_tasks_changed', {}, { ephemeral: true });
     });
@@ -142,8 +144,14 @@ export class SubagentScheduler {
       ...initialNode(plan, { toolCallId: input.toolCallId, description: input.description, name: input.name, depth: input.depth, now: this.now() }),
       ...(input.workflowRunId !== undefined ? { workflowRunId: input.workflowRunId } : {}),
     };
+    this.announcing = true;
+    try {
+      this.deps.registry.register(node);
+    } finally {
+      this.announcing = false;
+    }
     this.deps.events.emit('subagent.started', startedData(node), { agentId: node.id });
-    this.deps.registry.register(node);
+    if (node.workflowRunId === undefined) this.deps.events.emit('session.background_tasks_changed', {}, { ephemeral: true });
     this.deps.events.emit('subagent.configured', { model: node.model, ...(node.effort ? { reasoningEffort: node.effort } : {}), contextTier: node.contextTier, multiTurn: true as const });
     this.deps.events.emit('subagent.selected', { agentName: node.agentType, agentDisplayName: node.agentDisplayName, tools: plan.tools.declared });
     const live = await this.open(input).catch((error: unknown) => this.abandon(node, input, error));

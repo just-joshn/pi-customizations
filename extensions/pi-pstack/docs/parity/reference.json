@@ -1,46 +1,26 @@
 {
-  "source": "~/Documents/DOCS/pstack-reverse-engineering.md",
-  "sha256": "6dbe5ddf38a92ec213e5884e30de99e2e9ad21372ca7bae6494bdd18d7fe5e0c",
+  "source": "docs/parity/reference/pstack-architecture-reconstruction.md",
+  "sha256": "c10d0dcfa42f2e01dd47c7324e6a5d2e6157da9cf0c8d8c5e12e54d2dd0a4bb0",
   "slices": [
     {
       "id": "s1",
       "from": 1,
-      "to": 577
+      "to": 215
     },
     {
       "id": "s2",
-      "from": 578,
-      "to": 1182
+      "from": 216,
+      "to": 446
     },
     {
       "id": "s3",
-      "from": 1183,
-      "to": 1822
+      "from": 447,
+      "to": 640
     },
     {
       "id": "s4",
-      "from": 1823,
-      "to": 2510
-    },
-    {
-      "id": "s5",
-      "from": 2511,
-      "to": 3184
-    },
-    {
-      "id": "s6",
-      "from": 3185,
-      "to": 3901
-    },
-    {
-      "id": "s7",
-      "from": 3902,
-      "to": 4496
-    },
-    {
-      "id": "s8",
-      "from": 4497,
-      "to": 5095
+      "from": 641,
+      "to": 788
     }
   ]
 }

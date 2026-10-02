@@ -65,6 +65,9 @@ arena cross-judge pool: claude-opus-5-5-max, gpt-5.6-sol-max, grok-4.7-xhigh-fas
 swarm workers: grok-4.7-xhigh-fast
 architect runners: claude-opus-5-5-max, gpt-5.6-sol-max, grok-4.7-xhigh-fast
 interrogate reviewers: claude-opus-5-5-max, gpt-5.6-sol-max, grok-4.7-xhigh-fast
+trail reviewer: inherit-parent
+figure-it-out judge: inherit-parent
+recall miners: inherit-parent
 ```
 
 ### 6. Confirm

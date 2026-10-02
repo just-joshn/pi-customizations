@@ -283,9 +283,10 @@
   {
     "source": "upstream/skills/no-comments/SKILL.md",
     "destination": "skills/no-comments/SKILL.md",
-    "sha256": "3f4b4aaf3c14f1a6049d251c6b2649336cbf3798cf79c3dabc0e26033970f6c1",
+    "sha256": "86952c8e3c0e153f1561113806b7f8a8f61658fef461d483a2b6758aa11e605b",
     "executable": false,
     "transformations": [
+      "Enforce the read-only persona with the Task readonly flag, and state that the caller passes the resolved scope.",
       "Cite the principle that the encoding step applies.",
       "Keep a durable trail of a declined constraint instead of only the chat report."
     ]
@@ -409,7 +410,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/hillclimb.md",
     "destination": "skills/poteto-mode/playbooks/hillclimb.md",
-    "sha256": "4bbfae020f80ffb0f4270f3602f9b2c07e48f2ce2b3138c30bf7053fe43495ab",
+    "sha256": "7d04ce420b7ff6f31432774400011ee2ccb6e4387bf6b47091e8411178e60b43",
     "executable": false,
     "transformations": [
       "Use the show-me-your-work log name and columns instead of a second schema.",
@@ -1272,10 +1273,12 @@
   {
     "source": "upstream/skills/setup-pstack/SKILL.md",
     "destination": "skills/setup-pstack/SKILL.md",
-    "sha256": "f6125e52a45841694a9eaa7ee6d576a23619ba476e375bbd7567fa85ae58ce6a",
+    "sha256": "b7fa9b0733a9795e20be055716980af463143cb3fae3ca85191f27dd8fd76806",
     "executable": false,
     "transformations": [
       "Preserve ambient setup invocation and route it through the same native validated dialogs as the slash entry points.",
+      "List the three port-added role lines so a re-run preserves them instead of dropping them as retired.",
+      "Keep the setup-pstack role table in step with src/models.ts roleNames.",
       "Map model rule location to Pi agent configuration.",
       "Replace a Reference-only noun with its Pi equivalent."
     ]
