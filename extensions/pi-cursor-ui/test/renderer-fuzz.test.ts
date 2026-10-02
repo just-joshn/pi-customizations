@@ -531,7 +531,9 @@ describe('literal result rows', () => {
     expect(plainLines(renderReadResult({ content: [{ type: 'text', text: 'ENOENT: nope' }] }, { expanded: false, isPartial: false }, theme, rowContext({ isError: true })), 80)).toEqual(['Error: ENOENT: nope']);
     expect(plainLines(renderReadResult({ content: [{ type: 'text', text: 'ENOENT: nope' }] }, { expanded: true, isPartial: false }, theme, rowContext({ isError: true })), 80)).toEqual(['ENOENT: nope']);
   });
+});
 
+describe('literal tool result rows', () => {
   test('renders the edit diff body', () => {
     const diff = renderEditResult({ content: [], details: { diff: '+++ a\n--- b\n+add\n-rem\n ctx' } }, { expanded: true, isPartial: false }, theme, rowContext());
     expect(plainLines(diff, 80)).toEqual(['+++ a', '--- b', '+add', '-rem', ' ctx']);
@@ -548,7 +550,9 @@ describe('literal result rows', () => {
     expect(plainLines(renderFindResult({ content: [{ type: 'text', text: 'src/a.ts\nsrc/b.ts' }] }, { expanded: true, isPartial: false }, theme, rowContext()), 80)).toEqual(['src/a.ts', 'src/b.ts']);
     expect(plainLines(renderLsResult({ content: [{ type: 'text', text: 'a.ts\nb.ts' }] }, { expanded: true, isPartial: false }, theme, rowContext()), 80)).toEqual(['a.ts', 'b.ts']);
   });
+});
 
+describe('literal chrome rows', () => {
   test('renders the header and footer literal rows', () => {
     vi.stubEnv('HOME', HOME);
     const header = createHeader({ cwd: `${HOME}/proj` } as unknown as ExtensionContext)(requestRenderOnly(), theme);
