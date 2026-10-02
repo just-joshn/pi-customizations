@@ -13,6 +13,7 @@ const socket = `pstack-progress-${process.pid}`;
 const STATUS_CENSUS = '68 skills, 66 prompt templates';
 const checks = [];
 let directory;
+let panePid;
 
 function shellQuote(value) {
   return `'${String(value).replaceAll("'", `'\\''`)}'`;
@@ -84,6 +85,22 @@ function startTui(pi, env, cwd) {
     '--offline',
   ].join(' ');
   tmux(['-f', '/dev/null', 'new-session', '-d', '-x', '120', '-y', '40', '-s', session, '-c', cwd, command]);
+  panePid = Number(tmux(['display-message', '-p', '-t', session, '#{pane_pid}']));
+}
+
+function isAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === 'EPERM';
+  }
+}
+
+async function waitForExit(pid, timeoutMs = 10000) {
+  const deadline = Date.now() + timeoutMs;
+  while (isAlive(pid) && Date.now() < deadline) await new Promise((resolveWait) => setTimeout(resolveWait, 50));
+  if (isAlive(pid)) throw new Error(`Pi process ${pid} still running ${timeoutMs}ms after the tmux server was killed.`);
 }
 
 async function showStatus() {
@@ -169,5 +186,6 @@ try {
 } finally {
   spawnSync('tmux', ['-L', socket, 'kill-session', '-t', session], { stdio: 'ignore' });
   spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
+  if (panePid) await waitForExit(panePid);
   if (directory) await rm(directory, { recursive: true, force: true });
 }
