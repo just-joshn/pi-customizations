@@ -41,9 +41,10 @@ const WorkflowAgentCall = Type.Object({ id: Type.String({ minLength: 1 }), promp
 const JournalPut = Type.Object({ id: Type.String({ minLength: 1 }), key: Type.String({ minLength: 1 }), value: Type.Unknown() });
 const Request = Type.Object({ id: Type.String(), method: Type.String(), params: Type.Optional(Type.Unknown()) });
 
-export function publicTask(node: AgentNode) {
+export function publicTask(node: AgentNode, taskStoreId?: string) {
   return {
     id: node.id,
+    taskStoreId: taskStoreId ?? node.registryId,
     kind: 'agent' as const,
     status: node.status,
     agentType: node.agentType,
@@ -114,10 +115,10 @@ export class SubagentRpc {
       }
       case 'session.tasks.list':
       case 'session.tasks.refresh':
-        return this.parts.scheduler.list().map(publicTask);
+        return this.parts.scheduler.list().map((node) => publicTask(node));
       case 'session.tasks.cancel': {
         const input = parse(method, Cancel, params);
-        return input.id === '*' ? (await this.parts.scheduler.cancelAll(input.includeIdle ?? false)).map(publicTask) : publicTask(await this.parts.scheduler.cancel(input.id));
+        return input.id === '*' ? (await this.parts.scheduler.cancelAll(input.includeIdle ?? false)).map((node) => publicTask(node)) : publicTask(await this.parts.scheduler.cancel(input.id));
       }
       case 'session.tasks.remove':
         this.parts.registry.remove(parse(method, Id, params).id);

@@ -3,6 +3,7 @@ import { Check } from 'typebox/value';
 import { runShellCommand } from './shell-command.ts';
 
 export const hookOutputLimit = 10_000;
+export const hookEventChannel = 'copilot:hook-event';
 const defaultTimeoutMs = 30_000;
 
 const HookEntry = Type.Union([Type.String({ minLength: 1 }), Type.Object({ command: Type.String({ minLength: 1 }), timeoutSec: Type.Optional(Type.Number({ exclusiveMinimum: 0 })) })]);

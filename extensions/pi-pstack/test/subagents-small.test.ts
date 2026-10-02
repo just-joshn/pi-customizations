@@ -147,7 +147,7 @@ test('a persisted running agent is closed as cancelled when the session restarts
     };
     fixture.session.sessionManager.appendCustomEntry('copilot-agent', node);
     await fixture.session.extensionRunner.emit({ type: 'session_start', reason: 'reload' });
-    expect(fixture.subagentLogs).toContain('Closed interrupted sub-agent records on resume: closed 1, dangling 0');
+    expect(fixture.subagentLogs.join('\n')).toContain('Closed interrupted sub-agent records on resume: closed 1, dangling 0');
     expect(String(((await fixture.call('read_agent', { agent_id: 'ghost' })) as { content: { text: string }[] }).content[0]?.text)).toContain('Agent was cancelled.');
   } finally {
     await fixture.close();

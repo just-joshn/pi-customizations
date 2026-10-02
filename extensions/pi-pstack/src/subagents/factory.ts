@@ -6,12 +6,15 @@ import type { AgentDefinition } from './agent-definition.ts';
 import type { AgentNode } from './agent-node.ts';
 import { type AgentGates, offeredAgents, type RegistryInputs, resolveAgentType } from './agent-registry.ts';
 import type { ChildContextEntry } from './child-session.ts';
+import { parsePatterns } from './content-exclusion.ts';
 import { buildChildPlan, type ChildLimits, type ChildPlan } from './context-builder.ts';
 import { DiscoveryCache } from './custom-discovery.ts';
 import { gatherEnvironment } from './environment-facts.ts';
-import { rubberDuckRollout, subconsciousEnabled } from './feature-flags.ts';
+import { featureEnabled, rubberDuckRollout, subconsciousEnabled } from './feature-flags.ts';
 import { type HostEffect, runHostEffect, type SubagentHost } from './host-effects.ts';
 import type { LimiterProvider } from './limiter-provider.ts';
+import type { ParentServer } from './mcp-inheritance.ts';
+import { gatherParentServers, serversForChild } from './mcp-inheritance.ts';
 import { type ModelOption, type ModelSelection, selectModel } from './model-selection.ts';
 import type { Launched, SubagentScheduler } from './scheduler.ts';
 import type { ContextTier, CopilotSettings } from './settings.ts';
@@ -44,6 +47,7 @@ export function modelOption(model: Model<never> | Pick<Model<never>, 'provider' 
 export class SubagentFactory {
   private readonly rootAgentId = randomUUID();
   private readonly discovery: DiscoveryCache;
+  private offeredCache: readonly AgentDefinition[] | undefined;
 
   constructor(private readonly deps: FactoryDeps) {
     this.discovery = deps.discovery ?? new DiscoveryCache();
@@ -76,8 +80,16 @@ export class SubagentFactory {
   }
 
   offered(ctx: ExtensionContext): readonly AgentDefinition[] {
+    if (this.offeredCache) return this.offeredCache;
     const { settings } = this.deps.settings.read(ctx.cwd);
-    return offeredAgents(this.registryInputs(ctx, settings));
+    this.offeredCache = offeredAgents(this.registryInputs(ctx, settings));
+    return this.offeredCache;
+  }
+
+  /** The invalidateAgentToolConfig creation effect: the offered surface and the rubber-duck gate are recomputed after it. */
+  invalidateToolConfig(): void {
+    this.offeredCache = undefined;
+    this.clearDiscovery();
   }
 
   host(ctx: ExtensionContext, settings: CopilotSettings): SubagentHost {
@@ -110,10 +122,13 @@ export class SubagentFactory {
     if (!resolved.ok) throw new Error(resolved.message);
     const scope = this.deps.scope();
     const depth = scope?.depth ?? 0;
+    const gathered = await gatherParentServers(this.deps.pi);
+    const inheritedServers = this.deps.scheduler.blocksStart() ? [] : serversForChild(gathered, resolved.agent);
     const lease = this.deps.limiters.get(ctx.cwd).tryAcquire({ kind: 'spawn', depth });
     if (!lease.ok) throw new Error(lease.message);
     try {
       const plan = await this.plan({
+        gathered,
         call,
         definition: resolved.agent,
         settings,
@@ -125,26 +140,48 @@ export class SubagentFactory {
         rootSessionId: scope?.rootSessionId ?? ctx.sessionManager.getSessionId(),
         extras,
       });
-      const launched = await this.deps.scheduler.launch({
-        plan,
-        ctx,
-        signal,
-        toolCallId,
-        description: call.description,
-        name: call.name,
-        depth: depth + 1,
-        parentAgentId: scope?.agentId ?? this.rootAgentId,
-        parentTools: this.deps.pi.getActiveTools(),
-        contextManagement: settings.subagents.contextManagementTools,
-        release: lease.release,
-        ...(extras.workflowRunId !== undefined ? { workflowRunId: extras.workflowRunId } : {}),
-      });
-      const node = this.deps.scheduler.get(launched.id);
-      return { launched, node };
+      const launched = await this.launch(plan, { call, ctx, signal, toolCallId, depth, scope, settings, raw, extras, inheritedServers, lease });
+      return { launched, node: this.deps.scheduler.get(launched.id) };
     } catch (error) {
       lease.release();
       throw error;
     }
+  }
+
+  private async launch(
+    plan: ChildPlan,
+    input: Readonly<{
+      call: TaskCall;
+      ctx: ExtensionContext;
+      signal: AbortSignal | undefined;
+      toolCallId: string;
+      depth: number;
+      scope: { agentId?: string; registryId?: string } | undefined;
+      settings: CopilotSettings;
+      raw: unknown;
+      extras: CreateExtras;
+      inheritedServers: readonly ParentServer[];
+      lease: { release: () => void };
+    }>,
+  ): Promise<Launched> {
+    const launched = await this.deps.scheduler.launch({
+      plan,
+      ctx: input.ctx,
+      signal: input.signal,
+      toolCallId: input.toolCallId,
+      description: input.call.description,
+      name: input.call.name,
+      depth: input.depth + 1,
+      parentAgentId: input.scope?.agentId ?? this.rootAgentId,
+      parentTools: this.deps.pi.getActiveTools(),
+      contextManagement: input.settings.subagents.contextManagementTools,
+      release: input.lease.release,
+      ...(input.extras.workflowRunId !== undefined ? { workflowRunId: input.extras.workflowRunId } : {}),
+      inheritedServers: input.inheritedServers,
+      exclusionPatterns: parsePatterns(input.raw),
+      aggressiveTools: featureEnabled(this.deps.env, 'copilot_cli_task_subagent_aggressive_tool_deferral'),
+    });
+    return launched;
   }
 
   private choose(call: TaskCall, definition: AgentDefinition, settings: CopilotSettings, ctx: ExtensionContext): ModelSelection {
@@ -169,6 +206,7 @@ export class SubagentFactory {
   }
 
   private async plan(input: {
+    gathered: readonly ParentServer[];
     call: TaskCall;
     definition: AgentDefinition;
     settings: CopilotSettings;
@@ -187,6 +225,7 @@ export class SubagentFactory {
     if (refusal) throw new Error(refusal);
     const agentId = randomUUID();
     const hookContext = await this.startHooks(input.raw, agentId, definition, ctx, input.rootSessionId);
+    for (const server of input.gathered) this.deps.pi.events.emit('mcp_inherited', { name: server.name });
     return buildChildPlan({
       definition,
       selection,
@@ -206,6 +245,7 @@ export class SubagentFactory {
       headless: call.mode === 'background' || !ctx.hasUI,
       ...(hookContext ? { hookContext } : {}),
       ...(input.extras.limits ? { limits: input.extras.limits } : {}),
+      writeGate: () => Boolean(process.env.PI_PSTACK_PLAN_MODE),
     });
   }
 }

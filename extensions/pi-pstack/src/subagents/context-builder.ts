@@ -31,6 +31,7 @@ export type BuildRequest = Readonly<{
   hookContext?: string;
   customInstructions?: string;
   systemMessage?: SystemMessageOption;
+  writeGate?: () => boolean;
 }>;
 
 export type ChildPlan = Readonly<{
@@ -51,6 +52,7 @@ export type ChildPlan = Readonly<{
   limits: ChildLimits;
   cwd: string;
   effects: readonly CreationEffect[];
+  writeGate: () => boolean;
 }>;
 
 const required = ['agentId', 'registryId', 'rootSessionId', 'cwd'] as const;
@@ -102,6 +104,7 @@ export function buildChildPlan(request: BuildRequest): ChildPlan {
     limits: request.limits ?? {},
     cwd: request.cwd,
     effects: creationEffects,
+    writeGate: request.writeGate ?? (() => true),
   };
   const missing = missingField(plan);
   if (missing) throw new Error(`subagent creation plan is missing required field: ${missing}`);
