@@ -48,7 +48,3 @@ export function resolveAgentType(requested: string, inputs: RegistryInputs): Res
   if (agent.disableModelInvocation) return { ok: false, message: `Subagent '${agent.name}' cannot be invoked by the model. Ask the user to run it directly.` };
   return { ok: true, agent };
 }
-
-export function findAgent(name: string, custom: readonly AgentDefinition[]): AgentDefinition | undefined {
-  return declared(custom).get(name);
-}
