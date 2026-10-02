@@ -78,7 +78,7 @@ export class RpcChild {
       }, deadlineMs);
       this.pending.set(id, { resolve, reject, timer });
       this.process.stdin?.write(`${JSON.stringify({ id, ...command })}\n`, (error) => {
-        if (error) this.fail(id, error);
+        if (error) this.failWrite(id, error);
       });
     });
   }
@@ -93,6 +93,13 @@ export class RpcChild {
 
   kill(signal: NodeJS.Signals): void {
     if (!this.exited) this.process.kill(signal);
+  }
+
+  // EPIPE means the child's stdin reader is gone. Its exit record is the better error, and it
+  // arrives right after, so the deadline timer is the bound if the process lingers.
+  private failWrite(id: string, error: NodeJS.ErrnoException): void {
+    if (error.code === 'EPIPE') void this.closed.then(() => this.fail(id, error));
+    else this.fail(id, error);
   }
 
   private fail(id: string, error: Error): void {
