@@ -11,7 +11,7 @@ export type SidekickPorts = Readonly<{
   send: (agentId: string, text: string, ctx: ExtensionContext) => Promise<void>;
   cancel: (agentId: string) => Promise<void>;
   state: (agentId: string) => SidekickState | undefined;
-  facts: () => LaunchFacts;
+  facts: () => Promise<LaunchFacts>;
   deliver: (spec: SidekickSpec, message: string, truncated: boolean) => void;
   log: (message: string) => void;
 }>;
@@ -35,8 +35,8 @@ export class SidekickManager {
     private readonly ports: SidekickPorts,
   ) {}
 
-  enabled(): readonly SidekickSpec[] {
-    const facts = this.ports.facts();
+  async enabled(): Promise<readonly SidekickSpec[]> {
+    const facts = await this.ports.facts();
     return this.specs.filter((spec) => sidekickEnabled(spec, this.env, facts));
   }
 
@@ -46,7 +46,7 @@ export class SidekickManager {
 
   async trigger(name: TriggerName, text: string, ctx: ExtensionContext): Promise<void> {
     if (name === 'user.message') this.sends = new Map();
-    for (const spec of this.enabled()) {
+    for (const spec of await this.enabled()) {
       const limit = spec.triggers[name];
       if (limit === undefined) continue;
       if (name === 'user.message' && spec.cancelOnNewTurn) await this.cancel(spec);

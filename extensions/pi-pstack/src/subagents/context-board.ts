@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import type { ExtensionContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
+import { type ExtensionContext, type ToolDefinition, withFileMutationQueue } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
 
 export type Board = Readonly<Record<string, string>>;
@@ -62,12 +62,14 @@ export function contextBoardTool(path: (cwd: string) => string, onChange: (ctx: 
     annotations: { openWorldHint: false },
     execute: async (_id, params, _signal, _update, ctx) => {
       const file = path(ctx.cwd);
-      const board = applyBoardAction(readBoard(file), params);
-      if (params.action !== 'read') {
-        writeBoard(file, board);
-        onChange(ctx);
-      }
-      return { content: [{ type: 'text', text: render(board) }], details: { board } };
+      const board = await withFileMutationQueue(file, async () => {
+        const next = applyBoardAction(readBoard(file), params);
+        if (params.action !== 'read') writeBoard(file, next);
+        return next;
+      });
+      if (params.action !== 'read') onChange(ctx);
+      const details = { board };
+      return { content: [{ type: 'text', text: render(board) }], details, structuredContent: details };
     },
   };
 }

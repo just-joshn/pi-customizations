@@ -1,10 +1,10 @@
 import type { AgentToolResult, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
-import { Check } from 'typebox/value';
 import type { ChildLimits } from './context-builder.ts';
+import { subagentNamespace } from './delegation-guidance.ts';
 import type { SubagentFactory } from './factory.ts';
 import { featureEnabled } from './feature-flags.ts';
-import { syncResultText } from './tool-results.ts';
+import { boundedForModel, syncResultText } from './tool-results.ts';
 
 export type Specialized = Readonly<{ tool: 'execution_subagent' | 'search_subagent'; agentType: 'task' | 'explore'; flag: string; modelVariable: string; turnsVariable: string; defaultTurns: number; description: string }>;
 
@@ -49,17 +49,18 @@ export function specializedTool(spec: Specialized, factory: SubagentFactory, env
     parameters: Input,
     outputSchema: Details,
     exposure: 'direct',
+    namespace: subagentNamespace,
     executionMode: 'parallel',
     annotations: { openWorldHint: true },
     execute: async (id, params, signal, _update, ctx): Promise<AgentToolResult<Static<typeof Details>>> => {
-      if (!Check(Input, params)) throw new Error(`Invalid ${spec.tool} input.`);
       const model = env[spec.modelVariable]?.trim();
       const limits: ChildLimits = { maxAgentTurns: specializedTurns(env, spec) };
       const call = { agent_type: spec.agentType, name: spec.tool, description: params.description, prompt: params.prompt, mode: 'sync' as const, ...(model ? { model } : {}) };
       const { launched, node } = await factory.create(call, id, signal, ctx, { limits });
       const settled = await launched.settled;
       if (settled.status === 'failed') throw new Error(settled.error ?? 'The agent failed.');
-      return { content: [{ type: 'text', text: syncResultText(settled.turns.at(-1) ?? '') }], details: { agent_id: node.id, status: settled.status } };
+      const details = { agent_id: node.id, status: settled.status };
+      return { content: [{ type: 'text', text: boundedForModel(syncResultText(settled.turns.at(-1) ?? ''), settled.sessionFile) }], details, structuredContent: details, ...(settled.usage ? { usage: settled.usage } : {}) };
     },
   };
 }

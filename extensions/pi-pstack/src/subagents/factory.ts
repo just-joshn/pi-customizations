@@ -9,7 +9,7 @@ import type { ChildContextEntry } from './child-session.ts';
 import { parsePatterns } from './content-exclusion.ts';
 import { buildChildPlan, type ChildLimits, type ChildPlan } from './context-builder.ts';
 import { DiscoveryCache } from './custom-discovery.ts';
-import { gatherEnvironment } from './environment-facts.ts';
+import { gatherEnvironment, systemProbe } from './environment-facts.ts';
 import { featureEnabled, rubberDuckRollout, subconsciousEnabled } from './feature-flags.ts';
 import { type HostEffect, runHostEffect, type SubagentHost } from './host-effects.ts';
 import type { LimiterProvider } from './limiter-provider.ts';
@@ -38,6 +38,7 @@ export type FactoryDeps = Readonly<{
 }>;
 
 const toolNames = { grep: 'grep', glob: 'find', shell: 'bash', view: 'read' };
+const writeTools = ['edit', 'write'];
 
 export function modelOption(model: Model<never> | Pick<Model<never>, 'provider' | 'id' | 'cost' | 'contextWindow'>): ModelOption {
   return { reference: `${model.provider}/${model.id}`, provider: model.provider, id: model.id, cost: model.cost.input + model.cost.output, contextWindow: model.contextWindow };
@@ -81,7 +82,7 @@ export class SubagentFactory {
 
   offered(ctx: ExtensionContext): readonly AgentDefinition[] {
     if (this.offeredCache) return this.offeredCache;
-    const { settings } = this.deps.settings.read(ctx.cwd);
+    const { settings } = this.deps.settings.read();
     this.offeredCache = offeredAgents(this.registryInputs(ctx, settings));
     return this.offeredCache;
   }
@@ -90,6 +91,18 @@ export class SubagentFactory {
   invalidateToolConfig(): void {
     this.offeredCache = undefined;
     this.clearDiscovery();
+  }
+
+  /** The tools a child may take from its parent. A definition the host supplies, such as a sidekick's, grants the tools it names. */
+  private grantedTools(definition: AgentDefinition | undefined): readonly string[] {
+    const active = this.deps.pi.getActiveTools();
+    return definition?.tools.kind === 'named' ? [...active, ...definition.tools.names] : active;
+  }
+
+  /** A child writes only while the parent still has a write tool active, so a parent in plan mode keeps its children read-only. */
+  private parentCanWrite(): boolean {
+    const active = this.deps.pi.getActiveTools();
+    return writeTools.some((name) => active.includes(name));
   }
 
   host(ctx: ExtensionContext, settings: Reference AssistantSettings): SubagentHost {
@@ -114,7 +127,7 @@ export class SubagentFactory {
 
   async create(call: TaskCall, toolCallId: string, signal: AbortSignal | undefined, ctx: ExtensionContext, extras: CreateExtras = {}): Promise<Created> {
     if (this.deps.scheduler.blocksStart()) throw new Error(rewindingStartMessage);
-    const { settings, raw } = this.deps.settings.read(ctx.cwd);
+    const { settings, raw } = this.deps.settings.read();
     const host = this.host(ctx, settings);
     for (const action of ['checkStartAllowed', 'prepareTools']) this.effect(host, action);
     const inputs = this.registryInputs(ctx, settings);
@@ -122,13 +135,12 @@ export class SubagentFactory {
     if (!resolved.ok) throw new Error(resolved.message);
     const scope = this.deps.scope();
     const depth = scope?.depth ?? 0;
-    const gathered = await gatherParentServers(this.deps.pi);
+    const gathered = gatherParentServers(this.deps.pi);
     const inheritedServers = this.deps.scheduler.blocksStart() ? [] : serversForChild(gathered, resolved.agent);
-    const lease = this.deps.limiters.get(ctx.cwd).tryAcquire({ kind: 'spawn', depth });
+    const lease = this.deps.limiters.get().tryAcquire({ kind: 'spawn', depth });
     if (!lease.ok) throw new Error(lease.message);
     try {
       const plan = await this.plan({
-        gathered,
         call,
         definition: resolved.agent,
         settings,
@@ -173,7 +185,7 @@ export class SubagentFactory {
       name: input.call.name,
       depth: input.depth + 1,
       parentAgentId: input.scope?.agentId ?? this.rootAgentId,
-      parentTools: this.deps.pi.getActiveTools(),
+      parentTools: this.grantedTools(input.extras.definition),
       contextManagement: input.settings.subagents.contextManagementTools,
       release: input.lease.release,
       ...(input.extras.workflowRunId !== undefined ? { workflowRunId: input.extras.workflowRunId } : {}),
@@ -206,7 +218,6 @@ export class SubagentFactory {
   }
 
   private async plan(input: {
-    gathered: readonly ParentServer[];
     call: TaskCall;
     definition: AgentDefinition;
     settings: Reference AssistantSettings;
@@ -220,12 +231,15 @@ export class SubagentFactory {
   }): Promise<ChildPlan> {
     const { call, definition, settings, ctx } = input;
     const selection = this.choose(call, definition, settings, ctx);
-    const tools = planTools({ definition, parentTools: this.deps.pi.getActiveTools(), available: this.deps.pi.getAllTools().map((tool) => tool.name), contextManagement: settings.subagents.contextManagementTools });
+    const tools = planTools({ definition, parentTools: this.grantedTools(input.extras.definition), available: this.deps.pi.getAllTools().map((tool) => tool.name), contextManagement: settings.subagents.contextManagementTools });
     const refusal = zeroToolsMessage(definition.name, tools);
     if (refusal) throw new Error(refusal);
     const agentId = randomUUID();
+    const environment = await gatherEnvironment(
+      ctx.cwd,
+      systemProbe((command, args, options) => this.deps.pi.exec(command, args, options)),
+    );
     const hookContext = await this.startHooks(input.raw, agentId, definition, ctx, input.rootSessionId);
-    for (const server of input.gathered) this.deps.pi.events.emit('mcp_inherited', { name: server.name });
     return buildChildPlan({
       definition,
       selection,
@@ -240,12 +254,12 @@ export class SubagentFactory {
       mode: call.mode ?? 'sync',
       tools,
       toolNames,
-      environment: gatherEnvironment(ctx.cwd),
+      environment,
       now: new Date(),
       headless: call.mode === 'background' || !ctx.hasUI,
       ...(hookContext ? { hookContext } : {}),
       ...(input.extras.limits ? { limits: input.extras.limits } : {}),
-      writeGate: () => Boolean(process.env.PI_PSTACK_PLAN_MODE),
+      writeGate: () => this.parentCanWrite(),
     });
   }
 }

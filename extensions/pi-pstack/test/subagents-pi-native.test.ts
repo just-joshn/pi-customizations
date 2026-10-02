@@ -3,10 +3,11 @@ import { join } from 'node:path';
 
 import type { McpServerConfig } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
-import { deferTools, forwardedUi } from '../src/subagents/child-session.ts';
+import { forwardedUi } from '../src/subagents/child-session.ts';
 import { contentExclusionExtension, excludedPath, globToRegExp, isExcluded, parsePatterns } from '../src/subagents/content-exclusion.ts';
 import { fileTrackingGate } from '../src/subagents/file-tracking.ts';
 import { gatherParentServers, inheritedMcpExtension, serversForChild } from '../src/subagents/mcp-inheritance.ts';
+import { toolPolicyExtension } from '../src/subagents/tool-policy.ts';
 import { writeGateExtension } from '../src/subagents/write-gate.ts';
 import { workerFixture } from './worker-fixture.ts';
 
@@ -27,10 +28,9 @@ function fakePi(servers: { name: string; config: Record<string, unknown> }[] = [
   return { pi: pi as never, registered, fireChange: () => handlers.get('mcp_servers_change')?.({ type: 'mcp_servers_change', servers: [] } as never) };
 }
 
-test('gathering waits for the catalog to settle and snapshots every parent server', async () => {
+test('gathering snapshots every server the parent extensions registered', () => {
   const { pi } = fakePi([{ name: 'github', config: { command: 'gh' } }]);
-  const gathered = await gatherParentServers(pi, { settledMs: 1 });
-  expect(gathered).toEqual([{ name: 'github', config: { command: 'gh' } }]);
+  expect(gatherParentServers(pi)).toEqual([{ name: 'github', config: { command: 'gh' } }]);
 });
 
 test('the child keeps the parent servers its definition does not own', () => {
@@ -108,11 +108,44 @@ test('the write gate blocks edits while the parent reports plan mode', () => {
 });
 
 test.for([
-  { name: 'two tools without the flag', effective: ['a', 'b'], aggressive: false, active: ['a', 'b'], deferred: [] },
-  { name: 'thirty-one tools past the threshold', effective: Array.from({ length: 31 }, (_, index) => `t${index}`), aggressive: false, active: [], deferred: Array.from({ length: 31 }, (_, index) => `t${index}`) },
-  { name: 'the flag with three tools', effective: ['read', 'grep', 'custom'], aggressive: true, active: ['read', 'grep'], deferred: ['custom'] },
-])('$name defers the non-core surface', ({ effective, aggressive, active, deferred }) => {
-  expect(deferTools(effective, { aggressive })).toEqual({ active, deferred });
+  { name: 'without the flag', deferred: false, exposure: undefined },
+  { name: 'with aggressive deferral', deferred: true, exposure: 'deferred' },
+])('inherited servers keep their exposure $name', ({ deferred, exposure }) => {
+  const registered: { name: string; config: unknown }[] = [];
+  const handlers = new Map<string, (event: never) => unknown>();
+  const pi = {
+    registerMcpServer: (name: string, config: unknown) => registered.push({ name, config }),
+    on: (name: string, handler: (event: never) => unknown) => handlers.set(name, handler),
+  };
+  inheritedMcpExtension([{ name: 'github', config: { command: 'gh' } }], () => {}, deferred)(pi as never);
+  handlers.get('session_start')?.({ type: 'session_start' } as never);
+  expect(registered).toEqual([{ name: 'github', config: { command: 'gh', ...(exposure ? { exposure } : {}) } }]);
+});
+
+test('an agent with named tools drops tools that register later and refuses a call to them', () => {
+  const handlers = new Map<string, (event: never) => unknown>();
+  const active: string[][] = [];
+  const pi = {
+    on: (name: string, handler: (event: never) => unknown) => handlers.set(name, handler),
+    getAllTools: () => [{ name: 'read' }, { name: 'grep' }, { name: 'mcp__github__issue_write' }, { name: 'codemode' }],
+    setActiveTools: (names: string[]) => active.push(names),
+  };
+  toolPolicyExtension({ definition: { tools: { kind: 'named', names: ['view', 'grep'] } }, parentTools: ['read', 'grep', 'codemode', 'mcp__github__issue_write'], contextManagement: false })(pi as never);
+  handlers.get('before_agent_start')?.({ type: 'before_agent_start' } as never);
+  expect(active).toEqual([['read', 'grep']]);
+  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '1', toolName: 'codemode', input: {} } as never)).toEqual({ block: true, reason: 'codemode is not one of the tools this agent was given' });
+  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '2', toolName: 'grep', input: {} } as never)).toBe(undefined);
+});
+
+test('only an agent with named tools registers a tool policy', () => {
+  const registered = (kind: 'all' | 'named') => {
+    const handlers = new Map<string, unknown>();
+    const definition = kind === 'all' ? { tools: { kind } as const } : { tools: { kind, names: ['read'] } as const };
+    toolPolicyExtension({ definition, parentTools: [], contextManagement: false })({ on: (name: string, handler: unknown) => handlers.set(name, handler) } as never);
+    return [...handlers.keys()];
+  };
+  expect(registered('named')).toEqual(['before_agent_start', 'tool_call']);
+  expect(registered('all')).toEqual([]);
 });
 
 test('the forwarded ui attributes dialogs to the child', () => {

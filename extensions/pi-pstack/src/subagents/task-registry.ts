@@ -64,7 +64,6 @@ export class TaskRegistry {
     const before = this.require(id);
     const next = this.next(before, mutation);
     this.nodes = new Map([...this.nodes, [id, next]]);
-    this.hooks.persist(next);
     this.emit({ id, progress: mutation });
     return next;
   }

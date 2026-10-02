@@ -1,10 +1,8 @@
-import { homedir } from 'node:os';
-
 import type { AgentSession, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
-import { getAgentDir } from '@earendil-works/pi-coding-agent';
+import { Type } from 'typebox';
+import { Check } from 'typebox/value';
 import type { TaskRecord } from '../worker-records.ts';
 import { sumUsage } from '../worker-support.ts';
-import { readSettingsLayers } from './settings-layers.ts';
 import { runShellCommand } from './shell-command.ts';
 import { type Decorations, StatusLinePoller } from './status-line.ts';
 import { panelLines, type TaskSnapshot, taskSnapshot } from './task-snapshots.ts';
@@ -12,10 +10,10 @@ import { panelLines, type TaskSnapshot, taskSnapshot } from './task-snapshots.ts
 export const taskPanelWidget = 'pstack-agents';
 type Registry = Readonly<{ list: () => readonly TaskRecord[]; liveMessages: (id: string) => AgentSession['messages'] | undefined }>;
 
-async function statusLineCommand(ctx: ExtensionContext): Promise<string | undefined> {
-  const { user, project } = await readSettingsLayers({ cwd: ctx.cwd, home: homedir(), agentDir: getAgentDir() });
-  const configured = [...user, ...project].findLast((settings) => settings.subagentStatusLine !== undefined)?.subagentStatusLine as { type?: unknown; command?: unknown } | undefined;
-  return configured?.type === 'command' && typeof configured.command === 'string' ? configured.command : undefined;
+const StatusLineSettings = Type.Object({ subagentStatusLine: Type.Object({ type: Type.Literal('command'), command: Type.String({ minLength: 1 }) }) });
+
+function statusLineCommand(settings: object): string | undefined {
+  return Check(StatusLineSettings, settings) ? settings.subagentStatusLine.command : undefined;
 }
 
 class TaskPanel {
@@ -28,10 +26,11 @@ class TaskPanel {
     private readonly registry: Registry,
     log: (message: string) => void,
     env: NodeJS.ProcessEnv,
+    settings: () => object,
   ) {
     this.poller = new StatusLinePoller({
       tasks: () => this.tasks(),
-      command: () => (this.ctx ? statusLineCommand(this.ctx) : Promise.resolve(undefined)),
+      command: () => Promise.resolve(this.ctx ? statusLineCommand(settings()) : undefined),
       trusted: () => this.ctx?.isProjectTrusted() ?? false,
       enabled: () => !env.CLAUDE_CODE_SIMPLE,
       columns: () => process.stdout.columns ?? 80,
@@ -95,7 +94,12 @@ class TaskPanel {
 }
 
 export function registerTaskPanel(pi: ExtensionAPI, registry: Registry, env: NodeJS.ProcessEnv = process.env): void {
-  const panel = new TaskPanel(registry, (message) => pi.events.emit('pstack:subagent-log', message), env);
+  const panel = new TaskPanel(
+    registry,
+    (message) => pi.events.emit('pstack:subagent-log', message),
+    env,
+    () => pi.getSettings(),
+  );
   pi.on('session_start', (_event, ctx) => panel.attach(ctx));
   pi.on('session_shutdown', () => panel.detach());
   pi.on('input', () => {

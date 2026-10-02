@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
@@ -41,10 +41,16 @@ test('persisting merges into the existing file and creates a missing one', () =>
   const file = join(dir, 'nested', 'settings.json');
   persistPreference(file, { kind: 'effort', agent: 'task', level: 'low' });
   expect(JSON.parse(readFileSync(file, 'utf8'))).toEqual({ subagents: { agents: { task: { effortLevel: 'low' } } } });
-  mkdirSync(join(dir, 'other'));
-  writeFileSync(join(dir, 'other', 'settings.json'), '{broken');
-  persistPreference(join(dir, 'other', 'settings.json'), { kind: 'tier', agent: 'task', tier: 'default' });
-  expect(JSON.parse(readFileSync(join(dir, 'other', 'settings.json'), 'utf8'))).toEqual({ subagents: { agents: { task: { contextTier: 'default' } } } });
+  const written = persistPreference(file, { kind: 'tier', agent: 'task', tier: 'default' });
+  expect(written).toEqual({ subagents: { agents: { task: { effortLevel: 'low', contextTier: 'default' } } } });
+  expect(JSON.parse(readFileSync(file, 'utf8'))).toEqual(written);
+});
+
+test('a settings file that cannot be parsed is left untouched instead of overwritten', () => {
+  const file = join(scratchDir('pstack-preferences-'), 'settings.json');
+  writeFileSync(file, '{broken');
+  expect(() => persistPreference(file, { kind: 'tier', agent: 'task', tier: 'default' })).toThrow();
+  expect(readFileSync(file, 'utf8')).toBe('{broken');
 });
 
 test('the preference listing marks disabled agents and shows each override', () => {

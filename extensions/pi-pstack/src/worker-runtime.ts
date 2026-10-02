@@ -2,15 +2,14 @@ import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 
 import type { JsonValue, Usage } from '@earendil-works/pi-ai';
-import { type AgentSession, type AgentToolResult, createEventBus, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { type AgentSession, type AgentSessionRuntime, type AgentToolResult, createEventBus, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { readCloudOutcome } from './cloud-worker.ts';
 import { DeferredWakes } from './deferred-wakes.ts';
 import { asShellHandoff, shellHandoffEvent } from './shell-ownership.ts';
-import { closeSession } from './subagents/close-session.ts';
+import { closeRuntime } from './subagents/close-session.ts';
 import { CloudTasks, type CloudWorker } from './subagents/cloud-tasks.ts';
 import { type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
 import { currentDepth, depthStore } from './subagents/context.ts';
-import type { ContinuationState } from './subagents/continuation.ts';
 import { finishedRecord } from './subagents/finished-record.ts';
 import { validateId } from './subagents/identifiers.ts';
 import { depthMessage } from './subagents/limiter.ts';
@@ -34,7 +33,14 @@ export type { TaskProgressSnapshot, TaskToolDetails } from './subagents/task-pro
 
 type OpenedWorker = Awaited<ReturnType<typeof openWorkerSession>>;
 type ChildChannel = Readonly<{ events: ReturnType<typeof createEventBus>; groups: ProcessGroups }>;
-type Worker = ChildChannel & { readonly id: string; readonly session: AgentSession; readonly completion: Promise<TaskRecord>; readonly stop: ReturnType<typeof workerControl>['stop']; readonly drain: () => Promise<string[]> };
+type Worker = ChildChannel & {
+  readonly id: string;
+  readonly runtime: AgentSessionRuntime;
+  readonly session: AgentSession;
+  readonly completion: Promise<TaskRecord>;
+  readonly stop: ReturnType<typeof workerControl>['stop'];
+  readonly drain: () => Promise<string[]>;
+};
 type StartupOutcome = { error: unknown } | undefined;
 type StartRequest = Readonly<{ callId: string; id: string; params: TaskParameters; prior: TaskRecord | undefined; signal: AbortSignal | undefined; ctx: ExtensionContext; owner: number }>;
 
@@ -59,7 +65,7 @@ export class WorkerRuntime {
   private lifecycle: Lifecycle = { kind: 'stopped' };
   private stopping: ReadonlySet<string> = new Set();
   private readonly completions: DeferredWakes;
-  private readonly settings = new SettingsStore();
+  private readonly settings: SettingsStore;
   depth = currentDepth();
   agentId: string | undefined;
   readonly remote = new RemoteTasks({ commit: (record) => this.commitRemote(record), settle: (record, output, notify) => this.settleRemote(record, output, notify), current: (id) => this.records.get(id) });
@@ -72,6 +78,7 @@ export class WorkerRuntime {
   });
   constructor(private readonly pi: ExtensionAPI) {
     this.completions = new DeferredWakes(pi);
+    this.settings = new SettingsStore(() => pi.getSettings());
   }
 
   runningCount(): number {
@@ -91,10 +98,6 @@ export class WorkerRuntime {
 
   liveMessages(id: string): AgentSession['messages'] | undefined {
     return this.workers.get(id)?.session.messages;
-  }
-
-  continuationState(id: string): ContinuationState {
-    return { inFlight: this.starting.has(id), stopping: this.stopping.has(id), resumerStopping: false };
   }
 
   private commitRecord(record: TaskRecord): void {
@@ -222,7 +225,7 @@ export class WorkerRuntime {
     this.claimCleanupUsage(outcome.value);
     const failures = await worker.drain();
     try {
-      await closeSession(worker.session);
+      await closeRuntime(worker.runtime);
     } catch (error) {
       failures.push(String(error));
     }
@@ -292,7 +295,7 @@ export class WorkerRuntime {
   async start(callId: string, params: TaskParameters, signal: AbortSignal | undefined, ctx: ExtensionContext, onUpdate: TaskUpdate | undefined): Promise<AgentToolResult<TaskRecord>> {
     signal = launchSignal(signal, params.run_in_background !== false);
     const prior = this.priorTask(params);
-    this.checkDepth(prior, ctx);
+    this.checkDepth(prior);
     const id = prior?.id ?? randomUUID();
     if (this.starting.has(id) || (this.workers.has(id) && this.records.get(id)?.status === 'running') || (this.cloud.has(id) && this.records.get(id)?.status === 'running'))
       throw new Error(`Task ${id} is running. Use TaskMessage to queue input.`);
@@ -339,15 +342,16 @@ export class WorkerRuntime {
 
   private async startLocal({ callId, id, params, prior, signal, ctx, owner }: StartRequest, onUpdate: TaskUpdate | undefined): Promise<AgentToolResult<TaskRecord>> {
     const background = params.run_in_background !== false;
-    let session: AgentSession | undefined;
+    let runtime: AgentSessionRuntime | undefined;
     try {
       const opened = await this.openChild({ id, params, prior, ctx, toolUseId: callId });
-      session = opened.session;
+      const { session } = opened;
+      runtime = opened.runtime;
       signal = this.checkStartup(owner, signal, background);
       await session.bindExtensions({ mode: 'print' });
       signal = this.checkStartup(owner, signal, background);
       const previous = this.workers.get(id);
-      if (previous) await closeSession(previous.session);
+      if (previous) await closeRuntime(previous.runtime);
       signal = this.checkStartup(owner, signal, background);
       const worker = this.launch(opened, params, signal, owner, () => ctx.isIdle(), onUpdate);
       this.publishStart(opened.record, prior);
@@ -355,8 +359,8 @@ export class WorkerRuntime {
       if (!record) throw new Error(`Failed to create task record for ${id}`);
       return this.result(record, owner);
     } catch (error) {
-      const opened = session;
-      if (opened) await this.abandon(error, () => closeSession(opened));
+      const opened = runtime;
+      if (opened) await this.abandon(error, () => closeRuntime(opened));
       throw error;
     }
   }
@@ -375,15 +379,15 @@ export class WorkerRuntime {
     this.pi.events.emit('pstack:subagent-started', { agentId: record.id, spawnDepth: record.depth, agent_depth: record.depth });
   }
 
-  private checkDepth(prior: TaskRecord | undefined, ctx: ExtensionContext): void {
+  private checkDepth(prior: TaskRecord | undefined): void {
     if (prior) return;
-    const cap = this.settings.read(ctx.cwd).settings.subagents.maxDepth ?? defaultMaxDepth;
+    const cap = this.settings.read().settings.subagents.maxDepth ?? defaultMaxDepth;
     if (this.depth < cap) return;
     this.pi.events.emit('pstack:subagent-refused', { code: 'subagent_depth_cap', reason: 'depth_limit' });
     throw new AgentPreconditionError({ code: 'subagent_depth_cap', message: depthMessage(cap) });
   }
 
-  private async openChild(input: Parameters<typeof openWorkerSession>[0]): Promise<Awaited<ReturnType<typeof openWorkerSession>> & ChildChannel> {
+  private async openChild(input: Omit<Parameters<typeof openWorkerSession>[0], 'exec'>): Promise<Awaited<ReturnType<typeof openWorkerSession>> & ChildChannel> {
     const depth = input.prior?.depth ?? this.depth + 1;
     const channel = this.childChannel(input.id);
     const opened = await depthStore.run(depth, () =>
@@ -392,6 +396,7 @@ export class WorkerRuntime {
         depth,
         events: channel.events,
         onProcessGroup: (pid) => channel.groups.add({ pid }),
+        exec: (command, args, options) => this.pi.exec(command, args, options),
         log: (message) => this.pi.events.emit('pstack:subagent-log', message),
       }),
     );
@@ -421,7 +426,7 @@ export class WorkerRuntime {
   }
 
   private launch(opened: OpenedWorker & ChildChannel, params: TaskParameters, signal: AbortSignal | undefined, owner: number, parentIdle: () => boolean, onUpdate: TaskUpdate | undefined): Worker {
-    const { session } = opened;
+    const { session, runtime } = opened;
     const usage = this.records.get(opened.record.id)?.usage;
     const record: TaskRecord = { ...opened.record, ...(usage ? { usage } : {}) };
     this.records.set(record.id, record);
@@ -435,7 +440,7 @@ export class WorkerRuntime {
       killGroups: () => opened.groups.killAll(),
     });
     const completion = this.complete({ ...opened, record }, params, owner, control, parentIdle);
-    const worker: Worker = { id: record.id, session, completion, stop: control.stop, drain: control.drain, events: opened.events, groups: opened.groups };
+    const worker: Worker = { id: record.id, runtime, session, completion, stop: control.stop, drain: control.drain, events: opened.events, groups: opened.groups };
     this.workers.set(record.id, worker);
     return worker;
   }
@@ -456,12 +461,12 @@ export class WorkerRuntime {
   }
 
   private async complete(worker: OpenedWorker, params: TaskParameters, owner: number, control: ReturnType<typeof workerControl>, parentIdle: () => boolean): Promise<TaskRecord> {
-    const { session, record } = worker;
+    const { session, runtime, record } = worker;
     const initialCount = session.messages.length;
     const startedAt = Date.now();
     let outcome = await this.run(session, params.prompt);
     try {
-      await closeSession(session);
+      await closeRuntime(runtime);
     } catch (error) {
       outcome = { status: 'failed' as const, output: `${outcome.output}\nWorker shutdown failed: ${String(error)}` };
     } finally {

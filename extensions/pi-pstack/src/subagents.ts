@@ -26,7 +26,9 @@ import { executionSubagent, type Specialized, searchSubagent, specializedEnabled
 import { fleetPrompt, registerSubagentCommands } from './subagents/subagent-commands.ts';
 import { parseSubagentHooks, runHooks } from './subagents/subagent-hooks.ts';
 import { TaskRegistry } from './subagents/task-registry.ts';
-import { WorkflowRuntime } from './subagents/workflows/runtime.ts';
+import { WorkflowRuntime, workflowsEnabled } from './subagents/workflows/runtime.ts';
+import { workflowEntryType } from './subagents/workflows/store.ts';
+import { workflowTools } from './subagents/workflows/tools.ts';
 
 export type SubagentSystem = Readonly<{
   factory: SubagentFactory;
@@ -82,6 +84,7 @@ class Session {
 
   close(): void {
     this.closed = true;
+    this.latest = undefined;
   }
 }
 
@@ -97,19 +100,16 @@ function buildWorkflows(stack: WorkflowStack): WorkflowRuntime {
     env: () => stack.env,
     settings: stack.settings,
     log: stack.log,
-    storeFile: () => (stack.session.latest ? join(stack.session.latest.sessionManager.getSessionDir(), 'workflows.json') : undefined),
+    persist: (change) => stack.pi.appendEntry(workflowEntryType, change),
   });
   stack.pi.events.on('reference-assistant:register-workflow', (payload) => {
     if (!Check(Declaration, payload)) return;
     const declaration = { ...payload, run: async (context: unknown, args: unknown) => payload.run(context, args) };
     if (runtime.register(declaration) !== true) stack.log(`Workflow '${String((payload as { name?: unknown }).name)}' was dropped because dynamic workflows are disabled.`);
   });
-  stack.pi.on('session_start', () => {
-    runtime.reconcile();
-  });
-  stack.pi.on('session_shutdown', () => {
-    void runtime.haltAll();
-  });
+  stack.pi.on('session_start', (_event, ctx) => runtime.restore(ctx.sessionManager.getBranch()));
+  stack.pi.on('session_tree', (_event, ctx) => runtime.restore(ctx.sessionManager.getBranch()));
+  stack.pi.on('session_shutdown', () => runtime.haltAll());
   return runtime;
 }
 
@@ -118,7 +118,7 @@ type SidekickStack = Readonly<{ pi: ExtensionAPI; env: NodeJS.ProcessEnv; events
 function buildSidekicks(stack: SidekickStack): { sidekicks: SidekickManager; sidekickScheduler: SubagentScheduler } {
   const { pi, env, events, settings, limiters, session, log, holder } = stack;
   const registry = new TaskRegistry({ persist: (node) => pi.appendEntry(sidekickEntryType, structuredClone(node)) });
-  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: (cwd) => limiters.get(cwd), onInbox: (agentId, message) => holder.sidekicks?.inbox(agentId, message), entryType: sidekickEntryType, quiet: true, log });
+  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: () => limiters.get(), onInbox: (agentId, message) => holder.sidekicks?.inbox(agentId, message), entryType: sidekickEntryType, quiet: true, log });
   const factory = new SubagentFactory({ scope: () => session.child, pi, scheduler, settings, env, log, limiters });
   const sidekicks = createSidekickManager({ pi, env, factory, scheduler, events, cwd: () => session.latest?.cwd ?? process.cwd(), log });
   return { sidekicks, sidekickScheduler: scheduler };
@@ -137,15 +137,15 @@ function buildCore(pi: ExtensionAPI, env: NodeJS.ProcessEnv, session: Session): 
     },
   });
   const registry = new TaskRegistry({ persist: (node) => pi.appendEntry(agentEntryType, structuredClone(node)) });
-  const settings = new SettingsStore();
+  const settings = new SettingsStore(() => pi.getSettings());
   const limiters = new LimiterProvider(settings, () => (session.child ? parentLimiter(pi.events) : undefined));
   const onSettled = async (node: AgentNode) => {
-    const hooks = parseSubagentHooks(settings.read(node.cwd).raw).stop;
+    const hooks = parseSubagentHooks(settings.read().raw).stop;
     const report = await runHooks(hooks, { agentId: node.id, agentType: node.agentType, sessionId: session.id, cwd: node.cwd, timestamp: new Date().toISOString(), transcriptPath: node.sessionFile });
     for (const failure of report.failures) log(`subagentStop hook failed: ${failure}`);
   };
   const holder: { sidekicks?: SidekickManager } = {};
-  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: (cwd) => limiters.get(cwd), onSettled, includeHookEvents: () => eventsLogIncludesSubagents(env), extraWork: () => holder.sidekicks?.hasActiveWork() ?? false, log });
+  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: () => limiters.get(), onSettled, includeHookEvents: () => eventsLogIncludesSubagents(env), extraWork: () => holder.sidekicks?.hasActiveWork() ?? false, log });
   const factory = new SubagentFactory({ scope: () => session.child, pi, scheduler, settings, env, log, limiters });
   const { sidekicks, sidekickScheduler } = buildSidekicks({ pi, env, events, settings, limiters, session, log, holder });
   holder.sidekicks = sidekicks;
@@ -213,16 +213,10 @@ function registerLifecycle(pi: ExtensionAPI, env: NodeJS.ProcessEnv, system: Sub
   });
   registerSidekickTriggers(pi, system, factory, log);
   registerSettleWiring(pi, env, scheduler, log);
-  pi.on('session_before_tree', () => scheduler.beginRewind());
-  pi.on('agent_before_settle', async (_event, ctx) => {
-    if (ctx.hasUI || !scheduler.hasActiveWork()) return;
-    log('Run complete; waiting for background tasks to finish; exiting');
-    await scheduler.waitForWork(waitSeconds(env) * 1000);
-  });
   pi.on('tool_execution_start', (event) => {
-    if (!session.fileTracking || event.parentToolCallId !== undefined) return;
-    if ((event.toolName === 'edit' || event.toolName === 'write') && typeof (event.args as { path?: unknown } | undefined)?.path === 'string')
-      pi.appendEntry('reference-assistant-file-change', { path: (event.args as { path: string }).path, at: Date.now() });
+    if (!session.fileTracking || event.parentToolCallId !== undefined || (event.toolName !== 'edit' && event.toolName !== 'write')) return;
+    const path: unknown = event.args?.path;
+    if (typeof path === 'string') pi.appendEntry('reference-assistant-file-change', { path, at: Date.now() });
   });
   pi.on('session_shutdown', async (_event, ctx) => {
     session.close();
@@ -238,7 +232,7 @@ function registerPromptSections(pi: ExtensionAPI, system: SubagentSystem): void 
   pi.on('before_agent_start', (event, ctx) => {
     const offered = factory.offered(ctx);
     if (selection.refresh(offered)) pi.events.emit('pstack:subagent-log', 'The selected agent is no longer available and was cleared.');
-    const { settings: loaded } = settings.read(ctx.cwd);
+    const { settings: loaded } = settings.read();
     const current = selection.getCurrent();
     if (current) event.systemPromptOptions.sections.selected_agent = current.prompt;
     else delete event.systemPromptOptions.sections.selected_agent;
@@ -292,5 +286,6 @@ export function registerSubagents(pi: ExtensionAPI, env: NodeJS.ProcessEnv = pro
     ),
   );
   registerSpecialized(pi, system, env);
+  if (workflowsEnabled(env)) for (const tool of workflowTools(system.workflows())) pi.registerTool(tool);
   return system;
 }

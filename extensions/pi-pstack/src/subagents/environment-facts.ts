@@ -1,27 +1,26 @@
-import { execFileSync } from 'node:child_process';
 import { accessSync, constants, readdirSync } from 'node:fs';
 import { type } from 'node:os';
 import { delimiter, join } from 'node:path';
 
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import type { EnvironmentFacts } from './prompt-assembly.ts';
+
+export type Exec = ExtensionAPI['exec'];
 
 const advertisedTools = ['git', 'curl', 'gh'];
 const hiddenEntries = new Set(['.git', 'node_modules']);
 const listingLimit = 40;
 
 export type Probe = Readonly<{
-  git: (cwd: string) => string | undefined;
+  git: (cwd: string) => Promise<string | undefined>;
   entries: (cwd: string) => readonly { name: string; directory: boolean }[];
   onPath: (binary: string) => boolean;
   osName: () => string;
 }>;
 
-function gitRoot(cwd: string): string | undefined {
-  try {
-    return execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() || undefined;
-  } catch {
-    return undefined;
-  }
+async function gitRoot(exec: Exec, cwd: string): Promise<string | undefined> {
+  const result = await exec('git', ['rev-parse', '--show-toplevel'], { cwd }).catch(() => undefined);
+  return result?.code === 0 ? result.stdout.trim() || undefined : undefined;
 }
 
 function entriesOf(cwd: string): readonly { name: string; directory: boolean }[] {
@@ -43,7 +42,7 @@ function onPath(binary: string): boolean {
   });
 }
 
-export const systemProbe: Probe = { git: gitRoot, entries: entriesOf, onPath, osName: type };
+export const systemProbe = (exec: Exec): Probe => ({ git: (cwd) => gitRoot(exec, cwd), entries: entriesOf, onPath, osName: type });
 
 export function directorySnapshot(entries: readonly { name: string; directory: boolean }[]): string | undefined {
   const visible = entries.filter((entry) => !hiddenEntries.has(entry.name)).toSorted((left, right) => left.name.localeCompare(right.name));
@@ -53,8 +52,8 @@ export function directorySnapshot(entries: readonly { name: string; directory: b
   return [...shown, ...(rest > 0 ? [`... ${rest} more`] : [])].join('\n');
 }
 
-export function gatherEnvironment(cwd: string, probe: Probe = systemProbe): EnvironmentFacts {
-  const root = probe.git(cwd);
+export async function gatherEnvironment(cwd: string, probe: Probe): Promise<EnvironmentFacts> {
+  const root = await probe.git(cwd);
   const listing = directorySnapshot(probe.entries(cwd));
   return { cwd, ...(root !== undefined ? { gitRoot: root } : {}), os: probe.osName(), ...(listing !== undefined ? { listing } : {}), tools: advertisedTools.filter((tool) => probe.onPath(tool)) };
 }

@@ -1,11 +1,11 @@
-import { type AgentSession, createEventBus, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { type AgentSession, type AgentSessionRuntime, createEventBus, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { DeferredWakes } from '../deferred-wakes.ts';
 import { overdueAfterMs, workerControl } from '../worker-control.ts';
 import { type AgentNode, agentEntryType, repairInterrupted, restoreNodes } from './agent-node.ts';
-import { completedData, failedData, initialNode, measure, startedData, viewOf } from './agent-records.ts';
+import { completedData, failedData, initialNode, startedData, usageOf, viewOf } from './agent-records.ts';
 import { EventBridge, textOf } from './child-events.ts';
 import { type OpenedChild, type OpenInput, openChildSession } from './child-session.ts';
-import { closeSession } from './close-session.ts';
+import { closeRuntime } from './close-session.ts';
 import { noticeFor } from './completion-wake.ts';
 import type { ChildPlan } from './context-builder.ts';
 import { asEnvelope, type EventLog, eventChannel } from './events.ts';
@@ -42,7 +42,7 @@ export type SchedulerDeps = Readonly<{
   pi: ExtensionAPI;
   events: EventLog;
   registry: TaskRegistry;
-  limiter: (cwd: string) => LimiterLike;
+  limiter: () => LimiterLike;
   open?: (input: OpenInput) => Promise<OpenedChild>;
   now?: () => number;
   maxIdle?: number;
@@ -77,7 +77,7 @@ class LiveChild {
 
   constructor(
     readonly id: string,
-    readonly session: AgentSession,
+    readonly runtime: AgentSessionRuntime,
     readonly control: ReturnType<typeof workerControl>,
     readonly groups: ProcessGroups,
     readonly ctx: ExtensionContext,
@@ -90,6 +90,10 @@ class LiveChild {
       resolve = done;
     });
     this.promote = resolve;
+  }
+
+  get session(): AgentSession {
+    return this.runtime.session;
   }
 
   markLimited(): void {
@@ -150,7 +154,7 @@ export class SubagentScheduler {
   }
 
   /** Bridges the child bus onto the parent stream: child events, hook re-emissions, inbox messages and the slot link. */
-  private wireChildBus(events: ReturnType<typeof createEventBus>, agentId: string, ctx: ExtensionContext): void {
+  private wireChildBus(events: ReturnType<typeof createEventBus>, agentId: string): void {
     events.on(eventChannel, (payload) => {
       const envelope = asEnvelope(payload);
       if (envelope) this.relay(envelope, agentId);
@@ -165,7 +169,7 @@ export class SubagentScheduler {
       if (message !== undefined) this.deps.onInbox?.(agentId, message);
     });
     events.on(linkChannel, (payload) => {
-      if (isLinkAcquire(payload)) payload.reply(this.deps.limiter(ctx.cwd).tryAcquire(payload.request));
+      if (isLinkAcquire(payload)) payload.reply(this.deps.limiter().tryAcquire(payload.request));
     });
   }
 
@@ -180,7 +184,7 @@ export class SubagentScheduler {
   private async open(input: LaunchInput): Promise<{ child: LiveChild; sessionFile: string }> {
     const { plan, ctx } = input;
     const events = createEventBus();
-    this.wireChildBus(events, plan.agentId, ctx);
+    this.wireChildBus(events, plan.agentId);
     if (!this.deps.entryType) this.deps.events.emit('capability_absent_subagent', { agentId: plan.agentId }, { agentId: plan.agentId });
     const groups = new ProcessGroups(plan.agentId, () => {});
     const opened = await (this.deps.open ?? openChildSession)({
@@ -192,6 +196,7 @@ export class SubagentScheduler {
       contextManagement: input.contextManagement,
       parentAgentId: input.parentAgentId,
       onProcessGroup: (pid) => groups.add({ pid }),
+      exec: (command, args, options) => this.deps.pi.exec(command, args, options),
       log: this.deps.log,
       inheritedServers: input.inheritedServers,
       exclusionPatterns: input.exclusionPatterns,
@@ -207,7 +212,7 @@ export class SubagentScheduler {
       log: this.deps.log,
       killGroups: () => groups.killAll(),
     });
-    const child = new LiveChild(plan.agentId, opened.session, control, groups, ctx, limit, input.release);
+    const child = new LiveChild(plan.agentId, opened.runtime, control, groups, ctx, limit, input.release);
     holder.child = child;
     this.live.set(plan.agentId, child);
     if (plan.mode === 'sync' && this.deps.registry.get(plan.agentId)?.mode === 'background') child.promote();
@@ -261,8 +266,8 @@ export class SubagentScheduler {
   private async settle(child: LiveChild, outcome: Outcome, ctx: ExtensionContext): Promise<AgentNode> {
     const before = this.deps.registry.get(child.id);
     if (!before) throw new Error(`Agent not found: ${child.id}`);
-    const measured = measure(child.session.messages);
-    const fields = { endedAt: this.now(), totalToolCalls: measured.toolCalls, totalTokens: measured.tokens };
+    const stats = child.session.getSessionStats();
+    const fields = { endedAt: this.now(), totalToolCalls: stats.toolCalls, totalTokens: stats.tokens.total, usage: usageOf(stats) };
     const node = this.finish(before, outcome, fields, child.limited);
     child.releaseSlot();
     if (node.status === 'idle') this.retireOverflow();
@@ -274,7 +279,7 @@ export class SubagentScheduler {
     return node;
   }
 
-  private finish(before: AgentNode, outcome: Outcome, fields: Pick<AgentNode, 'endedAt' | 'totalToolCalls' | 'totalTokens'>, terminal: boolean): AgentNode {
+  private finish(before: AgentNode, outcome: Outcome, fields: Pick<AgentNode, 'endedAt' | 'totalToolCalls' | 'totalTokens' | 'usage'>, terminal: boolean): AgentNode {
     const { registry } = this.deps;
     switch (outcome.kind) {
       case 'done':
@@ -301,7 +306,7 @@ export class SubagentScheduler {
     this.live.delete(child.id);
     child.control.unsubscribe();
     await child.control.drain();
-    await closeSession(child.session).catch((error: unknown) => this.log(`Subagent session close failed: ${String(error)}`));
+    await closeRuntime(child.runtime).catch((error: unknown) => this.log(`Subagent session close failed: ${String(error)}`));
   }
 
   private retireOverflow(): void {
@@ -333,7 +338,7 @@ export class SubagentScheduler {
       await child.session.followUp(message);
       return node;
     }
-    const acquired = this.deps.limiter(ctx.cwd).tryAcquire({ kind: 'resume' });
+    const acquired = this.deps.limiter().tryAcquire({ kind: 'resume' });
     if (!acquired.ok) throw new Error(acquired.message);
     child.lease = acquired.release;
     const running = this.deps.registry.transition(id, 'running', {});

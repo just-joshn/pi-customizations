@@ -136,11 +136,13 @@ test('a task that settles during a busy parent turn wakes the parent only if its
     expect(completions()).toBe(0);
     await f.call('TaskOutput', { task_id: readId });
     await f.session.extensionRunner.emit({ type: 'agent_end', messages: [] });
+    await f.session.extensionRunner.emit({ type: 'agent_settled' });
     await f.session.waitForIdle();
     expect(completions()).toBe(0);
     const unread = await f.call('Task', { prompt: 'WAIT' }, undefined, true);
     await settled(f, (unread.details as { id: string }).id);
     await f.session.extensionRunner.emit({ type: 'agent_end', messages: [] });
+    await f.session.extensionRunner.emit({ type: 'agent_settled' });
     await f.session.waitForIdle();
     expect(completions()).toBe(1);
   } finally {

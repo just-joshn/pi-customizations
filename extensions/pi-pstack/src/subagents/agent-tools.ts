@@ -1,14 +1,14 @@
-import type { AgentToolResult, ExtensionContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
+import type { AgentToolResult, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
-import { Check, Errors } from 'typebox/value';
 import { launchSignal } from '../worker-control.ts';
 import type { AgentNode } from './agent-node.ts';
 import { viewOf } from './agent-records.ts';
-import { toolHeader } from './delegation-guidance.ts';
-import type { SubagentFactory, TaskCall } from './factory.ts';
+import { subagentNamespace, toolHeader } from './delegation-guidance.ts';
+import type { SubagentFactory } from './factory.ts';
 import type { SubagentScheduler } from './scheduler.ts';
 import {
   backgroundStartedText,
+  boundedForModel,
   listAgentsText,
   listAgentsTooManyText,
   maxListedAgents,
@@ -56,19 +56,14 @@ export const ListAgentsSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export function parseInput<T extends typeof TaskSchema | typeof ReadAgentSchema | typeof WriteAgentSchema | typeof ListAgentsSchema>(tool: string, schema: T, input: unknown): Static<T> {
-  if (Check(schema, input)) return input;
-  const issues = [...Errors(schema, input)].map((issue) => `${issue.instancePath || '/'}: ${issue.message}`).join('; ');
-  throw new Error(`Invalid ${tool} input: ${issues}`);
-}
-
-function wrap<T>(text: string, details: T): AgentToolResult<T> {
-  return { content: [{ type: 'text', text }], details };
-}
-
 const AgentDetailsSchema = Type.Object({ agent_id: Type.String(), agent_type: Type.String(), status: Type.String(), mode: Type.String(), detailedContent: Type.Optional(Type.String()) });
 const AgentListSchema = Type.Object({ agents: Type.Array(AgentDetailsSchema) });
 type AgentDetails = Static<typeof AgentDetailsSchema>;
+
+/** `structuredContent` repeats `details` because `outputSchema` promises it. */
+function wrap<T extends AgentDetails | Static<typeof AgentListSchema>>(text: string, details: T, usage?: AgentNode['usage']): AgentToolResult<T> {
+  return { content: [{ type: 'text', text }], details, structuredContent: details, ...(usage ? { usage } : {}) };
+}
 
 function detailsOf(node: AgentNode, detailedContent?: string): AgentDetails {
   return { agent_id: node.id, agent_type: node.agentType, status: node.status, mode: node.mode, ...(detailedContent !== undefined ? { detailedContent } : {}) };
@@ -83,10 +78,10 @@ export function taskTool(factory: SubagentFactory, scheduler: SubagentScheduler,
     parameters: TaskSchema,
     outputSchema: AgentDetailsSchema,
     exposure: 'direct',
+    namespace: subagentNamespace,
     executionMode: 'parallel',
     annotations: { openWorldHint: true },
-    execute: async (id, params, signal, _onUpdate, ctx) => {
-      const call: TaskCall = parseInput('task', TaskSchema, params);
+    execute: async (id, call, signal, _onUpdate, ctx) => {
       launchSignal(signal, call.mode === 'background');
       const { launched, node } = await factory.create(call, id, signal, ctx);
       if (call.mode === 'background') return wrap(backgroundStartedText(node.id), detailsOf(node, promptDetail(node.agentType, node.id, call.prompt)));
@@ -99,9 +94,9 @@ export function taskTool(factory: SubagentFactory, scheduler: SubagentScheduler,
 
 function syncResult(node: AgentNode): AgentToolResult<AgentDetails> {
   if (node.status === 'failed') throw new Error(node.error ?? 'The agent failed.');
-  if (node.status === 'cancelled') return wrap('Agent was cancelled.', detailsOf(node));
+  if (node.status === 'cancelled') return wrap('Agent was cancelled.', detailsOf(node), node.usage);
   const reply = node.turns.at(-1) ?? '';
-  return wrap(syncResultText(reply), detailsOf(node, reply));
+  return wrap(boundedForModel(syncResultText(reply), node.sessionFile), detailsOf(node, reply), node.usage);
 }
 
 export function readAgentTool(scheduler: SubagentScheduler): ToolDefinition<typeof ReadAgentSchema, AgentDetails> {
@@ -113,12 +108,12 @@ export function readAgentTool(scheduler: SubagentScheduler): ToolDefinition<type
     parameters: ReadAgentSchema,
     outputSchema: AgentDetailsSchema,
     exposure: 'direct',
+    namespace: subagentNamespace,
     executionMode: 'parallel',
     annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-    execute: async (_id, params, signal) => {
-      const input = parseInput('read_agent', ReadAgentSchema, params);
+    execute: async (_id, input, signal) => {
       const node = await scheduler.read(input.agent_id, { wait: input.wait ?? false, timeoutSeconds: input.timeout ?? readWaitDefaultSeconds }, signal);
-      return wrap(readAgentText(viewOf(node, Date.now()), input.since_turn ?? 0), detailsOf(node));
+      return wrap(boundedForModel(readAgentText(viewOf(node, Date.now()), input.since_turn ?? 0), node.sessionFile), detailsOf(node));
     },
   };
 }
@@ -132,10 +127,10 @@ export function writeAgentTool(scheduler: SubagentScheduler): ToolDefinition<typ
     parameters: WriteAgentSchema,
     outputSchema: AgentDetailsSchema,
     exposure: 'direct',
+    namespace: subagentNamespace,
     executionMode: 'parallel',
     annotations: { openWorldHint: false },
-    execute: async (_id, params, _signal, _update, ctx: ExtensionContext) => {
-      const input = parseInput('write_agent', WriteAgentSchema, params);
+    execute: async (_id, input, _signal, _update, ctx) => {
       const before = scheduler.get(input.agent_id);
       const node = await scheduler.write(input.agent_id, input.message, ctx);
       return wrap(writeAgentSentText({ id: node.id, status: before.status }), detailsOf(node));
@@ -152,10 +147,10 @@ export function listAgentsTool(scheduler: SubagentScheduler): ToolDefinition<typ
     parameters: ListAgentsSchema,
     outputSchema: AgentListSchema,
     exposure: 'direct',
+    namespace: subagentNamespace,
     executionMode: 'parallel',
     annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-    execute: async (_id, params) => {
-      const input = parseInput('list_agents', ListAgentsSchema, params);
+    execute: async (_id, input) => {
       const all = scheduler.list();
       const chosen = input.agent_ids ? all.filter((node) => input.agent_ids?.includes(node.id)) : all.filter((node) => input.scope === 'all' || node.status === 'running' || node.status === 'idle');
       if (!input.agent_ids && chosen.length > maxListedAgents) throw new Error(listAgentsTooManyText(chosen.length));

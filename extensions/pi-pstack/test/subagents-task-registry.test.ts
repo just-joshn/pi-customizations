@@ -85,8 +85,8 @@ test('promote moves a running sync agent to background and refuses anything else
   expect(() => registry.promote('b')).toThrow('Agent b is not a running sync agent.');
 });
 
-test('progress mutations set intent, count tool calls and record tokens', () => {
-  const { registry, changes } = harness();
+test('progress mutations set intent, count tool calls and record tokens without writing a session entry each time', () => {
+  const { registry, changes, persisted } = harness();
   registry.register(node('a'));
   registry.mutateProgress('a', { kind: 'intent', intent: 'reading' });
   registry.mutateProgress('a', { kind: 'tool_call' });
@@ -94,6 +94,7 @@ test('progress mutations set intent, count tool calls and record tokens', () => 
   registry.mutateProgress('a', { kind: 'executor_telemetry', tokens: 42 });
   expect(registry.get('a')).toMatchObject({ intent: 'reading', totalToolCalls: 2, totalTokens: 42 });
   expect(changes.at(-1)).toEqual({ id: 'a', progress: { kind: 'executor_telemetry', tokens: 42 } });
+  expect(persisted).toHaveLength(1);
 });
 
 test('children are the nodes whose parent registry id matches', () => {

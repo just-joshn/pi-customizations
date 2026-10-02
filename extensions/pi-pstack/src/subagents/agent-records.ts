@@ -1,4 +1,4 @@
-import type { AgentSession } from '@earendil-works/pi-coding-agent';
+import type { SessionStats } from '@earendil-works/pi-coding-agent';
 import type { AgentNode } from './agent-node.ts';
 import type { ChildPlan } from './context-builder.ts';
 import { type CompletedData, type FailedData, type FinishedData, provenanceOf, type StartedData } from './events.ts';
@@ -97,9 +97,7 @@ export function viewOf(node: AgentNode, now: number): AgentView {
   };
 }
 
-export type Measured = Readonly<{ toolCalls: number; tokens: number }>;
-
-export function measure(messages: AgentSession['messages']): Measured {
-  const assistants = messages.flatMap((message) => (message.role === 'assistant' ? [message] : []));
-  return { toolCalls: messages.filter((message) => message.role === 'toolResult').length, tokens: assistants.reduce((sum, message) => sum + (message.usage?.totalTokens ?? 0), 0) };
+/** The child's own session statistics as the usage a tool result reports, so Pi adds them to the parent totals. */
+export function usageOf({ tokens, cost }: SessionStats): NonNullable<AgentNode['usage']> {
+  return { input: tokens.input, output: tokens.output, cacheRead: tokens.cacheRead, cacheWrite: tokens.cacheWrite, totalTokens: tokens.total, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: cost } };
 }

@@ -1,8 +1,9 @@
 import { expect, test, vi } from 'vitest';
+import type { Exec } from '../src/subagents/environment-facts.ts';
 import { sendInboxTool } from '../src/subagents/inbox.ts';
 import { type LaunchFacts, SidekickManager, type SidekickPorts, sidekickEnabled, triggerLimitMessage } from '../src/subagents/sidekicks/manager.ts';
 import { loadSidekicks, parseSidekick, type SidekickSpec } from '../src/subagents/sidekicks/spec.ts';
-import { sidekickDefinition } from '../src/subagents/sidekicks/wiring.ts';
+import { repositoryFacts, sidekickDefinition } from '../src/subagents/sidekicks/wiring.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 const shipped = loadSidekicks();
@@ -71,7 +72,7 @@ function harness(specs: readonly SidekickSpec[], env: NodeJS.ProcessEnv = { COPI
       calls.push(`cancel ${id}`);
     },
     state: (id) => states.get(id),
-    facts: () => facts({ 'git-repo': true, 'github-remote': true }),
+    facts: async () => facts({ 'git-repo': true, 'github-remote': true }),
     deliver: (_spec, message, truncated) => delivered.push({ message, truncated }),
     log: (message) => logs.push(message),
   };
@@ -170,11 +171,21 @@ test('an enabled sidekick runs on the first user message and its inbox message r
     if (event.type === 'system.notification') notices.push(event.data);
   });
   try {
+    expect(fixture.session.getActiveToolNames()).not.toContain('send_inbox');
     await fixture.session.prompt('hello sidekicks');
-    await vi.waitFor(() => expect(notices).toEqual(expect.arrayContaining([{ kind: 'new_inbox_message', summary: 'Sidekick session-search sent a message.', sidekick: 'session-search' }])));
+    await vi.waitFor(() => expect(notices).toEqual(expect.arrayContaining([{ kind: 'new_inbox_message', summary: 'Sidekick session-search sent a message.', sidekick: 'session-search' }])), { timeout: 5000 });
     const noise = (line: unknown) => typeof line === 'string' && (line.includes('tool_init_') || line.includes('subagent_tool_'));
     expect(fixture.subagentLogs.filter((line: unknown) => !noise(line))).toEqual([]);
   } finally {
     await fixture.close();
   }
+});
+
+test.for([
+  { name: 'a github remote', stdout: 'https://github.com/a/b.git\n', code: 0, expected: { 'git-repo': true, 'github-remote': true } },
+  { name: 'another host', stdout: 'https://gitlab.com/a/b.git\n', code: 0, expected: { 'git-repo': true, 'github-remote': false } },
+  { name: 'no origin remote', stdout: '', code: 2, expected: { 'git-repo': false, 'github-remote': false } },
+])('repository facts for $name', async ({ stdout, code, expected }) => {
+  const exec: Exec = async () => ({ stdout, stderr: '', code, killed: false });
+  await expect(repositoryFacts(exec, '/repo')).resolves.toEqual(expected);
 });

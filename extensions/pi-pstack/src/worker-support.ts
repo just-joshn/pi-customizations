@@ -4,13 +4,28 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { Usage } from '@earendil-works/pi-ai';
-import { type AgentSession, createAgentSession, createEventBus, DefaultResourceLoader, type ExtensionContext, getAgentDir, ModelRuntime, SessionManager } from '@earendil-works/pi-coding-agent';
+import {
+  type AgentSession,
+  type AgentSessionRuntime,
+  type AgentSessionServices,
+  createAgentSessionFromServices,
+  createAgentSessionRuntime,
+  createEventBus,
+  DefaultResourceLoader,
+  type ExtensionContext,
+  getAgentDir,
+  ModelRuntime,
+  SessionManager,
+  type SettingsManager,
+} from '@earendil-works/pi-coding-agent';
 import { skillCatalog } from './catalog.ts';
 import { EphemeralDirs } from './ephemeral-dirs.ts';
 import { referenceToolNames } from './host.ts';
 import { resolveModel } from './models.ts';
 import { readPersona } from './personas.ts';
 import { agentEnvironment, childStorageDir, createChildTranscript, environmentEntryType, writeAgentMeta } from './subagents/agent-storage.ts';
+import { childSettings } from './subagents/child-settings.ts';
+import type { Exec } from './subagents/environment-facts.ts';
 import { validateId } from './subagents/identifiers.ts';
 import { ModelHistory } from './subagents/model-history.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
@@ -114,6 +129,8 @@ type OpenWorker = {
   onProcessGroup?: (pid: number) => void;
 };
 
+type LocalWorker = OpenWorker & { exec: Exec };
+
 type RecordInputs = {
   id: string;
   persona: string;
@@ -157,18 +174,18 @@ function hostNotes(id: string, catalog: string): string[] {
   ];
 }
 
-function childTools(input: { readonly: boolean; cwd: string; onProcessGroup: ((pid: number) => void) | undefined }): Pick<Parameters<typeof createAgentSession>[0] & object, 'tools' | 'customTools'> {
+function childTools(input: { readonly: boolean; cwd: string; onProcessGroup: ((pid: number) => void) | undefined }): Pick<Parameters<typeof createAgentSessionFromServices>[0], 'tools' | 'customTools'> {
   const { readonly, cwd, onProcessGroup } = input;
   const custom = onProcessGroup ? { customTools: [trackedBashTool(cwd, onProcessGroup)] } : {};
   return readonly ? { tools: ['read', 'grep', 'find', 'ls'] } : custom;
 }
 
-async function openChildTranscript(options: OpenWorker, cwd: string, dir: string, depth: number): Promise<{ manager: SessionManager; sessionFile: string }> {
-  const { id, params, prior, ctx } = options;
+async function openChildTranscript(options: LocalWorker, cwd: string, dir: string, depth: number): Promise<{ manager: SessionManager; sessionFile: string }> {
+  const { id, params, prior, ctx, exec } = options;
   const path = prior?.sessionFile ?? (await createChildTranscript(cwd, dir, id, ctx.sessionManager.getSessionFile()));
   const manager = SessionManager.open(path, dir, cwd);
   if (!prior) {
-    manager.appendCustomEntry(environmentEntryType, await agentEnvironment(id, ctx.sessionManager.getSessionId(), cwd));
+    manager.appendCustomEntry(environmentEntryType, await agentEnvironment(id, ctx.sessionManager.getSessionId(), cwd, exec));
     manager.appendCustomEntry(taskOwnerEntryType, { id });
   }
   saveChildContext(manager, { id, depth, foreground: params.run_in_background === false });
@@ -193,7 +210,14 @@ async function resolveWorkspace(options: OpenWorker, engine: Engine): Promise<{ 
   return { cwd, persona, readonly };
 }
 
-async function workerLoader(options: OpenWorker, engine: Engine, workspace: { cwd: string; persona: string; readonly: boolean }, modelsUsed: ModelHistory, profile: { instructions: string }): Promise<DefaultResourceLoader> {
+async function workerLoader(
+  options: OpenWorker,
+  engine: Engine,
+  workspace: { cwd: string; persona: string; readonly: boolean },
+  settingsManager: SettingsManager,
+  modelsUsed: ModelHistory,
+  profile: { instructions: string },
+): Promise<DefaultResourceLoader> {
   const { id } = options;
   const { cwd, readonly } = workspace;
   const providerExtensions = !readonly || engine !== 'local';
@@ -202,6 +226,7 @@ async function workerLoader(options: OpenWorker, engine: Engine, workspace: { cw
     eventBus: options.events ?? createEventBus(),
     cwd,
     agentDir: getAgentDir(),
+    settingsManager,
     noExtensions: !providerExtensions,
     appendSystemPrompt: [profile.instructions, ...hostNotes(id, await skillCatalog(root, engine === 'local' ? 'local' : 'cloud'))],
     extensionFactories: engine === 'local' ? [modelsUsed.extensionFactory()] : [],
@@ -219,18 +244,19 @@ export async function prepareWorkerSession(options: OpenWorker, engine: Engine =
   const profile = await readPersona(workspace.persona);
   const selected = resolveModel(params.model ?? prior?.modelReference ?? profile.defaultModel, ctx);
   const modelsUsed = new ModelHistory([...(prior?.modelsUsed ?? []), `${selected.model.provider}/${selected.model.id}`]);
-  const loader = await workerLoader(options, engine, workspace, modelsUsed, profile);
+  const settingsManager = childSettings(workspace.cwd, ctx);
+  const loader = await workerLoader(options, engine, workspace, settingsManager, modelsUsed, profile);
   const base = await workerDirectory(ctx);
   const dir = engine === 'local' ? base : join(base, id);
   if (engine !== 'local') await mkdir(dir, { recursive: true });
-  return { ...workspace, selected, loader, dir, modelsUsed };
+  return { ...workspace, selected, loader, settingsManager, dir, modelsUsed };
 }
 
-export async function openWorkerSession(options: OpenWorker): Promise<{ session: AgentSession; record: TaskRecord; modelsUsed: ModelHistory }> {
+export async function openWorkerSession(options: LocalWorker): Promise<{ runtime: AgentSessionRuntime; session: AgentSession; record: TaskRecord; modelsUsed: ModelHistory }> {
   const { id, params, prior, ctx, depth = 1, onProcessGroup } = options;
   validateId(id);
   if (prior && !existsSync(prior.sessionFile)) throw new ResumeError('state', resumeMessages.transcriptMissing(id));
-  const { cwd, persona, readonly, selected, loader, dir, modelsUsed } = await prepareWorkerSession(options);
+  const { cwd, persona, readonly, selected, loader, settingsManager, dir, modelsUsed } = await prepareWorkerSession(options);
   const { manager, sessionFile } = await openChildTranscript(options, cwd, dir, depth);
   const { usage: _priorUsage, abort: _priorAbort, toolStats: _priorToolStats, ...saved } = prior ?? {};
   const requestShape = params.run_in_background === false ? ('foreground' as const) : ('background' as const);
@@ -241,8 +267,14 @@ export async function openWorkerSession(options: OpenWorker): Promise<{ session:
     requestShape,
   };
   await writeAgentMeta(dir, id, { agentType: persona, description: prior?.description ?? '', ...(options.toolUseId ? { toolUseId: options.toolUseId } : {}), spawnDepth: depth, requestShape, requestNonInteractive: !ctx.hasUI });
-  const modelRuntime = await childModelRuntime(readonly, selected.model.provider, ctx);
+  const modelRuntime = (await childModelRuntime(readonly, selected.model.provider, ctx)) ?? (await ModelRuntime.create());
   const tools = childTools({ readonly, cwd, onProcessGroup });
-  const { session } = await createAgentSession({ cwd, modelRuntime, resourceLoader: loader, sessionManager: manager, ...selected, ...tools });
-  return { session, record: { ...record, modelsUsed: modelsUsed.snapshot() }, modelsUsed };
+  const runtime = await createAgentSessionRuntime(
+    async ({ cwd: runtimeCwd, agentDir, sessionManager }) => {
+      const services: AgentSessionServices = { cwd: runtimeCwd, agentDir, modelRuntime, settingsManager, resourceLoader: loader, diagnostics: [] };
+      return { ...(await createAgentSessionFromServices({ services, sessionManager, ...selected, ...tools })), services, diagnostics: services.diagnostics };
+    },
+    { cwd, agentDir: getAgentDir(), sessionManager: manager },
+  );
+  return { runtime, session: runtime.session, record: { ...record, modelsUsed: modelsUsed.snapshot() }, modelsUsed };
 }

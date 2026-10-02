@@ -23,11 +23,13 @@ export function sendInboxTool(emit: Emit, isChild: () => boolean): ToolDefinitio
     parameters: SendInboxSchema,
     outputSchema: Details,
     exposure: 'direct',
+    defaultActive: false,
     annotations: { openWorldHint: false },
     execute: async (_id, params) => {
       if (!isChild()) throw new Error('send_inbox is only available to sidekicks.');
       emit(inboxChannel, { message: params.message });
-      return { content: [{ type: 'text', text: 'Message sent.' }], details: { delivered: true } };
+      const details = { delivered: true };
+      return { content: [{ type: 'text', text: 'Message sent.' }], details, structuredContent: details };
     },
   };
 }
