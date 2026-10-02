@@ -82,7 +82,9 @@ test('babysit defaults an undeclared request on a small or docs-only PR to check
 test('hillclimb logs to decisions.tsv with the show-me-your-work columns and no playbook names decision.tsv', async () => {
   const hillclimb = await playbook('hillclimb');
   expect(hillclimb).toContain("A `decisions.tsv` with that skill's columns (ts, phase, decision, why, evidence, result), one row per attempt.");
-  expect(hillclimb).toContain('Put the attempt id and hypothesis in the decision cell, the change with the before and after numbers and the delta in the evidence cell, and the tests and the verdict (kept or reverted) in the result cell.');
+  expect(hillclimb).toContain(
+    'Put the attempt id and hypothesis in the decision cell, the change with the before and after numbers and the delta in the evidence cell, and the tests, the verdict (kept or reverted), and the note in the result cell.',
+  );
   for (const path of await generatedMarkdown()) expect({ path, names: /\bdecision\.tsv\b/.test(await readFile(join(root, path), 'utf8')) }).toEqual({ path, names: false });
 });
 

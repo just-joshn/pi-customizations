@@ -4,7 +4,7 @@ import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-a
 import { type Static, type TSchema, Type } from 'typebox';
 import { Check } from 'typebox/value';
 import type { AgentDefinition } from './agent-definition.ts';
-import type { AgentNode } from './agent-node.ts';
+import { type AgentNode, AgentNodeSchema } from './agent-node.ts';
 import type { AgentSelection } from './agent-selection.ts';
 import type { SubagentFactory } from './factory.ts';
 import type { SubagentScheduler } from './scheduler.ts';
@@ -40,12 +40,13 @@ const WorkflowLog = Type.Object({ id: Type.String({ minLength: 1 }), message: Ty
 const WorkflowAgentCall = Type.Object({ id: Type.String({ minLength: 1 }), prompt: Type.String(), options: Type.Optional(Type.Unknown()) });
 const JournalPut = Type.Object({ id: Type.String({ minLength: 1 }), key: Type.String({ minLength: 1 }), value: Type.Unknown() });
 const Request = Type.Object({ id: Type.String(), method: Type.String(), params: Type.Optional(Type.Unknown()) });
+const Update = Type.Object({ id: Type.String({ minLength: 1 }), fields: Type.Partial(Type.Omit(AgentNodeSchema, ['id', 'status']), { additionalProperties: false }) });
 
 export function publicTask(node: AgentNode, taskStoreId?: string) {
   return {
     id: node.id,
-    taskStoreId: taskStoreId ?? node.registryId,
-    kind: 'agent' as const,
+    taskStoreId: taskStoreId ?? node.id, // The registry keys agent tasks by agent id.
+    kind: 'agent' as const, // Pi owns shell and client tasks, so this surface only projects agent tasks.
     status: node.status,
     agentType: node.agentType,
     name: node.agentDisplayName,
@@ -67,6 +68,17 @@ function parse<T extends TSchema>(method: string, schema: T, params: unknown): S
 function promotableTask(scheduler: SubagentScheduler) {
   const node = scheduler.currentPromotable();
   return node ? publicTask(node) : null;
+}
+
+function registerTask(registry: TaskRegistry, method: string, params: unknown) {
+  const node = parse(method, AgentNodeSchema, params);
+  registry.register(node);
+  return publicTask(node);
+}
+
+function updateTask(registry: TaskRegistry, method: string, params: unknown) {
+  const input = parse(method, Update, params);
+  return publicTask(registry.patch(input.id, input.fields));
 }
 
 const workflowSummary = (run: NonNullable<ReturnType<WorkflowRuntime['get']>>) => ({
@@ -113,6 +125,10 @@ export class SubagentRpc {
         const { node } = await this.parts.factory.create(call, `rpc-${randomUUID()}`, undefined, this.ctx());
         return { agentId: node.id };
       }
+      case 'session.tasks.register':
+        return registerTask(this.parts.registry, method, params);
+      case 'session.tasks.update':
+        return updateTask(this.parts.registry, method, params);
       case 'session.tasks.list':
       case 'session.tasks.refresh':
         return this.parts.scheduler.list().map((node) => publicTask(node));

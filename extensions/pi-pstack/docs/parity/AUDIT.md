@@ -1,6 +1,8 @@
 # Native parity audit contract
 
-The reference is `/Users/josh-desktop/Documents/DOCS/pstack-reverse-engineering.md`. It describes the Cursor plugin pstack, the cursor-team-kit skills, and the Cursor built-ins they use. This package must give each described behavior a native Pi equivalent. The gate `scripts/check-native-parity.mjs` decides completion. It re-executes every check you write, so a check is either true on disk or it fails.
+The reference is `docs/parity/reference/pstack-architecture-reconstruction.md`, vendored from `/Users/josh-desktop/Documents/DOCS/pstack-architecture-reconstruction.md` so external file churn cannot break the gate. It describes the Cursor plugin pstack, the cursor-team-kit skills, and the Cursor built-ins they use. This package must give each described behavior a native Pi equivalent. The gate `scripts/check-native-parity.mjs` decides completion. It re-executes every check you write, so a check is either true on disk or it fails.
+
+The clause files under `docs/parity/clauses/` were rebuilt for the vendored revision, split into four slices `s1` to `s4`. FIX.md and REAUDIT.md describe an earlier revision whose reference document no longer exists and whose slice files were removed.
 
 ## Your write scope
 

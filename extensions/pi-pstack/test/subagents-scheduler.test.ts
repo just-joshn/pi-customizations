@@ -51,6 +51,25 @@ test('a sync task emits the documented event order with its provenance', async (
   }
 });
 
+test('the task store already holds the child when subagent.started fires', async () => {
+  const fixture = await workerFixture();
+  const listed = new Promise<{ ok: boolean; result?: unknown }>((resolve) => {
+    const off = fixture.eventBus.on('copilot:event', (payload) => {
+      if ((payload as EventEnvelope).type !== 'subagent.started') return;
+      off();
+      void rpc(fixture, 'session.tasks.list').then(resolve);
+    });
+  });
+  try {
+    const started = await task(fixture, 'hello');
+    const reply = await listed;
+    expect(reply.ok).toBe(true);
+    expect(reply.result).toEqual([expect.objectContaining({ id: idOf(started), status: 'running' })]);
+  } finally {
+    await fixture.close();
+  }
+});
+
 test('the ephemeral change event is never persisted but durable events are', async () => {
   const fixture = await workerFixture();
   try {

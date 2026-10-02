@@ -37,7 +37,7 @@ test('the execution subagent stops at its own turn cap and says so', async () =>
 });
 
 test('the execution subagent takes its model from its own variable, not the task argument', async () => {
-  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'copilot_cli_execution_subagent');
+  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'copilot_cli_execution_subagent,copilot_cli_execution_subagent_model');
   vi.stubEnv('EXECUTION_SUBAGENT_MODEL', 'worker-test/alternate');
   const fixture = await workerFixture();
   const seen: unknown[] = [];
@@ -45,6 +45,20 @@ test('the execution subagent takes its model from its own variable, not the task
   try {
     await fixture.call('execution_subagent', { description: 'run it', prompt: 'hello' });
     expect(seen[0]).toMatchObject({ type: 'subagent.started', data: { model: 'worker-test/alternate', modelSelectionSource: 'explicit_override' } });
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('the execution model variable is ignored while its own flag is off', async () => {
+  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'copilot_cli_execution_subagent');
+  vi.stubEnv('EXECUTION_SUBAGENT_MODEL', 'worker-test/alternate');
+  const fixture = await workerFixture();
+  const seen: unknown[] = [];
+  fixture.eventBus.on('copilot:event', (payload) => seen.push(payload));
+  try {
+    await fixture.call('execution_subagent', { description: 'run it', prompt: 'hello' });
+    expect(seen[0]).toMatchObject({ type: 'subagent.started', data: { model: 'worker-test/deterministic' } });
   } finally {
     await fixture.close();
   }

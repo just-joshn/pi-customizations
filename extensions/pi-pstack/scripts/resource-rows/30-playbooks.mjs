@@ -55,7 +55,7 @@ export default [
   [
     playbooks('hillclimb'),
     'A `decision.tsv`, one row per attempt: id, hypothesis, change, before, after, delta, tests, verdict (kept or reverted), note.',
-    "A `decisions.tsv` with that skill's columns (ts, phase, decision, why, evidence, result), one row per attempt. Put the attempt id and hypothesis in the decision cell, the change with the before and after numbers and the delta in the evidence cell, and the tests and the verdict (kept or reverted) in the result cell.",
+    "A `decisions.tsv` with that skill's columns (ts, phase, decision, why, evidence, result), one row per attempt. Put the attempt id and hypothesis in the decision cell, the change with the before and after numbers and the delta in the evidence cell, and the tests, the verdict (kept or reverted), and the note in the result cell.",
     'Use the show-me-your-work log name and columns instead of a second schema.',
   ],
   [playbooks('hillclimb'), 'the `decision.tsv` path', 'the `decisions.tsv` path', 'Use the show-me-your-work log name instead of a second schema.'],

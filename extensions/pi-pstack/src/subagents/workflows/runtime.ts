@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Check } from 'typebox/value';
-import type { AgentNode, Branch } from '../agent-node.ts';
+import type { Branch } from '../agent-node.ts';
 import type { EventLog } from '../events.ts';
-import type { SubagentFactory } from '../factory.ts';
+import type { Created, SubagentFactory } from '../factory.ts';
 import type { WorkflowLimits } from '../settings.ts';
 import { checkLimits, effectiveLimits, overCredits } from './limits.ts';
 import { Slots } from './slots.ts';
@@ -38,6 +38,9 @@ export type WorkflowPorts = Readonly<{
 
 /** One credit request per workflow subagent, matching the per-request credit model of the report. */
 const agentCredits = 1;
+
+/** A schema reply that failed to parse or match; agentOnce retries it once. */
+class SchemaMiss extends Error {}
 
 export class WorkflowRuntime {
   private readonly store: WorkflowStore;
@@ -132,11 +135,13 @@ export class WorkflowRuntime {
     this.emit('workflow.run_started', claimed);
     const controller = new AbortController();
     this.cancelled.set(id, controller);
+    const slots = new Slots(claimed.effectiveLimits.maxConcurrentSubagents);
+    this.slots.set(id, slots);
     try {
       return await this.execute(claimed, epoch + 1, controller.signal, ctx);
     } finally {
       this.cancelled.delete(id);
-      this.slots.delete(id);
+      slots.close();
     }
   }
 
@@ -190,7 +195,7 @@ export class WorkflowRuntime {
     const _run = this.store.get(id);
     const message = error instanceof Error ? error.message : String(error);
     if (error instanceof WorkflowPause) return this.settle(id, epoch, { status: 'paused', checkpoint: error.key });
-    const limit = message.includes('maxTotalSubagents') || message.includes('timeoutSeconds');
+    const limit = message.includes('maxTotalSubagents') || message.includes('timeoutSeconds') || message.includes('maxAiCredits');
     return this.settle(id, epoch, { status: 'error', failure: { type: limit ? 'workflow_limit_reached' : 'error', message } });
   }
 
@@ -200,8 +205,11 @@ export class WorkflowRuntime {
     if (!before) throw new Error(`Unknown workflow run: ${runId}`);
     const verdict = checkLimits(before, now);
     if (!verdict.ok) throw new Error(verdict.message);
-    const first = await this.dispatch(runId, prompt, options, signal, ctx);
-    if (options.schema === undefined || typeof first.value === 'object') return first;
+    try {
+      return await this.dispatch(runId, prompt, options, signal, ctx);
+    } catch (error) {
+      if (!(error instanceof SchemaMiss)) throw error;
+    }
     return this.dispatch(runId, `${prompt}\n\nYour previous reply was not valid JSON for the requested schema. Reply again with JSON only.`, options, signal, ctx);
   }
 
@@ -226,26 +234,36 @@ export class WorkflowRuntime {
       ...(options.contextTier !== undefined ? { context_tier: options.contextTier } : {}),
     };
     const release = await this.slotsOf(runId).acquire(signal);
-    let settled: AgentNode;
     try {
       this.store.admitSubagent(runId);
-      const created = await this.ports.factory.create(call, `workflow-${randomUUID().slice(0, 8)}`, signal, ctx, { workflowRunId: runId });
-      settled = await created.launched.settled;
+      let created: Created;
+      try {
+        created = await this.ports.factory.create(call, `workflow-${randomUUID().slice(0, 8)}`, signal, ctx, { workflowRunId: runId });
+      } catch (error) {
+        this.store.releaseSubagent(runId);
+        throw error;
+      }
+      const settled = await created.launched.settled;
+      const run = this.store.finishSubagent(runId, agentCredits);
+      const over = run ? overCredits(run) : undefined;
+      if (over && !over.ok) throw new Error(over.message);
+      if (settled.status === 'failed') throw new Error(settled.error ?? 'The workflow agent failed.');
+      const text = settled.turns.at(-1) ?? '';
+      return { text, value: options.schema ? this.parsedReply(text, options.schema) : text };
     } finally {
       release();
     }
-    const run = this.store.finishSubagent(runId, agentCredits);
-    const over = run ? overCredits(run) : undefined;
-    if (over && !over.ok) throw new Error(over.message);
-    if (settled.status === 'failed') throw new Error(settled.error ?? 'The workflow agent failed.');
-    const text = settled.turns.at(-1) ?? '';
-    let value: unknown = text;
-    if (options.schema) {
-      const parsed: unknown = JSON.parse(text.startsWith('{') || text.startsWith('[') ? text : (text.match(/\{[\s\S]*\}/)?.[0] ?? 'null'));
-      if (!Check(options.schema, parsed)) throw new Error(`The workflow agent reply did not match the requested schema: ${text.slice(0, 200)}`);
-      value = parsed;
+  }
+
+  private parsedReply(text: string, schema: NonNullable<WorkflowAgentOptions['schema']>): unknown {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text.startsWith('{') || text.startsWith('[') ? text : (text.match(/\{[\s\S]*\}/)?.[0] ?? 'null'));
+    } catch {
+      throw new SchemaMiss(`The workflow agent reply was not valid JSON for the requested schema: ${text.slice(0, 200)}`);
     }
-    return { text, value };
+    if (!Check(schema, parsed)) throw new SchemaMiss(`The workflow agent reply did not match the requested schema: ${text.slice(0, 200)}`);
+    return parsed;
   }
 
   async cancel(id: string): Promise<RunRecord> {
@@ -271,22 +289,23 @@ export class WorkflowRuntime {
     const run = this.store.get(id);
     if (run?.status !== 'running') throw new Error(`Run ${id} is not running.`);
     this.cancelled.get(id)?.abort();
-    return this.store.settle(id, run.ownerEpoch, { status: 'paused' }) ?? run;
+    return this.settle(id, run.ownerEpoch, { status: 'paused' });
   }
 
-  async resume(id: string, ctx: ExtensionContext): Promise<RunRecord> {
+  async resume(id: string, ctx: ExtensionContext, overrides: Partial<WorkflowLimits> = {}): Promise<RunRecord> {
     const run = this.store.get(id);
     if (!run) throw new Error(`Unknown workflow run: ${id}`);
     if (run.status !== 'paused' && !(run.status === 'error' && (run.failure?.type === 'workflow_limit_reached' || run.failure?.type === 'interrupted'))) throw new Error(`Run ${id} cannot be resumed from ${run.status}.`);
     this.declared(run.name);
-    const restarted = this.store.settle(id, run.ownerEpoch, { status: 'pending', attempt: run.attempt + 1 }) ?? run;
+    const raised = Object.keys(overrides).length > 0 ? { effectiveLimits: { ...run.effectiveLimits, ...overrides } } : {};
+    const restarted = this.store.settle(id, run.ownerEpoch, { status: 'pending', attempt: run.attempt + 1, ...raised }) ?? run;
     return this.launch(restarted.id, ctx);
   }
 
   async haltAll(): Promise<void> {
     for (const run of this.store.list().filter((entry) => entry.status === 'running')) {
       this.cancelled.get(run.id)?.abort();
-      this.store.settle(run.id, run.ownerEpoch, { status: 'halted' });
+      this.settle(run.id, run.ownerEpoch, { status: 'halted' });
     }
   }
 }

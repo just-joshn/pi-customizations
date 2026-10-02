@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 
 import { type ExtensionAPI, type ExtensionCommandContext, getAgentDir, withFileMutationQueue } from '@earendil-works/pi-coding-agent';
+import { type ShellTask, shellTasks } from '../shells.ts';
 import { viewOf } from './agent-records.ts';
 import type { SubagentFactory } from './factory.ts';
 import type { SubagentScheduler } from './scheduler.ts';
@@ -17,7 +18,11 @@ export const fleetPrompt = (goal: string) =>
 
 type Parts = Readonly<{ factory: SubagentFactory; scheduler: SubagentScheduler; settings: SettingsStore; workflows: () => WorkflowRuntime }>;
 
-function tasks(parts: Parts, args: string, ctx: ExtensionCommandContext): void {
+function shellRow(task: ShellTask): string {
+  return `id: ${task.id} | kind: shell | status: ${task.status.kind} | command: ${task.command}`;
+}
+
+function tasks(pi: ExtensionAPI, parts: Parts, args: string, ctx: ExtensionCommandContext): void {
   const [action, id] = args.trim().split(/\s+/);
   if (action === 'background') {
     const promoted = parts.scheduler.promoteCurrent();
@@ -29,7 +34,9 @@ function tasks(parts: Parts, args: string, ctx: ExtensionCommandContext): void {
     return;
   }
   const visible = parts.scheduler.list().filter((node) => node.status !== 'idle' || action === 'all');
-  ctx.ui.notify(listAgentsText(visible.map((node) => viewOf(node, Date.now()))), 'info');
+  const agents = visible.length > 0 ? listAgentsText(visible.map((node) => viewOf(node, Date.now()))) : '';
+  const shells = shellTasks(pi).map(shellRow).join('\n');
+  ctx.ui.notify([agents, shells].filter(Boolean).join('\n') || 'No agents.', 'info');
 }
 
 async function subagents(parts: Parts, args: string, ctx: ExtensionCommandContext): Promise<void> {
@@ -68,7 +75,7 @@ function workflowList(parts: Parts, ctx: ExtensionCommandContext): void {
 export function registerSubagentCommands(pi: ExtensionAPI, parts: Parts): void {
   pi.registerCommand('workflows', { description: 'List dynamic workflow runs and their status', handler: async (_args, ctx) => workflowList(parts, ctx) });
   pi.registerCommand('factories', { description: 'List dynamic workflow runs (internally factories); pause or resume one with dynamic_workflows_manage', handler: async (_args, ctx) => workflowList(parts, ctx) });
-  pi.registerCommand('tasks', { description: 'List running subagents, move the current one to the background, or cancel one', handler: async (args, ctx) => tasks(parts, args, ctx) });
+  pi.registerCommand('tasks', { description: 'List running subagents, move the current one to the background, or cancel one', handler: async (args, ctx) => tasks(pi, parts, args, ctx) });
   pi.registerCommand('subagents', { description: 'Show or edit the subagent models, effort, tier and disabled agents', handler: async (args, ctx) => subagents(parts, args, ctx) });
   pi.registerCommand('rubber-duck', {
     description: 'Ask the model to get a critique of its plan from the rubber-duck agent',

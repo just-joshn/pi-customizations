@@ -1,5 +1,9 @@
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { createEventBus } from '@earendil-works/pi-coding-agent';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { AgentSelection } from '../src/subagents/agent-selection.ts';
 import { builtInAgents } from '../src/subagents/builtin-agents.ts';
 import { EventBridge } from '../src/subagents/child-events.ts';
@@ -230,4 +234,38 @@ test.for([
   { value: 'later', expected: 300 },
 ])('COPILOT_TASK_WAIT_TIMEOUT_SECONDS=$value gives $expected seconds', ({ value, expected }) => {
   expect(waitSeconds(value === undefined ? {} : { COPILOT_TASK_WAIT_TIMEOUT_SECONDS: value })).toBe(expected);
+});
+
+test('the tasks view lists a background shell with its id, kind, status and command', async () => {
+  const fixture = await workerFixture({ shells: true });
+  try {
+    const started = await fixture.call('BackgroundShell', { command: 'sleep 30', title: 'watcher' });
+    const shell = started.details as { id: string };
+    const [notice] = await fixture.command('tasks', '');
+    expect(notice?.message).toContain(`id: ${shell.id} | kind: shell | status: running | command: sleep 30`);
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('COPILOT_EVENTS_LOG_DIRECTORY records subagent events as per-session JSONL envelopes', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-events-log-'));
+  vi.stubEnv('COPILOT_EVENTS_LOG_DIRECTORY', directory);
+  const fixture = await workerFixture();
+  try {
+    await fixture.call('task', { agent_type: 'general-purpose', name: 'logged', description: 'probe', prompt: 'hello', mode: 'background' });
+    const file = join(directory, `${fixture.session.sessionManager.getSessionId()}.jsonl`);
+    const envelopes = (await readFile(file, 'utf8'))
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line) as { id: string; timestamp: string; parentId: string | null; type: string; data: unknown });
+    const started = envelopes.find((envelope) => envelope.type === 'subagent.started');
+    expect(started).toMatchObject({ type: 'subagent.started', data: { agentName: 'general-purpose', agentDisplayName: 'logged' } });
+    expect(typeof started?.id).toBe('string');
+    expect(typeof started?.timestamp).toBe('string');
+    expect(started).toHaveProperty('parentId');
+  } finally {
+    await fixture.close();
+    await rm(directory, { recursive: true, force: true });
+  }
 });

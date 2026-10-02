@@ -2,6 +2,16 @@
 
 Revisions follow the pinned upstream pstack version, then `-pi.N` for this package's own releases.
 
+## 0.15.5-pi.4
+
+- Rebuilds the native parity contract against the current pstack reconstruction. The reference is vendored at `docs/parity/reference/pstack-architecture-reconstruction.md`, the clause slices keyed to the deleted `pstack-reverse-engineering.md` are replaced by `s1` to `s4`, and `bun run check:native-parity` runs green over every slice.
+- `/setup-pstack` lists the `trail reviewer`, `figure-it-out judge`, and `recall miners` roles. A re-run dropped those three lines as retired even though the host contract and three skills read them. The generator now emits them, and `test/models.test.ts` keeps the table equal to `src/models.ts`.
+- `/no-comments` spawns Comment Sicko with `readonly: true` and tells the caller to pass the resolved scope, because a read-only child keeps only the read tools. The read-only guarantee is structural instead of prompt-only.
+- The hillclimb playbook names the note field in its decision-log mapping, so every upstream hillclimb field is recorded in the canonical `decisions.tsv`.
+- Re-verifies all 316 Copilot subagent parity rows against the reconstruction and fixes the twelve the re-verification found: pause and halt emit `workflow.run_settled`, a failed preparation releases its admitted subagent, a credit stop classifies as `workflow_limit_reached` and resumes with a raised limit, a closed workflow limiter reports its own message, a schema reply retries once with both spawns counted, a child transcript keeps its own session id, the task store is populated before `subagent.started`, `session.tasks.register` and `session.tasks.update` exist, `/tasks` lists shells, `copilot_cli_execution_subagent_model` gates the execution model, and the events log directory and the tool-init stages carry tests.
+- States the Pi-native mechanism in fifteen more matrix rows where Pi replaces a Copilot host channel: permission routing, prompt sections, in-process workflow hosting, the AHP prefix, MCP tasks, web search, quota gating, shell and client task kinds, and the idle notice.
+- Adds `check:parity` and `check:native-parity` to `make verify-extension`, adds `check:parity` to the package CI workflow, and documents both in the README.
+
 ## 0.15.5-pi.3
 
 - Audits the pi-subagents source against the native-first order (`extensions/AGENTS.md`) and removes the custom stand-ins it found. The findings and fixes are in `docs/subagents-native-audit.md`, and `docs/subagents-native-gaps.md` records what stays.

@@ -31,11 +31,11 @@ export function agentMetaPath(dir: string, agentId: string): string {
   return join(dir, `agent-${validateId(agentId)}.meta.json`);
 }
 
-/** Pi names session files itself, so the header is written here to pin the agent-<id>.jsonl name and the parent link. */
+/** Pi names session files itself, so the header is written here to pin the agent-<id>.jsonl name and the parent link. The generated native session id stays distinct from the agent id. */
 export async function createChildTranscript(cwd: string, dir: string, agentId: string, parentSession: string | undefined): Promise<string> {
   const path = agentTranscriptPath(dir, agentId);
   await mkdir(dir, { recursive: true });
-  const header = SessionManager.create(cwd, dir, { id: agentId, ...(parentSession ? { parentSession } : {}) }).getHeader();
+  const header = SessionManager.create(cwd, dir, { ...(parentSession ? { parentSession } : {}) }).getHeader();
   await writeFile(path, `${JSON.stringify(header)}\n`, { flag: 'wx' });
   return path;
 }

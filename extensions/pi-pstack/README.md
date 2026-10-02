@@ -194,9 +194,13 @@ bun run test
 bun run test:coverage
 bun run check:cli
 bun run check:upstream
+bun run check:parity
+bun run check:native-parity
 bun run check:journeys
 bun run check:progress-tui
 ```
+
+`bun run check:parity` resolves every pointer in the Copilot subagent parity matrix at `docs/subagents-parity.tsv`. `bun run check:native-parity` re-executes every clause in `docs/parity/clauses/` against the vendored pstack reconstruction at `docs/parity/reference/pstack-architecture-reconstruction.md`, including the tests each clause names. The clause inventory also reads the preserved source checkouts under `~/.cursor/skills-cursor/` and `~/src/experiments/plugins/` for its provenance checks, so run it on a machine that has them, or the commit-backed facts fail.
 
 `bun run check:journeys` starts the real Pi CLI against the package with a deterministic local provider. It loads every skill and prompt template as a user would, drives the mode, status, todo, context, dialog, delegation, shell, setup, helper-script, and worktree journeys, and reports one line per check. `bun run check:progress-tui` requires Pi 1.0.0 and tmux. It launches an isolated TUI with the deterministic provider and checks the visible foreground Task updates.
 
@@ -204,7 +208,7 @@ bun run check:progress-tui
 
 The CLI check starts an isolated local pi process and exercises RPC commands without model calls. Helper scripts may install their locked dependencies into their generated `node_modules` directory. The resource checker excludes that dependency directory and still checks every generated source file.
 
-The [changelog](CHANGELOG.md) lists each `-pi.N` revision. A pull request workflow at the repository root (`.github/workflows/pi-pstack.yml`) runs `bun run check:resources`, `bun run typecheck`, and `bun run test` for changes under this directory.
+The [changelog](CHANGELOG.md) lists each `-pi.N` revision. A pull request workflow at the repository root (`.github/workflows/pi-pstack.yml`) runs `bun run check:resources`, `bun run check:parity`, `bun run typecheck`, and `bun run test` for changes under this directory.
 
 [Provenance](docs/provenance.json), [source audit](docs/source-audit.md), [architecture](docs/architecture.md), and [decision trail](docs/decisions.tsv) document the implementation. Original portable helper scripts retain their own runtime dependencies, including Bun, git, and GitHub CLI where required.
 
