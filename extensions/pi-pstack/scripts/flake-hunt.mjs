@@ -21,7 +21,7 @@
 // crash. If this script is SIGKILLed, a hog notices its parent changed within a
 // second and exits on its own.
 import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -134,19 +134,20 @@ function execute(args) {
   });
 }
 
-function saveFailure(dir, name, result) {
+function saveFailure(dir, name, result, reportPath) {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, name), `exit ${result.status}\n${result.stdout}\n${result.stderr}`);
+  copyFileSync(reportPath, join(dir, `${name}.json`));
 }
 
 async function runOnce({ target, shuffleSeed, workdir, saveAs }) {
   const reportPath = join(workdir, 'report.json');
-  const args = ['vitest', 'run', '--reporter=json', `--outputFile=${reportPath}`];
+  const args = ['vitest', 'run', '--reporter=json', '--reporter=default', `--outputFile.json=${reportPath}`];
   if (target !== 'all') args.push(target);
   if (shuffleSeed !== undefined) args.push('--sequence.shuffle', `--sequence.seed=${shuffleSeed}`);
   const result = await execute(args);
   if (result.status === 0) return [];
-  if (saveAs) saveFailure(saveAs.dir, saveAs.name, result);
+  if (saveAs) saveFailure(saveAs.dir, saveAs.name, result, reportPath);
   return failureMessages(reportPath, result);
 }
 
