@@ -22,9 +22,19 @@ Pi's Anthropic implementation treats the subscription token as an OAuth token. I
 
 The first system block is the Provider CLI billing header (`x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;`). Anthropic's subscription gateway uses that block to bill the request to the Provider CLI plan. A live test on 2026-09-27 showed the effect of removing it: the gateway returned HTTP 400 with an out-of-extra-usage error, even when the plan had usage left. The second system block is Provider CLI's preamble, followed by the Pi system prompt.
 
-To send a different version in the user agent, set `CLAUDE_CODE_VERSION`. The billing block keeps its captured version.
+To send a different Provider CLI version in the user agent, set the header in the `models.json` file of your agent directory. Pi sends a provider's headers on every request of that provider, compaction included, and they replace the default `user-agent`. Use the lowercase name.
 
-The version becomes a request header, so the package checks it. A valid value is dotted digits with 2 to 4 groups, such as `2.1.280`. The package reads `options.env.CLAUDE_CODE_VERSION` first and `process.env.CLAUDE_CODE_VERSION` second. An empty string counts as unset. Any other value fails the request with an error that says `CLAUDE_CODE_VERSION must be dotted digits with 2 to 4 groups, such as 2.1.280` and quotes the rejected value. No request leaves your machine. Pi reports the failure as an error result on the stream. Headers you pass on a request still override the generated `user-agent`.
+```json
+{
+  "providers": {
+    "claude-subscription": {
+      "headers": { "user-agent": "claude-cli/2.1.300" }
+    }
+  }
+}
+```
+
+The billing block keeps its captured version.
 
 The package also checks the payload that Pi's Anthropic implementation hands over. It expects an object whose `system` is an array or absent. Any other shape ends the request with an error that names the unexpected shape.
 
@@ -48,7 +58,7 @@ Provider CLI writes its prompt cache with a one-hour lifetime (`cache_control: {
 
 Provider CLI keeps shell output inline up to 30,000 characters. Above that it saves the output to a file and sends the model a preview of the first 2,000 characters with the file path. A capture of Provider CLI 2.1.287 on 2026-10-01 showed 30,000 characters inline and 40,000 replaced by a roughly 2,200 character preview. Pi's `bash` tool keeps the last 50KB of a long output in context.
 
-`src/large-output.ts` is a second extension in the manifest. It registers a `tool_result` handler, the documented way to rewrite a tool result, and acts only when the active model belongs to `claude-subscription`. Above 30,000 characters it replaces a `bash` result with the same kind of preview. If Pi already saved the full output, the handler previews that file. Otherwise it writes the output to a file in the system temp directory. If the file cannot be read or written, the original result stays. Other tools and other providers are untouched.
+`src/large-output.ts` is a second extension in the manifest. No Pi setting bounds the size of tool text, so it registers a `tool_result` handler, the documented way to rewrite a tool result, and acts only when the active model belongs to `claude-subscription`. Above 30,000 characters it replaces a `bash` result with the same kind of preview. If Pi already saved the full output, the handler previews that file. Otherwise it writes the output to a file in the system temp directory. If the file cannot be read or written, the original result stays. Other tools and other providers are untouched.
 
 Measured on the live subscription with a 100,000 character command, the model received 51,332 characters without the handler and 2,208 with it. The follow-up turn wrote 51,381 tokens to cache without it and 2,204 with it.
 
@@ -65,6 +75,18 @@ Both clients already agree on `max_tokens` (128000) and on adaptive thinking. Tw
 - Over 14 turns of 24KB `bash` results, Provider CLI kept every earlier result in full. It does not clear old tool output, and neither does Pi.
 - Provider CLI refuses to read a file over 256KB and tells the model to use an offset and limit. Pi's `read` tool returns at most 50KB, which is already smaller.
 
+## Where Pi has no mechanism
+
+Pi supplies most of this package. The `/login` flow, token refresh, model catalog, and Anthropic Messages request are Pi's own, and the shell output cap is a `tool_result` handler. `models.json` cannot log in to a Claude subscription, so the package registers a provider that reuses those Pi parts.
+
+Three request adjustments are code in `src/index.ts` because no Pi mechanism applies them to this provider's requests alone. They run inside the provider's `stream` and `streamSimple`, where the pi-ai README puts provider-wide request changes. Pi still builds the request, calls the caller's `onPayload` afterward, and owns the session, the tools, and the usage accounting. The tests check that aborts, usage and cost, context overflow, and credential refresh pass through the wrapper unchanged. The wrapper keeps no state, so a reload, a session replacement, or a branch switch cannot leave it stale.
+
+**Billing block.** The gateway needs the block first in `system` on every request. The `before_provider_request` event can replace a payload, but it misses requests this package must cover. Compaction requests do not fire it. A virtual model that routes to this provider fires it with `ctx.model` naming the virtual selection, so a handler cannot tell that the request is for this provider. `scripts/prove-request-paths.ts` starts Pi 1.0.0 with `RpcClient` and runs three prompts, one compaction, and one prompt through a virtual model. The prompts sent 3 requests and fired 3 events. The compaction sent 2 requests and fired none. The virtual route sent 1 request and fired 1 event, which names the virtual model's provider. The `before_agent_start` event changes the Pi prompt, which Pi places after Provider CLI's preamble, so it cannot come first. No `models.json` field or setting edits a request body. Delete this code when `before_provider_request` fires for every request and names the provider that receives it. When that happens, the script fails and says so.
+
+**One-hour cache.** `PI_CACHE_RETENTION=long` reaches every provider that reads it, not only this one. A stored OAuth credential resolves to a token without a provider environment, so this provider cannot set the variable for itself. `cacheRetention` is a per-request option, so the wrapper sets it. Delete this code when a provider or model can declare a default retention.
+
+**Unique tool names.** Pi's OAuth rename creates the collision, and it exists only on the wire. The Pi mechanisms that remove a declaration do not fit. `setActiveTools()` and the `selectedTools` field of `before_agent_start` change the session's active tools. Pi records that change in the transcript and keeps it after a model change, so the hidden tool would stay hidden for other providers. `prepareLoadout` needs a registered tool that the model sees, and it receives no model, so it cannot act for this provider alone. `before_provider_request` cannot scope itself to this provider when a virtual model routes to it. The wrapper drops the later duplicate from the flat `tools` list after Pi's rename, one request at a time. Delete this code when pi-ai folds names before it declares tools.
+
 ## Verify it
 
 Run `bun install` first. It installs the Pi packages the tests import, pinned to 1.0.0. Pi does not install development dependencies when it loads the package.
@@ -75,5 +97,6 @@ Run `bun install` first. It installs the Pi packages the tests import, pinned to
 - `bunx vitest run --sequence.shuffle` runs the tests in random order to check that they are independent.
 - `node --experimental-strip-types scripts/equivalence.ts` prints each captured request and result as JSON. To compare two versions, run it on both and diff the output.
 - `node --experimental-strip-types scripts/prove-pi.ts` loads the extension in `pi`. If you are logged in, it sends one live prompt. If not, it confirms that Pi asks you to log in.
+- `node --experimental-strip-types scripts/prove-request-paths.ts` starts Pi with `RpcClient` against a local gateway stub and runs three prompts, one compaction, and one prompt through a virtual model. It checks that every request carries the billing block, that `before_provider_request` does not fire for compaction, that it names the virtual model's provider for a virtual route, and that a `user-agent` header from `models.json` reaches every request.
 
 From the repository root, `bunx biome ci extensions/pi-anthropic-oauth --error-on-warnings --max-diagnostics=none`, `bun run check:agents`, `bun run check:tests`, and `node scripts/check-pi-mechanisms.mjs` check style and Pi packaging rules.
