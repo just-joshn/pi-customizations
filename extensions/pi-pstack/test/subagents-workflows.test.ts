@@ -156,7 +156,7 @@ test('a registered workflow runs, delegates, journals and settles completed', as
   const seen: { type: string; data?: Record<string, unknown> }[] = [];
   fixture.eventBus.on('reference-assistant:event', (payload) => {
     const event = payload as { type: string; data?: Record<string, unknown> };
-    seen.push({ type: event.type, data: event.data });
+    seen.push(payload as { type: string; data?: Record<string, unknown> });
   });
   try {
     const started = await rpc(fixture, 'session.workflow.run', { name: 'probe-flow' });
@@ -172,6 +172,8 @@ test('a registered workflow runs, delegates, journals and settles completed', as
     expect(childStart?.data).toMatchObject({ agentType: 'general-purpose', executionMode: 'sync' });
     expect(childStart?.data?.workflowRunId).toBe(id);
     expect(childStart?.data?.factoryRunId).toBe(id);
+    const childId = String(childStart?.agentId);
+    await expect(fixture.call('read_agent', { agent_id: childId })).rejects.toThrow(`Agent ${childId} is managed by workflow run ${id}.`);
     const put = await rpc(fixture, 'session.workflow.journal.put', { id, key: 'manual', value: 7 });
     expect(put.ok).toBe(true);
     expect(((await rpc(fixture, 'session.workflow.getRunDetail', { id })).result as { journal: Record<string, unknown> }).journal.manual).toBe(7);
