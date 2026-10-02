@@ -1,9 +1,8 @@
-import { expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 import { workerFixture } from './worker-fixture.ts';
 
 test('[G1-13] real SDK tree navigation resets absent depth to main zero', async () => {
-  vi.stubEnv('PI_MAX_SUBAGENT_SPAWN_DEPTH', '1');
-  const fixture = await workerFixture();
+  const fixture = await workerFixture({ settings: { subagents: { maxDepth: 1 } } });
   try {
     const launched = await fixture.call('Task', { prompt: 'first task', run_in_background: false });
     const details = launched.details;

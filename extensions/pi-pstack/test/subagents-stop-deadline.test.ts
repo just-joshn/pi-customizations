@@ -4,7 +4,7 @@ import { settleWithin } from '../src/subagents/stop-deadline.ts';
 import { workerFixture } from './worker-fixture.ts';
 import { releasePendingWork } from './worker-gates.ts';
 
-type Launched = { agentId: string };
+type Launched = { id: string };
 
 function wedgeAbort() {
   return [vi.spyOn(AgentSession.prototype, 'abort').mockResolvedValue(undefined), vi.spyOn(AgentSession.prototype, 'dispose').mockImplementation(() => {})];
@@ -27,7 +27,7 @@ test('a wedged stop is unblocked at 10s by SIGKILLing the child bash process gro
   const fixture = await workerFixture();
   try {
     const spawned = new Promise<unknown>((resolve) => fixture.eventBus.on('pstack:process-group', resolve));
-    const { agentId } = (await fixture.call('Agent', { description: 'wedged bash', prompt: 'BASH_SLEEP' })).details as Launched;
+    const { id: agentId } = (await fixture.call('Task', { prompt: 'BASH_SLEEP' })).details as Launched;
     expect(await spawned).toEqual({ pid: expect.any(Number), agentId });
     const spies = wedgeAbort();
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
@@ -45,7 +45,7 @@ test('a wedged stop is unblocked at 10s by SIGKILLing the child bash process gro
 test('a stop still unsettled at 30s returns a stop-pending handle that TaskStop can re-fire', async () => {
   const fixture = await workerFixture();
   try {
-    const { agentId } = (await fixture.call('Agent', { description: 'wedged loop', prompt: 'WAIT GRANDCHILD' })).details as Launched;
+    const { id: agentId } = (await fixture.call('Task', { prompt: 'WAIT GRANDCHILD' })).details as Launched;
     const spies = wedgeAbort();
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     const stopping = fixture.call('TaskStop', { task_id: agentId });
@@ -58,7 +58,7 @@ test('a stop still unsettled at 30s returns a stop-pending handle that TaskStop 
       status: 'stop_pending',
       task_id: agentId,
       task_type: 'local_agent',
-      command: 'wedged loop',
+      command: 'generalPurpose',
       message: `Task ${agentId} is still stopping: its loop never settled after kill. The record is retained as its stop handle; TaskStop re-fires, session restart is the final recovery.`,
     });
     expect((await fixture.call('TaskStop', { task_id: agentId })).details).toMatchObject({ status: 'interrupted' });
@@ -72,7 +72,7 @@ test('session shutdown gives up on a wedged worker after 30s instead of blocking
   const errors: string[] = [];
   const off = fixture.session.extensionRunner.onError((error) => errors.push(String(error.error)));
   try {
-    const { agentId } = (await fixture.call('Agent', { description: 'wedged shutdown', prompt: 'WAIT GRANDCHILD' })).details as Launched;
+    const { id: agentId } = (await fixture.call('Task', { prompt: 'WAIT GRANDCHILD' })).details as Launched;
     const spies = wedgeAbort();
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     const shutdown = fixture.session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' });

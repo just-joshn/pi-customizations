@@ -1,10 +1,26 @@
 import { randomUUID } from 'node:crypto';
 
+import { Type } from 'typebox';
+import { Check } from 'typebox/value';
 import { type ModelSelectionSource, sameModel, type TaskModelSource } from './model-selection.ts';
 import type { ExecutionMode } from './task-status.ts';
 
 export const eventChannel = 'copilot:event';
 export const eventEntryType = 'copilot-event';
+
+export const EnvelopeSchema = Type.Object({
+  id: Type.String(),
+  timestamp: Type.String(),
+  parentId: Type.Union([Type.String(), Type.Null()]),
+  type: Type.String(),
+  data: Type.Unknown(),
+  agentId: Type.Optional(Type.String()),
+  ephemeral: Type.Optional(Type.Literal(true)),
+});
+
+export function asEnvelope(value: unknown): EventEnvelope | undefined {
+  return Check(EnvelopeSchema, value) ? value : undefined;
+}
 
 export type EventEnvelope<Type extends string = string, Data = unknown> = Readonly<{
   id: string;
@@ -87,6 +103,13 @@ export class EventLog {
     this.sink.emit(envelope);
     if (!options.ephemeral) this.sink.persist(envelope);
     return envelope;
+  }
+
+  /** Copies an envelope produced inside a child session onto this stream, stamped with the child that owns it. */
+  relay(envelope: EventEnvelope, agentId: string): void {
+    const owned: EventEnvelope = { ...envelope, agentId: envelope.agentId ?? agentId };
+    this.sink.emit(owned);
+    if (!owned.ephemeral) this.sink.persist(owned);
   }
 }
 
