@@ -10,7 +10,6 @@ import { closeSession } from './subagents/close-session.ts';
 import { CloudTasks, type CloudWorker } from './subagents/cloud-tasks.ts';
 import { type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
 import { currentDepth, depthStore } from './subagents/context.ts';
-import type { ContinuationState } from './subagents/continuation.ts';
 import { finishedRecord } from './subagents/finished-record.ts';
 import { validateId } from './subagents/identifiers.ts';
 import { depthMessage } from './subagents/limiter.ts';
@@ -91,10 +90,6 @@ export class WorkerRuntime {
 
   liveMessages(id: string): AgentSession['messages'] | undefined {
     return this.workers.get(id)?.session.messages;
-  }
-
-  continuationState(id: string): ContinuationState {
-    return { inFlight: this.starting.has(id), stopping: this.stopping.has(id), resumerStopping: false };
   }
 
   private commitRecord(record: TaskRecord): void {
