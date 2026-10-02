@@ -71,7 +71,7 @@ function restoredFrom(entries: readonly { type: string; customType: string; data
 
 test('the store claims pending runs, settles, and rebuilds every run from the session entries', () => {
   const { store, entries } = journaledStore();
-  const created = store.create('build', { limits }, { a: 1 }, {}, 1000);
+  const created = store.create('build', { limits }, { a: 1 }, {}, {}, 1000);
   expect(store.claim(created.id, 1, 1000)).toMatchObject({ status: 'running', ownerEpoch: 1 });
   expect(store.claim(created.id, 1, 1001)).toBeUndefined();
   store.log(created.id, 'Phase verify.', 'verify');
@@ -85,7 +85,7 @@ test('the store claims pending runs, settles, and rebuilds every run from the se
 
 test('a run snapshot never repeats the logs the log entries already carry', () => {
   const { store, entries } = journaledStore();
-  const created = store.create('build', { limits }, undefined, {}, 1000);
+  const created = store.create('build', { limits }, undefined, {}, {}, 1000);
   store.claim(created.id, 1, 1000);
   store.log(created.id, 'one');
   store.log(created.id, 'two');
@@ -97,9 +97,9 @@ test('a run snapshot never repeats the logs the log entries already carry', () =
 
 test('a run another process left open settles as interrupted, except the runs this process executes', () => {
   const { store, entries } = journaledStore();
-  const stale = store.create('stale', { limits }, undefined, {}, 1000);
+  const stale = store.create('stale', { limits }, undefined, {}, {}, 1000);
   store.claim(stale.id, 1, 1000);
-  const live = store.create('live', { limits }, undefined, {}, 2000);
+  const live = store.create('live', { limits }, undefined, {}, {}, 2000);
   store.claim(live.id, 1, 2000);
   const restored = restoredFrom(entries);
   const interrupted = restored.interruptOpen(new Set([live.id]));
@@ -110,7 +110,7 @@ test('a run another process left open settles as interrupted, except the runs th
 
 test('admission counts subagents atomically and refuses past the total', () => {
   const store = new WorkflowStore(() => {});
-  const created = store.create('build', { limits }, undefined, {}, 1000);
+  const created = store.create('build', { limits }, undefined, {}, {}, 1000);
   store.claim(created.id, 1, 1000);
   store.admitSubagent(created.id);
   store.admitSubagent(created.id);
@@ -122,14 +122,21 @@ test('admission counts subagents atomically and refuses past the total', () => {
 
 test('a maxTotalSubagents of zero refuses the first subagent', () => {
   const store = new WorkflowStore(() => {});
-  const created = store.create('build', { limits: { ...limits, maxTotalSubagents: 0 } }, undefined, {}, 1000);
+  const created = store.create('build', { limits: { ...limits, maxTotalSubagents: 0 } }, undefined, {}, {}, 1000);
   store.claim(created.id, 1, 1000);
+  expect(() => store.admitSubagent(created.id)).toThrow('The workflow reached its maxTotalSubagents limit (0).');
+});
+
+test('a run persists the configured workflow defaults in its effective limits', () => {
+  const store = new WorkflowStore(() => {});
+  const created = store.create('build', { limits: {} }, undefined, {}, { maxTotalSubagents: 0, maxConcurrentSubagents: 1 }, 1000);
+  expect(store.get(created.id)?.effectiveLimits).toEqual({ maxConcurrentSubagents: 1, maxTotalSubagents: 0, timeoutSeconds: 1800, maxAiCredits: 5 });
   expect(() => store.admitSubagent(created.id)).toThrow('The workflow reached its maxTotalSubagents limit (0).');
 });
 
 test('a stale epoch settles nothing and unknown ids are refused', () => {
   const store = new WorkflowStore(() => {});
-  const created = store.create('build', { limits }, undefined, {}, 1000);
+  const created = store.create('build', { limits }, undefined, {}, {}, 1000);
   store.claim(created.id, 1, 1000);
   expect(store.settle(created.id, 9, { status: 'completed' })).toBeUndefined();
   expect(store.get(created.id)).toMatchObject({ status: 'running', ownerEpoch: 1 });
@@ -283,6 +290,47 @@ test('a workflow never runs more subagents at once than its concurrency limit', 
   } satisfies WorkflowDeclaration);
   try {
     const started = await rpc(fixture, 'session.workflow.run', { name: 'serial-flow' });
+    expect(started.result).toMatchObject({ status: 'completed', consumption: { subagents: 2 } });
+    expect(order).toEqual(['subagent.started', 'subagent.completed', 'subagent.started', 'subagent.completed']);
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('the configured workflow defaults bound a run that declares no limits', async () => {
+  vi.stubEnv('COPILOT_DYNAMIC_WORKFLOWS', '1');
+  const fixture = await workerFixture({ settings: { workflows: { defaultLimits: { maxTotalSubagents: 1 } } } });
+  fixture.eventBus.emit('reference-assistant:register-workflow', {
+    name: 'defaulted-flow',
+    description: 'Declares no limits of its own',
+    run: async (ctx) => {
+      await ctx.agent('one');
+      return ctx.agent('two');
+    },
+  } satisfies WorkflowDeclaration);
+  try {
+    const started = await rpc(fixture, 'session.workflow.run', { name: 'defaulted-flow' });
+    expect(started.result).toMatchObject({ status: 'error', failure: { type: 'workflow_limit_reached', message: expect.stringContaining('maxTotalSubagents (1) was reached') } });
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('the configured concurrency default serializes a run that declares none', async () => {
+  vi.stubEnv('COPILOT_DYNAMIC_WORKFLOWS', '1');
+  const fixture = await workerFixture({ settings: { workflows: { defaultLimits: { maxConcurrentSubagents: 1 } } } });
+  const order: string[] = [];
+  fixture.eventBus.on('reference-assistant:event', (payload) => {
+    const { type } = payload as { type: string };
+    if (type === 'subagent.started' || type === 'subagent.completed') order.push(type);
+  });
+  fixture.eventBus.emit('reference-assistant:register-workflow', {
+    name: 'defaulted-parallel',
+    description: 'Two delegates through the configured slot',
+    run: async (ctx) => ctx.parallel([() => ctx.agent('one'), () => ctx.agent('two')]),
+  } satisfies WorkflowDeclaration);
+  try {
+    const started = await rpc(fixture, 'session.workflow.run', { name: 'defaulted-parallel' });
     expect(started.result).toMatchObject({ status: 'completed', consumption: { subagents: 2 } });
     expect(order).toEqual(['subagent.started', 'subagent.completed', 'subagent.started', 'subagent.completed']);
   } finally {

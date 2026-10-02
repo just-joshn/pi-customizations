@@ -112,19 +112,16 @@ export class WorkflowRuntime {
     const declaration = this.declared(name);
     if (declaration.arguments && !Check(declaration.arguments, args)) throw new Error(`Invalid arguments for workflow ${name}.`);
     if (this.store.list().some((run) => run.name === name && ['pending', 'running', 'paused'].includes(run.status))) throw new Error(`Workflow ${name} already has an active run. Resume or cancel it first.`);
-    const cap = this.ports.settings.read().settings.workflows.maxConcurrentRuns;
-    if (this.store.list().filter((run) => ['pending', 'running', 'paused'].includes(run.status)).length >= cap) throw new Error(`The active workflow run cap (${cap}) is reached.`);
+    const { maxConcurrentRuns, defaultLimits } = this.ports.settings.read().settings.workflows;
+    if (this.store.list().filter((run) => ['pending', 'running', 'paused'].includes(run.status)).length >= maxConcurrentRuns) throw new Error(`The active workflow run cap (${maxConcurrentRuns}) is reached.`);
     if (
       via === 'tool' &&
       ctx.hasUI &&
-      !(await ctx.ui.confirm(
-        `Run workflow ${name}?`,
-        `${declaration.description}\nEffective limits: ${JSON.stringify(effectiveLimits({ declaration, ...(Object.keys(overrides).length ? { overrides } : {}), defaults: this.ports.settings.read().settings.workflows.defaultLimits }))}`,
-      ))
+      !(await ctx.ui.confirm(`Run workflow ${name}?`, `${declaration.description}\nEffective limits: ${JSON.stringify(effectiveLimits({ declaration, ...(Object.keys(overrides).length ? { overrides } : {}), defaults: defaultLimits }))}`))
     )
       throw new Error('The user declined to run this workflow.');
     const now = this.now();
-    const created = this.store.create(name, declaration, args, overrides, now);
+    const created = this.store.create(name, declaration, args, overrides, defaultLimits, now);
     return this.launch(created.id, ctx);
   }
 
