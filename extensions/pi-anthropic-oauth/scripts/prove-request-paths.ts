@@ -75,8 +75,8 @@ try {
     if (routedRequests.length !== 1) throw new Error('The routed prompt should send one request to the gateway.');
     if (server.requests.some((request) => !carriesBillingBlock(request))) throw new Error('A request reached the gateway without the billing block.');
     if (compactionProviders.length !== 0) throw new Error('Pi now fires before_provider_request for compaction requests. The extension event can carry the billing block, so move it there and delete the provider-level hook.');
-    if (routedProviders.some((provider) => provider !== ROUTER_PROVIDER))
-      throw new Error('A before_provider_request event now names the routed provider. If every event does, the extension event can scope the billing block to claude-subscription.');
+    if (routedProviders.length !== 1) throw new Error('A virtual route should fire exactly one before_provider_request event.');
+    if (routedProviders[0] !== ROUTER_PROVIDER) throw new Error('A before_provider_request event now names the routed provider. If every event does, the extension event can scope the billing block to claude-subscription.');
     if (report.userAgents.length !== 1 || report.userAgents[0] !== USER_AGENT) throw new Error('The models.json user-agent header did not reach every request, so the README override no longer works.');
   } finally {
     await client.stop();
