@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 
 import { DefaultResourceLoader, type ExtensionAPI, type ExtensionContext, getAgentDir, type LoadExtensionsResult } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { restartTimerService, startTimerService, timerCommand, timerRecord } from '../scripts/timer-client.mjs';
 import { CiToolSchema, parseCi } from '../scripts/timer-ci.mjs';
+import { restartTimerService, startTimerService, timerCommand, timerRecord } from '../scripts/timer-client.mjs';
 import { parseTimer, TimerSchema } from './timer-schedules.ts';
 import { workerExtensions } from './worker-support.ts';
 

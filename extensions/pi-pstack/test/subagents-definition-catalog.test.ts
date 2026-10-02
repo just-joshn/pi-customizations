@@ -80,7 +80,10 @@ test('a reload clears cached definitions so new agent files are picked up', asyn
     fixture.eventBus.on('pstack:subagent-color', (value) => colors.push(value));
     await fixture.session.extensionRunner.emit({ type: 'session_start', reason: 'reload' });
     expect((await launch(fixture, 'late')).details).toMatchObject({ status: 'completed', agentType: 'late' });
-    expect(colors).toEqual([{ agentType: 'late', color: 'green' }, { agentType: 'statusline-setup', color: 'orange' }]);
+    expect(colors).toEqual([
+      { agentType: 'late', color: 'green' },
+      { agentType: 'statusline-setup', color: 'orange' },
+    ]);
   } finally {
     clearAgentCache();
     await fixture.close();

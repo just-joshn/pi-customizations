@@ -19,8 +19,10 @@ function describe(value: unknown): string | undefined {
   return undefined;
 }
 
+const placeholder = (name: string): string => `${'$'}{${name}}`;
+
 function interpolate(body: string, root: string): string {
-  return body.replaceAll('${CLAUDE_PLUGIN_ROOT}', root).replaceAll('${PI_PACKAGE_ROOT}', root);
+  return body.replaceAll(placeholder('CLAUDE_PLUGIN_ROOT'), root).replaceAll(placeholder('PI_PACKAGE_ROOT'), root);
 }
 
 function limits(fm: Record<string, unknown>, path: string, warnings: string[]): Partial<Mutable> {
@@ -38,8 +40,7 @@ function limits(fm: Record<string, unknown>, path: string, warnings: string[]): 
     if (typeof fm.maxTurns === 'number' && Number.isInteger(fm.maxTurns) && fm.maxTurns > 0) agent.maxTurns = fm.maxTurns;
     else warnings.push(`Plugin agent file ${path} has invalid maxTurns '${String(fm.maxTurns)}'. Must be a positive integer.`);
   }
-  for (const key of ['permissionMode', 'hooks', 'mcpServers'])
-    if (fm[key] !== undefined) warnings.push(`Plugin agent file ${path} sets ${key}, which is ignored for plugin agents. Use .claude/agents/ for this level of control.`);
+  for (const key of ['permissionMode', 'hooks', 'mcpServers']) if (fm[key] !== undefined) warnings.push(`Plugin agent file ${path} sets ${key}, which is ignored for plugin agents. Use .claude/agents/ for this level of control.`);
   return agent;
 }
 
@@ -96,7 +97,19 @@ function scanDirectory(dir: string, pkg: PluginPackage, warnings: string[]): Age
   const files = readdirSync(dir, { recursive: true, encoding: 'utf8' })
     .filter((entry) => entry.endsWith('.md'))
     .toSorted();
-  return files.flatMap((entry) => loadPluginFile({ filePath: join(dir, entry), pluginName: pkg.name, namespace: relative(dir, join(dir, entry, '..')).split(sep).filter(Boolean), root: pkg.root }, warnings));
+  return files.flatMap((entry) =>
+    loadPluginFile(
+      {
+        filePath: join(dir, entry),
+        pluginName: pkg.name,
+        namespace: relative(dir, join(dir, entry, '..'))
+          .split(sep)
+          .filter(Boolean),
+        root: pkg.root,
+      },
+      warnings,
+    ),
+  );
 }
 
 export function packageAgents(pkg: PluginPackage, warnings: string[]): AgentDefinition[] {

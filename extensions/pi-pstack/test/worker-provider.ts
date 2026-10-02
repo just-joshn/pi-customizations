@@ -31,7 +31,10 @@ function statisticsCalls(text: string): ToolCall[] {
 }
 
 function directCalls(text: string): ToolCall[] {
-  if (text.includes('NAMED_AGENT_CONTRACT')) return [{ type: 'toolCall', id: 'named-contract', name: 'Agent', arguments: { description: 'named contract child', prompt: 'ordinary named child', name: 'contract-worker', team_name: 'ignored-team', mode: 'plan', run_in_background: false } }];
+  if (text.includes('NAMED_AGENT_CONTRACT'))
+    return [
+      { type: 'toolCall', id: 'named-contract', name: 'Agent', arguments: { description: 'named contract child', prompt: 'ordinary named child', name: 'contract-worker', team_name: 'ignored-team', mode: 'plan', run_in_background: false } },
+    ];
   if (text.includes('INTERNAL_CWD_CONTRACT')) return [{ type: 'toolCall', id: 'internal-cwd', name: 'Agent', arguments: { description: 'internal cwd child', prompt: 'hello', run_in_background: false } }];
   if (text.includes('LEGACY_TASK_AGENT_CONTRACT')) return [{ type: 'toolCall', id: 'legacy-alias', name: 'Task', arguments: { description: 'legacy alias child', prompt: 'hello', subagent_type: 'Explore', run_in_background: false } }];
   if (text.includes('SPAWN_DEEP_TREE')) return [{ type: 'toolCall', id: 'deep-child', name: 'Agent', arguments: { description: 'deep child', prompt: 'SPAWN_AGENT', run_in_background: false } }];
@@ -116,7 +119,9 @@ function saveRequest(context: StreamArguments[1], dir: string): void {
   writeFileSync(join(dir, 'child-input.txt'), JSON.stringify(users));
   writeFileSync(join(dir, 'child-tools.txt'), JSON.stringify(system.flatMap((message) => message.toolsAdded?.map((tool) => tool.name) ?? [])));
   appendFileSync(join(dir, 'provider-inputs.jsonl'), `${JSON.stringify(users)}\n`);
-  writeFileSync(join(dir, 'child-tool-results.json'), JSON.stringify(context.messages.filter((message) => message.role === 'toolResult')));
+  const toolResults = JSON.stringify(context.messages.filter((message) => message.role === 'toolResult'));
+  writeFileSync(join(dir, 'child-tool-results.json'), toolResults);
+  appendFileSync(join(dir, 'child-tool-results-history.jsonl'), `${toolResults}\n`);
 }
 
 function scheduleWait(text: string, _nested: boolean, grandchild: boolean, options: StreamArguments[2], finish: (aborted?: boolean) => void) {
@@ -222,8 +227,7 @@ function registerStopPendingProbe(pi: ExtensionAPI): void {
   });
 }
 
-export default function workerProvider(pi: ExtensionAPI): void {
-  registerStopPendingProbe(pi);
+function registerFixtureTools(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'self_abort',
     label: 'Abort test self',
@@ -256,11 +260,28 @@ export default function workerProvider(pi: ExtensionAPI): void {
       return { content: [{ type: 'text', text: 'Selected Read only' }], details: {} };
     },
   });
+}
+
+function registerFixtureProvider(pi: ExtensionAPI): void {
   pi.registerProvider('worker-test', {
     api: 'openai-completions',
     baseUrl: 'https://unused.invalid',
     apiKey: 'test-only',
-    models: ['deterministic', 'alternate', 'claude-opus-5', 'claude-fable-1'].map((id) => ({ id, name: id, reasoning: id === 'alternate', input: ['text'], contextWindow: 100000, maxTokens: 1000, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } })),
+    models: ['deterministic', 'alternate', 'claude-opus-5', 'claude-fable-1'].map((id) => ({
+      id,
+      name: id,
+      reasoning: id === 'alternate',
+      input: ['text'],
+      contextWindow: 100000,
+      maxTokens: 1000,
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    })),
     streamSimple: streamWorker,
   });
+}
+
+export default function workerProvider(pi: ExtensionAPI): void {
+  registerStopPendingProbe(pi);
+  registerFixtureTools(pi);
+  registerFixtureProvider(pi);
 }

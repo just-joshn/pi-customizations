@@ -6,18 +6,8 @@ const playbook = (...names) => new RegExp(`^skills/poteto-mode/playbooks/(?:${na
 
 export default [
   [playbook('opening-a-pr', 'babysit', 'shipping', 'autopilot-full', 'autopilot-stack', 'multi-phase-plan'), '`command -v origin` succeeds', '`command -v origin || test -x ~/.local/bin/origin` succeeds', forge],
-  [
-    playbook('babysit', 'shipping', 'autopilot-full', 'autopilot-stack'),
-    'Otherwise stay on `gh` and record the fallback.',
-    `${originRepair} ${originOnly} For any other repository, stay on \`gh\` and record the fallback.`,
-    forge,
-  ],
-  [
-    playbook('opening-a-pr'),
-    'If Origin is absent or cannot resolve the repository, stay on `gh` and record the fallback.',
-    `${originRepair} ${originOnly} For any other repository, stay on \`gh\` and record the fallback.`,
-    forge,
-  ],
+  [playbook('babysit', 'shipping', 'autopilot-full', 'autopilot-stack'), 'Otherwise stay on `gh` and record the fallback.', `${originRepair} ${originOnly} For any other repository, stay on \`gh\` and record the fallback.`, forge],
+  [playbook('opening-a-pr'), 'If Origin is absent or cannot resolve the repository, stay on `gh` and record the fallback.', `${originRepair} ${originOnly} For any other repository, stay on \`gh\` and record the fallback.`, forge],
   [playbook('multi-phase-plan'), 'Record any fallback to `gh`.', `${originRepair} ${originOnly} For any other repository, record the fallback to \`gh\`.`, forge],
   [playbook('opening-a-pr'), 'With Origin, pass `--status open`.', 'With Origin, push the branch first or pass `--push`, and pass `--status open`.', 'Push before an Origin PR create.'],
   [
@@ -27,12 +17,7 @@ export default [
     'Use the Origin stack flag for a stacked child.',
   ],
   [playbook('babysit'), '`origin pr thread list <pr>`, and', '`origin pr thread list <pr> --unresolved --json id,resolved,path`, and', 'List only unresolved Origin threads.'],
-  [
-    playbook('babysit'),
-    'Never add a second sleep loop.',
-    "Keep one watcher plus the loop skill's one-shot fallback heartbeat, and never a second polling loop.",
-    'Reconcile the babysit one-watcher rule with the loop skill heartbeat.',
-  ],
+  [playbook('babysit'), 'Never add a second sleep loop.', "Keep one watcher plus the loop skill's one-shot fallback heartbeat, and never a second polling loop.", 'Reconcile the babysit one-watcher rule with the loop skill heartbeat.'],
   [
     playbook('babysit'),
     'Re-read the PR and threads whenever the check watch returns.',
@@ -69,11 +54,16 @@ export default [
     "- [ ] Every box above is checked with its evidence.\n- [ ] Call `UpdateGoal` with status complete only after the last PR merges or joins the stack and the root's final verdict audit passes.",
     'Name the goal completion point so a goal cannot outlive the program or finish early.',
   ],
-  [playbook('multi-phase-plan'), '**Control skill.** Pick it by surface.', "**Control skill.** Prefer the repository's committed `verify-<app>` skill when it exists. Otherwise pick it by surface.", 'Prefer the repository verification skill over the generic recipe.'],
+  [
+    playbook('multi-phase-plan'),
+    '**Control skill.** Pick it by surface.',
+    "**Control skill.** Prefer the repository's committed `verify-<app>` skill when it exists. Otherwise pick it by surface.",
+    'Prefer the repository verification skill over the generic recipe.',
+  ],
   [
     playbook('multi-phase-plan'),
     "- [ ] <Deliver input only through the control skill's commands. Name the read-only diagnostics.>",
-    "- [ ] <Deliver input only through the commands of the generated `verify-<app>` skill from `create-verification-skill` when the repository has one, otherwise through the harness commands this lane writes down before driving. Name the read-only diagnostics.>",
+    '- [ ] <Deliver input only through the commands of the generated `verify-<app>` skill from `create-verification-skill` when the repository has one, otherwise through the harness commands this lane writes down before driving. Name the read-only diagnostics.>',
     'Name the command surface a lane restricts input to when only a recipe exists.',
   ],
   [
@@ -84,7 +74,7 @@ export default [
   ],
   [
     playbook('eval'),
-    "Each works in its own sanitized dir. Same prompt to each.",
+    'Each works in its own sanitized dir. Same prompt to each.',
     "Each works in its own sanitized dir. Same prompt to each. Override arena's output paths and worktree names with sanitized project-shaped names, because arena's defaults contain `arena` and `candidate`, which the blinding rules forbid.",
     'Resolve the arena path defaults that contain the words that the eval blinding rules forbid.',
   ],

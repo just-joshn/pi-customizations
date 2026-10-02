@@ -7,15 +7,8 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
-  "include": [
-    "src/**/*.ts",
-    "test/**/*.ts"
-  ],
-  "exclude": [
-    "test/helpers"
-  ]
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["test/helpers"]
 }

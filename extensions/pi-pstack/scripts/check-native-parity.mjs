@@ -40,7 +40,9 @@ const testResults = values['no-tests'] ? undefined : await testResultsFor(clause
 for (const clause of clauses) for (const check of clause.checks ?? []) findings.push(...(await failedCheck(clause.id, check)));
 const open = clauses.filter(isUnresolved);
 for (const clause of open) findings.push(`${clause.id} is ${clause.verdict}${clause.note ? `: ${clause.note}` : ''}`);
-const tally = Object.entries(Object.groupBy(clauses, (clause) => clause.verdict)).map(([verdict, list]) => `${verdict} ${list.length}`).join(', ');
+const tally = Object.entries(Object.groupBy(clauses, (clause) => clause.verdict))
+  .map(([verdict, list]) => `${verdict} ${list.length}`)
+  .join(', ');
 process.stdout.write(`${clauses.length} clauses in ${selected.length} slices (${tally}). ${findings.length} findings.\n`);
 if (findings.length) {
   process.stdout.write(`${findings.join('\n')}\n`);
@@ -67,7 +69,11 @@ function inside(parent, path) {
 }
 
 async function text(path) {
-  if (!files.has(path)) files.set(path, readFile(path, 'utf8').then(normalize, () => undefined));
+  if (!files.has(path))
+    files.set(
+      path,
+      readFile(path, 'utf8').then(normalize, () => undefined),
+    );
   return files.get(path);
 }
 
@@ -77,7 +83,13 @@ async function failedCheck(id, check) {
     const native = inside(root, path) && !nativeExclusions.some((name) => inside(join(root, name), path));
     if ((check.type === 'quote' || check.type === 'file') && !native) return [`${id} ${check.type} check cites non-native ${check.path}.`];
     if (check.type.startsWith('source') && (!sourceRoots.some((base) => inside(base, path)) || path === expand(reference.source))) return [`${id} ${check.type} check cites ${check.path} outside the preserved sources.`];
-    if (check.type.endsWith('file')) return (await stat(path).then((entry) => entry.isFile(), () => false)) ? [] : [`${id} cites missing file ${check.path}.`];
+    if (check.type.endsWith('file'))
+      return (await stat(path).then(
+        (entry) => entry.isFile(),
+        () => false,
+      ))
+        ? []
+        : [`${id} cites missing file ${check.path}.`];
     const body = await text(path);
     if (body === undefined) return [`${id} cites missing file ${check.path}.`];
     return body.includes(normalize(check.quote)) ? [] : [`${id} quote not found in ${check.path}: "${check.quote.slice(0, 80)}"`];
@@ -90,7 +102,14 @@ async function failedCheck(id, check) {
 async function commitHolds(check) {
   const repo = check.repo ? expand(check.repo) : defaultRepo;
   const key = `${repo}\u0000${check.rev}`;
-  if (!commits.has(key)) commits.set(key, run('git', ['-C', repo, 'log', '-1', '--format=%s', `${check.rev}^{commit}`]).then(({ stdout }) => stdout.trim(), () => undefined));
+  if (!commits.has(key))
+    commits.set(
+      key,
+      run('git', ['-C', repo, 'log', '-1', '--format=%s', `${check.rev}^{commit}`]).then(
+        ({ stdout }) => stdout.trim(),
+        () => undefined,
+      ),
+    );
   const subject = await commits.get(key);
   return subject !== undefined && (!check.subject || subject.includes(check.subject));
 }
@@ -161,5 +180,10 @@ async function journeyResults() {
 
 function attribute(tag, name) {
   const value = new RegExp(`\\b${name}="([^"]*)"`).exec(tag)?.[1] ?? '';
-  return value.replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  return value
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
 }

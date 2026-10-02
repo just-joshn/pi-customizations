@@ -58,7 +58,7 @@ test('unknown shell output leaves the started shell list untouched', async () =>
     const listed = (await tools.get(BG_SHELL_LIST)?.execute()) as { details: Array<{ id: string }> };
     expect(listed.details.map((record) => record.id)).toEqual([started.details.id]);
   } finally {
-    await shutdown?.();
+    await shutdown?.({ type: 'session_shutdown', reason: 'quit' }, ctx);
     await rm(scratch, { recursive: true, force: true });
   }
 });
@@ -95,7 +95,7 @@ test('registerShells stops a started shell on request', async () => {
     expect(stopped.details.status).toEqual({ kind: 'stopped' });
     expect(() => process.kill(started.details.pid, 0)).toThrow(/ESRCH/);
   } finally {
-    await shutdown?.();
+    await shutdown?.({ type: 'session_shutdown', reason: 'quit' }, ctx);
     await rm(scratch, { recursive: true, force: true });
   }
 });
@@ -123,13 +123,13 @@ test('session_shutdown stops every running shell', async () => {
   try {
     const first = (await tools.get('BackgroundShell')?.execute('1', { command: 'sleep 30', title: 'first' }, undefined, undefined, ctx)) as { details: { pid: number } };
     const second = (await tools.get('BackgroundShell')?.execute('2', { command: 'sleep 30', title: 'second' }, undefined, undefined, ctx)) as { details: { pid: number } };
-    await shutdown?.();
+    await shutdown?.({ type: 'session_shutdown', reason: 'quit' }, ctx);
     const listed = (await tools.get(BG_SHELL_LIST)?.execute()) as { details: Array<{ status: unknown }> };
     expect(listed.details.map((record) => record.status)).toEqual([{ kind: 'stopped' }, { kind: 'stopped' }]);
     expect(() => process.kill(first.details.pid, 0)).toThrow(/ESRCH/);
     expect(() => process.kill(second.details.pid, 0)).toThrow(/ESRCH/);
   } finally {
-    await shutdown?.();
+    await shutdown?.({ type: 'session_shutdown', reason: 'quit' }, ctx);
     await rm(scratch, { recursive: true, force: true });
   }
 });
@@ -157,7 +157,7 @@ test('a second session lists no shells from the session before it', async () => 
   const start = listeners.session_start?.[0];
   try {
     const firstShell = (await tools.get('BackgroundShell')?.execute('1', { command: 'sleep 30', title: 'first session' }, undefined, undefined, ctx)) as { details: { id: string } };
-    await shutdown?.();
+    await shutdown?.({ type: 'session_shutdown', reason: 'quit' }, ctx);
     await start?.({ type: 'session_start' }, ctx);
     const carried = (await tools.get(BG_SHELL_LIST)?.execute()) as { details: Array<{ id: string }> };
     const secondShell = (await tools.get('BackgroundShell')?.execute('2', { command: 'sleep 30', title: 'second session' }, undefined, undefined, ctx)) as { details: { id: string } };
@@ -165,7 +165,7 @@ test('a second session lists no shells from the session before it', async () => 
     expect(carried.details.some((record) => record.id === firstShell.details.id)).toBe(false);
     expect(listed.details.map((record) => record.id)).toEqual([secondShell.details.id]);
   } finally {
-    await shutdown?.();
+    await shutdown?.({ type: 'session_shutdown', reason: 'quit' }, ctx);
     await rm(scratch, { recursive: true, force: true });
   }
 });
@@ -189,6 +189,7 @@ function indexApi() {
     appendEntry() {},
     getCommands: () => [],
     getAllTools: () => [],
+    getActiveTools: () => [],
   } as unknown as ExtensionAPI;
   return { pi, listeners };
 }
@@ -211,7 +212,6 @@ test('pstack index before_agent_start with enabled and todos', async () => {
         },
       ],
       getEntries: () => [],
-      getSessionId: () => 's',
       getSessionDir: () => '/tmp',
       getSessionFile: () => '/tmp/f.jsonl',
       getSessionId: () => 'index-hook-session',

@@ -35,7 +35,7 @@ async function boundedAgent(dir: string, maxTurns: number) {
 
 const withoutDuration = (text: string) => text.replace(/<duration_ms>\d+<\/duration_ms>/, '<duration_ms>N</duration_ms>');
 
-test('[B65][B66][B67][B106][C106][C75] a background completion wakes the parent with framed task-notification markup', async () => {
+test('[B65][B66][B67][B106]' + '[C106][C75] a background completion wakes the parent with framed task-notification markup', async () => {
   const fixture = await workerFixture();
   try {
     const started = await fixture.call('Agent', { description: 'notify probe', prompt: 'hello' });

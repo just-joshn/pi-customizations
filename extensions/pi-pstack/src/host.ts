@@ -3,12 +3,12 @@ import { basename, join } from 'node:path';
 
 import { type ExtensionContext, getAgentDir, getDocsPath } from '@earendil-works/pi-coding-agent';
 import { modelConfigPath, projectModelConfigPath } from './models.ts';
+import { childStorageDir } from './subagents/agent-storage.ts';
 
 export const cursorToolNames =
   'Upstream prose names Cursor tools. Read is the read tool, Shell is bash, Grep is grep, and Glob is find. A /skill:name or /poteto-mode invocation appears in the transcript as a <skill name="..."> block in the user message, not as a read call.';
 
-const noOverride =
-  'No override. Every role without a line runs on the parent model (inherit-parent). Omit Task model for it, because a skill default slug is a Cursor catalog name and not a Pi model id.';
+const noOverride = 'No override. Every role without a line runs on the parent model (inherit-parent). Omit Task model for it, because a skill default slug is a Cursor catalog name and not a Pi model id.';
 const roleLines =
   'Role lines: "trail reviewer" is the show-me-your-work cross-model reviewer, "figure-it-out judge" is the figure-it-out judge, and "recall miners" are the recall fan-out subagents. The trail reviewer and the judge must run on a different model family from the work they review.';
 const webTools =
@@ -31,7 +31,7 @@ function storeInstructions(cwd: string): string {
 export function hostInstructions(root: string, ctx: ExtensionContext, rule: string, catalog = ''): string {
   const manager = ctx.sessionManager;
   const childTranscripts = manager.getSessionFile()
-    ? `${join(manager.getSessionDir(), '<parent-session-id>', 'subagents')} and ${join(manager.getSessionDir(), 'pstack-workers', manager.getSessionId())}`
+    ? `${childStorageDir(manager.getSessionDir(), manager.getSessionId())} and, for runs before the agent-<id>.jsonl layout, ${join(manager.getSessionDir(), 'pstack-workers', manager.getSessionId())}`
     : 'temporary directories, because this session is not persisted';
   return [
     'pstack pi host contract. Follow the bundled workflow instructions in full.',

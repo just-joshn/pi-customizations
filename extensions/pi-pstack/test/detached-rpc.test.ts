@@ -28,7 +28,10 @@ test('a detached Pi RPC process accepts control from a reopened handle without m
     if (bad.success) throw new Error('Expected model selection failure.');
     expect(bad.error).toContain('Model not found');
     const simultaneous = await Promise.all([reopened.send({ type: 'get_state' }), handle.send({ type: 'get_commands' })]);
-    expect(simultaneous.map(({ command, success }) => ({ command, success }))).toEqual([{ command: 'get_state', success: true }, { command: 'get_commands', success: true }]);
+    expect(simultaneous.map(({ command, success }) => ({ command, success }))).toEqual([
+      { command: 'get_state', success: true },
+      { command: 'get_commands', success: true },
+    ]);
     expect(new Set(simultaneous.map((response) => response.id)).size).toBe(2);
     const output = await reopened.send({ type: 'bash', command: "printf 'detached-output-ok\\n'", excludeFromContext: true });
     expect(output).toMatchObject({ success: true, command: 'bash', data: { output: 'detached-output-ok\n', exitCode: 0, cancelled: false } });
@@ -86,17 +89,23 @@ test('RPC goal delivery waits for its independent active turn to settle', async 
   const agentDir = join(directory, 'agent');
   let handle: Awaited<ReturnType<typeof startDetachedRpc>> | undefined;
   try {
-    handle = await startDetachedRpc({
+    const started = await startDetachedRpc({
       directory,
       cwd: directory,
       agentDir,
       args: ['--no-session', '--no-extensions', '-e', packageRoot, '-e', join(packageRoot, 'test/held-journey-provider.ts'), '--provider', 'journey-test', '--model', 'recorder'],
     });
-    const submitted = handle.send({ type: 'prompt', message: '/goal Prove automatic goal continuation' });
-    await expect.poll(async () => {
-      const state = await handle!.send({ type: 'get_state' });
-      return state.success && state.command === 'get_state' && state.data.isStreaming;
-    }, { timeout: 5000 }).toBe(true);
+    handle = started;
+    const submitted = started.send({ type: 'prompt', message: '/goal Prove automatic goal continuation' });
+    await expect
+      .poll(
+        async () => {
+          const state = await started.send({ type: 'get_state' });
+          return state.success && state.command === 'get_state' && state.data.isStreaming;
+        },
+        { timeout: 5000 },
+      )
+      .toBe(true);
     expect((await handle.activity()).kind).toBe('running');
     await writeFile(join(agentDir, 'release-scripted-reply'), 'release');
     const handled = await submitted;

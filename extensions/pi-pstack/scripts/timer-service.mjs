@@ -2,12 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { readdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { nextOccurrence, parseTimer } from './timer-schedules.mjs';
-import { checkCi, ciObservation, parseCi, wakeText } from './timer-ci.mjs';
 import { writeRecord } from './detached-rpc-protocol.mjs';
+import { checkCi, ciObservation, parseCi, wakeText } from './timer-ci.mjs';
 import { timerRecord } from './timer-client.mjs';
 import { holdTimerLease } from './timer-lease.mjs';
 import { occurrenceCompleted, openTimerRoot } from './timer-root.mjs';
+import { nextOccurrence, parseTimer } from './timer-schedules.mjs';
 
 const directory = process.argv[2];
 if (!directory) throw new Error('Usage: timer-service.mjs <owner-directory>');

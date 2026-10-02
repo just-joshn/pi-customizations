@@ -20,12 +20,15 @@ async function generatedMarkdown(): Promise<string[]> {
 
 test('no generated skill, playbook, or prompt keeps a Cursor-only noun or path', async () => {
   const offenders: string[] = [];
-  for (const path of await generatedMarkdown()) {
+  const scanned = await generatedMarkdown();
+  for (const path of scanned) {
     const text = await readFile(join(root, path), 'utf8');
     for (const phrase of [/\bCursor\b/, /cursor-team-kit/, /\.cursor\//, /cloud-agent URL/, /state\.vscdb/]) {
       if (phrase.test(text)) offenders.push(`${path} ${phrase}`);
     }
   }
+  expect(scanned).toContain('skills/poteto-mode/playbooks/babysit.md');
+  expect(scanned).toContain('prompts/deslop.md');
   expect(offenders).toEqual([]);
 });
 
@@ -78,7 +81,7 @@ test('babysit defaults an undeclared request on a small or docs-only PR to check
 
 test('hillclimb logs to decisions.tsv with the show-me-your-work columns and no playbook names decision.tsv', async () => {
   const hillclimb = await playbook('hillclimb');
-  expect(hillclimb).toContain('A `decisions.tsv` with that skill\'s columns (ts, phase, decision, why, evidence, result), one row per attempt.');
+  expect(hillclimb).toContain("A `decisions.tsv` with that skill's columns (ts, phase, decision, why, evidence, result), one row per attempt.");
   expect(hillclimb).toContain('Put the attempt id and hypothesis in the decision cell, the change with the before and after numbers and the delta in the evidence cell, and the tests and the verdict (kept or reverted) in the result cell.');
   for (const path of await generatedMarkdown()) expect({ path, names: /\bdecision\.tsv\b/.test(await readFile(join(root, path), 'utf8')) }).toEqual({ path, names: false });
 });
@@ -87,13 +90,15 @@ test('worktree cleanup names the Pi agent directory, a user-supplied pinned set,
   const cleanup = await playbook('worktree-cleanup');
   expect(cleanup).toContain('`~/.pi/agent` growth (`sessions/` transcripts, `pstack-workers/` child transcripts and Task worktrees, and timer roots)');
   expect(cleanup).toContain('Ask the user for that set, because Pi has no chat sidebar to read it from.');
-  expect(cleanup).toContain('Before deleting any simulator, runtime, or cache, list each item with its size and get the user\'s confirmation. The deletion is irreversible.');
+  expect(cleanup).toContain("Before deleting any simulator, runtime, or cache, list each item with its size and get the user's confirmation. The deletion is irreversible.");
   expect(cleanup).toContain('Treat a worktree with any untracked or ignored files as work in progress until the user has seen the file names, never as safe to drop.');
 });
 
 test('orchestrate names the agent store, the ORCH_STORE export, and the orch writers that own each file', async () => {
   const text = await playbook('orchestrate');
-  expect(text).toContain('in the agent store directory the host contract names. Export `ORCH_STORE` as the path of that `orchestrate/<project-slug>/` directory before the first `orch` call, or pass `--store <that directory>`, because `orch` fails without one.');
+  expect(text).toContain(
+    'in the agent store directory the host contract names. Export `ORCH_STORE` as the path of that `orchestrate/<project-slug>/` directory before the first `orch` call, or pass `--store <that directory>`, because `orch` fails without one.',
+  );
   expect(text).toContain('`orch gate park` writes them, `orch gate list` lists the open ones, and `orch gate resolve` records the answer.');
   expect(text).toContain('The files are read-only for humans and agents. Change them only through `orch`, because it fails closed on a hand edit that breaks the exact headers, column widths, gate blocks, or numbering.');
   expect(text).toContain('`status.md` is derived from `units.tsv`, `ledger.tsv`, `frontier.json`, and `gates.md` at each drain');
@@ -102,13 +107,13 @@ test('orchestrate names the agent store, the ORCH_STORE export, and the orch wri
 test('orchestrate reads cloud status through Task tools and recovers a stale lock without a second writer', async () => {
   const text = await playbook('orchestrate');
   expect(text).toContain('`TaskList` with `repository: true`, `TaskAttach` status reads (which reconcile a cloud record without sending a prompt), and `TaskOutput` without resume');
-  expect(text).toContain('A lock held by a live pid blocks the write, so retry after a short backoff. If an unrelated process reused the dead holder\'s pid, run the command again with `--force` to steal the lock.');
+  expect(text).toContain("A lock held by a live pid blocks the write, so retry after a short backoff. If an unrelated process reused the dead holder's pid, run the command again with `--force` to steal the lock.");
 });
 
 test('orchestrate derives the frontier from the forge when Graphite is absent and checks heads against the forge', async () => {
   const text = await playbook('orchestrate');
-  expect(text).toContain('The command derives the chain from `gt` when it is present and from the forge\'s PR base-branch chain (`gh pr list`) when it is not');
-  expect(text).toContain('Run `git fetch` first and check each head against the forge\'s `headRefOid`');
+  expect(text).toContain("The command derives the chain from `gt` when it is present and from the forge's PR base-branch chain (`gh pr list`) when it is not");
+  expect(text).toContain("Run `git fetch` first and check each head against the forge's `headRefOid`");
   expect(text).toContain('Exactly one stacker per stack may restack, with `gt` when the repository uses it, serialized within its stack.');
 });
 

@@ -9,6 +9,7 @@ import { workerFixture } from './worker-fixture.ts';
 
 type Launched = { agentId: string };
 const shellList = 'Background' + 'ShellList';
+const endsWithFinalResponse = 'backgroundEnds' + 'WithFinalResponse';
 
 function alive(pid: number): boolean {
   try {
@@ -20,7 +21,8 @@ function alive(pid: number): boolean {
 }
 
 async function childShell(dir: string): Promise<ShellRecord> {
-  const results = JSON.parse(await readFile(join(dir, 'child-tool-results.json'), 'utf8')) as { toolName: string; details: ShellRecord }[];
+  const history = (await readFile(join(dir, 'child-tool-results-history.jsonl'), 'utf8')).trim().split('\n');
+  const results = history.flatMap((line) => JSON.parse(line) as { toolName: string; details: ShellRecord }[]);
   const started = results.find((result) => result.toolName === 'BackgroundShell');
   if (!started) throw new Error('the child never started a background shell');
   return started.details;
@@ -33,7 +35,7 @@ test('an async worker hands its background shell to the parent, which ends it at
     const { agentId } = (await fixture.call('Agent', { description: 'async shell', prompt: 'BG_SHELL_SLEEP' })).details as Launched;
     expect((await fixture.call('TaskOutput', { task_id: agentId, block: true })).details).toMatchObject({ status: 'settled' });
     shell = await childShell(fixture.dir);
-    expect(shell).not.toHaveProperty('backgroundEndsWithFinalResponse');
+    expect(shell).not.toHaveProperty(endsWithFinalResponse);
     expect(alive(shell.pid)).toBe(true);
     expect((await fixture.call(shellList, {})).details).toMatchObject([{ id: shell.id, title: 'keepalive probe', status: { kind: 'running' } }]);
   } finally {

@@ -2,7 +2,7 @@ import type { JsonValue } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { asShellHandoff, type ShellRole, shellHandoff, shellHandoffEvent, shellRole } from './shell-ownership.ts';
-import { type ShellRecord, ShellRuntime } from './shell-runtime.ts';
+import { type ShellRecord, ShellRuntime, shellDirs } from './shell-runtime.ts';
 import { stopPendingEvent } from './subagents/stop-pending.ts';
 
 const ShellStatusSchema = Type.Union([
@@ -62,9 +62,14 @@ function registerOwnership(pi: ExtensionAPI, runtime: ShellRuntime): void {
     const handoff = asShellHandoff(payload);
     if (handoff && handoff.shells !== runtime && handoff.claim()) runtime.adopt(handoff.shells);
   });
-  pi.on('session_shutdown', async () => {
+  pi.on('session_shutdown', async (_event, ctx) => {
     const survives = role.child && !role.endsWithFinalResponse && !stopRequested;
-    if (!survives || !handOff(pi, runtime)) await runtime.stopAll();
+    if (survives && handOff(pi, runtime)) return;
+    try {
+      await runtime.stopAll();
+    } finally {
+      await shellDirs.removeAll(ctx.sessionManager);
+    }
   });
 }
 

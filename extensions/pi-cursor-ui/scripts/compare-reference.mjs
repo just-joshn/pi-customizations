@@ -174,17 +174,17 @@ if (tail(reference).join(' < ') !== tail(candidate).join(' < ')) {
 }
 
 if (process.argv.includes('--verbose')) {
-  console.log(`reference ${reference.length} rows -> ${skeleton(reference).join(' < ')}`);
-  console.log(`candidate ${candidate.length} rows -> ${skeleton(candidate).join(' < ')}`);
+  process.stdout.write(`reference ${reference.length} rows -> ${skeleton(reference).join(' < ')}\n`);
+  process.stdout.write(`candidate ${candidate.length} rows -> ${skeleton(candidate).join(' < ')}\n`);
 }
 
 for (const failure of failures) {
   const isKnown = known.has(failure.name);
-  console.log(`${isKnown ? 'known' : 'FAIL '} ${failure.name}: ${failure.detail}${isKnown ? ' [declared gap]' : ''}`);
+  process.stdout.write(`${isKnown ? 'known' : 'FAIL '} ${failure.name}: ${failure.detail}${isKnown ? ' [declared gap]' : ''}\n`);
 }
 const unexpected = failures.filter((failure) => !known.has(failure.name));
 const declared = failures.filter((failure) => known.has(failure.name));
-console.log(`\nreference: ${REFERENCE}`);
-console.log(`candidate: ${CANDIDATE}`);
-console.log(`failures: ${unexpected.length} (declared gaps: ${declared.length})`);
+process.stdout.write(`\nreference: ${REFERENCE}\n`);
+process.stdout.write(`candidate: ${CANDIDATE}\n`);
+process.stdout.write(`failures: ${unexpected.length} (declared gaps: ${declared.length})\n`);
 process.exitCode = unexpected.length === 0 ? 0 : 1;

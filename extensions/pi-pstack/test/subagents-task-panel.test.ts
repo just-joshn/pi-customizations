@@ -75,7 +75,11 @@ test('[C97] without a UI the panel never draws', async () => {
   const { fire, events, setWidget } = harness({ hasUI: false });
   await fire('session_start');
   events.emit('pstack:subagent-started', { agentId: 't1' });
-  expect(setWidget).not.toHaveBeenCalled();
+  expect(setWidget.mock.calls).toEqual([]);
+  const control = harness();
+  await control.fire('session_start');
+  expect(control.setWidget).toHaveBeenLastCalledWith('pstack-agents', ['● Explore: map the repo']);
+  await control.fire('session_shutdown');
 });
 
 test('[C101] status-line output decorates the matching panel row', async () => {

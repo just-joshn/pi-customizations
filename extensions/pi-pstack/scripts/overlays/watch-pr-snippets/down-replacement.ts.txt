@@ -1,0 +1,16 @@
+  const down: T.OpenPullRequest[] = [];
+  const visited = new Set<T.PrNumber>([start.number]);
+  let current = start;
+  while (byHead.has(current.baseRefName)) {
+    const parent = byHead.get(current.baseRefName);
+    if (parent === undefined) break;
+    if (visited.has(parent.number))
+      throw new WatcherQueryError({
+        kind: "stack-cycle",
+        retryable: false,
+        detail: `stack discovery found a cycle: PR #${parent.number} is both above and below PR #${start.number}`,
+      });
+    visited.add(parent.number);
+    down.push(parent);
+    current = parent;
+  }

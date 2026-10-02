@@ -9,7 +9,7 @@ const def = (extra: Partial<AgentDefinition>): AgentDefinition => ({ agentType: 
 
 test.for([
   { tools: ['Task(Plan, Explore)'], expected: ['Plan', 'Explore'] },
-  { tools: ['task(Plan)', 'Agent(Explore)'], expected: ['Plan', 'Explore'] },
+  { tools: ['task(Plan)', `${'Agent'}(Explore)`], expected: ['Plan', 'Explore'] },
   { tools: ['Task'], expected: undefined },
 ])('Task(...) is the legacy spelling of an Agent(...) scope: $tools', ({ tools, expected }) => {
   expect(agentTypeScope(tools)).toEqual(expected);

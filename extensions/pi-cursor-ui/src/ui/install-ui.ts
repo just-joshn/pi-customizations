@@ -1,6 +1,6 @@
 /**
- * `uninstall` is idempotent, safe when `install` never ran, and guards each
- * cleanup setter so one failure cannot skip the rest or escape Pi's shutdown.
+ * `uninstall` is idempotent, safe when `install` never ran, and runs every
+ * cleanup setter even when one fails, then throws the failures as one error.
  */
 
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
@@ -17,27 +17,44 @@ export type UiController = {
   uninstall(ctx: ExtensionContext): void;
 };
 
-function safely(action: () => void): void {
-  try {
-    action();
-  } catch (error) {
-    console.error('[cursor-ui] presentation cleanup step failed', error);
-  }
+type CleanupStep = readonly [name: string, run: (ui: ExtensionContext['ui']) => void];
+
+const CLEANUP_STEPS: readonly CleanupStep[] = [
+  ['setWidget', (ui) => ui.setWidget(ACTIVITY_WIDGET_KEY, undefined)],
+  ['setEditorComponent', (ui) => ui.setEditorComponent(undefined)],
+  ['setFooter', (ui) => ui.setFooter(undefined)],
+  ['setHeader', (ui) => ui.setHeader(undefined)],
+  ['setWorkingMessage', (ui) => ui.setWorkingMessage()],
+  ['setWorkingIndicator', (ui) => ui.setWorkingIndicator()],
+  ['setWorkingVisible', (ui) => ui.setWorkingVisible(true)],
+  ['setHiddenThinkingLabel', (ui) => ui.setHiddenThinkingLabel()],
+];
+
+type CleanupFailure = { readonly name: string; readonly error: unknown };
+
+function describeError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 /**
- * Restore every surface `install` took over. Each step runs through `safely`, so
- * one failing setter cannot skip the rest or escape Pi's shutdown.
+ * Restore every surface `install` took over. Every step runs even when an
+ * earlier one fails. The failures then leave as one error, which Pi reports as
+ * the handler error without stderr output that would corrupt the TUI.
  */
 function uninstallControls(ctx: ExtensionContext): void {
-  safely(() => ctx.ui.setWidget(ACTIVITY_WIDGET_KEY, undefined));
-  safely(() => ctx.ui.setEditorComponent(undefined));
-  safely(() => ctx.ui.setFooter(undefined));
-  safely(() => ctx.ui.setHeader(undefined));
-  safely(() => ctx.ui.setWorkingMessage());
-  safely(() => ctx.ui.setWorkingIndicator());
-  safely(() => ctx.ui.setWorkingVisible(true));
-  safely(() => ctx.ui.setHiddenThinkingLabel());
+  const failures = CLEANUP_STEPS.flatMap(([name, run]): CleanupFailure[] => {
+    try {
+      run(ctx.ui);
+      return [];
+    } catch (error) {
+      return [{ name, error }];
+    }
+  });
+  if (failures.length === 0) return;
+  throw new AggregateError(
+    failures.map((failure) => failure.error),
+    `cursor-ui presentation cleanup failed: ${failures.map((failure) => `${failure.name}: ${describeError(failure.error)}`).join('; ')}`,
+  );
 }
 
 export function createUiController(store: PresentationStore): UiController {

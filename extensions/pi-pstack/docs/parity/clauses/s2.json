@@ -2349,12 +2349,12 @@
    {
     "type": "test",
     "path": "test/parity-runtime-host-version.test.ts",
-    "name": "Pi 0.99.1 against tested 0.99.2 gives pi-pstack was verified on Pi 0.99.2 or newer. This Pi is 0.99.1, so behavior is unverified."
+    "name": "Pi 0.99.9 against tested 1.0.0 gives pi-pstack was verified on Pi 1.0.0 or newer. This Pi is 0.99.9, so behavior is unverified."
    },
    {
     "type": "test",
     "path": "test/parity-runtime-host-version.test.ts",
-    "name": "Pi 0.99.2 against tested 0.99.2 gives undefined"
+    "name": "Pi 1.0.0 against tested 1.0.0 gives undefined"
    },
    {
     "type": "test",

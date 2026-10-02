@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { packageAgents, pluginPackage } from '../src/subagents/plugin-agents.ts';
 
+const placeholder = (name: string): string => `${'$'}{${name}}`;
+
 let dir = '';
 beforeEach(() => {
   dir = realpathSync(mkdtempSync(join(tmpdir(), 'plugin-agents-')));
@@ -23,7 +25,7 @@ function write(path: string, body: string): string {
 test('plugin agents are namespaced by package and subdirectory with basename and generated-description fallbacks', () => {
   write('kit/package.json', JSON.stringify({ name: '@acme/review-kit' }));
   write('kit/agents/lint/strict.md', '---\ntools: Read\n---\nBe strict.');
-  write('kit/agents/auditor.md', '---\nname: auditor\ndescription: Audits code\nisolation: worktree\n---\nRead ${CLAUDE_PLUGIN_ROOT}/rules.md first.');
+  write('kit/agents/auditor.md', `---\nname: auditor\ndescription: Audits code\nisolation: worktree\n---\nRead ${placeholder('CLAUDE_PLUGIN_ROOT')}/rules.md first.`);
   const warnings: string[] = [];
   const agents = packageAgents(pluginPackage(join(dir, 'kit')), warnings);
   expect(agents.map((agent) => [agent.agentType, agent.whenToUse, agent.source, agent.plugin, agent.filename])).toEqual([

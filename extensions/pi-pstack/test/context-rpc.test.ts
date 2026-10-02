@@ -6,6 +6,27 @@ import { expect, test, vi } from 'vitest';
 import { startDetachedRpc } from '../scripts/detached-rpc-client.mjs';
 import { fixture, packageRoot } from './session-fixture.ts';
 
+function contextArguments(sessionDir: string): string[] {
+  return [
+    '--approve',
+    '--no-extensions',
+    '--no-skills',
+    '--no-prompt-templates',
+    '--session-dir',
+    sessionDir,
+    '-e',
+    join(packageRoot, 'src/index.ts'),
+    '-e',
+    join(packageRoot, 'test/journey-provider.ts'),
+    '-e',
+    join(packageRoot, 'test/history-rpc-watch.js'),
+    '--provider',
+    'journey-test',
+    '--model',
+    'recorder',
+  ];
+}
+
 test('real RPC context discovers the configured session directory and returns only its workspace', async () => {
   const f = await fixture({ extensionOnly: true });
   try {
@@ -14,31 +35,18 @@ test('real RPC context discovers the configured session directory and returns on
       directory: join(f.root, 'transport'),
       cwd: f.cwd,
       agentDir: join(f.root, 'real-agent'),
-      args: [
-        '--approve',
-        '--no-extensions',
-        '--no-skills',
-        '--no-prompt-templates',
-        '--session-dir',
-        directory,
-        '-e',
-        join(packageRoot, 'src/index.ts'),
-        '-e',
-        join(packageRoot, 'test/journey-provider.ts'),
-        '-e',
-        join(packageRoot, 'test/history-rpc-watch.js'),
-        '--provider',
-        'journey-test',
-        '--model',
-        'recorder',
-      ],
+      args: contextArguments(directory),
     });
     try {
       const state = await handle.send({ type: 'get_state' });
-      if (!state.success || state.command !== 'get_state' || !state.data.sessionFile) throw new Error('missing current session file'); const file = state.data.sessionFile;
-      const ownUri = join(directory, 'own-uri.jsonl'); await writeFile(ownUri, `${JSON.stringify({ type: 'session', version: 3, id: 'own-uri', cwd: pathToFileURL(await realpath(f.cwd)).href, timestamp: '1970-01-01T00:00:00.000Z' })}\n`);
-      const header = `${JSON.stringify({ type: 'session', version: 3, id: 'foreign-workspace', timestamp: '2026-10-01T00:00:00.000Z', cwd: join(f.root, 'other-workspace') })}\n`; await writeFile(join(directory, 'other.jsonl'), `${header}{"type":"message","message":{"role":"user","content":"foreign synthetic body"}}\n`);
-      const response = await handle.send({ type: 'prompt', message: 'JOURNEY:history' }); expect(response.success).toBe(true);
+      if (!state.success || state.command !== 'get_state' || !state.data.sessionFile) throw new Error('missing current session file');
+      const file = state.data.sessionFile;
+      const ownUri = join(directory, 'own-uri.jsonl');
+      await writeFile(ownUri, `${JSON.stringify({ type: 'session', version: 3, id: 'own-uri', cwd: pathToFileURL(await realpath(f.cwd)).href, timestamp: '1970-01-01T00:00:00.000Z' })}\n`);
+      const header = `${JSON.stringify({ type: 'session', version: 3, id: 'foreign-workspace', timestamp: '2026-10-01T00:00:00.000Z', cwd: join(f.root, 'other-workspace') })}\n`;
+      await writeFile(join(directory, 'other.jsonl'), `${header}{"type":"message","message":{"role":"user","content":"foreign synthetic body"}}\n`);
+      const response = await handle.send({ type: 'prompt', message: 'JOURNEY:history' });
+      expect(response.success).toBe(true);
       await vi.waitFor(async () => {
         const entries = await handle.send({ type: 'get_entries' });
         if (!entries.success || entries.command !== 'get_entries') throw new Error('missing RPC entries');
