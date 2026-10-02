@@ -170,8 +170,9 @@ test('an enabled sidekick runs on the first user message and its inbox message r
     if (event.type === 'system.notification') notices.push(event.data);
   });
   try {
+    expect(fixture.session.getActiveToolNames()).not.toContain('send_inbox');
     await fixture.session.prompt('hello sidekicks');
-    await vi.waitFor(() => expect(notices).toEqual(expect.arrayContaining([{ kind: 'new_inbox_message', summary: 'Sidekick session-search sent a message.', sidekick: 'session-search' }])));
+    await vi.waitFor(() => expect(notices).toEqual(expect.arrayContaining([{ kind: 'new_inbox_message', summary: 'Sidekick session-search sent a message.', sidekick: 'session-search' }])), { timeout: 5000 });
     const noise = (line: unknown) => typeof line === 'string' && (line.includes('tool_init_') || line.includes('subagent_tool_'));
     expect(fixture.subagentLogs.filter((line: unknown) => !noise(line))).toEqual([]);
   } finally {

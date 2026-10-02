@@ -38,6 +38,7 @@ export type FactoryDeps = Readonly<{
 }>;
 
 const toolNames = { grep: 'grep', glob: 'find', shell: 'bash', view: 'read' };
+const writeTools = ['edit', 'write'];
 
 export function modelOption(model: Model<never> | Pick<Model<never>, 'provider' | 'id' | 'cost' | 'contextWindow'>): ModelOption {
   return { reference: `${model.provider}/${model.id}`, provider: model.provider, id: model.id, cost: model.cost.input + model.cost.output, contextWindow: model.contextWindow };
@@ -90,6 +91,18 @@ export class SubagentFactory {
   invalidateToolConfig(): void {
     this.offeredCache = undefined;
     this.clearDiscovery();
+  }
+
+  /** The tools a child may take from its parent. A definition the host supplies, such as a sidekick's, grants the tools it names. */
+  private grantedTools(definition: AgentDefinition | undefined): readonly string[] {
+    const active = this.deps.pi.getActiveTools();
+    return definition?.tools.kind === 'named' ? [...active, ...definition.tools.names] : active;
+  }
+
+  /** A child writes only while the parent still has a write tool active, so a parent in plan mode keeps its children read-only. */
+  private parentCanWrite(): boolean {
+    const active = this.deps.pi.getActiveTools();
+    return writeTools.some((name) => active.includes(name));
   }
 
   host(ctx: ExtensionContext, settings: Reference AssistantSettings): SubagentHost {
@@ -172,7 +185,7 @@ export class SubagentFactory {
       name: input.call.name,
       depth: input.depth + 1,
       parentAgentId: input.scope?.agentId ?? this.rootAgentId,
-      parentTools: this.deps.pi.getActiveTools(),
+      parentTools: this.grantedTools(input.extras.definition),
       contextManagement: input.settings.subagents.contextManagementTools,
       release: input.lease.release,
       ...(input.extras.workflowRunId !== undefined ? { workflowRunId: input.extras.workflowRunId } : {}),
@@ -218,7 +231,7 @@ export class SubagentFactory {
   }): Promise<ChildPlan> {
     const { call, definition, settings, ctx } = input;
     const selection = this.choose(call, definition, settings, ctx);
-    const tools = planTools({ definition, parentTools: this.deps.pi.getActiveTools(), available: this.deps.pi.getAllTools().map((tool) => tool.name), contextManagement: settings.subagents.contextManagementTools });
+    const tools = planTools({ definition, parentTools: this.grantedTools(input.extras.definition), available: this.deps.pi.getAllTools().map((tool) => tool.name), contextManagement: settings.subagents.contextManagementTools });
     const refusal = zeroToolsMessage(definition.name, tools);
     if (refusal) throw new Error(refusal);
     const agentId = randomUUID();
@@ -242,7 +255,7 @@ export class SubagentFactory {
       headless: call.mode === 'background' || !ctx.hasUI,
       ...(hookContext ? { hookContext } : {}),
       ...(input.extras.limits ? { limits: input.extras.limits } : {}),
-      writeGate: () => Boolean(process.env.PI_PSTACK_PLAN_MODE),
+      writeGate: () => this.parentCanWrite(),
     });
   }
 }
