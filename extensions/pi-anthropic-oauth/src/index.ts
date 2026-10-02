@@ -2,7 +2,7 @@ import { createProvider, type StreamOptions } from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
-const PROVIDER_ID = 'claude-subscription';
+export const PROVIDER_ID = 'claude-subscription';
 
 // Dotted digits, 2 to 4 groups. The value becomes the user-agent header, so
 // anything looser could smuggle other characters into a request header.
