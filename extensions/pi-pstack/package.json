@@ -60,7 +60,8 @@
     "test": "vitest run && bun run test:helpers",
     "test:helpers": "bun test --preload ./test/helpers/leak-preload.ts test/helpers",
     "test:coverage": "vitest run --coverage",
-    "check:parity": "node scripts/check-subagent-parity.mjs"
+    "check:parity": "node scripts/check-subagent-parity.mjs",
+    "check:native-first": "node scripts/check-subagent-native-first.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
