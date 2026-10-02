@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { expect, test, vi } from 'vitest';
 import { restartTimerService, startTimerService, timerCommand } from '../scripts/timer-client.mjs';
 import { registerTimers } from '../src/timers.ts';
-import { type FakeCheck, type FakeForge, fakeForge, timerOwner, userEntries } from './parity-ci-fixtures.ts';
+import { type FakeCheck, fakeForge, timerOwner, userEntries } from './parity-ci-fixtures.ts';
 
 const pass: FakeCheck = { name: 'build', bucket: 'pass' };
 const fail: FakeCheck = { name: 'test', bucket: 'fail' };
@@ -22,6 +22,7 @@ async function ownerWithRoot(prefix: string) {
 
 const subscribeGithub = (directory: string, extra = {}) => timerCommand(directory, { type: 'subscribe_ci', ci: { forge: 'github', pr: 12, repo: 'o/r', pollSeconds: 1, prompt: 'Act on the CI result.', cwd: directory, ...extra } });
 const wakes = (receipt: { sessionFile: string }, state: string) => userEntries(receipt.sessionFile, `CI for o/r#12 reached ${state}`);
+const pollsFor = async (forge: Awaited<ReturnType<typeof fakeForge>>, pr: number) => (await forge.calls()).filter((call) => call.startsWith(`pr checks ${pr} `)).length;
 const polls = async (forge: Awaited<ReturnType<typeof fakeForge>>) => (await forge.calls()).filter((call) => call.startsWith('pr checks')).length;
 
 async function polledAgain(forge: Awaited<ReturnType<typeof fakeForge>>, extra = 3) {
@@ -73,7 +74,16 @@ test('a restarted timer service does not repeat a terminal CI wake it already de
   await expect.poll(async () => (await timerCommand(directory, { type: 'list' }))[0]?.ci?.state).toBe('success');
   const status = JSON.parse(await readFile(join(directory, 'status.json'), 'utf8'));
   process.kill(status.pid, 'SIGKILL');
-  await expect.poll(() => { try { process.kill(status.pid, 0); return true; } catch { return false; } }).toBe(false);
+  await expect
+    .poll(() => {
+      try {
+        process.kill(status.pid, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    })
+    .toBe(false);
   await restartTimerService(directory);
   await polledAgain(forge);
   expect(await wakes(receipt, 'success')).toHaveLength(1);
@@ -103,18 +113,20 @@ test('a PR with no checks yet stays pending and a merged PR is a terminal state'
   await expect.poll(async () => (await wakes(receipt, 'merged')).length, { timeout: 20000 }).toBe(1);
 }, 60000);
 
-test('unsubscribing a CI subscription stops polling and further wakes', async () => {
+test('unsubscribing ends the polling of a CI subscription', async () => {
   const forge = await fakeForge({ head: 'sha-one', checks: [pending] });
   const directory = await ownerWithRoot('ci-stop');
   const receipt = await subscribeGithub(directory);
+  await subscribeGithub(directory, { pr: 13 });
   await polledAgain(forge, 2);
   await timerCommand(directory, { type: 'unsubscribe', subscriptionId: receipt.subscriptionId });
-  const settled = await polls(forge);
+  const settled = await pollsFor(forge, 12);
+  const controlSettled = await pollsFor(forge, 13);
   await forge.set({ head: 'sha-one', checks: [pass] });
-  await new Promise((resolve) => setTimeout(resolve, 2500));
-  expect(await polls(forge)).toBeLessThanOrEqual(settled + 1);
+  await expect.poll(() => pollsFor(forge, 13), { timeout: 20000 }).toBeGreaterThanOrEqual(controlSettled + 3);
+  expect(await pollsFor(forge, 12)).toBeLessThanOrEqual(settled + 1);
   expect(await wakes(receipt, 'success')).toHaveLength(0);
-  expect(await timerCommand(directory, { type: 'list' })).toEqual([]);
+  expect((await timerCommand(directory, { type: 'list' })).map((entry: { name: string }) => entry.name)).toEqual(['ci-github-o/r-13']);
 }, 60000);
 
 test('a forge-neutral command fixture drives an Origin-style subscription to a terminal wake', async () => {
@@ -147,5 +159,9 @@ test('SubscribeOriginCI states that the live Origin path is unsupported without 
 });
 
 test('the CI subscription tools are registered next to the timer tools', () => {
-  expect(toolDefinitions().map((tool) => tool.name).sort()).toEqual(['ListSubscriptions', 'RestartSubscriptions', 'SubscribeGithubCI', 'SubscribeOriginCI', 'SubscribeTimer', 'Unsubscribe']);
+  expect(
+    toolDefinitions()
+      .map((tool) => tool.name)
+      .sort(),
+  ).toEqual(['ListSubscriptions', 'RestartSubscriptions', 'SubscribeGithubCI', 'SubscribeOriginCI', 'SubscribeTimer', 'Unsubscribe']);
 });

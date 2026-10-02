@@ -1,13 +1,15 @@
-import { expect, test } from 'bun:test';
+import { afterEach, expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { installFakeBin, ok, prView, fastCheck, threadsPage, commitsPage, fakeEnv, type FakeBin } from './watch-pr-fakes.test-helper.ts';
+import { removeScratch, scratchDir } from './scratch.ts';
+import { commitsPage, type FakeBin, fakeEnv, fastCheck, installFakeBin, ok, prView, threadsPage } from './watch-pr-fakes.test-helper.ts';
 
 const shipped = new URL('../../skills/poteto-mode/scripts', import.meta.url).pathname;
-const scratch = (label: string): string => mkdtempSync(join(tmpdir(), `watch-pr-${label}-`));
+const scratch = (label: string): string => scratchDir(`watch-pr-${label}-`);
+
+afterEach(removeScratch);
 
 function freshScripts(): string {
   const root = scratch('scripts');

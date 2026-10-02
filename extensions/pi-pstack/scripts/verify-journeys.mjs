@@ -1,12 +1,12 @@
-import { spawn, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { copyFile, cp, mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { agentJourneys } from './agent-journeys.mjs';
-import { rpcProcess } from './rpc-process.mjs';
-import { promptAndSettle } from './rpc-turn.mjs';
+import { everyRequest, piLauncher } from './journey-client.mjs';
+import { requestText, systemText, toolNames } from './journey-requests.mjs';
 import { verifySkillCreation } from './skill-creation-journey.mjs';
 
 const root = process.argv[2] ? resolve(process.argv[2]) : fileURLToPath(new URL('../', import.meta.url));
@@ -15,6 +15,7 @@ const evidenceDirectory = process.argv[4] ? resolve(process.argv[4]) : undefined
 const cli = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 const progressFixture = join(root, 'test', 'fixtures', 'task-progress-sentinel.txt');
 const progressSentinel = 'CHILD_READ_FIXTURE_SENTINEL_CONTENT';
+const startPi = piLauncher({ cli, root, progressFixture });
 
 const findings = [];
 const passes = [];
@@ -44,162 +45,6 @@ async function subdirectories(dir) {
 function frontmatterBody(text) {
   const match = text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
   return (match ? text.slice(match[0].length) : text).trim();
-}
-
-function requestText(request) {
-  return request.messages
-    .map((message) => {
-      const blocks = typeof message.content === 'string' ? [message.content] : (message.content ?? []).map((block) => block.text ?? '');
-      return [...blocks, ...Object.values(message.sections ?? {})].join('\n');
-    })
-    .join('\n');
-}
-
-function toolSection(request) {
-  return request.messages
-    .filter((message) => message.role === 'system')
-    .map((message) => message.sections?.tools ?? '')
-    .join('\n');
-}
-
-function systemText(request) {
-  const sections = new Map();
-  for (const message of request.messages) {
-    if (message.role !== 'system') continue;
-    for (const [name, value] of Object.entries(message.sections ?? {})) {
-      if (value === null) sections.delete(name);
-      else sections.set(name, value);
-    }
-  }
-  return [...sections].map(([name, value]) => `${name}=\n${value}`).join('\n\n');
-}
-
-function uiBridge(child, answers) {
-  const requests = [];
-  let buffer = '';
-  child.stdout.on('data', (chunk) => {
-    buffer += chunk.toString();
-    let boundary = buffer.indexOf('\n');
-    while (boundary >= 0) {
-      const line = buffer.slice(0, boundary);
-      buffer = buffer.slice(boundary + 1);
-      if (line.trim()) respond(requests, answers, child, line);
-      boundary = buffer.indexOf('\n');
-    }
-  });
-  return requests;
-}
-
-const silentMethods = new Set(['notify', 'setStatus', 'setWidget', 'setTitle', 'set_editor_text']);
-const dialogBudget = 150;
-
-function respond(requests, answers, child, line) {
-  let record;
-  try {
-    record = JSON.parse(line);
-  } catch {
-    return;
-  }
-  if (record?.type !== 'extension_ui_request') return;
-  requests.push(record);
-  if (silentMethods.has(record.method)) return;
-  answers.dialogs += 1;
-  const exhausted = answers.dialogs > dialogBudget;
-  const supplied = exhausted ? undefined : answers[record.method];
-  const value = typeof supplied === 'function' ? supplied(record) : (supplied ?? record.options?.[0]);
-  const response = record.method === 'confirm' ? { type: 'extension_ui_response', id: record.id, confirmed: !exhausted } : { type: 'extension_ui_response', id: record.id, value };
-  child.stdin.write(`${JSON.stringify(response)}\n`);
-}
-
-async function everyRequest(log) {
-  const names = (await readdir(log)).filter((name) => name.startsWith('requests-') && name.endsWith('.jsonl'));
-  const text = (await Promise.all(names.map((name) => readFile(join(log, name), 'utf8').catch(() => '')))).join('');
-  return text
-    .split('\n')
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
-}
-
-async function waitForRpcIdle(client) {
-  const deadline = Date.now() + 120000;
-  while (Date.now() < deadline) {
-    const state = await client.send({ type: 'get_state' });
-    if (!state.isStreaming && state.pendingMessageCount === 0) return;
-    await new Promise((done) => setTimeout(done, 40));
-  }
-  throw new Error('Pi did not return to idle');
-}
-
-function clientFor(child, log) {
-  let settlements = 0;
-  const client = rpcProcess(child, {
-    requestDeadlineMs: 180000,
-    shutdownDeadlineMs: 15000,
-    onRecord: (record) => {
-      if (record.type === 'agent_settled') settlements += 1;
-    },
-  });
-  let reference = 0;
-  const requests = async () =>
-    (await readFile(join(log, `requests-${child.pid}.jsonl`), 'utf8').catch(() => ''))
-      .split('\n')
-      .filter(Boolean)
-      .map((line) => JSON.parse(line));
-  return {
-    send: (message) => client.send(message),
-    requests,
-    toolUpdates: client.toolUpdates,
-    finish: () => client.finish(),
-    close: () => client.close(),
-    async run(message) {
-      reference = (await requests()).length;
-      await promptAndSettle(
-        (command) => client.send(command),
-        () => settlements,
-        { type: 'prompt', message },
-      );
-      await waitForRpcIdle(client);
-      const recorded = await requests();
-      return recorded.slice(reference);
-    },
-    async turn(message) {
-      const recorded = await this.run(message);
-      const last = recorded.at(-1);
-      if (!last) throw new Error(`No model request was produced for ${message}`);
-      return last;
-    },
-    async messages() {
-      return (await client.send({ type: 'get_messages' })).messages;
-    },
-    async callTool(message) {
-      await client.send({ type: 'new_session' });
-      const before = (await this.messages()).length;
-      await this.run(message);
-      return (await this.messages()).slice(before);
-    },
-    everyRequest: () => everyRequest(log),
-  };
-}
-
-async function startPi(directory, log, extraArgs, extra = {}, agentDirectory = directory) {
-  const extraEnv = typeof extra === 'string' ? {} : extra;
-  const agentHome = typeof extra === 'string' ? extra : agentDirectory;
-  const child = spawn(process.execPath, [cli, '--mode', 'rpc', ...extraArgs, '-e', root], {
-    cwd: directory,
-    env: { ...process.env, ...extraEnv, HOME: agentHome, PI_CODING_AGENT_DIR: agentHome, PSTACK_JOURNEY_LOG: log, PSTACK_PROGRESS_FIXTURE: progressFixture },
-    stdio: ['pipe', 'pipe', 'pipe'],
-  });
-  let stderr = '';
-  child.stderr.on('data', (chunk) => {
-    stderr += chunk.toString();
-  });
-  const answers = { input: 'journey-test/recorder', dialogs: 0 };
-  return {
-    answers,
-    ui: uiBridge(child, answers),
-    stderr: () => stderr,
-    ...clientFor(child, log),
-  };
 }
 
 async function journeyLoad(ctx) {
@@ -476,7 +321,11 @@ async function journeyDelegation(ctx) {
   check('tool: Task rejects an unsupported persona by name', JSON.stringify(unsupported.find((m) => m.toolName === 'Task')).includes('not-a-persona'), JSON.stringify(unsupported).slice(0, 300));
   const cloud = await ctx.callTool('JOURNEY:cloud');
   const cloudResult = cloud.find((message) => message.toolName === 'Task');
-  check('tool: Task cloud execution without a configured remote executor refuses local fallback', cloudResult?.isError === true && JSON.stringify(cloudResult).includes('No local fallback is permitted'), JSON.stringify(cloudResult).slice(0, 300));
+  check(
+    'tool: Task cloud execution without a configured remote executor refuses local fallback',
+    cloudResult?.isError === true && JSON.stringify(cloudResult).includes('No local fallback is permitted'),
+    JSON.stringify(cloudResult).slice(0, 300),
+  );
   const badModel = await ctx.callTool('JOURNEY:badmodel');
   const badModelResult = badModel.find((message) => message.toolName === 'Task');
   check('tool: Task reports an unavailable model with the available choices', badModelResult?.isError === true && JSON.stringify(badModelResult).includes('Unavailable model'), JSON.stringify(badModelResult).slice(0, 300));
@@ -737,15 +586,11 @@ async function journeyTaskGates(ctx) {
   const readonlyResult = readonlyRun.find((message) => message.toolName === 'Task');
   check('task: a readonly child settles', readonlyResult?.isError !== true, JSON.stringify(readonlyResult).slice(0, 300));
   const requests = await ctx.everyRequest();
-  const childTools = requests.map(toolSection).filter((tools) => tools && !tools.includes('- bash:'));
-  check(
-    'task: a readonly child receives only read tools',
-    childTools.length > 0 && childTools.every((tools) => ['read', 'grep', 'find', 'ls'].every((name) => tools.includes(`- ${name}:`))),
-    JSON.stringify(childTools.map((tools) => tools.slice(0, 200))),
-  );
+  const childTools = requests.filter((request) => request.messages.some((message) => message.role === 'user' && JSON.stringify(message.content).includes('readonly child turn'))).map(toolNames);
+  check('task: a readonly child receives only read tools', childTools.length > 0 && childTools.every((tools) => JSON.stringify(tools) === '["find","grep","ls","read"]'), JSON.stringify(childTools));
   check(
     'task: the parent keeps its shell tool',
-    requests.some((request) => toolSection(request).includes('- bash:')),
+    requests.some((request) => toolNames(request).includes('bash')),
     `${requests.length} requests`,
   );
 

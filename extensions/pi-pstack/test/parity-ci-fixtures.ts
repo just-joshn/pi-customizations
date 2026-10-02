@@ -55,6 +55,12 @@ export async function timerOwner(prefix: string) {
 }
 
 export async function userEntries(sessionFile: string, needle: string): Promise<string[]> {
-  const entries = (await readFile(sessionFile, 'utf8')).trim().split('\n').map((line) => JSON.parse(line));
-  return entries.filter((entry) => entry.type === 'message' && entry.message.role === 'user').map((entry) => JSON.stringify(entry.message.content)).filter((text) => text.includes(needle));
+  const entries = (await readFile(sessionFile, 'utf8'))
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line));
+  return entries
+    .filter((entry) => entry.type === 'message' && entry.message.role === 'user')
+    .map((entry) => JSON.stringify(entry.message.content))
+    .filter((text) => text.includes(needle));
 }

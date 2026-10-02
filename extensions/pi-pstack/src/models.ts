@@ -177,7 +177,13 @@ function needsChoice(role: string, values: string[], target: ThinkingLevel | und
 
 function modelFamily(value: string, ctx: ExtensionContext): string {
   const { model } = resolveModel(value, ctx);
-  return model.id.split("/").at(-1)?.toLowerCase().match(/[a-z]+/)?.[0] ?? model.id;
+  return (
+    model.id
+      .split("/")
+      .at(-1)
+      ?.toLowerCase()
+      .match(/[a-z]+/)?.[0] ?? model.id
+  );
 }
 
 function familyWarnings(working: ModelTable, ctx: ExtensionContext): string[] {

@@ -2,7 +2,8 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
 import { readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { openStore, type OpenStoreOptions, type Store } from '../../skills/poteto-mode/scripts/orch/store.ts';
+
+import { type OpenStoreOptions, openStore, type Store } from '../../skills/poteto-mode/scripts/orch/store.ts';
 import { cleanDirectories, makeDirectory } from './orch-fixtures.ts';
 
 const storeModule = new URL('../../skills/poteto-mode/scripts/orch/store.ts', import.meta.url).pathname;
@@ -118,11 +119,13 @@ function runScript(path: string): Promise<string> {
 describe('orch lock races', () => {
   test('two processes racing a dead-holder lock leave exactly one winner and the loser names the winner', async () => {
     const { directory } = await initialized();
-    const scripts = await Promise.all(['a', 'b'].map(async (id) => {
-      const path = join(directory, `racer-${id}.ts`);
-      await writeFile(path, racer(directory, id));
-      return path;
-    }));
+    const scripts = await Promise.all(
+      ['a', 'b'].map(async (id) => {
+        const path = join(directory, `racer-${id}.ts`);
+        await writeFile(path, racer(directory, id));
+        return path;
+      }),
+    );
     for (let round = 0; round < 6; round += 1) {
       await writeFile(lockOf(directory), `${deadPid()}\n`);
       const outputs = await Promise.all(scripts.map(runScript));
@@ -137,11 +140,14 @@ describe('orch lock races', () => {
   test('a reader never observes a half-written units file while another process rewrites it', async () => {
     const { directory, store } = await initialized();
     const writer = join(directory, 'writer.ts');
-    await writeFile(writer, `import { openStore } from ${JSON.stringify(storeModule)};
+    await writeFile(
+      writer,
+      `import { openStore } from ${JSON.stringify(storeModule)};
 const store = openStore(${JSON.stringify(directory)});
 for (let n = 0; n < 150; n += 1) await store.units.add({ id: 'u' + n, track: 'tt'.repeat(40) });
 await store.close();
-`);
+`,
+    );
     const done = runScript(writer);
     let finished = false;
     void done.then(() => (finished = true));

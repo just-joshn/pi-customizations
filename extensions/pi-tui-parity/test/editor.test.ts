@@ -19,7 +19,7 @@ function editorHarness() {
   return { editor, session, requests };
 }
 
-describe('composer editor', () => {
+describe('composer editor state', () => {
   it('placeholders follow the conversation state', () => {
     expect(composerPlaceholder(false)).toBe('Plan, search, build anything');
     expect(composerPlaceholder(true)).toBe('Add a follow-up');
@@ -43,6 +43,16 @@ describe('composer editor', () => {
     expect(requests.length).toBe(0);
   });
 
+  it('mode cycle order matches the the reference CLI ring', () => {
+    const _state = createSessionState();
+    expect(nextMode('default')).toBe('plan');
+    expect(nextMode('plan')).toBe('debug');
+    expect(nextMode('debug')).toBe('ask');
+    expect(nextMode('ask')).toBe('default');
+  });
+});
+
+describe('composer editor input', () => {
   it('escape enters vim normal mode only for empty input', () => {
     const { editor, session } = editorHarness();
     editor.handleInput('\x1b');
@@ -68,7 +78,9 @@ describe('composer editor', () => {
     expect(editor.getText()).toBe('hellIo');
     expect(session.read().vim).toBe('insert');
   });
+});
 
+describe('composer editor rendering', () => {
   it('empty-state render draws the half-block frame and inverse placeholder', () => {
     const { editor } = editorHarness();
     const rows = editor.render(60);
@@ -80,13 +92,5 @@ describe('composer editor', () => {
       .join('');
     expect(mid.includes('→ Plan, search, build anything')).toBe(true);
     expect(rows[1]?.includes(['\x1b[7m', 'P', '\x1b[0m'].join(''))).toBe(true);
-  });
-
-  it('mode cycle order matches the the reference CLI ring', () => {
-    const _state = createSessionState();
-    expect(nextMode('default')).toBe('plan');
-    expect(nextMode('plan')).toBe('debug');
-    expect(nextMode('debug')).toBe('ask');
-    expect(nextMode('ask')).toBe('default');
   });
 });

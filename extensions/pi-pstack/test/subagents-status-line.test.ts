@@ -21,7 +21,7 @@ const task = (id: string, tokenCount = 0): TaskSnapshot => ({
 function harness(overrides: Partial<StatusLineSources> = {}, output: ShellResult = { code: 0, stdout: '', stderr: '' }) {
   const logs: string[] = [];
   const applied: Record<string, string>[] = [];
-  const runs: { command: string; input: unknown; cwd: string; env: NodeJS.ProcessEnv; timeoutMs: number }[] = [];
+  const runs: { command: string; input: { tasks: { tokenSamples: number[] }[] }; cwd: string; env: NodeJS.ProcessEnv; timeoutMs: number }[] = [];
   let tasks: TaskSnapshot[] = [task('a', 5)];
   const sources: StatusLineSources = {
     tasks: () => tasks,
@@ -76,6 +76,9 @@ test.for([
   await poller.tick();
   expect(runs).toEqual([]);
   expect(logs).toEqual([]);
+  const control = harness();
+  await control.poller.tick();
+  expect(control.runs.map((run) => run.command)).toEqual(['status-cmd']);
 });
 
 test('[C100] the command receives project, terminal and per-task data as JSON stdin', async () => {
@@ -119,12 +122,12 @@ test('[C100] token samples keep the 16 most recent counts per task and drop fini
     state.setTasks([task('a', count)]);
     await state.poller.tick();
   }
-  expect((state.runs.at(-1)?.input as { tasks: { tokenSamples: number[] }[] }).tasks[0]?.tokenSamples).toEqual([3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
+  expect(state.runs.at(-1)?.input.tasks[0]?.tokenSamples).toEqual([3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
   state.setTasks([task('b', 1)]);
   await state.poller.tick();
   state.setTasks([task('a', 50)]);
   await state.poller.tick();
-  expect((state.runs.at(-1)?.input as { tasks: { tokenSamples: number[] }[] }).tasks[0]?.tokenSamples).toEqual([50]);
+  expect(state.runs.at(-1)?.input.tasks[0]?.tokenSamples).toEqual([50]);
 });
 
 test('[C101] valid JSON lines map to task ids while invalid lines and unknown ids are logged or dropped', async () => {

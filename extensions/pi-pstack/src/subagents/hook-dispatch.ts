@@ -1,5 +1,5 @@
-import { type CommandHook, type HookEventName, type HookGroup, type HookTable, matchesHook, parseAgentHooks } from './hook-table.ts';
 import { type HookRun, runCommandHooks } from './hook-run.ts';
+import { type CommandHook, type HookEventName, type HookGroup, type HookTable, matchesHook, parseAgentHooks } from './hook-table.ts';
 import { readSettingsLayers, type SettingsRoots } from './settings-layers.ts';
 
 export const hookEventChannel = 'pstack:hook-event';

@@ -35,9 +35,13 @@ test('the journey verifier rejects an unknown selector instead of passing withou
   expect(() => run('verify-journeys.mjs', [root, 'not-a-journey'])).toThrow('Unknown journey selector: not-a-journey');
 });
 
-test('the shipped resource checker verifies both source inventories and generated resources', () => {
-  expect(run('resources.mjs')).toBe('Verified 187 upstream files and 205 generated resources.\n');
-});
+test(
+  'the shipped resource checker verifies both source inventories and generated resources',
+  () => {
+    expect(run('resources.mjs')).toBe('Verified 187 upstream files and 205 generated resources.\n');
+  },
+  verificationDeadlineMs,
+);
 
 test('preserved helper behavior and its aggregate coverage pass without changing source files', () => {
   const output = run('verify-upstream.mjs');
@@ -48,27 +52,35 @@ test('preserved helper behavior and its aggregate coverage pass without changing
   expect(run('resources.mjs')).toBe('Verified 187 upstream files and 205 generated resources.\n');
 });
 
-test('the packed distribution loads in the actual Pi CLI and shuts down cleanly', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'pstack-package-'));
-  try {
-    const archive = pack(directory);
-    expect(archive).toMatch(/^pi-pstack-[^/]+\.tgz$/);
-    execFileSync('tar', ['-xzf', join(directory, archive), '-C', directory], { timeout: archiveDeadlineMs });
-    expect(run('verify-cli.mjs', [join(directory, 'package')])).toBe('Verified installed Pi CLI package loading, RPC commands, status, mode off, and orderly shutdown without model calls.\n');
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
-});
+test(
+  'the packed distribution loads in the actual Pi CLI and shuts down cleanly',
+  async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'pstack-package-'));
+    try {
+      const archive = pack(directory);
+      expect(archive).toMatch(/^pi-pstack-[^/]+\.tgz$/);
+      execFileSync('tar', ['-xzf', join(directory, archive), '-C', directory], { timeout: archiveDeadlineMs });
+      expect(run('verify-cli.mjs', [join(directory, 'package')])).toBe('Verified installed Pi CLI package loading, RPC commands, status, mode off, and orderly shutdown without model calls.\n');
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  },
+  verificationDeadlineMs,
+);
 
-test('the packed distribution ships every tracked file the manifest declares', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'pstack-inventory-'));
-  try {
-    const packed = packedPaths(directory, pack(directory));
-    const missing = declaredPaths()
-      .filter((path) => !packed.has(path))
-      .sort();
-    expect(missing).toEqual([...packerOmissions].sort());
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
-});
+test(
+  'the packed distribution ships every tracked file the manifest declares',
+  async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'pstack-inventory-'));
+    try {
+      const packed = packedPaths(directory, pack(directory));
+      const missing = declaredPaths()
+        .filter((path) => !packed.has(path))
+        .sort();
+      expect(missing).toEqual([...packerOmissions].sort());
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  },
+  verificationDeadlineMs,
+);

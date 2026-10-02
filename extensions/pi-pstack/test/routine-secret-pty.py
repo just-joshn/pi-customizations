@@ -43,4 +43,4 @@ else:
     raise RuntimeError('Secret helper did not finish')
 restored = bool(termios.tcgetattr(master)[3] & termios.ECHO)
 os.close(master)
-print(json.dumps({'hidden': hidden, 'restored': restored, 'exposed': value in output, 'exit': os.waitstatus_to_exitcode(status)}))
+sys.stdout.write(json.dumps({'hidden': hidden, 'restored': restored, 'exposed': value in output, 'exit': os.waitstatus_to_exitcode(status)}) + '\n')

@@ -8,6 +8,7 @@ import { promisify } from 'node:util';
 import { expect, onTestFinished, test } from 'vitest';
 import { openDetachedRpc } from '../scripts/detached-rpc-client.mjs';
 import { restartTimerService, timerCommand } from '../scripts/timer-client.mjs';
+import { letTimersTick, occurrences } from './timer-clock.ts';
 
 async function owner(prompt = 'TIMER:survive', deferred = false) {
   const directory = await mkdtemp(join(tmpdir(), 'pstack-timer-recovery-'));
@@ -47,17 +48,17 @@ test('restart reattaches the existing Pi root and keeps subscription identity', 
   expect(duplicate.rpcDirectory).toBe(receipt.rpcDirectory);
 }, 15000);
 
-test('an accepted running occurrence survives service restart and cancellation drains it', async () => {
+test('a running occurrence survives a service restart until cancelled', async () => {
   const { directory, receipt } = await owner('TIMER:HOLD');
   await expect.poll(() => readFile(receipt.sessionFile, 'utf8'), { timeout: 10000 }).toContain('sleep 30');
   await killService(directory);
   await restartTimerService(directory);
   await timerCommand(directory, { type: 'unsubscribe', subscriptionId: receipt.subscriptionId });
   expect((await openDetachedRpc(receipt.rpcDirectory).activity()).kind).toBe('settled');
-  const stopped = await readFile(receipt.sessionFile, 'utf8');
-  await new Promise((resolve) => setTimeout(resolve, 1200));
-  expect(await readFile(receipt.sessionFile, 'utf8')).toBe(stopped);
-  const users = stopped
+  const stopped = await occurrences(receipt.sessionFile, 'TIMER:HOLD');
+  await letTimersTick(directory);
+  expect(await occurrences(receipt.sessionFile, 'TIMER:HOLD')).toBe(stopped);
+  const users = (await readFile(receipt.sessionFile, 'utf8'))
     .trim()
     .split('\n')
     .map((line) => JSON.parse(line))
@@ -156,12 +157,13 @@ test('a persisted unsent occurrence is delivered after restart instead of skippe
 test('cancellation survives supervisor restart without rearming the timer', async () => {
   const { directory, receipt } = await owner();
   await timerCommand(directory, { type: 'unsubscribe', subscriptionId: receipt.subscriptionId });
-  const stopped = await readFile(receipt.sessionFile, 'utf8');
+  const stopped = await occurrences(receipt.sessionFile, 'TIMER:survive');
   await killService(directory);
   await restartTimerService(directory);
   expect(await timerCommand(directory, { type: 'list' })).toEqual([]);
-  await new Promise((resolve) => setTimeout(resolve, 1200));
-  expect(await readFile(receipt.sessionFile, 'utf8')).toBe(stopped);
+  await letTimersTick(directory);
+  expect(await timerCommand(directory, { type: 'list' })).toEqual([]);
+  expect(await occurrences(receipt.sessionFile, 'TIMER:survive')).toBe(stopped);
 }, 15000);
 
 test('retrying a command identity returns its existing durable receipt', async () => {

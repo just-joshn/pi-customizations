@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
-import { baseEnv, cleanDirectories, installGt, makeDirectory, makeRepo, runCli, stackLog, git } from './orch-fixtures.ts';
+
+import { baseEnv, cleanDirectories, git, installGt, makeDirectory, makeRepo, runCli, stackLog } from './orch-fixtures.ts';
 
 const cli = (store: string, ...args: string[]) => runCli(['--store', store, ...args]);
 const ok = (store: string, ...args: string[]) => {
@@ -16,19 +17,24 @@ let seeded = '';
 let empty = '';
 let pushedLines: string[] = [];
 
+async function seedStore(): Promise<{ store: string; pushed: string[] }> {
+  const store = await makeDirectory();
+  ok(store, 'init');
+  for (const n of [1, 2, 3, 4, 5]) {
+    ok(store, 'unit', 'add', `u${n}`, '--track', 't');
+    ok(store, 'gate', 'park', `g${n}`, '--question', `q${n}`, '--options', 'a|b', '--default', 'a');
+    ok(store, 'standing', 'add', `order ${n}`);
+  }
+  ok(store, 'unit', 'set', 'u1', '--state', 'done', '--pr', '12');
+  ok(store, 'ledger', 'record', '12', 'abc', 'live-ui-verified', '--evidence', 'e.md');
+  const pushed = [1, 2, 3, 4, 5].map((n) => ok(store, 'inbox', 'push', 'agent', `u${n}`, 'done', '--report', `r${n}.md`).trim());
+  return { store, pushed };
+}
+
 async function seed(): Promise<void> {
-  seeded = await makeDirectory();
   empty = await makeDirectory();
   ok(empty, 'init');
-  ok(seeded, 'init');
-  for (const n of [1, 2, 3, 4, 5]) {
-    ok(seeded, 'unit', 'add', `u${n}`, '--track', 't');
-    ok(seeded, 'gate', 'park', `g${n}`, '--question', `q${n}`, '--options', 'a|b', '--default', 'a');
-    ok(seeded, 'standing', 'add', `order ${n}`);
-  }
-  ok(seeded, 'unit', 'set', 'u1', '--state', 'done', '--pr', '12');
-  ok(seeded, 'ledger', 'record', '12', 'abc', 'live-ui-verified', '--evidence', 'e.md');
-  pushedLines = [1, 2, 3, 4, 5].map((n) => ok(seeded, 'inbox', 'push', 'agent', `u${n}`, 'done', '--report', `r${n}.md`).trim());
+  ({ store: seeded, pushed: pushedLines } = await seedStore());
 }
 
 beforeAll(seed, 120_000);
@@ -80,17 +86,19 @@ describe('orch CLI write commands print one compact line', () => {
     expect(pushedLines[0]).toMatch(/^u1\tdone\t\d{4}-\d\d-\d\dT[\w-]+-\d+-[0-9a-f-]{36}\.tsv$/);
   });
 
-  test('inbox drain prints every pointer with no limit, then the inbox is empty', () => {
-    const lines = ok(seeded, 'inbox', 'drain').trimEnd().split('\n');
+  test('inbox drain prints every pointer with no limit, then the inbox is empty', async () => {
+    const { store } = await seedStore();
+    const lines = ok(store, 'inbox', 'drain').trimEnd().split('\n');
     expect(lines.map((line) => line.split('\t').slice(1))).toEqual([1, 2, 3, 4, 5].map((n) => ['agent', `u${n}`, 'done', `r${n}.md`]));
-    expect(ok(seeded, 'inbox', 'drain')).toBe('(empty)\n');
+    expect(ok(store, 'inbox', 'drain')).toBe('(empty)\n');
   });
 });
 
 describe('orch CLI status prints three lines', () => {
-  test('counts, changed, and gates open lines with the ids list and the more suffix', () => {
-    expect(ok(seeded, 'status')).toBe('counts: units=5; states=done=1, pending=4; ledger=live-ui-verified=1\nchanged: first render\ngates open: 5; ids=g1,g2,g3,g4,+1 more\n');
-    expect(ok(seeded, 'status')).toBe('counts: units=5; states=done=1, pending=4; ledger=live-ui-verified=1\nchanged: no derived changes\ngates open: 5; ids=g1,g2,g3,g4,+1 more\n');
+  test('counts, changed, and gates open lines with the ids list and the more suffix', async () => {
+    const { store } = await seedStore();
+    expect(ok(store, 'status')).toBe('counts: units=5; states=done=1, pending=4; ledger=live-ui-verified=1\nchanged: first render\ngates open: 5; ids=g1,g2,g3,g4,+1 more\n');
+    expect(ok(store, 'status')).toBe('counts: units=5; states=done=1, pending=4; ledger=live-ui-verified=1\nchanged: no derived changes\ngates open: 5; ids=g1,g2,g3,g4,+1 more\n');
   });
 
   test('an empty store prints none and no ids', () => {
@@ -99,8 +107,9 @@ describe('orch CLI status prints three lines', () => {
 });
 
 describe('orch CLI --json', () => {
-  test('is pretty-printed with two-space indentation and a trailing newline', () => {
-    const store = seeded;
+  test('is pretty-printed with two-space indentation and a trailing newline', async () => {
+    const store = await makeDirectory();
+    ok(store, 'init');
     ok(store, 'unit', 'add', 'j1', '--track', 'tj', '--json');
     expect(ok(store, 'unit', 'get', 'j1', '--json')).toBe('{\n  "id": "j1",\n  "track": "tj",\n  "state": "pending",\n  "branch": "",\n  "pr": "",\n  "sha": "",\n  "brief": ""\n}\n');
   });

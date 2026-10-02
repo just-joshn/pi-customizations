@@ -73,7 +73,7 @@ test('[C110] a single failed orphan says its in-process state was lost', () => {
 test('[B101] a stopped orphan with a saved transcript points at the output file when the parent can read it', () => {
   const notice = settledNotice({ record: record('b'), status: 'stopped', redispatched: false, transcriptSaved: true }, true);
   expect(notice.content).toContain('<output-file>/s/agent-b.jsonl</output-file>\n<status>stopped</status>');
-  expect(notice.content).toContain("either way its transcript is saved, so its progress is not lost. Resume it by sending it a message with SendMessage, or check its worktree/output for partial work before assuming the task landed.");
+  expect(notice.content).toContain('either way its transcript is saved, so its progress is not lost. Resume it by sending it a message with SendMessage, or check its worktree/output for partial work before assuming the task landed.');
 });
 
 test('[B101] several stopped orphans share one notification listing every id', () => {

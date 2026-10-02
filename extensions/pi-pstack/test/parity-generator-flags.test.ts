@@ -13,17 +13,24 @@ async function hiddenFlag(path: string): Promise<boolean> {
 }
 
 async function directories(path: string): Promise<string[]> {
-  return (await readdir(join(root, path), { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name).toSorted();
+  return (await readdir(join(root, path), { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .toSorted();
 }
 
-test('generation keeps every upstream model-invocation flag, so the generated flag matches its source for each skill', async () => {
+test('every generated skill keeps its upstream model-invocation flag', async () => {
   const mismatches: string[] = [];
+  const compared: string[] = [];
   for (const source of ['upstream/skills', 'upstream-team-kit/skills']) {
     for (const name of await directories(source)) {
       if (name === 'bro') continue;
+      compared.push(`${source}/${name}`);
       if ((await hiddenFlag(`${source}/${name}`)) !== (await hiddenFlag(`skills/${name}`))) mismatches.push(name);
     }
   }
+  expect(compared).toContain('upstream/skills/setup-pstack');
+  expect(compared).toContain('upstream-team-kit/skills/deslop');
   expect(mismatches).toEqual([]);
 });
 

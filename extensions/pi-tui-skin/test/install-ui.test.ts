@@ -76,10 +76,13 @@ const UNINSTALL_METHODS = ['setWidget', 'setEditorComponent', 'setFooter', 'setH
 
 function fakeContext(mode: string) {
   const calls: UiCall[] = [];
+  const failures = new Map<string, string>();
   const ui: Record<string, unknown> = { theme: makeTheme() };
   for (const method of UI_METHODS) {
     ui[method] = (...args: unknown[]) => {
       calls.push({ method, args });
+      const failure = failures.get(method);
+      if (failure !== undefined) throw new Error(failure);
     };
   }
   const ctx = {
@@ -90,7 +93,19 @@ function fakeContext(mode: string) {
     getContextUsage: () => ({ tokens: 16000, contextWindow: 200000, percent: 8 }),
     ui,
   } as never;
-  return { ctx, calls };
+  const failOn = (method: string, message: string): void => {
+    failures.set(method, message);
+  };
+  return { ctx, calls, failOn };
+}
+
+function thrownBy(run: () => void): unknown {
+  try {
+    run();
+  } catch (error) {
+    return error;
+  }
+  throw new Error('expected the call to throw');
 }
 
 function callsFor(calls: readonly UiCall[], method: string): UiCall[] {
@@ -161,7 +176,56 @@ describe('install-ui controller', () => {
     expect(callsFor(calls, 'setWidget').at(-1)?.args).toEqual(['tui-skin.activity', undefined]);
     expect(callsFor(calls, 'setWorkingMessage').at(-1)?.args).toEqual([]);
   });
+});
 
+describe('install-ui controller removal failures', () => {
+  test('a failing step lets later steps run, then one error names each failure', () => {
+    const consoleError = vi.spyOn(console, 'error');
+    const { ctx, calls, failOn } = fakeContext('tui');
+    const controller = createUiController(createPresentationStore());
+    controller.install(ctx);
+    const installedCalls = calls.length;
+    failOn('setFooter', 'footer boom');
+    failOn('setWorkingMessage', 'message boom');
+
+    const failure = thrownBy(() => controller.uninstall(ctx));
+
+    expect(calls.slice(installedCalls).map((call) => call.method)).toEqual(UNINSTALL_METHODS);
+    expect(failure).toBeInstanceOf(AggregateError);
+    const aggregate = failure as AggregateError;
+    expect(aggregate.message).toBe('tui-skin presentation cleanup failed: setFooter: footer boom; setWorkingMessage: message boom');
+    expect(aggregate.errors.map((error: Error) => error.message)).toEqual(['footer boom', 'message boom']);
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
+  test('a failed removal still counts as removed, so a repeat does nothing', () => {
+    const { ctx, calls, failOn } = fakeContext('tui');
+    const controller = createUiController(createPresentationStore());
+    controller.install(ctx);
+    failOn('setHeader', 'header boom');
+    thrownBy(() => controller.uninstall(ctx));
+    const afterFailure = calls.length;
+
+    controller.uninstall(ctx);
+
+    expect(calls.length).toBe(afterFailure);
+  });
+
+  test('a removal that fails with a non-Error value reports its text', () => {
+    const { ctx } = fakeContext('tui');
+    const controller = createUiController(createPresentationStore());
+    controller.install(ctx);
+    (ctx as unknown as { ui: { setHeader(): void } }).ui.setHeader = () => {
+      throw 'plain text';
+    };
+
+    const failure = thrownBy(() => controller.uninstall(ctx)) as AggregateError;
+
+    expect(failure.message).toBe('tui-skin presentation cleanup failed: setHeader: plain text');
+  });
+});
+
+describe('install-ui controller removal, rendering', () => {
   test('ignores a repeated or never-installed removal', () => {
     const { ctx, calls } = fakeContext('tui');
     const controller = createUiController(createPresentationStore());
@@ -202,7 +266,9 @@ describe('install-ui controller', () => {
     expect(indicator.frames[2]).toBe('\u001b[38;2;62;208;122m●\u001b[39m');
     expect(callsFor(calls, 'setWorkingMessage')[0]?.args).toEqual(['Working']);
   });
+});
 
+describe('install-ui controller working frames on render', () => {
   test('a render with an unchanged theme leaves the frames alone', () => {
     const { ctx, calls } = fakeContext('tui');
     const controller = createUiController(createPresentationStore());

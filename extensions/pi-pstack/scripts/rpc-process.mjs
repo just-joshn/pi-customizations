@@ -20,6 +20,12 @@ function sendCommand(child, requests, command, sequence, policy, getStderr, fail
   });
 }
 
+function attachReader(stream, reader) {
+  stream.setEncoding('utf8');
+  stream.on('data', reader.data);
+  stream.on('end', reader.end);
+}
+
 export function rpcProcess(child, policy = { requestDeadlineMs, shutdownDeadlineMs }) {
   const requests = new Map();
   const toolUpdates = [];
@@ -36,9 +42,7 @@ export function rpcProcess(child, policy = { requestDeadlineMs, shutdownDeadline
     receiveResponse(record, requests, toolUpdates);
     policy.onRecord?.(record);
   }, fail);
-  child.stdout.setEncoding('utf8');
-  child.stdout.on('data', reader.data);
-  child.stdout.on('end', reader.end);
+  attachReader(child.stdout, reader);
   child.stderr.on('data', (data) => {
     stderr += data.toString();
   });

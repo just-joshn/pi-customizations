@@ -171,7 +171,6 @@ describe('worktree-audit.sh environment', () => {
     const result = audit([main], { directory, path: withGh(ghFail) });
     expect(parse(result.stdout).map((row) => row.pr)).toEqual(Array(parse(result.stdout).length).fill('-'));
   });
-
 });
 
 describe('worktree-audit.sh origin and temp files', () => {
@@ -209,7 +208,6 @@ describe('worktree-audit.sh origin and temp files', () => {
       await rm(tmp, { recursive: true, force: true });
     }
   });
-
 });
 
 describe('worktree-audit.sh on a scratch repository with no origin', () => {

@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import { decideAdmission, resolveAgentType } from '../src/subagents/admission.ts';
 import { capResultText, concurrencyCap, depthCap, normalizeDescription, sessionSpawnCap, validateName } from '../src/subagents/limits.ts';
 import type { AdmissionSnapshot } from '../src/subagents/types.ts';
+import { agentHex } from './agent-hex.ts';
 
 const base: AdmissionSnapshot = {
   agents: [
@@ -37,12 +38,12 @@ test.each([
   ['SYSTEM', false],
   ['User', false],
   ['Team-Lead', false],
-  ['a0123456789abcdef', false],
-  ['aworker-0123456789abcdef', false],
-  ['agent-a0123456789abcdef', true],
+  [`a${agentHex}`, false],
+  [`aworker-${agentHex}`, false],
+  [`agent-a${agentHex}`, true],
   ['team_lead', true],
   ['teamlead', true],
-  ['APREFIX-0123456789ABCDEF', false],
+  [`APREFIX-${agentHex.toUpperCase()}`, false],
   ['main\n', false],
   ['ｍａｉｎ', false],
   ['ma\u200bin', false],
@@ -57,7 +58,7 @@ test('[G1-06] reserved main name has the exact routing refusal', () => {
   expect(validateName('main')).toEqual({ code: 'subagent_name_invalid', message: '"main" is reserved \u2014 SendMessage routes it to the main conversation' });
 });
 
-test.for(['MAIN', 'SYSTEM', 'Team-Lead', 'a0123456789abcdef', 'aworker-0123456789abcdef'])('[G1-06] reserved routing name %s has the exact refusal', (name) => {
+test.for(['MAIN', 'SYSTEM', 'Team-Lead', `a${agentHex}`, `aworker-${agentHex}`])('[G1-06] reserved routing name %s has the exact refusal', (name) => {
   expect(validateName(name)).toEqual({
     code: 'subagent_name_invalid',
     message: 'name must not be a reserved name ("main", "team-lead", "user" or "system", in any spelling) or have the shape of an agent id \u2014 those already address an agent directly',

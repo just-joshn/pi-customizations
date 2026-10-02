@@ -40,7 +40,9 @@ export function repairForkMessages(messages: readonly Message[]): Message[] {
 }
 
 export function insideFork(messages: readonly Message[]): boolean {
-  return messages.some((message) => message.role === 'user' && (typeof message.content === 'string' ? message.content : message.content.map((block) => (block.type === 'text' ? block.text : '')).join('')).startsWith(`<${forkBoilerplateTag}>`));
+  return messages.some(
+    (message) => message.role === 'user' && (typeof message.content === 'string' ? message.content : message.content.map((block) => (block.type === 'text' ? block.text : '')).join('')).startsWith(`<${forkBoilerplateTag}>`),
+  );
 }
 
 export function seedForkTranscript(manager: SessionManager, messages: readonly Message[], state: ForkState): void {
