@@ -196,6 +196,7 @@ export class SubagentScheduler {
       contextManagement: input.contextManagement,
       parentAgentId: input.parentAgentId,
       onProcessGroup: (pid) => groups.add({ pid }),
+      exec: (command, args, options) => this.deps.pi.exec(command, args, options),
       log: this.deps.log,
       inheritedServers: input.inheritedServers,
       exclusionPatterns: input.exclusionPatterns,

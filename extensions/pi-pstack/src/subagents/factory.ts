@@ -9,7 +9,7 @@ import type { ChildContextEntry } from './child-session.ts';
 import { parsePatterns } from './content-exclusion.ts';
 import { buildChildPlan, type ChildLimits, type ChildPlan } from './context-builder.ts';
 import { DiscoveryCache } from './custom-discovery.ts';
-import { gatherEnvironment } from './environment-facts.ts';
+import { gatherEnvironment, systemProbe } from './environment-facts.ts';
 import { featureEnabled, rubberDuckRollout, subconsciousEnabled } from './feature-flags.ts';
 import { type HostEffect, runHostEffect, type SubagentHost } from './host-effects.ts';
 import type { LimiterProvider } from './limiter-provider.ts';
@@ -235,6 +235,10 @@ export class SubagentFactory {
     const refusal = zeroToolsMessage(definition.name, tools);
     if (refusal) throw new Error(refusal);
     const agentId = randomUUID();
+    const environment = await gatherEnvironment(
+      ctx.cwd,
+      systemProbe((command, args, options) => this.deps.pi.exec(command, args, options)),
+    );
     const hookContext = await this.startHooks(input.raw, agentId, definition, ctx, input.rootSessionId);
     return buildChildPlan({
       definition,
@@ -250,7 +254,7 @@ export class SubagentFactory {
       mode: call.mode ?? 'sync',
       tools,
       toolNames,
-      environment: gatherEnvironment(ctx.cwd),
+      environment,
       now: new Date(),
       headless: call.mode === 'background' || !ctx.hasUI,
       ...(hookContext ? { hookContext } : {}),

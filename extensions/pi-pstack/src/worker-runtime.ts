@@ -387,7 +387,7 @@ export class WorkerRuntime {
     throw new AgentPreconditionError({ code: 'subagent_depth_cap', message: depthMessage(cap) });
   }
 
-  private async openChild(input: Parameters<typeof openWorkerSession>[0]): Promise<Awaited<ReturnType<typeof openWorkerSession>> & ChildChannel> {
+  private async openChild(input: Omit<Parameters<typeof openWorkerSession>[0], 'exec'>): Promise<Awaited<ReturnType<typeof openWorkerSession>> & ChildChannel> {
     const depth = input.prior?.depth ?? this.depth + 1;
     const channel = this.childChannel(input.id);
     const opened = await depthStore.run(depth, () =>
@@ -396,6 +396,7 @@ export class WorkerRuntime {
         depth,
         events: channel.events,
         onProcessGroup: (pid) => channel.groups.add({ pid }),
+        exec: (command, args, options) => this.pi.exec(command, args, options),
         log: (message) => this.pi.events.emit('pstack:subagent-log', message),
       }),
     );
