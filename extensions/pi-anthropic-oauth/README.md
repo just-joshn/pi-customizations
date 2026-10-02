@@ -22,9 +22,19 @@ Pi's Anthropic implementation treats the subscription token as an OAuth token. I
 
 The first system block is the Provider CLI billing header (`x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;`). Anthropic's subscription gateway uses that block to bill the request to the Provider CLI plan. A live test on 2026-09-27 showed the effect of removing it: the gateway returned HTTP 400 with an out-of-extra-usage error, even when the plan had usage left. The second system block is Provider CLI's preamble, followed by the Pi system prompt.
 
-To send a different version in the user agent, set `CLAUDE_CODE_VERSION`. The billing block keeps its captured version.
+To send a different Provider CLI version in the user agent, set the header in the `models.json` file of your agent directory. Pi sends a provider's headers on every request of that provider, compaction included, and they replace the default `user-agent`. Use the lowercase name.
 
-The version becomes a request header, so the package checks it. A valid value is dotted digits with 2 to 4 groups, such as `2.1.280`. The package reads `options.env.CLAUDE_CODE_VERSION` first and `process.env.CLAUDE_CODE_VERSION` second. An empty string counts as unset. Any other value fails the request with an error that says `CLAUDE_CODE_VERSION must be dotted digits with 2 to 4 groups, such as 2.1.280` and quotes the rejected value. No request leaves your machine. Pi reports the failure as an error result on the stream. Headers you pass on a request still override the generated `user-agent`.
+```json
+{
+  "providers": {
+    "claude-subscription": {
+      "headers": { "user-agent": "claude-cli/2.1.300" }
+    }
+  }
+}
+```
+
+The billing block keeps its captured version.
 
 The package also checks the payload that Pi's Anthropic implementation hands over. It expects an object whose `system` is an array or absent. Any other shape ends the request with an error that names the unexpected shape.
 
