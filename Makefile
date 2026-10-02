@@ -1,6 +1,6 @@
-.PHONY: verify sweep-cursor-ui verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-oauth verify-tui-parity verify-cursor-ui verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
+.PHONY: verify sweep-cursor-ui verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-oauth verify-cursor-ui verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
 
-verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-parity verify-cursor-ui verify-one-dark-pro-theme verify-install verify-python
+verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-cursor-ui verify-one-dark-pro-theme verify-install verify-python
 
 verify-lint:
 	bun run ci
@@ -32,12 +32,6 @@ verify-oauth:
 	bun run --filter pi-antigravity-oauth test:coverage
 	bun run --filter pi-xai-oauth typecheck
 	bun run --filter pi-xai-oauth test:coverage
-
-verify-tui-parity:
-	bun run --filter pi-tui-parity check:docs
-	bun run --filter pi-tui-parity check:parity
-	bun run --filter pi-tui-parity typecheck
-	bun run --filter pi-tui-parity test:coverage
 
 verify-cursor-ui:
 	bun run --filter pi-cursor-ui check:skin

@@ -99,26 +99,6 @@
         "typebox": "*",
       },
     },
-    "extensions/pi-tui-parity": {
-      "name": "pi-tui-parity",
-      "version": "0.1.0",
-      "devDependencies": {
-        "@earendil-works/pi-ai": "1.0.0",
-        "@earendil-works/pi-coding-agent": "1.0.0",
-        "@earendil-works/pi-tui": "1.0.0",
-        "@types/node": "^22.19.0",
-        "@vitest/coverage-v8": "^5.0.2",
-        "typebox": "1.3.27",
-        "typescript": "^5.9.3",
-        "vitest": "^5.0.2",
-      },
-      "peerDependencies": {
-        "@earendil-works/pi-ai": "*",
-        "@earendil-works/pi-coding-agent": "*",
-        "@earendil-works/pi-tui": "*",
-        "typebox": "*",
-      },
-    },
     "extensions/pi-xai-oauth": {
       "name": "pi-xai-oauth",
       "version": "0.1.0",
@@ -573,8 +553,6 @@
 
     "pi-pstack": ["pi-pstack@workspace:extensions/pi-pstack"],
 
-    "pi-tui-parity": ["pi-tui-parity@workspace:extensions/pi-tui-parity"],
-
     "pi-xai-oauth": ["pi-xai-oauth@workspace:extensions/pi-xai-oauth"],
 
     "picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
@@ -662,8 +640,6 @@
     "pi-one-dark-pro-theme/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "pi-pstack/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
-
-    "pi-tui-parity/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "pi-xai-oauth/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
