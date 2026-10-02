@@ -94,7 +94,7 @@ export class WorkflowStore {
     return this.tables.journal[runId] ?? {};
   }
 
-  create(name: string, declaration: Pick<WorkflowDeclaration, 'limits'>, args: unknown, overrides: Partial<WorkflowLimits>, now: number): RunRecord {
+  create(name: string, declaration: Pick<WorkflowDeclaration, 'limits'>, args: unknown, overrides: Partial<WorkflowLimits>, defaults: WorkflowLimits, now: number): RunRecord {
     return this.save({
       id: `${name}-${now.toString(36)}`,
       name,
@@ -103,7 +103,7 @@ export class WorkflowStore {
       arguments: structuredClone(args),
       ownerEpoch: 0,
       declaredLimits: declaration.limits ?? {},
-      effectiveLimits: effectiveLimits({ declaration, ...(Object.keys(overrides).length > 0 ? { overrides } : {}), defaults: {} }),
+      effectiveLimits: effectiveLimits({ declaration, ...(Object.keys(overrides).length > 0 ? { overrides } : {}), defaults }),
       consumption: { subagents: 0, credits: 0, startedAt: now, elapsedSeconds: 0 },
       logs: [],
       phases: [],
