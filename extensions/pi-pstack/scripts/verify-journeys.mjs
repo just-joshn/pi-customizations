@@ -4,7 +4,6 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { agentJourneys } from './agent-journeys.mjs';
 import { everyRequest, piLauncher } from './journey-client.mjs';
 import { requestText, systemText, toolNames } from './journey-requests.mjs';
 import { verifySkillCreation } from './skill-creation-journey.mjs';
@@ -224,53 +223,31 @@ async function journeyTools(ctx) {
   check('tool: AskQuestion returns the selected answer', JSON.stringify(question.find((m) => m.toolName === 'AskQuestion')).includes('approve'), JSON.stringify(question).slice(0, 300));
 }
 
-async function journeyAgentStop(ctx) {
-  const messages = await ctx.callTool('JOURNEY:agentstop');
-  const stopped = messages.find((message) => message.toolName === 'TaskStop');
+async function journeyTask(ctx) {
+  const sync = (await ctx.callTool('JOURNEY:reference-assistant-sync')).find((message) => message.toolName === 'task');
   check(
-    'RPC: TaskStop stops the running child and returns native task metadata',
-    stopped?.details?.status === 'interrupted' && stopped?.details?.task_type === 'local_agent' && stopped?.details?.command === 'stop notification probe',
-    JSON.stringify(stopped).slice(0, 300),
+    'RPC: a sync task returns the child final message verbatim from the real child session',
+    sync?.isError !== true && sync?.content?.[0]?.text.startsWith('recorded <current_datetime>') && sync?.details?.status === 'completed' && sync?.details?.agent_type === 'general-purpose',
+    JSON.stringify(sync).slice(0, 300),
   );
-  const notifications = messages.filter((message) => message.customType === 'task_notification');
+  const refused = (await ctx.callTool('JOURNEY:reference-assistant-unknown')).find((message) => message.toolName === 'task');
   check(
-    'RPC: stopped child emits exactly one stopped notification, not completed',
-    notifications.length === 1 && notifications[0].details?.status === 'stopped' && notifications[0].details?.task_id === stopped?.details?.task_id,
-    JSON.stringify(notifications).slice(0, 300),
-  );
-}
-
-async function journeyAgentSessionCap(ctx) {
-  const client = await startPi(ctx.directory, ctx.log, ['--no-session'], { CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION: '1', PI_MAX_SUBAGENTS_PER_SESSION: '1' });
-  try {
-    await client.send({ type: 'set_model', provider: 'journey-test', modelId: 'recorder' });
-    const first = (await client.callTool('JOURNEY:agent')).find((message) => message.toolName === 'Agent');
-    check('RPC: first Agent uses the session spawn slot', first?.isError !== true && first?.details?.status === 'completed', JSON.stringify(first).slice(0, 300));
-    await client.run('JOURNEY:agent');
-    const second = (await client.messages()).findLast((message) => message.toolName === 'Agent');
-    check('RPC: another Agent in that session is refused at the cap', second?.isError === true && JSON.stringify(second).includes('Session subagent limit reached'), JSON.stringify(second).slice(0, 300));
-    const fresh = (await client.callTool('JOURNEY:agent')).find((message) => message.toolName === 'Agent');
-    check('RPC: new_session restores the Agent spawn budget', fresh?.isError !== true && fresh?.details?.status === 'completed', JSON.stringify(fresh).slice(0, 300));
-  } finally {
-    await client.finish().catch(() => {});
-    await client.close().catch(() => {});
-  }
-}
-
-async function journeyAgent(ctx) {
-  const launched = (await ctx.callTool('JOURNEY:agent')).find((message) => message.toolName === 'Agent');
-  const details = launched?.details;
-  check(
-    'RPC: foreground Agent returns the completed shape from the real child session',
-    launched?.isError !== true && details?.status === 'completed' && details.agentType === 'general-purpose' && details.content?.[0]?.text.startsWith('recorded Report the word agent-ok'),
-    JSON.stringify(launched).slice(0, 300),
-  );
-  const refused = (await ctx.callTool('JOURNEY:agentunknown')).find((message) => message.toolName === 'Agent');
-  check(
-    'RPC: an unknown Agent type is a tool error that lists the available agents',
-    refused?.isError === true && JSON.stringify(refused).includes("Agent type 'not-a-type' not found. Available agents: Explore, Plan, provider-cli-guide, general-purpose, statusline-setup"),
+    'RPC: an unknown agent_type is a tool error that lists the valid types',
+    refused?.isError === true && JSON.stringify(refused).includes('Unknown agent_type: not-a-type. Valid types are: code-review, explore, general-purpose, research, rubber-duck, security-review, task'),
     JSON.stringify(refused).slice(0, 300),
   );
+}
+
+async function journeyTaskBackground(ctx) {
+  const messages = await ctx.callTool('JOURNEY:reference-assistant-background');
+  const started = messages.find((message) => message.toolName === 'task');
+  check(
+    'RPC: a background task returns its agent id at once',
+    started?.isError !== true && started?.content?.[0]?.text.includes('Agent started in background with agent_id: ') && started?.details?.mode === 'background',
+    JSON.stringify(started).slice(0, 300),
+  );
+  const listed = messages.find((message) => message.toolName === 'list_agents');
+  check('RPC: list_agents reports the background agent', listed?.isError !== true && listed?.content?.[0]?.text.includes('agent_type: general-purpose | name: bg-probe | mode: background'), JSON.stringify(listed).slice(0, 300));
 }
 
 async function journeyProgress(ctx) {
@@ -427,10 +404,8 @@ const journeys = [
   journeyTodoMerge,
   journeyTodoWidget,
   journeyQuestionVariants,
-  journeyAgent,
-  journeyAgentSessionCap,
-  journeyAgentStop,
-  ...agentJourneys(check, startPi),
+  journeyTask,
+  journeyTaskBackground,
   journeyProgress,
   journeyTaskResume,
   journeyTaskLifecycle,

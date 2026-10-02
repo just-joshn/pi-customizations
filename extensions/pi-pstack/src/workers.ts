@@ -1,24 +1,15 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { isReferencePersona } from './personas.ts';
-import { AgentResultSchema } from './subagents/results.ts';
 import { registerTaskPanel } from './subagents/task-panel.ts';
-import { type LaunchAgent, registerAgentTools } from './subagents/tools.ts';
+import { registerSubagents } from './subagents.ts';
 import { discoverTasks, selectTask } from './task-discovery.ts';
 import { TaskParameters, TaskRecordSchema, taskSummary } from './worker-records.ts';
 import { type TaskToolDetails, WorkerRuntime } from './worker-runtime.ts';
 
 export { restoreTaskRecords, taskSummary } from './worker-records.ts';
 
-const referenceOnlyFields = ['resume', 'readonly', 'environment', 'cwd'];
-
-function carriesAgentContract(params: TaskParameters & { description?: unknown }): boolean {
-  if (typeof params.description !== 'string' || referenceOnlyFields.some((field) => field in params)) return false;
-  return params.subagent_type === undefined || !isReferencePersona(params.subagent_type);
-}
-
-function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime, launchAgent: LaunchAgent): void {
-  pi.registerTool<typeof TaskParameters, TaskToolDetails | Awaited<ReturnType<LaunchAgent>>['details']>({
+function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime): void {
+  pi.registerTool<typeof TaskParameters, TaskToolDetails>({
     name: 'Task',
     label: 'Task',
     description:
@@ -30,11 +21,11 @@ function registerTaskTool(pi: ExtensionAPI, runtime: WorkerRuntime, launchAgent:
       'Task also supports the bundled ci-watcher and thermo-nuclear-code-quality-review personas. ci-watcher inherits the parent model unless the caller supplies a configured Pi model, matching observed Reference plugin behavior. No model is silently substituted. The shell and explore personas are native. Collect the required diff and file contents with available tools before invoking the thermo review persona.',
     ],
     parameters: TaskParameters,
-    outputSchema: Type.Union([TaskRecordSchema, AgentResultSchema]),
+    outputSchema: TaskRecordSchema,
     exposure: 'direct',
     annotations: { openWorldHint: true },
     executionMode: 'parallel',
-    execute: (id, params, signal, onUpdate, ctx) => (carriesAgentContract(params) ? launchAgent(id, params, signal, onUpdate, ctx) : runtime.start(id, params, signal, ctx, onUpdate)),
+    execute: (id, params, signal, onUpdate, ctx) => runtime.start(id, params, signal, ctx, onUpdate),
   });
 }
 
@@ -122,8 +113,8 @@ function registerTaskAttach(pi: ExtensionAPI, runtime: WorkerRuntime): void {
 export function registerWorkers(pi: ExtensionAPI): void {
   const runtime = new WorkerRuntime(pi);
   runtime.registerLifecycle();
-  const launchAgent = registerAgentTools(pi, runtime);
-  registerTaskTool(pi, runtime, launchAgent);
+  registerSubagents(pi);
+  registerTaskTool(pi, runtime);
   registerControlTools(pi, runtime);
   registerTaskPanel(pi, runtime);
   registerTaskList(pi, runtime);

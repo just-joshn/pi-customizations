@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { access } from 'node:fs/promises';
 
-import { type BashOperations, createBashToolDefinition, getShellConfig, type ToolDefinition } from '@earendil-works/pi-coding-agent';
+import { type BashOperations, createBashToolDefinition, defineTool, getShellConfig, type ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { signalProcess } from '../process-signal.ts';
 
 const exitStdioGraceMs = 100;
@@ -61,5 +61,5 @@ export function trackedBashOperations(onGroup: (pid: number) => void): BashOpera
 }
 
 export function trackedBashTool(cwd: string, onGroup: (pid: number) => void): ToolDefinition {
-  return createBashToolDefinition(cwd, { operations: trackedBashOperations(onGroup) }) as unknown as ToolDefinition;
+  return defineTool(createBashToolDefinition(cwd, { operations: trackedBashOperations(onGroup) }));
 }

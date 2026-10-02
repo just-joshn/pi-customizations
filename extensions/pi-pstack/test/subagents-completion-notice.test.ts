@@ -102,12 +102,3 @@ test('a task that hit its turn limit is reported as partial', () => {
   const { message } = taskNotification(record({ maxTurnsReached: 7, description: 'Long' }), 'partial work');
   expect(message.details).toMatchObject({ status: 'completed', summary: 'Agent "Long" stopped at its 7-turn limit (partial result; SendMessage to task-id to continue)' });
 });
-
-test('a withheld handback hides the unsent output and a delivered one points at the message', () => {
-  const withheld = taskNotification(record({ handback: { recipient: 'parent', delivered: false, flagged: false, bounces: 3, waitingOnBackground: false } }), 'SECRET_DRAFT');
-  expect(withheld.message.content).not.toContain('SECRET_DRAFT');
-  expect(withheld.message.content).toContain('The subagent ended without delivering a report through SubagentHandback');
-  const delivered = taskNotification(record({ agentName: 'scout', handback: { recipient: 'parent', delivered: true, flagged: false, bounces: 0, waitingOnBackground: false, report: { text: 'sent report' } } }), 'SECRET_DRAFT');
-  expect(delivered.message.content).not.toContain('SECRET_DRAFT');
-  expect(delivered.message.content).toContain('This agent\'s report was delivered to you as a message from "scout"');
-});

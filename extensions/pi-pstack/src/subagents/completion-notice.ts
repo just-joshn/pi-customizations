@@ -52,10 +52,7 @@ function outcomeOf(record: TaskRecord, stoppedBy: StoppedBy | undefined): Notifi
 
 function notificationParts(record: TaskRecord, output: string, stoppedBy?: StoppedBy) {
   const outcome = outcomeOf(record, stoppedBy);
-  const report =
-    outcome.status === 'completed'
-      ? finalizeReport({ output, agentType: record.persona, sender: record.agentName ?? record.id, ...(record.maxTurnsReached ? { maxTurnsReached: record.maxTurnsReached } : {}), ...(record.handback ? { handback: record.handback } : {}) })
-      : undefined;
+  const report = outcome.status === 'completed' ? finalizeReport({ output, agentType: record.persona, sender: record.agentName ?? record.id, ...(record.maxTurnsReached ? { maxTurnsReached: record.maxTurnsReached } : {}) }) : undefined;
   const usage = record.durationMs === undefined ? undefined : { totalTokens: record.totalTokens ?? 0, toolUses: record.toolUseCount ?? 0, durationMs: record.durationMs };
   const worktree = record.worktreePath && !record.worktreeCleanlyRemoved ? { path: record.worktreePath, ...(record.worktreeBranch ? { branch: record.worktreeBranch } : {}) } : undefined;
   return { outcome, report, usage, worktree, worktreeCleanupWarning: record.worktreeCleanupWarning };

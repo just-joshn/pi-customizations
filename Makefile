@@ -19,6 +19,7 @@ verify-test-conventions:
 
 verify-extension:
 	bun run --filter pi-pstack check:resources
+	bun run --filter pi-pstack check:native-first
 	bun run --filter pi-pstack typecheck
 	bun run --filter pi-pstack test:coverage
 	bun run --filter pi-pstack test:helpers

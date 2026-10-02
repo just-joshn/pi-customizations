@@ -2,48 +2,45 @@ import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 
 import type { JsonValue, Usage } from '@earendil-works/pi-ai';
-import type { AgentSession, AgentSessionEventListener, AgentToolResult, createEventBus, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { type AgentSession, type AgentSessionRuntime, type AgentToolResult, createEventBus, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { readCloudOutcome } from './cloud-worker.ts';
 import { DeferredWakes } from './deferred-wakes.ts';
 import { asShellHandoff, shellHandoffEvent } from './shell-ownership.ts';
-import { depthMessage } from './subagents/admission.ts';
-import { closeSession } from './subagents/close-session.ts';
+import { closeRuntime } from './subagents/close-session.ts';
 import { CloudTasks, type CloudWorker } from './subagents/cloud-tasks.ts';
-import { flaggedOutput, lastReportText, type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
+import { type StoppedBy, taskNotification } from './subagents/completion-notice.ts';
 import { currentDepth, depthStore } from './subagents/context.ts';
-import type { ContinuationState } from './subagents/continuation.ts';
-import { SessionDepthPolicy } from './subagents/depth-policy.ts';
 import { finishedRecord } from './subagents/finished-record.ts';
-import { isForkDefinition } from './subagents/fork-context.ts';
-import { HandbackContract, handbackActive, runUntilReported } from './subagents/handback.ts';
 import { validateId } from './subagents/identifiers.ts';
-import { AgentInvocations } from './subagents/invocations.ts';
-import { memoryEnabled } from './subagents/memory.ts';
-import { childStatsEvents } from './subagents/nested-depth.ts';
-import { type ResumeHandler, reconcileOrphans } from './subagents/orphan-recovery.ts';
+import { depthMessage } from './subagents/limiter.ts';
+import { reconcileOrphans } from './subagents/orphan-recovery.ts';
 import { AgentPreconditionError } from './subagents/precondition-error.ts';
 import { groupSpawned, ProcessGroups, processGroupEvent } from './subagents/process-groups.ts';
 import { RemoteTasks } from './subagents/remote-tasks.ts';
 import { restoredContext } from './subagents/restored-context.ts';
 import { ResumeError, resumeMessages } from './subagents/resume-errors.ts';
-import { SdkEvents } from './subagents/sdk-events.ts';
-import { SubagentStats, type SubagentStatsDelta } from './subagents/stats.ts';
+import { defaultMaxDepth } from './subagents/settings.ts';
+import { SettingsStore } from './subagents/settings-store.ts';
 import { registerStopControl } from './subagents/stop-control.ts';
 import { settleWithin, stillStoppingMessage, stopPendingDetails } from './subagents/stop-deadline.ts';
-import { stopPendingEvent, stopPendingFor } from './subagents/stop-pending.ts';
-import { frameStatus, notificationBody, startedBody, taskFeed, updatedBody } from './subagents/task-frames.ts';
+import { stopPendingEvent } from './subagents/stop-pending.ts';
 import { progressObserver, type TaskUpdate } from './subagents/task-progress.ts';
-import { applyToolPolicy } from './subagents/tool-pool.ts';
-import { turnLimit } from './subagents/turn-limit.ts';
 import { launchSignal, overdueAfterMs, waitFor, workerControl } from './worker-control.ts';
 import { restoreTaskRecords, type TaskParameters, type TaskRecord, taskCleanupErrorType, taskCleanupUsageType, taskEntryType, taskOutputLimit, taskOwner, taskOwnerEntryType, taskSummary } from './worker-records.ts';
-import { type AgentLaunch, openWorkerSession, workerDirs } from './worker-support.ts';
+import { openWorkerSession, workerDirs } from './worker-support.ts';
 
 export type { TaskProgressSnapshot, TaskToolDetails } from './subagents/task-progress.ts';
 
 type OpenedWorker = Awaited<ReturnType<typeof openWorkerSession>>;
 type ChildChannel = Readonly<{ events: ReturnType<typeof createEventBus>; groups: ProcessGroups }>;
-type Worker = ChildChannel & { readonly id: string; readonly session: AgentSession; readonly completion: Promise<TaskRecord>; readonly stop: ReturnType<typeof workerControl>['stop']; readonly drain: () => Promise<string[]> };
+type Worker = ChildChannel & {
+  readonly id: string;
+  readonly runtime: AgentSessionRuntime;
+  readonly session: AgentSession;
+  readonly completion: Promise<TaskRecord>;
+  readonly stop: ReturnType<typeof workerControl>['stop'];
+  readonly drain: () => Promise<string[]>;
+};
 type StartupOutcome = { error: unknown } | undefined;
 type StartRequest = Readonly<{ callId: string; id: string; params: TaskParameters; prior: TaskRecord | undefined; signal: AbortSignal | undefined; ctx: ExtensionContext; owner: number }>;
 
@@ -63,25 +60,14 @@ export class WorkerRuntime {
   private generation = 0;
   private owned = false;
   private failedUsage = new Map<string, Usage>();
-  private settledHooks = new Map<string, (record: TaskRecord) => Promise<Partial<TaskRecord>>>();
   private claimedUsage = new WeakSet<TaskRecord>();
   private stoppedNotifications = new WeakSet<Worker>();
   private lifecycle: Lifecycle = { kind: 'stopped' };
   private stopping: ReadonlySet<string> = new Set();
-  private keepalive: ReadonlySet<string> = new Set();
-  private selfStopPending = false;
   private readonly completions: DeferredWakes;
+  private readonly settings: SettingsStore;
   depth = currentDepth();
   agentId: string | undefined;
-  private ownWorktree: string | undefined;
-  allowedAgentTypes: readonly string[] | undefined;
-  private readonly invocations = new AgentInvocations();
-  private appendedPrompt: string | undefined;
-  private inheritedDefinitions: string | undefined;
-  private readonly depthPolicy = new SessionDepthPolicy();
-  readonly stats = new SubagentStats();
-  private readonly frames: SdkEvents;
-  private resumeHandler: ResumeHandler | undefined;
   readonly remote = new RemoteTasks({ commit: (record) => this.commitRemote(record), settle: (record, output, notify) => this.settleRemote(record, output, notify), current: (id) => this.records.get(id) });
   private readonly cloud = new CloudTasks({
     generation: () => this.generation,
@@ -92,16 +78,7 @@ export class WorkerRuntime {
   });
   constructor(private readonly pi: ExtensionAPI) {
     this.completions = new DeferredWakes(pi);
-    this.frames = new SdkEvents(pi);
-  }
-
-  setResumeHandler(handler: ResumeHandler): void {
-    this.resumeHandler = handler;
-  }
-
-  /** Reports a running task's move to the background as an SDK task_updated patch. */
-  markBackgrounded(id: string): void {
-    this.frames.emit(updatedBody(id, { is_backgrounded: true }));
+    this.settings = new SettingsStore(() => pi.getSettings());
   }
 
   runningCount(): number {
@@ -121,19 +98,6 @@ export class WorkerRuntime {
 
   liveMessages(id: string): AgentSession['messages'] | undefined {
     return this.workers.get(id)?.session.messages;
-  }
-
-  /** Whether this agent handed surviving background shells to an ancestor, so its workspace must stay. */
-  keepsAlive(id: string): boolean {
-    return this.keepalive.has(id);
-  }
-
-  stopPending(): boolean {
-    return this.selfStopPending;
-  }
-
-  continuationState(id: string): ContinuationState {
-    return { inFlight: this.starting.has(id), stopping: this.stopping.has(id), resumerStopping: this.selfStopPending };
   }
 
   private commitRecord(record: TaskRecord): void {
@@ -177,11 +141,7 @@ export class WorkerRuntime {
           }
         },
       });
-    this.frames.listen();
     const detachControl = registerStopControl(this.pi, (reference) => this.stop(reference, 'user'));
-    this.pi.events.on(stopPendingEvent, (payload) => {
-      if (stopPendingFor(payload, this.agentId)) this.selfStopPending = true;
-    });
     this.pi.on('tool_result', (event) => {
       if (event.toolName !== 'Task') return;
       const usage = this.failedUsage.get(event.toolCallId);
@@ -265,7 +225,7 @@ export class WorkerRuntime {
     this.claimCleanupUsage(outcome.value);
     const failures = await worker.drain();
     try {
-      await closeSession(worker.session);
+      await closeRuntime(worker.runtime);
     } catch (error) {
       failures.push(String(error));
     }
@@ -279,18 +239,11 @@ export class WorkerRuntime {
       await completion;
     } finally {
       if (owner === this.generation) {
-        this.frames.attach(ctx.sessionManager.getSessionId());
         this.restoreOwnership(ctx);
         const branch = ctx.sessionManager.getBranch();
-        this.invocations.restore(branch);
         const saved = restoredContext(branch);
-        this.appendedPrompt = saved.appendedPrompt;
-        this.inheritedDefinitions = saved.inheritedDefinitions;
         this.agentId = saved.agentId;
-        this.ownWorktree = saved.ownWorktree;
         this.depth = saved.depth;
-        this.allowedAgentTypes = saved.allowedAgentTypes;
-        if (saved.invalidScope) this.pi.events.emit('pstack:subagent-log', 'Invalid native agent type scope; no child types are permitted.');
         this.records = restoreTaskRecords(branch);
         this.failedUsage = new Map();
         this.completions.clear();
@@ -322,12 +275,8 @@ export class WorkerRuntime {
 
   private recoverOrphans(ctx: ExtensionContext, branch: ReturnType<ExtensionContext['sessionManager']['getBranch']>): void {
     const canRead = this.pi.getActiveTools().some((name) => ['read', 'bash'].includes(name.toLowerCase()));
-    const { records, restart } = reconcileOrphans({ pi: this.pi, frames: this.frames, ctx, branch, resume: this.resumeHandler, canRead });
+    const { records } = reconcileOrphans({ pi: this.pi, ctx, branch, resume: undefined, canRead });
     this.records = new Map([...this.records, ...records]);
-    const owner = this.generation;
-    void Promise.resolve()
-      .then(() => (owner === this.generation ? restart() : undefined))
-      .catch((error) => this.pi.events.emit('pstack:subagent-log', `Orphan restart failed: ${String(error)}`));
   }
 
   private priorTask(params: TaskParameters): TaskRecord | undefined {
@@ -343,10 +292,10 @@ export class WorkerRuntime {
     return launchSignal(signal, background);
   }
 
-  async start(callId: string, params: TaskParameters, signal: AbortSignal | undefined, ctx: ExtensionContext, onUpdate: TaskUpdate | undefined, launch?: AgentLaunch): Promise<AgentToolResult<TaskRecord>> {
+  async start(callId: string, params: TaskParameters, signal: AbortSignal | undefined, ctx: ExtensionContext, onUpdate: TaskUpdate | undefined): Promise<AgentToolResult<TaskRecord>> {
     signal = launchSignal(signal, params.run_in_background !== false);
     const prior = this.priorTask(params);
-    this.checkDepth(prior, ctx);
+    this.checkDepth(prior);
     const id = prior?.id ?? randomUUID();
     if (this.starting.has(id) || (this.workers.has(id) && this.records.get(id)?.status === 'running') || (this.cloud.has(id) && this.records.get(id)?.status === 'running'))
       throw new Error(`Task ${id} is running. Use TaskMessage to queue input.`);
@@ -360,11 +309,9 @@ export class WorkerRuntime {
     );
     const request = { callId, id, params, prior, signal, ctx, owner: this.generation };
     try {
-      if (launch?.onSettled) this.settledHooks.set(id, launch.onSettled);
       if (params.environment === 'cloud' || prior?.detached) return await this.startCloud(request);
-      return await this.startLocal(request, onUpdate, launch);
+      return await this.startLocal(request, onUpdate);
     } catch (error) {
-      this.settledHooks.delete(id);
       if (error instanceof StartupCleanupError) startupOutcome = { error: error.cleanup };
       throw error;
     } finally {
@@ -393,36 +340,27 @@ export class WorkerRuntime {
     return this.result(record, owner);
   }
 
-  private async startLocal({ callId, id, params, prior, signal, ctx, owner }: StartRequest, onUpdate: TaskUpdate | undefined, launch: AgentLaunch | undefined): Promise<AgentToolResult<TaskRecord>> {
+  private async startLocal({ callId, id, params, prior, signal, ctx, owner }: StartRequest, onUpdate: TaskUpdate | undefined): Promise<AgentToolResult<TaskRecord>> {
     const background = params.run_in_background !== false;
-    let session: AgentSession | undefined;
+    let runtime: AgentSessionRuntime | undefined;
     try {
-      if (launch) this.invocations.mark(this.pi, launch.definition.agentType, id);
-      const opened = await this.openChild({ id, params, prior, ctx, toolUseId: callId, ...(launch ? { launch } : {}) });
-      session = opened.session;
-      this.publishMemory(launch, id);
-      if (launch && !isForkDefinition(launch.definition))
-        applyToolPolicy(session, launch.definition, {
-          isContinuation: prior !== undefined,
-          isAsync: background,
-          ...(launch.parentTools ? { parentTools: launch.parentTools } : {}),
-          report: (diagnostic) => this.pi.events.emit('pstack:subagent-zero-tools', diagnostic),
-        });
+      const opened = await this.openChild({ id, params, prior, ctx, toolUseId: callId });
+      const { session } = opened;
+      runtime = opened.runtime;
       signal = this.checkStartup(owner, signal, background);
       await session.bindExtensions({ mode: 'print' });
       signal = this.checkStartup(owner, signal, background);
       const previous = this.workers.get(id);
-      if (previous) await closeSession(previous.session);
+      if (previous) await closeRuntime(previous.runtime);
       signal = this.checkStartup(owner, signal, background);
-      const worker = this.launch(opened, params, signal, owner, () => ctx.isIdle(), onUpdate, launch);
-      this.publishStart(opened.record, prior, launch, params);
-      launch?.onStarted?.();
+      const worker = this.launch(opened, params, signal, owner, () => ctx.isIdle(), onUpdate);
+      this.publishStart(opened.record, prior);
       const record = background ? this.records.get(id) : await this.foreground(callId, worker);
       if (!record) throw new Error(`Failed to create task record for ${id}`);
       return this.result(record, owner);
     } catch (error) {
-      const opened = session;
-      if (opened) await this.abandon(error, () => closeSession(opened));
+      const opened = runtime;
+      if (opened) await this.abandon(error, () => closeRuntime(opened));
       throw error;
     }
   }
@@ -436,64 +374,37 @@ export class WorkerRuntime {
     throw error;
   }
 
-  private publishStart(record: TaskRecord, prior: TaskRecord | undefined, launch: AgentLaunch | undefined, params: TaskParameters): void {
-    this.frames.emit(startedBody(record, params.prompt, prior !== undefined || params.run_in_background !== false));
+  private publishStart(record: TaskRecord, prior: TaskRecord | undefined): void {
     if (prior) return;
-    if (!launch) {
-      this.stats.spawn(record.depth ?? this.depth + 1);
-      this.pi.events.emit('pstack:subagent-stats', this.stats.snapshot());
-    }
     this.pi.events.emit('pstack:subagent-started', { agentId: record.id, spawnDepth: record.depth, agent_depth: record.depth });
   }
 
-  private settleLegacy(record: TaskRecord): void {
-    if (record.status === 'running') return;
-    this.stats.settle(record.status, record.abort?.telemetry);
-    this.pi.events.emit('pstack:subagent-stats', this.stats.snapshot());
-  }
-
-  private checkDepth(prior: TaskRecord | undefined, ctx: ExtensionContext): void {
+  private checkDepth(prior: TaskRecord | undefined): void {
     if (prior) return;
-    const cap = this.maximumDepth(ctx);
+    const cap = this.settings.read().settings.subagents.maxDepth ?? defaultMaxDepth;
     if (this.depth < cap) return;
-    this.stats.refuse('depth_limit');
-    this.pi.events.emit('pstack:subagent-stats', this.stats.snapshot());
     this.pi.events.emit('pstack:subagent-refused', { code: 'subagent_depth_cap', reason: 'depth_limit' });
-    throw new AgentPreconditionError({ code: 'subagent_depth_cap', message: depthMessage(this.depth, cap) });
+    throw new AgentPreconditionError({ code: 'subagent_depth_cap', message: depthMessage(cap) });
   }
 
-  maximumDepth(ctx: ExtensionContext, env: NodeJS.ProcessEnv = process.env): number {
-    return this.depthPolicy.cap({ sessionId: ctx.sessionManager.getSessionId(), cwd: ctx.cwd, env });
-  }
-
-  agentDefinitions(): string | undefined {
-    const configured = this.pi.getFlag('agents');
-    return typeof configured === 'string' ? configured : this.inheritedDefinitions;
-  }
-
-  private async openChild(input: Parameters<typeof openWorkerSession>[0]): Promise<Awaited<ReturnType<typeof openWorkerSession>> & ChildChannel> {
+  private async openChild(input: Omit<Parameters<typeof openWorkerSession>[0], 'exec'>): Promise<Awaited<ReturnType<typeof openWorkerSession>> & ChildChannel> {
     const depth = input.prior?.depth ?? this.depth + 1;
-    const owner = this.generation;
-    const channel = this.childChannel(input.id, owner);
+    const channel = this.childChannel(input.id);
     const opened = await depthStore.run(depth, () =>
       openWorkerSession({
         ...input,
         depth,
         events: channel.events,
         onProcessGroup: (pid) => channel.groups.add({ pid }),
-        ...(this.ownWorktree ? { inheritedWorktree: this.ownWorktree } : {}),
+        exec: (command, args, options) => this.pi.exec(command, args, options),
         log: (message) => this.pi.events.emit('pstack:subagent-log', message),
-        appendedPrompt: this.childPrompt(),
-        agentDefinitions: this.agentDefinitions(),
-        ...(handbackActive(input.launch?.definition) ? { handback: this.handbackContract(input.id, owner) } : {}),
       }),
     );
     return { ...opened, ...channel };
   }
 
-  private childChannel(id: string, owner: number): ChildChannel {
-    this.keepalive = new Set([...this.keepalive].filter((kept) => kept !== id));
-    const events = childStatsEvents((change) => this.observeStats(owner, change));
+  private childChannel(id: string): ChildChannel {
+    const events = createEventBus();
     const groups = new ProcessGroups(id, (spawned) => this.pi.events.emit(processGroupEvent, spawned));
     events.on(processGroupEvent, (payload) => {
       const spawned = groupSpawned(payload);
@@ -501,36 +412,9 @@ export class WorkerRuntime {
     });
     events.on(shellHandoffEvent, (payload) => {
       const handoff = asShellHandoff(payload);
-      if (!handoff) return;
-      this.pi.events.emit(shellHandoffEvent, handoff);
-      if (handoff.claimed()) this.keepalive = new Set([...this.keepalive, id]);
+      if (handoff) this.pi.events.emit(shellHandoffEvent, handoff);
     });
     return { events, groups };
-  }
-
-  private handbackContract(taskId: string, owner: number): HandbackContract {
-    const sender = () => this.records.get(taskId)?.agentName ?? taskId;
-    return new HandbackContract(this.agentId ?? 'main', (content, flagged) => {
-      if (owner !== this.generation) return false;
-      this.pi.sendMessage({ customType: 'subagent_handback', content, display: true, details: { from: sender(), task_id: taskId, flagged } }, { triggerTurn: false, deliverAs: 'steer' });
-      return true;
-    });
-  }
-
-  private observeStats(owner: number, change: SubagentStatsDelta): void {
-    if (owner !== this.generation) return;
-    this.stats.merge(change);
-    this.pi.events.emit('pstack:subagent-stats', this.stats.snapshot());
-  }
-
-  private publishMemory(launch: AgentLaunch | undefined, id: string): void {
-    if (!launch?.definition.memory) return;
-    this.pi.events.emit('pstack:agent-memory-loaded', { agentId: id, agentType: launch.definition.agentType, scope: launch.definition.memory, source: 'subagent', enabled: memoryEnabled(launch.definition, process.env) });
-  }
-
-  private childPrompt(): string | undefined {
-    const configured = this.pi.getFlag('append-subagent-system-prompt');
-    return typeof configured === 'string' ? configured : this.appendedPrompt;
   }
 
   private async foreground(callId: string, worker: { readonly completion: Promise<TaskRecord> }, signal?: AbortSignal): Promise<TaskRecord> {
@@ -541,41 +425,22 @@ export class WorkerRuntime {
     throw new Error(taskSummary(record));
   }
 
-  private launch(opened: Awaited<ReturnType<WorkerRuntime['openChild']>>, params: TaskParameters, signal: AbortSignal | undefined, owner: number, parentIdle: () => boolean, onUpdate: TaskUpdate | undefined, agent?: AgentLaunch): Worker {
-    const { session } = opened;
+  private launch(opened: OpenedWorker & ChildChannel, params: TaskParameters, signal: AbortSignal | undefined, owner: number, parentIdle: () => boolean, onUpdate: TaskUpdate | undefined): Worker {
+    const { session, runtime } = opened;
     const usage = this.records.get(opened.record.id)?.usage;
     const record: TaskRecord = { ...opened.record, ...(usage ? { usage } : {}) };
     this.records.set(record.id, record);
     this.pi.appendEntry(taskEntryType, structuredClone(record));
     const progress = params.run_in_background === false && onUpdate ? progressObserver(record.id, () => owner === this.generation, onUpdate) : undefined;
-    const maxTurns = agent?.definition.maxTurns;
-    let limitReached: number | undefined;
-    const limit = maxTurns
-      ? turnLimit(
-          agent.definition.agentType,
-          maxTurns,
-          (message) => this.pi.events.emit('pstack:subagent-log', message),
-          () => {
-            limitReached = maxTurns;
-            control.stop();
-          },
-        )
-      : undefined;
-    const feed = taskFeed(this.frames, record, () => owner === this.generation);
-    const observe: AgentSessionEventListener = (event) => {
-      progress?.(event);
-      limit?.(event);
-      feed(event);
-    };
-    const control = workerControl(session, signal, observe, {
+    const control = workerControl(session, signal, (event) => progress?.(event), {
       foreground: params.run_in_background === false,
       onAbort: (info) => this.pi.events.emit('pstack:subagent-abort', { agent_id: record.id, ...info }),
       taskId: record.id,
       log: (message) => this.pi.events.emit('pstack:subagent-log', message),
       killGroups: () => opened.groups.killAll(),
     });
-    const completion = this.complete({ ...opened, record }, params, owner, control, parentIdle, !agent && !params.resume, () => limitReached);
-    const worker: Worker = { id: record.id, session, completion, stop: control.stop, drain: control.drain, events: opened.events, groups: opened.groups };
+    const completion = this.complete({ ...opened, record }, params, owner, control, parentIdle);
+    const worker: Worker = { id: record.id, runtime, session, completion, stop: control.stop, drain: control.drain, events: opened.events, groups: opened.groups };
     this.workers.set(record.id, worker);
     return worker;
   }
@@ -595,20 +460,13 @@ export class WorkerRuntime {
     }
   }
 
-  private async complete(worker: OpenedWorker, params: TaskParameters, owner: number, control: ReturnType<typeof workerControl>, parentIdle: () => boolean, legacy: boolean, limitReached: () => number | undefined): Promise<TaskRecord> {
-    const { session, record } = worker;
+  private async complete(worker: OpenedWorker, params: TaskParameters, owner: number, control: ReturnType<typeof workerControl>, parentIdle: () => boolean): Promise<TaskRecord> {
+    const { session, runtime, record } = worker;
     const initialCount = session.messages.length;
     const startedAt = Date.now();
-    let outcome = await runUntilReported(
-      worker.handback,
-      () => this.run(session, params.prompt),
-      (reminder) => this.run(session, reminder),
-      () => !control.stopped(),
-    );
-    const limited = limitReached();
-    if (limited) outcome = { status: 'settled', output: lastReportText(session.messages.slice(initialCount)) };
+    let outcome = await this.run(session, params.prompt);
     try {
-      await closeSession(session);
+      await closeRuntime(runtime);
     } catch (error) {
       outcome = { status: 'failed' as const, output: `${outcome.output}\nWorker shutdown failed: ${String(error)}` };
     } finally {
@@ -617,29 +475,23 @@ export class WorkerRuntime {
     const abortFailures = await control.drain();
     if (abortFailures.length) outcome = { status: 'failed', output: `${outcome.output}\n${abortFailures.join('\n')}` };
     const { output } = outcome;
-    const status = control.stopped() && !limited ? 'interrupted' : outcome.status;
-    let finished = finishedRecord(worker, this.pendingUsage(owner, record), limited ? undefined : control.abortInfo(), { status, output, messages: session.messages.slice(initialCount), startedAt, ...(limited ? { limited } : {}) });
+    const status = control.stopped() ? 'interrupted' : outcome.status;
+    let finished = finishedRecord(worker, this.pendingUsage(owner, record), control.abortInfo(), { status, output, messages: session.messages.slice(initialCount), startedAt });
     try {
       await writeFile(finished.outputFile, output);
     } catch (error) {
       finished = { ...finished, status: 'failed', output: `${finished.output}\nCould not save full output: ${String(error)}` };
     }
-    finished = await this.settleResources(finished);
     if (owner !== this.generation) return finished;
-    if (legacy) this.settleLegacy(finished);
     this.records.set(record.id, finished);
     this.persistFinished(finished);
     this.pi.events.emit('pstack:subagent-settled', { agentId: record.id, status: finished.status });
-    if (finished.status !== 'running') this.frames.emit(updatedBody(record.id, { status: frameStatus(finished.status), end_time: Date.now() }));
-    if (params.run_in_background !== false && (!control.stopped() || limited)) this.notifyCompletion(finished, output, parentIdle());
+    if (params.run_in_background !== false && !control.stopped()) this.notifyCompletion(finished, output, parentIdle());
     return finished;
   }
 
   private notifyCompletion(record: TaskRecord, output: string, parentIdle: boolean): void {
-    const { message, findings } = taskNotification(record, output);
-    const flagged = flaggedOutput(record.id, 'notification', findings);
-    if (flagged) this.pi.events.emit('pstack:subagent-output-flagged', flagged);
-    this.frames.emit(notificationBody(message.details));
+    const { message } = taskNotification(record, output);
     this.completions.send(record.id, parentIdle, message);
   }
 
@@ -666,27 +518,7 @@ export class WorkerRuntime {
   }
 
   private persistFinished(record: TaskRecord): void {
-    try {
-      this.pi.appendEntry(taskEntryType, structuredClone(record));
-    } catch (error) {
-      if (!record.worktreeCleanlyRemoved) throw error;
-      this.pi.events.emit('pstack:subagent-log', `Failed to clear worktree metadata: ${String(error)}`);
-    }
-  }
-
-  private async settleResources(record: TaskRecord): Promise<TaskRecord> {
-    const hook = this.settledHooks.get(record.id);
-    this.settledHooks.delete(record.id);
-    try {
-      const patch = await hook?.(record);
-      if (!patch) return record;
-      const merged = { ...record, ...patch };
-      if (!merged.worktreeCleanlyRemoved) return merged;
-      const { worktreePath: _path, worktreeBranch: _branch, ...removed } = merged;
-      return removed;
-    } catch (error) {
-      return { ...record, output: `${record.output}\nWorktree cleanup failed: ${String(error)}` };
-    }
+    this.pi.appendEntry(taskEntryType, structuredClone(record));
   }
 
   async stop(reference: string, stoppedBy: StoppedBy = 'parent') {
@@ -759,7 +591,6 @@ export class WorkerRuntime {
     if (this.stoppedNotifications.has(worker)) return;
     this.stoppedNotifications.add(worker);
     const { message } = taskNotification(record, '', stoppedBy);
-    this.frames.emit(notificationBody(message.details));
     this.pi.sendMessage(message, { triggerTurn: false });
   }
 

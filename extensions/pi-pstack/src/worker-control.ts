@@ -94,6 +94,7 @@ export function workerControl(session: AgentSession, signal: AbortSignal | undef
   });
   const signalAbort = () => stop(abortInfo(signal?.reason, false).reason, true);
   signal?.addEventListener('abort', signalAbort, { once: true });
+  if (signal?.aborted) signalAbort();
   return {
     stop: (reason: AbortReason = 'user-cancel') => stop(reason, false),
     stopped: () => stopped,
