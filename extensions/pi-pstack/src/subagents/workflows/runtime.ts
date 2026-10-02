@@ -221,6 +221,8 @@ export class WorkflowRuntime {
       prompt,
       mode: 'sync' as const,
       ...(options.model !== undefined ? { model: options.model } : {}),
+      ...(options.modelPolicy !== undefined ? { modelPolicy: options.modelPolicy } : {}),
+      ...(options.effortLevel !== undefined ? { effortLevel: options.effortLevel } : {}),
       ...(options.contextTier !== undefined ? { context_tier: options.contextTier } : {}),
     };
     const release = await this.slotsOf(runId).acquire(signal);

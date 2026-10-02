@@ -1,5 +1,5 @@
 import { type AgentDefinition, candidateModels } from './agent-definition.ts';
-import type { ContextTier, EffortLevel, SubagentSettingsEntry } from './settings.ts';
+import type { ContextTier, EffortLevel, ModelPolicy, SubagentSettingsEntry } from './settings.ts';
 
 export type ModelSelectionSource = 'explicit_override' | 'configured_required' | 'configured_preference' | 'complementary_default' | 'session_inheritance' | 'agent_definition_default' | 'runtime_policy';
 export type TaskModelSource = 'task_argument' | 'subagent_configuration' | 'custom_agent_definition' | 'unset';
@@ -9,6 +9,8 @@ export type ModelOption = Readonly<{ reference: string; provider: string; id: st
 export type SelectionRequest = Readonly<{
   agent: Pick<AgentDefinition, 'name' | 'source' | 'model' | 'models' | 'reasoningEffort' | 'dynamicModel'>;
   taskModel?: string;
+  taskModelPolicy?: ModelPolicy;
+  taskEffortLevel?: EffortLevel;
   taskContextTier?: ContextTier;
   setting?: SubagentSettingsEntry;
   session: ModelOption;
@@ -82,7 +84,7 @@ function contextTierOf(request: SelectionRequest): ContextTier {
 }
 
 function effortOf(request: SelectionRequest): EffortLevel | undefined {
-  return request.setting?.effortLevel ?? request.agent.reasoningEffort;
+  return request.taskEffortLevel ?? request.setting?.effortLevel ?? request.agent.reasoningEffort;
 }
 
 function finish(request: SelectionRequest, picked: Omit<ModelSelection, 'contextTier' | 'effort' | 'firstDispatched'>): SelectionResult {
@@ -123,9 +125,16 @@ function layered(request: SelectionRequest, guard: number, carried: Pick<ModelSe
   return finish(request, { model: request.session, source: attempted ? 'runtime_policy' : 'session_inheritance', taskSource: 'unset', ...configured, ...carried });
 }
 
+/** A required policy comes from the settings entry or from the call itself, which is how a workflow agent pins its model. */
+function requiredModel(request: SelectionRequest): string | undefined {
+  if (request.setting?.modelPolicy === 'required') return request.setting.model;
+  if (request.taskModelPolicy === 'required') return request.taskModel ?? request.setting?.model;
+  return undefined;
+}
+
 export function selectModel(request: SelectionRequest): SelectionResult {
   const guard = request.costGuard ?? 1;
-  const policyModel = request.setting?.modelPolicy === 'required' ? request.setting.model : undefined;
+  const policyModel = requiredModel(request);
   if (policyModel !== undefined) return required(request, guard, policyModel);
   const carried = request.taskModel === undefined ? {} : explicit(request, guard, request.taskModel);
   if ('ok' in carried) return carried;

@@ -374,6 +374,25 @@ test('a paused workflow resumes from its journal without repeating steps', async
   }
 });
 
+test('a workflow agent carries its requested model policy and effort into the child', async () => {
+  vi.stubEnv('COPILOT_DYNAMIC_WORKFLOWS', '1');
+  const fixture = await workerFixture();
+  const seen = collect(fixture);
+  fixture.eventBus.emit('copilot:register-workflow', {
+    name: 'configured-flow',
+    description: 'Pins the child model policy and effort',
+    run: async (ctx) => ctx.agent('hello', { model: 'worker-test/deterministic', modelPolicy: 'required', effortLevel: 'high' }),
+  } satisfies WorkflowDeclaration);
+  try {
+    const started = await rpc(fixture, 'session.workflow.run', { name: 'configured-flow' });
+    expect((started.result as { status: string }).status).toBe('completed');
+    expect(seen.find((event) => event.type === 'subagent.started')?.data).toMatchObject({ modelSelectionSource: 'configured_required' });
+    expect(seen.find((event) => event.type === 'subagent.configured')?.data).toMatchObject({ reasoningEffort: 'high' });
+  } finally {
+    await fixture.close();
+  }
+});
+
 test('a workflow past its subagent total fails with workflow_limit_reached', async () => {
   vi.stubEnv('COPILOT_DYNAMIC_WORKFLOWS', '1');
   const fixture = await workerFixture();
