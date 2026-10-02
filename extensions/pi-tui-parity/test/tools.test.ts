@@ -42,7 +42,7 @@ function result(text: string, details?: unknown): unknown {
   return { content: [{ type: 'text', text }], details };
 }
 
-describe('tui tool renderers', () => {
+describe('tui tool renderer registry', () => {
   it('registers all seven built-in tool renderers', () => {
     expect([...capture().keys()].sort()).toEqual(['bash', 'edit', 'find', 'grep', 'ls', 'read', 'write']);
   });
@@ -52,6 +52,15 @@ describe('tui tool renderers', () => {
     expect(bash.promptSnippet).toBe('Execute bash commands (ls, grep, find, etc.)');
   });
 
+  it('executes are delegated: bash runs a real command', async () => {
+    const bash = capture().get('bash');
+    if (!bash) throw new Error('missing bash');
+    const out = (await bash.execute('x', { command: 'printf hi' }, undefined, undefined)) as { content: { type: string; text?: string }[] };
+    expect(out.content[0]?.type === 'text' && out.content[0]?.text?.includes('hi')).toBe(true);
+  });
+});
+
+describe('tui file tool renderers', () => {
   it('read: progressive verb, path, lines note, then past verb', async () => {
     const theme = await makeTheme();
     const read = capture().get('read');
@@ -63,6 +72,31 @@ describe('tui tool renderers', () => {
     expect(strip(comp?.render(200)[0] ?? '')).toBe(' Read x.ts lines 5-14');
   });
 
+  it('edit: +N -M note from the patch and the bordered diff block', async () => {
+    const theme = await makeTheme();
+    const edit = capture().get('edit');
+    if (!edit) throw new Error('missing edit');
+    const { ctx } = makeContext({ path: '/proj/src/a.ts' });
+    edit.renderCall?.({ path: '/proj/src/a.ts' }, theme, ctx);
+    const patch = ['@@ -1,2 +1,2 @@', '-old line', '+new line', ' context'].join('\n');
+    const comp = edit.renderResult?.(result('', { diff: '-old line\n+new line\n context', patch }), { expanded: false, isPartial: false }, theme, ctx);
+    const rows = comp ? comp.render(120).map(strip) : [];
+    expect(rows.map((r) => r.trimEnd())).toEqual(['  ▎ -old line', '  ▎ +new line', '  ▎  context']);
+  });
+
+  it('write: additions-only note from content lines', async () => {
+    const theme = await makeTheme();
+    const write = capture().get('write');
+    if (!write) throw new Error('missing write');
+    const { ctx } = makeContext({ path: '/proj/new.ts', content: 'a\nb\nc' });
+    const comp = write.renderCall?.({ path: '/proj/new.ts', content: 'a\nb\nc' }, theme, ctx);
+    expect(strip(comp?.render(200)[0] ?? '')).toBe(' Writing new.ts +3');
+    write.renderResult?.(result('ok'), { expanded: false, isPartial: false }, theme, ctx);
+    expect(strip(comp?.render(200)[0] ?? '')).toBe(' Wrote new.ts +3');
+  });
+});
+
+describe('tui row invalidation', () => {
   it('invalidates the call row once across repeated result renders', async () => {
     const theme = await makeTheme();
     const bash = capture().get('bash');
@@ -92,19 +126,9 @@ describe('tui tool renderers', () => {
     expect(first.invalidations()).toBe(1);
     expect(second.invalidations()).toBe(1);
   });
+});
 
-  it('edit: +N -M note from the patch and the bordered diff block', async () => {
-    const theme = await makeTheme();
-    const edit = capture().get('edit');
-    if (!edit) throw new Error('missing edit');
-    const { ctx } = makeContext({ path: '/proj/src/a.ts' });
-    edit.renderCall?.({ path: '/proj/src/a.ts' }, theme, ctx);
-    const patch = ['@@ -1,2 +1,2 @@', '-old line', '+new line', ' context'].join('\n');
-    const comp = edit.renderResult?.(result('', { diff: '-old line\n+new line\n context', patch }), { expanded: false, isPartial: false }, theme, ctx);
-    const rows = comp ? comp.render(120).map(strip) : [];
-    expect(rows.map((r) => r.trimEnd())).toEqual(['  ▎ -old line', '  ▎ +new line', '  ▎  context']);
-  });
-
+describe('tui bash renderers', () => {
   it('bash: collapsed output shows 2 lines plus the hidden hint', async () => {
     const theme = await makeTheme();
     const bash = capture().get('bash');
@@ -135,7 +159,9 @@ describe('tui tool renderers', () => {
     const header = strip(callRow.render(200)[0] ?? '');
     expect(header.includes('exit 2')).toBe(true);
   });
+});
 
+describe('tui search tool renderers', () => {
   it('grep: 40-char pattern rule and Found N matches', async () => {
     const theme = await makeTheme();
     const grep = capture().get('grep');
@@ -181,23 +207,5 @@ describe('tui tool renderers', () => {
         .map((r) => strip(r).trimEnd())
         .join('\n'),
     ).toBe('  2 files, 2 directories');
-  });
-
-  it('write: additions-only note from content lines', async () => {
-    const theme = await makeTheme();
-    const write = capture().get('write');
-    if (!write) throw new Error('missing write');
-    const { ctx } = makeContext({ path: '/proj/new.ts', content: 'a\nb\nc' });
-    const comp = write.renderCall?.({ path: '/proj/new.ts', content: 'a\nb\nc' }, theme, ctx);
-    expect(strip(comp?.render(200)[0] ?? '')).toBe(' Writing new.ts +3');
-    write.renderResult?.(result('ok'), { expanded: false, isPartial: false }, theme, ctx);
-    expect(strip(comp?.render(200)[0] ?? '')).toBe(' Wrote new.ts +3');
-  });
-
-  it('executes are delegated: bash runs a real command', async () => {
-    const bash = capture().get('bash');
-    if (!bash) throw new Error('missing bash');
-    const out = (await bash.execute('x', { command: 'printf hi' }, undefined, undefined)) as { content: { type: string; text?: string }[] };
-    expect(out.content[0]?.type === 'text' && out.content[0]?.text?.includes('hi')).toBe(true);
   });
 });
