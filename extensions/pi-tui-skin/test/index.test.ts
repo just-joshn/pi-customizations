@@ -74,7 +74,9 @@ describe('tui-skin extension entry point', () => {
     expect(plain[1]).toMatch(/^ {2}v\S+$/);
     expect(plain[2]).toMatch(/^ {2}Tip: \S/);
   });
+});
 
+describe('tui-skin extension chrome lifecycle', () => {
   test('a TUI session installs chrome and shutdown restores every setter', () => {
     const { pi, handlers } = fakePi();
     tuiSkin(pi);
@@ -115,7 +117,9 @@ describe('tui-skin extension entry point', () => {
     const lines = footerFactory({ requestRender: () => {} }, themeStub, footerDataStub).render(80);
     expect(stripTerminalSequences(lines[1] ?? '').trimEnd()).toBe('  /tmp/workspace · main');
   });
+});
 
+describe('tui-skin extension footer rows', () => {
   test('the mode row appears only after the thinking level moves off its starting value', () => {
     const { pi, handlers } = fakePi();
     tuiSkin(pi);
