@@ -167,6 +167,17 @@ test('a background agent that finishes wakes the parent with an idle notificatio
   }
 });
 
+test('after session_shutdown the rpc surface no longer holds the closed session', async () => {
+  const fixture = await workerFixture();
+  try {
+    await expect(rpc(fixture, 'session.agent.list')).resolves.toMatchObject({ ok: true });
+    await fixture.session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' });
+    await expect(rpc(fixture, 'session.agent.list')).resolves.toMatchObject({ ok: false, error: 'The session has not started.' });
+  } finally {
+    await fixture.close();
+  }
+});
+
 test('an unknown agent type fails with the valid list', async () => {
   const fixture = await workerFixture();
   try {
