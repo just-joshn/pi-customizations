@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 import { clampThinkingLevel } from '@earendil-works/pi-ai';
 import { type AgentSession, createAgentSession, type createEventBus, DefaultResourceLoader, type ExtensionContext, getAgentDir, SessionManager } from '@earendil-works/pi-coding-agent';
+import { type Static, Type } from 'typebox';
+import { Check } from 'typebox/value';
 import { resolveModel } from '../models.ts';
 import { workerDirs, workerExtensions } from '../worker-support.ts';
 import { agentEnvironment, childStorageDir, createChildTranscript, environmentEntryType } from './agent-storage.ts';
@@ -15,7 +17,20 @@ import { planTools, type ToolPlan, zeroToolsMessage } from './tool-mapping.ts';
 import { trackedBashTool } from './tracked-bash.ts';
 
 export const childContextEntryType = 'copilot-child-context';
-export type ChildContextEntry = Readonly<{ agentId: string; registryId: string; parentRegistryId?: string; rootSessionId: string; depth: number; headers: Readonly<Record<string, string>> }>;
+const ChildContextSchema = Type.Object({
+  agentId: Type.String({ minLength: 1 }),
+  registryId: Type.String({ minLength: 1 }),
+  parentRegistryId: Type.Optional(Type.String()),
+  rootSessionId: Type.String({ minLength: 1 }),
+  depth: Type.Integer({ minimum: 1 }),
+  headers: Type.Record(Type.String(), Type.String()),
+});
+export type ChildContextEntry = Static<typeof ChildContextSchema>;
+
+export function readChildContext(entries: ReadonlyArray<{ type: string; customType?: string; data?: unknown }>): ChildContextEntry | undefined {
+  const entry = entries.findLast((candidate) => candidate.type === 'custom' && candidate.customType === childContextEntryType);
+  return Check(ChildContextSchema, entry?.data) ? entry.data : undefined;
+}
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 

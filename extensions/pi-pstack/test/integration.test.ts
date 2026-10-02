@@ -58,7 +58,7 @@ test('official resource loader separates skills, prompt aliases, and runtime com
     expect(skills.map((skill) => skill.name).sort()).toEqual(expected);
     for (const skill of skills) expect(skill.name).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     const commands = new Set(session.extensionRunner.getRegisteredCommands().map((command) => command.name));
-    expect([...commands].sort()).toEqual(['goal', 'poteto-mode', 'pstack', 'setup-pstack']);
+    expect([...commands].sort()).toEqual(['fleet', 'goal', 'poteto-mode', 'pstack', 'rubber-duck', 'setup-pstack', 'subagents', 'tasks']);
     const templates = loader.getPrompts().prompts;
     expect(templates.length).toBe(66);
     const aliases = new Set(templates.map((template) => template.name));

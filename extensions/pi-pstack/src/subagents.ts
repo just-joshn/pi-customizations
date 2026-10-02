@@ -1,18 +1,29 @@
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
+import type { AgentNode } from './subagents/agent-node.ts';
 import { agentEntryType } from './subagents/agent-node.ts';
+import { AgentSelection } from './subagents/agent-selection.ts';
 import { listAgentsTool, readAgentTool, taskTool, writeAgentTool } from './subagents/agent-tools.ts';
+import { type ChildContextEntry, readChildContext } from './subagents/child-session.ts';
+import { boardPath, contextBoardTool } from './subagents/context-board.ts';
 import { modelPreferencesBlock, subagentUsageBlock, taskToolDescription } from './subagents/delegation-guidance.ts';
 import { type EventEnvelope, EventLog, eventChannel, eventEntryType } from './subagents/events.ts';
 import { SubagentFactory } from './subagents/factory.ts';
-import { LimiterProvider } from './subagents/limiter-provider.ts';
+import { LimiterProvider, parentLimiter } from './subagents/limiter-provider.ts';
+import { launchRemOnShutdown } from './subagents/rem-launcher.ts';
+import { SubagentRpc, serveRpc } from './subagents/rpc.ts';
 import { SubagentScheduler } from './subagents/scheduler.ts';
 import { SettingsStore } from './subagents/settings-store.ts';
+import { executionSubagent, type Specialized, searchSubagent, specializedEnabled, specializedTool } from './subagents/specialized-tools.ts';
+import { fleetPrompt, registerSubagentCommands } from './subagents/subagent-commands.ts';
+import { parseSubagentHooks, runHooks } from './subagents/subagent-hooks.ts';
 import { TaskRegistry } from './subagents/task-registry.ts';
 
-export type SubagentSystem = Readonly<{ factory: SubagentFactory; scheduler: SubagentScheduler; settings: SettingsStore; registry: TaskRegistry; events: EventLog }>;
+export type SubagentSystem = Readonly<{ factory: SubagentFactory; scheduler: SubagentScheduler; settings: SettingsStore; registry: TaskRegistry; events: EventLog; selection: AgentSelection; rpc: SubagentRpc }>;
+
+const defaultWaitSeconds = 300;
 
 function persistTo(env: NodeJS.ProcessEnv, sessionId: () => string): (envelope: EventEnvelope) => void {
   const directory = env.COPILOT_EVENTS_LOG_DIRECTORY;
@@ -23,10 +34,31 @@ function persistTo(env: NodeJS.ProcessEnv, sessionId: () => string): (envelope: 
   };
 }
 
-export function createSubagentSystem(pi: ExtensionAPI, env: NodeJS.ProcessEnv): SubagentSystem {
-  let sessionId = 'session';
+export function waitSeconds(env: NodeJS.ProcessEnv): number {
+  const raw = env.COPILOT_TASK_WAIT_TIMEOUT_SECONDS;
+  const parsed = raw !== undefined && /^\d+$/.test(raw.trim()) ? Number(raw) : Number.NaN;
+  return Number.isSafeInteger(parsed) && parsed >= 1 ? parsed : defaultWaitSeconds;
+}
+
+class Session {
+  id = 'session';
+  latest: ExtensionContext | undefined;
+  child: ChildContextEntry | undefined;
+
+  begin(ctx: ExtensionContext): void {
+    this.id = ctx.sessionManager.getSessionId();
+    this.latest = ctx;
+    this.child = readChildContext(ctx.sessionManager.getEntries());
+  }
+
+  track(ctx: ExtensionContext): void {
+    this.latest = ctx;
+  }
+}
+
+function buildCore(pi: ExtensionAPI, env: NodeJS.ProcessEnv, session: Session): SubagentSystem {
   const log = (message: string) => pi.events.emit('pstack:subagent-log', message);
-  const toFile = persistTo(env, () => sessionId);
+  const toFile = persistTo(env, () => session.id);
   const events = new EventLog({
     emit: (envelope) => pi.events.emit(eventChannel, envelope),
     persist: (envelope) => {
@@ -36,26 +68,65 @@ export function createSubagentSystem(pi: ExtensionAPI, env: NodeJS.ProcessEnv): 
   });
   const registry = new TaskRegistry({ persist: (node) => pi.appendEntry(agentEntryType, structuredClone(node)) });
   const settings = new SettingsStore();
-  const limiters = new LimiterProvider(settings);
-  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: (cwd) => limiters.get(cwd), log });
-  const factory = new SubagentFactory({ pi, scheduler, settings, env, log, limiters });
-  const refresh = (ctx: ExtensionContext) => {
-    sessionId = ctx.sessionManager.getSessionId();
-    pi.registerTool(taskTool(factory, scheduler, taskToolDescription(factory.offered(ctx))));
+  const limiters = new LimiterProvider(settings, () => (session.child ? parentLimiter(pi.events) : undefined));
+  const onSettled = async (node: AgentNode) => {
+    const hooks = parseSubagentHooks(settings.read(node.cwd).raw).stop;
+    const report = await runHooks(hooks, { agentId: node.id, agentType: node.agentType, sessionId: session.id, cwd: node.cwd, timestamp: new Date().toISOString(), transcriptPath: node.sessionFile });
+    for (const failure of report.failures) log(`subagentStop hook failed: ${failure}`);
   };
+  const scheduler = new SubagentScheduler({ pi, events, registry, limiter: (cwd) => limiters.get(cwd), onSettled, log });
+  const factory = new SubagentFactory({ scope: () => session.child, pi, scheduler, settings, env, log, limiters });
+  const selection = new AgentSelection(events);
+  const rpc = new SubagentRpc({
+    factory,
+    scheduler,
+    settings,
+    registry,
+    selection,
+    context: () => session.latest,
+    toolNames: () => pi.getAllTools().map((tool) => tool.name),
+    startFleet: (goal) => pi.sendUserMessage(fleetPrompt(goal)),
+    reload: () => factory.clearDiscovery(),
+  });
+  return { factory, scheduler, settings, registry, events, selection, rpc };
+}
+
+function registerLifecycle(pi: ExtensionAPI, env: NodeJS.ProcessEnv, system: SubagentSystem, session: Session, limiters: () => void): void {
+  const { factory, scheduler } = system;
+  const log = (message: string) => pi.events.emit('pstack:subagent-log', message);
   pi.on('session_start', (_event, ctx) => {
-    limiters.reset();
+    limiters();
     factory.clearDiscovery();
     scheduler.restore(ctx);
-    refresh(ctx);
+    session.begin(ctx);
+    pi.registerTool(taskTool(factory, scheduler, taskToolDescription(factory.offered(ctx))));
   });
   pi.on('resources_discover', () => factory.clearDiscovery());
-  pi.on('session_tree', (_event, ctx) => scheduler.restore(ctx));
+  pi.on('session_tree', (_event, ctx) => {
+    session.track(ctx);
+    scheduler.restore(ctx);
+  });
   pi.on('session_before_tree', () => scheduler.beginRewind());
-  pi.on('session_shutdown', () => scheduler.shutdown());
+  pi.on('agent_before_settle', async (_event, ctx) => {
+    if (ctx.hasUI || !scheduler.hasActiveWork()) return;
+    log('Run complete; waiting for background tasks to finish; exiting');
+    await scheduler.waitForWork(waitSeconds(env) * 1000);
+  });
+  pi.on('session_shutdown', async (_event, ctx) => {
+    await scheduler.shutdown();
+    launchRemOnShutdown({ env, cwd: ctx.cwd, boardFile: boardPath(getAgentDir(), ctx.cwd) });
+  });
+}
+
+function registerPromptSections(pi: ExtensionAPI, system: SubagentSystem): void {
+  const { factory, selection, settings } = system;
   pi.on('before_agent_start', (event, ctx) => {
     const offered = factory.offered(ctx);
+    if (selection.refresh(offered)) pi.events.emit('pstack:subagent-log', 'The selected agent is no longer available and was cleared.');
     const { settings: loaded } = settings.read(ctx.cwd);
+    const current = selection.getCurrent();
+    if (current) event.systemPromptOptions.sections.selected_agent = current.prompt;
+    else delete event.systemPromptOptions.sections.selected_agent;
     event.systemPromptOptions.sections.subagent_usage = subagentUsageBlock({
       rubberDuck: offered.some((agent) => agent.name === 'rubber-duck') && loaded.builtInAgents.rubberDuckAutoInvoke,
       securityReview: offered.some((agent) => agent.name === 'security-review'),
@@ -64,7 +135,21 @@ export function createSubagentSystem(pi: ExtensionAPI, env: NodeJS.ProcessEnv): 
     if (preferences) event.systemPromptOptions.sections.subagent_model_preferences = preferences;
     else delete event.systemPromptOptions.sections.subagent_model_preferences;
   });
-  return { factory, scheduler, settings, registry, events };
+}
+
+export function createSubagentSystem(pi: ExtensionAPI, env: NodeJS.ProcessEnv): SubagentSystem {
+  const session = new Session();
+  const system = buildCore(pi, env, session);
+  serveRpc(pi, system.rpc);
+  registerSubagentCommands(pi, { factory: system.factory, scheduler: system.scheduler, settings: system.settings });
+  registerLifecycle(pi, env, system, session, () => system.factory.resetLimiters());
+  registerPromptSections(pi, system);
+  return system;
+}
+
+function registerSpecialized(pi: ExtensionAPI, system: SubagentSystem, env: NodeJS.ProcessEnv): void {
+  const specs: readonly Specialized[] = [executionSubagent, searchSubagent];
+  for (const spec of specs) if (specializedEnabled(env, spec)) pi.registerTool(specializedTool(spec, system.factory, env));
 }
 
 export function registerSubagents(pi: ExtensionAPI, env: NodeJS.ProcessEnv = process.env): SubagentSystem {
@@ -73,5 +158,7 @@ export function registerSubagents(pi: ExtensionAPI, env: NodeJS.ProcessEnv = pro
   pi.registerTool(readAgentTool(system.scheduler));
   pi.registerTool(writeAgentTool(system.scheduler));
   pi.registerTool(listAgentsTool(system.scheduler));
+  pi.registerTool(contextBoardTool((cwd) => boardPath(getAgentDir(), cwd)));
+  registerSpecialized(pi, system, env);
   return system;
 }

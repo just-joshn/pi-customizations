@@ -602,6 +602,7 @@ test('all pstack tools declare outputSchema, exposure, and annotations conformin
     'TaskOutput',
     'TaskStop',
     'TodoWrite',
+    'context_board',
     'list_agents',
     'pstack_context',
     'pstack_mode',
@@ -609,7 +610,7 @@ test('all pstack tools declare outputSchema, exposure, and annotations conformin
     'task',
     'write_agent',
   ]);
-  expect(tools.length).toBe(17);
+  expect(tools.length).toBe(18);
   for (const tool of tools) {
     expect(tool.outputSchema).toBeDefined();
     expect(tool.exposure).toBeDefined();

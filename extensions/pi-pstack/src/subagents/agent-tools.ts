@@ -89,7 +89,7 @@ export function taskTool(factory: SubagentFactory, scheduler: SubagentScheduler,
       const call: TaskCall = parseInput('task', TaskSchema, params);
       launchSignal(signal, call.mode === 'background');
       const { launched, node } = await factory.create(call, id, signal, ctx);
-      if (node.mode === 'background') return wrap(backgroundStartedText(node.id), detailsOf(node, promptDetail(node.agentType, node.id, call.prompt)));
+      if (call.mode === 'background') return wrap(backgroundStartedText(node.id), detailsOf(node, promptDetail(node.agentType, node.id, call.prompt)));
       const outcome = await Promise.race([launched.settled.then((settled) => ({ settled })), launched.promoted.then(() => ({ settled: undefined }))]);
       if (outcome.settled === undefined) return wrap(movedToBackgroundText(node.id), detailsOf(scheduler.get(node.id)));
       return syncResult(outcome.settled);

@@ -4,16 +4,16 @@ import { Check } from 'typebox/value';
 export const defaultMaxDepth = 4;
 export const defaultWorkflowRuns = 4;
 
-const Policy = Type.Union([Type.Literal('preferred'), Type.Literal('required')]);
-const Effort = Type.Union([Type.Literal('low'), Type.Literal('medium'), Type.Literal('high'), Type.Literal('xhigh')]);
-const Tier = Type.Union([Type.Literal('inherit'), Type.Literal('default'), Type.Literal('long_context')]);
+export const PolicySchema = Type.Union([Type.Literal('preferred'), Type.Literal('required')]);
+export const EffortSchema = Type.Union([Type.Literal('low'), Type.Literal('medium'), Type.Literal('high'), Type.Literal('xhigh')]);
+export const TierSchema = Type.Union([Type.Literal('inherit'), Type.Literal('default'), Type.Literal('long_context')]);
 const Limit = Type.Integer({ minimum: 1, maximum: 128 });
 const RunCap = Type.Integer({ minimum: 1, maximum: 16 });
 const Names = Type.Array(Type.String({ minLength: 1 }));
 
-export type ModelPolicy = Static<typeof Policy>;
-export type EffortLevel = Static<typeof Effort>;
-export type ContextTier = Static<typeof Tier>;
+export type ModelPolicy = Static<typeof PolicySchema>;
+export type EffortLevel = Static<typeof EffortSchema>;
+export type ContextTier = Static<typeof TierSchema>;
 export type SubagentSettingsEntry = Readonly<{ model?: string; modelPolicy?: ModelPolicy; effortLevel?: EffortLevel; contextTier?: ContextTier; autoInvoke?: boolean }>;
 export type WorkflowLimits = Readonly<{ maxConcurrentSubagents?: number; maxTotalSubagents?: number; timeoutSeconds?: number; maxAiCredits?: number }>;
 export type CopilotSettings = Readonly<{
@@ -40,9 +40,9 @@ function field<T extends TSchema>(owner: string, source: Source, key: string, sc
 function entryOf(owner: string, raw: unknown, warnings: string[]): SubagentSettingsEntry {
   const source = asSource(raw);
   const model = field(owner, source, 'model', Type.String({ minLength: 1 }), warnings);
-  const modelPolicy = field(owner, source, 'modelPolicy', Policy, warnings);
-  const effortLevel = field(owner, source, 'effortLevel', Effort, warnings);
-  const contextTier = field(owner, source, 'contextTier', Tier, warnings);
+  const modelPolicy = field(owner, source, 'modelPolicy', PolicySchema, warnings);
+  const effortLevel = field(owner, source, 'effortLevel', EffortSchema, warnings);
+  const contextTier = field(owner, source, 'contextTier', TierSchema, warnings);
   const autoInvoke = field(owner, source, 'autoInvoke', Type.Boolean(), warnings);
   return {
     ...(model !== undefined ? { model } : {}),
