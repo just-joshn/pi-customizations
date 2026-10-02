@@ -10,6 +10,8 @@ const noWorkerPool = 'Never process an independent batch with a fixed write_agen
 const sinceTurn = 'Use read_agent with since_turn to get only new responses without re-reading earlier turns.';
 
 export const delegationHeuristics: readonly string[] = [fewCalls, backgroundOnly, waitThenStop, noWorkerPool, sinceTurn];
+
+export const subagentNamespace = { name: 'subagents', description: 'Delegate work to specialized agents that run in separate context windows.', instructions: delegationHeuristics.join('\n') } as const;
 const childHeuristics: readonly string[] = [fewCalls, backgroundOnly, noWorkerPool];
 
 const rubberDuckGuidance = 'Call rubber-duck synchronously after planning and before implementation, so its critique can change the plan.';

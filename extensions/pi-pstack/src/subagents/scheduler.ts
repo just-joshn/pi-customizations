@@ -2,7 +2,7 @@ import { type AgentSession, type AgentSessionRuntime, createEventBus, type Exten
 import { DeferredWakes } from '../deferred-wakes.ts';
 import { overdueAfterMs, workerControl } from '../worker-control.ts';
 import { type AgentNode, agentEntryType, repairInterrupted, restoreNodes } from './agent-node.ts';
-import { completedData, failedData, initialNode, measure, startedData, viewOf } from './agent-records.ts';
+import { completedData, failedData, initialNode, startedData, usageOf, viewOf } from './agent-records.ts';
 import { EventBridge, textOf } from './child-events.ts';
 import { type OpenedChild, type OpenInput, openChildSession } from './child-session.ts';
 import { closeRuntime } from './close-session.ts';
@@ -265,8 +265,8 @@ export class SubagentScheduler {
   private async settle(child: LiveChild, outcome: Outcome, ctx: ExtensionContext): Promise<AgentNode> {
     const before = this.deps.registry.get(child.id);
     if (!before) throw new Error(`Agent not found: ${child.id}`);
-    const measured = measure(child.session.messages);
-    const fields = { endedAt: this.now(), totalToolCalls: measured.toolCalls, totalTokens: measured.tokens };
+    const stats = child.session.getSessionStats();
+    const fields = { endedAt: this.now(), totalToolCalls: stats.toolCalls, totalTokens: stats.tokens.total, usage: usageOf(stats) };
     const node = this.finish(before, outcome, fields, child.limited);
     child.releaseSlot();
     if (node.status === 'idle') this.retireOverflow();
@@ -278,7 +278,7 @@ export class SubagentScheduler {
     return node;
   }
 
-  private finish(before: AgentNode, outcome: Outcome, fields: Pick<AgentNode, 'endedAt' | 'totalToolCalls' | 'totalTokens'>, terminal: boolean): AgentNode {
+  private finish(before: AgentNode, outcome: Outcome, fields: Pick<AgentNode, 'endedAt' | 'totalToolCalls' | 'totalTokens' | 'usage'>, terminal: boolean): AgentNode {
     const { registry } = this.deps;
     switch (outcome.kind) {
       case 'done':

@@ -1,3 +1,4 @@
+import { formatSize, truncateHead } from '@earendil-works/pi-coding-agent';
 import type { TaskStatus } from './task-status.ts';
 
 export const noResponseText = 'Agent completed but produced no response.';
@@ -21,6 +22,12 @@ export type AgentView = Readonly<{
   turns: readonly string[];
   error?: string;
 }>;
+
+export function boundedForModel(text: string, transcript: string): string {
+  const kept = truncateHead(text);
+  if (!kept.truncated) return text;
+  return `${kept.content}\n\n[Output truncated: showing ${kept.outputLines} of ${kept.totalLines} lines (${formatSize(kept.outputBytes)} of ${formatSize(kept.totalBytes)}). The agent's full transcript is at ${transcript}.]`;
+}
 
 export function syncResultText(finalMessage: string): string {
   return finalMessage.length > 0 ? finalMessage : noResponseText;

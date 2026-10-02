@@ -13,6 +13,15 @@ const Source = Type.Union([
   Type.Literal('runtime_policy'),
 ]);
 const TaskSource = Type.Union([Type.Literal('task_argument'), Type.Literal('subagent_configuration'), Type.Literal('custom_agent_definition'), Type.Literal('unset')]);
+const Count = Type.Number({ minimum: 0 });
+const UsageSchema = Type.Object({
+  input: Count,
+  output: Count,
+  cacheRead: Count,
+  cacheWrite: Count,
+  totalTokens: Count,
+  cost: Type.Object({ input: Count, output: Count, cacheRead: Count, cacheWrite: Count, total: Count }),
+});
 
 export const agentEntryType = 'reference-assistant-agent';
 
@@ -43,6 +52,7 @@ export const AgentNodeSchema = Type.Object({
   overrideReason: Type.Optional(Type.String()),
   totalToolCalls: Type.Integer({ minimum: 0 }),
   totalTokens: Type.Number({ minimum: 0 }),
+  usage: Type.Optional(UsageSchema),
   error: Type.Optional(Type.String()),
   cancelled: Type.Optional(Type.Literal(true)),
   retired: Type.Optional(Type.Literal(true)),
