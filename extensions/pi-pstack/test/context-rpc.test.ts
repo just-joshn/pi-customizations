@@ -6,6 +6,27 @@ import { expect, test, vi } from 'vitest';
 import { startDetachedRpc } from '../scripts/detached-rpc-client.mjs';
 import { fixture, packageRoot } from './session-fixture.ts';
 
+function contextArguments(sessionDir: string): string[] {
+  return [
+    '--approve',
+    '--no-extensions',
+    '--no-skills',
+    '--no-prompt-templates',
+    '--session-dir',
+    sessionDir,
+    '-e',
+    join(packageRoot, 'src/index.ts'),
+    '-e',
+    join(packageRoot, 'test/journey-provider.ts'),
+    '-e',
+    join(packageRoot, 'test/history-rpc-watch.js'),
+    '--provider',
+    'journey-test',
+    '--model',
+    'recorder',
+  ];
+}
+
 test('real RPC context discovers the configured session directory and returns only its workspace', async () => {
   const f = await fixture({ extensionOnly: true });
   try {
@@ -14,24 +35,7 @@ test('real RPC context discovers the configured session directory and returns on
       directory: join(f.root, 'transport'),
       cwd: f.cwd,
       agentDir: join(f.root, 'real-agent'),
-      args: [
-        '--approve',
-        '--no-extensions',
-        '--no-skills',
-        '--no-prompt-templates',
-        '--session-dir',
-        directory,
-        '-e',
-        join(packageRoot, 'src/index.ts'),
-        '-e',
-        join(packageRoot, 'test/journey-provider.ts'),
-        '-e',
-        join(packageRoot, 'test/history-rpc-watch.js'),
-        '--provider',
-        'journey-test',
-        '--model',
-        'recorder',
-      ],
+      args: contextArguments(directory),
     });
     try {
       const state = await handle.send({ type: 'get_state' });

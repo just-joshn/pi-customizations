@@ -119,7 +119,9 @@ function saveRequest(context: StreamArguments[1], dir: string): void {
   writeFileSync(join(dir, 'child-input.txt'), JSON.stringify(users));
   writeFileSync(join(dir, 'child-tools.txt'), JSON.stringify(system.flatMap((message) => message.toolsAdded?.map((tool) => tool.name) ?? [])));
   appendFileSync(join(dir, 'provider-inputs.jsonl'), `${JSON.stringify(users)}\n`);
-  writeFileSync(join(dir, 'child-tool-results.json'), JSON.stringify(context.messages.filter((message) => message.role === 'toolResult')));
+  const toolResults = JSON.stringify(context.messages.filter((message) => message.role === 'toolResult'));
+  writeFileSync(join(dir, 'child-tool-results.json'), toolResults);
+  appendFileSync(join(dir, 'child-tool-results-history.jsonl'), `${toolResults}\n`);
 }
 
 function scheduleWait(text: string, _nested: boolean, grandchild: boolean, options: StreamArguments[2], finish: (aborted?: boolean) => void) {
@@ -225,8 +227,7 @@ function registerStopPendingProbe(pi: ExtensionAPI): void {
   });
 }
 
-export default function workerProvider(pi: ExtensionAPI): void {
-  registerStopPendingProbe(pi);
+function registerFixtureTools(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'self_abort',
     label: 'Abort test self',
@@ -259,6 +260,9 @@ export default function workerProvider(pi: ExtensionAPI): void {
       return { content: [{ type: 'text', text: 'Selected Read only' }], details: {} };
     },
   });
+}
+
+function registerFixtureProvider(pi: ExtensionAPI): void {
   pi.registerProvider('worker-test', {
     api: 'openai-completions',
     baseUrl: 'https://unused.invalid',
@@ -274,4 +278,10 @@ export default function workerProvider(pi: ExtensionAPI): void {
     })),
     streamSimple: streamWorker,
   });
+}
+
+export default function workerProvider(pi: ExtensionAPI): void {
+  registerStopPendingProbe(pi);
+  registerFixtureTools(pi);
+  registerFixtureProvider(pi);
 }

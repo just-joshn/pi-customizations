@@ -600,6 +600,7 @@ test('all pstack tools declare outputSchema, exposure, and annotations conformin
     'ListAgents',
     'SendMessage',
     'Task',
+    'TaskAttach',
     'TaskList',
     'TaskMessage',
     'TaskOutput',
@@ -608,7 +609,7 @@ test('all pstack tools declare outputSchema, exposure, and annotations conformin
     'pstack_context',
     'pstack_mode',
   ]);
-  expect(tools.length).toBe(15);
+  expect(tools.length).toBe(16);
   for (const tool of tools) {
     expect(tool.outputSchema).toBeDefined();
     expect(tool.exposure).toBeDefined();

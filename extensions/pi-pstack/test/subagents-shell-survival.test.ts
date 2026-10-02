@@ -20,7 +20,8 @@ function alive(pid: number): boolean {
 }
 
 async function childShell(dir: string): Promise<ShellRecord> {
-  const results = JSON.parse(await readFile(join(dir, 'child-tool-results.json'), 'utf8')) as { toolName: string; details: ShellRecord }[];
+  const history = (await readFile(join(dir, 'child-tool-results-history.jsonl'), 'utf8')).trim().split('\n');
+  const results = history.flatMap((line) => JSON.parse(line) as { toolName: string; details: ShellRecord }[]);
   const started = results.find((result) => result.toolName === 'BackgroundShell');
   if (!started) throw new Error('the child never started a background shell');
   return started.details;

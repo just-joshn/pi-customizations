@@ -22,6 +22,25 @@ test.each([
   }
 });
 
+function hostArguments(root: string, provider: string): string[] {
+  return [
+    '--approve',
+    '--no-extensions',
+    '--no-skills',
+    '--no-prompt-templates',
+    '--session-dir',
+    join(root, 'shared-session-store'),
+    '-e',
+    join(packageRoot, 'src/index.ts'),
+    '-e',
+    provider,
+    '--provider',
+    'journey-test',
+    '--model',
+    'recorder',
+  ];
+}
+
 test('real RPC delivers the cloud host catalog to a deterministic main-session provider', async () => {
   const f = await fixture({ extensionOnly: true });
   try {
@@ -32,22 +51,7 @@ test('real RPC delivers the cloud host catalog to a deterministic main-session p
       cwd: f.cwd,
       agentDir: join(f.root, 'real-agent'),
       ownerId: 'cloud-host-main-fixture',
-      args: [
-        '--approve',
-        '--no-extensions',
-        '--no-skills',
-        '--no-prompt-templates',
-        '--session-dir',
-        join(f.root, 'shared-session-store'),
-        '-e',
-        join(packageRoot, 'src/index.ts'),
-        '-e',
-        provider,
-        '--provider',
-        'journey-test',
-        '--model',
-        'recorder',
-      ],
+      args: hostArguments(f.root, provider),
     });
     try {
       const state = await handle.send({ type: 'get_state' });
@@ -66,7 +70,8 @@ test('real RPC delivers the cloud host catalog to a deterministic main-session p
         expect(host).toContain('The storage directory may contain other workspaces');
         expect(host).not.toContain('Workspace Pi session directory:');
         expect(host).not.toContain('<parent-session-id>');
-        expect(host).toContain(`Task child transcripts owned by this parent session: ${join(f.root, 'shared-session-store', 'pstack-workers', parentId)}`);
+        const store = join(f.root, 'shared-session-store');
+        expect(host).toContain(`Task child transcripts owned by this parent session: ${join(store, parentId, 'subagents')} and, for runs before the agent-<id>.jsonl layout, ${join(store, 'pstack-workers', parentId)}`);
       });
     } finally {
       await handle.close();

@@ -152,7 +152,7 @@ Use a separate worktree when a workflow requires isolated writes. A child sessio
 
 Readonly tasks copy the selected provider registration into an isolated model runtime without loading its tool extensions. Failed foreground tasks preserve their nested model usage in the failed tool result. Background model usage enters parent totals when the parent retrieves the result with `TaskOutput` or `TaskStop`; unclaimed usage persists on the active branch across reloads and is charged only once. Resuming a task retains any pending usage.
 
-`environment: "cloud"` runs the child in its own detached git worktree at `pstack-cloud/<task-id>` under the session directory. It checks out `cloud_base_branch` (the local branch, else `origin/<branch>`) or the parent's HEAD. Uncommitted parent changes are not copied, as with a Reference cloud agent that starts from pushed state. The worktree stays after the task ends so its commits survive. Resume reopens the same worktree. The child process still ends with the parent session, unlike a hosted Reference cloud agent.
+`environment: "cloud"` starts a detached Pi root on a configured isolated VM executor, at `cloud_base_branch` (the local branch, else `origin/<branch>`) or the parent's committed HEAD. `remote_executor` selects the executor from `executors.json`. Uncommitted parent changes are not copied. Without a configured executor the Task fails with an explicit error and never falls back to local execution. Resume keeps the executor and checkout SHA, `TaskAttach` re-attaches a task launched earlier in the same repository, and the detached root outlives the parent session.
 
 ## Models and state
 
