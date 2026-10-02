@@ -85,6 +85,16 @@ export const TaskRecordSchema = Type.Object({
       report: Type.Optional(Type.Object({ text: Type.String(), warning: Type.Optional(Type.String()) })),
     }),
   ),
+  reference-assistant: Type.Optional(
+    Type.Object({
+      mode: Type.Union([Type.Literal('sync'), Type.Literal('background')]),
+      agentType: Type.String(),
+      name: Type.String(),
+      turns: Type.Array(Type.String()),
+      retired: Type.Optional(Type.Boolean()),
+      parentTaskId: Type.Optional(Type.String()),
+    }),
+  ),
   detached: Type.Optional(
     Type.Object({ directory: Type.String({ minLength: 1 }), invocation: Type.String({ minLength: 1 }), entryCursor: Type.Union([Type.String({ minLength: 1 }), Type.Null()]), remote: Type.Optional(RemotePlacementSchema) }),
   ),
