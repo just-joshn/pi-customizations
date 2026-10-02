@@ -70,7 +70,9 @@ describe('resolveScope', () => {
     expect(resolveScope(document, 'support.function')).toBe('#666666');
     expect(resolveScope(document, 'support.constant')).toBe('#666666');
   });
+});
 
+describe('resolveScope scope fields and errors', () => {
   it('reads an array scope field', () => {
     expect(resolveScope(document, 'meta.embedded')).toBe('#555555');
     expect(resolveScope(document, 'markup.raw')).toBe('#555555');
@@ -133,7 +135,9 @@ describe('resolveRow', () => {
     });
     expect(resolveRow(document, composite)).toBe('#880808');
   });
+});
 
+describe('resolveRow failures', () => {
   it('throws when a color row names a missing key', () => {
     const missing = row({
       role: 'ghost',
@@ -174,9 +178,9 @@ describe('resolveRow', () => {
   });
 });
 
-describe('parseRoleMap', () => {
-  const header = ['role', 'kind', 'source', 'base', 'why'].join('\t');
+const header = ['role', 'kind', 'source', 'base', 'why'].join('\t');
 
+describe('parseRoleMap', () => {
   it('reads data rows after skipping the header', () => {
     const text = `${header}\naccent\tcolor\tkey\t\twhy one\nshadow\tcomposite\tkey2\tbase2\twhy two\n`;
     expect(parseRoleMap(text)).toEqual([
@@ -213,7 +217,9 @@ describe('parseRoleMap', () => {
       ]),
     ).toThrow('role selectedBg: composite base "#7F848E60" must be #rrggbb');
   });
+});
 
+describe('parseRoleMap rejections', () => {
   it('rejects an empty role', () => {
     expect(() => parseRoleMap('\tcolor\tkey\t\twhy')).toThrow('role map line 1: empty role');
   });
@@ -249,17 +255,16 @@ describe('parseRoleMap', () => {
 });
 
 describe('readThemeSchema', () => {
-  const schema = {
-    properties: {
-      colors: {
-        required: ['accent'],
-        properties: { accent: {}, thinkingMax: {} },
-      },
-      export: { properties: { pageBg: {} } },
-    },
-  };
-
   it('separates required schema colors from optional ones', () => {
+    const schema = {
+      properties: {
+        colors: {
+          required: ['accent'],
+          properties: { accent: {}, thinkingMax: {} },
+        },
+        export: { properties: { pageBg: {} } },
+      },
+    };
     expect(readThemeSchema(schema)).toEqual({
       required: ['accent'],
       optional: ['thinkingMax'],
@@ -278,7 +283,9 @@ describe('readThemeSchema', () => {
   it('rejects a schema without color properties', () => {
     expect(() => readThemeSchema({ properties: { colors: { required: ['accent'] } } })).toThrow('theme schema colors.properties must be an object');
   });
+});
 
+describe('readThemeSchema rejections', () => {
   it('rejects a required list that is not all strings', () => {
     const broken = {
       properties: {
