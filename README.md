@@ -12,6 +12,7 @@ Extensions, themes, and skills for [Pi](https://pi.dev), the coding agent by Ear
 | [`extensions/pi-xai-oauth`](extensions/pi-xai-oauth/README.md) | Lets a SuperGrok or X Premium subscription answer in Pi through the `grok-build` provider. |
 | [`extensions/pi-tui-skin`](extensions/pi-tui-skin/README.md) | A presentation-only skin that makes the Pi TUI look like the reference-agent TUI. Ships captured reference frames and comparison tooling. |
 | [`extensions/pi-one-dark-pro-theme`](extensions/pi-one-dark-pro-theme/README.md) | One Dark Pro Flat theme for Pi, computed from the pinned VS Code theme file. |
+| [`extensions/pi-maintainer`](extensions/pi-maintainer/README.md) | Checks the files Pi edits with tree-sitter, the Python compiler plus a fatal-only linter subset, or your own command, and sends failures back to the model. See its [parity report](extensions/pi-maintainer/docs/parity.md). |
 | [`skills/`](skills/) | Five standalone skills: `doctor`, `run`, `simplify`, `reverse-engineer-cli`, `implement-cli-from-contract`. |
 
 ## Install

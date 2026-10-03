@@ -39,3 +39,4 @@ Each feature file starts with an H1 title and one paragraph describing the user-
 - [Poteto mode](./poteto-mode.md) covers command and direct-tool mode changes, UI notifications, and branch state persistence.
 - [Standalone skills](./standalone-skills.md) covers discovery of repository skills (`doctor`, `simplify`, `run`, `reverse-engineer-cli`, `implement-cli-from-contract`).
 - [OAuth providers](./oauth-providers.md) covers subscription model provider registration for Claude and Antigravity.
+- [pi-maintainer](./pi-maintainer.md) covers automatic lint and test repair, the `/lint`, `/test`, and `/run` commands, the one-shot flags, and the run-output templates.
