@@ -1,0 +1,13 @@
+# Fix any errors below, if possible.
+
+## Running: <python> -m flake8 --select=E9,F821,F823,F831,F406,F407,F701,F702,F704,F706 --show-source --isolated undef_name.py
+
+undef_name.py:2:12: F821 undefined name 'not_defined'
+    return not_defined
+           ^
+
+## See relevant line below marked with █.
+
+undef_name.py:
+  1│def ok():
+  2█    return not_defined

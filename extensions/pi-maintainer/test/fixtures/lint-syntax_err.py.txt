@@ -1,0 +1,17 @@
+# Fix any errors below, if possible.
+
+Traceback (most recent call last):
+  File "<D>/syntax_err.py", line 1
+    def broken(
+              ^
+SyntaxError: '(' was never closed
+
+## Running: <python> -m flake8 --select=E9,F821,F823,F831,F406,F407,F701,F702,F704,F706 --show-source --isolated syntax_err.py
+
+syntax_err.py:1:12: E999 SyntaxError: '(' was never closed
+
+## See relevant line below marked with █.
+
+syntax_err.py:
+  1█def broken(
+  2│    return 1

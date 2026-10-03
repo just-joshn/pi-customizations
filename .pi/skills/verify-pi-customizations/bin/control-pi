@@ -34,8 +34,8 @@ function parseArgs(args) {
   return options;
 }
 
-function createRpcSession(packagePath, cwd) {
-  const child = spawn('pi', ['--mode', 'rpc', '--no-session', '--no-extensions', '-e', packagePath], {
+function createRpcSession(packagePath, cwd, extraArgs = []) {
+  const child = spawn('pi', ['--mode', 'rpc', '--no-session', '--no-extensions', '-e', packagePath, ...extraArgs], {
     cwd,
     env: { ...process.env, PI_CODING_AGENT_DIR: cwd },
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -363,6 +363,127 @@ async function driveOauthProviders(artifactDir) {
   }
 }
 
+async function drivePiMaintainer(artifactDir) {
+  process.stdout.write('[drive:pi-maintainer] Starting verification...\n');
+  const outDir = artifactDir ?? join(REPO_ROOT, 'artifacts/verify-pi-customizations/pi-maintainer');
+  await mkdir(outDir, { recursive: true });
+
+  const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-maintainer-'));
+  const pkg = join(REPO_ROOT, 'extensions/pi-maintainer');
+
+  try {
+    await seedMaintainerRepo(scratchDir);
+    await verifyMaintainerRpc(pkg, scratchDir, outDir);
+    await verifyMaintainerOneShot(pkg, scratchDir, outDir);
+    process.stdout.write(`✓ Captured pi-maintainer evidence in ${outDir}\n`);
+  } finally {
+    await rm(scratchDir, { recursive: true, force: true });
+  }
+}
+
+async function seedMaintainerRepo(scratchDir) {
+  const git = (args) => execFileSync('git', args, { cwd: scratchDir, encoding: 'utf8' });
+  git(['init', '-q', '.']);
+  await writeFile(join(scratchDir, 'target.py'), 'value = 1\n', 'utf8');
+  git(['add', '.']);
+  git(['-c', 'user.email=verify@example.com', '-c', 'user.name=verify', 'commit', '-qm', 'init']);
+  await writeFile(join(scratchDir, 'target.py'), 'def broken(\n', 'utf8');
+}
+
+async function waitForMessages(session, predicate, description) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const result = await session.send({ type: 'get_messages' });
+    const match = result.messages.find(predicate);
+    if (match) return match;
+    await new Promise((resolveWait) => setTimeout(resolveWait, 100));
+  }
+  throw new Error(`Timed out waiting for ${description}`);
+}
+
+async function verifyMaintainerRpc(pkg, scratchDir, outDir) {
+  const session = createRpcSession(pkg, scratchDir, ['--yes-always', '--lint-cmd', 'echo target.py:1:1: CUSTOM-LINT-FAILURE; false']);
+  try {
+    const commands = await session.send({ type: 'get_commands' });
+    const maintainer = commands.commands
+      .filter((command) => command.source === 'extension' && ['lint', 'test', 'run'].includes(command.name))
+      .map((command) => command.name)
+      .toSorted();
+    assert.deepEqual(maintainer, ['lint', 'run', 'test'], 'Expected the three maintainer commands to be registered');
+
+    await session.send({ type: 'prompt', message: '/lint' });
+    const lintText = await waitForNotifications(session, (message) => message.includes('# Fix any errors below'), 'the lint failure text');
+    assert.match(lintText, /## Running: echo target\.py:1:1: CUSTOM-LINT-FAILURE; false target\.py/, 'Expected the configured checker command line');
+    assert.match(lintText, /target\.py:1:1: CUSTOM-LINT-FAILURE/, 'Expected the checker output');
+    assert.match(lintText, /## See relevant line below marked with █/, 'Expected the single marked-line heading');
+    assert.match(lintText, /  1█def broken\(/, 'Expected the marked source line');
+    await writeFile(join(outDir, 'lint.txt'), `${lintText}\n`, 'utf8');
+
+    await session.send({ type: 'prompt', message: "/test printf 'FAILED test_x\\n'; exit 1" });
+    const failure = await waitForMessages(session, (message) => message.role === 'custom' && message.customType === 'maintainer-command-output', 'the added test output');
+    const expected = "I ran this command:\n\nprintf 'FAILED test_x\\n'; exit 1\n\nAnd got this output:\n\nFAILED test_x\n\n";
+    assert.equal(failure.content, expected, 'Expected the exact run-output message');
+    // The second copy of the failure text is delivered as the next user turn by the session's
+    // own prompt path, which needs a reachable model, so this drive only records the first copy.
+    await writeFile(join(outDir, 'test-failure-message.json'), `${JSON.stringify(failure, null, 2)}\n`, 'utf8');
+
+    await session.send({ type: 'prompt', message: '/run echo HELLO' });
+    const runMessage = await waitForMessages(
+      session,
+      (message) => message.role === 'custom' && message.customType === 'maintainer-command-output' && String(message.content).includes('echo HELLO'),
+      'the added run output',
+    );
+    assert.equal(runMessage.content, 'I ran this command:\n\necho HELLO\n\nAnd got this output:\n\nHELLO\n\n', 'Expected the exact run-output message');
+    await writeFile(join(outDir, 'run-message.json'), `${JSON.stringify(runMessage, null, 2)}\n`, 'utf8');
+    await writeFile(join(outDir, 'notifications.json'), `${JSON.stringify(session.notifications, null, 2)}\n`, 'utf8');
+  } finally {
+    await session.close();
+  }
+}
+
+async function waitForNotifications(session, predicate, description) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const match = session.notifications.map((notification) => notification.message).find(predicate);
+    if (match) return match;
+    await new Promise((resolveWait) => setTimeout(resolveWait, 100));
+  }
+  throw new Error(`Timed out waiting for ${description}`);
+}
+
+function runPiMaintainerCli(pkg, scratchDir, args) {
+  try {
+    const stdout = execFileSync('pi', ['--no-session', '--no-extensions', '-e', pkg, ...args], {
+      cwd: scratchDir,
+      env: { ...process.env, PI_CODING_AGENT_DIR: scratchDir },
+      encoding: 'utf8',
+    });
+    return { status: 0, stdout };
+  } catch (error) {
+    return { status: error.status ?? 1, stdout: `${error.stdout ?? ''}${error.stderr ?? ''}` };
+  }
+}
+
+async function verifyMaintainerOneShot(pkg, scratchDir, outDir) {
+  // One-shot flags are read at process start, so each check runs a real pi process.
+  // Exit codes come from the default mode: RPC mode exits 0 by its own design.
+  const ranPath = join(scratchDir, 'ran.txt');
+  const failing = runPiMaintainerCli(pkg, scratchDir, ['--test', '--test-cmd', `date > ${ranPath}; printf 'FAILED test_x\n'; exit 1`]);
+  assert.equal(failing.status, 0, 'A failing one-shot test must still exit 0');
+  assert.ok(existsSync(ranPath), 'Expected the test command to run');
+
+  const missing = runPiMaintainerCli(pkg, scratchDir, ['--test']);
+  assert.equal(missing.status, 1, 'A one-shot test without a command must exit 1');
+
+  const badFlag = runPiMaintainerCli(pkg, scratchDir, ['--lint', '--lint-cmd', 'rust:']);
+  assert.equal(badFlag.status, 1, 'An unparsable lint command must exit 1');
+
+  const summary = [
+    `one-shot --test failing: exit ${failing.status}, command ran: ${existsSync(ranPath)}`,
+    `one-shot --test without --test-cmd: exit ${missing.status}`,
+    `--lint with an unparsable --lint-cmd: exit ${badFlag.status}`,
+  ].join('\n');
+  await writeFile(join(outDir, 'one-shot.txt'), `${summary}\n`, 'utf8');
+}
+
 async function main() {
   const { command, target, flags } = parseArgs(process.argv.slice(2));
 
@@ -380,13 +501,15 @@ async function main() {
         await driveStandaloneSkills(artifactDir);
       } else if (feature === 'oauth-providers') {
         await driveOauthProviders(artifactDir);
+      } else if (feature === 'pi-maintainer') {
+        await drivePiMaintainer(artifactDir);
       } else {
-        throw new Error(`Unknown feature to drive: '${feature}'. Expected: pstack-status, poteto-mode, standalone-skills, oauth-providers`);
+        throw new Error(`Unknown feature to drive: '${feature}'. Expected: pstack-status, poteto-mode, standalone-skills, oauth-providers, pi-maintainer`);
       }
     } else {
       process.stdout.write(`Usage:
   control-pi doctor
-  control-pi drive <pstack-status | poteto-mode | standalone-skills | oauth-providers> [--out <dir>]
+  control-pi drive <pstack-status | poteto-mode | standalone-skills | oauth-providers | pi-maintainer> [--out <dir>]
 `);
       process.exit(1);
     }

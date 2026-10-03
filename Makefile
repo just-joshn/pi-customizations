@@ -1,6 +1,6 @@
-.PHONY: verify sweep-tui-skin verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-parity-audit verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
+.PHONY: verify sweep-tui-skin verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-parity-audit verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-maintainer verify-test-conventions verify-install verify-python
 
-verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-install verify-python
+verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-maintainer verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-install verify-python
 
 verify-lint:
 	bun run ci
@@ -55,6 +55,10 @@ verify-one-dark-pro-theme:
 	bun run --filter pi-one-dark-pro-theme check:parity
 	bun run --filter pi-one-dark-pro-theme typecheck
 	bun run --filter pi-one-dark-pro-theme test:coverage
+
+verify-maintainer:
+	bun run --filter pi-maintainer typecheck
+	bun run --filter pi-maintainer test:coverage
 
 verify-install:
 	node scripts/verify-fresh-install.mjs

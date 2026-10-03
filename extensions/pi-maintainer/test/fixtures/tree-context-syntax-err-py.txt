@@ -1,0 +1,5 @@
+## See relevant line below marked with █.
+
+syntax_err.py:
+  1█def broken(
+  2│    return 1
