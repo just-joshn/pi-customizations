@@ -1,0 +1,14 @@
+## See relevant lines below marked with █.
+
+case.py:
+  1│line1 = 1
+  2█line2 = 2
+  3│line3 = 3
+  4│line4 = 4
+  5│line5 = 5
+...⋮...
+  8│line8 = 8
+  9│line9 = 9
+ 10│line10 = 10
+ 11█line11 = 11
+ 12│line12 = 12

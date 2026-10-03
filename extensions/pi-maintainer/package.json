@@ -1,0 +1,41 @@
+{
+  "name": "pi-maintainer",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Automated lint and test repair for pi: check edited files, reflect failures back, and keep the model repairing until clean or capped",
+  "license": "MIT",
+  "keywords": [
+    "pi-package",
+    "extension",
+    "lint",
+    "test-repair"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "tree-sitter-wasms": "0.1.11",
+    "web-tree-sitter": "0.25.10"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "1.0.0",
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "^5.0.2",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.2"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}

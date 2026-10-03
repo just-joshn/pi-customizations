@@ -1,0 +1,9 @@
+# Fix any errors below, if possible.
+
+
+## See relevant lines below marked with █.
+
+syntax_err.js:
+  1█function broken( {
+  2█  return 1;
+  3│}

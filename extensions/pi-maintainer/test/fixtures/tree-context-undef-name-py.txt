@@ -1,0 +1,5 @@
+## See relevant line below marked with █.
+
+undef_name.py:
+  1│def ok():
+  2█    return not_defined
