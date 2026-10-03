@@ -41,6 +41,24 @@ function onAbortSignal(signal: AbortSignal | undefined, abort: () => void): () =
   return () => signal.removeEventListener('abort', abort);
 }
 
+/**
+ * Kills the child's whole process group. A shell runs the real command as its
+ * own child, so signalling only the shell leaves that command running; the
+ * group signal is fatal so nothing in the group can outlive the abort.
+ * Windows has no process groups here, so it keeps the direct child kill.
+ */
+function killProcessTree(child: ReturnType<typeof spawn>): void {
+  if (child.pid === undefined || process.platform === 'win32') {
+    child.kill();
+    return;
+  }
+  try {
+    process.kill(-child.pid, 'SIGKILL');
+  } catch {
+    child.kill();
+  }
+}
+
 function toSpawnResult(child: ReturnType<typeof spawn>, signal: AbortSignal | undefined): Promise<SpawnResult> {
   return new Promise((resolvePromise, rejectPromise) => {
     const stdoutChunks: string[] = [];
@@ -58,7 +76,7 @@ function toSpawnResult(child: ReturnType<typeof spawn>, signal: AbortSignal | un
     collectStream(child.stdout, { sink: stdoutChunks, decoder: stdoutDecoder }, { sink: combinedChunks, decoder: combinedDecoder });
     collectStream(child.stderr, { sink: stderrChunks, decoder: stderrDecoder }, { sink: combinedChunks, decoder: combinedDecoder });
     const forgetAbort = onAbortSignal(signal, () => {
-      child.kill();
+      killProcessTree(child);
       resolvePromise(snapshot(1));
     });
     child.on('error', (error) => {
@@ -74,7 +92,7 @@ function toSpawnResult(child: ReturnType<typeof spawn>, signal: AbortSignal | un
 
 export async function runShellCommand(command: string, cwd: string | undefined, signal: AbortSignal | undefined): Promise<readonly [number, string]> {
   try {
-    const child = spawn(command, { shell: true, cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(command, { shell: true, cwd, stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32' });
     const result = await toSpawnResult(child, signal);
     return [result.code, result.combined];
   } catch (error: unknown) {
@@ -94,7 +112,7 @@ export async function runArgsCommand(args: readonly string[], cwd: string | unde
   const [command, ...rest] = args;
   if (command === undefined) return { code: 1, stdout: '', stderr: '', spawnError: 'no command to run' };
   try {
-    const child = spawn(command, rest, { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(command, rest, { cwd, stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32' });
     const result = await toSpawnResult(child, signal);
     return { code: result.code, stdout: result.stdout, stderr: result.stderr, spawnError: undefined };
   } catch (error: unknown) {
@@ -106,7 +124,7 @@ export async function runStdinCommand(command: string, args: readonly string[], 
   return new Promise((resolvePromise) => {
     let child: ReturnType<typeof spawn>;
     try {
-      child = spawn(command, args, { cwd, stdio: ['pipe', 'pipe', 'pipe'] });
+      child = spawn(command, args, { cwd, stdio: ['pipe', 'pipe', 'pipe'], detached: process.platform !== 'win32' });
     } catch (error: unknown) {
       resolvePromise({ code: 1, stdout: '', stderr: '', spawnError: error instanceof Error ? error.message : String(error) });
       return;
@@ -124,7 +142,7 @@ export async function runStdinCommand(command: string, args: readonly string[], 
     collectStream(child.stdout, { sink: stdoutChunks, decoder: stdoutDecoder });
     collectStream(child.stderr, { sink: stderrChunks, decoder: stderrDecoder });
     const forgetAbort = onAbortSignal(signal, () => {
-      child.kill();
+      killProcessTree(child);
       resolvePromise(snapshot(1, undefined));
     });
     // A killed child closes its stdin, so the pending write must not surface as

@@ -38,6 +38,12 @@ export interface PostEditPlan {
   readonly testOutcome: boolean | undefined;
 }
 
+/** The outcome fields a reflected failure records. Named so call sites cannot swap the two results. */
+interface FailureOutcomes {
+  readonly lintOutcome: boolean | undefined;
+  readonly testOutcome: boolean | undefined;
+}
+
 const EMPTY_PLAN: PostEditPlan = { entries: [], reflection: undefined, lintOutcome: undefined, testOutcome: undefined };
 
 export async function planPostEditRepair(state: MessageRepairState, config: PostEditConfig, edited: readonly string[], io: PostEditIo): Promise<PostEditPlan> {
@@ -49,7 +55,7 @@ export async function planPostEditRepair(state: MessageRepairState, config: Post
     lintOutcome = lintErrors === undefined;
     if (lintErrors !== undefined) {
       const accepted = await io.confirm(FIX_LINT_QUESTION);
-      if (accepted) return reflectFailure(state, config, io, lintErrors, [], lintOutcome);
+      if (accepted) return reflectFailure(state, config, io, lintErrors, [], { lintOutcome, testOutcome: undefined });
     }
   }
 
@@ -84,11 +90,11 @@ async function testStep(state: MessageRepairState, config: PostEditConfig, io: P
   if (!accepted) {
     return { entries: [outputEntry], reflection: undefined, lintOutcome, testOutcome };
   }
-  return reflectFailure(state, config, io, result.formattedMessage, [outputEntry], testOutcome, lintOutcome);
+  return reflectFailure(state, config, io, result.formattedMessage, [outputEntry], { lintOutcome, testOutcome });
 }
 
-function reflectFailure(state: MessageRepairState, config: PostEditConfig, io: PostEditIo, failureText: string, entries: readonly CustomMessageDraft[], testOutcome?: boolean, lintOutcome?: boolean): PostEditPlan {
-  const base: PostEditPlan = { entries, reflection: undefined, lintOutcome, testOutcome };
+function reflectFailure(state: MessageRepairState, config: PostEditConfig, io: PostEditIo, failureText: string, entries: readonly CustomMessageDraft[], outcomes: FailureOutcomes): PostEditPlan {
+  const base: PostEditPlan = { entries, reflection: undefined, lintOutcome: outcomes.lintOutcome, testOutcome: outcomes.testOutcome };
   if (state.numReflections >= config.maxReflections) {
     io.warning(reflectionCapWarning(config.maxReflections));
     return base;

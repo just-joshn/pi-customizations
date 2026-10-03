@@ -86,7 +86,7 @@ Set `PI_MAINTAINER_PYTHON` to choose the interpreter used for `compile()` and `f
 
 | Command | Behavior |
 | --- | --- |
-| `/lint` | Lint the files this session edited, or the repository dirty files when it edited none. Asks `Fix lint errors in <file>?` per file and repairs accepted files in a fresh session with empty history. Positional arguments are ignored, matching the reference. |
+| `/lint` | Lint the files this session edited, or the repository dirty files when it edited none. Asks `Fix lint errors in <file>?` per file and repairs accepted files in a fresh session with empty history, returning to the original session when it has a file. Positional arguments are ignored, matching the reference. |
 | `/test [cmd]` | Run the given command, or `--test-cmd` when none is given. Failing output joins the chat and calls the model. |
 | `/run cmd` | Run a command and ask `Add <n>k tokens of command output to the chat?` before adding the output. A failing run that you add prefills the editor with `What's wrong? Fix`. |
 

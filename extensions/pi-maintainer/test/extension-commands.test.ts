@@ -1,6 +1,8 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
-import { describe, expect, test } from 'vitest';
+import { describe, expect, onTestFinished, test } from 'vitest';
 import maintainerExtension from '../index.ts';
 import { createHarness, type MaintainerHarness, type RegisteredCommand } from './helpers/fake-pi.ts';
 
@@ -78,6 +80,31 @@ describe('/lint', () => {
     await startSession(harness);
     await command(harness, 'lint').handler('', harness.context);
     expect(harness.notifications).toEqual([{ message: 'No dirty files to lint.', type: 'warning' }]);
+  });
+
+  test('emits a later file lint output through the replacement session', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'pi-maintainer-lint-'));
+    onTestFinished(() => rm(dir, { recursive: true, force: true }));
+    await writeFile(join(dir, 'a.py'), 'a = 1\n');
+    await writeFile(join(dir, 'b.py'), 'b = 2\n');
+    const harness = createHarness({
+      cwd: dir,
+      confirmAnswer: true,
+      sessionFile: '/tmp/original.jsonl',
+      replaceSession: true,
+      flags: { 'lint-cmd': 'echo BOOM; exit 1' },
+      exec: async (args) => (args[1] === 'rev-parse' ? { code: 0, stdout: dir } : { code: 0, stdout: 'a.py\nb.py\n' }),
+    });
+    maintainerExtension(harness.pi);
+    await startSession(harness);
+    await command(harness, 'lint').handler('', harness.context);
+    expect(harness.notifications).toHaveLength(1);
+    expect(harness.notifications[0]?.message).toContain('a.py');
+    expect(harness.notifications[0]?.message).not.toContain('b.py');
+    expect(harness.replacementNotifications).toHaveLength(1);
+    expect(harness.replacementNotifications[0]?.message).toContain('b.py');
+    expect(harness.replacementUserMessages).toHaveLength(2);
+    expect(harness.sessionSwitches).toEqual(['/tmp/original.jsonl']);
   });
 });
 

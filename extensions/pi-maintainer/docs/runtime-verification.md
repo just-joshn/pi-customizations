@@ -23,7 +23,7 @@ checker, `--lint-cmd "echo target.py:1:1: CUSTOM-LINT-FAILURE; false"`.
 | --- | --- |
 | Commands registered | `get_commands` returns `lint`, `test`, and `run` with `source: "extension"`. |
 | `/lint` finds the dirty file and runs the configured checker | Notification text in `lint.txt` starts `# Fix any errors below, if possible.` and contains `## Running: echo target.py:1:1: CUSTOM-LINT-FAILURE; false target.py`, the checker output, `## See relevant line below marked with █.`, and the marked source line `  1█def broken(`. |
-| `/lint` extracts line numbers from checker output and marks them | The same text marks line 1 because the checker printed `target.py:1:1:`. |
+| `/lint` extracts line numbers from checker output and marks them | The same text marks line 1 because the checker printed `target.py:1:1:`. The RPC drive runs with no session file, so this also observes the in-place repair path, `docs/parity.md` NG-16. |
 | `/test` adds the exact run-output message | The `maintainer-command-output` entry equals the template filled with the command and `FAILED test_x`. |
 | `/run` adds the exact run-output message | The `maintainer-command-output` entry equals the template filled with `echo HELLO` and `HELLO`. |
 | One-shot `--test` with a failing command | Exit code 0, the command ran, and the process printed `Added 1 line of output to the chat.` |

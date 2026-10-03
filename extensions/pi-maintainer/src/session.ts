@@ -27,6 +27,19 @@ const PROMPT_SECTION_KEY = 'maintainer-lint-test';
 export class MaintainerSession {
   private readonly pi: ExtensionAPI;
 
+  /**
+   * The context the current operation must use. Pi disposes a replaced
+   * session's context, so handlers set this before doing work, `withSession`
+   * sets it to the replacement, and every port reads it at call time.
+   */
+  private currentContext: ExtensionContext | undefined = undefined;
+
+  private readonly io: LinterIo = {
+    output: (message) => this.emitOutput(message, 'info'),
+    warning: (message) => this.emitOutput(message, 'warning'),
+    error: (message) => this.emitOutput(message, 'error'),
+  };
+
   private messageState: MessageRepairState = INITIAL_MESSAGE_STATE;
 
   private editedPaths: readonly string[] = [];
@@ -57,6 +70,7 @@ export class MaintainerSession {
   }
 
   async onSessionStart(event: SessionStartEvent, ctx: ExtensionContext): Promise<void> {
+    this.currentContext = ctx;
     this.messageState = INITIAL_MESSAGE_STATE;
     this.editedPaths = [];
     this.configure(ctx);
@@ -85,6 +99,7 @@ export class MaintainerSession {
   }
 
   onToolCall(event: ToolCallEvent, ctx: ExtensionContext): void {
+    this.currentContext = ctx;
     if (event.toolName !== 'edit' && event.toolName !== 'write') return;
     const path = toolCallPath(event.input);
     if (path === undefined) return;
@@ -98,6 +113,7 @@ export class MaintainerSession {
   }
 
   async onTurnEnd(event: TurnEndEvent, ctx: ExtensionContext): Promise<TurnEndEventResult | undefined> {
+    this.currentContext = ctx;
     if (event.outcome !== 'completed') return undefined;
     if (this.linter === undefined) return undefined;
     if (this.editFailedThisTurn) {
@@ -125,17 +141,20 @@ export class MaintainerSession {
   }
 
   async onLintCommand(ctx: ExtensionCommandContext): Promise<void> {
+    this.currentContext = ctx;
     await ctx.waitForIdle();
     this.activeSignal = ctx.signal;
     await runLintCommand(this.repairDeps(ctx), this.lintSessionPorts(ctx));
   }
 
   async onTestCommand(args: string, ctx: ExtensionCommandContext): Promise<void> {
+    this.currentContext = ctx;
     await ctx.waitForIdle();
     await runTestCommand(this.repairDeps(ctx), args);
   }
 
   async onRunCommand(args: string, ctx: ExtensionCommandContext): Promise<void> {
+    this.currentContext = ctx;
     await runRunCommand(this.repairDeps(ctx), args, {
       setEditorText: (text) => ctx.ui.setEditorText(text),
       mode: ctx.mode,
@@ -149,7 +168,7 @@ export class MaintainerSession {
     this.oneShot = new OneShotRunner(
       {
         pi: this.pi,
-        io: this.ioFor(ctx),
+        io: this.io,
         confirm: this.confirmFor(ctx),
         cmdRunIo: this.cmdRunIoFor(ctx),
         git: this.gitFor(ctx),
@@ -169,9 +188,9 @@ export class MaintainerSession {
     this.autoTest = this.pi.getFlag('auto-test') === true && this.pi.getFlag('no-auto-test') !== true;
     this.yesAlways = this.pi.getFlag('yes-always') === true;
     this.testCmd = this.flagString('test-cmd');
-    this.lintCommands = this.parseLintFlags(ctx);
+    this.lintCommands = this.parseLintFlags();
     this.linter = new Linter({
-      io: this.ioFor(ctx),
+      io: this.io,
       root: ctx.cwd,
       pythonPath: process.env.PI_MAINTAINER_PYTHON ?? 'python3',
       loadParser,
@@ -182,11 +201,11 @@ export class MaintainerSession {
     this.applyLintCommands();
   }
 
-  private parseLintFlags(ctx: ExtensionContext): LintCommands {
+  private parseLintFlags(): LintCommands {
     const flag = this.flagString('lint-cmd');
     const parsed = parseLintCmds(flag === undefined ? [] : flag.split('\n'));
     this.configError = parsed.messages.length > 0;
-    const io = this.ioFor(ctx);
+    const io = this.io;
     for (const message of parsed.messages) {
       if (message.channel === 'error') io.error(message.text);
       else io.output(message.text);
@@ -218,7 +237,7 @@ export class MaintainerSession {
         return { failed: result.exitStatus !== 0, formattedMessage: result.formattedMessage };
       },
       confirm: this.confirmFor(ctx),
-      warning: (message) => this.ioFor(ctx).warning(message),
+      warning: this.io.warning,
     };
   }
 
@@ -226,7 +245,7 @@ export class MaintainerSession {
     return {
       pi: this.pi,
       linter: this.requireLinter(),
-      io: this.ioFor(ctx),
+      io: this.io,
       confirm: this.confirmFor(ctx),
       cmdRunIo: this.cmdRunIoFor(ctx),
       git: this.gitFor(ctx),
@@ -242,14 +261,21 @@ export class MaintainerSession {
       waitForIdle: () => ctx.waitForIdle(),
       originalSessionFile: ctx.sessionManager.getSessionFile(),
       newSession: async (run) => {
+        const previous = this.currentContext;
         await ctx.newSession({
-          withSession: async (clone) =>
-            run({
-              sendUserMessage: (content) => clone.sendUserMessage(content),
-              waitForIdle: () => clone.waitForIdle(),
-              switchSession: (sessionFile) => clone.switchSession(sessionFile),
-              confirm: this.confirmFor(clone),
-            }),
+          withSession: async (replacement) => {
+            this.currentContext = replacement;
+            try {
+              await run({
+                sendUserMessage: (content) => replacement.sendUserMessage(content),
+                waitForIdle: () => replacement.waitForIdle(),
+                switchSession: (sessionFile) => replacement.switchSession(sessionFile),
+                confirm: this.confirmFor(replacement),
+              });
+            } finally {
+              this.currentContext = previous;
+            }
+          },
         });
       },
     };
@@ -257,7 +283,7 @@ export class MaintainerSession {
 
   private cmdRunIoFor(ctx: ExtensionContext): CmdRunIo {
     return {
-      output: (message) => this.ioFor(ctx).output(message),
+      output: this.io.output,
       confirm: this.confirmFor(ctx),
       runShell: (command) => runShellCommand(command, ctx.cwd, ctx.signal),
     };
@@ -277,15 +303,13 @@ export class MaintainerSession {
     };
   }
 
-  private ioFor(ctx: ExtensionContext): LinterIo {
-    const emit = (message: string, type: 'info' | 'warning' | 'error'): void => {
-      if (ctx.hasUI) {
-        ctx.ui.notify(message, type);
-        return;
-      }
-      this.pi.appendEntry('maintainer-output', { message, type });
-    };
-    return { output: (m) => emit(m, 'info'), warning: (m) => emit(m, 'warning'), error: (m) => emit(m, 'error') };
+  private emitOutput(message: string, type: 'info' | 'warning' | 'error'): void {
+    const ctx = this.currentContext;
+    if (ctx?.hasUI) {
+      ctx.ui.notify(message, type);
+      return;
+    }
+    this.pi.appendEntry('maintainer-output', { message, type });
   }
 
   private confirmFor(target: ExtensionContext): (question: string) => Promise<boolean> {

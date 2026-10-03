@@ -50,6 +50,20 @@ describe('planPostEditRepair', () => {
     expect(spans.confirms).toEqual(['Attempt to fix lint errors?']);
   });
 
+  test('records the lint outcome for an accepted lint repair', async () => {
+    const spans: IoSpans = { warnings: [], confirms: [], lintCalls: [], testCommands: [] };
+    const plan = await planPostEditRepair(makeState(0), { ...config, autoTest: true, testCmd: 'pytest' }, ['src.py'], makeIo(spans, 'lint errors', [true], false));
+    expect(plan.lintOutcome).toBe(false);
+    expect(plan.testOutcome).toBeUndefined();
+  });
+
+  test('records the test outcome for an accepted test repair', async () => {
+    const spans: IoSpans = { warnings: [], confirms: [], lintCalls: [], testCommands: [] };
+    const plan = await planPostEditRepair(makeState(0), { ...config, autoTest: true, testCmd: 'pytest' }, ['src.py'], makeIo(spans, undefined, [true], true));
+    expect(plan.testOutcome).toBe(false);
+    expect(plan.lintOutcome).toBe(true);
+  });
+
   test('falls through to the test step when the lint repair is declined', async () => {
     const spans: IoSpans = { warnings: [], confirms: [], lintCalls: [], testCommands: [] };
     await planPostEditRepair(makeState(0), { ...config, autoTest: true, testCmd: 'pytest' }, ['src.py'], makeIo(spans, 'lint errors', [false], true));

@@ -37,7 +37,8 @@ export interface LintSessionPorts {
 export interface ClonePorts {
   readonly sendUserMessage: (content: string) => Promise<void>;
   readonly waitForIdle: () => Promise<void>;
-  readonly switchSession: (sessionFile: string) => Promise<unknown>;
+  /** Present only inside a replacement session, which has a file to return to. */
+  readonly switchSession?: (sessionFile: string) => Promise<unknown>;
   /** Confirmation bound to the replacement session's context. */
   readonly confirm: (question: string) => Promise<boolean>;
 }
@@ -87,25 +88,43 @@ export async function runLintCommand(deps: RepairDeps, session: LintSessionPorts
   const queue = new LintRepairQueue({ linter: deps.linter, io: deps.io, files });
   const first = await queue.next(deps.confirm);
   if (first === undefined) return;
+  const returnTo = session.originalSessionFile;
+  if (returnTo === undefined) {
+    // A session with no file cannot be returned to after a replacement, so the
+    // repairs run where the user is instead of stranding the conversation.
+    await repairAcceptedFiles(queue, currentSessionPorts(deps, session), first, undefined);
+    return;
+  }
   await session.newSession(async (clone) => {
-    await repairAcceptedFiles(queue, clone, first, session.originalSessionFile);
+    await repairAcceptedFiles(queue, clone, first, returnTo);
   });
 }
 
-/** Repairs run in one fresh session with empty history; the session is reused for every file. */
-async function repairAcceptedFiles(queue: LintRepairQueue, clone: ClonePorts, first: string, originalSessionFile: string | undefined): Promise<void> {
-  await repairOneFile(clone, first);
-  for (;;) {
-    const errors = await queue.next(clone.confirm);
-    if (errors === undefined) break;
-    await repairOneFile(clone, errors);
-  }
-  if (originalSessionFile !== undefined) await clone.switchSession(originalSessionFile);
+/** The live session as repair ports, for a session Pi cannot replace and return from. */
+function currentSessionPorts(deps: RepairDeps, session: LintSessionPorts): ClonePorts {
+  return {
+    sendUserMessage: async (content) => {
+      deps.pi.sendUserMessage(content);
+    },
+    waitForIdle: () => session.waitForIdle(),
+    confirm: deps.confirm,
+  };
 }
 
-async function repairOneFile(clone: ClonePorts, errors: string): Promise<void> {
-  await clone.sendUserMessage(errors);
-  await clone.waitForIdle();
+/** Repairs run in one session with empty history; the session is reused for every file. */
+async function repairAcceptedFiles(queue: LintRepairQueue, session: ClonePorts, first: string, returnTo: string | undefined): Promise<void> {
+  await repairOneFile(session, first);
+  for (;;) {
+    const errors = await queue.next(session.confirm);
+    if (errors === undefined) break;
+    await repairOneFile(session, errors);
+  }
+  if (returnTo !== undefined && session.switchSession !== undefined) await session.switchSession(returnTo);
+}
+
+async function repairOneFile(session: ClonePorts, errors: string): Promise<void> {
+  await session.sendUserMessage(errors);
+  await session.waitForIdle();
 }
 
 export async function runTestCommand(deps: RepairDeps, args: string): Promise<void> {

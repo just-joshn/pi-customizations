@@ -114,19 +114,21 @@ describe('runLintCommand', () => {
     };
   }
 
-  function makeLintSession(order: string[], insideAnswers: boolean[]): LintSessionPorts {
+  function makeLintSession(order: string[], insideAnswers: boolean[], originalSessionFile: string | undefined = undefined): LintSessionPorts {
     return {
       cwd: '/repo',
       branch: [],
       waitForIdle: async () => undefined,
-      originalSessionFile: undefined,
+      originalSessionFile,
       newSession: async (run) => {
         const clone: ClonePorts = {
           sendUserMessage: async (content) => {
             order.push(`send ${content}`);
           },
           waitForIdle: async () => undefined,
-          switchSession: async () => undefined,
+          switchSession: async (sessionFile) => {
+            order.push(`switch ${sessionFile}`);
+          },
           confirm: async (question) => {
             order.push(`session confirm ${question}`);
             return insideAnswers.shift() ?? false;
@@ -137,9 +139,9 @@ describe('runLintCommand', () => {
     };
   }
 
-  function makeLintFlow(answers: boolean[], insideAnswers: boolean[], dirty: readonly string[]): LintFlow {
+  function makeLintFlow(answers: boolean[], insideAnswers: boolean[], dirty: readonly string[], originalSessionFile?: string): LintFlow {
     const order: string[] = [];
-    return { deps: makeLintDeps(order, answers, dirty), session: makeLintSession(order, insideAnswers), order };
+    return { deps: makeLintDeps(order, answers, dirty), session: makeLintSession(order, insideAnswers, originalSessionFile), order };
   }
 
   test('lints and confirms each file and repairs only the accepted one', async () => {
@@ -149,7 +151,7 @@ describe('runLintCommand', () => {
   });
 
   test('keeps the confirmed files on their own session and confirms later files there', async () => {
-    const flow = makeLintFlow([true], [true], ['a.py', 'b.py']);
+    const flow = makeLintFlow([true], [true], ['a.py', 'b.py'], '/repo/original.jsonl');
     await runLintCommand(flow.deps, flow.session);
     expect(flow.order).toEqual([
       'lint /repo/a.py',
@@ -160,7 +162,49 @@ describe('runLintCommand', () => {
       'output errors /repo/b.py',
       'session confirm Fix lint errors in /repo/b.py?',
       'send errors /repo/b.py',
+      'switch /repo/original.jsonl',
     ]);
+  });
+
+  test('repairs in the current session when the session has no file', async () => {
+    const order: string[] = [];
+    const deps = makeLintDeps(order, [true, true], ['a.py', 'b.py']);
+    let replacements = 0;
+    const session: LintSessionPorts = {
+      ...makeLintSession(order, [], undefined),
+      newSession: async () => {
+        replacements += 1;
+      },
+    };
+    await runLintCommand(deps, session);
+    expect(replacements).toBe(0);
+    expect(order).toEqual([
+      'lint /repo/a.py',
+      'output errors /repo/a.py',
+      'confirm Fix lint errors in /repo/a.py?',
+      'send errors /repo/a.py',
+      'lint /repo/b.py',
+      'output errors /repo/b.py',
+      'confirm Fix lint errors in /repo/b.py?',
+      'send errors /repo/b.py',
+    ]);
+  });
+
+  test('replaces the session and returns to its file when the session has one', async () => {
+    const order: string[] = [];
+    const deps = makeLintDeps(order, [true], ['a.py']);
+    const base = makeLintSession(order, [], '/repo/original.jsonl');
+    let replacements = 0;
+    const session: LintSessionPorts = {
+      ...base,
+      newSession: async (run) => {
+        replacements += 1;
+        await base.newSession(run);
+      },
+    };
+    await runLintCommand(deps, session);
+    expect(replacements).toBe(1);
+    expect(order).toEqual(['lint /repo/a.py', 'output errors /repo/a.py', 'confirm Fix lint errors in /repo/a.py?', 'send errors /repo/a.py', 'switch /repo/original.jsonl']);
   });
 
   test('reports a missing repository and lints nothing', async () => {

@@ -1,4 +1,9 @@
-import { describe, expect, test } from 'vitest';
+import { existsSync } from 'node:fs';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+import { describe, expect, onTestFinished, test } from 'vitest';
 import { runArgsCommand, runShellCommand, runStdinCommand } from '../src/run-command.ts';
 
 const LONG_COMMAND = 'sleep 30';
@@ -8,6 +13,20 @@ function abortedSignal(): AbortSignal {
   const controller = new AbortController();
   controller.abort();
   return controller.signal;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function waitForFile(path: string, timeoutMs: number): Promise<boolean> {
+  for (let waited = 0; waited < timeoutMs; waited += 25) {
+    if (existsSync(path)) return true;
+    await delay(25);
+  }
+  return existsSync(path);
 }
 
 describe('runShellCommand', () => {
@@ -28,6 +47,21 @@ describe('runShellCommand', () => {
     controller.abort();
     const [code] = await pending;
     expect(code).not.toBe(0);
+  });
+
+  test.skipIf(process.platform === 'win32')('kills the running grandchild so it cannot outlive the abort', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'pi-maintainer-abort-'));
+    onTestFinished(() => rm(dir, { recursive: true, force: true }));
+    const started = join(dir, 'started');
+    const survived = join(dir, 'survived');
+    const controller = new AbortController();
+    const pending = runShellCommand(`sh -c 'sleep 1; touch ${survived}' & touch ${started}; wait`, undefined, controller.signal);
+    expect(await waitForFile(started, 3000)).toBe(true);
+    controller.abort();
+    const [code] = await pending;
+    expect(code).not.toBe(0);
+    await delay(1500);
+    expect(existsSync(survived)).toBe(false);
   });
 });
 

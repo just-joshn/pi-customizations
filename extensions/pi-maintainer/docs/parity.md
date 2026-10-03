@@ -66,7 +66,7 @@ difference; **n/a** means out of scope or unreachable on Pi.
 | 6.5 | Python runs tree-sitter, `compile()` and the fatal-only linter subset, merging text and line sets | `src/linter.ts`, `src/python-compile.ts`, `src/flake8.ts` | `test/linter.test.ts`, `test/python-compile.test.ts`, `test/flake8.test.ts` | ported |
 | 6.6 | Custom commands append the quoted relative file name, use the repository root, and report `## Running:` plus output on a non-zero exit only | `src/linter.ts`, `src/shell-quote.ts` | `test/linter.test.ts`, `test/shell-quote.test.ts` | ported |
 | 6.7 | The marked-line excerpt with enclosing scopes, `loi_pad` 3, no child context, no last line | `src/tree-context.ts` | `test/tree-context.test.ts`, `test/golden-tree-context.test.ts` against recorded excerpts | ported |
-| 6.8 | `/lint`: repository required, arguments ignored, in-chat files then dirty files, per-file question, one cleared-history repair session | `src/commands.ts`, `src/lint-queue.ts` | `test/commands.test.ts`, `test/lint-queue.test.ts` | ported |
+| 6.8 | `/lint`: repository required, arguments ignored, in-chat files then dirty files, per-file question, one cleared-history repair session | `src/commands.ts`, `src/lint-queue.ts` | `test/commands.test.ts`, `test/lint-queue.test.ts` | ported; a session with no session file repairs in place, see NG-16 |
 | 6.9 | `/run`: ask with the token estimate, add on yes, prefill on a failing added run | `src/test-run.ts`, `src/commands.ts` | `test/test-run.test.ts` | ported with a documented difference, see NG-1 and NG-7 |
 | 6.9 | `/test`: fall back to the configured command, add on a non-zero exit, return the failure text | `src/test-run.ts`, `src/commands.ts` | `test/test-run.test.ts`, `test/commands.test.ts` | ported |
 | 6.10 | A string test failure reaches the model twice | `src/reflection.ts`, `src/commands.ts` | `test/reflection.test.ts` | ported with a documented difference, see NG-1 |
@@ -105,7 +105,7 @@ one. `G-n` refers to the same numbering as the report.
 | G-4 | A string test failure is sent twice | Reproduced. Both copies reach the model. The acknowledgement message the reference places between them cannot be injected, see NG-1. Test: `test/reflection.test.ts`. |
 | G-5 | `/lint <file>` ignores the file | Reproduced. The command never reads its arguments. Test: `test/commands.test.ts`. |
 | G-6 | `/lint` commits unrelated dirty files, and its repair session keeps automatic linting and testing so repairs can nest | The commit half is out of scope, see NG-14. The nesting is reproduced, because the repair runs in a session where the extension is active and each repair message gets its own reflection budget. Test: `test/commands.test.ts`. |
-| G-7 | Repair history leaks across files in `/lint` | Reproduced. Every accepted file's repair runs in the one session created on the first acceptance. Test: `test/commands.test.ts`. |
+| G-7 | Repair history leaks across files in `/lint` | Reproduced for a session with a session file. Every accepted file's repair runs in the one session created on the first acceptance. A session with no session file repairs in place instead, see NG-16. Test: `test/commands.test.ts`. |
 | G-8 | The reflection budget is shared by lint, test and edit-format errors | Reproduced. One counter per user message, and a failed edit skips the step while still spending budget. Test: `test/reflection.test.ts`. |
 | G-9 | Accepting a lint repair skips tests for that response | Reproduced. Test: `test/reflection.test.ts`. |
 | G-10 | TypeScript is never checked, although language documentation claims otherwise | Reproduced. `src/basic-lint.ts` returns nothing for TypeScript and the language table still maps `.ts` and `.tsx`. Tests: `test/basic-lint.test.ts`, `test/languages.test.ts`. |
@@ -353,9 +353,27 @@ Deletion condition: a documented decision to add commit behavior to this extensi
 Required by `extensions/AGENTS.md`: blocking work must honor cancellation. The reference has no
 cancellation, so this is an addition rather than a parity behavior.
 
-What ships: an abort signal threaded into the command runners, which kill the child process. Aborting a
-turn therefore stops a running checker or test command.
+What ships: an abort signal threaded into the command runners. On abort the runner signals the child's
+whole process group on platforms that have one, because a shell runs the real command as its own child and
+signalling only the shell would leave that command running. Windows keeps the direct child signal. The
+runner resolves with a non-zero status and the output captured so far.
 
 Authoritative Pi state: the operation signal.
 
 Deletion condition: never; this is a requirement of this repository.
+
+### NG-16. Repairs in a session with no session file
+
+Required: `/lint` repairs in a cleared-history clone and leaves the main conversation untouched.
+
+Evaluated: `ctx.newSession` with a replacement context, then `ctx.switchSession` back to the original file.
+
+Why it cannot: a session with no file, such as `pi --no-session` or an embedded RPC session, has nothing to
+return to. Replacing it discards the user's conversation with no way back.
+
+What ships: with a session file, the flow replaces the session, repairs there, and returns to the file.
+Without one, the repairs run in the current session, so the conversation keeps them as context.
+
+Authoritative Pi state: the session manager and the session file it records.
+
+Deletion condition: a public way to clone and restore an in-memory session.
