@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import { expect, test, vi } from 'vitest';
-import { shellHandoff, shellRole } from '../src/shell-ownership.ts';
+import { asShellHandoff, shellHandoff, shellRole } from '../src/shell-ownership.ts';
 import { ShellRuntime } from '../src/shell-runtime.ts';
 
 const endsWithFinalResponse = 'backgroundEnds' + 'WithFinalResponse';
@@ -34,6 +34,25 @@ test.for([
 test('a handoff can be claimed by exactly one owner', () => {
   const handoff = shellHandoff(new ShellRuntime(stubPi([])));
   expect([handoff.claimed(), handoff.claim(), handoff.claim(), handoff.claimed()]).toEqual([false, true, false, true]);
+});
+
+test('a real handoff survives a cross-extension payload round-trip', () => {
+  const handoff = shellHandoff(new ShellRuntime(stubPi([])));
+  expect(asShellHandoff(handoff)).toBe(handoff);
+  expect(asShellHandoff(handoff)?.claim()).toBe(true);
+});
+
+test('a payload missing any handoff part is rejected', () => {
+  expect([
+    asShellHandoff(null),
+    asShellHandoff('handoff'),
+    asShellHandoff(7),
+    asShellHandoff([]),
+    asShellHandoff({}),
+    asShellHandoff({ claim: () => true }),
+    asShellHandoff({ claimed: () => false }),
+    asShellHandoff({ claim: () => true, claimed: () => false }),
+  ]).toEqual([undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined]);
 });
 
 test(`shells of a synchronous worker carry ${endsWithFinalResponse}`, async () => {

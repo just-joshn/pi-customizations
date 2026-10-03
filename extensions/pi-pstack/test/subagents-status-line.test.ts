@@ -160,3 +160,41 @@ test('[C101] with no visible tasks stale decorations are cleared without running
   expect(runs).toEqual([]);
   expect(applied).toEqual([{}]);
 });
+
+test('[C101] a tick in flight ignores a second tick until the first settles', async () => {
+  let finish: (result: ShellResult) => void = () => {};
+  const pending = new Promise<ShellResult>((resolve) => {
+    finish = resolve;
+  });
+  let calls = 0;
+  const { poller, applied } = harness({
+    run: async () => {
+      calls += 1;
+      return pending;
+    },
+  });
+  const first = poller.tick();
+  await poller.tick();
+  finish({ code: 0, stdout: '{"id":"a","content":"ready"}', stderr: '' });
+  await first;
+  expect(calls).toBe(1);
+  expect(applied.at(-1)).toEqual({ a: 'ready' });
+  await poller.tick();
+  expect(calls).toBe(2);
+});
+
+test('[C101] a tick that fails still releases the lock for the next attempt', async () => {
+  let calls = 0;
+  const { poller, applied, logs } = harness({
+    run: async () => {
+      calls += 1;
+      if (calls === 1) throw new Error('spawn exploded');
+      return { code: 0, stdout: '{"id":"a","content":"back"}', stderr: '' };
+    },
+  });
+  await poller.tick();
+  expect(logs).toEqual(['subagentStatusLine tick failed: Error: spawn exploded']);
+  expect(applied).toEqual([]);
+  await poller.tick();
+  expect(applied).toEqual([{ a: 'back' }]);
+});

@@ -1,6 +1,10 @@
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { createEventBus } from '@earendil-works/pi-coding-agent';
-import { expect, test } from 'vitest';
-import { AgentSelection } from '../src/subagents/agent-selection.ts';
+import { expect, test, vi } from 'vitest';
+import { AgentSelection, generalPurposePromptLocked } from '../src/subagents/agent-selection.ts';
 import { builtInAgents } from '../src/subagents/builtin-agents.ts';
 import { EventBridge } from '../src/subagents/child-events.ts';
 import { noticeFor } from '../src/subagents/completion-wake.ts';
@@ -55,6 +59,20 @@ test('a user-invisible agent cannot be selected and setPrompt targets only the s
   expect(selection.setPrompt('explore', 'new').prompt).toBe('new');
 });
 
+test('the general-purpose prompt stays locked even while it is selected', () => {
+  const { events } = log();
+  const selection = new AgentSelection(events);
+  selection.select(agent('general-purpose'));
+  expect(() => selection.setPrompt('general-purpose', 'new')).toThrow(generalPurposePromptLocked);
+});
+
+test('selecting an all-tools agent publishes the wildcard tool list', () => {
+  const emitted: Array<Readonly<{ type: string; data: unknown }>> = [];
+  const selection = new AgentSelection(new EventLog({ emit: (envelope) => emitted.push({ type: envelope.type, data: envelope.data }), persist: () => {} }));
+  selection.select(agent('task'));
+  expect(emitted).toEqual([{ type: 'subagent.selected', data: expect.objectContaining({ agentName: 'task', tools: ['*'] }) }]);
+});
+
 test('the idle and terminal notices carry the documented sentence and kind', () => {
   const node = { id: 'a1', agentType: 'explore', agentDisplayName: 'alpha', mode: 'background', status: 'idle' } as Parameters<typeof noticeFor>[0];
   expect(noticeFor(node)?.data).toEqual({ kind: 'agent_idle', agentId: 'a1', summary: 'Agent "alpha" (explore) has finished processing and is now idle.' });
@@ -64,13 +82,20 @@ test('the idle and terminal notices carry the documented sentence and kind', () 
   expect(noticeFor({ ...node, status: 'cancelled', cancelled: true })).toBe(undefined);
 });
 
+test('a failed background agent without a recorded error says the error is unknown', () => {
+  const node = { id: 'a1', agentType: 'explore', agentDisplayName: 'alpha', mode: 'background', status: 'failed' } as Parameters<typeof noticeFor>[0];
+  expect(noticeFor(node)?.data).toEqual({ kind: 'agent_completed', agentId: 'a1', summary: 'Agent "alpha" (explore) failed: Unknown error.' });
+});
+
 test('the bridge numbers turns and maps child session events to Reference Assistant events', () => {
   const bridge = new EventBridge();
   expect(bridge.translate({ type: 'turn_start', turnIndex: 4, timestamp: 1 } as never)).toEqual({ type: 'assistant.turn_start', data: { turnId: '0' } });
   expect(bridge.translate({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text: 'hi' }] } } as never)).toEqual({ type: 'assistant.message', data: { content: 'hi' } });
   expect(bridge.translate({ type: 'message_end', message: { role: 'user', content: 'hello' } } as never)).toEqual({ type: 'user.message', data: { content: 'hello' } });
   expect(bridge.translate({ type: 'message_end', message: { role: 'toolResult', content: [] } } as never)).toBe(undefined);
+  expect(bridge.translate({ type: 'message_end', message: { role: 'assistant' } } as never)).toEqual({ type: 'assistant.message', data: { content: '' } });
   expect(bridge.translate({ type: 'message_update', message: {}, assistantMessageEvent: { type: 'text_delta', delta: 'h' } } as never)).toEqual({ type: 'assistant.message_delta', data: { delta: 'h' }, ephemeral: true });
+  expect(bridge.translate({ type: 'message_update', message: {}, assistantMessageEvent: { type: 'thinking_delta', delta: 'h' } } as never)).toBe(undefined);
   expect(bridge.translate({ type: 'tool_execution_start', toolCallId: 't', toolName: 'read', args: { path: 'a' } } as never)).toEqual({ type: 'tool.execution_start', data: { toolCallId: 't', toolName: 'read', arguments: { path: 'a' } } });
   expect(bridge.translate({ type: 'tool_execution_end', toolCallId: 't', toolName: 'read', isError: true } as never)).toEqual({ type: 'tool.execution_complete', data: { toolCallId: 't', toolName: 'read', success: false } });
   expect(bridge.translate({ type: 'tool_execution_start', toolCallId: 'n', toolName: 'x', args: {}, parentToolCallId: 'p' } as never)).toBe(undefined);
@@ -230,4 +255,38 @@ test.for([
   { value: 'later', expected: 300 },
 ])('COPILOT_TASK_WAIT_TIMEOUT_SECONDS=$value gives $expected seconds', ({ value, expected }) => {
   expect(waitSeconds(value === undefined ? {} : { COPILOT_TASK_WAIT_TIMEOUT_SECONDS: value })).toBe(expected);
+});
+
+test('the tasks view lists a background shell with its id, kind, status and command', async () => {
+  const fixture = await workerFixture({ shells: true });
+  try {
+    const started = await fixture.call('BackgroundShell', { command: 'sleep 30', title: 'watcher' });
+    const shell = started.details as { id: string };
+    const [notice] = await fixture.command('tasks', '');
+    expect(notice?.message).toContain(`id: ${shell.id} | kind: shell | status: running | command: sleep 30`);
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('COPILOT_EVENTS_LOG_DIRECTORY records subagent events as per-session JSONL envelopes', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-events-log-'));
+  vi.stubEnv('COPILOT_EVENTS_LOG_DIRECTORY', directory);
+  const fixture = await workerFixture();
+  try {
+    await fixture.call('task', { agent_type: 'general-purpose', name: 'logged', description: 'probe', prompt: 'hello', mode: 'background' });
+    const file = join(directory, `${fixture.session.sessionManager.getSessionId()}.jsonl`);
+    const envelopes = (await readFile(file, 'utf8'))
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line) as { id: string; timestamp: string; parentId: string | null; type: string; data: unknown });
+    const started = envelopes.find((envelope) => envelope.type === 'subagent.started');
+    expect(started).toMatchObject({ type: 'subagent.started', data: { agentName: 'general-purpose', agentDisplayName: 'logged' } });
+    expect(typeof started?.id).toBe('string');
+    expect(typeof started?.timestamp).toBe('string');
+    expect(started).toHaveProperty('parentId');
+  } finally {
+    await fixture.close();
+    await rm(directory, { recursive: true, force: true });
+  }
 });

@@ -1,15 +1,17 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { Type } from 'typebox';
 import { expect, test, vi } from 'vitest';
 import type { EventEnvelope } from '../src/subagents/events.ts';
 import { rpcChannel, rpcResultChannel } from '../src/subagents/rpc.ts';
 import type { WorkflowLimits } from '../src/subagents/settings.ts';
 import { checkLimits, effectiveLimits, overCredits } from '../src/subagents/workflows/limits.ts';
-import { WorkflowRuntime, workflowsEnabled } from '../src/subagents/workflows/runtime.ts';
+import { publicWorkflow, WorkflowRuntime, workflowsEnabled } from '../src/subagents/workflows/runtime.ts';
 import { Slots } from '../src/subagents/workflows/slots.ts';
 import { type Change, WorkflowStore, workflowEntryType } from '../src/subagents/workflows/store.ts';
-import { defineWorkflow, type WorkflowDeclaration, WorkflowPause } from '../src/subagents/workflows/types.ts';
+import { workflowTools } from '../src/subagents/workflows/tools.ts';
+import { defineWorkflow, type RunRecord, type WorkflowDeclaration, WorkflowPause } from '../src/subagents/workflows/types.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 const limits: WorkflowLimits = { maxConcurrentSubagents: 2, maxTotalSubagents: 3, timeoutSeconds: 60, maxAiCredits: 2 };
@@ -37,6 +39,11 @@ test('a soft credit ceiling only bites after the paying turn settles', () => {
   expect(overCredits({ effectiveLimits: limits, consumption: consumption(1, 2) })).toBeUndefined();
 });
 
+test('a run with no total or timeout limit keeps admitting subagents', () => {
+  const unbounded = { effectiveLimits: { maxTotalSubagents: undefined, timeoutSeconds: undefined }, consumption: consumption(99, 0) };
+  expect(checkLimits(unbounded, 10_000_000)).toEqual({ ok: true });
+});
+
 test('effective limits layer per run over declared over configured defaults', () => {
   const defaults: WorkflowLimits = { maxConcurrentSubagents: 9, maxTotalSubagents: 9 };
   expect(effectiveLimits({ declaration: {}, defaults })).toEqual({ ...defaults, maxAiCredits: 5, timeoutSeconds: 1800 });
@@ -56,6 +63,10 @@ test.for([
 
 test('a pause carries its checkpoint key', () => {
   expect(new WorkflowPause('gate').key).toBe('gate');
+});
+
+test('defineWorkflow refuses a declaration whose run is not callable', () => {
+  expect(() => defineWorkflow({ name: 'no-run', description: 'd', run: 'nope' as never })).toThrow("Workflow 'no-run' needs a run function.");
 });
 
 test('workflows need the dynamic workflows switch', () => {
@@ -186,6 +197,66 @@ test('a run the previous process left interrupted can be resumed', async () => {
   expect(resumed).toMatchObject({ status: 'completed', attempt: 2, result: 'done' });
 });
 
+function stubRuntime(factory: unknown, emit: (type: string, data?: unknown) => void = () => {}, now?: () => number): WorkflowRuntime {
+  return new WorkflowRuntime({
+    pi: { events: { emit: () => {}, on: () => () => {} } } as never,
+    events: { emit } as never,
+    factory: factory as never,
+    env: () => ({ COPILOT_DYNAMIC_WORKFLOWS: '1' }) as NodeJS.ProcessEnv,
+    settings: { read: () => ({ settings: { workflows: { maxConcurrentRuns: 4, defaultLimits: {} } } }) },
+    ...(now ? { now } : {}),
+    log: () => {},
+    persist: () => {},
+  });
+}
+
+test('pausing and halting every run emit workflow.run_settled', async () => {
+  const settled: unknown[] = [];
+  const holds: (() => void)[] = [];
+  const runtime = stubRuntime({}, (type, data) => {
+    if (type === 'workflow.run_settled') settled.push((data as { status?: unknown }).status);
+  });
+  const holding = (name: string) => defineWorkflow({ name, description: 'Holds until the test releases it', run: async () => new Promise<string>((resolve) => holds.push(() => resolve(name))) });
+  runtime.register(holding('pause-hold'));
+  runtime.register(holding('halt-hold'));
+  const pausing = runtime.start('pause-hold', undefined, {} as never, 'rpc');
+  const paused = await runtime.pause(runtime.runs()[0].id);
+  holds.shift()?.();
+  await pausing;
+  const halting = runtime.start('halt-hold', undefined, {} as never, 'rpc');
+  await runtime.haltAll();
+  holds.shift()?.();
+  await halting;
+  expect(paused.status).toBe('paused');
+  expect(settled).toEqual(['paused', 'halted']);
+});
+
+test('a failed preparation releases its admission and the guard never goes below zero', async () => {
+  const runtime = stubRuntime({
+    create: async () => {
+      throw new Error('preparation failed');
+    },
+  });
+  runtime.register(defineWorkflow({ name: 'failing-prep', description: 'Fails before the child starts', run: async (ctx) => ctx.agent('hello') }));
+  const failed = await runtime.start('failing-prep', undefined, {} as never, 'rpc');
+  expect(failed).toMatchObject({ status: 'error', failure: { type: 'error', message: 'preparation failed' }, consumption: { subagents: 0 } });
+  const store = new WorkflowStore(() => {});
+  const created = store.create('build', { limits }, undefined, {}, {}, 1000);
+  store.claim(created.id, 1, 1000);
+  expect(store.releaseSubagent(created.id)?.consumption.subagents).toBe(0);
+});
+
+test('a credit limit ends the run as workflow_limit_reached and a raised limit resumes it', async () => {
+  const runtime = stubRuntime({
+    create: async () => ({ launched: { settled: Promise.resolve({ status: 'completed', turns: ['ok'] }) } }),
+  });
+  runtime.register(defineWorkflow({ name: 'credit-flow', description: 'Spends past a zero credit ceiling', limits: { maxAiCredits: 0 }, run: async (ctx) => ctx.agent('hello') }));
+  const stopped = await runtime.start('credit-flow', undefined, {} as never, 'rpc');
+  expect(stopped).toMatchObject({ status: 'error', failure: { type: 'workflow_limit_reached', message: expect.stringContaining('maxAiCredits (0) was exceeded') }, consumption: { credits: 1 } });
+  const resumed = await runtime.resume(stopped.id, {} as never, { maxAiCredits: 5 });
+  expect(resumed).toMatchObject({ status: 'completed', attempt: 2, effectiveLimits: { maxAiCredits: 5 }, consumption: { credits: 2 } });
+});
+
 test('a waiter takes a slot the moment a holder releases it and never on a timer', async () => {
   const slots = new Slots(1);
   const signal = new AbortController().signal;
@@ -217,6 +288,21 @@ test('an aborted waiter leaves the line without blocking the waiters behind it',
 test('a limit of undefined never makes a caller wait', async () => {
   const slots = new Slots(undefined);
   await expect(Promise.all([slots.acquire(new AbortController().signal), slots.acquire(new AbortController().signal)])).resolves.toHaveLength(2);
+});
+
+test('closing wakes a waiter and refuses it instead of hanging', async () => {
+  const slots = new Slots(1);
+  await slots.acquire(new AbortController().signal);
+  const waiting = slots.acquire(new AbortController().signal);
+  slots.close();
+  await expect(waiting).rejects.toThrow('Factory subagent limiter is closed');
+  await expect(slots.acquire(new AbortController().signal)).rejects.toThrow('Factory subagent limiter is closed');
+});
+
+test('an already-aborted caller is cancelled even when a slot is free', async () => {
+  const controller = new AbortController();
+  controller.abort();
+  await expect(new Slots(undefined).acquire(controller.signal)).rejects.toThrow('The workflow was cancelled.');
 });
 
 type Fixture = Awaited<ReturnType<typeof workerFixture>>;
@@ -469,4 +555,165 @@ test('cancelling a running workflow stops its in-flight child', async () => {
   } finally {
     await fixture.close();
   }
+});
+
+test('a workflow subagent admitted after the run settled reports the closed limiter', async () => {
+  const { fixture } = await workflowFixture();
+  try {
+    const started = await rpc(fixture, 'session.workflow.run', { name: 'probe-flow' });
+    const id = (started.result as { id: string }).id;
+    expect((started.result as { status: string }).status).toBe('completed');
+    const late = await rpc(fixture, 'session.workflow.agent', { id, prompt: 'late' });
+    expect(late).toMatchObject({ ok: false, error: 'Factory subagent limiter is closed' });
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('a schema call retries once on a parse or match failure', async () => {
+  vi.stubEnv('COPILOT_DYNAMIC_WORKFLOWS', '1');
+  const fixture = await workerFixture();
+  const spawned: string[] = [];
+  fixture.eventBus.on('reference-assistant:event', (payload) => {
+    const { type } = payload as { type: string };
+    if (type === 'subagent.started') spawned.push(type);
+  });
+  fixture.eventBus.emit('reference-assistant:register-workflow', {
+    name: 'schema-flow',
+    description: 'A schema call the deterministic child never satisfies',
+    limits: { maxTotalSubagents: 4 },
+    run: async (ctx) => ctx.agent('hello', { schema: Type.Object({ ok: Type.Boolean() }) }),
+  } satisfies WorkflowDeclaration);
+  try {
+    const started = await rpc(fixture, 'session.workflow.run', { name: 'schema-flow' });
+    expect(spawned).toEqual(['subagent.started', 'subagent.started']);
+    expect(started.result).toMatchObject({
+      status: 'error',
+      failure: { type: 'error', message: expect.stringContaining('did not match the requested schema') },
+      consumption: { subagents: 2 },
+    });
+  } finally {
+    await fixture.close();
+  }
+});
+
+test('a schema retry does not start after the run timeout has elapsed', async () => {
+  let clock = 0;
+  let created = 0;
+  const runtime = stubRuntime(
+    {
+      create: async () => {
+        created += 1;
+        clock += 2000;
+        return { launched: { settled: Promise.resolve({ status: 'completed', turns: ['not json'] }) } };
+      },
+    },
+    () => {},
+    () => clock,
+  );
+  runtime.register(
+    defineWorkflow({
+      name: 'timeout-flow',
+      description: 'A schema call whose retry would start past the timeout',
+      limits: { timeoutSeconds: 1 },
+      run: async (ctx) => ctx.agent('hello', { schema: Type.Object({ ok: Type.Boolean() }) }),
+    }),
+  );
+  const failed = await runtime.start('timeout-flow', undefined, {} as never, 'rpc');
+  expect(created).toBe(1);
+  expect(failed).toMatchObject({
+    status: 'error',
+    failure: { type: 'workflow_limit_reached', message: expect.stringContaining('timeoutSeconds (1) elapsed') },
+    consumption: { subagents: 1 },
+  });
+});
+
+function workflowToolsFixture() {
+  const run: RunRecord = {
+    id: 'run-1',
+    name: 'probe',
+    attempt: 1,
+    status: 'completed',
+    arguments: { a: 1 },
+    ownerEpoch: 1,
+    declaredLimits: {},
+    effectiveLimits: {},
+    consumption: { subagents: 0, credits: 0, startedAt: 0, elapsedSeconds: 0 },
+    logs: [],
+    phases: ['verify'],
+    result: 'done',
+    createdAt: 1,
+    updatedAt: 2,
+  };
+  const calls: string[] = [];
+  const runtime = {
+    start: async (name: string, args: unknown, _ctx: unknown, source: string) => {
+      calls.push(`start:${name}:${JSON.stringify(args)}:${source}`);
+      return run;
+    },
+    runs: () => [run, { ...run, id: 'run-2' }],
+    cancel: async (id: string) => {
+      calls.push(`cancel:${id}`);
+      return { ...run, id, status: 'cancelled' as const };
+    },
+    pause: async (id: string) => {
+      calls.push(`pause:${id}`);
+      return { ...run, id, status: 'paused' as const };
+    },
+    resume: async (id: string, _ctx: unknown) => {
+      calls.push(`resume:${id}`);
+      return { ...run, id, status: 'completed' as const, attempt: 2 };
+    },
+    get: (id: string) => (id === 'run-1' ? run : undefined),
+    journal: (id: string) => ({ step: id }),
+  };
+  const tools = workflowTools(runtime as never);
+  const tool = (name: string) => {
+    const found = tools.find((candidate) => candidate.name === name);
+    if (!found) throw new Error(`workflow tool ${name} is not registered`);
+    return found;
+  };
+  return { tool, run, calls };
+}
+
+function textOf(result: unknown): string {
+  const content = (result as { content?: readonly { text?: string }[] }).content ?? [];
+  return content.map((part) => part.text ?? '').join('');
+}
+
+test('run_dynamic_workflow returns the started run as text and structured content', async () => {
+  const { tool, run, calls } = workflowToolsFixture();
+  const result = await tool('run_dynamic_workflow').execute('call-1', { name: 'probe', arguments: { a: 1 } }, undefined, undefined, {} as never);
+  const started = publicWorkflow(run);
+  expect(textOf(result)).toBe(JSON.stringify(started));
+  expect((result as { details: unknown }).details).toEqual({ run: started });
+  expect((result as { structuredContent: unknown }).structuredContent).toEqual({ run: started });
+  expect(calls).toEqual(['start:probe:{"a":1}:tool']);
+});
+
+test('dynamic_workflows_manage lists runs and forwards cancel, pause and resume by id', async () => {
+  const { tool, run, calls } = workflowToolsFixture();
+  const manage = tool('dynamic_workflows_manage');
+  const list = await manage.execute('call-1', { action: 'list' }, undefined, undefined, {} as never);
+  expect(JSON.parse(textOf(list))).toEqual([publicWorkflow(run), publicWorkflow({ ...run, id: 'run-2' })]);
+  const cancelled = await manage.execute('call-2', { action: 'cancel', run_id: 'run-1' }, undefined, undefined, {} as never);
+  expect((cancelled as { details: { run: { status: string } } }).details.run.status).toBe('cancelled');
+  const paused = await manage.execute('call-3', { action: 'pause', run_id: 'run-1' }, undefined, undefined, {} as never);
+  expect((paused as { details: { run: { status: string } } }).details.run.status).toBe('paused');
+  const resumed = await manage.execute('call-4', { action: 'resume', run_id: 'run-1' }, undefined, undefined, {} as never);
+  expect((resumed as { details: { run: { status: string; attempt: number } } }).details.run).toMatchObject({ status: 'completed', attempt: 2 });
+  expect(calls).toEqual(['cancel:run-1', 'pause:run-1', 'resume:run-1']);
+});
+
+test('dynamic_workflows_manage refuses an action without a run id', async () => {
+  const { tool } = workflowToolsFixture();
+  await expect(tool('dynamic_workflows_manage').execute('call-1', { action: 'pause' }, undefined, undefined, {} as never)).rejects.toThrow('dynamic_workflows_manage pause needs a run_id.');
+});
+
+test('read_workflow_run returns the public run with its journal and rejects an unknown id', async () => {
+  const { tool, run } = workflowToolsFixture();
+  const read = tool('read_workflow_run');
+  const found = await read.execute('call-1', { run_id: 'run-1' }, undefined, undefined, {} as never);
+  expect((found as { details: unknown }).details).toEqual({ run: { ...publicWorkflow(run), journal: { step: 'run-1' } } });
+  await expect(read.execute('call-2', { run_id: 'ghost' }, undefined, undefined, {} as never)).rejects.toThrow('Unknown workflow run: ghost');
 });

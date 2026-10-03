@@ -2,7 +2,7 @@ import type { JsonValue } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { asShellHandoff, type ShellRole, shellHandoff, shellHandoffEvent, shellRole } from './shell-ownership.ts';
-import { type ShellRecord, ShellRuntime, shellDirs } from './shell-runtime.ts';
+import { type ShellRecord, ShellRuntime, type ShellStatus, shellDirs } from './shell-runtime.ts';
 import { stopPendingEvent } from './subagents/stop-pending.ts';
 
 const ShellStatusSchema = Type.Union([
@@ -37,6 +37,15 @@ function started(record: ShellRecord) {
 
 function json<T>(details: T) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(details, null, 2) }], details, structuredContent: details as unknown as JsonValue };
+}
+
+export type ShellTask = Readonly<{ id: string; status: ShellStatus; command: string }>;
+
+const shellRuntimes = new WeakMap<ExtensionAPI, ShellRuntime>();
+
+/** The shell tasks owned by this extension instance, for the /tasks listing. */
+export function shellTasks(pi: ExtensionAPI): readonly ShellTask[] {
+  return (shellRuntimes.get(pi)?.list() ?? []).map((shell) => ({ id: shell.id, status: shell.status, command: shell.command }));
 }
 
 function handOff(pi: ExtensionAPI, runtime: ShellRuntime): boolean {
@@ -75,6 +84,7 @@ function registerOwnership(pi: ExtensionAPI, runtime: ShellRuntime): void {
 
 export function registerShells(pi: ExtensionAPI): void {
   const runtime = new ShellRuntime(pi);
+  shellRuntimes.set(pi, runtime);
   registerOwnership(pi, runtime);
   pi.on('message_end', (event) => {
     const message = event.message;

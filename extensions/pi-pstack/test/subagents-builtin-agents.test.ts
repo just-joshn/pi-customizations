@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { declaredTools as declaredToolsOf } from '../src/subagents/agent-definition.ts';
+import { allTools, builtInPromptParts, customPromptParts, declaredTools as declaredToolsOf } from '../src/subagents/agent-definition.ts';
 import { type AgentGates, type RegistryInputs, resolveAgentType } from '../src/subagents/agent-registry.ts';
 
 const everything: AgentGates = { rubberDuck: true, subconscious: true };
@@ -28,6 +28,11 @@ test('task lists three candidate models and every tool', () => {
 
 test('research pins a single model string', () => {
   expect(builtIn('research').model).toBe('claude-sonnet-5');
+});
+
+test('custom agents inherit every built-in prompt part except their own instructions', () => {
+  expect(customPromptParts).toEqual({ ...builtInPromptParts, includeCustomAgentInstructions: true });
+  expect(allTools).toEqual({ kind: 'all' });
 });
 
 test('general-purpose has no model and a prompt that cannot be overridden', () => {

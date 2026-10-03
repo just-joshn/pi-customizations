@@ -1,4 +1,4 @@
-.PHONY: verify sweep-tui-skin verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
+.PHONY: verify sweep-tui-skin verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-parity-audit verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
 
 verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-install verify-python
 
@@ -20,10 +20,16 @@ verify-test-conventions:
 verify-extension:
 	bun run --filter pi-pstack check:resources
 	bun run --filter pi-pstack check:native-first
+	bun run --filter pi-pstack check:parity
 	bun run --filter pi-pstack typecheck
 	bun run --filter pi-pstack test:coverage
 	bun run --filter pi-pstack test:helpers
 	bun run --filter pi-pstack check:journeys
+
+# The clause inventory checks provenance against ~/src/experiments/plugins and its git history, so it needs that
+# preserved checkout and stays out of the portable verify-extension target.
+verify-parity-audit:
+	bun run --filter pi-pstack check:native-parity -- --allow-external
 
 verify-oauth:
 	bun run --filter pi-anthropic-oauth typecheck

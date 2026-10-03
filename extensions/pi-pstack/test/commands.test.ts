@@ -333,3 +333,17 @@ test('pstack index entry point wires extension hooks and registers all tools', a
   expect(event1.systemPromptOptions.sections).not.toHaveProperty('pstack_mode');
   expect(event1.systemPromptOptions.sections).not.toHaveProperty('pstack_todos');
 });
+
+test('input originating from an extension bypasses native skill rewriting', async () => {
+  let input: ((event: { text: string; source?: string }, ctx: ExtensionContext) => Promise<unknown>) | undefined;
+  const pi = {
+    on: (_event: string, handler: typeof input) => {
+      input = handler;
+    },
+    getCommands: () => [],
+    appendEntry() {},
+  } as unknown as ExtensionAPI;
+  registerNativeInput(pi, new Map(), createState(pi));
+  const ctx = { hasUI: true, ui: { notify() {} } } as unknown as ExtensionContext;
+  expect(await input?.({ text: '/skill:poteto-mode off', source: 'extension' }, ctx)).toEqual({ action: 'continue' });
+});

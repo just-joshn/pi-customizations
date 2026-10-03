@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { anthropicProvider } from '@earendil-works/pi-ai/providers/anthropic';
 import type { ExtensionCommandContext, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { expect, test, vi } from 'vitest';
-import { modelConfigPath, readModelRule, resolveModel, setupModels } from '../src/models.ts';
+import { modelConfigPath, readModelRule, resolveModel, roleNames, setupModels } from '../src/models.ts';
 
 const found = anthropicProvider()
   .getModels()
@@ -152,25 +152,7 @@ async function verifyFlooredBudget() {
   expect(floored).toMatch(/arena runners: auto, auto, inherit-parent/);
 }
 
-const allRoles = [
-  'feature, refactoring',
-  'bug-fix',
-  'perf-issue',
-  'hillclimb',
-  'judgment and prose',
-  'hardest tasks',
-  'how explorer',
-  'how explainer',
-  'why investigators',
-  'why synthesizer',
-  'reflect tooling',
-  'reflect judgment, divergent, synthesizer',
-  'arena runners',
-  'arena cross-judge pool',
-  'swarm workers',
-  'architect runners',
-  'interrogate reviewers',
-];
+const allRoles = [...roleNames];
 
 function scriptedCustom(scripts: string[][], frames: string[][]) {
   return (async (factory: (...args: unknown[]) => unknown) =>
@@ -476,4 +458,11 @@ test('setupModels non-TUI mode edits single and panel roles, handles needsChoice
     vi.unstubAllEnvs();
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test('the setup-pstack role table lists every role the tool writes, so a re-run does not drop one as retired', async () => {
+  const skill = await readFile(new URL('../skills/setup-pstack/SKILL.md', import.meta.url), 'utf8');
+  const fence = skill.match(/```[\s\S]*?```/g)?.find((block) => block.includes('feature, refactoring: ')) ?? '';
+  const listed = fence.split('\n').flatMap((line) => (/^[a-z][a-z0-9 ,-]*: /.test(line) && !line.startsWith('description: ') ? [line.slice(0, line.indexOf(': '))] : []));
+  expect(listed.toSorted()).toEqual([...roleNames].toSorted());
 });

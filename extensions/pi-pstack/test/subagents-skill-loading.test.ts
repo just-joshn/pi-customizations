@@ -24,6 +24,23 @@ test('a declared skill is copied into the child before its first turn', async ()
   }
 });
 
+test('the child transcript keeps the agent filename while its session id differs from the agent id', async () => {
+  const fixture = await workerFixture();
+  try {
+    const started = await fixture.call('task', { agent_type: 'general-purpose', name: 'probe', description: 'probe', prompt: 'hello' });
+    const agentId = String((started as { details: { agent_id: string } }).details.agent_id);
+    const paths = globSync(join(fixture.dir, 'sessions', '**', 'subagents', '**', 'agent-*.jsonl'));
+    expect(paths).toHaveLength(1);
+    const path = paths[0];
+    expect(path.endsWith(`agent-${agentId}.jsonl`)).toBe(true);
+    const header = JSON.parse((await readFile(path, 'utf8')).split('\n')[0]) as { id: string; parentSession?: string };
+    expect(header.id).not.toBe(agentId);
+    expect(header.parentSession).toBe(fixture.session.sessionManager.getSessionFile());
+  } finally {
+    await fixture.close();
+  }
+});
+
 test('a missing declared skill warns by name and the child still runs', async () => {
   const fixture = await workerFixture({ agents: { packless: '---\nname: packless\ndescription: d\nskills: [nope]\n---\nBody\n' } });
   try {

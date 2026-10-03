@@ -3,6 +3,12 @@ const skill = (name) => new RegExp(`^skills/${name}/SKILL\\.md$`);
 export default [
   [
     skill('no-comments'),
+    '1. Spawn `Task` with `subagent_type: "Comment Sicko"`. Pass the scope. Do not restate its rules.',
+    '1. Spawn `Task` with `subagent_type: "Comment Sicko"` and `readonly: true`. Resolve the scope first and pass it as files or diff text, because a read-only persona cannot run the diff command itself. Do not restate its rules.',
+    'Enforce the read-only persona with the Task readonly flag, and state that the caller passes the resolved scope.',
+  ],
+  [
+    skill('no-comments'),
     'Offer the cheapest in-scope type, runtime, test, or CI lint.',
     'Offer the cheapest in-scope type, runtime, test, or CI lint, per the **principle-encode-lessons-in-structure** skill.',
     'Cite the principle that the encoding step applies.',

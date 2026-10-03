@@ -78,6 +78,12 @@ test('no-comments cites the encoding principle and records a declined constraint
   expect(skill).toContain('record the declined constraint as a row in the **show-me-your-work** `decisions.tsv` trail');
 });
 
+test('no-comments spawns Comment Sicko with the readonly flag and feeds it the resolved scope', async () => {
+  expect(await read('no-comments/SKILL.md')).toContain(
+    '1. Spawn `Task` with `subagent_type: "Comment Sicko"` and `readonly: true`. Resolve the scope first and pass it as files or diff text, because a read-only persona cannot run the diff command itself.',
+  );
+});
+
 test('automate-me counts its inline pass separately from the two skills it orchestrates', async () => {
   expect(await read('automate-me/SKILL.md')).toContain('This skill orchestrates two skills and an inline pass.');
 });

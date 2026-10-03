@@ -178,6 +178,8 @@ test('a child session persists its lineage, tool policy and servers beside the t
     const id = String((started.details as { agent_id: string }).agent_id);
     const read = await fixture.call('read_agent', { agent_id: id, wait: true });
     expect(read.content[0]).toMatchObject({ text: expect.stringContaining('[Turn 0]') });
+    const stages = ['tool_init_subagent_preferences', 'tool_init_requested_tools', 'tool_init_inherited_mcp_tools', 'subagent_tool_filter', 'subagent_tool_surface_prepare'];
+    expect(fixture.subagentLogs.filter((line): line is string => typeof line === 'string' && stages.includes(line))).toEqual(stages);
     const { globSync } = await import('node:fs');
     const transcript = globSync(join(fixture.dir, 'sessions', '**', 'subagents', '**', 'agent-*.jsonl'))[0];
     const text = await readFile(transcript, 'utf8');

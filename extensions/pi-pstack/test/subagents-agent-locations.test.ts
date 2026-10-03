@@ -48,3 +48,9 @@ test('an additional root that is already a project root is not repeated', () => 
   mkdirSync(join(repo, '.git'), { recursive: true });
   expect(agentDirectories({ cwd: repo, agentDir: '/pi/agent', home, additionalRoots: [repo] }).filter((entry) => entry.dir.endsWith('.github/agents'))).toHaveLength(1);
 });
+
+test('a working directory outside any repository walks up to the filesystem root', () => {
+  const home = scratchDir('pstack-locations-home-');
+  const found = agentDirectories({ cwd: '/', agentDir: '/pi/agent', home });
+  expect(found.map((entry) => entry.dir)).toEqual(expect.arrayContaining(['/.github/agents', '/.pi/agents']));
+});

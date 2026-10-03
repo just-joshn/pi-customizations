@@ -241,11 +241,21 @@ function markdown(entry) {
     text = portable;
     if (pathTriggered) transformations = [...transformations, 'Pi has no file-path skill trigger. Keep the skill hidden from model selection, and the host contract requires reading it before editing matching files.'];
     if (slug === 'setup-pstack') {
-      text = text.replace(
-        '# Setup pstack',
-        '# Setup pstack\n\nCall `pstack_setup` to perform these steps through native Pi dialogs and validated writes. This skill may be selected when the user asks to configure models. Do not bypass the confirmation by manually writing the rule. The steps below document the contract owned by that tool; /setup-pstack and /skill:setup-pstack use the same implementation.',
-      );
-      transformations = [...transformations, 'Preserve ambient setup invocation and route it through the same native validated dialogs as the slash entry points.'];
+      text = text
+        .replace(
+          '# Setup pstack',
+          '# Setup pstack\n\nCall `pstack_setup` to perform these steps through native Pi dialogs and validated writes. This skill may be selected when the user asks to configure models. Do not bypass the confirmation by manually writing the rule. The steps below document the contract owned by that tool; /setup-pstack and /skill:setup-pstack use the same implementation.',
+        )
+        .replace(
+          'interrogate reviewers: claude-opus-5-5-max, gpt-5.6-sol-max, grok-4.7-xhigh-fast\n',
+          'interrogate reviewers: claude-opus-5-5-max, gpt-5.6-sol-max, grok-4.7-xhigh-fast\ntrail reviewer: inherit-parent\nfigure-it-out judge: inherit-parent\nrecall miners: inherit-parent\n',
+        );
+      transformations = [
+        ...transformations,
+        'Preserve ambient setup invocation and route it through the same native validated dialogs as the slash entry points.',
+        'List the three port-added role lines so a re-run preserves them instead of dropping them as retired.',
+        'Keep the setup-pstack role table in step with src/models.ts roleNames.',
+      ];
     }
   }
   const mapped = mapHostPaths(entry, text);

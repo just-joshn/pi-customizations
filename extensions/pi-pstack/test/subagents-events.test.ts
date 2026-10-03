@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { type EventEnvelope, EventLog, eventsLogIncludesSubagents, provenanceOf } from '../src/subagents/events.ts';
+import { asEnvelope, type EventEnvelope, EventLog, eventChannel, eventEntryType, eventsLogIncludesSubagents, provenanceOf } from '../src/subagents/events.ts';
 
 function harness() {
   const emitted: EventEnvelope[] = [];
@@ -62,10 +62,58 @@ test('provenance records an explicit override that differs from the preference',
   });
 });
 
+test('asEnvelope accepts a complete envelope and rejects malformed values', () => {
+  const envelope = { id: 'e1', timestamp: '2026-01-02T03:04:05.000Z', parentId: null, type: 'subagent.selected', data: { a: 1 } };
+  expect(asEnvelope(envelope)).toEqual(envelope);
+  expect(asEnvelope({ ...envelope, agentId: 'child-1', ephemeral: true })).toMatchObject({ agentId: 'child-1', ephemeral: true });
+  for (const bad of [undefined, null, {}, { ...envelope, id: 1 }, { ...envelope, parentId: undefined }, { ...envelope, ephemeral: false }, { ...envelope, agentId: 7 }]) {
+    expect(asEnvelope(bad)).toBeUndefined();
+  }
+});
+
+test('the event channel and entry type keep their documented names', () => {
+  expect({ channel: eventChannel, entryType: eventEntryType }).toEqual({ channel: 'reference-assistant:event', entryType: 'reference-assistant-event' });
+});
+
+test('relay stamps a child-owned event with the agent id and keeps the durable chain intact', () => {
+  const { log, emitted, persisted } = harness();
+  const root = log.emit('subagent.selected', { agentName: 'a', agentDisplayName: 'A', tools: [] });
+  const childEnvelope: EventEnvelope = { id: 'child-e1', timestamp: '2026-01-02T03:04:06.000Z', parentId: null, type: 'assistant.turn_start', data: {} };
+  log.relay(childEnvelope, 'child-1');
+  const next = log.emit('subagent.deselected', {});
+  expect(emitted[1]).toEqual({ ...childEnvelope, agentId: 'child-1' });
+  expect(persisted.map((envelope) => envelope.id)).toEqual([root.id, 'child-e1', next.id]);
+  expect(next.parentId).toBe(root.id);
+});
+
+test('relay keeps an agent id the child already stamped', () => {
+  const { log, emitted } = harness();
+  log.relay({ id: 'e', timestamp: 't', parentId: null, type: 'assistant.turn_start', data: {}, agentId: 'own' }, 'other');
+  expect(emitted[0]).toMatchObject({ agentId: 'own' });
+});
+
+test('an ephemeral relay is emitted but not persisted', () => {
+  const { log, emitted, persisted } = harness();
+  log.relay({ id: 'e', timestamp: 't', parentId: null, type: 'assistant.turn_start', data: {}, ephemeral: true }, 'child-1');
+  expect(emitted).toHaveLength(1);
+  expect(persisted).toEqual([]);
+});
+
+test('provenance without a configured preference cannot mismatch', () => {
+  expect(provenanceOf({ model: 'a/x', firstDispatched: 'a/x', source: 'session_inheritance', requested: 'a/x' })).toEqual({
+    model: 'a/x',
+    firstDispatchedModel: 'a/x',
+    modelSelectionSource: 'session_inheritance',
+    configuredModelMatchesActual: true,
+    explicitModelOverride: 'a/x',
+  });
+});
+
 test.for([
   { value: 'true', expected: true },
   { value: '1', expected: false },
   { value: 'TRUE', expected: false },
+  { value: ' true ', expected: false },
   { value: undefined, expected: false },
 ])('COPILOT_EVENTS_LOG_INCLUDE_SUBAGENTS=$value is $expected', ({ value, expected }) => {
   expect(eventsLogIncludesSubagents(value === undefined ? {} : { COPILOT_EVENTS_LOG_INCLUDE_SUBAGENTS: value })).toBe(expected);

@@ -14,6 +14,19 @@ async function writeProvider(dir: string): Promise<void> {
   await writeFile(join(dir, 'extensions/provider.ts'), `export { default } from ${JSON.stringify(join(packageRoot, 'test/worker-provider.ts'))};`);
 }
 
+async function removeFixtureDir(dir: string): Promise<void> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      await rm(dir, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      const code = error instanceof Error && 'code' in error ? (error as NodeJS.ErrnoException).code : undefined;
+      if ((code !== 'ENOTEMPTY' && code !== 'EBUSY') || attempt >= 4) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+}
+
 async function closeFixture(session: Awaited<ReturnType<typeof createAgentSession>>['session'] | undefined, dir: string) {
   try {
     if (session) {
@@ -29,7 +42,7 @@ async function closeFixture(session: Awaited<ReturnType<typeof createAgentSessio
     }
   } finally {
     vi.unstubAllEnvs();
-    await rm(dir, { recursive: true, force: true });
+    await removeFixtureDir(dir);
   }
 }
 
