@@ -64,12 +64,14 @@ test('tdd and principle headings use sentence case', async () => {
   expect(await read('principle-make-operations-idempotent/SKILL.md')).toContain('# Make operations idempotent');
 });
 
-test('typescript patterns indent code with tabs, use one quote style, and mark the no-schema cast fallback', async () => {
+test('typescript patterns indent code with tabs, use one quote style, and prove casts through schemas', async () => {
   const patterns = await read('typescript-best-practices/references/patterns.md');
   const spaced = patterns.split('\n').filter((line) => /^ +\S/.test(line) && !/^ \*/.test(line));
   expect(spaced).toEqual([]);
   expect(patterns).toContain('Match the `readonly __brand: "X"` shape.');
-  expect(patterns).toContain('// Do, when the repository has no runtime schema library. Earn the cast at the boundary. With a schema library, parse through the schema helper in the section above instead.');
+  expect(patterns).toContain('const userSchema: z.ZodType<User> = z.object({ id: z.string(), name: z.string() });');
+  expect(patterns).toContain('return userSchema.parse(data);');
+  expect(patterns).not.toContain('return data as User');
 });
 
 test('no-comments cites the encoding principle and records a declined constraint in the trail', async () => {

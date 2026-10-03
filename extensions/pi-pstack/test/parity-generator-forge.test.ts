@@ -29,7 +29,7 @@ test('an the origin host repository never falls back to gh and keeps its work wh
 test('opening a PR pushes the branch first, and creates stack children with --stack-on on Origin', async () => {
   const text = await playbook('opening-a-pr');
   expect(text).toContain('With Origin, push the branch first or pass `--push`, and pass `--status open`.');
-  expect(text).toContain('Create a child with `origin pr create --status open --stack-on <parent-pr>` or `gh pr create --base <parent-branch>` according to the resolved forge.');
+  expect(text).toContain('Without a built-in PR tool, create a child with `origin pr create --status open --stack-on <parent-pr>` or `gh pr create --base <parent-branch>` according to the resolved forge');
 });
 
 test('babysit lists only unresolved Origin threads and holds one watcher with a one-shot fallback heartbeat', async () => {
@@ -49,16 +49,19 @@ test('autonomous run arms a goal with the exit predicate and uses the loop only 
   expect(await playbook('autonomous-run')).toContain('Arm a `/goal` with `CreateGoal` carrying that predicate, so the goal outlives a single turn, and use `/loop` only as the wake mechanism.');
 });
 
-test('each program playbook completes its goal only after the last PR lands and the root audit passes', async () => {
-  expect(await playbook('autopilot-full')).toContain("Call `UpdateGoal` with status complete only after the last PR merges and the root's final verdict audit passes.");
-  expect(await playbook('autopilot-stack')).toContain("Call `UpdateGoal` with status complete only after the last PR joins the stack and the root's final verdict audit passes.");
-  expect(await playbook('multi-phase-plan')).toContain("- [ ] Call `UpdateGoal` with status complete only after the last PR merges or joins the stack and the root's final verdict audit passes.");
+test('program playbooks arm hourly loops without completing a goal they no longer create', async () => {
+  for (const name of ['autopilot-full', 'autopilot-stack', 'multi-phase-plan']) {
+    const text = await playbook(name);
+    expect(text).toContain('/loop 1h');
+    expect(text).not.toContain('UpdateGoal');
+    expect(text).not.toContain('armed `/goal`');
+  }
 });
 
-test('a cloud root arms its audit tick from its own Pi root on the remote VM', async () => {
-  for (const name of ['autopilot-full', 'autopilot-stack', 'multi-phase-plan']) {
-    expect(await playbook(name)).toContain('A cloud root, a Task with `environment: "cloud"` on a remote VM, arms `SubscribeTimer` from its own Pi root on that VM, and the tick fires there.');
-  }
+test('a cloud root arms its session-attached hourly loop on its own VM', async () => {
+  const loop = await readFile(join(root, 'host/skills/loop/SKILL.md'), 'utf8');
+  expect(loop).toContain('A cloud root arms the shell on its own VM.');
+  expect(loop).toContain('`/loop 1h` means 3600 seconds in either environment.');
 });
 
 test('plan lanes prefer a committed verify skill, name their input commands, and keep their screenshots', async () => {

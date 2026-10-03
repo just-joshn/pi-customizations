@@ -52,6 +52,7 @@ const principles = [
   'migrate-callers-then-delete-legacy-apis',
   'separate-before-serializing-shared-state',
   'prove-it-works',
+  'explain-the-number',
   'fix-root-causes',
   'sequence-verifiable-units',
   'test-behavior-not-implementation',
@@ -89,7 +90,7 @@ const transcriptConsumers = [
   'skills/poteto-mode/scripts/worktree-audit.sh',
 ];
 
-test('poteto-mode routes all 23 documented playbooks and 23 principles', async () => {
+test('poteto-mode routes all 23 documented playbooks and 24 principles', async () => {
   const mode = await read('skills/poteto-mode/SKILL.md');
   expect((await readdir(join(root, 'skills/poteto-mode/playbooks'))).toSorted()).toEqual(playbooks.map((name) => `${name}.md`).toSorted());
   for (const name of playbooks) expect(mode.includes(`playbooks/${name}.md`)).toBe(true);

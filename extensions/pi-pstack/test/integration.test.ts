@@ -67,7 +67,7 @@ test('official resource loader separates skills, prompt aliases, and runtime com
   try {
     const { session, loader } = await f.open();
     const { skills, diagnostics } = loader.getSkills();
-    expect(skills.length).toBe(68);
+    expect(skills.length).toBe(71);
     expect(diagnostics).toEqual([]);
     const directories = async (path: string) => (await readdir(path, { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
     const expected = [...(await directories(join(packageRoot, 'skills'))), ...(await directories(join(packageRoot, 'host/skills')))].sort();
@@ -76,7 +76,7 @@ test('official resource loader separates skills, prompt aliases, and runtime com
     const commands = new Set(session.extensionRunner.getRegisteredCommands().map((command) => command.name));
     expect([...commands].sort()).toEqual(['factories', 'fleet', 'goal', 'poteto-mode', 'pstack', 'rubber-duck', 'setup-pstack', 'subagents', 'tasks', 'workflows']);
     const templates = loader.getPrompts().prompts;
-    expect(templates.length).toBe(66);
+    expect(templates.length).toBe(69);
     const aliases = new Set(templates.map((template) => template.name));
     for (const name of [...expected, 'bro']) expect(commands.has(name) || aliases.has(name)).toBe(true);
     expect(skills.some((skill) => skill.name === 'bro')).toBe(false);
@@ -212,7 +212,7 @@ test('native /skill:poteto-mode enters the same mode and /pstack reports status 
     expect(f.requests.length).toBe(callsBeforeStatus);
     const status = session.messages.findLast((message) => message.role === 'custom' && message.customType === 'pstack-status');
     expect(Boolean(status)).toBe(true);
-    expect(JSON.stringify(status)).toMatch(/68 skills, 66 prompt templates/);
+    expect(JSON.stringify(status)).toMatch(/71 skills, 69 prompt templates/);
     expect(JSON.stringify(status)).toMatch(/team-kit 1.2.0/);
     expect(JSON.stringify(status)).toMatch(/Poteto mode on/);
     await prompt(session, '/poteto-mode off', { startsRun: false });
@@ -340,7 +340,7 @@ test('team-kit templates request skill reading and native skills expand complete
   const f = await fixture();
   try {
     const { session, loader } = await f.open();
-    expect(loader.getSkills().skills.length).toBe(68);
+    expect(loader.getSkills().skills.length).toBe(71);
     const names = new Set(loader.getSkills().skills.map((skill) => skill.name));
     for (const name of KIT_SKILL_NAMES) expect(names.has(name)).toBe(true);
     for (const name of ['pr-review-canvas', 'thermo-nuclear-code-quality-review']) {

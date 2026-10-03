@@ -36,9 +36,17 @@ test('the journey verifier rejects an unknown selector instead of passing withou
 });
 
 test(
+  'the no-workers journey selector never invokes a child Task',
+  () => {
+    expect(run('verify-journeys.mjs', [root, '--no-workers'])).toContain('ok   no-workers: no recorded request invokes Task');
+  },
+  verificationDeadlineMs,
+);
+
+test(
   'the shipped resource checker verifies both source inventories and generated resources',
   () => {
-    expect(run('resources.mjs')).toBe('Verified 187 upstream files and 205 generated resources.\n');
+    expect(run('resources.mjs')).toBe('Verified 190 upstream files and 211 generated resources.\n');
   },
   verificationDeadlineMs,
 );
@@ -49,7 +57,7 @@ test('preserved helper behavior and its aggregate coverage pass without changing
   expect(output).toMatch(/watch-pr\/render.ts/);
   const linesCoverage = Number(output.match(/lines: \d+\/\d+ \(([\d.]+)%\)/)?.[1]);
   expect(linesCoverage).toBeGreaterThanOrEqual(80);
-  expect(run('resources.mjs')).toBe('Verified 187 upstream files and 205 generated resources.\n');
+  expect(run('resources.mjs')).toBe('Verified 190 upstream files and 211 generated resources.\n');
 });
 
 test(

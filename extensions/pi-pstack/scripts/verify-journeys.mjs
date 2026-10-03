@@ -147,7 +147,7 @@ async function journeyStatus(ctx) {
   await ctx.run('/pstack tones');
   const statuses = (await ctx.messages()).slice(before).filter((message) => message.customType === 'pstack-status');
   checkEqual('status: each accepted form publishes one status message', statuses.length, 2);
-  check('status: reports the discovered skill and template counts', /68 skills, 66 prompt templates/.test(String(statuses[0]?.content)), String(statuses[0]?.content).slice(0, 200));
+  check('status: reports the discovered skill and template counts', /71 skills, 69 prompt templates/.test(String(statuses[0]?.content)), String(statuses[0]?.content).slice(0, 200));
   const notifications = ctx.ui.filter((request) => request.method === 'notify').map((request) => request.message ?? '');
   check(
     'status: an unknown argument notifies the accepted forms',
@@ -669,7 +669,7 @@ async function journeyResume(ctx) {
 }
 
 async function main() {
-  const workerJourneys = new Set([journeyTaskResume, journeyTaskLifecycle, journeyTaskGates, journeyPersonas, journeyDelegation]);
+  const workerJourneys = new Set([journeyTask, journeyTaskBackground, journeyProgress, journeyTaskResume, journeyTaskLifecycle, journeyTaskGates, journeyPersonas, journeyDelegation]);
   const selected = [...journeys, journeyWorktrees].filter((journey) => (only === '--no-workers' ? !workerJourneys.has(journey) : !only || journey.name.includes(only)));
   if (selected.length === 0) throw new Error(`Unknown journey selector: ${only}`);
   const directory = await mkdtemp(join(tmpdir(), 'pi-pstack-journey-'));

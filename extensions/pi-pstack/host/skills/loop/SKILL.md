@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 ## Mechanism selection
 
-For session-attached local work, use `BackgroundShell` with monitored sentinel output and follow the local sections below. For durable, cron, or unattended work that must survive the initiating UI closing, use native `SubscribeTimer`, `ListSubscriptions`, and `Unsubscribe`. A timer owns a dedicated persistent Pi root, seeded with the initiating conversation as historical context. It does not write to the initiating interactive transcript. Report the returned run ID, session file, subscription ID, and this ownership boundary.
+For session-attached work in a local or cloud Pi root, use `BackgroundShell` with monitored sentinel output and follow the local sections below. A cloud root arms the shell on its own VM. `/loop 1h` means 3600 seconds in either environment. For durable, cron, or unattended work that must survive the initiating UI closing, use native `SubscribeTimer`, `ListSubscriptions`, and `Unsubscribe`. A timer owns a dedicated persistent Pi root, seeded with the initiating conversation as historical context. It does not write to the initiating interactive transcript. Report the returned run ID, session file, subscription ID, and this ownership boundary.
 
 ## Parse
 

@@ -3,9 +3,14 @@ export default [
     path: 'skills/poteto-mode/scripts/check-plan.mjs',
     edits: [
       [
-        'const PROGRAM_MARKERS = ["/goal", "git show origin/main:", /30[- ]minute/, "status message"];',
-        'const PROGRAM_MARKERS = ["/goal", /git show origin\\/[^\\s:`]+:/, /30[- ]minute/, "status message"];',
+        'const PROGRAM_MARKERS = ["git show origin/main:", "/loop 1h", "status message"];',
+        'const PROGRAM_MARKERS = [/git show origin\\/[^\\s:`]+:/, "/loop 1h", "status message"];',
         'Accept any trunk branch in the `git show origin/<trunk>:` marker instead of requiring main.',
+      ],
+      [
+        `for (const marker of PROGRAM_MARKERS) {\n\t\tif (!bodyText(program).includes(marker))`,
+        `for (const marker of PROGRAM_MARKERS) {\n\t\tconst ok = marker instanceof RegExp ? marker.test(bodyText(program)) : bodyText(program).includes(marker);\n\t\tif (!ok)`,
+        'Preserve native trunk matching while requiring the upstream hourly loop marker.',
       ],
       [
         'const BOX = /^\\s*- \\[[ x]\\] (.*)$/;\n',

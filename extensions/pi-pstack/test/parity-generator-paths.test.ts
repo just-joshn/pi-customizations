@@ -108,10 +108,10 @@ test('the generated plan skeleton passes the plan check once the model lane line
   expect(result.status).toBe(0);
 });
 
-test('plan skeleton keeps the trunk read, the 30-minute tick, and the review gate words the plan check pins', async () => {
+test('plan skeleton keeps the trunk read, the hourly tick, and the review gate words the plan check pins', async () => {
   const plan = await skeleton();
   expect(plan).toContain('git show origin/main:');
-  expect(plan).toMatch(/30[- ]minute/);
+  expect(plan).toContain('/loop 1h');
   const gate = plan.match(/- \[ \] Hold the review gate\.[^\n]*/)?.[0] ?? '';
   for (const word of ['screenshot', 'video', 'operator']) expect(gate).toContain(word);
 });
@@ -120,17 +120,17 @@ test('both autopilots re-read their own playbook from trunk or the bundled copy,
   for (const name of ['autopilot-full', 'autopilot-stack']) {
     const text = await playbook(name);
     expect(text).toContain(
-      `re-read this playbook. When the target repository commits it, read it from trunk with \`git show origin/main:<repo path>\`. Otherwise read the bundled \`playbooks/${name}.md\` in the poteto-mode skill directory the host contract names, then re-read the armed \`/goal\`.`,
+      `re-read this playbook. When the target repository commits it, read it from trunk with \`git show origin/main:<repo path>\`. Otherwise read the bundled \`playbooks/${name}.md\` in the poteto-mode skill directory the host contract names`,
     );
   }
 });
 
-test('the plan check names the missing goal marker and passes once the skeleton carries it', async () => {
+test('the plan check names the missing hourly loop marker and passes once the skeleton carries it', async () => {
   const filled = (await skeleton()).replace('Ten lanes on `<swarm workers model>`', 'Ten lanes on `test-model`');
-  const without = filled.replaceAll('/goal', 'the goal');
+  const without = filled.replaceAll('/loop 1h', 'the loop');
   const missing = await withPlan(without, (path) => checkPlan(path, modeDirectory));
   expect(missing.status).toBe(1);
-  expect(missing.stderr).toContain('Program checklist lacks "/goal"');
+  expect(missing.stderr).toContain('Program checklist lacks "/loop 1h"');
   const present = await withPlan(filled, (path) => checkPlan(path, modeDirectory));
   expect(present.status).toBe(0);
 });

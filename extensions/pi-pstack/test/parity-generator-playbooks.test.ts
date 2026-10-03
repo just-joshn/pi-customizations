@@ -66,7 +66,7 @@ test('opening a PR names the playbooks that end in it, and each of them runs it'
   expect(await read('poteto-mode/SKILL.md')).toContain(sentence);
   const running: string[] = [];
   for (const name of (await readdir(join(root, 'skills/poteto-mode/playbooks'))).map((file) => file.replace(/\.md$/, ''))) {
-    if (name !== 'opening-a-pr' && /Opening a PR\*\*/.test(await playbook(name))) running.push(name);
+    if (name !== 'opening-a-pr' && /Run \*\*Opening a PR\*\*/.test(await playbook(name))) running.push(name);
   }
   expect(running.toSorted()).toEqual(named.toSorted());
 });

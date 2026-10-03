@@ -45,12 +45,6 @@ export default [
   ],
   [/^skills\/typescript-best-practices\/references\/patterns\.md$/, "Match the `readonly __brand: 'X'` shape.", 'Match the `readonly __brand: "X"` shape.', 'Use the double-quote style that the code and the rule table use.'],
   [
-    /^skills\/typescript-best-practices\/references\/patterns\.md$/,
-    '// Do. Earn the cast at the boundary.',
-    '// Do, when the repository has no runtime schema library. Earn the cast at the boundary. With a schema library, parse through the schema helper in the section above instead.',
-    'Mark the hand-rolled guard as the no-schema fallback next to the schema-first rule.',
-  ],
-  [
     skill('how'),
     'without the explorer-findings section.',
     'without the explorer-findings section. Drop the sentence that begins "Multiple explorer agents have traced", the paragraph that begins "The explorers each investigated", and the sentence "The explorers did the work, so you shouldn\'t need to re-explore from scratch." No explorer ran, so the explainer explores for itself.',

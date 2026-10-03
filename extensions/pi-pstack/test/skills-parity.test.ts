@@ -27,7 +27,7 @@ test('skills inventory: all pstack, team-kit, and loop skills are accounted for'
   const piSkills = await getSubdirs(join(packageRoot, 'skills'));
   const piHostSkills = await getSubdirs(join(packageRoot, 'host/skills'));
 
-  expect(upstreamPstackSkills.length).toBe(47);
+  expect(upstreamPstackSkills.length).toBe(50);
   expect(piSkills.includes('bro')).toBe(false);
   for (const slug of upstreamPstackSkills) {
     if (slug === 'bro') {
@@ -44,7 +44,7 @@ test('skills inventory: all pstack, team-kit, and loop skills are accounted for'
   }
 
   expect(piHostSkills.includes('loop')).toBe(true);
-  expect(piSkills.length + piHostSkills.length).toBe(68);
+  expect(piSkills.length + piHostSkills.length).toBe(71);
 });
 
 test('reference built-in facilities: host mappings are verified', async () => {
@@ -87,10 +87,10 @@ test('generated resources: repository-relative references resolve in this checko
   expect(targets).toEqual([]);
 });
 
-test('resource map: exactly 205 generated resources are verified with matching hashes', async () => {
+test('resource map: exactly 211 generated resources are verified with matching hashes', async () => {
   const mapPath = join(packageRoot, 'docs/resource-map.json');
   const resources = JSON.parse(await readFile(mapPath, 'utf8')) as { destination: string; sha256: string }[];
-  expect(resources.length).toBe(205);
+  expect(resources.length).toBe(211);
 
   for (const entry of resources) {
     const full = join(packageRoot, entry.destination);
@@ -119,12 +119,12 @@ async function validateSkillMetadata(skill: { name: string; description: string;
   expect(nameMatch?.[1].trim()).toBe(skill.name);
 }
 
-test('skills loader: all 68 skills discover cleanly with valid metadata and frontmatter', async () => {
+test('skills loader: all 71 skills discover cleanly with valid metadata and frontmatter', async () => {
   const f = await fixture();
   try {
     const { loader } = await f.open();
     const skills = loader.getSkills().skills;
-    expect(skills.length).toBe(68);
+    expect(skills.length).toBe(71);
 
     for (const skill of skills) {
       await validateSkillMetadata(skill);

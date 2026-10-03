@@ -58,7 +58,7 @@ test('dependency mappings close documented host gaps without changing source sna
     expect(swarm).toContain('Use `environment: "cloud"` for a configured independent VM');
     expect(swarm).toContain('subagent_type: generalPurpose');
     for (const workflow of [autopilotFull, autopilotStack, multiPhase]) {
-      expect(workflow).toContain('SubscribeTimer');
+      expect(workflow).toContain('/loop 1h');
       expect(workflow).not.toContain('cloud-sleeper');
     }
   } finally {
