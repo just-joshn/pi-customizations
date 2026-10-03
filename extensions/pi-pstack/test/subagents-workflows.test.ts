@@ -197,13 +197,14 @@ test('a run the previous process left interrupted can be resumed', async () => {
   expect(resumed).toMatchObject({ status: 'completed', attempt: 2, result: 'done' });
 });
 
-function stubRuntime(factory: unknown, emit: (type: string, data?: unknown) => void = () => {}): WorkflowRuntime {
+function stubRuntime(factory: unknown, emit: (type: string, data?: unknown) => void = () => {}, now?: () => number): WorkflowRuntime {
   return new WorkflowRuntime({
     pi: { events: { emit: () => {}, on: () => () => {} } } as never,
     events: { emit } as never,
     factory: factory as never,
     env: () => ({ COPILOT_DYNAMIC_WORKFLOWS: '1' }) as NodeJS.ProcessEnv,
     settings: { read: () => ({ settings: { workflows: { maxConcurrentRuns: 4, defaultLimits: {} } } }) },
+    ...(now ? { now } : {}),
     log: () => {},
     persist: () => {},
   });
@@ -594,6 +595,37 @@ test('a schema call retries once on a parse or match failure', async () => {
   } finally {
     await fixture.close();
   }
+});
+
+test('a schema retry does not start after the run timeout has elapsed', async () => {
+  let clock = 0;
+  let created = 0;
+  const runtime = stubRuntime(
+    {
+      create: async () => {
+        created += 1;
+        clock += 2000;
+        return { launched: { settled: Promise.resolve({ status: 'completed', turns: ['not json'] }) } };
+      },
+    },
+    () => {},
+    () => clock,
+  );
+  runtime.register(
+    defineWorkflow({
+      name: 'timeout-flow',
+      description: 'A schema call whose retry would start past the timeout',
+      limits: { timeoutSeconds: 1 },
+      run: async (ctx) => ctx.agent('hello', { schema: Type.Object({ ok: Type.Boolean() }) }),
+    }),
+  );
+  const failed = await runtime.start('timeout-flow', undefined, {} as never, 'rpc');
+  expect(created).toBe(1);
+  expect(failed).toMatchObject({
+    status: 'error',
+    failure: { type: 'workflow_limit_reached', message: expect.stringContaining('timeoutSeconds (1) elapsed') },
+    consumption: { subagents: 1 },
+  });
 });
 
 function workflowToolsFixture() {

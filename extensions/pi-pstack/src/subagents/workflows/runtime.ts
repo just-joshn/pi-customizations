@@ -199,17 +199,22 @@ export class WorkflowRuntime {
     return this.settle(id, epoch, { status: 'error', failure: { type: limit ? 'workflow_limit_reached' : 'error', message } });
   }
 
-  private async agentOnce(runId: string, _epoch: number, prompt: string, options: WorkflowAgentOptions, signal: AbortSignal, ctx: ExtensionContext): Promise<AgentOutcome> {
-    const now = this.now();
-    const before = this.store.get(runId);
-    if (!before) throw new Error(`Unknown workflow run: ${runId}`);
-    const verdict = checkLimits(before, now);
+  /** The first attempt can consume the time budget, so the same check runs again before a schema retry. */
+  private requireWithinLimits(runId: string): void {
+    const run = this.store.get(runId);
+    if (!run) throw new Error(`Unknown workflow run: ${runId}`);
+    const verdict = checkLimits(run, this.now());
     if (!verdict.ok) throw new Error(verdict.message);
+  }
+
+  private async agentOnce(runId: string, _epoch: number, prompt: string, options: WorkflowAgentOptions, signal: AbortSignal, ctx: ExtensionContext): Promise<AgentOutcome> {
+    this.requireWithinLimits(runId);
     try {
       return await this.dispatch(runId, prompt, options, signal, ctx);
     } catch (error) {
       if (!(error instanceof SchemaMiss)) throw error;
     }
+    this.requireWithinLimits(runId);
     return this.dispatch(runId, `${prompt}\n\nYour previous reply was not valid JSON for the requested schema. Reply again with JSON only.`, options, signal, ctx);
   }
 
