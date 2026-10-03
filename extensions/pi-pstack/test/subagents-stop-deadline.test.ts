@@ -1,6 +1,7 @@
 import { AgentSession } from '@earendil-works/pi-coding-agent';
 import { afterEach, expect, test, vi } from 'vitest';
-import { settleWithin } from '../src/subagents/stop-deadline.ts';
+import { settleWithin, stillStoppingMessage, stopPendingDetails } from '../src/subagents/stop-deadline.ts';
+import type { TaskRecord } from '../src/worker-records.ts';
 import { workerFixture } from './worker-fixture.ts';
 import { releasePendingWork } from './worker-gates.ts';
 
@@ -21,6 +22,23 @@ test('settleWithin reports a value or a missed deadline', async () => {
   const late = settleWithin(new Promise(() => {}), 10);
   await vi.advanceTimersByTimeAsync(10);
   expect(await late).toEqual({ settled: false });
+});
+
+test('stillStoppingMessage names the task, the retained record, and the recovery order', () => {
+  const message = stillStoppingMessage('agent-7');
+  expect(message).toContain('Task agent-7 is still stopping');
+  expect(message).toContain('The record is retained as its stop handle');
+  expect(message).toContain('TaskStop re-fires, session restart is the final recovery');
+});
+
+test('stopPendingDetails maps a retained record to a stop-pending handle addressed by its description', () => {
+  const record: TaskRecord = { id: 'agent-7', persona: 'worker', description: 'fix the flaky login test', cwd: '/tmp/repo', readonly: false, sessionFile: 'agent-7.jsonl', outputFile: 'agent-7.out', status: 'interrupted', output: '' };
+  expect(stopPendingDetails(record)).toEqual({ status: 'stop_pending', task_id: 'agent-7', task_type: 'local_agent', command: 'fix the flaky login test', message: stillStoppingMessage('agent-7') });
+});
+
+test('stopPendingDetails falls back to the persona when the record has no description', () => {
+  const record: TaskRecord = { id: 'agent-8', persona: 'reviewer', cwd: '/tmp/repo', readonly: false, sessionFile: 'agent-8.jsonl', outputFile: 'agent-8.out', status: 'interrupted', output: '' };
+  expect(stopPendingDetails(record).command).toBe('reviewer');
 });
 
 test('a wedged stop is unblocked at 10s by SIGKILLing the child bash process group', async () => {
