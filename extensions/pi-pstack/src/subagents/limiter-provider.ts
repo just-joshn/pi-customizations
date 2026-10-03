@@ -4,7 +4,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { Check } from 'typebox/value';
 import { type AcquireRequest, type AcquireResult, SubagentLimiter } from './limiter.ts';
-import { type Reference AssistantSettings, defaultMaxConcurrency, defaultMaxDepth } from './settings.ts';
+import { defaultMaxConcurrency, defaultMaxDepth, type ReferenceSettings } from './settings.ts';
 import type { SettingsStore } from './settings-store.ts';
 
 export const linkChannel = 'reference-assistant:link';
@@ -18,7 +18,7 @@ export function isLinkAcquire(payload: unknown): payload is LinkAcquire {
   return Check(LinkSchema, payload) && 'reply' in payload && typeof payload.reply === 'function';
 }
 
-export function limiterConfig(settings: Reference AssistantSettings, parallelism: number): { maxConcurrent: number; maxDepth: number } {
+export function limiterConfig(settings: ReferenceSettings, parallelism: number): { maxConcurrent: number; maxDepth: number } {
   return { maxConcurrent: settings.subagents.maxConcurrency ?? defaultMaxConcurrency(parallelism), maxDepth: settings.subagents.maxDepth ?? defaultMaxDepth };
 }
 

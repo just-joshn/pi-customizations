@@ -17,12 +17,12 @@ export type ContextTier = Static<typeof TierSchema>;
 export type SubagentSettingsEntry = Readonly<{ model?: string; modelPolicy?: ModelPolicy; effortLevel?: EffortLevel; contextTier?: ContextTier; autoInvoke?: boolean }>;
 export type WorkflowLimits = Readonly<{ maxConcurrentSubagents?: number; maxTotalSubagents?: number; timeoutSeconds?: number; maxAiCredits?: number }>;
 export const defaultWorkflowLimits: WorkflowLimits = { maxConcurrentSubagents: 4, maxTotalSubagents: 20, timeoutSeconds: 1800, maxAiCredits: 5 };
-export type Reference AssistantSettings = Readonly<{
+export type ReferenceSettings = Readonly<{
   subagents: Readonly<{ agents: Readonly<Record<string, SubagentSettingsEntry>>; disabledSubagents: readonly string[]; maxConcurrency?: number; maxDepth?: number; contextManagementTools: boolean }>;
   builtInAgents: Readonly<{ rubberDuck: boolean; rubberDuckAutoInvoke: boolean }>;
   workflows: Readonly<{ maxConcurrentRuns: number; logPhaseNames: boolean; defaultLimits: WorkflowLimits }>;
 }>;
-export type ParsedSettings = Readonly<{ settings: Reference AssistantSettings; warnings: readonly string[] }>;
+export type ParsedSettings = Readonly<{ settings: ReferenceSettings; warnings: readonly string[] }>;
 
 type Source = Readonly<Record<string, unknown>>;
 
@@ -54,7 +54,7 @@ function entryOf(owner: string, raw: unknown, warnings: string[]): SubagentSetti
   };
 }
 
-function subagentsOf(raw: unknown, legacy: unknown, warnings: string[]): Reference AssistantSettings['subagents'] {
+function subagentsOf(raw: unknown, legacy: unknown, warnings: string[]): ReferenceSettings['subagents'] {
   const source: Source = { ...asSource(legacy), ...asSource(raw) };
   const agents = Object.entries(asSource(source.agents)).map(([name, entry]) => [name, entryOf(`subagents.agents.${name}`, entry, warnings)] as const);
   const maxConcurrency = field('subagents', source, 'maxConcurrency', Limit, warnings);
@@ -84,12 +84,12 @@ function limitsOf(raw: unknown, warnings: string[]): WorkflowLimits {
   };
 }
 
-export function parseReference AssistantSettings(raw: unknown): ParsedSettings {
+export function parseReferenceSettings(raw: unknown): ParsedSettings {
   const source = asSource(raw);
   const warnings: string[] = [];
   const builtIn = asSource(source.builtInAgents);
   const workflows = asSource(source.workflows);
-  const settings: Reference AssistantSettings = {
+  const settings: ReferenceSettings = {
     subagents: subagentsOf(source.subagents, source.sub_agents, warnings),
     builtInAgents: {
       rubberDuck: field('builtInAgents', builtIn, 'rubberDuck', Type.Boolean(), warnings) ?? true,

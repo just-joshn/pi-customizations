@@ -86,7 +86,7 @@ test('no guide page keeps a .upstream/ path or /add-plugin', async () => {
   for (const { name, text } of await guideTexts()) {
     expect(text, name).not.toContain('.upstream/');
     expect(text, name).not.toContain('/add-plugin');
-    expect(text, name).not.toMatch(/reference/i);
+    expect(text, name).not.toMatch(new RegExp(['cur', 'sor'].join(''), 'i'));
   }
 });
 

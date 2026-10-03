@@ -1,7 +1,7 @@
 import { expect } from 'vitest';
 import { ask } from './support/context.ts';
 import { test } from './support/fixtures.ts';
-import { BILLING_TEXT, PROVIDER_PREAMBLE, eventType, soleRequest, systemBlocks } from './support/request-body.ts';
+import { BILLING_TEXT, eventType, PROVIDER_PREAMBLE, soleRequest, systemBlocks } from './support/request-body.ts';
 import { collect } from './support/run-stream.ts';
 
 const REPLACEMENT = { model: 'claude-sonnet-4-6', max_tokens: 5, stream: true, messages: [{ role: 'user', content: 'replaced' }] };

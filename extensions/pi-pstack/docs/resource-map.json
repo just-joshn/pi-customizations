@@ -265,7 +265,7 @@
   {
     "source": "upstream/skills/make-bot-ui/SKILL.md",
     "destination": "skills/make-bot-ui/SKILL.md",
-    "sha256": "ca6d3090f542dc3ebd9664596413c997c774ed9fd762e9354b5e230044d59778",
+    "sha256": "85e2c697285963aa3bc36b702abe1bb3bfbadd130ff28a25c44ce13e1dc6c94f",
     "executable": false,
     "transformations": [
       "Replace Reference routine panel and secret card with the native reviewed Pi routine adapter at host/adapters/make-bot-ui/SKILL.md."
@@ -336,7 +336,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/autopilot-full.md",
     "destination": "skills/poteto-mode/playbooks/autopilot-full.md",
-    "sha256": "118d45193a14f0823c02cfb84fc3a5bd39a9d42653d7b013c34e197915df6e5d",
+    "sha256": "e4c700fa902f12a682f8e6c454ac41ee816a24f0645636c4ef9e4db95008ff56",
     "executable": false,
     "transformations": [
       "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
@@ -352,7 +352,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/autopilot-stack.md",
     "destination": "skills/poteto-mode/playbooks/autopilot-stack.md",
-    "sha256": "c09558664c2ee3d52a0f1ffa28bf9a423a4c4c6d049c54c6e762bef995e8b6b1",
+    "sha256": "8f13a19cf434f06c1c89fd7c02ab8b9f751f9bf5223f8a3bc8641340a2baabe9",
     "executable": false,
     "transformations": [
       "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
@@ -369,7 +369,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/babysit.md",
     "destination": "skills/poteto-mode/playbooks/babysit.md",
-    "sha256": "65f797b0a2bc7050c6b9c45f63e4ee2ad5b7db29e5fb368dd8f5f3181f5d72d8",
+    "sha256": "55b99ad1f9bce5c9cf2644550d8ec4c3d17466f18e7efc298e298dd1c7f7cc85",
     "executable": false,
     "transformations": [
       "Resolve references from the skill directory the host contract names, not from the playbook file.",
@@ -427,7 +427,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/multi-phase-plan.md",
     "destination": "skills/poteto-mode/playbooks/multi-phase-plan.md",
-    "sha256": "94e72ab0fddfa3392915cd72ffcbad1d6885656960f59f1b2254f3c098a7ed38",
+    "sha256": "d127948ee72fd847a5376aa9f3e0b4c7b5f23e60ba44916a33336e6c6e6e0055",
     "executable": false,
     "transformations": [
       "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
@@ -444,7 +444,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/opening-a-pr.md",
     "destination": "skills/poteto-mode/playbooks/opening-a-pr.md",
-    "sha256": "dd0355ae42e5154c8e55c3d7d113ba94055349f1e6b1281e27e00aa8e269f471",
+    "sha256": "7ec12c47cacfe43bd9ad8d714e5297a13b8090bb7f706a138e9960dd810c6af0",
     "executable": false,
     "transformations": [
       "Resolve a stale or contradictory upstream guard natively.",
@@ -521,7 +521,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/shipping.md",
     "destination": "skills/poteto-mode/playbooks/shipping.md",
-    "sha256": "f46617eb63e5ee7d9b0b7456144461d2ada442d9291b16b910301932092f8a14",
+    "sha256": "187b3f4b25e6e37a2d334f259257969e23ad6982af79ddc78943c829e244112d",
     "executable": false,
     "transformations": [
       "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
@@ -579,7 +579,7 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/bun.lock",
     "destination": "skills/poteto-mode/scripts/bun.lock",
-    "sha256": "530b7fb6cba7f0b2a6cfc862dbcfe9020c333d45e7e0f448133006583ffdc1f2",
+    "sha256": "6360445e33d1544db2cec4d8d70e1f025ceff48b72e56931a83e8522324f0faa",
     "executable": false,
     "transformations": [
       "Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible."
@@ -588,7 +588,7 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/check-plan.mjs",
     "destination": "skills/poteto-mode/scripts/check-plan.mjs",
-    "sha256": "c47dc2a1c112b66f08144587886776072bde3edd901a1aaee64c253fa558a79c",
+    "sha256": "f7ded079acb997d91ea59088bb1c74f39cd8c7b4225270403f9f82377678c9ed",
     "executable": true,
     "transformations": [
       "Accept any trunk branch in the `git show origin/<trunk>:` marker instead of requiring main.",
@@ -637,7 +637,7 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/package.json",
     "destination": "skills/poteto-mode/scripts/package.json",
-    "sha256": "a49b034b183dcb5735ed948a91eaf76b7f24d6d9ba313704721ad1be7a5f434d",
+    "sha256": "5c96ec710945183ee7596cf6a106add229b137d84cf49d9c71df73e385a8dc94",
     "executable": false,
     "transformations": [
       "Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible."
@@ -667,14 +667,14 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/github.test.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/github.test.ts",
-    "sha256": "0cbce011050522938523e36bb42a260e92b812dcd2076930fa681672ad316b24",
+    "sha256": "6eac3cd488c57f3b818ec2b739e98cfdb442d7c242f7c5233e2351374007b3cb",
     "executable": false,
     "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/github.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/github.ts",
-    "sha256": "b7ec926771e7dacd98bf67f2036e3fa8d2935a5b6632ad2d55d2d6134b6b25e0",
+    "sha256": "bd8da3aca40e69a319f573a20b0fe998f491e1a14b00e87f0f107054dcfc1dfd",
     "executable": false,
     "transformations": [
       "Request pageInfo and accept a reference so review threads can be paged.",
@@ -1440,7 +1440,7 @@
   {
     "source": "upstream/skills/why/SKILL.md",
     "destination": "skills/why/SKILL.md",
-    "sha256": "b33fe8cd7b29cd9081beeac4dcf31a5b331ac0b590e127708200e236c0e74f1b",
+    "sha256": "c075e190c3bf1d69e5c7c3e91e4e7813b6f078d59f2b098bb2b6750bb84b450b",
     "executable": false,
     "transformations": [
       "Replace a Reference-only noun with its Pi equivalent.",
@@ -1734,7 +1734,7 @@
   {
     "source": "upstream-team-kit/skills/pr-review-canvas/styles.css",
     "destination": "skills/pr-review-canvas/styles.css",
-    "sha256": "3c3ff002dd3bfe7f4fdbda521fce05e336c4a7922f4bd4d848f6566a961ceb19",
+    "sha256": "cb1c65cd441e9a882396a92e8e1fc397c6ffe662637fb78168e0ccbd05b02f4e",
     "executable": false,
     "transformations": []
   },

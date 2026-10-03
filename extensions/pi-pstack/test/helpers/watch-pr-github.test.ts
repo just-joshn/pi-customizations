@@ -83,12 +83,12 @@ for (const [label, reply, kind] of fastCases) {
 }
 
 const node = { __typename: 'CheckRun', name: 'ci', status: 'COMPLETED', conclusion: 'SUCCESS', detailsUrl: 'u' };
-const referenceCases: readonly [string, Record<string, unknown>, string | null][] = [
+const botCases: readonly [string, Record<string, unknown>, string | null][] = [
   ['hasNextPage with a reference returns the reference', { hasNextPage: true, endCursor: 'C9' }, 'C9'],
   ['hasNextPage false drops the reference', { hasNextPage: false, endCursor: 'C9' }, null],
   ['hasNextPage with a null reference ends the walk', { hasNextPage: true, endCursor: null }, null],
 ];
-for (const [label, pageInfo, reference] of referenceCases) {
+for (const [label, pageInfo, reference] of botCases) {
   test(`GhGitHubReader.checkRollupPage ${label}`, async () => {
     await withFakes([gh([rollupQuery], ok(rollupPage([node], pageInfo)))], async () => {
       const page = await new GhGitHubReader().checkRollupPage(ctx, null);

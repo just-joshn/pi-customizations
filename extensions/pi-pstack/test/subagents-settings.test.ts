@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { defaultMaxConcurrency, defaultMaxDepth, parseReference AssistantSettings } from '../src/subagents/settings.ts';
+import { defaultMaxConcurrency, defaultMaxDepth, parseReferenceSettings } from '../src/subagents/settings.ts';
 
 const defaults = {
   subagents: { agents: {}, disabledSubagents: [], contextManagementTools: false },
@@ -8,11 +8,11 @@ const defaults = {
 };
 
 test.for([undefined, null, 'text', 7, [], {}])('settings input %j yields the defaults without warnings', (raw) => {
-  expect(parseReference AssistantSettings(raw)).toEqual({ settings: defaults, warnings: [] });
+  expect(parseReferenceSettings(raw)).toEqual({ settings: defaults, warnings: [] });
 });
 
 test('a full settings document is read field by field', () => {
-  const { settings, warnings } = parseReference AssistantSettings({
+  const { settings, warnings } = parseReferenceSettings({
     subagents: {
       agents: { explore: { model: 'gpt-6-luna', modelPolicy: 'required', effortLevel: 'medium', contextTier: 'default' }, 'rubber-duck': { autoInvoke: false } },
       disabledSubagents: ['task'],
@@ -38,7 +38,7 @@ test('a full settings document is read field by field', () => {
 });
 
 test('the legacy sub_agents key maps to subagents and the new key wins on conflict', () => {
-  const { settings } = parseReference AssistantSettings({ sub_agents: { maxDepth: 3, maxConcurrency: 5, disabledSubagents: ['research'] }, subagents: { maxDepth: 6 } });
+  const { settings } = parseReferenceSettings({ sub_agents: { maxDepth: 3, maxConcurrency: 5, disabledSubagents: ['research'] }, subagents: { maxDepth: 6 } });
   expect(settings.subagents).toEqual({ agents: {}, disabledSubagents: ['research'], maxConcurrency: 5, maxDepth: 6, contextManagementTools: false });
 });
 
@@ -53,7 +53,7 @@ test.for([
   { name: 'workflow runs over 16', raw: { workflows: { maxConcurrentRuns: 17 } }, warning: 'workflows.maxConcurrentRuns is invalid and was ignored' },
   { name: 'negative credit limit', raw: { workflows: { defaultLimits: { maxAiCredits: -1 } } }, warning: 'workflows.defaultLimits.maxAiCredits is invalid and was ignored' },
 ])('$name is ignored with a warning', ({ raw, warning }) => {
-  const { settings, warnings } = parseReference AssistantSettings(raw);
+  const { settings, warnings } = parseReferenceSettings(raw);
   expect(warnings).toEqual([warning]);
   expect(settings.subagents.maxDepth).toBeUndefined();
   expect(settings.subagents.maxConcurrency).toBeUndefined();
@@ -61,7 +61,7 @@ test.for([
 });
 
 test('a valid sibling survives an invalid field in the same entry', () => {
-  const { settings, warnings } = parseReference AssistantSettings({ subagents: { agents: { explore: { model: 'm', modelPolicy: 'nope' } } } });
+  const { settings, warnings } = parseReferenceSettings({ subagents: { agents: { explore: { model: 'm', modelPolicy: 'nope' } } } });
   expect(settings.subagents.agents).toEqual({ explore: { model: 'm' } });
   expect(warnings).toEqual(['subagents.agents.explore.modelPolicy is invalid and was ignored']);
 });

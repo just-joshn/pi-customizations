@@ -239,7 +239,7 @@ async function journeyTask(ctx) {
 }
 
 async function journeyTaskBackground(ctx) {
-  const messages = await ctx.callTool('JOURNEY:reference-assistant-background');
+  const messages = await ctx.callTool('JOURNEY:assistant-background');
   const started = messages.find((message) => message.toolName === 'task');
   check(
     'RPC: a background task returns its agent id at once',

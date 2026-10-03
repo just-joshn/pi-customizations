@@ -2,7 +2,7 @@ import { CustomEditor } from '@earendil-works/pi-coding-agent';
 import { CURSOR_MARKER, KeybindingsManager, TUI_KEYBINDINGS, visibleWidth } from '@earendil-works/pi-tui';
 import { describe, expect, test } from 'vitest';
 import { createPresentationStore } from '../src/state/presentation-store.ts';
-import { SkinStyleEditor, createEditorFactory } from '../src/ui/editor.ts';
+import { createEditorFactory, SkinStyleEditor } from '../src/ui/editor.ts';
 
 const ANSI = {
   success: '\u001b[32m',

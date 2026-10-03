@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
 import { builtInAgents } from '../src/subagents/builtin-agents.ts';
-import { parseReference AssistantSettings } from '../src/subagents/settings.ts';
+import { parseReferenceSettings } from '../src/subagents/settings.ts';
 import { applyPreference, parsePreferenceCommand, persistPreference, renderPreferences, usage } from '../src/subagents/subagent-preferences.ts';
 import { scratchDir } from './support/scratch.ts';
 
@@ -84,7 +84,7 @@ test('a settings path that cannot be read as a file surfaces the read error', ()
 });
 
 test('the preference listing marks disabled agents and shows each override', () => {
-  const { settings } = parseReference AssistantSettings({
+  const { settings } = parseReferenceSettings({
     subagents: { agents: { explore: { model: 'gpt-6', modelPolicy: 'required', effortLevel: 'medium', contextTier: 'default' } }, disabledSubagents: ['task'] },
     builtInAgents: { rubberDuck: false },
   });
@@ -93,7 +93,7 @@ test('the preference listing marks disabled agents and shows each override', () 
 });
 
 test('an override without a policy or effort falls back to the preferred policy and the agent default', () => {
-  const { settings } = parseReference AssistantSettings({ subagents: { agents: { task: { model: 'gpt-6' } } } });
+  const { settings } = parseReferenceSettings({ subagents: { agents: { task: { model: 'gpt-6' } } } });
   const taskAgent = builtInAgents.find((agent) => agent.name === 'task');
   expect(taskAgent).toBeDefined();
   expect(renderPreferences(settings, taskAgent ? [taskAgent] : [])).toContain('task: model gpt-6 (preferred), effort default, tier inherit');

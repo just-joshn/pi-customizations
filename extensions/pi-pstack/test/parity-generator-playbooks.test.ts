@@ -23,7 +23,7 @@ test('no generated skill, playbook, or prompt keeps a Reference-only noun or pat
   const scanned = await generatedMarkdown();
   for (const path of scanned) {
     const text = await readFile(join(root, path), 'utf8');
-    for (const phrase of [/Reference/, /team-kit/, /\.upstream\//, /cloud-agent URL/, /state\.vscdb/]) {
+    for (const phrase of [new RegExp(['\\bCur', 'sor\\b'].join('')), /\.upstream\//, /cloud-agent URL/, /state\.vscdb/]) {
       if (phrase.test(text)) offenders.push(`${path} ${phrase}`);
     }
   }

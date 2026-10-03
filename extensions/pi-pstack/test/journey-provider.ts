@@ -168,7 +168,7 @@ function escapingShellCalls(context: Context) {
   return id ? [{ name: BG_SHELL_STOP, arguments: { id } }] : [];
 }
 
-function reference-assistantBackgroundCalls(context: Context): PlannedCall[] {
+function assistantBackgroundCalls(context: Context): PlannedCall[] {
   const results = toolResults(context);
   if (!results.some((message) => message.toolName === 'task')) return [{ name: 'task', arguments: { agent_type: 'general-purpose', name: 'bg-probe', description: 'background probe', prompt: 'JOURNEY:slowchild', mode: 'background' } }];
   if (!results.some((message) => message.toolName === 'list_agents')) return [{ name: 'list_agents', arguments: { scope: 'all' } }];
@@ -182,7 +182,7 @@ function dispatch(requested: string, context: Context): { calls: PlannedCall[] |
   }
   if (requested === 'JOURNEY:tasklist') return { calls: backgroundTaskCalls(context), sequenced: true };
   if (requested === 'JOURNEY:taskresume') return { calls: taskResumeCalls(context), sequenced: true };
-  if (requested === 'JOURNEY:reference-assistant-background') return { calls: reference-assistantBackgroundCalls(context), sequenced: true };
+  if (requested === 'JOURNEY:assistant-background') return { calls: assistantBackgroundCalls(context), sequenced: true };
   if (requested === 'JOURNEY:taskpolicy') return { calls: taskPolicyCalls(context), sequenced: true };
   if (requested === 'JOURNEY:tasksteer') return { calls: taskSteerCalls(context), sequenced: true };
   if (requested === 'JOURNEY:tasklifecycle') return { calls: taskLifecycleCalls(context), sequenced: true };

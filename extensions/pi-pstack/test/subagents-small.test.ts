@@ -13,7 +13,7 @@ import { featureEnabled, rubberDuckRollout, subconsciousEnabled } from '../src/s
 import { SubagentLimiter } from '../src/subagents/limiter.ts';
 import { isLinkAcquire, LimiterProvider, limiterConfig, linkChannel, parentLimiter } from '../src/subagents/limiter-provider.ts';
 import { SubagentScheduler } from '../src/subagents/scheduler.ts';
-import { parseReference AssistantSettings } from '../src/subagents/settings.ts';
+import { parseReferenceSettings } from '../src/subagents/settings.ts';
 import { SettingsStore } from '../src/subagents/settings-store.ts';
 import { TaskRegistry } from '../src/subagents/task-registry.ts';
 import { waitSeconds } from '../src/subagents.ts';
@@ -135,7 +135,7 @@ test('the limiter provider builds one root limiter from the first settings and a
   expect(provider.get()).not.toBe(first);
   const parent = new SubagentLimiter({ maxConcurrent: 1, maxDepth: 1 });
   expect(new LimiterProvider(settings, () => parent).get()).toBe(parent);
-  expect(limiterConfig(parseReference AssistantSettings({}).settings, 8)).toEqual({ maxConcurrent: 8, maxDepth: 4 });
+  expect(limiterConfig(parseReferenceSettings({}).settings, 8)).toEqual({ maxConcurrent: 8, maxDepth: 4 });
 });
 
 test('a child asks the parent for slots over its bus and an unanswered bus refuses', () => {

@@ -2,7 +2,7 @@ import type { AgentDefinition } from './agent-definition.ts';
 import type { McpServerSpec } from './mcp-specs.ts';
 import type { ModelSelection } from './model-selection.ts';
 import { type AssembledPrompt, assembleSystemPrompt, type EnvironmentFacts, type SystemMessageOption, transformFrom } from './prompt-assembly.ts';
-import type { Reference AssistantSettings } from './settings.ts';
+import type { ReferenceSettings } from './settings.ts';
 import type { ExecutionMode } from './task-status.ts';
 import type { ToolPlan } from './tool-mapping.ts';
 
@@ -13,7 +13,7 @@ export type ChildLimits = Readonly<{ maxAgentTurns?: number; lastTurnWarning?: s
 export type BuildRequest = Readonly<{
   definition: AgentDefinition;
   selection: ModelSelection;
-  settings: Reference AssistantSettings;
+  settings: ReferenceSettings;
   agentId: string;
   registryId: string;
   parentRegistryId?: string;

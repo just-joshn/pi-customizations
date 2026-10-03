@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { expect, test, vi } from 'vitest';
 import type { AgentNode } from '../src/subagents/agent-node.ts';
 import { rpcChannel, rpcResultChannel } from '../src/subagents/rpc.ts';
-import { parseReference AssistantSettings } from '../src/subagents/settings.ts';
+import { parseReferenceSettings } from '../src/subagents/settings.ts';
 import { fleetPrompt, registerSubagentCommands, rubberDuckPrompt } from '../src/subagents/subagent-commands.ts';
 import { workerFixture } from './worker-fixture.ts';
 
@@ -227,7 +227,7 @@ test('/workflows lists nothing before a run and summarizes a completed run', asy
 type CommandHandler = (args: string, ctx: unknown) => Promise<void>;
 
 function commandParts(overrides: Record<string, unknown> = {}): Record<string, unknown> {
-  const { settings } = parseReference AssistantSettings({ builtInAgents: { rubberDuck: true } });
+  const { settings } = parseReferenceSettings({ builtInAgents: { rubberDuck: true } });
   return {
     factory: { offered: () => [{ name: 'rubber-duck' }] },
     scheduler: { promoteCurrent: () => undefined, cancel: async (id: string) => ({ id, status: 'cancelled' }), list: () => [] },

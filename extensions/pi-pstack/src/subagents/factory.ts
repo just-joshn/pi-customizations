@@ -17,7 +17,7 @@ import type { ParentServer } from './mcp-inheritance.ts';
 import { gatherParentServers, serversForChild } from './mcp-inheritance.ts';
 import { type ModelOption, type ModelSelection, selectModel } from './model-selection.ts';
 import type { Launched, SubagentScheduler } from './scheduler.ts';
-import type { ContextTier, Reference AssistantSettings, EffortLevel, ModelPolicy } from './settings.ts';
+import type { ContextTier, EffortLevel, ModelPolicy, ReferenceSettings } from './settings.ts';
 import type { SettingsStore } from './settings-store.ts';
 import { parseSubagentHooks, runHooks } from './subagent-hooks.ts';
 import { planTools, zeroToolsMessage } from './tool-mapping.ts';
@@ -80,11 +80,11 @@ export class SubagentFactory {
     this.deps.limiters.reset();
   }
 
-  gates(settings: Reference AssistantSettings): AgentGates {
+  gates(settings: ReferenceSettings): AgentGates {
     return { rubberDuck: settings.builtInAgents.rubberDuck || rubberDuckRollout(this.deps.env), subconscious: subconsciousEnabled(this.deps.env) };
   }
 
-  registryInputs(ctx: ExtensionContext, settings: Reference AssistantSettings): RegistryInputs {
+  registryInputs(ctx: ExtensionContext, settings: ReferenceSettings): RegistryInputs {
     const found = this.discovery.get({ cwd: ctx.cwd, agentDir: getAgentDir() });
     for (const message of found.diagnostics) this.deps.log(message);
     return { custom: found.agents, policy: {}, disabled: settings.subagents.disabledSubagents, gates: this.gates(settings) };
@@ -115,7 +115,7 @@ export class SubagentFactory {
     return writeTools.some((name) => active.includes(name));
   }
 
-  host(ctx: ExtensionContext, settings: Reference AssistantSettings): SubagentHost {
+  host(ctx: ExtensionContext, settings: ReferenceSettings): SubagentHost {
     const inputs = this.registryInputs(ctx, settings);
     return {
       blocksStart: () => this.deps.scheduler.blocksStart(),
@@ -179,7 +179,7 @@ export class SubagentFactory {
       toolCallId: string;
       depth: number;
       scope: { agentId?: string; registryId?: string } | undefined;
-      settings: Reference AssistantSettings;
+      settings: ReferenceSettings;
       raw: unknown;
       extras: CreateExtras;
       inheritedServers: readonly ParentServer[];
@@ -206,7 +206,7 @@ export class SubagentFactory {
     return launched;
   }
 
-  private choose(call: TaskCall, definition: AgentDefinition, settings: Reference AssistantSettings, ctx: ExtensionContext): ModelSelection {
+  private choose(call: TaskCall, definition: AgentDefinition, settings: ReferenceSettings, ctx: ExtensionContext): ModelSelection {
     if (!ctx.model) throw new Error('No parent model is selected. Select a Pi model before starting a subagent.');
     const result = selectModel({
       agent: definition,
@@ -232,7 +232,7 @@ export class SubagentFactory {
   private async plan(input: {
     call: TaskCall;
     definition: AgentDefinition;
-    settings: Reference AssistantSettings;
+    settings: ReferenceSettings;
     raw: unknown;
     ctx: ExtensionContext;
     depth: number;

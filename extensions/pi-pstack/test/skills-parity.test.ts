@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
-import { referenceToolNames, hostInstructions } from '../src/host.ts';
+import { hostInstructions, referenceToolNames } from '../src/host.ts';
 import { readPersona } from '../src/personas.ts';
 import { fixture, packageRoot, prompt } from './session-fixture.ts';
 

@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 import type { AgentDefinition } from './agent-definition.ts';
-import type { ContextTier, Reference AssistantSettings, EffortLevel, ModelPolicy } from './settings.ts';
+import type { ContextTier, EffortLevel, ModelPolicy, ReferenceSettings } from './settings.ts';
 
 export type PreferenceCommand =
   | Readonly<{ kind: 'show' }>
@@ -111,7 +111,7 @@ export function persistPreference(file: string, command: Exclude<PreferenceComma
   return next;
 }
 
-export function renderPreferences(settings: Reference AssistantSettings, agents: readonly AgentDefinition[]): string {
+export function renderPreferences(settings: ReferenceSettings, agents: readonly AgentDefinition[]): string {
   const lines = agents.map((agent) => {
     const entry = settings.subagents.agents[agent.name];
     const parts = [entry?.model ? `model ${entry.model} (${entry.modelPolicy ?? 'preferred'})` : 'model default', `effort ${entry?.effortLevel ?? agent.reasoningEffort ?? 'default'}`, `tier ${entry?.contextTier ?? 'inherit'}`];

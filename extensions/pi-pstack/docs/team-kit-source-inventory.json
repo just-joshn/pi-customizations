@@ -2,17 +2,17 @@
   {
     "path": "plugin-metadata/plugin.json",
     "bytes": 899,
-    "sha256": "9c8622d0577205959b6469a5454cbe2787ad3c6412439759328e92dc0115584d"
+    "sha256": "f2c4f950a966db115b30c5826ec4258ad21d27bc5ead5161e108f875f72a4d97"
   },
   {
     "path": "LICENSE",
     "bytes": 1063,
-    "sha256": "702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0"
+    "sha256": "ce99a576375cd61e7c82f30a8cb37b87e8414735060d1697ea572bee58de781f"
   },
   {
     "path": "README.md",
     "bytes": 2526,
-    "sha256": "6f0e34073ee503824eb5baf52a52119cffe330f2685477ea8d303e881ecd1679"
+    "sha256": "bf7b00ccb9a857f3b30555aea8d13898f72ccbfbd8fed34293267bb945b89b2b"
   },
   {
     "path": "agents/ci-watcher.md",
@@ -22,7 +22,7 @@
   {
     "path": "agents/thermo-nuclear-code-quality-review.md",
     "bytes": 1874,
-    "sha256": "4d15c05be503f9fdb795a292807334558e7619ffc2fd75ddbc9e97e0d6312234"
+    "sha256": "e297eb27fcdfc55f238a66a0412f48844b56c08b454b596c102e8ba60cb19cdf"
   },
   {
     "path": "assets/avatar.png",
@@ -102,7 +102,7 @@
   {
     "path": "skills/pr-review-canvas/styles.css",
     "bytes": 5788,
-    "sha256": "3c3ff002dd3bfe7f4fdbda521fce05e336c4a7922f4bd4d848f6566a961ceb19"
+    "sha256": "cb1c65cd441e9a882396a92e8e1fc397c6ffe662637fb78168e0ccbd05b02f4e"
   },
   {
     "path": "skills/pr-review-canvas/template.html",
@@ -142,6 +142,6 @@
   {
     "path": "skills/workflow-from-chats/SKILL.md",
     "bytes": 2685,
-    "sha256": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16"
+    "sha256": "8bdeae02d7985629ff1fa8486c779d65c205357d3ec02c88edc48b03608ac73d"
   }
 ]

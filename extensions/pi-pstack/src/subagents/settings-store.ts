@@ -1,4 +1,4 @@
-import { type Reference AssistantSettings, parseReference AssistantSettings, type SubagentSettingsEntry } from './settings.ts';
+import { parseReferenceSettings, type ReferenceSettings, type SubagentSettingsEntry } from './settings.ts';
 
 export type SettingsUpdate = Readonly<{ agents?: Readonly<Record<string, SubagentSettingsEntry>>; disabledSubagents?: readonly string[]; contextManagementTools?: boolean }>;
 
@@ -9,7 +9,7 @@ function mergeEntries(left: Entries | undefined, right: Entries | undefined): En
   return Object.fromEntries(names.map((name) => [name, { ...left?.[name], ...right?.[name] }]));
 }
 
-function merged(base: Reference AssistantSettings, update: SettingsUpdate): Reference AssistantSettings {
+function merged(base: ReferenceSettings, update: SettingsUpdate): ReferenceSettings {
   return {
     ...base,
     subagents: {
@@ -33,9 +33,9 @@ export class SettingsStore {
 
   constructor(private readonly load: () => object) {}
 
-  read(): { settings: Reference AssistantSettings; warnings: readonly string[]; raw: unknown } {
+  read(): { settings: ReferenceSettings; warnings: readonly string[]; raw: unknown } {
     const raw = { ...this.load(), ...this.saved };
-    const { settings, warnings } = parseReference AssistantSettings(raw);
+    const { settings, warnings } = parseReferenceSettings(raw);
     return { settings: merged(settings, this.override), warnings, raw };
   }
 
