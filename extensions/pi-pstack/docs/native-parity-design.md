@@ -52,7 +52,7 @@ Benny remains absent from public skill discovery. Native setup creates reviewed 
 
 ## Current grounding
 
-The baseline is HEAD `48a085f5be038c514e1f86a8c29e2aa6b302972c`. Read-only investigators independently audited reference sections 0 to 2, 3 to 5, and 6 to 8. The reference is `/Users/josh-desktop/Documents/DOCS/pstack-reverse-engineering.md`.
+The baseline is HEAD `48a085f5be038c514e1f86a8c29e2aa6b302972c`. Read-only investigators independently audited reference sections 0 to 2, 3 to 5, and 6 to 8. The reference is `~/Documents/DOCS/pstack-reverse-engineering.md`.
 
 On this machine, `orb create --isolated` supplies an Ubuntu LXC machine without host-home mounts. A dedicated `pi-pstack-parity` machine was created for filesystem-isolation verification. `systemd-detect-virt --container` returns `lxc`, while its VM probe returns `none`. It does not prove the independent-VM lane requirement. The existing `re-provider CLI` machine remains untouched. A genuine VM or configured remote host is still required for that gate.
 

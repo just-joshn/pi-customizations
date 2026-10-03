@@ -1,5 +1,5 @@
 ts	phase	decision	why	evidence	result
-2026-10-01T15:24:05Z	frame	Partitioned the full document into three independent audits	The document has 5094 lines and existing parity claims need independent checking	/Users/josh-desktop/Documents/DOCS/pstack-reverse-engineering.md	open
+2026-10-01T15:24:05Z	frame	Partitioned the full document into three independent audits	The document has 5094 lines and existing parity claims need independent checking	~/Documents/DOCS/pstack-reverse-engineering.md	open
 2026-10-01T15:34:12Z	start	Started a fresh parity run after existing frame row	Retain existing artifacts and distinguish this run from earlier work	01a0f811-f22a-7270-9b97-fc3ad2730a62	prior row 2026-10-01T15:24:05Z
 2026-10-01T15:34:12Z	baseline	Corrected native delivery and session-manager fixtures	Tests modeled obsolete API behavior and did not reach the current contracts	test/commands.test.ts;test/detached-rpc.test.ts;test/integration.test.ts	50 focused passes;36 RPC and integration passes;structure violations remain
 2026-10-01T15:58:37Z	isolation	Rejected OrbStack machine as independent VM evidence	The actual guest identifies as LXC rather than a separate virtual machine	docs/native-parity-design.md	filesystem isolation observed;independent VM parity unverified

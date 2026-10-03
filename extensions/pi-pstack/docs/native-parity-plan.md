@@ -1,6 +1,6 @@
 # Native parity run
 
-The target is functional parity with `/Users/josh-desktop/Documents/DOCS/pstack-reverse-engineering.md` on Pi. Every applicable requirement needs an implementation and reproducible evidence. Historical observations remain source facts. A host service cannot count as implemented through prose or a renamed local process.
+The target is functional parity with `~/Documents/DOCS/pstack-reverse-engineering.md` on Pi. Every applicable requirement needs an implementation and reproducible evidence. Historical observations remain source facts. A host service cannot count as implemented through prose or a renamed local process.
 
 ## Workflow
 

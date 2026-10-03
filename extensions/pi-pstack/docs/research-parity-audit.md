@@ -4,7 +4,7 @@ This audit checks the pstack Pi extension against `~/.upstream/research/pstack-e
 
 ## Source identity
 
-`upstream/` matches `/Users/josh-desktop/src/experiments/plugins/pstack` and the Reference cache at commit `ecc249f1e306fc64ddf83c7bed16cacf7c2239db` byte for byte, ignoring `.DS_Store`, `.omc`, and the cache marker. `upstream-team-kit/` matches the source `team-kit`. Every claim about source content therefore holds or fails identically in the snapshot.
+`upstream/` matches `~/src/experiments/plugins/pstack` and the Reference cache at commit `ecc249f1e306fc64ddf83c7bed16cacf7c2239db` byte for byte, ignoring `.DS_Store`, `.omc`, and the cache marker. `upstream-team-kit/` matches the source `team-kit`. Every claim about source content therefore holds or fails identically in the snapshot.
 
 ## Claims
 

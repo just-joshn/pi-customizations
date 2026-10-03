@@ -1,6 +1,6 @@
 # pstack architecture reconstruction report
 
-This report covers the plugin at `/Users/josh-desktop/src/experiments/plugins/pstack`. The plugin version is 0.15.5 (`plugin-metadata/plugin.json`). The monorepo commit is `c47b12849e43f18d5c374c7069c744cc55b0ea00`, which is also the commit of the copy Reference installed on this machine. The report date is 2026-10-02.
+This report covers the plugin at `~/src/experiments/plugins/pstack`. The plugin version is 0.15.5 (`plugin-metadata/plugin.json`). The monorepo commit is `c47b12849e43f18d5c374c7069c744cc55b0ea00`, which is also the commit of the copy Reference installed on this machine. The report date is 2026-10-02.
 
 Method. Four explorers traced separate slices in parallel. They covered packaging and dependencies, the poteto-mode router with its playbooks, the skill library, and the executable tooling with the benny pack. The explorers had no shell. A lead agent then ran a shell-backed census of the tree, ran the test suite and typecheck, inspected the installed Reference cache and the host schema, read a downstream consumer, and read the git history of the plugin directory. Where the lead's measurements and an explorer disagreed, the measurement won. One explainer agent wrote the synthesis. The lead then checked every file and line citation, every backticked path, and every count with a script, and corrected the claims that failed. The Open questions section lists the contradictions that were resolved and the gaps that remain. The appendix lists the commands that regenerate the evidence.
 
@@ -526,7 +526,7 @@ External dependencies.
 | `agent-transcripts/` under the active workspace | `reflect`, `recall`, `eval`, `session-pickup`, `worktree-audit.sh` | Reflect falls back to a digest. Others lose their evidence source |
 | Slack integration, tracker adapter, control adapter | benny only | Benny setup stops until the capabilities exist |
 
-Dependents. `dyl-stack` in the same monorepo depends on pstack. `../dyl-stack/skills/dyl-mode/SKILL.md:20` says "**Requires** `pstack` and `team-kit`". Its `dyl-agent` reads pstack's `poteto-mode`, and its playbooks start with "Read the shared playbook first". Its `dyl-ready-pr` skill also requires `team-kit` and `thermos`. Outside the monorepo, a port of pstack to the Pi agent harness keeps an upstream snapshot at `/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/upstream`. `diff -rq` against this checkout, excluding `node_modules` and `.DS_Store`, reports no differences, so the port tracks 0.15.5.
+Dependents. `dyl-stack` in the same monorepo depends on pstack. `../dyl-stack/skills/dyl-mode/SKILL.md:20` says "**Requires** `pstack` and `team-kit`". Its `dyl-agent` reads pstack's `poteto-mode`, and its playbooks start with "Read the shared playbook first". Its `dyl-ready-pr` skill also requires `team-kit` and `thermos`. Outside the monorepo, a port of pstack to the Pi agent harness keeps an upstream snapshot at `~/src/personal/pi-customizations/extensions/pi-pstack/upstream`. `diff -rq` against this checkout, excluding `node_modules` and `.DS_Store`, reports no differences, so the port tracks 0.15.5.
 
 The census found no references in pstack to `fix-ci`, `loop-on-ci`, `review-and-ship`, `new-branch-and-pr`, `get-pr-comments`, `check-compiler-errors`, `thermo-nuclear-code-quality-review`, or `verify-this`. These team-kit skills exist but pstack does not call them.
 
@@ -762,11 +762,11 @@ Gaps nobody traced.
 
 ## Regenerate the evidence
 
-The census and the report checker live outside the plugin, in `/Users/josh-desktop/.pi/agent/pstack/store/pstack-667d1d07/docs/pstack-recon/`. Both scripts read only. Set `R` to that directory and run the commands from the plugin directory.
+The census and the report checker live outside the plugin, in `~/.pi/agent/pstack/store/pstack-667d1d07/docs/pstack-recon/`. Both scripts read only. Set `R` to that directory and run the commands from the plugin directory.
 
 ```bash
-R=/Users/josh-desktop/.pi/agent/pstack/store/pstack-667d1d07/docs/pstack-recon
-cd /Users/josh-desktop/src/experiments/plugins/pstack
+R=~/.pi/agent/pstack/store/pstack-667d1d07/docs/pstack-recon
+cd ~/src/experiments/plugins/pstack
 
 # Skill, playbook, agent, and reference census (git-tracked files only)
 python3 "$R/census.py" . --json "$R/census.json"
