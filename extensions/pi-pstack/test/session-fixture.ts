@@ -59,7 +59,11 @@ export async function closeSessions(sessions: AgentSession[], root: string) {
         try {
           await session.abort();
         } finally {
-          session.dispose();
+          try {
+            await session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' });
+          } finally {
+            session.dispose();
+          }
         }
       }),
     );

@@ -46,6 +46,22 @@ test('integration fixture disposes every session and removes files after abort f
   }
 });
 
+test('fixture cleanup delivers shutdown before invalidating the extension context', async () => {
+  let shutdownCwd: string | undefined;
+  const f = await fixture({
+    extensionFactories: [
+      (pi) => {
+        pi.on('session_shutdown', (_event, ctx) => {
+          shutdownCwd = ctx.cwd;
+        });
+      },
+    ],
+  });
+  await f.open();
+  await f.close();
+  expect(shutdownCwd).toBe(f.cwd);
+});
+
 test('official resource loader separates skills, prompt aliases, and runtime commands without Benny discovery', async () => {
   const f = await fixture();
   try {
