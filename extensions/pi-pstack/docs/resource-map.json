@@ -303,7 +303,7 @@
   {
     "source": "upstream/skills/poteto-mode/SKILL.md",
     "destination": "skills/poteto-mode/SKILL.md",
-    "sha256": "dbbfb9b1a4449137a390fb82813ffd9804862a36e655eed0bf536935ef764b22",
+    "sha256": "3fcc8d990b547a153282c5f20980f9f7253389edd31ce6a17e5459f59ec19022",
     "executable": false,
     "transformations": [
       "Normalize skill name to its directory slug for Pi discovery.",
@@ -336,7 +336,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/autopilot-full.md",
     "destination": "skills/poteto-mode/playbooks/autopilot-full.md",
-    "sha256": "e4c700fa902f12a682f8e6c454ac41ee816a24f0645636c4ef9e4db95008ff56",
+    "sha256": "6538ece36e2a3e2605813e2eaca0bd7287fd50a016bd21b7ef9c7d53ee1c1549",
     "executable": false,
     "transformations": [
       "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
@@ -345,14 +345,13 @@
       "Replace a Reference-only noun with its Pi equivalent.",
       "Require the deslop receipt in the owner report.",
       "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
-      "Name the goal completion point so a goal cannot outlive the program or finish early on a green queue.",
       "Define the countersign that the autopilots require but never define."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/autopilot-stack.md",
     "destination": "skills/poteto-mode/playbooks/autopilot-stack.md",
-    "sha256": "8f13a19cf434f06c1c89fd7c02ab8b9f751f9bf5223f8a3bc8641340a2baabe9",
+    "sha256": "563c2f3c9ef4999c04081d306a83b9bec208e46969e79a65f6d00cf080ccb962",
     "executable": false,
     "transformations": [
       "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
@@ -362,7 +361,6 @@
       "Replace a Reference-only noun with its Pi equivalent.",
       "Require the deslop receipt in the owner report.",
       "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
-      "Name the goal completion point so a goal cannot outlive the program or finish early on a green chain.",
       "Define STACK-READY, which the stack playbook uses but never defines."
     ]
   },
@@ -410,7 +408,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/hillclimb.md",
     "destination": "skills/poteto-mode/playbooks/hillclimb.md",
-    "sha256": "7d04ce420b7ff6f31432774400011ee2ccb6e4387bf6b47091e8411178e60b43",
+    "sha256": "e2fd70db71b522d08215689a8d902564b573a35cbc73d95990897a4c10e9e0b7",
     "executable": false,
     "transformations": [
       "Use the show-me-your-work log name and columns instead of a second schema.",
@@ -427,7 +425,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/multi-phase-plan.md",
     "destination": "skills/poteto-mode/playbooks/multi-phase-plan.md",
-    "sha256": "d127948ee72fd847a5376aa9f3e0b4c7b5f23e60ba44916a33336e6c6e6e0055",
+    "sha256": "4af4518fa6a4f33f39198e255f6dd1931e01cac22b68dcbdf1e116ca1691cb7d",
     "executable": false,
     "transformations": [
       "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
@@ -435,7 +433,6 @@
       "Replace a Reference-only noun with its Pi equivalent.",
       "Name the agent store directory from the host contract and the orch writers that own each store file.",
       "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
-      "Name the goal completion point so a goal cannot outlive the program or finish early.",
       "Prefer the repository verification skill over the generic recipe.",
       "Name the command surface a lane restricts input to when only a recipe exists.",
       "Keep lane screenshots against the control skill cleanup guardrails."
@@ -444,7 +441,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/opening-a-pr.md",
     "destination": "skills/poteto-mode/playbooks/opening-a-pr.md",
-    "sha256": "7ec12c47cacfe43bd9ad8d714e5297a13b8090bb7f706a138e9960dd810c6af0",
+    "sha256": "2eaf335cd11b559384a744f637a5ab5124870c3c602c21a259b6bab8fe85b879",
     "executable": false,
     "transformations": [
       "Resolve a stale or contradictory upstream guard natively.",
@@ -482,7 +479,7 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/perf-issue.md",
     "destination": "skills/poteto-mode/playbooks/perf-issue.md",
-    "sha256": "bb957907426666b7aa599aed3f6ddebf423364a1428f93790b5cb9e15c878e7e",
+    "sha256": "eaa538252e762331d46c6a48728c2187a3485c8ec86c99264b36ab5af6f7fb42",
     "executable": false,
     "transformations": []
   },
@@ -588,10 +585,11 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/check-plan.mjs",
     "destination": "skills/poteto-mode/scripts/check-plan.mjs",
-    "sha256": "f7ded079acb997d91ea59088bb1c74f39cd8c7b4225270403f9f82377678c9ed",
+    "sha256": "3220dbe8eecfa8f64e1355a0c5236f9e8460803ba0d04d93c74b9f39232f0d98",
     "executable": true,
     "transformations": [
       "Accept any trunk branch in the `git show origin/<trunk>:` marker instead of requiring main.",
+      "Preserve native trunk matching while requiring the upstream hourly loop marker.",
       "Add fence and leading-label patterns for the prose checks.",
       "Track the opening fence length instead of a boolean.",
       "Close a fence only with a marker at least as long as the opener, and allow up to three spaces of indentation.",
@@ -1322,7 +1320,7 @@
   {
     "source": "upstream/skills/swarm/SKILL.md",
     "destination": "skills/swarm/SKILL.md",
-    "sha256": "b01d4869c32565dfa0655017c5ee384b385231e5a600631d78dcb879ec9e1324",
+    "sha256": "94b43b01d449344f87dc2e6535d1d9f1731f1a51f2c009c5adaa6bba8944f507",
     "executable": false,
     "transformations": [
       "Map model rule location to Pi agent configuration.",
@@ -1378,7 +1376,7 @@
   {
     "source": "upstream/skills/technical-writing/SKILL.md",
     "destination": "skills/technical-writing/SKILL.md",
-    "sha256": "10c74685e1639cc4f8ff096007e5405b25ca0e824b65aaa17105c238faf6a1e8",
+    "sha256": "f5c512ffeec70bc4e0dee50f7bb4c26742e1be77967a6e8b15d1921e1c209ceb",
     "executable": false,
     "transformations": []
   },
@@ -1413,11 +1411,10 @@
   {
     "source": "upstream/skills/typescript-best-practices/references/patterns.md",
     "destination": "skills/typescript-best-practices/references/patterns.md",
-    "sha256": "2eadb3d0022ee2a6738c421c00e595bf48444a3ff7ce43c51cc240d993134e2e",
+    "sha256": "d22576b38a84533d13b1130f4b1e7cebbe6dc7fd31f8d16f0c4fd143f465b202",
     "executable": false,
     "transformations": [
       "Use the double-quote style that the code and the rule table use.",
-      "Mark the hand-rolled guard as the no-schema fallback next to the schema-first rule.",
       "Indent code snippets with tabs, per the technical-writing rule."
     ]
   },
@@ -1541,6 +1538,56 @@
     "sha256": "733a3e9cf897b1aca56aaddeae01a3832e4bfed024c2f602db2d1bf807d7a73b",
     "executable": false,
     "transformations": []
+  },
+  {
+    "source": "upstream/skills/benchmark-checklist/SKILL.md",
+    "destination": "skills/benchmark-checklist/SKILL.md",
+    "sha256": "47f0c952d4bba67305ce838f2af5fb88f721497568e4d2d40e1d95af1d97b1af",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream/skills/benchmark-checklist/SKILL.md",
+    "destination": "prompts/benchmark-checklist.md",
+    "sha256": "8f2fdb5a11d8a945379dfd6d9eaa61ee9adc731956730fecab1a67e17416cb98",
+    "executable": false,
+    "transformations": [
+      "Expose the skill entry point as a native Pi prompt template with user arguments."
+    ]
+  },
+  {
+    "source": "upstream/skills/correct/SKILL.md",
+    "destination": "skills/correct/SKILL.md",
+    "sha256": "bf482bacc972b3f124a4af8bf9364b4b3e280cb5845e44c326ea4f4565e5c904",
+    "executable": false,
+    "transformations": []
+  },
+  {
+    "source": "upstream/skills/correct/SKILL.md",
+    "destination": "prompts/correct.md",
+    "sha256": "57965f999699a3245663ed8c9c1cd6a27c7f9789884ca29e8c201e2d2091002a",
+    "executable": false,
+    "transformations": [
+      "Expose the skill entry point as a native Pi prompt template with user arguments."
+    ]
+  },
+  {
+    "source": "upstream/skills/principle-explain-the-number/SKILL.md",
+    "destination": "skills/principle-explain-the-number/SKILL.md",
+    "sha256": "a4e3bb7cf6de49706a333832b1a8c552fc1a27bd1beb83a0a6ebdf8826a8395a",
+    "executable": false,
+    "transformations": [
+      "Use sentence case for headings, per the prose style rules."
+    ]
+  },
+  {
+    "source": "upstream/skills/principle-explain-the-number/SKILL.md",
+    "destination": "prompts/principle-explain-the-number.md",
+    "sha256": "b039a6f36121adb95e326e4cb158f7d641a859d4c8d7fa0f2dd092eb15bd4a99",
+    "executable": false,
+    "transformations": [
+      "Expose the skill entry point as a native Pi prompt template with user arguments."
+    ]
   },
   {
     "source": "upstream-team-kit/skills/check-compiler-errors/SKILL.md",

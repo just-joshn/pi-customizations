@@ -56,9 +56,9 @@ test('the Pi skill loader reports every hidden skill as disabled and leaves it o
   expect(prompt).toContain('<name>setup-pstack</name>');
 });
 
-test('all 23 principle skills load as disabled and none reaches the model-visible skill list', async () => {
+test('all 24 principle skills load as disabled and none reaches the model-visible skill list', async () => {
   const principles = (await directories('skills')).filter((name) => name.startsWith('principle-'));
-  expect(principles).toHaveLength(23);
+  expect(principles).toHaveLength(24);
   const { skills } = loadSkillsFromDir({ dir: join(root, 'skills'), source: 'pstack' });
   const prompt = formatSkillsForPrompt(skills);
   for (const name of principles) {

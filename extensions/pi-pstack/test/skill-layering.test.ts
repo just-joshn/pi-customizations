@@ -24,6 +24,7 @@ const documented = new Map([
   ['no-comments -> architect', 'an accepted comment fix that needs a shape gets one architect pass'],
   ['no-comments -> how', 'a thin comment claim is investigated before the comment is judged'],
   ['no-comments -> why', 'the same investigation edge for a provenance claim'],
+  ['principle-explain-the-number -> benchmark-checklist', 'the measurement principle names the procedure that tests a performance claim'],
   ['principle-prove-it-works -> show-me-your-work', 'the principle names the trail a large run commits'],
   ['principle-type-system-discipline -> typescript-best-practices', 'the leaf names the craft skill that grounds it in syntax'],
 ]);

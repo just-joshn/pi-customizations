@@ -39,8 +39,8 @@ test('user-perspective: loaded skills and prompt templates expose descriptions',
     const { loader } = await f.open();
     const skills = loader.getSkills().skills;
     const prompts = loader.getPrompts().prompts;
-    expect(skills.length).toBe(68);
-    expect(prompts.length).toBe(66);
+    expect(skills.length).toBe(71);
+    expect(prompts.length).toBe(69);
 
     for (const skill of skills) {
       expect(Boolean(skill.description && skill.description.trim().length > 0)).toBe(true);
@@ -84,8 +84,10 @@ test('user-perspective: /pstack default, status, and invalid arguments', async (
     await session.prompt('/pstack');
     let msgs = customMessagesOf(session, 'pstack-status');
     expect(msgs.length).toBe(1);
-    expect(String(msgs[0]?.content)).toMatch(/pstack 0\.15\.5 with team-kit 1\.2\.0/);
-    expect(String(msgs[0]?.content)).toMatch(/68 skills, 66 prompt templates/);
+    expect(String(msgs[0]?.content)).toMatch(/pstack 0\.15\.7 with team-kit 1\.2\.0/);
+    expect(String(msgs[0]?.content)).toMatch(/71 skills, 69 prompt templates/);
+    expect(String(msgs[0]?.content)).toContain('Cloud Tasks require a configured independent VM.');
+    expect(String(msgs[0]?.content)).not.toContain('Cloud Tasks run in local git worktrees.');
     expect(String(msgs[0]?.content)).toMatch(/Poteto mode off/);
 
     await session.prompt('/pstack status');
@@ -329,7 +331,7 @@ test('user-perspective: installed CLI loads the package declared in settings', a
       .map((l) => JSON.parse(l));
     const statusMsg = lines.find((l) => l.message?.customType === 'pstack-status');
     expect(Boolean(statusMsg)).toBe(true);
-    expect(statusMsg.message.content).toMatch(/pstack 0\.15\.5 with team-kit 1\.2\.0/);
+    expect(statusMsg.message.content).toMatch(/pstack 0\.15\.7 with team-kit 1\.2\.0/);
 
     const modeOff = await runCli(['--mode', 'json', '-p', '--no-session', '/poteto-mode off'], { cwd: workspace, agentDir });
     expect(modeOff.code).toBe(0);

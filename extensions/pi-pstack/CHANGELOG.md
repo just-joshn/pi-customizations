@@ -2,6 +2,16 @@
 
 Revisions follow the pinned upstream pstack version, then `-pi.N` for this package's own releases.
 
+## 0.15.7-pi.1
+
+- Tracks upstream pstack commit `9511e60321f7e533a187d62854a3d53a53752874` with documented source-name normalization.
+- Adds `/correct`, `/benchmark-checklist`, and `/principle-explain-the-number` as native skills and prompt templates.
+- Carries fresh-subagent rules, hourly autopilot audits, per-unit pushes, merge-preparation drift checks, and schema-first validation guidance.
+- Carries PR section headings, explicit scope exclusions, and preference for an available built-in PR tool. Forge commands remain the fallback when no such tool exists.
+- Removes obsolete generator mappings for thirty-minute wakes, autopilot goals, and hand-written cast guards. The plan checker now requires `/loop 1h`.
+- Corrects status text about cloud VM requirements and prevents the no-workers verification selector from launching child Tasks.
+- Records update evidence and verification limits in `docs/latest-parity.md` and `docs/latest-parity-decisions.tsv`. Source and discovery parity do not prove identical model decisions or external-service behavior.
+
 ## 0.15.5-pi.4
 
 - Rebuilds the native parity contract against the current pstack reconstruction. The reference is vendored at `docs/parity/reference/pstack-architecture-reconstruction.md`, the clause slices keyed to the deleted `pstack-reverse-engineering.md` are replaced by `s1` to `s4`, and `bun run check:native-parity` runs green over every slice.

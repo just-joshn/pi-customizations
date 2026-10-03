@@ -12,8 +12,8 @@ export default [
   [playbook('opening-a-pr'), 'With Origin, pass `--status open`.', 'With Origin, push the branch first or pass `--push`, and pass `--status open`.', 'Push before an Origin PR create.'],
   [
     playbook('opening-a-pr'),
-    'Create a child with `origin pr create --status open --base <parent-branch>` or',
-    'Create a child with `origin pr create --status open --stack-on <parent-pr>` or',
+    'create a child with `origin pr create --status open --base <parent-branch>` or',
+    'create a child with `origin pr create --status open --stack-on <parent-pr>` or',
     'Use the Origin stack flag for a stacked child.',
   ],
   [playbook('babysit'), '`origin pr thread list <pr>`, and', '`origin pr thread list <pr> --unresolved --json id,resolved,path`, and', 'List only unresolved Origin threads.'],
@@ -35,24 +35,6 @@ export default [
     '1. State the exit condition as a checkable predicate before the first iteration (tests green, repro fixed, all N PRs merged, pixel-diff zero).',
     '1. State the exit condition as a checkable predicate before the first iteration (tests green, repro fixed, all N PRs merged, pixel-diff zero). Arm a `/goal` with `CreateGoal` carrying that predicate, so the goal outlives a single turn, and use `/loop` only as the wake mechanism.',
     'Arm a goal so an autonomous run has a predicate that the goal system checks.',
-  ],
-  [
-    playbook('autopilot-full'),
-    'The goal continues across turns until the queue is done.',
-    "The goal continues across turns until the queue is done. Call `UpdateGoal` with status complete only after the last PR merges and the root's final verdict audit passes.",
-    'Name the goal completion point so a goal cannot outlive the program or finish early on a green queue.',
-  ],
-  [
-    playbook('autopilot-stack'),
-    'The goal continues across turns until the chain is done.',
-    "The goal continues across turns until the chain is done. Call `UpdateGoal` with status complete only after the last PR joins the stack and the root's final verdict audit passes.",
-    'Name the goal completion point so a goal cannot outlive the program or finish early on a green chain.',
-  ],
-  [
-    playbook('multi-phase-plan'),
-    '- [ ] Every box above is checked with its evidence.',
-    "- [ ] Every box above is checked with its evidence.\n- [ ] Call `UpdateGoal` with status complete only after the last PR merges or joins the stack and the root's final verdict audit passes.",
-    'Name the goal completion point so a goal cannot outlive the program or finish early.',
   ],
   [
     playbook('multi-phase-plan'),

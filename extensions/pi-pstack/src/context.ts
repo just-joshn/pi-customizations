@@ -114,7 +114,7 @@ export function registerStatus(pi: ExtensionAPI, store: StateStore): void {
         `pstack ${versions.pstack} with team-kit ${versions.teamKit} for Pi ${VERSION}. ${skillCount} skills, ${promptCount} prompt templates. Poteto mode ${state.enabled ? 'on' : 'off'}.${todoSummary}`,
         `Model configuration: ${modelConfigPath()}`,
         `Compatibility report: ${join(root, 'docs/parity.md')}`,
-        'Cloud Tasks run in local git worktrees. The hosted automation editor, Grok Bot routines and credential isolation have no Pi equivalent yet.',
+        'Cloud Tasks require a configured independent VM. Hosted services and exact model entitlements remain environment-dependent. See the compatibility report for verified mappings and limits.',
       ];
       if (subcommand === 'todos' && state.todos.length === 0) lines.push('', 'Todos: none.');
       if (subcommand === 'todos' && state.todos.length > 0) {

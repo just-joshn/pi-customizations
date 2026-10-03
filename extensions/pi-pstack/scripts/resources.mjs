@@ -193,20 +193,6 @@ const hostPaths = [
   [worktreeAudit, `| xargs stat -f '%m %N' 2>/dev/null`, `| xargs -0 perl -e 'printf "%d %s\\n", (stat)[9], $_ for @ARGV' 2>/dev/null`, portableDates],
   [worktreeAudit, `last=$(date -r "$last_ts" '+%Y-%m-%d' 2>/dev/null)`, `last=$(perl -MPOSIX -e 'print strftime("%Y-%m-%d", localtime shift)' "$last_ts" 2>/dev/null)`, portableDates],
 ];
-hostPaths.push(
-  [
-    /^skills\/poteto-mode\/playbooks\/autopilot-(?:full|stack)\.md$/,
-    'A cloud root uses the existing cloud-sleeper wake chain instead.',
-    'A durable Pi root uses `SubscribeTimer` with a 30-minute schedule and the audit prompt. Record its run and subscription IDs. `ListSubscriptions` verifies it remains armed; `Unsubscribe` cancels it after the program finishes. A cloud root, a Task with `environment: "cloud"` on a remote VM, arms `SubscribeTimer` from its own Pi root on that VM, and the tick fires there.',
-    dependencyCorrections,
-  ],
-  [
-    /^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/,
-    'In a cloud root, a cloud-sleeper wake chain.',
-    'For a durable root, use `SubscribeTimer` with a 30-minute schedule and the audit prompt. Record the run and subscription IDs, verify them with `ListSubscriptions`, and cancel with `Unsubscribe` after the program finishes. A cloud root, a Task with `environment: "cloud"` on a remote VM, arms `SubscribeTimer` from its own Pi root on that VM, and the tick fires there.',
-    dependencyCorrections,
-  ],
-);
 hostPaths.push(...generatedRows);
 const appliedHostPaths = new Set();
 function mapHostPaths(entry, text) {

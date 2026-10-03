@@ -872,7 +872,7 @@
     "checks": [
       {
         "type": "source",
-        "path": "~/src/experiments/plugins/plugin-metadata/marketplace.json",
+        "path": "~/src/experiments/plugins/.cursor-plugin/marketplace.json",
         "quote": "\"name\": \"pstack\", \"source\": \"pstack\","
       },
       {
@@ -1259,7 +1259,7 @@
       523,
       523
     ],
-    "requirement": "Reference's built-in /goal maps to native CreateGoal, GetGoal, and UpdateGoal; a playbook that says to arm a goal calls CreateGoal itself, and check-plan requires the /goal text in a program plan.",
+    "requirement": "Reference's built-in /goal maps to native CreateGoal, GetGoal, and UpdateGoal. A playbook that says to arm a goal calls CreateGoal itself. Upstream 0.15.7 supersedes the historical plan requirement with an hourly /loop 1h audit.",
     "kind": "behavior",
     "runtime": true,
     "verdict": "verified",
@@ -1272,7 +1272,7 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "const PROGRAM_MARKERS = [\"/goal\", /git show origin\\/[^\\s:`]+:/, /30[- ]minute/, \"status message\"];"
+        "quote": "const PROGRAM_MARKERS = [/git show origin\\/[^\\s:`]+:/, \"/loop 1h\", \"status message\"];"
       },
       {
         "type": "test",
@@ -1404,7 +1404,7 @@
       {
         "type": "source",
         "path": "~/src/experiments/plugins/dyl-stack/skills/dyl-mode/SKILL.md",
-        "quote": "**Requires** `pstack` and `team-kit`."
+        "quote": "**Requires** `pstack` and `cursor-team-kit`."
       },
       {
         "type": "source-file",
@@ -3092,7 +3092,7 @@
       {
         "type": "quote",
         "path": "README.md",
-        "quote": "This Pi package ports pstack 0.15.5 and team-kit 1.2.0 workflows to Pi 1.0.0."
+        "quote": "This Pi package ports pstack 0.15.7 and team-kit 1.2.0 workflows to Pi 1.0.0."
       },
       {
         "type": "quote",
@@ -3130,7 +3130,7 @@
       {
         "type": "test",
         "path": "test/skills-parity.test.ts",
-        "name": "skills loader: all 68 skills discover cleanly with valid metadata and frontmatter"
+        "name": "skills loader: all 71 skills discover cleanly with valid metadata and frontmatter"
       }
     ]
   },
@@ -3551,7 +3551,7 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "const PROGRAM_MARKERS = [\"/goal\", /git show origin\\/[^\\s:`]+:/, /30[- ]minute/, \"status message\"];"
+        "quote": "const PROGRAM_MARKERS = [/git show origin\\/[^\\s:`]+:/, \"/loop 1h\", \"status message\"];"
       },
       {
         "type": "test",

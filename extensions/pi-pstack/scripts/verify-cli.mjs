@@ -12,13 +12,29 @@ const cli = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-c
 
 async function verify(client) {
   const commands = await client.send({ type: 'get_commands' });
-  for (const name of ['poteto-mode', 'setup-pstack', 'pstack', 'how', 'bro', 'deslop', 'control-cli', 'control-ui', 'verify-this', 'pr-review-canvas', 'thermo-nuclear-code-quality-review', 'loop']) {
+  for (const name of [
+    'poteto-mode',
+    'setup-pstack',
+    'pstack',
+    'how',
+    'bro',
+    'deslop',
+    'control-cli',
+    'control-ui',
+    'verify-this',
+    'pr-review-canvas',
+    'thermo-nuclear-code-quality-review',
+    'loop',
+    'correct',
+    'benchmark-checklist',
+    'principle-explain-the-number',
+  ]) {
     assert.ok(
       commands.commands.some((command) => command.name === name),
       `CLI command ${name}`,
     );
   }
-  for (const name of ['how', 'bro', 'deslop', 'control-cli', 'control-ui', 'loop']) {
+  for (const name of ['how', 'bro', 'deslop', 'control-cli', 'control-ui', 'loop', 'correct', 'benchmark-checklist', 'principle-explain-the-number']) {
     assert.equal(commands.commands.find((command) => command.name === name)?.source, 'prompt', `${name} must be a native prompt template`);
   }
   for (const name of ['poteto-mode', 'setup-pstack', 'pstack']) {
@@ -30,7 +46,7 @@ async function verify(client) {
   const messages = await client.send({ type: 'get_messages' });
   const statusList = messages.messages.filter((message) => message.role === 'custom' && message.customType === 'pstack-status');
   assert.equal(statusList.length, 3);
-  assert.match(String(statusList[0]?.content), /68 skills, 66 prompt templates/);
+  assert.match(String(statusList[0]?.content), /71 skills, 69 prompt templates/);
   assert.match(String(statusList[0]?.content), /team-kit 1.2.0/);
   assert.match(String(statusList[2]?.content), /Todos: none\./);
   await client.send({ type: 'prompt', message: '/poteto-mode off' });

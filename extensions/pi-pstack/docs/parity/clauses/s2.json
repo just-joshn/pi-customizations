@@ -359,12 +359,12 @@
       {
         "type": "test",
         "path": "test/research-parity.test.ts",
-        "name": "poteto-mode routes all 23 documented playbooks and 23 principles"
+        "name": "poteto-mode routes all 23 documented playbooks and 24 principles"
       },
       {
         "type": "test",
         "path": "test/parity-generator-flags.test.ts",
-        "name": "all 23 principle skills load as disabled and none reaches the model-visible skill list"
+        "name": "all 24 principle skills load as disabled and none reaches the model-visible skill list"
       }
     ]
   },
@@ -2592,7 +2592,7 @@
       {
         "type": "quote",
         "path": "skills/swarm/SKILL.md",
-        "quote": "Drop a result that does not record the SHAs and method its brief names, and rerun that worker once."
+        "quote": "Drop a result that does not record the SHAs and method its brief names, and respawn that worker once."
       },
       {
         "type": "quote",
