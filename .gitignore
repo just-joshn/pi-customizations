@@ -3,4 +3,5 @@ __pycache__/
 node_modules/
 .DS_Store
 
-.audit/python-coverage/
+.audit/
+artifacts/

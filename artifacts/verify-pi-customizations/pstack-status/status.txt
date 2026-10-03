@@ -1,4 +1,0 @@
-pstack 0.15.5 with team-kit 1.2.0 for Pi 0.99.1. 65 skills, 64 prompt templates. Poteto mode off.
-Model configuration: /var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/control-pi-status-9G2Xbb/pstack/models.mdc
-Compatibility report: /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/docs/parity.md
-Partial runtime parity. Reference cloud agents, hosted automation editor, cloud timers, goals, bot routines, server-synced create-skill and credential isolation are not supplied.
