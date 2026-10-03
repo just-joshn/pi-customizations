@@ -18,7 +18,7 @@ test('every child model request carries the identity headers', () => {
 
 test('the reference-assistant wire provider also gets the body fields and others do not', () => {
   const { call } = harness();
-  call('model_select', { type: 'model_select', model: { provider: 'github-reference-assistant', id: 'gpt-5' } });
+  call('model_select', { type: 'model_select', model: { provider: 'github-copilot', id: 'gpt-5' } });
   const changed = call('before_provider_request', { type: 'before_provider_request', payload: { messages: [] } }) as Record<string, unknown>;
   expect(changed).toEqual({ messages: [], agent_task_id: 'a1', parent_agent_id: 'root' });
   expect(call('before_provider_request', { type: 'before_provider_request', payload: 'already text' })).toBe('already text');

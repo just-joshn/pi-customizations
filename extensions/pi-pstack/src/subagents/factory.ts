@@ -201,7 +201,7 @@ export class SubagentFactory {
       ...(input.extras.workflowRunId !== undefined ? { workflowRunId: input.extras.workflowRunId } : {}),
       inheritedServers: input.inheritedServers,
       exclusionPatterns: parsePatterns(input.raw),
-      aggressiveTools: featureEnabled(this.deps.env, 'reference-assistant_cli_task_subagent_aggressive_tool_deferral'),
+      aggressiveTools: featureEnabled(this.deps.env, 'copilot_cli_task_subagent_aggressive_tool_deferral'),
     });
     return launched;
   }

@@ -45,7 +45,7 @@ describe('SkinStyleEditor', () => {
     expect(strip(lines[0] ?? '')).toBe(` ${'▄'.repeat(58)} `);
     expect(strip(lines[1] ?? '')).toContain('→ Plan, search, build anything');
     expect(strip(lines[2] ?? '')).toBe(` ${'▀'.repeat(58)} `);
-    expect(lines[1]?.includes(CURSOR_MARKER), 'focused row carries the hardware reference marker').toBe(true);
+    expect(lines[1]?.includes(CURSOR_MARKER), 'focused row carries the hardware cursor marker').toBe(true);
     expect(lines.every((line) => visibleWidth(line) === 60)).toBe(true);
   });
 

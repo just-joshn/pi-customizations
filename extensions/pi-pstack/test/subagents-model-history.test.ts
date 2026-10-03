@@ -20,7 +20,7 @@ test('an empty history records every model chosen through the extension listener
   } as never);
   const select = listeners.get('model_select');
   expect(select).toBeDefined();
-  select?.({ model: { provider: 'github-reference-assistant', id: 'gpt-5' } });
+  select?.({ model: { provider: 'github-copilot', id: 'gpt-5' } });
   select?.({ model: { provider: 'anthropic', id: 'claude' } });
-  expect(history.snapshot()).toEqual(['github-reference-assistant/gpt-5', 'anthropic/claude']);
+  expect(history.snapshot()).toEqual(['github-copilot/gpt-5', 'anthropic/claude']);
 });

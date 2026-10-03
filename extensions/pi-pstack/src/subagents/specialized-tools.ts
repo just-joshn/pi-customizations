@@ -11,8 +11,8 @@ export type Specialized = Readonly<{ tool: 'execution_subagent' | 'search_subage
 export const executionSubagent: Specialized = {
   tool: 'execution_subagent',
   agentType: 'task',
-  flag: 'reference-assistant_cli_execution_subagent',
-  modelFlag: 'reference-assistant_cli_execution_subagent_model',
+  flag: 'copilot_cli_execution_subagent',
+  modelFlag: 'copilot_cli_execution_subagent_model',
   modelVariable: 'EXECUTION_SUBAGENT_MODEL',
   turnsVariable: 'EXECUTION_SUBAGENT_MAX_TURNS',
   defaultTurns: 30,
@@ -21,8 +21,8 @@ export const executionSubagent: Specialized = {
 export const searchSubagent: Specialized = {
   tool: 'search_subagent',
   agentType: 'explore',
-  flag: 'reference-assistant_cli_search_subagent_model',
-  modelFlag: 'reference-assistant_cli_search_subagent_model',
+  flag: 'copilot_cli_search_subagent_model',
+  modelFlag: 'copilot_cli_search_subagent_model',
   modelVariable: 'SEARCH_SUBAGENT_MODEL',
   turnsVariable: 'SEARCH_SUBAGENT_MAX_TURNS',
   defaultTurns: 20,

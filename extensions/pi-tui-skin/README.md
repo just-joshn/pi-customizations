@@ -44,7 +44,7 @@ PI_TUI_SKIN_TOOL_OVERRIDES=grep,find,ls,powershell pi -e ./extensions/pi-tui-ski
 - `src/ui/` holds the header, footer, custom editor, working indicator, and the
   live activity widget, plus `install-ui.ts`, which installs and restores them.
   The composer paints the reference's `→` glyph inside Pi's `paddingX` on the
-  first input row, so the text column, mouse hits, and the hardware reference all
+  first input row, so the text column, mouse hits, and the hardware cursor all
   agree with what Pi subtracts.
   The header prints a title, pi's `VERSION`, and one rotating tip, indented two
   columns the way the reference indents its own banner. The footer shows a mode

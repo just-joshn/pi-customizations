@@ -11,7 +11,7 @@ test('the specialized tools exist only when their feature flag is on', async () 
   } finally {
     await off.close();
   }
-  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'reference-assistant_cli_execution_subagent');
+  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'copilot_cli_execution_subagent');
   const on = await workerFixture();
   try {
     const result = (await on.call('execution_subagent', { description: 'run it', prompt: 'hello' })) as Result;
@@ -25,7 +25,7 @@ test('the specialized tools exist only when their feature flag is on', async () 
 });
 
 test('the execution subagent stops at its own turn cap and says so', async () => {
-  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'reference-assistant_cli_execution_subagent');
+  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'copilot_cli_execution_subagent');
   vi.stubEnv('EXECUTION_SUBAGENT_MAX_TURNS', '1');
   const fixture = await workerFixture();
   try {
@@ -37,7 +37,7 @@ test('the execution subagent stops at its own turn cap and says so', async () =>
 });
 
 test('the execution subagent takes its model from its own variable, not the task argument', async () => {
-  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'reference-assistant_cli_execution_subagent,reference-assistant_cli_execution_subagent_model');
+  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'copilot_cli_execution_subagent,copilot_cli_execution_subagent_model');
   vi.stubEnv('EXECUTION_SUBAGENT_MODEL', 'worker-test/alternate');
   const fixture = await workerFixture();
   const seen: unknown[] = [];
@@ -51,7 +51,7 @@ test('the execution subagent takes its model from its own variable, not the task
 });
 
 test('the execution model variable is ignored while its own flag is off', async () => {
-  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'reference-assistant_cli_execution_subagent');
+  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'copilot_cli_execution_subagent');
   vi.stubEnv('EXECUTION_SUBAGENT_MODEL', 'worker-test/alternate');
   const fixture = await workerFixture();
   const seen: unknown[] = [];
@@ -76,7 +76,7 @@ test.for([
 
 test('search and execution have separate flags, defaults and agents', () => {
   expect(specializedTurns({}, searchSubagent)).toBe(20);
-  expect(specializedEnabled({ COPILOT_EXPERIMENTS: 'reference-assistant_cli_search_subagent_model' }, searchSubagent)).toBe(true);
-  expect(specializedEnabled({ COPILOT_EXPERIMENTS: 'reference-assistant_cli_search_subagent_model' }, executionSubagent)).toBe(false);
+  expect(specializedEnabled({ COPILOT_EXPERIMENTS: 'copilot_cli_search_subagent_model' }, searchSubagent)).toBe(true);
+  expect(specializedEnabled({ COPILOT_EXPERIMENTS: 'copilot_cli_search_subagent_model' }, executionSubagent)).toBe(false);
   expect([executionSubagent.agentType, searchSubagent.agentType]).toEqual(['task', 'explore']);
 });

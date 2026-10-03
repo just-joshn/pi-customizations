@@ -1,4 +1,4 @@
-export const rubberDuckExperiment = 'reference-assistant_cli_rubber_duck_gpt_claude';
+export const rubberDuckExperiment = 'copilot_cli_rubber_duck_gpt_claude';
 
 function listed(value: string | undefined): readonly string[] {
   return (value ?? '')

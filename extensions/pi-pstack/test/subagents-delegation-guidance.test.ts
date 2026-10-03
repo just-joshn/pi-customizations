@@ -3,7 +3,7 @@ import { builtInAgents } from '../src/subagents/builtin-agents.ts';
 import { parseCustomAgent } from '../src/subagents/custom-agents.ts';
 import { childSubagentUsageBlock, delegationHeuristics, modelPreferencesBlock, subagentUsageBlock, taskToolDescription, toolHeader } from '../src/subagents/delegation-guidance.ts';
 
-const custom = parseCustomAgent('---\nname: mine\ndescription: Does my thing\n---\nBody\n', { source: 'user', path: '/home/me/.reference-assistant/agents/mine.agent.md' }).agent;
+const custom = parseCustomAgent('---\nname: mine\ndescription: Does my thing\n---\nBody\n', { source: 'user', path: '/home/me/.copilot/agents/mine.agent.md' }).agent;
 
 test('the tool description opens with the header and lists built-in then custom agents', () => {
   if (!custom) throw new Error('fixture failed to parse');

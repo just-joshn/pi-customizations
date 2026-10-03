@@ -20,7 +20,7 @@ function ancestorsToRepositoryRoot(cwd: string, home: string): readonly string[]
 }
 
 export function userAgentDirectories(agentDir: string, home: string = homedir()): readonly string[] {
-  return [join(home, '.reference-assistant', 'agents'), join(agentDir, 'agents')];
+  return [join(home, '.copilot', 'agents'), join(agentDir, 'agents')];
 }
 
 export function agentDirectories({ cwd, agentDir, home = homedir(), additionalRoots = [] }: LocationInputs): readonly AgentDirectory[] {

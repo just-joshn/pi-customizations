@@ -15,7 +15,7 @@ export function identityExtension(identity: ChildIdentity): ExtensionFactory {
   return (pi) => {
     let assistantWire = false;
     pi.on('model_select', (event) => {
-      assistantWire = event.model.provider === 'github-reference-assistant';
+      assistantWire = event.model.provider === 'github-copilot';
     });
     pi.on('before_provider_headers', (event) => {
       for (const [name, value] of Object.entries(identity.headers)) event.headers[name] = value;

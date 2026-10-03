@@ -10,7 +10,7 @@
  *
  * The reference puts a dim `→` at column 2 and the input text at column 4, and
  * keeps both while the user types. Pi positions the text at its `paddingX` and
- * subtracts the same value for mouse hits and the hardware reference, so the glyph
+ * subtracts the same value for mouse hits and the hardware cursor, so the glyph
  * lives inside that padding: `PADDING_X` is 4 and the leading padding of the
  * first input row is repainted as `  → `. Narrow terminals make Pi clamp the
  * padding, and the prefix shrinks with it, so the text column always equals

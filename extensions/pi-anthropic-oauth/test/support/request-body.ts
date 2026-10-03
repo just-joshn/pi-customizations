@@ -1,7 +1,7 @@
 import type { MessagesServer, RecordedRequest } from './messages-server.ts';
 
 export const BILLING_TEXT = 'x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;';
-export const PROVIDER_PREAMBLE = "You are Provider CLI, Anthropic's official CLI for Claude.";
+export const PROVIDER_PREAMBLE = "You are Claude Code, Anthropic's official CLI for Claude.";
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

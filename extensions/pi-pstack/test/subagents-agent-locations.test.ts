@@ -6,7 +6,7 @@ import { agentDirectories, userAgentDirectories } from '../src/subagents/agent-l
 import { scratchDir } from './support/scratch.ts';
 
 test('user directories are the Reference Assistant one then the pi agent directory', () => {
-  expect(userAgentDirectories('/pi/agent', '/home/me')).toEqual(['/home/me/.reference-assistant/agents', '/pi/agent/agents']);
+  expect(userAgentDirectories('/pi/agent', '/home/me')).toEqual(['/home/me/.copilot/agents', '/pi/agent/agents']);
 });
 
 test('project directories run from the repository root down to the working directory', () => {
@@ -16,7 +16,7 @@ test('project directories run from the repository root down to the working direc
   mkdirSync(join(repo, '.git'), { recursive: true });
   mkdirSync(inner, { recursive: true });
   expect(agentDirectories({ cwd: inner, agentDir: '/pi/agent', home }).map((entry) => entry.dir.replace(home, '~'))).toEqual([
-    '~/.reference-assistant/agents',
+    '~/.copilot/agents',
     '/pi/agent/agents',
     '~/work/repo/.github/agents',
     '~/work/repo/.pi/agents',
@@ -33,7 +33,7 @@ test('additional roots sit between user and project directories', () => {
   mkdirSync(join(repo, '.git'), { recursive: true });
   const found = agentDirectories({ cwd: repo, agentDir: '/pi/agent', home, additionalRoots: ['/elsewhere'] });
   expect(found.map((entry) => `${entry.source}:${entry.dir.replace(home, '~')}`)).toEqual([
-    'user:~/.reference-assistant/agents',
+    'user:~/.copilot/agents',
     'user:/pi/agent/agents',
     'project:/elsewhere/.github/agents',
     'project:/elsewhere/.pi/agents',

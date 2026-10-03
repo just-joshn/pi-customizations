@@ -32,10 +32,10 @@ const agent = (name: string) => {
 test('feature flags read both override variables case-insensitively', () => {
   expect(featureEnabled({ COPILOT_CLI_ENABLED_FEATURE_FLAGS: ' A, b ' }, 'B')).toBe(true);
   expect(featureEnabled({ COPILOT_EXPERIMENTS: 'only' }, 'a')).toBe(false);
-  expect(rubberDuckRollout({ COPILOT_EXPERIMENTS: 'reference-assistant_cli_rubber_duck_gpt_claude' })).toBe(true);
+  expect(rubberDuckRollout({ COPILOT_EXPERIMENTS: 'copilot_cli_rubber_duck_gpt_claude' })).toBe(true);
   expect(rubberDuckRollout({ COPILOT_CLI_ENABLED_FEATURE_FLAGS: 'RUBBER_DUCK_AGENT' })).toBe(true);
   expect(subconsciousEnabled({ COPILOT_SUBCONSCIOUS: 'yes' })).toBe(true);
-  expect(subconsciousEnabled({ COPILOT_CLI_ENABLED_FEATURE_FLAGS: 'reference-assistant_subconscious' })).toBe(true);
+  expect(subconsciousEnabled({ COPILOT_CLI_ENABLED_FEATURE_FLAGS: 'copilot_subconscious' })).toBe(true);
   expect(subconsciousEnabled({})).toBe(false);
 });
 
