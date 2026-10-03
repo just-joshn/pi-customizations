@@ -1,5 +1,7 @@
 # Compatibility report
 
+This report records the original 0.15.5 port and its historical limits. Counts and runtime statements below are not current release claims. The [0.15.7 update audit](latest-parity.md) records the current source revision, requirement matrix, discovery counts, verification, and remaining limits. Configured cloud VM execution, durable subscriptions, and reviewed routine adapters now have implementations and tests. Their original absence below describes the earlier port, not the current runtime.
+
 Each Reference facility pstack uses maps to a local Pi mechanism below. The unmet table lists what has no Pi equivalent yet. The package preserves every source file. Identical prompt text is not evidence of identical model behavior, so `scripts/probe-routing.mjs` measures routing on the real CLI.
 
 ## Implemented contracts

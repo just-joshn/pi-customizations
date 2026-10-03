@@ -2,12 +2,12 @@
   {
     "id": "L3.1",
     "lines": [3, 3],
-    "requirement": "The reference describes upstream pstack at version 0.15.5 and pins monorepo commit c47b12849e43f18d5c374c7069c744cc55b0ea00, which PKG vendors under upstream/.",
+    "requirement": "The historical reference describes pstack 0.15.5 at c47b12849e43f18d5c374c7069c744cc55b0ea00. The current package supersedes that source snapshot with pstack 0.15.7 at 9511e60321f7e533a187d62854a3d53a53752874.",
     "kind": "fact",
     "runtime": false,
     "verdict": "verified",
     "checks": [
-      { "type": "source", "path": "upstream/plugin-metadata/plugin.json", "quote": "\"version\": \"0.15.5\"," },
+      { "type": "source", "path": "upstream/plugin-metadata/plugin.json", "quote": "\"version\": \"0.15.7\"," },
       { "type": "commit", "rev": "c47b12849e43f18d5c374c7069c744cc55b0ea00", "subject": "Merge pull request #479" }
     ]
   },
@@ -87,7 +87,7 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 23 principle skills load as disabled and none reaches the model-visible skill list" },
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 24 principle skills load as disabled and none reaches the model-visible skill list" },
       { "type": "file", "path": "skills/principle-prove-it-works/SKILL.md" }
     ]
   },
@@ -154,7 +154,7 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 68 skills discover cleanly with valid metadata and frontmatter" },
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 71 skills discover cleanly with valid metadata and frontmatter" },
       { "type": "file", "path": "skills/how/SKILL.md" }
     ]
   },
@@ -224,7 +224,7 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 23 principle skills load as disabled and none reaches the model-visible skill list" },
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 24 principle skills load as disabled and none reaches the model-visible skill list" },
       { "type": "file", "path": "skills/principle-separate-before-serializing-shared-state/SKILL.md" }
     ]
   },
@@ -238,7 +238,7 @@
     "checks": [
       { "type": "source-file", "path": "upstream/skills/principle-guard-the-context-window/SKILL.md" },
       { "type": "file", "path": "skills/principle-guard-the-context-window/SKILL.md" },
-      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 23 principle skills load as disabled and none reaches the model-visible skill list" }
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 24 principle skills load as disabled and none reaches the model-visible skill list" }
     ],
     "note": "Upstream principle-guard-the-context-window, principle-redesign-from-first-principles, and principle-separate-before-serializing-shared-state are 16 lines, so the reference's 17-to-35 measurement is imprecise. Pi carries the same leaf bodies and the disabled-leaf loader behavior, correcting the claim rather than reproducing it."
   },
@@ -251,7 +251,7 @@
     "verdict": "verified",
     "checks": [
       { "type": "quote", "path": "skills/how/SKILL.md", "quote": "- **Complex** (a subsystem spanning multiple files or services, a cross-cutting feature, a full architectural overview): spawn parallel explorers first, then hand off to the explainer." },
-      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 68 skills discover cleanly with valid metadata and frontmatter" }
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 71 skills discover cleanly with valid metadata and frontmatter" }
     ]
   },
   {
@@ -670,7 +670,7 @@
     "verdict": "verified",
     "checks": [
       { "type": "quote", "path": "src/host.ts", "quote": "Role lines: \"trail reviewer\" is the show-me-your-work cross-model reviewer, \"figure-it-out judge\" is the figure-it-out judge, and \"recall miners\" are the recall fan-out subagents." },
-      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 68 skills discover cleanly with valid metadata and frontmatter" },
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 71 skills discover cleanly with valid metadata and frontmatter" },
       { "type": "test", "path": "test/commands.test.ts", "name": "pstack index entry point wires extension hooks and registers all tools" }
     ]
   },
@@ -1582,7 +1582,7 @@
     "runtime": false,
     "verdict": "verified",
     "checks": [
-      { "type": "quote", "path": "skills/swarm/SKILL.md", "quote": "Drop a result that does not record the SHAs and method its brief names, and rerun that worker once. After a second miss, record a gap." },
+      { "type": "quote", "path": "skills/swarm/SKILL.md", "quote": "Drop a result that does not record the SHAs and method its brief names, and respawn that worker once. After a second miss, record a gap." },
       { "type": "quote", "path": "skills/swarm/SKILL.md", "quote": "A gap does not count as a pass." }
     ]
   },

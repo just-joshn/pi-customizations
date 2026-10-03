@@ -52,7 +52,7 @@
     "verdict": "verified",
     "checks": [
       { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "Read the leaf skill in full for any principle you apply." },
-      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 23 principles" }
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 24 principles" }
     ]
   },
   {
@@ -283,7 +283,7 @@
       { "type": "source", "path": "upstream/skills/poteto-mode/SKILL.md", "quote": "name: Poteto Mode" },
       { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "name: poteto-mode" },
       { "type": "quote", "path": "skills/make-bot-ui/SKILL.md", "quote": "name: make-bot-ui" },
-      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 68 skills discover cleanly with valid metadata and frontmatter" }
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 71 skills discover cleanly with valid metadata and frontmatter" }
     ],
     "note": "Resolved: the generator rewrites display names to directory slugs, so Pi's directory-derived invocation and the loader agree."
   },
@@ -296,7 +296,7 @@
     "checks": [
       { "type": "commit", "rev": "3fe2823", "subject": "parity sweep with the private skill tree" },
       { "type": "quote", "path": "scripts/resources.mjs", "quote": "if (sha(original) !== entry.sha256) throw new Error(`Upstream hash mismatch: ${entry.source}`);" },
-      { "type": "test", "path": "test/skills-parity.test.ts", "name": "resource map: exactly 205 generated resources are verified with matching hashes" },
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "resource map: exactly 211 generated resources are verified with matching hashes" },
       { "type": "test", "path": "test/resources.test.ts", "name": "a changed kit source prevents all generation writes" }
     ],
     "note": "Resolved: docs/source-inventory.json, docs/team-kit-source-inventory.json, and docs/resource-map.json pin every source hash; the generator rejects a changed source before writing."
@@ -338,7 +338,7 @@
       { "type": "file", "path": "skills/poteto-mode/playbooks/babysit.md" },
       { "type": "file", "path": "skills/poteto-mode/references/bugbot-triage.md" },
       { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "Triage fix / dismiss / ask per `references/bugbot-triage.md`." },
-      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 23 principles" }
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 24 principles" }
     ]
   },
   {
@@ -452,7 +452,7 @@
     "checks": [
       { "type": "file", "path": "skills/principle-attack-the-premise/SKILL.md" },
       { "type": "file", "path": "skills/principle-encode-lessons-in-structure/SKILL.md" },
-      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 23 principle skills load as disabled and none reaches the model-visible skill list" }
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 24 principle skills load as disabled and none reaches the model-visible skill list" }
     ]
   },
   {
@@ -523,7 +523,7 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      { "type": "source-file", "path": "~/src/experiments/plugins/plugin-metadata/marketplace.json" },
+      { "type": "source-file", "path": "~/src/experiments/plugins/.cursor-plugin/marketplace.json" },
       { "type": "source-file", "path": "~/src/experiments/plugins/schemas/plugin.schema.json" },
       { "type": "source-file", "path": "~/src/experiments/plugins/scripts/validate-plugins.mjs" },
       { "type": "quote", "path": "package.json", "quote": "\"name\": \"pi-pstack\"," },
@@ -589,7 +589,7 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 23 principles" },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 24 principles" },
       { "type": "test", "path": "test/parity-package-docs.test.ts", "name": "README lists every playbook in the playbooks directory" }
     ]
   },
@@ -826,8 +826,8 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 23 principles" },
-      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 23 principle skills load as disabled and none reaches the model-visible skill list" }
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 24 principles" },
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 24 principle skills load as disabled and none reaches the model-visible skill list" }
     ]
   },
   {
@@ -969,7 +969,7 @@
     "checks": [
       { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "name: poteto-mode" },
       { "type": "quote", "path": "skills/make-bot-ui/SKILL.md", "quote": "name: make-bot-ui" },
-      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 68 skills discover cleanly with valid metadata and frontmatter" }
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 71 skills discover cleanly with valid metadata and frontmatter" }
     ]
   },
   {
@@ -1131,7 +1131,7 @@
     "checks": [
       { "type": "source-file", "path": "upstream/README.md" },
       { "type": "quote", "path": "scripts/resources.mjs", "quote": "if (sha(original) !== entry.sha256) throw new Error(`Upstream hash mismatch: ${entry.source}`);" },
-      { "type": "test", "path": "test/skills-parity.test.ts", "name": "resource map: exactly 205 generated resources are verified with matching hashes" }
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "resource map: exactly 211 generated resources are verified with matching hashes" }
     ]
   },
   {

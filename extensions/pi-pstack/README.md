@@ -1,6 +1,6 @@
 # pstack for pi
 
-This Pi package ports pstack 0.15.5 and team-kit 1.2.0 workflows to Pi 1.0.0. It preserves 187 upstream files and all 65 workflow entry points through 64 skills and 63 prompt templates. A Pi-authored loop skill and `/loop` template add a 65th skill and 64th template. Its extension supplies executable behavior. Upstream-hosted facilities run as local Pi equivalents. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
+This Pi package ports pstack 0.15.7 and team-kit 1.2.0 workflows to Pi 1.0.0. It preserves 190 source files and all 68 upstream workflow entry points through 67 generated skills and 66 prompt templates. Pi-authored host resources bring discovery to 71 skills and 69 templates. Run `bun run check:resources` to verify generated counts and `bun run check:cli` to verify installed discovery. Its extension supplies executable behavior. The extension maps supported host facilities to Pi-native behavior. Live external services and proprietary host facilities remain subject to the documented limits. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
 
 ## Install
 
