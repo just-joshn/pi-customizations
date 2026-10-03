@@ -381,7 +381,6 @@ async function drivePiMaintainer(artifactDir) {
   }
 }
 
-/** A committed clean file that is then rewritten with a Python syntax error. */
 async function seedMaintainerRepo(scratchDir) {
   const git = (args) => execFileSync('git', args, { cwd: scratchDir, encoding: 'utf8' });
   git(['init', '-q', '.']);

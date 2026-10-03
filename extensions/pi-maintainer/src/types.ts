@@ -63,7 +63,6 @@ export interface LinterDeps {
   readonly readReplacement: (path: string) => string;
   /** The abort signal for the operation that owns the current lint run, if any. */
   readonly signal?: (() => AbortSignal | undefined) | undefined;
-  /** Overrides the fatal-lint subprocess runner; the real runner stays the default. */
   readonly runFatalLint?: FatalLintRunner | undefined;
 }
 

@@ -142,7 +142,6 @@ export class Linter {
     return errorsToLintResult(relFname, errors);
   }
 
-  /** Lints each edited file, warns with the combined blob, and returns it. */
   async lintEdited(fnames: readonly string[]): Promise<string | undefined> {
     let res = '';
     for (const fname of fnames) {

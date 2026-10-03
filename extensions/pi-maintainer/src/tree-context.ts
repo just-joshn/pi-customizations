@@ -124,7 +124,6 @@ export function treeContextExcerpt(input: TreeContextInput): string {
   return formatExcerpt(lines, show, lois);
 }
 
-/** The full excerpt block: heading, filename, and the marked excerpt. */
 export function renderTreeContext(fname: string, code: string, lineNums: readonly number[], parse: (code: string) => ParsedTree | null): string {
   const excerpt = treeContextExcerpt({ code, lineNums, parse });
   const plural = new Set(lineNums).size > 1 ? 's' : '';

@@ -1,8 +1,5 @@
 /**
- * The /run and /test command semantics: run a shell command, decide whether
- * the output joins the conversation, format the run_output message, and set
- * the input placeholder on a failing plain run. Only the exit status decides
- * failure.
+ * The /run and /test command semantics. Only the exit status decides failure.
  */
 
 import { addedOutputMessage, addOutputQuestion, formatRunOutput, RUN_PLACEHOLDER } from './strings.ts';

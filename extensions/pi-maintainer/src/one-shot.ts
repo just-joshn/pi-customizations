@@ -50,7 +50,6 @@ export class OneShotRunner {
     await this.finish();
   }
 
-  /** Continues after a repair settles: next accepted file, else the test flow, then shutdown. */
   async onSettled(): Promise<void> {
     if (await this.advanceLint()) return;
     await this.finish();

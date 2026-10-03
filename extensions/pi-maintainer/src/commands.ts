@@ -108,7 +108,6 @@ async function repairOneFile(clone: ClonePorts, errors: string): Promise<void> {
   await clone.waitForIdle();
 }
 
-/** /test [cmd]: falls back to the configured test command; failure text joins the chat and is returned. */
 export async function runTestCommand(deps: RepairDeps, args: string): Promise<void> {
   const arg = args.trim().length > 0 ? args.trim() : undefined;
   const command = arg ?? deps.testCmd;
@@ -119,7 +118,6 @@ export async function runTestCommand(deps: RepairDeps, args: string): Promise<vo
   if (result.returnedMessage !== undefined) deps.pi.sendUserMessage(result.returnedMessage);
 }
 
-/** /run: output joins the chat after confirmation; a failing run prefills the input placeholder. */
 export async function runRunCommand(deps: RepairDeps, args: string, editor: { setEditorText(text: string): void; readonly mode: string }): Promise<void> {
   const result = await cmdRun(deps.cmdRunIo, args, false);
   appendRunOutput(deps, result);
