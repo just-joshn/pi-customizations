@@ -192,7 +192,7 @@ export function requireTmux() {
 export function startSession(scenario) {
   homeDir = tempDir('pi-tui-skin-home');
   mkdirSync(join(homeDir, '.pi', 'agent'), { recursive: true });
-  writeFileSync(join(homeDir, '.pi', 'agent', 'settings.json'), `${JSON.stringify({ quietStartup: true }, null, 2)}\n`);
+  writeFileSync(join(homeDir, '.pi', 'agent', 'settings.json'), `${JSON.stringify({ quietStartup: true, defaultTools: scenario.tools }, null, 2)}\n`);
   const workspace =
     scenario.workspaceRoot === undefined
       ? tempDir('pi-tui-skin-ws')

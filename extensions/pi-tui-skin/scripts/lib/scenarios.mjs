@@ -162,8 +162,9 @@ export const SCENARIOS = new Map([
   [
     'tools',
     {
-      description: 'one scripted turn per built-in tool row with the opt-in overrides enabled',
-      env: { PI_TUI_SKIN_TOOL_OVERRIDES: 'grep,find,ls,powershell', PI_TUI_SKIN_SMOKE_TURN_MS: '700' },
+      description: 'one scripted turn per built-in tool row with Pi tools enabled',
+      tools: ['read', 'bash', 'edit', 'write', 'grep', 'find', 'ls', 'powershell'],
+      env: { PI_TUI_SKIN_SMOKE_TURN_MS: '700' },
       steps: [
         idle,
         { name: 'read row', capture: '02-tool-read', actions: [runTools], expect: ['Read README.md'], reject: ['◇ Bash echo TUI_SKIN_BASH_OK'], chrome: true },
@@ -208,7 +209,7 @@ export const SCENARIOS = new Map([
     'expand',
     {
       description: 'ctrl+o expands real tool output',
-      env: { PI_TUI_SKIN_TOOL_OVERRIDES: 'grep,find,ls,powershell' },
+      tools: ['read', 'bash', 'edit', 'write', 'grep', 'find', 'ls', 'powershell'],
       steps: [
         idle,
         { name: 'tools done', capture: '02-tool-rows', actions: [runTools], expect: ['TUI_SKIN_TOOLS_DONE'], chrome: true },
@@ -450,7 +451,7 @@ export const SCENARIOS = new Map([
         {
           name: 'dark theme selected',
           capture: '02-theme-dark',
-          actions: [send('/settings'), { kind: 'type', text: 'theme' }, keys('Enter'), keys('Down'), keys('Enter'), keys('Escape')],
+          actions: [send('/settings'), { kind: 'type', text: 'theme' }, keys('Enter'), keys('Up', 'Up'), keys('Enter'), keys('Escape')],
           expect: ['Pi Coding Agent'],
           chrome: 'top',
         },
@@ -464,7 +465,6 @@ export const SCENARIOS = new Map([
             const band = ansi.split('\n').find((line) => line.includes('Working')) ?? '';
             const frame = /38;2;(\d+;\d+;\d+)m[·•●]/.exec(band)?.[1];
             if (frame === undefined) throw new Error(`no spinner frame inside the band row: ${band}`);
-            // The built-in dark theme's dim, muted, and success roles as Pi 1.0.0 paints them.
             const darkFrames = ['126;136;142', '157;165;169', '104;183;141'];
             if (!darkFrames.includes(frame)) throw new Error(`the spinner kept another theme's color: ${frame}`);
           },
@@ -640,7 +640,8 @@ export const SCENARIOS = new Map([
     'journey',
     {
       description: 'a four-turn session keeps the frame intact through read, edit, grep, and bash',
-      env: { PI_TUI_SKIN_TOOL_OVERRIDES: 'grep,find,ls,powershell', PI_TUI_SKIN_SMOKE_TURN_MS: '700' },
+      tools: ['read', 'bash', 'edit', 'write', 'grep', 'find', 'ls', 'powershell'],
+      env: { PI_TUI_SKIN_SMOKE_TURN_MS: '700' },
       steps: [
         idle,
         { name: 'journey read', capture: '02-journey-read', actions: [send('journey')], expect: ['◇ Read README.md'], reject: ['◇ Edit note.txt'], chrome: true },

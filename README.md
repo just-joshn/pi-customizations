@@ -6,7 +6,7 @@ Extensions, themes, and skills for [Pi](https://pi.dev), the coding agent by Ear
 
 | Package | What it does |
 | --- | --- |
-| [`extensions/pi-pstack`](extensions/pi-pstack/README.md) | Ports the pstack 0.15.7 workflow plugin and team-kit 1.2.0 to Pi 1.0.0. 69 prompt templates and 71 skills, including `/poteto-mode`, plus an extension that supplies executable behavior. See its [latest parity audit](extensions/pi-pstack/docs/latest-parity.md), including external-service and proprietary-host limits. |
+| [`extensions/pi-pstack`](extensions/pi-pstack/README.md) | Ports the pstack 0.15.7 workflow plugin and team-kit 1.2.0 to Pi 1.0.1. 69 prompt templates and 71 skills, including `/poteto-mode`, plus an extension that supplies executable behavior. See its [latest parity audit](extensions/pi-pstack/docs/latest-parity.md), including external-service and proprietary-host limits. |
 | [`extensions/pi-anthropic-oauth`](extensions/pi-anthropic-oauth/README.md) | Lets a Claude Pro or Max subscription answer in Pi through a separate `claude-subscription` provider. |
 | [`extensions/pi-antigravity-oauth`](extensions/pi-antigravity-oauth/README.md) | Restores the `google-antigravity` provider. Signs in with Google OAuth and talks to the Cloud Code Assist API. |
 | [`extensions/pi-xai-oauth`](extensions/pi-xai-oauth/README.md) | Lets a SuperGrok or X Premium subscription answer in Pi through the `grok-build` provider. |
@@ -38,6 +38,8 @@ make verify
 ```
 
 `make verify` covers lint, agent-compliance checks, Pi mechanism checks, toolchain checks, test conventions, each extension's suite, a fresh-install check, and Python coverage for the standalone skills. It needs [bun](https://bun.sh), Node 22.19 or newer, and [uv](https://docs.astral.sh/uv/). Two targets need more and stay out of the default set: `make sweep-tui-skin` needs tmux, a real Pi binary, and an installed reference-agent, and `make verify-parity-audit` needs a preserved upstream checkout.
+
+The [Pi 1.0.1 migration audit](docs/pi-1.0.1-migration.md) records the package inventory, native API choices, verification paths, and remaining test limits.
 
 ## Repository notes
 

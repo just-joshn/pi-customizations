@@ -1,4 +1,4 @@
-import { createProvider, type StreamOptions } from '@earendil-works/pi-ai';
+import { type Api, createProvider, getDeclaredTools, type Model, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
@@ -67,6 +67,14 @@ function withUniqueToolNames(payload: unknown): unknown {
   return { ...payload, tools: unique };
 }
 
+function modelForCaseCollisions(model: Model<Api>, context: TranscriptContext): Model<Api> {
+  const compat = { supportsMidConvoSystemMessages: false, supportsMidConvoToolChanges: false, ...model.compat };
+  if (!compat.supportsMidConvoToolChanges || !compat.supportsMidConvoSystemMessages) return model;
+  const names = getDeclaredTools(context.messages).map((tool) => tool.name.toLowerCase());
+  if (new Set(names).size === names.length) return model;
+  return { ...model, compat: { ...model.compat, supportsMidConvoToolChanges: false } };
+}
+
 function billingOverrides(options: StreamOptions | undefined): Pick<StreamOptions, 'onPayload' | 'cacheRetention'> {
   return {
     cacheRetention: options?.cacheRetention === 'none' ? 'none' : 'long',
@@ -89,8 +97,8 @@ export default function (pi: Pick<ExtensionAPI, 'registerProvider'>) {
       auth: { oauth: { ...oauth, name: 'Claude subscription (Provider CLI)' } },
       models: anthropic.getModels().map((model) => ({ ...model, provider: PROVIDER_ID, promptCache: PROMPT_CACHE })),
       api: {
-        stream: (model, context, options) => anthropic.stream(model, context, { ...options, ...billingOverrides(options) }),
-        streamSimple: (model, context, options) => anthropic.streamSimple(model, context, { ...options, ...billingOverrides(options) }),
+        stream: (model, context, options) => anthropic.stream(modelForCaseCollisions(model, context), context, { ...options, ...billingOverrides(options) }),
+        streamSimple: (model, context, options) => anthropic.streamSimple(modelForCaseCollisions(model, context), context, { ...options, ...billingOverrides(options) }),
       },
     }),
   );

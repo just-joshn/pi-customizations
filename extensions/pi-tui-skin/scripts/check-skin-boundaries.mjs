@@ -23,6 +23,7 @@ const FORBIDDEN_CALLS = [
   '.setThinkingLevel(',
   '.shutdown(',
   'ctx.abort(',
+  '.registerTool(',
   '.registerCommand(',
   '.registerShortcut(',
   '.registerMessageRenderer(',
@@ -102,7 +103,7 @@ export default function (pi: ExtensionAPI) {
   pi.on('session_start', () => {});
   pi.on('agent_start', () => {});
   pi.on('tool_execution_start', () => {});
-  pi.registerTool({ name: 'style' });
+  pi.registerToolRenderer((name, next) => next());
   ctx.ui.setHeader(() => {});
   ctx.ui.setTheme('tui-skin');
 }`,
@@ -110,8 +111,8 @@ export default function (pi: ExtensionAPI) {
   },
   {
     name: 'behavior-api',
-    text: `pi.sendMessage({ text: 'hi' });\npi.setModel('x');`,
-    expected: ['behavior-api', 'behavior-api'],
+    text: `pi.sendMessage({ text: 'hi' });\npi.setModel('x');\npi.registerTool({ name: 'read' });`,
+    expected: ['behavior-api', 'behavior-api', 'behavior-api'],
   },
   {
     name: 'behavior-hook',

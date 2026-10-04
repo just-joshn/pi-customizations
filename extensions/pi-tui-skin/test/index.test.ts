@@ -1,5 +1,4 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { SettingsManager } from '@earendil-works/pi-coding-agent';
 import { stripTerminalSequences } from '@earendil-works/pi-tui';
 import { describe, expect, test, vi } from 'vitest';
 import tuiSkin from '../src/index.ts';
@@ -10,6 +9,7 @@ function fakePi() {
   const tools: string[] = [];
   const handlers = new Map<string, Handler>();
   const pi = {
+    registerToolRenderer: vi.fn(),
     registerTool: (definition: { name: string }) => {
       tools.push(definition.name);
     },
@@ -51,7 +51,8 @@ describe('tui-skin extension entry point', () => {
     const { pi, tools, handlers } = fakePi();
     tuiSkin(pi);
 
-    expect(tools.sort()).toEqual(['bash', 'edit', 'read', 'write']);
+    expect(tools).toEqual([]);
+    expect(pi.registerToolRenderer).toHaveBeenCalledOnce();
     expect([...handlers.keys()].sort()).toEqual(['agent_end', 'agent_start', 'model_select', 'session_shutdown', 'session_start', 'thinking_level_select', 'tool_execution_end', 'tool_execution_start']);
   });
 
@@ -74,66 +75,6 @@ describe('tui-skin extension entry point', () => {
     expect(plain[0]).toBe('  Pi Coding Agent');
     expect(plain[1]).toMatch(/^ {2}v\S+$/);
     expect(plain[2]).toMatch(/^ {2}Tip: \S/);
-  });
-});
-
-describe('tui-skin extension settings fallback report', () => {
-  function failSettingsRead(message: string): void {
-    vi.spyOn(SettingsManager, 'create').mockImplementation(() => {
-      throw new Error(message);
-    });
-  }
-
-  test('unreadable settings raise one warning notification', () => {
-    const consoleError = vi.spyOn(console, 'error');
-    failSettingsRead('settings.json is not valid JSON');
-    const { pi, handlers } = fakePi();
-    tuiSkin(pi);
-    const { ctx, ui } = sessionContext('tui');
-
-    handlers.get('session_start')?.({}, ctx);
-
-    expect(ui.notify).toHaveBeenCalledTimes(1);
-    expect(ui.notify).toHaveBeenCalledWith('tui-skin: using default tool settings because settings could not be read (settings.json is not valid JSON)', 'warning');
-    expect(consoleError.mock.calls).toEqual([]);
-  });
-
-  test('each new session reports the fallback again', () => {
-    failSettingsRead('unreadable');
-    const { pi, handlers } = fakePi();
-    tuiSkin(pi);
-    const first = sessionContext('tui');
-    const second = sessionContext('tui');
-
-    handlers.get('session_start')?.({}, first.ctx);
-    handlers.get('session_start')?.({}, second.ctx);
-
-    const notice = ['tui-skin: using default tool settings because settings could not be read (unreadable)', 'warning'];
-    expect(first.ui.notify.mock.calls).toEqual([notice]);
-    expect(second.ui.notify.mock.calls).toEqual([notice]);
-  });
-
-  test('a session without a UI reports nothing', () => {
-    const consoleError = vi.spyOn(console, 'error');
-    failSettingsRead('unreadable');
-    const { pi, handlers } = fakePi();
-    tuiSkin(pi);
-    const { ctx, ui } = sessionContext('print');
-
-    handlers.get('session_start')?.({}, ctx);
-
-    expect(ui.notify.mock.calls.length).toBe(0);
-    expect(consoleError.mock.calls).toEqual([]);
-  });
-
-  test('readable settings produce no notification', () => {
-    const { pi, handlers } = fakePi();
-    tuiSkin(pi);
-    const { ctx, ui } = sessionContext('tui');
-
-    handlers.get('session_start')?.({}, ctx);
-
-    expect(ui.notify.mock.calls.length).toBe(0);
   });
 });
 

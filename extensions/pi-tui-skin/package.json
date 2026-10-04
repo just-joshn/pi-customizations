@@ -19,9 +19,9 @@
     "check:reference:capture": "node scripts/capture-reference.mjs --check"
   },
   "devDependencies": {
-    "@earendil-works/pi-agent-core": "1.0.0",
-    "@earendil-works/pi-coding-agent": "1.0.0",
-    "@earendil-works/pi-tui": "1.0.0",
+    "@earendil-works/pi-agent-core": "1.0.1",
+    "@earendil-works/pi-coding-agent": "1.0.1",
+    "@earendil-works/pi-tui": "1.0.1",
     "@types/node": "^22.19.0",
     "@vitest/coverage-v8": "^5.0.2",
     "typebox": "1.3.27",

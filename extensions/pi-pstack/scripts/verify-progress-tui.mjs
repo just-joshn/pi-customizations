@@ -50,7 +50,9 @@ async function prepare() {
   execFileSync('tmux', ['-V'], { encoding: 'utf8' });
   const pi = resolvePi();
   const version = execFileSync(pi, ['--version'], { encoding: 'utf8' }).trim();
-  if (version !== '1.0.0') throw new Error(`Pi 1.0.0 is required for this TUI check. Found ${version}`);
+  const manifest = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'));
+  const testedVersion = manifest.devDependencies['@earendil-works/pi-coding-agent'];
+  if (version !== testedVersion) throw new Error(`Pi ${testedVersion} is required for this TUI check. Found ${version}`);
 
   directory = await mkdtemp(join(tmpdir(), 'pi-pstack-progress-tui-'));
   const log = join(directory, 'requests');
@@ -68,7 +70,7 @@ async function prepare() {
     TERM: 'xterm-256color',
     LANG: 'C.UTF-8',
   };
-  return { pi, env };
+  return { pi, env, version };
 }
 
 function startTui(pi, env, cwd) {
@@ -155,8 +157,8 @@ function progressText(frame) {
   return match?.[0].replace(/Task [0-9a-f-]{36}/, 'Task <task>') ?? '<missing progress snapshot>';
 }
 
-function report(progress) {
-  process.stdout.write('Installed Pi version: 1.0.0\n');
+function report(progress, version) {
+  process.stdout.write(`Installed Pi version: ${version}\n`);
   process.stdout.write(`Start snapshot: ${progressText(progress.startFrame)}\n`);
   process.stdout.write(`Finish snapshot: ${progressText(progress.finishFrame)}\n`);
   process.stdout.write(`Deterministic child provider turns: ${progress.childTurns}\n`);
@@ -166,11 +168,11 @@ function report(progress) {
 }
 
 async function run() {
-  const { pi, env } = await prepare();
+  const { pi, env, version } = await prepare();
   startTui(pi, env, directory);
   await showStatus();
   const progress = await showProgress(env.PSTACK_JOURNEY_LOG);
-  report(progress);
+  report(progress, version);
 }
 
 try {

@@ -1,6 +1,6 @@
 # pstack for pi
 
-This Pi package ports pstack 0.15.7 and team-kit 1.2.0 workflows to Pi 1.0.0. It preserves 190 source files and all 68 upstream workflow entry points through 67 generated skills and 66 prompt templates. Pi-authored host resources bring discovery to 71 skills and 69 templates. Run `bun run check:resources` to verify generated counts and `bun run check:cli` to verify installed discovery. Its extension supplies executable behavior. The extension maps supported host facilities to Pi-native behavior. Live external services and proprietary host facilities remain subject to the documented limits. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
+This Pi package ports pstack 0.15.7 and team-kit 1.2.0 workflows to Pi 1.0.1. It preserves 190 source files and all 68 upstream workflow entry points through 67 generated skills and 66 prompt templates. Pi-authored host resources bring discovery to 71 skills and 69 templates. Run `bun run check:resources` to verify generated counts and `bun run check:cli` to verify installed discovery. Its extension supplies executable behavior. The extension maps supported host facilities to Pi-native behavior. Live external services and proprietary host facilities remain subject to the documented limits. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
 
 ## Install
 
@@ -28,7 +28,7 @@ Every turn, the host context lists each bundled skill, host skill, and playbook 
 
 With the package extension enabled, direct user invocations of pstack-owned prompt aliases preserve the raw argument suffix, including quotes, whitespace, newlines, backslashes, and dollar placeholders. The input hook quotes that suffix as one parser argument and leaves native prompt discovery and expansion in place. User-owned prompts, other extension commands, and `/bro` are not rewritten. Extension-generated messages keep Pi's normal literal delivery or opt-in expansion. When the extension is disabled, Pi's native prompt parser removes grouping quotes, joins parsed arguments with spaces, and converts unquoted line breaks to spaces. Use `/skill:name` to load a skill directly.
 
-The runtime uses current `@earendil-works` pi packages. Host dependencies are peers with a minimum of 1.0.0. SDK 1.0.0 is the development and verification target. Newer versions have not been verified.
+The runtime uses current `@earendil-works` pi packages. Host dependencies are wildcard peers supplied by Pi. SDK 1.0.1 is the development and verification target. Other versions are not verification targets.
 
 ## Usage
 
@@ -140,7 +140,7 @@ CLI and UI workflows use the project's existing terminal or browser tools. Bundl
 
 ## Local agents
 
-`Task` starts a local SDK session. A foreground call streams sanitized child tool-start, tool-finish, and retry snapshots into the active Task row. The snapshots omit child arguments, results, and shell output. RPC clients receive the same partial updates and render them themselves.
+`Task` starts a local SDK session. Writable local workers load Pi's native MCP, codemode, and tool-search factories. Pi resolves user and project MCP configuration. Codemode and tool search remain inactive unless native tool selection enables them. Readonly workers retain only `read`, `grep`, `find`, and `ls`. A foreground call streams sanitized child tool-start, tool-finish, and retry snapshots into the active Task row. The snapshots omit child arguments, results, and shell output. RPC clients receive the same partial updates and render them themselves.
 
 A background call returns a task ID and sends a completion message. It receives no progress after the tool call returns. `TaskOutput` reads or waits for the result. Pi announces a task that finishes during a parent turn when that turn ends, unless the turn already read or stopped the task. After an aborted turn, the announcement waits for the next turn to end. `TaskMessage` sends steering or follow-up input. `TaskStop` aborts a task. `Task` with `resume` continues the same child transcript.
 
@@ -202,7 +202,7 @@ bun run check:progress-tui
 
 `bun run check:parity` resolves every pointer in the Reference Assistant subagent parity matrix at `docs/subagents-parity.tsv`. `bun run check:native-parity` re-executes every clause in `docs/parity/clauses/` against the vendored pstack reconstruction at `docs/parity/reference/pstack-architecture-reconstruction.md`, including the tests each clause names. Its provenance checks read the preserved source checkout at `~/src/experiments/plugins`, including its git history, so it only runs on a machine that has that checkout. Run it through `make verify-parity-audit`, which passes `--allow-external` for the clauses that need live third-party credentials. It is deliberately not part of `make verify-extension`, so the portable target never depends on the author's home directory.
 
-`bun run check:journeys` starts the real Pi CLI against the package with a deterministic local provider. It loads every skill and prompt template as a user would, drives the mode, status, todo, context, dialog, delegation, shell, setup, helper-script, and worktree journeys, and reports one line per check. `bun run check:progress-tui` requires Pi 1.0.0 and tmux. It launches an isolated TUI with the deterministic provider and checks the visible foreground Task updates.
+`bun run check:journeys` starts the real Pi CLI against the package with a deterministic local provider. It loads every skill and prompt template as a user would, drives the mode, status, todo, context, dialog, delegation, shell, setup, helper-script, and worktree journeys, and reports one line per check. `bun run check:progress-tui` requires the pinned Pi development version and tmux. It launches an isolated TUI with the deterministic provider and checks the visible foreground Task updates.
 
 `bun run generate` recreates the operational skills and prompts from the immutable snapshot. The checker rejects changed upstream hashes and generated resource drift. Do not edit generated resources directly.
 

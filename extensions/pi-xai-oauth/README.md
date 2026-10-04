@@ -80,7 +80,7 @@ If Grok Build raises its minimum client version, requests fail with HTTP 426 and
 
 ## Verify it
 
-Run `bun install` first. It installs the Pi packages that the tests import, pinned to 1.0.0. Pi does not install development dependencies when it loads the package.
+Run `bun install` first. It installs the Pi packages that the tests import, pinned to 1.0.1. Pi does not install development dependencies when it loads the package.
 
 - `bun run typecheck` runs `tsc` in strict mode.
 - `bun run test` runs the provider against local stand-ins for Grok Build. `catalog.test.ts` parses the model list and computes the metered prices from Pi's real `xai` catalog. `request.test.ts` checks the headers. `provider.test.ts` checks the login, the models, and the alias routes. `live-catalog.test.ts` runs Pi's model refresh against a stubbed `/v1/models`. `stream.test.ts` streams one request through Pi's `Models` to a local Responses server and checks the headers and the body that arrive. `registration.test.ts` runs Pi's public `discoverAndLoadExtensions` on a temporary copy of the package.

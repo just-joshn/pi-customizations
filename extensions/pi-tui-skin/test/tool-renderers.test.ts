@@ -1,7 +1,5 @@
-import type { ExtensionAPI, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import type { Component } from '@earendil-works/pi-tui';
-import { describe, expect, test, vi } from 'vitest';
-import { registerToolRenderers, TOOL_OVERRIDES_ENV } from '../src/tools/register-tool-renderers.ts';
+import { describe, expect, test } from 'vitest';
 import { renderEditCall, renderEditResult } from '../src/tools/render-edit.ts';
 import { renderFindCall, renderFindResult } from '../src/tools/render-find.ts';
 import { renderGrepCall, renderGrepResult } from '../src/tools/render-grep.ts';
@@ -224,49 +222,6 @@ describe('tui-skin find, ls, powershell result rows', () => {
   test('powershell result row marks an image instead of output', () => {
     const image = renderPowerShellResult({ content: [{ type: 'image', data: 'x', mimeType: 'image/png' }], details: undefined }, { expanded: true, isPartial: false }, theme, rowContext());
     expect(renderLines(image, 80).map((line) => strip(line).trimEnd())).toEqual(['[image]']);
-  });
-});
-
-describe('tui-skin tool renderer registration', () => {
-  test('registration replaces shell with both renderers', () => {
-    const captured = new Map<string, ToolDefinition>();
-    const fakePi = {
-      registerTool: (definition: ToolDefinition) => {
-        captured.set(definition.name, definition);
-      },
-    } as unknown as ExtensionAPI;
-    vi.stubEnv(TOOL_OVERRIDES_ENV, 'grep,find,ls,powershell');
-    try {
-      registerToolRenderers(fakePi);
-    } finally {
-      vi.unstubAllEnvs();
-    }
-
-    expect([...captured.keys()].sort()).toEqual(['bash', 'edit', 'find', 'grep', 'ls', 'powershell', 'read', 'write']);
-    for (const definition of captured.values()) {
-      expect(definition.renderShell).toBe('self');
-      expect(typeof definition.renderCall).toBe('function');
-      expect(typeof definition.renderResult).toBe('function');
-    }
-
-    const read = captured.get('read');
-    if (!read) throw new Error('read is not registered');
-    const component = read.renderCall?.({ path: 'src/server.ts' }, theme, {
-      args: { path: 'src/server.ts' },
-      toolCallId: 'call-1',
-      invalidate: () => {},
-      lastComponent: undefined,
-      state: {},
-      cwd: '/tmp',
-      executionStarted: true,
-      argsComplete: true,
-      isPartial: false,
-      expanded: false,
-      showImages: true,
-      isError: false,
-    });
-    if (!component) throw new Error('read has no renderCall');
-    expect(plainLine(component, 80)).toBe('◇ Read src/server.ts');
   });
 });
 

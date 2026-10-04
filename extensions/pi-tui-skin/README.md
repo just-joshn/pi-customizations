@@ -16,22 +16,21 @@ To load it in every session, add the package path to the `packages` list in
 
 ## Tool coverage
 
-Pi activates every tool an extension registers, including a tool the user never
-selected. A same-name renderer for all eight built-ins would therefore add
-`grep`, `find`, `ls`, and `powershell` to the model's tool set and change the
-system prompt for everyone.
+The skin uses Pi 1.0.1's `pi.registerToolRenderer()` for `read`, `bash`,
+`edit`, `write`, `grep`, `find`, `ls`, and `powershell`. It registers no tool
+definitions and does not change which tools are active. Pi owns execution,
+settings, schemas, and the model's tool declarations.
 
-The skin registers `read`, `bash`, `edit`, and `write` by default. They are
-exactly Pi's default active set, so the model sees no change. Run
-`node scripts/check-prompt-parity.mjs` to compare a session with the skin
-against a session without it.
-
-To use the styled rows for the other four built-ins, name them in
-`PI_TUI_SKIN_TOOL_OVERRIDES` and enable the same tools for pi:
+Run `node scripts/check-prompt-parity.mjs` to compare a session with the skin
+against a session without it. Enable optional tools through Pi's `--tools`
+flag or `defaultTools` setting. The skin styles them automatically:
 
 ```sh
-PI_TUI_SKIN_TOOL_OVERRIDES=grep,find,ls,powershell pi -e ./extensions/pi-tui-skin
+pi -e ./extensions/pi-tui-skin --tools read,bash,edit,write,grep,find,ls,powershell
 ```
+
+`PI_TUI_SKIN_TOOL_OVERRIDES` is no longer needed. Unknown tool names retain
+the renderers supplied by later extensions or Pi.
 
 ## What owns each surface
 
@@ -50,8 +49,8 @@ PI_TUI_SKIN_TOOL_OVERRIDES=grep,find,ls,powershell pi -e ./extensions/pi-tui-ski
   columns the way the reference indents its own banner. The footer shows a mode
   row only once the thinking level leaves its session-start value, then the
   model row, then the location row.
-- `src/tools/` registers the same-name built-in renderer overrides and
-  delegates execution to the official definitions in `builtins.ts`.
+- `src/tools/` resolves built-in tool renderers through Pi's native API.
+  It does not wrap execution or read tool settings.
 - `src/format/` holds pure formatting. `duration.ts` renders elapsed time,
   `path.ts` shortens a home path, `width.ts` fits a line to the terminal.
 - `themes/tui-skin.json` sets every semantic theme role.
