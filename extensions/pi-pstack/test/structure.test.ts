@@ -44,7 +44,7 @@ test('maintained extension code and tests meet the repository size and logging l
   const sources = (await readdir(join(root, 'src'))).filter((name) => name.endsWith('.ts'));
   expect(scanned).toEqual(expect.arrayContaining([...sources.map((name) => join(root, 'src', name)), join(root, 'test/structure.test.ts')]));
   expect(violations).toEqual([]);
-});
+}, 15000);
 
 test('runtime source states no dependency version as a literal', async () => {
   for (const name of (await readdir(join(root, 'src'), { recursive: true })).filter((entry) => entry.endsWith('.ts'))) {

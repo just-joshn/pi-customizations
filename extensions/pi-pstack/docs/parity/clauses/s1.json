@@ -2,12 +2,12 @@
   {
     "id": "L3.1",
     "lines": [3, 3],
-    "requirement": "The historical reference describes pstack 0.15.5 at c47b12849e43f18d5c374c7069c744cc55b0ea00. The current package supersedes that source snapshot with pstack 0.15.7 at 9511e60321f7e533a187d62854a3d53a53752874.",
+    "requirement": "The historical reference describes pstack 0.15.5 at c47b12849e43f18d5c374c7069c744cc55b0ea00. The current package supersedes that source snapshot with pstack 0.15.9 at e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a.",
     "kind": "fact",
     "runtime": false,
     "verdict": "verified",
     "checks": [
-      { "type": "source", "path": "upstream/plugin-metadata/plugin.json", "quote": "\"version\": \"0.15.7\"," },
+      { "type": "source", "path": "upstream/plugin-metadata/plugin.json", "quote": "\"version\": \"0.15.9\"," },
       { "type": "commit", "rev": "c47b12849e43f18d5c374c7069c744cc55b0ea00", "subject": "Merge pull request #479" }
     ]
   },
@@ -303,7 +303,7 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      { "type": "quote", "path": "src/personas.ts", "quote": "['poteto-agent', { files: ['upstream/agents/poteto-agent.md', 'skills/poteto-mode/SKILL.md'], text: resumeRule, drop: resumeSentence }]," },
+      { "type": "quote", "path": "src/personas.ts", "quote": "['poteto-agent', { files: ['upstream/agents/poteto-agent.md', 'skills/poteto-mode/SKILL.md'] }]," },
       { "type": "file", "path": "src/personas.ts" },
       { "type": "test", "path": "test/skills-parity.test.ts", "name": "subagent personas resolve their mapped instruction files" }
     ]
@@ -522,7 +522,7 @@
     "runtime": false,
     "verdict": "verified",
     "checks": [
-      { "type": "quote", "path": "README.md", "quote": "Its extension supplies executable behavior. Upstream-hosted facilities run as local Pi equivalents." },
+      { "type": "quote", "path": "README.md", "quote": "Its extension supplies executable behavior. The extension maps supported host facilities to Pi-native behavior." },
       { "type": "test", "path": "test/commands.test.ts", "name": "pstack index entry point wires extension hooks and registers all tools" }
     ]
   },

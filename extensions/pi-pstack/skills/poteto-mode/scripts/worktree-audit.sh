@@ -19,7 +19,7 @@ command -v rg >/dev/null 2>&1 || echo "warn: rg not found; LAST_CHAT will be - f
 command -v perl >/dev/null 2>&1 || echo "warn: perl not found; LAST_CHAT will be - for every worktree" >&2
 
 # Main worktree is the first entry; everything else is a candidate.
-main_wt=$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -1)
+main_wt=$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')
 
 # origin/main drives the merge check. Best-effort; stale is fine for a first pass.
 git fetch origin main --quiet 2>/dev/null || echo "warn: could not fetch origin/main; merged column may be stale" >&2
@@ -38,7 +38,7 @@ now=$(date +%s)
 
 printf "SIZE\tAGE\tMERGED\tDIRTY\tREMOTE\tPR\tLAST_CHAT\tBUCKET\tWORKTREE\n"
 
-git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r wt; do
+git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt; do
 	[ "$wt" = "$main_wt" ] && continue
 
 	size=$(du -sh "$wt" 2>/dev/null | awk '{print $1}')
@@ -50,13 +50,12 @@ git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r wt
 	# real signal; merge-base only catches fast-forward/rebase merges.
 	git merge-base --is-ancestor "$head" origin/main 2>/dev/null && merged=YES || merged=no
 
-	# wip counts tracked edits. scratch counts untracked and ignored files. Neither is
-	# disposable, so both hold the worktree out of the safe bucket below.
-	porcelain=$(git -C "$wt" status --porcelain --untracked-files=all --ignored=matching 2>/dev/null)
+	# Distinguish real WIP (tracked edits) from disposable untracked scratch.
+	porcelain=$(git -C "$wt" status --porcelain 2>/dev/null)
 	if [ -z "$porcelain" ]; then dirty=clean
-	elif printf '%s\n' "$porcelain" | grep -qv '^[?!][?!]'; then
-		dirty="wip:$(printf '%s\n' "$porcelain" | grep -cv '^[?!][?!]')"
-	else dirty="scratch:$(printf '%s\n' "$porcelain" | grep -c '^[?!][?!]')"; fi
+	elif printf '%s\n' "$porcelain" | grep -qv '^??'; then
+		dirty="wip:$(printf '%s\n' "$porcelain" | grep -cv '^??')"
+	else dirty="scratch:$(printf '%s\n' "$porcelain" | grep -c '^??')"; fi
 
 	branch=$(git -C "$wt" symbolic-ref --quiet --short HEAD 2>/dev/null || echo "")
 	if [ -z "$branch" ]; then remote=detached
@@ -82,10 +81,10 @@ git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r wt
 	fi
 	recent=$([ "$last_ts" -gt 0 ] 2>/dev/null && [ $(( (now - last_ts) / 86400 )) -le 4 ] && echo yes || echo no)
 
-	case "$dirty" in wip:*|scratch:*) bucket=hold-wip ;; *)
+	case "$dirty" in wip:*) bucket=hold-wip ;; *)
 		case "$pr" in *OPEN*) bucket=hold-open-pr ;; *)
 			if [ "$recent" = yes ]; then bucket=verify-recent-chat
-			elif [ "$merged" = YES ] || [ "${pr#*/}" = MERGED ]; then bucket=safe
+			elif [ "$merged" = YES ] || [ "$pr" != "-" ]; then bucket=safe
 			else bucket=review; fi ;;
 		esac ;;
 	esac

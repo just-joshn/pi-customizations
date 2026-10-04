@@ -78,20 +78,4 @@ esac
   return bin;
 }
 
-export async function installGh(directory: string, body: string): Promise<string> {
-  const bin = join(directory, 'gh-bin');
-  await mkdir(bin, { recursive: true });
-  await writeFile(join(bin, 'gh'), `#!/bin/sh\n${body}\n`);
-  await chmod(join(bin, 'gh'), 0o755);
-  return bin;
-}
-
-export async function installGit(directory: string): Promise<string> {
-  const bin = join(directory, 'git-bin');
-  await mkdir(bin, { recursive: true });
-  await writeFile(join(bin, 'git'), `#!/bin/sh\nexec ${Bun.which('git') ?? '/usr/bin/git'} "$@"\n`);
-  await chmod(join(bin, 'git'), 0o755);
-  return bin;
-}
-
 export const stackLog = (...branches: string[]): string => ['◯ main', ...branches.map((branch) => `◯ ${branch}`)].join('\n');

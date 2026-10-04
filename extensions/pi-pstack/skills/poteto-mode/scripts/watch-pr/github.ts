@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import type * as T from "./types.ts";
 import { nonEmpty, parsePrNumber } from "./types.ts";
 export const REVIEW_THREADS_QUERY =
-  "\nquery ReviewThreads($owner: String!, $repo: String!, $pr: Int!, $after: String) {\n  repository(owner: $owner, name: $repo) {\n    pullRequest(number: $pr) {\n      reviewThreads(first: 100, after: $after) {\n        pageInfo {\n          hasNextPage\n          endCursor\n        }\n        nodes {\n          id\n          isResolved\n          comments(first: 10) {\n            nodes {\n              body\n              createdAt\n              path\n              line\n              author { login }\n            }\n          }\n        }\n      }\n    }\n  }\n}\n";
+  "\nquery ReviewThreads($owner: String!, $repo: String!, $pr: Int!) {\n  repository(owner: $owner, name: $repo) {\n    pullRequest(number: $pr) {\n      reviewThreads(first: 100) {\n        nodes {\n          id\n          isResolved\n          comments(first: 10) {\n            nodes {\n              body\n              createdAt\n              path\n              line\n              author { login }\n            }\n          }\n        }\n      }\n    }\n  }\n}\n";
 export const PR_COMMIT_STATUS_QUERY =
   "\nquery PrCommitStatuses($owner: String!, $repo: String!, $pr: Int!) {\n  repository(owner: $owner, name: $repo) {\n    pullRequest(number: $pr) {\n      commits(last: 50) {\n        nodes {\n          commit {\n            oid\n            statusCheckRollup {\n              state\n            }\n          }\n        }\n      }\n    }\n  }\n}\n";
 export const PR_CHECK_ROLLUP_QUERY =
@@ -29,74 +29,23 @@ export class ChecksUnavailable extends WatcherQueryError {
 }
 const firstLine = (value: string): string =>
   value.trim().split(/\r?\n/, 1)[0]?.slice(0, 240) ?? "";
-const DEFAULT_COMMAND_TIMEOUT_SECONDS = 120;
-function commandTimeoutMs(): number {
-  const seconds = Number(process.env.WATCH_PR_COMMAND_TIMEOUT_SECONDS);
-  return (
-    (Number.isFinite(seconds) && seconds > 0
-      ? seconds
-      : DEFAULT_COMMAND_TIMEOUT_SECONDS) * 1_000
-  );
-}
-function spawnFailure(argv: readonly string[], error: unknown): Error {
-  const absent =
-    error instanceof Error &&
-    ((error as NodeJS.ErrnoException).code === "ENOENT" ||
-      /not found/i.test(error.message));
-  if (absent && argv[0] === "gh")
-    return new WatcherQueryError({
-      kind: "gh-missing",
-      retryable: false,
-      detail:
-        "gh was not found on PATH; install the GitHub CLI and run gh auth login",
-    });
-  return error instanceof Error ? error : new Error(String(error));
-}
-function launch(
-  argv: readonly [string, ...string[]],
-  resolve: (result: CommandResult) => void,
-  reject: (error: unknown) => void
-): void {
-  const child = spawn(argv[0], argv.slice(1), {
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  let stdout = "";
-  let stderr = "";
-  child.stdout.setEncoding("utf8");
-  child.stderr.setEncoding("utf8");
-  child.stdout.on("data", (chunk: string) => {
-    stdout += chunk;
-  });
-  child.stderr.on("data", (chunk: string) => {
-    stderr += chunk;
-  });
-  const timer = setTimeout(() => {
-    child.kill("SIGKILL");
-    reject(
-      new WatcherQueryError({
-        kind: "command-exit",
-        retryable: true,
-        code: -1,
-        detail: `${argv[0]} ${argv.slice(1, 4).join(" ")} timed out after ${commandTimeoutMs() / 1_000}s`,
-      })
-    );
-  }, commandTimeoutMs());
-  child.on("error", (error) => {
-    clearTimeout(timer);
-    reject(spawnFailure(argv, error));
-  });
-  child.on("close", (code) => {
-    clearTimeout(timer);
-    resolve({ code: code ?? -1, stdout, stderr });
-  });
-}
 function run(argv: readonly [string, ...string[]]): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
-    try {
-      launch(argv, resolve, reject);
-    } catch (error) {
-      reject(spawnFailure(argv, error));
-    }
+    const child = spawn(argv[0], argv.slice(1), {
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", (chunk: string) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk: string) => {
+      stderr += chunk;
+    });
+    child.on("error", reject);
+    child.on("close", (code) => resolve({ code: code ?? -1, stdout, stderr }));
   });
 }
 function parseJson(text: string, label: string): unknown {
@@ -212,17 +161,12 @@ const reviewDecision = (value: unknown): T.ReviewDecision =>
     REVIEW_DECISIONS,
     "pull request.reviewDecision"
   );
-function isKnownHost(hostname: string): boolean {
-  const configured = process.env.GH_HOST?.trim().toLowerCase();
-  return (
-    hostname === "github.com" ||
-    (configured !== undefined && configured !== "" && hostname === configured)
-  );
-}
 function parseRemote(value: string): T.Repository | null {
   let normalized = value.trim();
-  normalized = normalized.replace(/^git@([^:/]+):/, "https://$1/");
-  normalized = normalized.replace(/^ssh:\/\/git@([^/:]+)\//, "https://$1/");
+  if (normalized.startsWith("git@github.com:"))
+    normalized = `https://github.com/${normalized.slice(15)}`;
+  if (normalized.startsWith("ssh://git@github.com/"))
+    normalized = `https://github.com/${normalized.slice(21)}`;
   try {
     const url = new URL(normalized);
     const parts = url.pathname
@@ -231,7 +175,7 @@ function parseRemote(value: string): T.Repository | null {
       .filter(Boolean);
     if (
       url.protocol !== "https:" ||
-      !isKnownHost(url.hostname) ||
+      url.hostname !== "github.com" ||
       url.port ||
       url.username ||
       url.password ||
@@ -251,7 +195,7 @@ function parsePrUrl(value: string): T.PrContext {
     const parts = url.pathname.split("/").filter(Boolean);
     if (
       url.protocol !== "https:" ||
-      !isKnownHost(url.hostname) ||
+      url.hostname !== "github.com" ||
       url.port ||
       url.username ||
       url.password ||
@@ -392,7 +336,7 @@ function isBugbot(comment: T.ReviewComment | null): boolean {
   const body = comment.body.toLowerCase();
   return (
     author.includes("bugbot") ||
-    (author === "reference" &&
+    (author === "cursor" &&
       [
         "bugbot",
         "cursor_automation_id",
@@ -506,82 +450,10 @@ function graphqlArgs(
   ];
 }
 
-const OPEN_PR_LIMIT_CEILING = 10_000;
-async function listOpenPullRequests(
-  repository: T.Repository
-): Promise<readonly unknown[]> {
-  let limit = 300;
-  while (true) {
-    const items = list(
-      await runJson([
-        "gh",
-        "pr",
-        "list",
-        "--repo",
-        `${repository.owner}/${repository.repo}`,
-        "--state",
-        "open",
-        "--limit",
-        String(limit),
-        "--json",
-        "number,headRefName,baseRefName",
-      ]),
-      "open PRs"
-    );
-    if (items.length < limit) return items;
-    if (limit >= OPEN_PR_LIMIT_CEILING)
-      throw new WatcherQueryError({
-        kind: "missing-key",
-        retryable: true,
-        detail: `open PR list was truncated at ${limit}`,
-      });
-    limit = Math.min(limit * 2, OPEN_PR_LIMIT_CEILING);
-  }
-}
-function nextThreadCursor(pageInfo: unknown, seen: Set<string>): string | null {
-  const info = record(pageInfo, "reviewThreads.pageInfo");
-  if (typeof info.hasNextPage !== "boolean")
-    missing("reviewThreads.pageInfo.hasNextPage", info.hasNextPage);
-  if (!info.hasNextPage) return null;
-  const reference = optionalString(
-    info.endCursor,
-    "reviewThreads.pageInfo.endCursor"
-  );
-  if (reference === null || reference === "" || seen.has(reference))
-    missing("reviewThreads.pageInfo.endCursor", info.endCursor);
-  seen.add(reference);
-  return reference;
-}
-async function allReviewThreadPages(context: T.PrContext): Promise<unknown> {
-  const nodes: unknown[] = [];
-  const seen = new Set<string>();
-  let after: string | null = null;
-  do {
-    const argv = graphqlArgs(REVIEW_THREADS_QUERY, context);
-    if (after !== null) argv.push("-f", `after=${after}`);
-    const connection = record(
-      at(await runJson(argv), [
-        "data",
-        "repository",
-        "pullRequest",
-        "reviewThreads",
-      ]),
-      "reviewThreads"
-    );
-    nodes.push(...list(connection.nodes, "reviewThreads.nodes"));
-    after = nextThreadCursor(connection.pageInfo, seen);
-  } while (after !== null);
-  return { data: { repository: { pullRequest: { reviewThreads: { nodes } } } } };
-}
-
 export class GhGitHubReader implements T.GitHubReader {
   async originRepo(): Promise<T.Repository | null> {
-    try {
-      const result = await run(["git", "remote", "get-url", "origin"]);
-      return result.code === 0 ? parseRemote(result.stdout) : null;
-    } catch {
-      return null;
-    }
+    const result = await run(["git", "remote", "get-url", "origin"]);
+    return result.code === 0 ? parseRemote(result.stdout) : null;
   }
   async currentPr(pr: T.PrNumber | null): Promise<T.PrContext> {
     const argv: [string, ...string[]] = ["gh", "pr", "view"];
@@ -612,8 +484,20 @@ export class GhGitHubReader implements T.GitHubReader {
   async openPullRequests(
     repository: T.Repository
   ): Promise<readonly T.OpenPullRequest[]> {
-    const value = await listOpenPullRequests(repository);
-    return value.map((item, index) => {
+    const value = await runJson([
+      "gh",
+      "pr",
+      "list",
+      "--repo",
+      `${repository.owner}/${repository.repo}`,
+      "--state",
+      "open",
+      "--limit",
+      "300",
+      "--json",
+      "number,headRefName,baseRefName",
+    ]);
+    return list(value, "open PRs").map((item, index) => {
       const object = record(item, `open PRs[${index}]`);
       return {
         number: parsePrNumber(object.number, `open PRs[${index}].number`),
@@ -678,16 +562,18 @@ export class GhGitHubReader implements T.GitHubReader {
     const page = record(contexts.pageInfo, "contexts.pageInfo");
     if (typeof page.hasNextPage !== "boolean")
       missing("contexts.pageInfo.hasNextPage", page.hasNextPage);
-    const reference = optionalString(
+    const cursor = optionalString(
       page.endCursor,
       "contexts.pageInfo.endCursor"
     );
-    return { checks, endCursor: page.hasNextPage && reference ? reference : null };
+    return { checks, endCursor: page.hasNextPage && cursor ? cursor : null };
   }
   async reviewThreads(
     context: T.PrContext
   ): Promise<readonly T.ReviewThread[]> {
-    return parseReviewThreads(await allReviewThreadPages(context));
+    return parseReviewThreads(
+      await runJson(graphqlArgs(REVIEW_THREADS_QUERY, context))
+    );
   }
   async commitRollups(
     context: T.PrContext
@@ -715,25 +601,9 @@ export class GhGitHubReader implements T.GitHubReader {
   }
 }
 
-const NO_CHECKS_PLACEHOLDER: T.Check = {
-  kind: "skipped",
-  name: "no checks reported",
-  reportedState: "NONE",
-  description: "gh pr checks and the GraphQL rollup both report zero checks",
-  link: "",
-  workflow: "",
-};
-export function isNoChecksReading(checks: readonly T.Check[]): boolean {
-  return checks.length === 1 && checks[0] === NO_CHECKS_PLACEHOLDER;
-}
-function confirmsNoChecks(fast: T.ChecksFastPath): boolean {
-  if (fast.kind === "checks") return true;
-  return fast.exitCode === 1 && /no checks reported/i.test(fast.stderr);
-}
 export async function resolveChecks(
   reader: T.GitHubReader,
-  context: T.PrContext,
-  allowEmpty = false
+  context: T.PrContext
 ): Promise<T.CheckRead> {
   const fast = await reader.checksFastPath(context);
   const direct = fast.kind === "checks" ? nonEmpty(fast.checks) : null;
@@ -747,8 +617,6 @@ export async function resolveChecks(
   } while (after !== null);
   const fallback = nonEmpty(checks);
   if (fallback !== null) return { source: "graphql-rollup", checks: fallback };
-  if (allowEmpty && confirmsNoChecks(fast))
-    return { source: "graphql-rollup", checks: [NO_CHECKS_PLACEHOLDER] };
   const suffix =
     fast.kind === "unusable"
       ? `fast path exit=${fast.exitCode}; GraphQL rollup was empty${firstLine(fast.stderr) ? `; ${firstLine(fast.stderr)}` : ""}`
@@ -793,18 +661,10 @@ export function orderStack(
   const start = byNumber.get(context.number);
   if (start === undefined) return [context];
   const down: T.OpenPullRequest[] = [];
-  const visited = new Set<T.PrNumber>([start.number]);
   let current = start;
   while (byHead.has(current.baseRefName)) {
     const parent = byHead.get(current.baseRefName);
     if (parent === undefined) break;
-    if (visited.has(parent.number))
-      throw new WatcherQueryError({
-        kind: "stack-cycle",
-        retryable: false,
-        detail: `stack discovery found a cycle: PR #${parent.number} is both above and below PR #${start.number}`,
-      });
-    visited.add(parent.number);
     down.push(parent);
     current = parent;
   }

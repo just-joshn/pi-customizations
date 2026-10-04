@@ -4,7 +4,7 @@ type Wake = Parameters<ExtensionAPI['sendMessage']>[0];
 
 /**
  * Pi cannot withdraw one queued follow-up after a blocking read consumes its result.
- * Hold undelivered wakes until a clean settle so queue edits and aborted turns do not lose them.
+ * Hold undelivered wakes until a clean boundary so blocking reads can suppress them.
  */
 export class DeferredWakes {
   private held = new Map<string, Wake>();
@@ -13,7 +13,10 @@ export class DeferredWakes {
   constructor(private readonly pi: ExtensionAPI) {
     pi.on('agent_end', (event) => {
       const last = event.messages.findLast((message) => message.role === 'assistant');
-      this.aborted = last?.role === 'assistant' && last.stopReason === 'aborted';
+      this.aborted = last?.role === 'assistant' && (last.stopReason === 'aborted' || last.stopReason === 'error');
+    });
+    pi.on('agent_before_settle', (event) => {
+      if (event.outcome === 'completed' && !this.aborted) this.flush();
     });
     pi.on('agent_settled', () => {
       if (!this.aborted) this.flush();

@@ -46,15 +46,18 @@ test('host contract maps the image-generation tool to an SVG fallback with a sta
   expect(host).toContain('say that the picture is a substitute');
 });
 
-test('host contract names the model role of each reviewer, judge, and miner spawn', async () => {
+test('host contract does not add source-absent reviewer, judge, or miner roles', async () => {
   const { host } = await hostContract();
-  expect(host).toContain('Role lines: "trail reviewer" is the show-me-your-work cross-model reviewer, "figure-it-out judge" is the figure-it-out judge, and "recall miners" are the recall fan-out subagents.');
-  expect(host).toContain('The trail reviewer and the judge must run on a different model family from the work they review.');
+  for (const role of ['trail reviewer', 'figure-it-out judge', 'recall miners']) expect(host).not.toContain(role);
 });
 
-test('host contract runs every role with no configured line on the parent model', async () => {
+test('host contract preserves skill defaults when no model override exists', async () => {
   const { host } = await hostContract();
-  expect(host).toContain('No override. Every role without a line runs on the parent model (inherit-parent). Omit Task model for it, because a skill default slug is a Reference catalog name and not a Pi model id.');
+  expect(host).toContain('Roles without a line keep their skill defaults.');
+  expect(host).toContain('Resolve each default to an available Pi model ID.');
+  expect(host).toContain("Apply the skill's fallback policy and report any model change.");
+  expect(host).toContain('An omitted Task model inherits the parent; it does not select a workflow role default.');
+  expect(host).not.toContain('Every role without a line runs on the parent model');
 });
 
 test('host contract names the origin CLI detection that includes the off-PATH install', async () => {
@@ -67,13 +70,12 @@ test('host contract maps the Reference dashboard status of a cloud agent to Task
   expect(host).toContain('Reference dashboard cloud-agent status maps to TaskList({ repository: true }) and TaskAttach, which read status without a prompt.');
 });
 
-test('every role without a configured line resolves to the parent model on a fresh install', () => {
+test('an omitted Task model inherits the parent independently of workflow role defaults', () => {
   const parent = { provider: 'p', id: 'parent-model', reasoning: false } as never;
   const ctx = { model: parent, thinkingLevel: 'off', modelRegistry: { getAvailable: () => [] } } as never;
-  expect(roleNames).toContain('trail reviewer');
-  expect(roleNames).toContain('figure-it-out judge');
-  expect(roleNames).toContain('recall miners');
-  for (const role of roleNames) expect(resolveModel(undefined, ctx), role).toEqual({ model: parent, thinkingLevel: 'off' });
+  expect(roleNames).toHaveLength(17);
+  for (const role of ['trail reviewer', 'figure-it-out judge', 'recall miners']) expect(roleNames).not.toContain(role);
+  expect(resolveModel(undefined, ctx)).toEqual({ model: parent, thinkingLevel: 'off' });
 });
 
 test('a project model rule overrides the user rule per role and leaves other roles alone', async () => {

@@ -53,6 +53,24 @@ test('the canvas workflow uses a local browser without altering its source snaps
   expect(source).toContain('navigate the in-app browser');
 });
 
+test('reflect recommends Pi-native routing while preserving the source recommendation', async () => {
+  const path = 'skills/reflect/references/synthesizer.md';
+  const source = await readFile(join(root, 'upstream', path), 'utf8');
+  const generated = await readFile(join(root, path), 'utf8');
+  expect(source).toContain('- "path-shaped triggers belong in `paths:`, not description prose"');
+  expect(generated).toContain('- "Use directory-scoped `AGENTS.md` for persistent context and imperative descriptions or `/skill:name` for on-demand skills."');
+  expect(generated).not.toContain('triggers belong in `paths:`');
+});
+
+test('why preserves caret wording in source and uses available file context in Pi delivery', async () => {
+  const source = await readFile(join(root, 'upstream/skills/why/SKILL.md'), 'utf8');
+  const generated = await readFile(join(root, 'skills/why/SKILL.md'), 'utf8');
+  expect(source).toContain('cursor location');
+  expect(generated).toContain('available file context');
+  expect(generated).not.toContain('reference location');
+  expect(generated).not.toContain('cursor location');
+});
+
 test('resource generation is reproducible across both source bundles', async () => {
   const f = await fixture();
   try {

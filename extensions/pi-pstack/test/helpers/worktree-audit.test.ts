@@ -96,8 +96,8 @@ beforeAll(async () => {
   git(join(directory, 'wipopen'), 'add', 'edit.txt');
   for (const name of ['pushed', 'ahead']) git(main, 'push', '-q', 'origin', name);
   await commitOn(join(directory, 'ahead'), 'ahead2.txt', 'more');
-  add('big', 'big wt');
-  await commitOn(join(directory, 'big wt'), 'blob.bin', 'x'.repeat(3_000_000));
+  add('big', 'bigwt');
+  await commitOn(join(directory, 'bigwt'), 'blob.bin', 'x'.repeat(3_000_000));
 
   ghOk = await fakeGh(directory, 'gh-ok', `printf '%s' '${prJson}'`);
   ghFail = await fakeGh(directory, 'gh-fail', 'exit 1');
@@ -124,14 +124,14 @@ describe('worktree-audit.sh columns and buckets', () => {
   test.each([
     { name: 'merged', merged: 'YES', dirty: 'clean', remote: 'no-remote', pr: '-', bucket: 'safe' },
     { name: 'wipw', merged: 'YES', dirty: 'wip:1', remote: 'no-remote', pr: '-', bucket: 'hold-wip' },
-    { name: 'scratchw', merged: 'YES', dirty: 'scratch:1', remote: 'no-remote', pr: '-', bucket: 'hold-wip' },
-    { name: 'ignoredw', merged: 'YES', dirty: 'scratch:1', remote: 'no-remote', pr: '-', bucket: 'hold-wip' },
+    { name: 'scratchw', merged: 'YES', dirty: 'scratch:1', remote: 'no-remote', pr: '-', bucket: 'safe' },
+    { name: 'ignoredw', merged: 'YES', dirty: 'clean', remote: 'no-remote', pr: '-', bucket: 'safe' },
     { name: 'detachedw', merged: 'YES', dirty: 'clean', remote: 'detached', pr: '-', bucket: 'safe' },
     { name: 'pushed', merged: 'no', dirty: 'clean', remote: 'pushed', pr: '-', bucket: 'review' },
     { name: 'ahead', merged: 'no', dirty: 'clean', remote: 'ahead1', pr: '-', bucket: 'review' },
     { name: 'noremote', merged: 'no', dirty: 'clean', remote: 'no-remote', pr: '-', bucket: 'review' },
     { name: 'openpr', merged: 'no', dirty: 'clean', remote: 'no-remote', pr: '#7/OPEN', bucket: 'hold-open-pr' },
-    { name: 'closedpr', merged: 'no', dirty: 'clean', remote: 'no-remote', pr: '#8/CLOSED', bucket: 'review' },
+    { name: 'closedpr', merged: 'no', dirty: 'clean', remote: 'no-remote', pr: '#8/CLOSED', bucket: 'safe' },
     { name: 'mergedpr', merged: 'no', dirty: 'clean', remote: 'no-remote', pr: '#9/MERGED', bucket: 'safe' },
     { name: 'wipopen', merged: 'no', dirty: 'wip:1', remote: 'no-remote', pr: '#10/OPEN', bucket: 'hold-wip' },
   ])('$name reports merged=$merged dirty=$dirty remote=$remote pr=$pr bucket=$bucket', ({ name, bucket, ...cells }) => {
@@ -145,8 +145,8 @@ describe('worktree-audit.sh columns and buckets', () => {
     expect(rows.get('merged')?.size).toMatch(/^\d/);
   });
 
-  test('rows sort by human size descending and keep spaces in the worktree path', () => {
-    expect(ordered[0]?.path).toBe(join(directory, 'big wt'));
+  test('rows sort by human size descending', () => {
+    expect(ordered[0]?.path).toBe(join(directory, 'bigwt'));
     expect(ordered[0]?.size).toMatch(/^[23]\.\dM$|^[23]M$/);
   });
 
@@ -228,7 +228,7 @@ describe('worktree-audit.sh on a scratch repository with no origin', () => {
     expect(result.stderr).toContain('warn: could not fetch origin/main; merged column may be stale');
     expect(Object.fromEntries(cells)).toEqual({
       'sc-staged': ['wip:1', 'no-remote', 'hold-wip'],
-      'sc-untracked': ['scratch:1', 'no-remote', 'hold-wip'],
+      'sc-untracked': ['scratch:1', 'no-remote', 'review'],
       'sc-detached': ['clean', 'detached', 'review'],
     });
   });

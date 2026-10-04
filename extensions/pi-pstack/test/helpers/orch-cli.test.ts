@@ -1,6 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { createHash } from 'node:crypto';
-import { join } from 'node:path';
 
 import { baseEnv, cleanDirectories, git, installGt, makeDirectory, makeRepo, runCli, stackLog } from './orch-fixtures.ts';
 
@@ -141,32 +139,19 @@ describe('orch CLI rejects invalid arguments with exit 1', () => {
   });
 });
 
-describe('orch CLI default store', () => {
-  const digest = (path: string) => createHash('sha256').update(path).digest('hex').slice(0, 8);
-
-  test('derives a durable agent store from the workspace when no store is given', async () => {
-    const agent = await makeDirectory();
-    const workspace = join(await makeDirectory(), 'my project');
-    await Bun.write(join(workspace, '.keep'), '');
-    const result = runCli(['init'], { cwd: workspace, env: baseEnv({ PI_CODING_AGENT_DIR: agent }) });
-    expect(result.code).toBe(0);
-    expect(result.stdout).toBe(`initialized ${join(agent, 'pstack', 'store', `my-project-${digest(workspace)}`, 'orchestrate', 'my-project')}\n`);
+describe('orch CLI explicit store', () => {
+  test('requires --store or ORCH_STORE', () => {
+    const result = runCli(['init'], { env: baseEnv({ ORCH_STORE: '' }) });
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain('set --store <dir> or ORCH_STORE');
   });
 
-  test('ORCH_STORE beats the default and --store beats ORCH_STORE', async () => {
-    const agent = await makeDirectory();
+  test('--store beats ORCH_STORE', async () => {
     const fromEnv = await makeDirectory();
     const fromFlag = await makeDirectory();
-    const env = baseEnv({ PI_CODING_AGENT_DIR: agent, ORCH_STORE: fromEnv });
+    const env = baseEnv({ ORCH_STORE: fromEnv });
     expect(runCli(['init'], { env }).stdout).toBe(`initialized ${fromEnv}\n`);
     expect(runCli(['--store', fromFlag, 'init'], { env }).stdout).toBe(`initialized ${fromFlag}\n`);
-  });
-
-  test('bare orch with the default store fails with the valid-command message', async () => {
-    const agent = await makeDirectory();
-    const result = runCli([], { env: baseEnv({ PI_CODING_AGENT_DIR: agent }) });
-    expect(result.code).toBe(1);
-    expect(result.stderr).toContain('error: a valid command is required');
   });
 });
 

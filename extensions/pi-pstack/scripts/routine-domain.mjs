@@ -6,7 +6,7 @@ export const RoutineSchema = Type.Object(
   {
     name: Type.String({ minLength: 1, maxLength: 80 }),
     prompt: Type.String({ minLength: 1, maxLength: 16000 }),
-    fields: Type.Array(Type.String({ pattern: '^[a-zA-Z][a-zA-Z0-9_]{0,63}$' }), { minItems: 1, maxItems: 16, uniqueItems: true }),
+    fields: Type.Array(Type.String({ maxLength: 64 }), { maxItems: 16, uniqueItems: true }),
     port: Type.Optional(Type.Integer({ minimum: 0, maximum: 65535 })),
   },
   { additionalProperties: false },

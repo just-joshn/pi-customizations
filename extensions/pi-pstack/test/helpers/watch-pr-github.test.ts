@@ -5,7 +5,6 @@ import {
   ChecksUnavailable,
   discoverStack,
   GhGitHubReader,
-  isNoChecksReading,
   mapRollupNode,
   orderStack,
   parseFastCheck,
@@ -19,7 +18,7 @@ import { readSnapshot } from '../../skills/poteto-mode/scripts/watch-pr/policy.t
 import type { Check } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { removeScratch } from './scratch.ts';
-import { commitsPage, emptyBin, type FakeBin, type FakeRule, fakeEnv, fastCheck, installFakeBin, ok, prView, rollupPage, thread, threadsPage, withEnv } from './watch-pr-fakes.test-helper.ts';
+import { commitsPage, type FakeBin, type FakeRule, fakeEnv, fastCheck, installFakeBin, ok, prView, rollupPage, thread, threadsPage, withEnv } from './watch-pr-fakes.test-helper.ts';
 
 afterEach(removeScratch);
 
@@ -211,25 +210,6 @@ test(`${GhGitHubReader.name}.originRepo returns null when git exits non-zero`, a
   });
 });
 
-test(`${GhGitHubReader.name}.originRepo returns null when git is not on PATH`, async () => {
-  await withEnv({ PATH: emptyBin() }, async () => {
-    expect(await new GhGitHubReader().originRepo()).toBeNull();
-  });
-});
-
-test(`${GhGitHubReader.name} runs gh with GH_HOST accepted for remotes and PR URLs on GitHub Enterprise`, async () => {
-  const rules = [git(['remote'], { stdout: 'git@ghe.example.com:own/rep.git\n' }), gh(['pr view'], ok({ number: 3, url: 'https://ghe.example.com/own/rep/pull/3' }))];
-  await withFakes(
-    rules,
-    async () => {
-      const reader = new GhGitHubReader();
-      expect(await reader.originRepo()).toEqual({ owner: 'own', repo: 'rep' });
-      expect(await reader.currentPr(null)).toEqual({ owner: 'own', repo: 'rep', number: parsePrNumber(3) });
-    },
-    { GH_HOST: 'ghe.example.com' },
-  );
-});
-
 test(`${GhGitHubReader.name} maps a non-zero gh exit to command-exit with the first stderr line cut to 240 characters`, async () => {
   await withFakes([gh(['pr view'], { code: 4, stderr: `${'e'.repeat(300)}\nsecond line` })], async () => {
     const error = await failureOf(new GhGitHubReader().pullRequest(ctx));
@@ -244,69 +224,11 @@ test(`${GhGitHubReader.name} maps invalid JSON on stdout to a retryable json-par
   });
 });
 
-test(`${GhGitHubReader.name} turns a missing gh binary into a non-retryable gh-missing failure instead of a crash`, async () => {
-  await withEnv({ PATH: emptyBin() }, async () => {
-    const error = await failureOf(new GhGitHubReader().pullRequest(ctx));
-    expect(error.failure).toMatchObject({ kind: 'gh-missing', retryable: false });
-    expect(error.failure.detail).toContain('gh');
-  });
-});
-
-test(`${GhGitHubReader.name} kills a hung gh after the command timeout and raises a retryable command-exit failure`, async () => {
-  const started = performance.now();
-  await withFakes(
-    [gh(['pr view'], { stdout: '{}', delayMs: 2500 })],
-    async () => {
-      const error = await failureOf(new GhGitHubReader().pullRequest(ctx));
-      expect(error.failure).toMatchObject({ kind: 'command-exit', retryable: true });
-      expect(error.failure.detail).toContain('timed out');
-    },
-    { WATCH_PR_COMMAND_TIMEOUT_SECONDS: '0.3' },
-  );
-  expect(performance.now() - started).toBeLessThan(1800);
-});
-
-const page = (ids: [string, boolean][], pageInfo?: Record<string, unknown>) =>
-  ok(
-    threadsPage(
-      ids.map(([id, resolved]) => thread(id, resolved)),
-      pageInfo,
-    ),
-  );
-
-test(`${GhGitHubReader.name}.reviewThreads follows endCursor so an unresolved thread on page two is not hidden`, async () => {
-  const rules = [gh(['query ReviewThreads'], page([['t1', true]], { hasNextPage: true, endCursor: 'C1' }), page([['t2', false]], { hasNextPage: false, endCursor: null }))];
+test(`${GhGitHubReader.name}.reviewThreads reads one page even when GitHub advertises another`, async () => {
+  const rules = [gh(['query ReviewThreads'], ok(threadsPage([thread('t1', false)], { hasNextPage: true, endCursor: 'C1' })))];
   await withFakes(rules, async (bin) => {
-    const threads = await new GhGitHubReader().reviewThreads(ctx);
-    expect(threads.map((t) => t.id)).toEqual(['t2']);
-    expect(argvOf(bin, 1).slice(-2)).toEqual(['-f', 'after=C1']);
-  });
-});
-
-const brokenPaging: readonly [string, Record<string, unknown> | undefined][] = [
-  ['a missing pageInfo', undefined],
-  ['hasNextPage without an endCursor', { hasNextPage: true, endCursor: null }],
-  ['a repeated reference', { hasNextPage: true, endCursor: 'C1' }],
-];
-for (const [label, secondInfo] of brokenPaging) {
-  test(`GhGitHubReader.reviewThreads fails closed on ${label}`, async () => {
-    const first = page([['t1', true]], label === 'a missing pageInfo' ? undefined : { hasNextPage: true, endCursor: 'C1' });
-    const rules = [gh(['query ReviewThreads'], first, page([['t2', false]], secondInfo))];
-    await withFakes(rules, async () => {
-      const error = await failureOf(new GhGitHubReader().reviewThreads(ctx));
-      expect(error.failure).toMatchObject({ retryable: true });
-    });
-  });
-}
-
-test(`${GhGitHubReader.name}.openPullRequests keeps asking with a larger limit until the list is no longer full`, async () => {
-  const items = (count: number) => Array.from({ length: count }, (_, i) => ({ number: i + 1, headRefName: `h${i + 1}`, baseRefName: i === 0 ? 'main' : `h${i}` }));
-  const rules = [gh(['--limit 300'], ok(items(300))), gh(['--limit 600'], ok(items(301)))];
-  await withFakes(rules, async () => {
-    const stack = await discoverStack(new GhGitHubReader(), pr(301));
-    expect(stack).toHaveLength(301);
-    expect(stack[0].number).toBe(parsePrNumber(1));
-    expect(stack[300].number).toBe(parsePrNumber(301));
+    expect((await new GhGitHubReader().reviewThreads(ctx)).map((thread) => thread.id)).toEqual(['t1']);
+    expect(bin.calls()).toHaveLength(1);
   });
 });
 
@@ -376,6 +298,18 @@ test('parseReviewThreads counts distinct run keys across resolved and unresolved
   expect(threads.map((t) => t.bugbotReviewPasses)).toEqual([3, 3]);
 });
 
+for (const { author, body, isBugbot, passes } of [
+  { author: 'cursor', body: 'agentic security review', isBugbot: true, passes: 1 },
+  { author: 'cursor', body: 'bug', isBugbot: false, passes: 0 },
+  { author: 'cursor-security', body: 'agentic security review', isBugbot: false, passes: 0 },
+]) {
+  test(`parseReviewThreads classifies external author ${author} with body ${body}`, () => {
+    const node = bugbot('external', null, author);
+    const comments = { nodes: node.comments.nodes.map((comment) => ({ ...comment, body })) };
+    expect(parseReviewThreads(threadsPage([{ ...node, comments }]))).toMatchObject([{ isBugbot, bugbotReviewPasses: passes }]);
+  });
+}
+
 const badThreads: readonly [string, Record<string, unknown>][] = [
   ['isResolved', { id: 't', comments: { nodes: [] } }],
   ['id', { isResolved: false, comments: { nodes: [] } }],
@@ -444,18 +378,6 @@ test('orderStack puts ancestors below a seed taken from the middle of the stack'
   expect(numbers(orderStack(pr(2), chain))).toEqual([1, 2, 3]);
 });
 
-test('orderStack refuses to loop when two PRs name each other as base and reports the cycle as a non-retryable failure', () => {
-  const cyclic = [open(1, 'a', 'b'), open(2, 'b', 'a')];
-  try {
-    orderStack(pr(1), cyclic);
-  } catch (error) {
-    expect(error).toBeInstanceOf(WatcherQueryError);
-    expect((error as WatcherQueryError).failure).toMatchObject({ kind: 'stack-cycle', retryable: false });
-    return;
-  }
-  throw new Error('expected a cycle failure');
-});
-
 test('resolveChecks cuts the fast-path stderr in the unavailable detail to its first 240 characters', async () => {
   const reader = fakeReader({ fastPath: { kind: 'unusable', exitCode: 8, stderr: `${'x'.repeat(300)}\nmore` } });
   const error = await failureOf(resolveChecks(reader, ctx));
@@ -465,42 +387,20 @@ test('resolveChecks cuts the fast-path stderr in the unavailable detail to its f
 });
 
 const noChecks = "no checks reported on the 'feature' branch";
-const emptyCases: readonly [string, Parameters<typeof fakeReader>[0], boolean][] = [
-  ['gh pr checks says no checks reported (exit 1)', { fastPath: { kind: 'unusable', exitCode: 1, stderr: noChecks } }, true],
-  ['gh pr checks returned an empty list', { fastPath: { kind: 'checks', checks: [] } }, true],
-  ['gh pr checks failed for another reason (exit 8)', { fastPath: { kind: 'unusable', exitCode: 8, stderr: 'denied' } }, false],
-  ['gh pr checks exit 1 without the no-checks message', { fastPath: { kind: 'unusable', exitCode: 1, stderr: 'boom' } }, false],
-];
-for (const [label, options, accepted] of emptyCases) {
-  test(`resolveChecks with allowEmpty ${accepted ? 'reads a PR with zero checks as one skipped placeholder' : 'still fails closed'} when ${label}`, async () => {
-    const reader = fakeReader(options);
-    const reading = resolveChecks(reader, ctx, true);
-    if (accepted) expect((await reading).checks.map((c) => c.kind)).toEqual(['skipped']);
-    else expect(await failureOf(reading)).toBeInstanceOf(ChecksUnavailable);
-  });
-}
-
-test('resolveChecks without allowEmpty keeps failing closed for a PR with zero checks', async () => {
+test('resolveChecks fails closed for a PR with zero checks', async () => {
   const reader = fakeReader({ fastPath: { kind: 'unusable', exitCode: 1, stderr: noChecks } });
   expect(await failureOf(resolveChecks(reader, ctx))).toBeInstanceOf(ChecksUnavailable);
 });
 
-test('isNoChecksReading recognizes only the zero-check placeholder reading', async () => {
-  const empty = await resolveChecks(fakeReader({ fastPath: { kind: 'checks', checks: [] } }), ctx, true);
-  const real = await resolveChecks(fakeReader({ fastPath: { kind: 'checks', checks: [passingCheck('a')] } }), ctx, true);
-  expect(isNoChecksReading(empty.checks)).toBe(true);
-  expect(isNoChecksReading(real.checks)).toBe(false);
-  expect(isNoChecksReading([])).toBe(false);
-});
-
-test('resolveChecks prefers real checks over the zero-check placeholder', async () => {
+test('resolveChecks returns real checks', async () => {
   const reader = fakeReader({ fastPath: { kind: 'checks', checks: [passingCheck('a'), failedCheck('b')] } });
-  expect((await resolveChecks(reader, ctx, true)).checks.map((c) => c.name)).toEqual(['a', 'b']);
+  expect((await resolveChecks(reader, ctx)).checks.map((c) => c.name)).toEqual(['a', 'b']);
 });
 
-test('the review threads query pages with a reference variable and requests pageInfo', () => {
-  expect(REVIEW_THREADS_QUERY).toContain('$after: String');
-  expect(REVIEW_THREADS_QUERY).toContain('hasNextPage');
+test('the review threads query retains the fixed first-100 source contract', () => {
+  expect(REVIEW_THREADS_QUERY).toContain('reviewThreads(first: 100)');
+  expect(REVIEW_THREADS_QUERY).not.toContain('$after: String');
+  expect(REVIEW_THREADS_QUERY).not.toContain('hasNextPage');
 });
 
 const READ_ONLY = new Set(['pr view', 'pr checks', 'pr list', 'api graphql', 'remote get-url']);

@@ -997,12 +997,12 @@
       {
         "type": "quote",
         "path": "src/personas.ts",
-        "quote": "['poteto-agent', { files: ['upstream/agents/poteto-agent.md', 'skills/poteto-mode/SKILL.md'], text: resumeRule, drop: resumeSentence }]"
+        "quote": "['poteto-agent', { files: ['upstream/agents/poteto-agent.md', 'skills/poteto-mode/SKILL.md'] }]"
       },
       {
         "type": "test",
         "path": "test/parity-runtime-agents.test.ts",
-        "name": "the poteto-agent persona scopes resume to one conversation and respawns after an interrupt"
+        "name": "the poteto-agent persona defaults to fresh workers and permits reuse only for costly state"
       },
       {
         "type": "test",
@@ -2026,7 +2026,7 @@
       {
         "type": "test",
         "path": "test/parity-runtime-agents.test.ts",
-        "name": "the poteto-agent persona scopes resume to one conversation and respawns after an interrupt"
+        "name": "the poteto-agent persona defaults to fresh workers and permits reuse only for costly state"
       }
     ]
   },

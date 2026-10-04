@@ -25,9 +25,3 @@ export function tabIndentFences(text) {
     })
     .join('\n');
 }
-
-export function pinLatest(text, lock) {
-  const pins = Object.fromEntries([...lock.matchAll(/^ {4}"(bun-types|typescript)": \["[^@"]+@([^"]+)"/gm)].map((match) => [match[1], match[2]]));
-  if (!pins['bun-types'] || !pins.typescript) throw new Error('bun.lock records no version for bun-types or typescript.');
-  return text.replace(/"(bun-types|typescript)": "latest"/g, (_match, name) => `"${name}": "${pins[name]}"`);
-}

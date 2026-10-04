@@ -1,4 +1,0 @@
-  if (normalized.startsWith("git@github.com:"))
-    normalized = `https://github.com/${normalized.slice(15)}`;
-  if (normalized.startsWith("ssh://git@github.com/"))
-    normalized = `https://github.com/${normalized.slice(21)}`;

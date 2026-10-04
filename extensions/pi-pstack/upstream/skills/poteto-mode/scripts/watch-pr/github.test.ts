@@ -224,7 +224,7 @@ it("annotates Bugbot threads with distinct review-pass counts", () => {
                       createdAt: "now",
                       path: null,
                       line: null,
-                      author: { login: "reference" },
+                      author: { login: "cursor" },
                     },
                   ],
                 },

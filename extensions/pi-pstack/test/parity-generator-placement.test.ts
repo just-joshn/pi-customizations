@@ -18,8 +18,10 @@ test('swarm fans out all workers in one message with the upstream subagent type,
   expect(swarm).toContain('Use `environment: "local"` only when the worker needs access to something on this machine');
 });
 
-test('swarm rejects an off-slice or unevidenced exploration result, respawns once, then records a gap', async () => {
-  expect(await read('swarm/SKILL.md')).toContain('Also drop a result that does not cover its named slice with evidence, and respawn that worker once. After a second miss, record a gap.');
+test('swarm retains the source retry without a second off-slice rejection policy', async () => {
+  const text = await read('swarm/SKILL.md');
+  expect(text).toContain('and respawn that worker once. After a second miss, record a gap.');
+  expect(text).not.toContain('Also drop a result that does not cover its named slice');
 });
 
 test('shipping runs one unbatched verifier per PR against parent versus head with an exact verdict set', async () => {
