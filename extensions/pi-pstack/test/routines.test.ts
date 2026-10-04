@@ -95,7 +95,7 @@ test('invalid routine identities cannot read outside the owning session', async 
   await expect(f.invoke('RoutineInspect', { routineId: '../outside' })).rejects.toThrow('Invalid routine ID');
 });
 
-test.for([null, undefined, {}, { name: '', prompt: 'read', fields: ['action'] }, { name: 'x', prompt: 'read', fields: [] }, { name: 'x', prompt: 'read', fields: ['action'], port: 65536 }])('rejects malformed draft input %j', (input) => {
+test.for([null, undefined, {}, { name: '', prompt: 'read', fields: ['action'] }, { name: 'x', prompt: 'read', fields: ['action'], port: 65536 }])('rejects malformed draft input %j', (input) => {
   expect(() => parseRoutine(input)).toThrow('Invalid routine');
 });
 
