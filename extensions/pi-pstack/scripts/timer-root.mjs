@@ -86,13 +86,3 @@ export async function openTimerRoot(directory, launch) {
     throw error;
   }
 }
-
-export async function occurrenceCompleted(handle, invocation) {
-  const result = await handle.send({ type: 'get_entries' });
-  if (!result.success) throw new Error(result.error);
-  const messages = result.data.entries.filter((entry) => entry.type === 'message').map((entry) => entry.message);
-  const start = messages.findLastIndex((message) => message.role === 'user' && JSON.stringify(message.content).includes(`[pstack-timer occurrence=${invocation} `));
-  if (start < 0) return false;
-  const nextUser = messages.findIndex((message, index) => index > start && message.role === 'user');
-  return messages.slice(start + 1, nextUser < 0 ? undefined : nextUser).some((message) => message.role === 'assistant' && message.stopReason === 'stop');
-}

@@ -1,7 +1,8 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
 import { agentEnvironment, agentMetaPath, agentTranscriptPath, childStorageDir, createChildTranscript, environmentEntryType, writeAgentMeta } from '../src/subagents/agent-storage.ts';
 import type { Exec } from '../src/subagents/environment-facts.ts';
@@ -26,6 +27,32 @@ test('a child transcript pins the agent file name and records the parent session
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+test('native explicit session paths lose the parent and defer missing-file creation', async ({ onTestFinished }) => {
+  const dir = await mkdtemp(join(tmpdir(), 'pstack-native-session-'));
+  onTestFinished(() => rm(dir, { recursive: true, force: true }));
+  const path = join(dir, 'chosen.jsonl');
+  const manager = SessionManager.create('/repo', dir, { parentSession: 'parent-session' });
+  expect(manager.getHeader()?.parentSession).toBe('parent-session');
+  manager.setSessionFile(path);
+  expect(manager.getSessionFile()).toBe(path);
+  expect(manager.getHeader()?.parentSession).toBeUndefined();
+  await expect(readFile(path, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' });
+  await writeFile(path, '');
+  manager.setSessionFile(path);
+  expect(JSON.parse(await readFile(path, 'utf8'))).toMatchObject({ type: 'session', cwd: '/repo' });
+  expect(manager.getHeader()?.parentSession).toBeUndefined();
+});
+
+test('eager child creation preserves the native parent header and refuses an existing file', async ({ onTestFinished }) => {
+  const dir = await mkdtemp(join(tmpdir(), 'pstack-exclusive-session-'));
+  onTestFinished(() => rm(dir, { recursive: true, force: true }));
+  const path = await createChildTranscript('/repo', dir, 'child', 'parent-session');
+  const before = await readFile(path, 'utf8');
+  expect(SessionManager.open(path).getHeader()).toMatchObject({ type: 'session', cwd: '/repo', parentSession: 'parent-session' });
+  await expect(createChildTranscript('/other', dir, 'child', 'different-parent')).rejects.toMatchObject({ code: 'EEXIST' });
+  expect(await readFile(path, 'utf8')).toBe(before);
 });
 
 test('agent metadata is written once and never overwritten', async () => {

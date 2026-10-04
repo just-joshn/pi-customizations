@@ -97,6 +97,7 @@ function registerGoalTools(pi: ExtensionAPI, store: GoalStore): void {
   pi.registerTool({
     executionMode: 'sequential',
     name: 'CreateGoal',
+    namespace: goalNamespace,
     label: 'Create goal',
     description: 'Arm a goal that continues across turns until UpdateGoal marks it complete. Call exactly once per goal. Fails while another goal is active.',
     promptSnippet: 'Arm a goal that Pi pursues across turns until complete',
@@ -115,6 +116,7 @@ function registerGoalTools(pi: ExtensionAPI, store: GoalStore): void {
   pi.registerTool({
     executionMode: 'sequential',
     name: 'UpdateGoal',
+    namespace: goalNamespace,
     label: 'Update goal',
     description: 'Mark the active goal complete after a requirement-by-requirement audit against fresh evidence. Never call it to pause or give up.',
     promptSnippet: 'Mark the active goal complete after a passing completion audit',
@@ -136,6 +138,7 @@ function registerGetGoal(pi: ExtensionAPI, store: GoalStore): void {
   pi.registerTool({
     executionMode: 'parallel',
     name: 'GetGoal',
+    namespace: goalNamespace,
     label: 'Get goal',
     description: 'Read back the current goal objective and status. Use at each tick and after context compaction.',
     promptSnippet: 'Read back the current goal objective and status',
@@ -149,6 +152,12 @@ function registerGetGoal(pi: ExtensionAPI, store: GoalStore): void {
     },
   });
 }
+
+const goalNamespace = {
+  name: 'pstack_goals',
+  description: 'Branch-aware persistent goal lifecycle.',
+  instructions: 'Arm one objective with CreateGoal. Read it with GetGoal after context loss. Complete it with UpdateGoal only after auditing every requirement against fresh evidence.',
+} as const;
 
 export function registerGoal(pi: ExtensionAPI): void {
   const store = createGoalStore(pi);

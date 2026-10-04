@@ -22,7 +22,7 @@ export function registerLifecycle(pi: ExtensionAPI, deps: LifecycleDependencies)
     deps.store.setAgentRunning(Date.now());
   });
 
-  pi.on('agent_end', () => {
+  pi.on('agent_settled', () => {
     deps.store.setAgentIdle();
   });
 

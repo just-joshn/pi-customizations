@@ -15,11 +15,23 @@ function resultOf(value: unknown): AgentToolResult<Details> {
   return { content: [{ type: 'text', text }], details: { run }, structuredContent: { run } };
 }
 
-const shared = { outputSchema: RunDetails, exposure: 'direct', executionMode: 'parallel', annotations: { openWorldHint: false } } as const;
+const shared = {
+  outputSchema: RunDetails,
+  exposure: 'direct',
+  executionMode: 'sequential',
+  annotations: { openWorldHint: false },
+  namespace: {
+    name: 'pstack_workflows',
+    description: 'Approved dynamic workflow execution and inspection.',
+    instructions: 'Start registered workflows only after approval. Read a run by its id. Manage existing runs to cancel, pause, or resume them without starting a duplicate.',
+  },
+} as const;
 
 export function workflowTools(runtime: WorkflowRuntime): readonly ToolDefinition[] {
   const start = defineTool({
     ...shared,
+    exposure: 'model-only',
+    annotations: { openWorldHint: true },
     name: 'run_dynamic_workflow',
     label: 'run_dynamic_workflow',
     description: 'Start a registered workflow after the user approves it. Pre-checks cover the argument shape, name conflicts and the active-run cap.',
@@ -29,6 +41,8 @@ export function workflowTools(runtime: WorkflowRuntime): readonly ToolDefinition
   });
   const manage = defineTool({
     ...shared,
+    exposure: 'model-only',
+    annotations: { openWorldHint: true },
     name: 'dynamic_workflows_manage',
     label: 'dynamic_workflows_manage',
     description: 'List workflow runs, or cancel, pause or resume one by run id.',
@@ -44,6 +58,8 @@ export function workflowTools(runtime: WorkflowRuntime): readonly ToolDefinition
   });
   const read = defineTool({
     ...shared,
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    executionMode: 'parallel',
     name: 'read_workflow_run',
     label: 'read_workflow_run',
     description: 'Read one workflow run with its status, consumption, phases and journal.',

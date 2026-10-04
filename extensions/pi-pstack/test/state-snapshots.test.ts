@@ -21,7 +21,7 @@ test('TodoWrite publishes independent todos rather than caller-owned records', a
       tools.push(tool);
     },
   } as unknown as ExtensionAPI;
-  const ctx = { ui: { setStatus() {}, setWidget() {} } } as unknown as ExtensionToolContext;
+  const ctx = { sessionManager: { getSessionFile: () => null }, ui: { setStatus() {}, setWidget() {} } } as unknown as ExtensionToolContext;
   const store = createState(pi);
   registerStateTools(pi, store);
   const tool = tools.find((tool) => tool.name === 'TodoWrite');
@@ -69,7 +69,7 @@ test('pstack_mode tool toggles mode and returns bounded confirmation', async () 
       tools.push(t);
     },
   } as unknown as ExtensionAPI;
-  const ctx = { ui: { setStatus: () => {}, setWidget: () => {} } } as unknown as ExtensionToolContext;
+  const ctx = { sessionManager: { getSessionFile: () => null }, ui: { setStatus: () => {}, setWidget: () => {} } } as unknown as ExtensionToolContext;
   const store = createState(pi);
   registerStateTools(pi, store);
   const modeTool = tools.find((t) => t.name === 'pstack_mode');
@@ -230,6 +230,7 @@ function createRpcTodoWriteFixture() {
     },
   } as unknown as ExtensionAPI;
   const rpcContext = {
+    sessionManager: { getSessionFile: () => null },
     mode: 'rpc',
     ui: {
       setStatus() {},
@@ -321,6 +322,7 @@ test('TodoWrite compacts each newline form in captured TUI rows', async () => {
   } as unknown as ExtensionAPI;
   let widget: Widget | undefined;
   const context = {
+    sessionManager: { getSessionFile: () => null },
     mode: 'tui',
     ui: {
       setStatus() {},
@@ -603,4 +605,8 @@ test('all pstack tools declare outputSchema, exposure, and annotations conformin
   }
   const questionTool = tools.find((t) => t.name === 'AskQuestion');
   expect(questionTool?.exposure).toBe('model-only');
+  for (const name of ['Task', 'task']) expect(tools.find((tool) => tool.name === name)?.exposure).toBe('model-only');
+  for (const name of [...control.filter((name) => name !== 'TaskList'), 'task', 'write_agent', 'read_agent', 'BackgroundShell', ...shells.filter((name) => name.endsWith('Stop'))]) {
+    expect(tools.find((tool) => tool.name === name)?.executionMode, name).toBe('sequential');
+  }
 });

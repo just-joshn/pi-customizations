@@ -36,6 +36,7 @@ test('a confirmed setup reports the written configuration and offers verificatio
   const h = setupHarness();
   const result = await runSetup(h);
   expect(result.details).toEqual({ written: true });
+  expect(result.structuredContent).toEqual({ written: true });
   expect(result.content).toEqual([{ type: 'text', text: 'Model configuration confirmed and saved.' }]);
   expect(h.messages).toHaveLength(1);
   expect(h.messages[0]).toContain('/create-verification-skill');
@@ -46,6 +47,7 @@ test('a cancelled setup reports that nothing was written', async () => {
   const h = setupHarness();
   const result = await runSetup(h);
   expect(result.details).toEqual({ written: false });
+  expect(result.structuredContent).toEqual({ written: false });
   expect(result.content).toEqual([{ type: 'text', text: 'Setup cancelled. No configuration was written.' }]);
   expect(h.messages).toEqual([]);
 });

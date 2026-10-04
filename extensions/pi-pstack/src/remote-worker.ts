@@ -66,7 +66,7 @@ function guestResource(path: string, executor: RemoteExecutor): string | undefin
   return suffix === '..' || suffix.startsWith('../') || isAbsolute(suffix) ? undefined : join(executor.packageRoot, suffix);
 }
 
-export function remoteWorkerArguments(prepared: Pick<Prepared, 'selected' | 'loader' | 'readonly'>, executor: RemoteExecutor): string[] {
+export function remoteWorkerArguments(prepared: Pick<Prepared, 'selected' | 'loader' | 'readonly' | 'settingsManager'>, executor: RemoteExecutor): string[] {
   const resources = [
     ...prepared.loader
       .getSkills()
@@ -84,7 +84,7 @@ export function remoteWorkerArguments(prepared: Pick<Prepared, 'selected' | 'loa
       }),
   ];
   return [
-    '--approve',
+    prepared.settingsManager.isProjectTrusted() ? '--approve' : '--no-approve',
     '--no-extensions',
     '--no-skills',
     '--no-prompt-templates',

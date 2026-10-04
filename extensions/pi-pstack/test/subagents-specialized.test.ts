@@ -18,6 +18,8 @@ test('the specialized tools exist only when their feature flag is on', async () 
     expect(result.content[0]?.text).toBe('users=1');
     const names = on.session.getAllTools().map((tool) => tool.name);
     expect(names).toContain('execution_subagent');
+    expect(on.session.getAllTools().find((tool) => tool.name === 'execution_subagent')?.exposure).toBe('model-only');
+    expect(on.session.extensionRunner.getToolDefinition('execution_subagent')?.executionMode).toBe('sequential');
     expect(names).not.toContain('search_subagent');
   } finally {
     await on.close();

@@ -4,8 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 
+import { Check } from 'typebox/value';
 import { expect, onTestFinished, test } from 'vitest';
 import { startTimerService, timerCommand } from '../scripts/timer-client.mjs';
+import { SubscriptionListOutput, TimerSubscriptionOutput } from '../src/timer-routine-output-schemas.ts';
 import { letTimersTick, occurrences } from './timer-clock.ts';
 
 const run = promisify(execFile);
@@ -20,6 +22,15 @@ test('a real Pi timer outlives its initiator, dedupes, then drains on cancel', a
   const original = JSON.parse(stdout);
   expect(original.sessionFile).toContain(directory);
   expect(original.runId).toEqual(expect.any(String));
+  expect(Check(TimerSubscriptionOutput, { ...original, execution: 'Dedicated root' })).toBe(true);
+  expect(Check(SubscriptionListOutput, await timerCommand(directory, { type: 'list' }))).toBe(true);
+  const ci = await timerCommand(directory, { type: 'subscribe_ci', ci: { forge: 'github', cwd: directory, pr: 1, name: 'receipt-check', pollSeconds: 60 } });
+  expect(Check(TimerSubscriptionOutput, { ...ci, execution: 'Dedicated root' })).toBe(true);
+  expect(Check(SubscriptionListOutput, await timerCommand(directory, { type: 'list' }))).toBe(true);
+  const sharedName = await timerCommand(directory, { type: 'subscribe', timer: { name: 'receipt-check', prompt: 'check', delaySeconds: 60 } });
+  expect(sharedName).toEqual(ci);
+  expect(Check(TimerSubscriptionOutput, { ...sharedName, execution: 'Dedicated root' })).toBe(true);
+  await timerCommand(directory, { type: 'unsubscribe', subscriptionId: ci.subscriptionId });
   const duplicate = await timerCommand(directory, { type: 'subscribe', timer: { name: 'survivor', prompt: 'CHANGED', delaySeconds: 99 } });
   expect(duplicate).toEqual(original);
   await expect.poll(async () => (await readFile(original.sessionFile, 'utf8')).split('TIMER:survive').length, { timeout: 15000 }).toBeGreaterThan(3);

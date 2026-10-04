@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { AgentSession, createAgentSession, DefaultResourceLoader, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { Check } from 'typebox/value';
 import { expect, test, vi } from 'vitest';
+import { publishTask } from '../src/task-discovery.ts';
 import { TaskRecordSchema, taskEntryType } from '../src/worker-records.ts';
 import { registerWorkers, restoreTaskRecords, taskSummary } from '../src/workers.ts';
 import { workerFixture } from './worker-fixture.ts';
@@ -64,6 +65,7 @@ test('official SDK loads all worker tools without spawning children', async () =
       .extensions.flatMap((extension) => [...extension.tools.values()])
       .find((tool) => tool.definition.name === 'Task');
     expect(task).toBeDefined();
+    expect(task?.definition.exposure).toBe('model-only');
     await expect(task?.definition.execute('cloud-test', { prompt: 'test', environment: 'cloud' }, undefined, undefined, context)).rejects.toThrow(/configured isolated remote executor/);
     await expect(task?.definition.execute('resume-test', { prompt: 'test', resume: 'other-branch' }, undefined, undefined, context)).rejects.toThrow(/Unknown task in this branch/);
     const names = session.getActiveToolNames();
@@ -440,18 +442,24 @@ workerTest('the real Pi tool-result pipeline counts failed foreground child usag
   expect(child?.text).toMatch(/scripted failure/);
 });
 
-workerTest('a blocking output call and stop in one Pi batch cannot deadlock each other', async ({ session }) => {
-  await session.prompt('CONTROL_BATCH_PARENT');
-  await session.waitForIdle();
-  for (const toolName of ['TaskOutput', 'TaskStop']) {
-    const result = session.messages.find((message) => message.role === 'toolResult' && message.toolName === toolName) as { role: string; isError?: boolean; content: Array<{ type: string; text?: string }> } | undefined;
-    expect(result && result.role === 'toolResult').toBe(true);
-    expect(result?.isError).toBe(false);
-    const content = result?.content.find((block: { type: string; text?: string }) => block.type === 'text');
-    expect(content && content.type === 'text').toBe(true);
-    expect(JSON.parse(content?.text ?? '{}').status).toBe('interrupted');
-  }
-});
+for (const scenario of [
+  { name: 'a blocking output before stop waits for natural completion', prompt: 'CONTROL_BATCH_PARENT', status: 'settled', order: ['TaskOutput', 'TaskStop'] },
+  { name: 'stop before a blocking output interrupts the child', prompt: 'CONTROL_BATCH_PARENT STOP_FIRST', status: 'interrupted', order: ['TaskStop', 'TaskOutput'] },
+]) {
+  workerTest(scenario.name, async ({ session }) => {
+    await session.prompt(scenario.prompt);
+    await session.waitForIdle();
+    const results = session.messages.filter((message) => message.role === 'toolResult' && scenario.order.includes(message.toolName));
+    expect(results.map((message) => message.role === 'toolResult' && message.toolName)).toEqual(scenario.order);
+    for (const result of results) {
+      if (result.role !== 'toolResult') throw new Error('Expected a tool result');
+      expect(result.isError).toBe(false);
+      const content = result.content.find((block) => block.type === 'text');
+      expect(content?.type).toBe('text');
+      expect(JSON.parse(content?.type === 'text' ? content.text : '{}').status).toBe(scenario.status);
+    }
+  });
+}
 
 async function completedTask(session: AgentSession, id: string): Promise<void> {
   await vi.waitFor(
@@ -512,10 +520,54 @@ test('restoration rejects malformed pending usage while preserving the last vali
   }
 });
 
+workerTest('TaskList bounds previews while retaining complete structured records', async ({ session, call }) => {
+  for (let index = 0; index < 5; index += 1) {
+    session.sessionManager.appendCustomEntry(taskEntryType, { ...record, id: `large-${index}`, status: 'settled', output: 'a'.repeat(15000) });
+  }
+  await session.extensionRunner.emit({ type: 'session_start', reason: 'reload' });
+  const listing = await call('TaskList', {});
+  expect(listing.content[0]).toMatchObject({ type: 'text', text: expect.stringContaining('[Truncated.') });
+  const preview = listing.content[0];
+  expect(preview.type).toBe('text');
+  if (preview.type !== 'text') throw new Error('TaskList preview must be text');
+  expect(Buffer.byteLength(preview.text)).toBeLessThanOrEqual(51200);
+  expect(listing.structuredContent).toMatchObject({ tasks: Array.from({ length: 5 }, (_, index) => ({ id: `large-${index}`, output: 'a'.repeat(15000) })) });
+});
+
 workerTest('TaskList exposes only tasks owned by the current parent branch', async ({ call }) => {
   const empty = await call('TaskList', {});
   expect(empty.details).toEqual({ tasks: [] });
+  expect(empty.structuredContent).toEqual({ tasks: [] });
   const started = await call('Task', { prompt: 'listed work', model: 'worker-test/deterministic', run_in_background: false });
   const listing = await call('TaskList', {});
   expect(listing.details).toEqual({ tasks: [started.details] });
+  expect(listing.structuredContent).toEqual({ tasks: [started.details] });
+});
+
+workerTest('TaskList returns structured repository discovery results with branch placement', async ({ dir, call }) => {
+  execFileSync('git', ['init', '-q', dir]);
+  vi.stubEnv('PI_CODING_AGENT_DIR', join(dir, 'discovery-agent'));
+  const empty = await call('TaskList', { repository: true });
+  expect(empty.structuredContent).toEqual({ tasks: [] });
+  const remoteRecord = {
+    ...record,
+    detached: {
+      directory: '/guest/rpc',
+      invocation: 'invocation',
+      entryCursor: null,
+      remote: {
+        executor: { id: 'vm', transport: 'lima', target: 'vm', isolation: 'vm', machineId: 'machine', packageRoot: '/guest/package', repository: '/guest/repository', localRepository: dir, agentDir: '/guest/agent' },
+        machineId: 'machine',
+        hostname: 'vm',
+        virtualization: 'apple',
+        bootId: 'boot',
+        sha: 'a'.repeat(40),
+        localCwd: dir,
+      },
+    },
+  } satisfies Parameters<typeof publishTask>[0];
+  await publishTask(remoteRecord, dir, 'review');
+  const listing = await call('TaskList', { repository: true });
+  expect(listing.structuredContent).toEqual({ tasks: [{ ...remoteRecord, branch: 'review', observed: 'launch receipt; TaskAttach reconciles live status' }] });
+  expect(Check(TaskRecordSchema, remoteRecord)).toBe(true);
 });

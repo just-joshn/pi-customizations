@@ -2,11 +2,26 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import type { AgentSession, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { type AgentSession, DEFAULT_MAX_BYTES, type ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
-import { boundedResult } from '../src/results.ts';
+import { boundedResult, dataResult } from '../src/results.ts';
 import { restoreTaskRecords } from '../src/worker-records.ts';
 import { deduplicateExtensions, sumUsage, workerExtensions } from '../src/worker-support.ts';
+
+test('data results preserve ordinary JSON text and empty structured data', () => {
+  expect(dataResult([])).toEqual({ content: [{ type: 'text', text: '[]' }], details: [], structuredContent: [] });
+  expect(dataResult({ name: 'small', prompt: 'read' })).toEqual({ content: [{ type: 'text', text: '{"name":"small","prompt":"read"}' }], details: { name: 'small', prompt: 'read' }, structuredContent: { name: 'small', prompt: 'read' } });
+});
+
+test('data results cap UTF-8 preview bytes while preserving complete structured data', () => {
+  const details = { prompt: '界'.repeat(DEFAULT_MAX_BYTES) };
+  const result = dataResult(details);
+  expect(Buffer.byteLength(result.content[0].text)).toBeLessThanOrEqual(DEFAULT_MAX_BYTES);
+  expect(result.content[0].text).toContain('[Output truncated.');
+  expect(result.content[0].text).not.toContain('\ufffd');
+  expect(result.details).toEqual(details);
+  expect(result.structuredContent).toEqual(details);
+});
 
 const usage = { input: 2, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 5, cost: { input: 1, output: 2, cacheRead: 0, cacheWrite: 0, total: 3 } };
 
@@ -84,14 +99,25 @@ test('restored task records do not expose caller-owned records or usage', () => 
   expect(restored?.usage).not.toBe(record.usage);
 });
 
+test('result previews respect native byte and line bounds', () => {
+  const ctx = { sessionManager: { getSessionFile: () => '/tmp/transcript' } } as ExtensionContext;
+  for (const text of ['界'.repeat(48000), 'line\n'.repeat(3000)]) {
+    const preview = boundedResult(text, {}, ctx).content[0].text;
+    expect(Buffer.byteLength(preview)).toBeLessThanOrEqual(51200);
+    expect(preview.split('\n').length).toBeLessThanOrEqual(2000);
+    expect(preview).toContain('[Truncated.');
+  }
+});
+
 test('result truncation preserves empty and exact-boundary values', () => {
   const ctx = { sessionManager: { getSessionFile: () => '/tmp/transcript' } } as ExtensionContext;
   for (const size of [0, 47999, 48000]) {
     const text = 'a'.repeat(size);
     expect(boundedResult(text, {}, ctx).content[0]?.text).toBe(text);
   }
-  const result = boundedResult('a'.repeat(48001), {}, ctx);
-  expect(result.content[0]?.text).toBe(`${'a'.repeat(48000)}\n[Truncated. Full current transcript: /tmp/transcript]`);
+  const result = boundedResult('a'.repeat(60000), {}, ctx);
+  expect(Buffer.byteLength(result.content[0].text)).toBeLessThanOrEqual(51200);
+  expect(result.content[0].text).toContain('Read the complete current transcript at /tmp/transcript.');
 });
 
 test('hostInstructions formats defaults without overrides or transcript file', async () => {
@@ -235,7 +261,7 @@ test('resolveModel with empty registry and default thinkingLevel', async () => {
 
 test('boundedResult falls back when transcript file is not present', () => {
   const ctx = { sessionManager: { getSessionFile: () => null } } as unknown as ExtensionContext;
-  const text = 'a'.repeat(48001);
+  const text = 'a'.repeat(60000);
   const res = boundedResult(text, {}, ctx);
-  expect(res.content[0]?.text).toMatch(/available in tool details/);
+  expect(res.content[0]?.text).toMatch(/retained for programmatic callers/);
 });

@@ -16,7 +16,7 @@ To load it in every session, add the package path to the `packages` list in
 
 ## Tool coverage
 
-The skin uses Pi 1.0.1's `pi.registerToolRenderer()` for `read`, `bash`,
+The skin uses Pi 1.0.2's `pi.registerToolRenderer()` for `read`, `bash`,
 `edit`, `write`, `grep`, `find`, `ls`, and `powershell`. It registers no tool
 definitions and does not change which tools are active. Pi owns execution,
 settings, schemas, and the model's tool declarations.

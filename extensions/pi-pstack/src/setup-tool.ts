@@ -9,9 +9,13 @@ export function registerSetupTool(pi: ExtensionAPI, store: StateStore): void {
     label: 'Configure pstack models',
     description: 'Open native Pi model setup when the user asks to configure pstack models or reasoning budget. Requires interactive confirmation before writing.',
     parameters: Type.Object({}),
+    outputSchema: Type.Object({ written: Type.Boolean() }),
+    exposure: 'model-only',
+    executionMode: 'sequential',
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
     async execute(_id, _params, _signal, _update, ctx) {
       const written = await setupPstack(pi, ctx, store);
-      return { content: [{ type: 'text', text: written ? 'Model configuration confirmed and saved.' : 'Setup cancelled. No configuration was written.' }], details: { written } };
+      return { content: [{ type: 'text', text: written ? 'Model configuration confirmed and saved.' : 'Setup cancelled. No configuration was written.' }], details: { written }, structuredContent: { written } };
     },
   });
 }

@@ -5,7 +5,7 @@ import { builtinXai } from './support/builtin-xai.ts';
 import { oauthCredential, storeWith } from './support/credentials.ts';
 import { startResponsesServer } from './support/responses-server.ts';
 
-test('a streamed request carries the identity headers plus the effort', async ({ onTestFinished }) => {
+test('native streaming preserves identity, effort, and default < level < request sampling precedence', async ({ onTestFinished }) => {
   const server = await startResponsesServer();
   onTestFinished(() => server.close());
   const credential = oauthCredential();
@@ -14,9 +14,15 @@ test('a streamed request carries the identity headers plus the effort', async ({
   models.setProvider(provider);
   const physical = models.getModel('grok-build', 'grok-4.7-build-fast');
   if (!physical) throw new Error('grok-build/grok-4.7-build-fast is not listed');
-  const model: Model<'openai-responses'> = { ...physical, api: 'openai-responses', baseUrl: server.baseUrl };
+  const model: Model<'openai-responses'> = {
+    ...physical,
+    api: 'openai-responses',
+    baseUrl: server.baseUrl,
+    samplingParams: { top_k: 40, top_p: 0.9, min_p: 0.01 },
+    samplingParamsByThinkingLevel: { xhigh: { top_k: 20, min_p: 0.05 } },
+  };
 
-  const stream = models.streamSimple(model, { messages: [{ role: 'user', content: 'ping', timestamp: 1 }] }, { sessionId: 'session-1', reasoning: 'xhigh' });
+  const stream = models.streamSimple(model, { messages: [{ role: 'user', content: 'ping', timestamp: 1 }] }, { sessionId: 'session-1', reasoning: 'xhigh', samplingParams: { min_p: 0.1 } });
   const message = await stream.result();
 
   const [recorded] = server.requests;
@@ -30,6 +36,6 @@ test('a streamed request carries the identity headers plus the effort', async ({
     'x-grok-conv-id': 'session-1',
     authorization: `Bearer ${credential.access}`,
   });
-  expect(recorded?.body).toMatchObject({ model: 'grok-4.7-build-fast', reasoning: { effort: 'xhigh' } });
+  expect(recorded?.body).toMatchObject({ model: 'grok-4.7-build-fast', reasoning: { effort: 'xhigh' }, top_k: 20, top_p: 0.9, min_p: 0.1 });
   expect(message.content.map((block) => (block.type === 'text' ? block.text : ''))).toStrictEqual(['OK']);
 });

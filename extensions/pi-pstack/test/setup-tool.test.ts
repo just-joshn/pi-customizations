@@ -13,5 +13,9 @@ test('natural language setup uses the same interactive gate and rejects unattend
   } as unknown as ExtensionAPI;
   registerSetupTool(pi, createState(pi));
   expect(definition?.name).toBe('pstack_setup');
+  expect(definition?.exposure).toBe('model-only');
+  expect(definition?.executionMode).toBe('sequential');
+  expect(definition?.outputSchema).toBeDefined();
+  expect(definition?.annotations).toEqual({ readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false });
   await expect(definition?.execute('setup', {}, undefined, undefined, { hasUI: false } as ExtensionToolContext)).rejects.toThrow('requires Pi interactive or RPC dialog UI');
 });

@@ -105,6 +105,19 @@ test('the envelope names the project, model, and Antigravity agent request type'
   expect(sent.request.generationConfig?.thinkingConfig).toEqual({ includeThoughts: true, thinkingLevel: 'HIGH' });
 });
 
+test('OpenAI sampling metadata does not enter the Cloud Code request', async () => {
+  const { server, message } = await run((_, res) => stream(res, textAndThinking), {
+    model: (model) => ({ ...model, samplingParams: { temperature: 0.7 }, samplingParamsByThinkingLevel: { high: { top_p: 0.8 } } }),
+    stream: { reasoning: 'high', temperature: 0.3, maxTokens: 4000, samplingParams: { top_k: 20 } },
+  });
+  expect(body(server.requests[0]).request.generationConfig).toEqual({
+    temperature: 0.3,
+    maxOutputTokens: 4000,
+    thinkingConfig: { includeThoughts: true, thinkingLevel: 'HIGH' },
+  });
+  expect(message.stopReason).toBe('stop');
+});
+
 test('Gemini sends bearer auth and the Antigravity user agent without the Claude beta header', async () => {
   const { server } = await run((_, res) => stream(res, textAndThinking));
   const headers = server.requests[0]?.headers ?? {};

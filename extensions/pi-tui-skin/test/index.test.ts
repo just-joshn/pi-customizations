@@ -53,7 +53,7 @@ describe('tui-skin extension entry point', () => {
 
     expect(tools).toEqual([]);
     expect(pi.registerToolRenderer).toHaveBeenCalledOnce();
-    expect([...handlers.keys()].sort()).toEqual(['agent_end', 'agent_start', 'model_select', 'session_shutdown', 'session_start', 'thinking_level_select', 'tool_execution_end', 'tool_execution_start']);
+    expect([...handlers.keys()].sort()).toEqual(['agent_settled', 'agent_start', 'model_select', 'session_shutdown', 'session_start', 'thinking_level_select', 'tool_execution_end', 'tool_execution_start']);
   });
 
   test('a print-mode session installs no chrome, and a TUI session installs the header', () => {
@@ -169,7 +169,7 @@ describe('tui-skin extension footer rows', () => {
     handlers.get('agent_start')?.({}, ctx);
     handlers.get('tool_execution_start')?.({ toolCallId: 'a', toolName: 'edit', args: { path: 'note.txt' } }, ctx);
     handlers.get('tool_execution_end')?.({ toolCallId: 'a', toolName: 'edit', isError: false }, ctx);
-    handlers.get('agent_end')?.({}, ctx);
+    handlers.get('agent_settled')?.({}, ctx);
 
     const footerFactory = ui.setFooter.mock.calls[0]?.[0] as ((tui: unknown, theme: unknown, data: unknown) => { render(width: number): string[] }) | undefined;
     if (footerFactory === undefined) throw new Error('no footer factory was installed');

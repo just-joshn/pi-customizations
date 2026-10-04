@@ -118,13 +118,13 @@ test('a process that dies mid-turn fails the task with its stderr', async ({ wor
 });
 
 test('a process that exits before the prompt fails the task', async ({ workspace }) => {
-  const { task } = newTask(workspace, { env: { FAKE_PI_STATE: 'exit' } });
+  const { task, host } = newTask(workspace, { env: { FAKE_PI_STATE: 'exit' } });
   await task.open();
 
-  const record = await task.begin('hello');
+  await expect(task.begin('hello')).rejects.toThrow(/^pi (exited 5|process has exited)/);
 
-  expect(record.status).toBe('failed');
-  expect(record.output).toMatch(/^pi (exited 5|process has exited)/);
+  expect(host.settlements[0]?.record.status).toBe('failed');
+  expect(host.settlements[0]?.record.output).toMatch(/^pi (exited 5|process has exited)/);
 });
 
 test('the cleanup hook patch is merged into the settled record', async ({ workspace }) => {

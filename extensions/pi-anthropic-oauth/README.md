@@ -52,7 +52,7 @@ Read the [parity matrix](docs/claude-oauth-parity.md) for verified behavior, del
 
 ## Tool-name limits
 
-OAuth tool renaming can fold names such as `Task` and `task`. The first declaration wins, so rename one tool if both are required. Pi `1.0.1` sends tool changes inline on capable models. When a transcript has colliding identities, the package preserves the upstream request-local compatibility adjustment that selects Pi's current-tool path. Other transcripts keep native inline tool changes. This trades inline cache reuse for consistent declarations and reply dispatch.
+OAuth tool renaming can fold names such as `Task` and `task`. The first declaration wins, so rename one tool if both are required. Pi `1.0.2` sends tool changes inline on capable models. When a transcript has colliding identities, the package preserves the upstream request-local compatibility adjustment that selects Pi's current-tool path. Other transcripts keep native inline tool changes. This trades inline cache reuse for consistent declarations and reply dispatch.
 
 ## Verify the integration
 
@@ -77,7 +77,7 @@ node --experimental-strip-types scripts/prove-native.ts
 
 The tests use native Pi providers, authentication, and streams against local HTTP peers. `prove-request-paths.ts` verifies normal prompts, compaction, virtual routing, and `models.json` header overrides. `prove-native.ts` verifies print, JSON, RPC, ambient authentication, session correlation, fork, reload, session replacement, tool execution, native Bash output, and cancellation.
 
-These probes use disposable Pi directories and synthetic tokens. They do not contact Anthropic for inference or inspect your credentials. Set `PI_OAUTH_CLI_PATH` to an installed Pi's `dist/bundle/cli.js` to repeat them against that host. They otherwise use the package's pinned Pi `1.0.1` test dependency. Both probes also cover the earlier Pi `1.0.0` host.
+These probes use disposable Pi directories and synthetic tokens. They do not contact Anthropic for inference or inspect your credentials. Set `PI_OAUTH_CLI_PATH` to an installed Pi's `dist/bundle/cli.js` to repeat them against that host. They otherwise use the package's pinned Pi `1.0.2` test dependency. Both probes also cover the earlier Pi `1.0.0` host.
 
 Capture the installed Claude Code reference with Python 3:
 

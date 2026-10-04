@@ -4,8 +4,8 @@ export type RoutineLaunch = { cwd: string; agentDir: string; args: string[]; exp
 export function routineRecord<T = Record<string, unknown>>(path: string): Promise<T | undefined>;
 export function durableRecord(path: string, value: unknown): Promise<void>;
 export function privateDirectory(path: string): Promise<void>;
-export function prepareRoutine(root: string, input: RoutineInput): Promise<RoutineReceipt>;
+export function prepareRoutine(root: string, input: RoutineInput, signal?: AbortSignal): Promise<RoutineReceipt>;
 export function routineDefinition(directory: string): Promise<RoutineDefinition>;
-export function inspectRoutine(directory: string): Promise<RoutineReceipt>;
-export function startRoutine(directory: string, revision: string, launch: RoutineLaunch): Promise<RoutineReceipt>;
-export function disableRoutine(directory: string): Promise<RoutineReceipt>;
+export function inspectRoutine(directory: string, signal?: AbortSignal): Promise<RoutineReceipt>;
+export function startRoutine(directory: string, revision: string, launch: RoutineLaunch, signal?: AbortSignal): Promise<RoutineReceipt>;
+export function disableRoutine(directory: string, signal?: AbortSignal): Promise<RoutineReceipt>;

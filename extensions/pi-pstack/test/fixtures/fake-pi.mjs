@@ -8,7 +8,7 @@ const logFile = process.env.FAKE_PI_LOG;
 const stubborn = process.env.FAKE_PI_STUBBORN;
 const sessionFlag = process.argv.indexOf('--session');
 const sessionFile = sessionFlag >= 0 ? process.argv[sessionFlag + 1] : (process.env.FAKE_PI_SESSION_FILE ?? join(process.cwd(), 'session.jsonl'));
-let lastText;
+let lastText = process.env.FAKE_PI_PRIOR_TEXT;
 
 const emit = (record) => process.stdout.write(`${JSON.stringify(record)}\n`);
 const reply = (command, data) => emit({ type: 'response', id: command.id, command: command.type, success: true, data });
@@ -65,8 +65,19 @@ function handle(command) {
       if (process.env.FAKE_PI_STATE === 'exit') process.stdout.write('', () => process.exit(5));
       return undefined;
     case 'prompt':
-      reply(command, {});
+      if (process.env.FAKE_PI_PROMPT_ERROR) return fail(command, process.env.FAKE_PI_PROMPT_ERROR);
+      if (process.env.FAKE_PI_EARLY_SETTLE) {
+        runTurn(command.message);
+        return reply(command, { disposition: 'started' });
+      }
+      reply(command, { disposition: process.env.FAKE_PI_DISPOSITION ?? 'started' });
+      if (process.env.FAKE_PI_DISPOSITION === 'handled') return undefined;
       return setImmediate(() => runTurn(command.message));
+    case 'steer':
+      reply(command, { disposition: 'queued' });
+      if (command.message === 'settle') finishTurn('fresh answer');
+      if (command.message === 'agent_end') emit({ type: 'agent_end' });
+      return undefined;
     case 'get_last_assistant_text':
       return reply(command, lastText === undefined ? {} : { text: lastText });
     case 'get_session_stats':

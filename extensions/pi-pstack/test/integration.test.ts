@@ -672,8 +672,8 @@ test('large todo results retain full structured state and point to the durable t
     const result = toolResults(session, 'TodoWrite').at(-1);
     expect(Boolean(result?.role === 'toolResult' && !result.isError)).toBe(true);
     const text = result?.content.find((block: { type: string; text?: string }) => block.type === 'text')?.text ?? '';
-    expect(Boolean(text.length < 49000)).toBe(true);
-    expect(text).toMatch(/Truncated\. Full current transcript:/);
+    expect(Buffer.byteLength(text)).toBeLessThanOrEqual(51200);
+    expect(text).toMatch(/Truncated\. Read the complete current transcript at/);
     expect(Boolean(text.includes(session.sessionManager.getSessionFile() ?? 'missing transcript'))).toBe(true);
     expect(result?.details).toEqual(todos);
   } finally {
@@ -698,8 +698,8 @@ test('large question answers retain complete details when the session has no tra
     const result = toolResults(session, 'AskQuestion').at(-1);
     expect(Boolean(result?.role === 'toolResult' && !result.isError)).toBe(true);
     const text = result?.content.find((block: { type: string; text?: string }) => block.type === 'text')?.text ?? '';
-    expect(Boolean(text.length < 49000)).toBe(true);
-    expect(text).toMatch(/Truncated\. Full current transcript: available in tool details/);
+    expect(Buffer.byteLength(text)).toBeLessThanOrEqual(51200);
+    expect(text).toMatch(/Truncated\. Complete structured data is retained for programmatic callers/);
     expect(result?.details).toEqual([{ id: 'scope', answers: [answer], cancelled: false }]);
   } finally {
     await f.close();
