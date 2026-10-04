@@ -1,6 +1,6 @@
 # pstack for pi
 
-This Pi package ports pstack 0.15.7 and team-kit 1.2.0 workflows to Pi 1.0.1. It preserves 190 source files and all 68 upstream workflow entry points through 67 generated skills and 66 prompt templates. Pi-authored host resources bring discovery to 71 skills and 69 templates. Run `bun run check:resources` to verify generated counts and `bun run check:cli` to verify installed discovery. Its extension supplies executable behavior. The extension maps supported host facilities to Pi-native behavior. Live external services and proprietary host facilities remain subject to the documented limits. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
+This Pi package ports pstack 0.15.7 and team-kit 1.2.0 workflows to Pi 1.0.2. It preserves 190 source files and all 68 upstream workflow entry points through 67 generated skills and 66 prompt templates. Pi-authored host resources bring discovery to 71 skills and 69 templates. Run `bun run check:resources` to verify generated counts and `bun run check:cli` to verify installed discovery. Its extension supplies executable behavior. The extension maps supported host facilities to Pi-native behavior. Live external services and proprietary host facilities remain subject to the documented limits. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
 
 ## Install
 
@@ -28,7 +28,7 @@ Every turn, the host context lists each bundled skill, host skill, and playbook 
 
 With the package extension enabled, direct user invocations of pstack-owned prompt aliases preserve the raw argument suffix, including quotes, whitespace, newlines, backslashes, and dollar placeholders. The input hook quotes that suffix as one parser argument and leaves native prompt discovery and expansion in place. User-owned prompts, other extension commands, and `/bro` are not rewritten. Extension-generated messages keep Pi's normal literal delivery or opt-in expansion. When the extension is disabled, Pi's native prompt parser removes grouping quotes, joins parsed arguments with spaces, and converts unquoted line breaks to spaces. Use `/skill:name` to load a skill directly.
 
-The runtime uses current `@earendil-works` pi packages. Host dependencies are wildcard peers supplied by Pi. SDK 1.0.1 is the development and verification target. Other versions are not verification targets.
+The runtime uses current `@earendil-works` pi packages. Host dependencies are wildcard peers supplied by Pi. SDK 1.0.2 is the development and verification target. Other versions are not verification targets.
 
 ## Usage
 
