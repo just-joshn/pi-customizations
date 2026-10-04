@@ -13,6 +13,11 @@ import { declaredExtensions } from './support/package-manifest.ts';
 
 const PACKAGE_DIR = fileURLToPath(new URL('..', import.meta.url));
 
+test('the published package includes its parity reference', async () => {
+  const manifest: unknown = JSON.parse(await readFile(join(PACKAGE_DIR, 'package.json'), 'utf8'));
+  expect(manifest).toHaveProperty('files', expect.arrayContaining(['docs/claude-oauth-parity.md']));
+});
+
 test('the default export is a Pi extension factory', () => {
   const factory: ExtensionFactory = extension;
   expect(factory).toBe(extension);
@@ -33,8 +38,8 @@ test('Pi loads the manifest extensions with one provider', async ({ onTestFinish
   expect(errors).toStrictEqual([]);
   const declared = declaredExtensions(JSON.parse(await readFile(join(packageDir, 'package.json'), 'utf8')));
   expect(extensions.map((loaded) => loaded.path)).toStrictEqual(declared.map((entry) => resolve(packageDir, entry)));
-  expect(extensions).toHaveLength(2);
-  expect(extensions.map((loaded) => [...loaded.handlers.keys()])).toStrictEqual([[], ['tool_result']]);
+  expect(extensions).toHaveLength(1);
+  expect(extensions.map((loaded) => [...loaded.handlers.keys()])).toStrictEqual([[]]);
   const registrations = runtime.pendingNativeProviderRegistrations;
   expect(registrations).toHaveLength(1);
   const models = registrations.flatMap(({ provider }) => provider.getModels().map((model) => ({ provider: provider.id, owner: model.provider })));
@@ -55,8 +60,10 @@ test('the login keeps the built-in subscription flag', () => {
   expect(captureProvider(extension).auth.oauth?.isSubscription).toBe(true);
 });
 
-test('the only login method is OAuth', () => {
-  expect(Object.keys(captureProvider(extension).auth)).toStrictEqual(['oauth']);
+test('the only interactive login method is OAuth', () => {
+  const auth = captureProvider(extension).auth;
+  expect(auth.oauth?.login).toBeTypeOf('function');
+  expect(auth.apiKey?.login).toBeUndefined();
 });
 
 test('every model belongs to the registered provider', async () => {

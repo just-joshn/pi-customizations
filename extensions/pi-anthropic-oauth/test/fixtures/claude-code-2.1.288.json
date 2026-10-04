@@ -1,0 +1,16 @@
+{
+  "prompt": "Reply LOCAL_OK.",
+  "model": "claude-sonnet-4-6",
+  "headers": {
+    "user-agent": "claude-cli/2.1.288 (external, sdk-cli)",
+    "x-app": "cli",
+    "anthropic-version": "2023-06-01",
+    "anthropic-beta": "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,thinking-token-count-2026-05-13,context-management-2025-06-27,prompt-caching-scope-2026-01-05,effort-2025-11-24,dangerous-tool-use-2026-09-03,afk-mode-2026-01-31,extended-cache-ttl-2025-04-11"
+  },
+  "billing": "x-anthropic-billing-header: cc_version=2.1.288.988; cc_entrypoint=sdk-cli;",
+  "preamble": "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
+  "systemCache": [{ "type": "ephemeral", "ttl": "1h" }, { "type": "ephemeral", "ttl": "1h" }],
+  "thinking": { "type": "adaptive", "display": "omitted" },
+  "output_config": { "effort": "medium" },
+  "max_tokens": 32000
+}

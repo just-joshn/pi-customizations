@@ -1,19 +1,24 @@
 import { type Api, type AssistantMessageEventStream, type Context, createAssistantMessageEventStream, lazyStream, type Model, type Provider, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { assistantTurn } from './context.ts';
 
-function firstUserText(context: TranscriptContext): string {
-  const first = context.messages.find((message) => message.role === 'user');
-  if (first?.role !== 'user' || typeof first.content !== 'string') throw new Error('probe needs a string user prompt');
-  return first.content;
+function payloadText(context: TranscriptContext): string {
+  const message = context.messages.at(-1);
+  if (message?.role !== 'user' || typeof message.content !== 'string') throw new Error('probe needs a string user prompt');
+  return message.content;
 }
 
 export function promptCarrying(payload: unknown): Context {
-  return { messages: [{ role: 'user', content: JSON.stringify(payload), timestamp: 1 }] };
+  return {
+    messages: [
+      { role: 'user', content: 'hi', timestamp: 1 },
+      { role: 'user', content: JSON.stringify(payload), timestamp: 2 },
+    ],
+  };
 }
 
 function probe(model: Model<Api>, context: TranscriptContext, options?: StreamOptions): AssistantMessageEventStream {
   return lazyStream(model, async () => {
-    const payload: unknown = JSON.parse(firstUserText(context));
+    const payload: unknown = JSON.parse(payloadText(context));
     const sent = (await options?.onPayload?.(payload, model)) ?? payload;
     const message = assistantTurn({ content: [{ type: 'text', text: JSON.stringify(sent) }] });
     const stream = createAssistantMessageEventStream();
@@ -23,8 +28,5 @@ function probe(model: Model<Api>, context: TranscriptContext, options?: StreamOp
   });
 }
 
-// Stands in for Pi's Anthropic implementation. It parses the user prompt from JSON,
-// hands that value to onPayload as the request payload, and answers with the
-// payload onPayload resolved, so a test sees exactly what would be sent.
 export const probeStream: Provider['stream'] = probe;
 export const probeStreamSimple: Provider['streamSimple'] = probe;
