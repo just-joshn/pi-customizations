@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { DefaultResourceLoader, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { expect, test, vi } from 'vitest';
 import type { RemoteExecutor } from '../src/remote-executors.ts';
 import { remoteWorkerArguments, resolveRemotePlacement, startRemoteWorker } from '../src/remote-worker.ts';
@@ -28,6 +29,7 @@ const prepared = {
   selected: { model: { provider: 'fixture', id: 'model' }, thinkingLevel: 'off' },
   loader: { getSkills: () => ({ skills: [{ filePath: join(process.cwd(), 'host/skills/loop/SKILL.md') }, { filePath: '/private/skill.md' }] }), getPrompts: () => ({ prompts: [] }), getAppendSystemPrompt: () => ['Operator instructions'] },
   readonly: false,
+  settingsManager: SettingsManager.inMemory({}, { projectTrusted: true }),
 } as unknown as Prepared;
 const receipt = {
   directory: '/guest/rpc',
@@ -89,6 +91,24 @@ test('remote argv names guest resources and guest providers without local provid
   expect(args).not.toContain('/private/skill.md');
   expect(args).toContain('read,grep,find,ls');
   expect(args).not.toContain(process.cwd());
+});
+
+test.for([false, true])('remote launch inherits parent project trust (%s)', (trusted) => {
+  const args = remoteWorkerArguments({ ...prepared, settingsManager: SettingsManager.inMemory({}, { projectTrusted: trusted }) }, executor);
+  expect(args.filter((arg) => arg === '--approve' || arg === '--no-approve')).toEqual([trusted ? '--approve' : '--no-approve']);
+});
+
+test('declined remote trust leaves executable project resources unloaded', async ({ onTestFinished }) => {
+  const directory = await mkdtemp(join(tmpdir(), 'remote-trust-'));
+  onTestFinished(() => rm(directory, { recursive: true, force: true }));
+  await mkdir(join(directory, '.pi/extensions'), { recursive: true });
+  await writeFile(join(directory, '.pi/extensions/probe.ts'), 'throw new Error("project extension executed");');
+  const args = remoteWorkerArguments({ ...prepared, settingsManager: SettingsManager.inMemory({}, { projectTrusted: false }) }, executor);
+  const loader = new DefaultResourceLoader({ cwd: directory, agentDir: join(directory, 'agent'), settingsManager: SettingsManager.inMemory() });
+  expect(args).toContain('--no-approve');
+  await loader.reload({ resolveProjectTrust: async () => args.includes('--approve') });
+  expect(loader.getExtensions().extensions).toHaveLength(0);
+  expect(loader.getExtensions().errors).toHaveLength(0);
 });
 
 test('remote startup validates placement and retains observed isolation evidence', async () => {

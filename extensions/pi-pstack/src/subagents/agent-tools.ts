@@ -77,9 +77,9 @@ export function taskTool(factory: SubagentFactory, scheduler: SubagentScheduler,
     promptSnippet: toolHeader,
     parameters: TaskSchema,
     outputSchema: AgentDetailsSchema,
-    exposure: 'direct',
+    exposure: 'model-only',
     namespace: subagentNamespace,
-    executionMode: 'parallel',
+    executionMode: 'sequential',
     annotations: { openWorldHint: true },
     execute: async (id, call, signal, _onUpdate, ctx) => {
       launchSignal(signal, call.mode === 'background');
@@ -109,7 +109,7 @@ export function readAgentTool(scheduler: SubagentScheduler): ToolDefinition<type
     outputSchema: AgentDetailsSchema,
     exposure: 'direct',
     namespace: subagentNamespace,
-    executionMode: 'parallel',
+    executionMode: 'sequential',
     annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
     execute: async (_id, input, signal) => {
       const node = await scheduler.read(input.agent_id, { wait: input.wait ?? false, timeoutSeconds: input.timeout ?? readWaitDefaultSeconds }, signal);
@@ -128,7 +128,7 @@ export function writeAgentTool(scheduler: SubagentScheduler): ToolDefinition<typ
     outputSchema: AgentDetailsSchema,
     exposure: 'direct',
     namespace: subagentNamespace,
-    executionMode: 'parallel',
+    executionMode: 'sequential',
     annotations: { openWorldHint: false },
     execute: async (_id, input, _signal, _update, ctx) => {
       const before = scheduler.get(input.agent_id);

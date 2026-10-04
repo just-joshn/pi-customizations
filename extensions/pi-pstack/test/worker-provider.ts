@@ -66,6 +66,14 @@ function sidekickInbox(context: StreamArguments[1]): ToolCall[] {
   return [{ type: 'toolCall', id: 'sidekick-inbox', name: 'send_inbox', arguments: { message: 'found it' } }];
 }
 
+function controlCalls(text: string, task_id: string): ToolCall[] {
+  const calls: ToolCall[] = [
+    { type: 'toolCall', id: 'wait-child', name: 'TaskOutput', arguments: { task_id, block: true } },
+    { type: 'toolCall', id: 'stop-child', name: 'TaskStop', arguments: { task_id } },
+  ];
+  return text.includes('STOP_FIRST') ? calls.toReversed() : calls;
+}
+
 function requestedTools(text: string, context: StreamArguments[1]): ToolCall[] {
   const last = context.messages.at(-1);
   const failedChild = text.includes('BROKEN_CHILD_PARENT');
@@ -108,10 +116,7 @@ function requestedTools(text: string, context: StreamArguments[1]): ToolCall[] {
     const content = last.content.find((block) => block.type === 'text');
     if (content?.type !== 'text') throw new Error('missing text block');
     const { task_id } = JSON.parse(content.text);
-    return [
-      { type: 'toolCall', id: 'wait-child', name: 'TaskOutput', arguments: { task_id, block: true } },
-      { type: 'toolCall', id: 'stop-child', name: 'TaskStop', arguments: { task_id } },
-    ];
+    return controlCalls(text, task_id);
   }
   return [];
 }

@@ -82,16 +82,22 @@ function registerOwnership(pi: ExtensionAPI, runtime: ShellRuntime): void {
   });
 }
 
+const shellNamespace = {
+  name: 'pstack_shells',
+  description: 'Session-owned background shell processes.',
+  instructions: 'Read the returned log path for complete output. Output notifications may be coalesced. Stop a shell to terminate its process group. These processes end with the owning session.',
+} as const;
+
 export function registerShells(pi: ExtensionAPI): void {
   const runtime = new ShellRuntime(pi);
   shellRuntimes.set(pi, runtime);
   registerOwnership(pi, runtime);
   pi.on('message_end', (event) => {
-    const message = event.message;
-    if (message.role === 'custom' && message.customType === 'pstack-shell-output') runtime.delivered((message.details as ShellRecord).id);
+    if (event.message.role === 'custom' && event.message.customType === 'pstack-shell-output') runtime.delivered((event.message.details as ShellRecord).id);
   });
   pi.registerTool({
     name: 'BackgroundShell',
+    namespace: shellNamespace,
     label: 'Background shell',
     description:
       'Run a bash command in the background. Output is appended to a log file. An output line matching notify_on_output wakes the agent with that line; while a wake is still queued, later matches only count, so read the log for the latest line. Exit wakes the agent unless the shell already matched and exited 0.',
@@ -101,11 +107,12 @@ export function registerShells(pi: ExtensionAPI): void {
     outputSchema: ShellRecordSchema,
     exposure: 'direct',
     annotations: { openWorldHint: true },
-    executionMode: 'parallel',
+    executionMode: 'sequential',
     execute: async (_id, params, _signal, _update, ctx) => started(await runtime.start(params, ctx)),
   });
   pi.registerTool({
     name: 'Background' + 'ShellList',
+    namespace: shellNamespace,
     label: 'List background shells',
     description: "List this session's background shells, newest first.",
     promptSnippet: "List this session's background shells",
@@ -118,6 +125,7 @@ export function registerShells(pi: ExtensionAPI): void {
   });
   pi.registerTool({
     name: 'Background' + 'ShellStop',
+    namespace: shellNamespace,
     label: 'Stop background shell',
     description: 'Stop a background shell and its process group. Stopped shells send no exit message. A match wake held for the current turn is dropped.',
     promptSnippet: 'Stop a background shell and its process group',
@@ -125,7 +133,7 @@ export function registerShells(pi: ExtensionAPI): void {
     outputSchema: ShellRecordSchema,
     exposure: 'direct',
     annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: false },
-    executionMode: 'parallel',
+    executionMode: 'sequential',
     execute: async (_id, params) => json(await runtime.stop(params.id)),
   });
 }

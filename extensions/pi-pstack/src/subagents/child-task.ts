@@ -26,6 +26,7 @@ export type ChildLaunch = Readonly<{
   cleanup?: (record: TaskRecord) => Promise<Partial<TaskRecord>>;
 }>;
 
+type PromptResult = { kind: 'run' | 'handled' } | { kind: 'failed'; error: unknown };
 type Turn = { state: TurnState; startedAt: number; settled: Promise<void>; markSettled: () => void };
 const escalationMs = 3000;
 
@@ -116,15 +117,24 @@ export class ChildTask {
     const turn = newTurn();
     this.turn = turn;
     this.stopRequested = false;
-    this.completion = this.finish(child, turn);
-    child.send({ type: 'prompt', message: prompt }).catch((error: unknown) => {
-      turn.state = { ...turn.state, failure: error instanceof Error ? error.message : String(error) };
-      turn.markSettled();
+    const response = child.send({ type: 'prompt', message: prompt }).then<PromptResult, PromptResult>(
+      (data) => ({ kind: asRecord(data).disposition === 'handled' ? 'handled' : 'run' }),
+      (error: unknown) => {
+        turn.state = { ...turn.state, failure: error instanceof Error ? error.message : String(error) };
+        return { kind: 'failed', error };
+      },
+    );
+    this.completion = response.then(async (result) => {
+      const record = await this.finish(child, turn, result);
+      if (result.kind === 'failed') throw result.error;
+      return record;
     });
+    void this.completion.catch(() => undefined);
     return this.completion;
   }
 
-  private async collect(child: RpcChild, turn: Turn): Promise<{ output: string; stats?: SessionStats }> {
+  private async collect(child: RpcChild, turn: Turn, prompt: PromptResult): Promise<{ output: string; stats?: SessionStats }> {
+    if (prompt.kind !== 'run') return { output: '' };
     await Promise.race([turn.settled, child.closed]);
     if (child.exited) return { output: '' };
     const text = asRecord(await child.send({ type: 'get_last_assistant_text' }).catch(() => undefined)).text;
@@ -132,8 +142,8 @@ export class ChildTask {
     return { output: typeof text === 'string' ? text : '', ...(stats ? { stats: asRecord(stats) as SessionStats } : {}) };
   }
 
-  private async finish(child: RpcChild, turn: Turn): Promise<TaskRecord> {
-    const { output, stats } = await this.collect(child, turn);
+  private async finish(child: RpcChild, turn: Turn, prompt: PromptResult): Promise<TaskRecord> {
+    const { output, stats } = await this.collect(child, turn, prompt);
     const died = child.exited && !turn.state.aborted && !this.stopRequested;
     const state = died && !turn.state.failure ? { ...turn.state, failure: `pi exited before the task finished: ${(await child.closed).stderr.slice(-400)}` } : turn.state;
     const current = this.host.current(this.id) ?? this.launch.record;
@@ -168,7 +178,7 @@ export class ChildTask {
       if (this.turn) await child.send({ type: 'abort' }, 5000).catch(() => undefined);
       await this.terminate(child);
     }
-    const record = await this.completion;
+    const record = await this.completion.catch(() => this.host.current(this.id) ?? this.launch.record);
     await this.launch.closePane?.().catch(() => undefined);
     return record;
   }

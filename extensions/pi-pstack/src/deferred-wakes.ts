@@ -3,9 +3,8 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 type Wake = Parameters<ExtensionAPI['sendMessage']>[0];
 
 /**
- * Wake messages that arrive while the parent is mid-run wait here until the run settles cleanly. Pi's follow-up queue drops its
- * contents when the user aborts a run and cannot retract a message a blocking read has already consumed, so neither case can lean on it.
- * An aborted run keeps the wakes for the next clean settle.
+ * Pi cannot withdraw one queued follow-up after a blocking read consumes its result.
+ * Hold undelivered wakes until a clean settle so queue edits and aborted turns do not lose them.
  */
 export class DeferredWakes {
   private held = new Map<string, Wake>();

@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 
+import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { expect, onTestFinished, test } from 'vitest';
 import { openDetachedRpc } from '../scripts/detached-rpc-client.mjs';
 import { restartTimerService, timerCommand } from '../scripts/timer-client.mjs';
@@ -99,6 +100,63 @@ test('an ambiguous attempted occurrence is reported instead of replayed silently
   await restartTimerService(directory);
   expect(await timerCommand(directory, { type: 'list' })).toEqual([expect.objectContaining({ status: 'needs_reconciliation', error: expect.stringContaining('may have executed') })]);
   expect(await readFile(receipt.sessionFile, 'utf8')).not.toContain('DO_NOT_REPLAY');
+}, 15000);
+
+test.for([
+  { name: 'active branch', abandoned: false },
+  { name: 'abandoned branch', abandoned: true },
+])('a stopped assistant on the $name does not replace a lost settlement receipt', { timeout: 15000 }, async ({ abandoned }) => {
+  const { directory, receipt } = await owner('NO_REPLAY', true);
+  await killService(directory);
+  await openDetachedRpc(receipt.rpcDirectory).close();
+  const invocation = randomUUID();
+  const session = SessionManager.open(receipt.sessionFile);
+  const previous = session.getLeafId();
+  session.appendMessage({ role: 'user', content: `[pstack-timer occurrence=${invocation} due_at=1]`, timestamp: 1 });
+  session.appendMessage({
+    role: 'assistant',
+    api: 'openai-completions',
+    provider: 'journey-test',
+    model: 'recorder',
+    content: [{ type: 'text', text: 'An intermediate reply.' }],
+    stopReason: 'stop',
+    timestamp: 2,
+    usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+  });
+  if (abandoned) {
+    if (!previous) throw new Error('Missing timer seed entry.');
+    session.branch(previous);
+    session.appendMessage({ role: 'user', content: 'The active branch has no occurrence.', timestamp: 3 });
+  }
+  const path = join(directory, 'subscriptions.json');
+  const records: { receipt: { subscriptionId: string } }[] = JSON.parse(await readFile(path, 'utf8'));
+  await writeFile(path, JSON.stringify(records.map((item) => ({ ...item, occurrence: { phase: 'accepted', invocation, dueAt: 1, attempted: true } }))));
+  await restartTimerService(directory);
+  expect(await timerCommand(directory, { type: 'list' })).toEqual([expect.objectContaining({ subscriptionId: receipt.subscriptionId, status: 'needs_reconciliation', error: expect.stringContaining('may have executed') })]);
+  const recovered = SessionManager.open(receipt.sessionFile);
+  expect(recovered.getEntries().filter((entry) => entry.type === 'message' && entry.message.role === 'user' && JSON.stringify(entry.message.content).includes(invocation))).toHaveLength(1);
+});
+
+test('a matching native settlement receipt settles recovery without replay', async () => {
+  const { directory, receipt } = await owner('RECEIPT_RECOVERY', true);
+  await killService(directory);
+  const running = openDetachedRpc(receipt.rpcDirectory);
+  const invocation = randomUUID();
+  await running.send({ type: 'prompt', message: `RECEIPT_RECOVERY [pstack-timer occurrence=${invocation} due_at=1]` }, invocation);
+  await expect.poll(() => running.activity(), { timeout: 10000 }).toEqual({ kind: 'settled', invocation });
+  const path = join(directory, 'subscriptions.json');
+  const records: { receipt: { subscriptionId: string } }[] = JSON.parse(await readFile(path, 'utf8'));
+  await writeFile(path, JSON.stringify(records.map((item) => ({ ...item, occurrence: { phase: 'accepted', invocation, dueAt: 1, attempted: true } }))));
+  await restartTimerService(directory);
+  expect(await timerCommand(directory, { type: 'list' })).toEqual([expect.objectContaining({ subscriptionId: receipt.subscriptionId })]);
+  const current = JSON.parse(await readFile(path, 'utf8'));
+  expect(current[0].occurrence.phase).toBe('settled');
+  expect(current[0].nextAt).toBeGreaterThan(1);
+  expect(
+    SessionManager.open(receipt.sessionFile)
+      .getEntries()
+      .filter((entry) => entry.type === 'message' && entry.message.role === 'user' && JSON.stringify(entry.message.content).includes(invocation)),
+  ).toHaveLength(1);
 }, 15000);
 
 test('recovery drains a cancellation persisted before its acknowledgment', async () => {

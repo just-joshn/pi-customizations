@@ -31,11 +31,15 @@ function setup() {
 }
 
 describe('registerLifecycle', () => {
-  test('agent events flip the phase', () => {
+  test('agent phase stays running until final settlement', () => {
     const { store, emit } = setup();
     emit('agent_start');
     expect(store.getSnapshot().phase.kind).toBe('running');
     emit('agent_end');
+    expect(store.getSnapshot().phase.kind).toBe('running');
+    emit('agent_start');
+    expect(store.getSnapshot().phase.kind).toBe('running');
+    emit('agent_settled');
     expect(store.getSnapshot().phase.kind).toBe('idle');
   });
 
@@ -74,6 +78,6 @@ describe('registerLifecycle', () => {
 
   test('registers only the allowed event set', () => {
     const { handlers } = setup();
-    expect([...handlers.keys()].sort()).toEqual(['agent_end', 'agent_start', 'model_select', 'session_shutdown', 'session_start', 'thinking_level_select', 'tool_execution_end', 'tool_execution_start']);
+    expect([...handlers.keys()].sort()).toEqual(['agent_settled', 'agent_start', 'model_select', 'session_shutdown', 'session_start', 'thinking_level_select', 'tool_execution_end', 'tool_execution_start']);
   });
 });

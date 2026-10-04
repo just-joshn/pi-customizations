@@ -676,6 +676,25 @@ function workflowToolsFixture() {
   return { tool, run, calls };
 }
 
+test('workflow tools publish shared native namespace guidance', () => {
+  const { tool } = workflowToolsFixture();
+  for (const name of ['run_dynamic_workflow', 'dynamic_workflows_manage', 'read_workflow_run']) {
+    expect(tool(name).namespace?.name).toBe('pstack_workflows');
+    expect(tool(name).namespace?.instructions).toEqual(expect.any(String));
+  }
+});
+
+test('workflow orchestration is model-only while read access is callable and read-only', () => {
+  const { tool } = workflowToolsFixture();
+  for (const name of ['run_dynamic_workflow', 'dynamic_workflows_manage']) {
+    expect(tool(name).exposure).toBe('model-only');
+    expect(tool(name).executionMode).toBe('sequential');
+    expect(tool(name).annotations?.openWorldHint).toBe(true);
+  }
+  expect(tool('read_workflow_run').exposure).toBe('direct');
+  expect(tool('read_workflow_run').annotations).toEqual({ readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false });
+});
+
 function textOf(result: unknown): string {
   const content = (result as { content?: readonly { text?: string }[] }).content ?? [];
   return content.map((part) => part.text ?? '').join('');

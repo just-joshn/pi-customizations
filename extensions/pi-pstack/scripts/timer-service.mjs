@@ -6,7 +6,7 @@ import { writeRecord } from './detached-rpc-protocol.mjs';
 import { checkCi, ciObservation, parseCi, wakeText } from './timer-ci.mjs';
 import { timerRecord } from './timer-client.mjs';
 import { holdTimerLease } from './timer-lease.mjs';
-import { occurrenceCompleted, openTimerRoot } from './timer-root.mjs';
+import { openTimerRoot } from './timer-root.mjs';
 import { nextOccurrence, parseTimer } from './timer-schedules.mjs';
 
 const directory = process.argv[2];
@@ -76,7 +76,7 @@ async function recoverOccurrence(item) {
     active = item.receipt.subscriptionId;
     return;
   }
-  if (same || (await occurrenceCompleted(running, item.occurrence.invocation))) return settle(item);
+  if (same) return settle(item);
   await replace(item.receipt.subscriptionId, { enabled: false, error: `Occurrence ${item.occurrence.invocation} may have executed. Reconcile its transcript and external effects before explicitly subscribing again.` });
 }
 

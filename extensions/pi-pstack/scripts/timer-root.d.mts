@@ -3,4 +3,3 @@ import type { DetachedRpcHandle, startDetachedRpc } from './detached-rpc-client.
 type TimerRoot = { rpcDirectory: string; sessionFile: string; runId: string; childPid: number; model?: { provider: string; id: string } };
 type TimerLaunch = Omit<Parameters<typeof startDetachedRpc>[0], 'directory'> & { expectedModel?: { provider: string; id: string } };
 export function openTimerRoot(directory: string, launch: TimerLaunch): Promise<{ handle: DetachedRpcHandle; root: TimerRoot }>;
-export function occurrenceCompleted(handle: DetachedRpcHandle, invocation: string): Promise<boolean>;

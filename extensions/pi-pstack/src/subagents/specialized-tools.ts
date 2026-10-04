@@ -50,9 +50,9 @@ export function specializedTool(spec: Specialized, factory: SubagentFactory, env
     promptSnippet: spec.description,
     parameters: Input,
     outputSchema: Details,
-    exposure: 'direct',
+    exposure: 'model-only',
     namespace: subagentNamespace,
-    executionMode: 'parallel',
+    executionMode: 'sequential',
     annotations: { openWorldHint: true },
     execute: async (id, params, signal, _update, ctx): Promise<AgentToolResult<Static<typeof Details>>> => {
       const model = featureEnabled(env, spec.modelFlag) ? env[spec.modelVariable]?.trim() : undefined;
