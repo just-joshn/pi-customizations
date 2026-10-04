@@ -1,3 +1,0 @@
-    return parseReviewThreads(
-      await runJson(graphqlArgs(REVIEW_THREADS_QUERY, context))
-    );

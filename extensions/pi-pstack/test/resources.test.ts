@@ -8,26 +8,13 @@ import { fileURLToPath } from 'node:url';
 import { expect, test, vi } from 'vitest';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const resourceDeadlineMs = 30000;
 
 async function fixture() {
   const directory = await mkdtemp(join(tmpdir(), 'pstack-resources-'));
   try {
     await mkdir(join(directory, 'docs'));
     await mkdir(join(directory, 'scripts'));
-    for (const path of [
-      'upstream',
-      'upstream-team-kit',
-      'skills',
-      'prompts',
-      'host/adapters',
-      'package.json',
-      'scripts',
-      'docs/source-inventory.json',
-      'docs/team-kit-source-inventory.json',
-      'docs/resource-map.json',
-      'docs/vitest-source-migration.json',
-    ])
+    for (const path of ['upstream', 'upstream-team-kit', 'skills', 'prompts', 'host/adapters', 'package.json', 'scripts', 'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json'])
       await cp(join(root, path), join(directory, path), { recursive: true, filter: (source) => !source.split('/').includes('node_modules') });
   } catch (error) {
     await rm(directory, { recursive: true, force: true });
@@ -35,8 +22,7 @@ async function fixture() {
   }
   return {
     directory,
-    run: (...args: string[]) =>
-      execFileSync(process.execPath, [join(directory, 'scripts/resources.mjs'), '--policy-root', fileURLToPath(new URL('../../../', import.meta.url)), ...args], { encoding: 'utf8', stdio: 'pipe', timeout: resourceDeadlineMs }),
+    run: (...args: string[]) => execFileSync(process.execPath, [join(directory, 'scripts/resources.mjs'), ...args], { encoding: 'utf8', stdio: 'pipe' }),
     close: () => rm(directory, { recursive: true, force: true }),
   };
 }
@@ -67,21 +53,35 @@ test('the canvas workflow uses a local browser without altering its source snaps
   expect(source).toContain('navigate the in-app browser');
 });
 
-test(
-  'resource generation is reproducible across both source bundles',
-  async () => {
-    const f = await fixture();
-    try {
-      const before = await readFile(join(f.directory, 'docs/resource-map.json'));
-      expect(f.run('--write')).toMatch(/190 upstream files and 212 generated resources/);
-      expect(await readFile(join(f.directory, 'docs/resource-map.json'))).toEqual(before);
-      expect(f.run()).toMatch(/190 upstream files and 212 generated resources/);
-    } finally {
-      await f.close();
-    }
-  },
-  3 * resourceDeadlineMs,
-);
+test('reflect recommends Pi-native routing while preserving the source recommendation', async () => {
+  const path = 'skills/reflect/references/synthesizer.md';
+  const source = await readFile(join(root, 'upstream', path), 'utf8');
+  const generated = await readFile(join(root, path), 'utf8');
+  expect(source).toContain('- "path-shaped triggers belong in `paths:`, not description prose"');
+  expect(generated).toContain('- "Use directory-scoped `AGENTS.md` for persistent context and imperative descriptions or `/skill:name` for on-demand skills."');
+  expect(generated).not.toContain('triggers belong in `paths:`');
+});
+
+test('why preserves caret wording in source and uses available file context in Pi delivery', async () => {
+  const source = await readFile(join(root, 'upstream/skills/why/SKILL.md'), 'utf8');
+  const generated = await readFile(join(root, 'skills/why/SKILL.md'), 'utf8');
+  expect(source).toContain('cursor location');
+  expect(generated).toContain('available file context');
+  expect(generated).not.toContain('reference location');
+  expect(generated).not.toContain('cursor location');
+});
+
+test('resource generation is reproducible across both source bundles', async () => {
+  const f = await fixture();
+  try {
+    const before = await readFile(join(f.directory, 'docs/resource-map.json'));
+    expect(f.run('--write')).toMatch(/190 upstream files and 211 generated resources/);
+    expect(await readFile(join(f.directory, 'docs/resource-map.json'))).toEqual(before);
+    expect(f.run()).toMatch(/190 upstream files and 211 generated resources/);
+  } finally {
+    await f.close();
+  }
+});
 
 test('generation separates reusable prompts from procedural skills and Reference metadata', async () => {
   const f = await fixture();

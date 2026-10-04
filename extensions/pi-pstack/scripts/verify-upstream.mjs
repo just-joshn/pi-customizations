@@ -1,8 +1,7 @@
 import { spawnSync } from 'node:child_process';
-import { cp, mkdir, mkdtemp, readdir, readFile, rm, symlink } from 'node:fs/promises';
-import { createRequire } from 'node:module';
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -34,29 +33,19 @@ export async function enforceCoverage(workspace) {
   }
 }
 
-function runVitest(workspace) {
-  const vitest = join(dirname(createRequire(import.meta.url).resolve('vitest/package.json')), 'vitest.mjs');
-  const scripts = 'upstream/skills/poteto-mode/scripts';
-  // Keep the existing seven-file helper denominator; Bun-only entrypoints run in child processes.
-  const helpers = ['orch/store.ts', 'watch-pr/cli.ts', 'watch-pr/fakes.test-helper.ts', 'watch-pr/github.ts', 'watch-pr/policy.ts', 'watch-pr/render.ts', 'watch-pr/types.ts'];
-  const coverage = helpers.flatMap((file) => ['--coverage.include', `${scripts}/${file}`]);
-  const result = spawnSync(process.execPath, [vitest, 'run', '--coverage', ...coverage, '--coverage.reporter', 'text', '--coverage.reporter', 'lcov'], { cwd: workspace, stdio: 'inherit', timeout: subprocessDeadlineMs });
-  if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error(`vitest run --coverage failed with ${result.signal ?? result.status}`);
-}
-
 async function verify() {
   const workspace = await mkdtemp(join(tmpdir(), 'pi-pstack-upstream-'));
   try {
-    const scripts = join(workspace, 'upstream/skills/poteto-mode/scripts');
-    const supplemental = join(workspace, 'test/upstream');
-    await cp(join(root, 'upstream/skills/poteto-mode/scripts'), scripts, { recursive: true });
-    await mkdir(supplemental, { recursive: true });
+    await cp(join(root, 'upstream/skills/poteto-mode/scripts'), workspace, { recursive: true });
+    await mkdir(join(workspace, 'supplemental'));
     const tests = (await readdir(join(root, 'test/upstream'))).filter((name) => name.endsWith('.test.mjs'));
-    for (const name of tests) await cp(join(root, 'test/upstream', name), join(supplemental, name));
-    await symlink(join(root, 'node_modules'), join(workspace, 'node_modules'), 'dir');
-    run(['install', '--frozen-lockfile'], scripts);
-    runVitest(workspace);
+    for (const name of tests) {
+      const source = await readFile(join(root, 'test/upstream', name), 'utf8');
+      await writeFile(join(workspace, 'supplemental', name), source.replaceAll("from 'vitest'", "from 'bun:test'").replaceAll('../../upstream/skills/poteto-mode/scripts/', '../'));
+    }
+    await writeFile(join(workspace, 'bunfig.toml'), '[test]\ncoverage = true\ncoverageReporter = ["text", "lcov"]\n');
+    run(['install', '--frozen-lockfile'], workspace);
+    run(['test', 'orch', 'watch-pr', 'supplemental', '--coverage'], workspace);
     await enforceCoverage(workspace);
   } finally {
     await rm(workspace, { recursive: true, force: true });

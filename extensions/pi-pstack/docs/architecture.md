@@ -4,7 +4,7 @@ Use candidate A as the base. It keeps source instructions intact and provides th
 
 Both candidates independently chose SDK child sessions after examining process-based alternatives. SDK sessions expose completion, steering, cancellation, and persisted history without another protocol implementation. This convergence limits the diversity of the comparison. The review used an independent GPT agent, not the unavailable Claude or Grok models requested by the source skill.
 
-Keep the normalized upstream snapshot hash-pinned. `vitest-source-migration.json` records the Vitest runner migration, strict compiler adaptations, and root Biome formatting as exact replayable edits. Runtime adaptations preserve dependency bootstrap and CLI behavior while replacing parameter properties, narrowing indexed values, and omitting absent optional arguments. The source checker reads the unchanged pinned Git revision and verifies each stage's hashes and complete resulting bytes. Refreshing an inventory cannot authorize unrecorded source drift. Generate operational skills with portable names and Pi paths. Generate prompt templates for reusable input and workflow entry points. Remove unsupported Reference frontmatter from active skills. The generator records every transformation and verifies all upstream hashes. Benny stays outside the package's skill manifest.
+Keep the full upstream directory immutable. Generate operational skills with portable names and Pi paths. Generate prompt templates for reusable input and workflow entry points. Remove unsupported Reference frontmatter from active skills. The generator records every transformation and verifies all upstream hashes. Benny stays outside the package's skill manifest.
 
 Use the actual typed `before_agent_start` event's mutable `systemPromptOptions.sections`. Do not return an invented `systemPromptOptions` result. This corrects the first candidate's incomplete reading of the current API.
 
@@ -16,7 +16,7 @@ The named state shapes are skill registry, branch-local mode and todo state, exa
 - `src/models.ts` owns model selection and role configuration.
 - `src/workers.ts` registers task tools. `worker-runtime.ts` owns child lifecycle and usage accounting. `worker-support.ts` constructs sessions and copies the selected provider into readonly runtimes. `worker-records.ts` validates durable task records.
 - `src/personas.ts` owns the closed persona catalogue, parent-model inheritance and complete review rubric.
-- `scripts/resources.mjs` verifies hash-pinned normalized source and generates operational skills and prompt templates. Pi discovers both through the package manifest.
+- `scripts/resources.mjs` verifies immutable source and generates operational skills and prompt templates. Pi discovers both through the package manifest.
 
 The [mechanism audit](mechanism-audit.md) supersedes the original design's executable aliases. Native prompt templates own pure text entry points. Their instructions ask the model to read the full skill from the bundled path in the extension's host context. This preserves on-demand skill loading without copying workflow bodies into templates. `/bro` needs only a prompt. Mode and setup retain extension commands because they own state and dialogs.
 

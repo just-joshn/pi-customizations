@@ -26,15 +26,17 @@ test('an the origin host repository never falls back to gh and keeps its work wh
   }
 });
 
-test('opening a PR pushes the branch first, and creates stack children with --stack-on on Origin', async () => {
+test('opening a PR preserves the source ready status and base-branch chain on Origin', async () => {
   const text = await playbook('opening-a-pr');
-  expect(text).toContain('With Origin, push the branch first or pass `--push`, and pass `--status open`.');
-  expect(text).toContain('Without a built-in PR tool, create a child with `origin pr create --status open --stack-on <parent-pr>` or `gh pr create --base <parent-branch>` according to the resolved forge');
+  expect(text).toContain('With Origin, pass `--status open`.');
+  expect(text).toContain('Without a built-in PR tool, create a child with `origin pr create --status open --base <parent-branch>` or `gh pr create --base <parent-branch>` according to the resolved forge');
+  expect(text).not.toContain('--stack-on');
 });
 
-test('babysit lists only unresolved Origin threads and holds one watcher with a one-shot fallback heartbeat', async () => {
+test('babysit keeps complete Origin thread evidence and one watcher with a one-shot fallback heartbeat', async () => {
   const text = await playbook('babysit');
-  expect(text).toContain('`origin pr thread list <pr> --unresolved --json id,resolved,path`');
+  expect(text).toContain('`origin pr thread list <pr>`, and');
+  expect(text).not.toContain('--unresolved --json id,resolved,path');
   expect(text).toContain("Keep one watcher plus the loop skill's one-shot fallback heartbeat, and never a second polling loop.");
   expect(text).not.toContain('Never add a second sleep loop.');
 });
@@ -45,8 +47,10 @@ test('Origin check watches run as events under BackgroundShell locally and throu
   expect(await playbook('shipping')).toContain('`origin pr checks <pr> --watch` (under `BackgroundShell` with an output sentinel in a local root, or through the CI subscription the host contract names in a durable root)');
 });
 
-test('autonomous run arms a goal with the exit predicate and uses the loop only as the wake', async () => {
-  expect(await playbook('autonomous-run')).toContain('Arm a `/goal` with `CreateGoal` carrying that predicate, so the goal outlives a single turn, and use `/loop` only as the wake mechanism.');
+test('autonomous run states the exit predicate without a port-added goal lifecycle', async () => {
+  const text = await playbook('autonomous-run');
+  expect(text).toContain('State the exit condition as a checkable predicate before the first iteration');
+  expect(text).not.toContain('CreateGoal');
 });
 
 test('program playbooks arm hourly loops without completing a goal they no longer create', async () => {
@@ -64,11 +68,10 @@ test('a cloud root arms its session-attached hourly loop on its own VM', async (
   expect(loop).toContain('`/loop 1h` means 3600 seconds in either environment.');
 });
 
-test('plan lanes prefer a committed verify skill, name their input commands, and keep their screenshots', async () => {
+test('plan lanes retain surface-selected control commands and screenshot evidence without a cleanup override', async () => {
   const plan = await playbook('multi-phase-plan');
-  expect(plan).toContain("Prefer the repository's committed `verify-<app>` skill when it exists. Otherwise pick it by surface.");
-  expect(plan).toContain(
-    '<Deliver input only through the commands of the generated `verify-<app>` skill from `create-verification-skill` when the repository has one, otherwise through the harness commands this lane writes down before driving. Name the read-only diagnostics.>',
-  );
-  expect(plan).toContain('Keep these files. This brief overrides the control skill cleanup default.');
+  expect(plan).toContain('**Control skill.** Pick it by surface.');
+  expect(plan).toContain("<Deliver input only through the control skill's commands. Name the read-only diagnostics.>");
+  expect(plan).toContain('Save every screenshot to `/tmp/swarm-<pr-id>/worker-<n>/<slug>.png` and return the paths with the report.');
+  expect(plan).not.toContain('This brief overrides the control skill cleanup default.');
 });

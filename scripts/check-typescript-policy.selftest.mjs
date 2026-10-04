@@ -27,6 +27,24 @@ try {
   await writeFile(join(directory, 'tsconfig.json'), JSON.stringify({ extends: authority, include: ['src/**/*.ts'], exclude: ['**/node_modules/**'] }));
   const missing = await inspectTypeScriptPolicy(directory);
   assert.ok(missing.failures.includes('Root compiler does not select helpers/tool.test.ts'), 'a leaf cannot hide an omitted root source');
+  const helper = 'extensions/pi-pstack/test/helpers';
+  const native = 'extensions/pi-pstack/skills/poteto-mode/scripts';
+  await mkdir(join(directory, helper), { recursive: true });
+  await mkdir(join(directory, native), { recursive: true });
+  await writeFile(join(directory, helper, 'contract.test.ts'), 'export const contract = 1;\n');
+  await writeFile(join(directory, native, 'store.ts'), 'export const native = 1;\n');
+  await writeFile(join(directory, native, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true } }));
+  await writeFile(join(directory, 'tsconfig.json'), JSON.stringify({ extends: authority, include: ['src/**/*.ts', 'helpers/**/*.ts'], exclude: [] }));
+  const exceptions = { noPropertyAccessFromIndexSignature: false, erasableSyntaxOnly: false, noUncheckedIndexedAccess: false };
+  await writeFile(join(directory, helper, 'tsconfig.json'), JSON.stringify({ extends: '../../../../tsconfig.json', compilerOptions: exceptions, include: ['*.ts'] }));
+  assert.deepEqual((await inspectTypeScriptPolicy(directory)).failures, [], 'native source ownership is separate and helper tests are selected by their narrow project');
+  await writeFile(join(directory, helper, 'tsconfig.json'), JSON.stringify({ extends: '../../../../tsconfig.json', compilerOptions: { ...exceptions, strict: false }, include: ['*.ts'] }));
+  assert.ok(
+    (await inspectTypeScriptPolicy(directory)).failures.some((item) => item.includes('strict')),
+    'the helper exception cannot weaken other safety flags',
+  );
+  await writeFile(join(directory, helper, 'tsconfig.json'), JSON.stringify({ extends: '../../../../tsconfig.json', compilerOptions: exceptions, files: [], include: [] }));
+  assert.ok((await inspectTypeScriptPolicy(directory)).failures.includes(`Root compiler does not select ${helper}/contract.test.ts`), 'omitting a maintained helper test still fails');
 } finally {
   await rm(directory, { recursive: true, force: true });
 }

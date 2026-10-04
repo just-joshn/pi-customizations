@@ -8,7 +8,10 @@ import { fileURLToPath } from 'node:url';
 const supported = /\.(?:[cm]?[jt]sx?|jsonc?|css|graphql|gql|html|vue|svelte|astro)$/;
 
 export function writableSources(paths) {
-  return [...new Set(paths)].filter((path) => basename(path) !== 'vitest.config.ts' && supported.test(path));
+  const preserved = ['extensions/pi-pstack/upstream/', 'extensions/pi-pstack/upstream-team-kit/', 'extensions/pi-pstack/skills/', 'extensions/pi-pstack/docs/parity/clauses/'];
+  return [...new Set(paths)].filter(
+    (path) => basename(path) !== 'vitest.config.ts' && path !== 'extensions/pi-pstack/docs/resource-map.json' && !preserved.some((prefix) => path.replaceAll('\\', '/').startsWith(prefix)) && supported.test(path),
+  );
 }
 
 async function protectedHashes(root, paths) {

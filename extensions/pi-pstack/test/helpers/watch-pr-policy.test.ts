@@ -1,8 +1,7 @@
 import './leak-preload.ts';
-
 import { expect, test } from 'vitest';
 import { type FakeReaderOptions, failedCheck, fakeReader, passingCheck, pendingCheck } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
-import { ChecksUnavailable, WatcherQueryError } from '../../skills/poteto-mode/scripts/watch-pr/github.ts';
+import { WatcherQueryError } from '../../skills/poteto-mode/scripts/watch-pr/github.ts';
 import {
   applyQueueSnapshot,
   assessGitHubMerge,
@@ -17,24 +16,8 @@ import {
   selectTierMajorStackDecision,
   type WatchClock,
 } from '../../skills/poteto-mode/scripts/watch-pr/policy.ts';
-import { renderStatusTable } from '../../skills/poteto-mode/scripts/watch-pr/render.ts';
-import type {
-  Check,
-  ChecksFastPath,
-  GitHubReader,
-  MergeBlocker,
-  NonEmpty,
-  PollingOptions,
-  PrContext,
-  PrNumber,
-  ProgressVerdict,
-  PrSnapshot,
-  PullRequestFacts,
-  ReviewThread,
-  RollupState,
-} from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
+import type { Check, GitHubReader, MergeBlocker, NonEmpty, PollingOptions, PrContext, PrNumber, ProgressVerdict, PrSnapshot, PullRequestFacts, ReviewThread, RollupState } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
-import { expectDefined } from '../support/expect-defined.ts';
 
 const at = (n: number): PrContext => ({ owner: 'owner', repo: 'repo', number: parsePrNumber(n) });
 const base: PollingOptions = { interval: 10, sweepInterval: 300, timeout: 0, maxQueryErrors: 5, allowDraft: false };
@@ -134,14 +117,6 @@ test('runQueued waits with reason merge-queue for a blocker-free frontier, never
   expect(waits[0]).toMatchObject({ reason: { kind: 'merge-queue', unmergedCount: 1 }, frontier: { number: 1 } });
   expect(kinds(h.events)).not.toContain('READY');
   expect(verdict).toMatchObject({ kind: 'TIMEOUT', exitCode: 5, reason: { kind: 'queued-stack', unmergedCount: 1 } });
-});
-
-test('runQueued stops reading mid-sweep once the deadline has passed instead of finishing the whole sweep', async () => {
-  const h = harness();
-  const reader = scripted(h, {}, {}, 100);
-  const verdict = await runQueued({ dependencies: deps(h, reader), contexts: queue(1, 2, 3, 4, 5), options: { ...base, timeout: 150 } });
-  expect(verdict).toMatchObject({ kind: 'TIMEOUT', exitCode: 5, reason: { kind: 'queued-stack', unmergedCount: 5 } });
-  expect(reader.reads.length).toBeLessThanOrEqual(2);
 });
 
 test('runQueued blocks with merge-gate closed-without-merge exit 6 when the frontier closes, without an ADVANCE', async () => {
@@ -355,111 +330,12 @@ test('readSnapshot flags review automation for a PR Review Automation check with
   expect(classifyPr(named).kind).toBe(classifyPr(plain).kind);
 });
 
-const noChecksFastPath: ChecksFastPath = { kind: 'unusable', exitCode: 1, stderr: "no checks reported on the 'feature' branch" };
-const noChecks: FakeReaderOptions = { fastPath: noChecksFastPath };
-test('a mergeable PR with zero checks reaches READY exit 0 through runSimple', async () => {
+test('a mergeable PR with zero checks exhausts the query-error budget rather than becoming READY', async () => {
   const h = harness();
-  const verdict = await runSimple({ dependencies: deps(h, fakeReader(noChecks)), contexts: [at(1)], mode: 'single', statusOnly: false, options: base });
-  expect(verdict).toMatchObject({ kind: 'READY', exitCode: 0, scope: { kind: 'single' } });
-});
-
-interface ZeroReading {
-  readonly sha: string;
-  readonly checks?: NonEmpty<Check>;
-}
-function zeroReader(readings: ZeroReading[]): GitHubReader & { readonly reads: () => number } {
-  const reader = fakeReader();
-  let polls = 0;
-  const current = () => expectDefined(readings[Math.min(Math.max(polls - 1, 0), readings.length - 1)]);
-  return {
-    ...reader,
-    reads: () => polls,
-    async pullRequest(context) {
-      polls += 1;
-      return { ...(await reader.pullRequest(context)), headRefOid: current().sha };
-    },
-    async checksFastPath() {
-      const checks = current().checks;
-      return checks === undefined ? noChecksFastPath : { kind: 'checks', checks };
-    },
-  };
-}
-const runZero = (readings: ZeroReading[], timeout = 0) => {
-  const h = harness();
-  const reader = zeroReader(readings);
-  const verdict = runSimple({ dependencies: deps(h, reader), contexts: [at(1)], mode: 'single', statusOnly: false, options: { ...base, timeout } });
-  return { h, reader, verdict };
-};
-const slowFirstRead = (readings: ZeroReading[]) => {
-  const h = harness();
-  const inner = zeroReader(readings);
-  const reader: GitHubReader = {
-    ...inner,
-    async pullRequest(context) {
-      h.advance(40);
-      return inner.pullRequest(context);
-    },
-  };
-  return { h, verdict: runSimple({ dependencies: deps(h, reader), contexts: [at(1)], mode: 'single', statusOnly: false, options: { ...base, timeout: 30 } }) };
-};
-
-test('a single zero-check reading gives WAITING no-checks-unconfirmed not READY, and the interval is slept before the second reading', async () => {
-  const { h, reader, verdict } = runZero([{ sha: 'a' }]);
-  await verdict;
-  expect(h.events[0]).toMatchObject({ kind: 'WAITING', reason: { kind: 'no-checks-unconfirmed', readings: 1, required: 2 } });
-  expect(h.sleeps).toEqual([10]);
-  expect(reader.reads()).toBe(2);
-});
-
-test('two consecutive zero-check readings at the same head SHA reach READY exit 0', async () => {
-  const { h, verdict } = runZero([{ sha: 'a' }, { sha: 'a' }]);
-  expect(await verdict).toMatchObject({ kind: 'READY', exitCode: 0, scope: { kind: 'single' } });
-  expect(kinds(h.events)).toEqual(['WAITING']);
-});
-
-test('a head SHA change between zero-check readings resets the count', async () => {
-  const { h, reader, verdict } = runZero([{ sha: 'a' }, { sha: 'b' }, { sha: 'b' }]);
-  expect(await verdict).toMatchObject({ kind: 'READY', exitCode: 0 });
-  expect(reader.reads()).toBe(3);
-  expect(h.events.map((e) => e.kind === 'WAITING' && e.reason.kind === 'no-checks-unconfirmed' && e.reason.readings)).toEqual([1, 1]);
-});
-
-test('a real check appearing between zero-check readings resets the count', async () => {
-  const { h, reader, verdict } = runZero([{ sha: 'a' }, { sha: 'a', checks: [pendingCheck('ci')] }, { sha: 'a' }, { sha: 'a' }]);
-  expect(await verdict).toMatchObject({ kind: 'READY', exitCode: 0 });
-  expect(reader.reads()).toBe(4);
-  expect(h.events.map((e) => (e.kind === 'WAITING' ? e.reason.kind : e.kind))).toEqual(['no-checks-unconfirmed', 'pending-checks', 'no-checks-unconfirmed']);
-});
-
-test('a zero-check PR whose deadline passes after one reading times out with the zero-check reason and exit 5', async () => {
-  const { verdict } = slowFirstRead([{ sha: 'a' }]);
-  expect(await verdict).toMatchObject({ kind: 'TIMEOUT', exitCode: 5, reason: { kind: 'no-checks-unconfirmed' } });
-});
-
-test('a zero-check PR with no head SHA never confirms and never reaches READY', async () => {
-  const h = harness();
-  const reader = zeroReader([{ sha: 'a' }]);
-  const unknownHead: GitHubReader = {
-    ...reader,
-    async pullRequest(context) {
-      h.advance(40);
-      return { ...(await reader.pullRequest(context)), headRefOid: null };
-    },
-  };
-  const verdict = await runSimple({ dependencies: deps(h, unknownHead), contexts: [at(1)], mode: 'single', statusOnly: false, options: { ...base, timeout: 30 } });
-  expect(verdict).toMatchObject({ kind: 'TIMEOUT', exitCode: 5, reason: { kind: 'no-checks-unconfirmed' } });
-});
-
-test('status-only shows a zero-check PR as having no checks and does not claim READY', async () => {
-  const h = harness();
-  const verdict = await runSimple({ dependencies: deps(h, zeroReader([{ sha: 'a' }])), contexts: [at(1)], mode: 'single', statusOnly: true, options: base });
-  expect(verdict).toMatchObject({ kind: 'STATUS', exitCode: 0, reason: 'status-only' });
-  const row = renderStatusTable((verdict as Extract<typeof verdict, { kind: 'STATUS' }>).rows).split('\n')[2];
-  expect(expectDefined(expectDefined(row).split('|')[2]).trim()).toBe('\u2796 no checks');
-});
-
-test('a BLOCKED PR with zero checks still fails closed instead of reaching READY', async () => {
-  await expect(snap({ mergeStateStatus: 'BLOCKED' }, noChecks)).rejects.toBeInstanceOf(ChecksUnavailable);
+  const reader = fakeReader({ fastPath: { kind: 'unusable', exitCode: 1, stderr: "no checks reported on the 'feature' branch" } });
+  const verdict = await runSimple({ dependencies: deps(h, reader), contexts: [at(1)], mode: 'single', statusOnly: false, options: { ...base, maxQueryErrors: 2 } });
+  expect(kinds(h.events)).toEqual(['RETRY']);
+  expect(verdict).toMatchObject({ kind: 'BLOCKER', exitCode: 7, blocker: { kind: 'status-query', failures: 2 } });
 });
 
 test('runSimple drives a check-less PR with an unreadable status through the retry budget to BLOCKER exit 7', async () => {

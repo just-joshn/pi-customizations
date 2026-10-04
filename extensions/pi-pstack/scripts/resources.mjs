@@ -3,11 +3,8 @@ import { chmod, mkdir, readdir, readFile, rmdir, stat, unlink, writeFile } from 
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { adaptScriptsPolicy, formatGeneratedOutputs, scriptsCompilerPolicy, scriptsPolicyOutput } from './resource-policy.mjs';
 import { cloudVm, localState, remoteFallback } from './resource-text.mjs';
-import { pinLatest, sentenceCaseHeadings, tabIndentFences } from './resource-transforms.mjs';
-import { overlayInput } from './source-overlay-input.mjs';
-import { teamKitRecords, teamKitSource } from './team-kit-source.mjs';
+import { sentenceCaseHeadings, tabIndentFences } from './resource-transforms.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const sources = [
@@ -15,9 +12,6 @@ const sources = [
   { directory: 'upstream-team-kit', inventory: 'docs/team-kit-source-inventory.json' },
 ];
 const write = process.argv.includes('--write');
-const policyRootIndex = process.argv.indexOf('--policy-root');
-if (policyRootIndex !== -1 && !process.argv[policyRootIndex + 1]) throw new Error('--policy-root requires a repository root path.');
-const policyRoot = policyRootIndex === -1 ? fileURLToPath(new URL('../../../', import.meta.url)) : process.argv[policyRootIndex + 1];
 const routineAdapter = await readFile(join(root, 'host/adapters/make-bot-ui/SKILL.md'));
 const overlayNames = (await readdir(join(root, 'scripts/overlays'))).filter((name) => name.endsWith('.mjs')).sort();
 const overlays = (await Promise.all(overlayNames.map((name) => import(new URL(`./overlays/${name}`, import.meta.url))))).flatMap((module) => module.default);
@@ -56,13 +50,11 @@ const inventories = await Promise.all(
 const entries = inventories.flat();
 const destinations = entries.filter((entry) => entry.path.startsWith('skills/')).map((entry) => entry.path);
 if (new Set(destinations).size !== destinations.length) throw new Error('Duplicate generated skill destination across source bundles.');
-const teamKitAdaptations = await teamKitRecords(root);
 const verified = await Promise.all(
   entries.map(async (entry) => {
     const path = join(root, entry.source);
-    const live = await readFile(path);
-    const original = entry.source.startsWith('upstream-team-kit/') ? teamKitSource(entry, live, teamKitAdaptations) : live;
-    if (!entry.source.startsWith('upstream-team-kit/') && sha(original) !== entry.sha256) throw new Error(`Upstream hash mismatch: ${entry.source}`);
+    const original = await readFile(path);
+    if (sha(original) !== entry.sha256) throw new Error(`Upstream hash mismatch: ${entry.source}`);
     return { ...entry, original, mode: (await stat(path)).mode & 0o777 };
   }),
 );
@@ -153,7 +145,7 @@ const hostPaths = [
   [
     /^skills\/poteto-mode\/playbooks\/shipping\.md$/,
     'One subagent per PR, not batched, each a Reference cloud agent, each exercising the real surface with the matching control skill (such as `control-ui` or `control-cli` from `team-kit`) against parent versus head. Each returns `PASS`, `PASS+NOTES` or `FAIL` and posts that verdict on its own PR. Safe means a verdict from an agent that did not write the code.',
-    `One independent worker per PR, not batched, and none may have written the code. Each exercises the real surface with \`control-ui\` or \`control-cli\` against parent versus head. Each returns \`PASS\`, \`PASS+NOTES\` or \`FAIL\` and posts that verdict on its own PR. Safe means a verdict from an agent that did not write the code. Default each verifier to \`environment: "cloud"\` when the host contract shows a configured remote executor. Run a local app lane on the machine that can reach the app when the lane needs this machine's app, simulator, credentials, transcripts, or IDE state. Run a genuinely remote lane only through a separately configured remote executor that can run the app and its dependencies; verify the host, machine ID, working directory, and exact PR-head SHA. ${cloudVm} ${remoteFallback} If the required machine is unavailable, mark the lane BLOCKED. For a result from \`verify-this\`, map \`VERIFIED\` to \`PASS\` only when the required baseline, treatment, and evidence are present. Map \`NOT VERIFIED\` and \`INCONCLUSIVE\` to \`FAIL\`. \`PASS+NOTES\` is allowed only when all verification requirements pass and every note is non-blocking. Post the verdict on the PR.`,
+    `One independent worker per PR, not batched, and none may have written the code. Each exercises the real surface with \`control-ui\` or \`control-cli\` against parent versus head. Each returns \`PASS\`, \`PASS+NOTES\` or \`FAIL\` and posts that verdict on its own PR. Safe means a verdict from an agent that did not write the code. Default each verifier to \`environment: "cloud"\` when the host contract shows a configured remote executor. Run a local app lane on the machine that can reach the app when the lane needs this machine's app, simulator, credentials, transcripts, or IDE state. Run a genuinely remote lane only through a separately configured remote executor that can run the app and its dependencies; verify the host, machine ID, working directory, and exact PR-head SHA. ${cloudVm} ${remoteFallback} If the required machine is unavailable, mark the lane BLOCKED.`,
     dependencyCorrections,
   ],
   [
@@ -166,18 +158,6 @@ const hostPaths = [
     /^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/,
     'Each live lane runs on its own cloud VM at the PR head. Drive through `control-ui` or `control-cli` from `team-kit`.',
     `Each live lane runs on its own cloud VM at the PR head when the host contract shows a configured remote executor, as Task \`environment: "cloud"\` with one VM per lane. Use a local worker only for a local-only app, simulator, credential, transcript, or IDE. Verify each cloud lane's host, machine ID, working directory, and exact PR-head SHA. ${cloudVm} ${remoteFallback} Mark the lane BLOCKED if its required machine is unavailable. Drive the real surface through \`control-ui\` or \`control-cli\`.`,
-    dependencyCorrections,
-  ],
-  [
-    /^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/,
-    "- [ ] Hold the review gate. <PR ids> change an interaction. They wait for the operator's review in chat with screenshots and a video before merge.",
-    "- [ ] Hold the review gate. <PR ids> change an interaction. Before capturing or storing screenshots or video from a privacy-sensitive workspace, get the operator's explicit agreement. Without agreement, do not store the media and mark the review gate BLOCKED. The operator reviews approved screenshots and video in chat before merge.",
-    dependencyCorrections,
-  ],
-  [
-    /^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/,
-    '- [ ] Save every screenshot to `/tmp/swarm-<pr-id>/worker-<n>/<slug>.png` and return the paths with the report.',
-    "- [ ] Check whether the workspace is privacy-sensitive before capturing or storing media. Without the operator's explicit agreement, do not store screenshots or video from a privacy-sensitive workspace and mark the lane BLOCKED. Otherwise save each screenshot to `/tmp/swarm-<pr-id>/worker-<n>/<slug>.png` and return the paths with the report.",
     dependencyCorrections,
   ],
   [
@@ -235,21 +215,11 @@ function markdown(entry) {
     text = portable;
     if (pathTriggered) transformations = [...transformations, 'Pi has no file-path skill trigger. Keep the skill hidden from model selection, and the host contract requires reading it before editing matching files.'];
     if (slug === 'setup-pstack') {
-      text = text
-        .replace(
-          '# Setup pstack',
-          '# Setup pstack\n\nCall `pstack_setup` to perform these steps through native Pi dialogs and validated writes. This skill may be selected when the user asks to configure models. Do not bypass the confirmation by manually writing the rule. The steps below document the contract owned by that tool; /setup-pstack and /skill:setup-pstack use the same implementation.',
-        )
-        .replace(
-          'interrogate reviewers: claude-opus-5-5-max, gpt-5.6-sol-max, grok-4.7-xhigh-fast\n',
-          'interrogate reviewers: claude-opus-5-5-max, gpt-5.6-sol-max, grok-4.7-xhigh-fast\ntrail reviewer: inherit-parent\nfigure-it-out judge: inherit-parent\nrecall miners: inherit-parent\n',
-        );
-      transformations = [
-        ...transformations,
-        'Preserve ambient setup invocation and route it through the same native validated dialogs as the slash entry points.',
-        'List the three port-added role lines so a re-run preserves them instead of dropping them as retired.',
-        'Keep the setup-pstack role table in step with src/models.ts roleNames.',
-      ];
+      text = text.replace(
+        '# Setup pstack',
+        '# Setup pstack\n\nCall `pstack_setup` to perform these steps through native Pi dialogs and validated writes. This skill may be selected when the user asks to configure models. Do not bypass the confirmation by manually writing the rule. The steps below document the contract owned by that tool; /setup-pstack and /skill:setup-pstack use the same implementation.',
+      );
+      transformations = [...transformations, 'Preserve ambient setup invocation and route it through the same native validated dialogs as the slash entry points.'];
     }
   }
   const mapped = mapHostPaths(entry, text);
@@ -263,19 +233,8 @@ function shapeMarkdown(path, text) {
   return { text, transformations: [] };
 }
 
-const helperPins = /^skills\/poteto-mode\/scripts\/(?:package\.json|bun\.lock)$/;
-const helperLock = verified.find((entry) => entry.path === 'skills/poteto-mode/scripts/bun.lock').original.toString('utf8');
-
-function pinnedText(entry) {
-  const text = entry.original.toString('utf8');
-  if (!helperPins.test(entry.path)) return { text, transformations: [] };
-  const pinned = pinLatest(text, helperLock);
-  return { text: pinned, transformations: pinned === text ? [] : ['Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible.'] };
-}
-
 function script(entry) {
-  const input = { ...entry, original: entry.overlayOriginal };
-  const mapped = worktreeAudit.test(entry.path) ? mapHostPaths(input, input.original.toString('utf8')) : pinnedText(input);
+  const mapped = worktreeAudit.test(entry.path) ? mapHostPaths(entry, entry.original.toString('utf8')) : { text: entry.original.toString('utf8'), transformations: [] };
   const overlaid = overlays.filter((overlay) => overlay.path === entry.path).reduce((acc, overlay) => applyOverlay(acc, overlay), mapped);
   if (overlaid.text === entry.original.toString('utf8')) return { generated: entry.original, transformations: [] };
   return { generated: Buffer.from(overlaid.text), transformations: overlaid.transformations };
@@ -322,21 +281,14 @@ function promptOutput(entry, generated) {
   ];
 }
 
-const compilerPolicy = await scriptsCompilerPolicy(policyRoot);
-const overlayEntries = await Promise.all(
-  verified.map(async (entry) => (entry.path.endsWith('.md') ? entry : { ...entry, overlayOriginal: entry.source.startsWith('upstream/') ? await overlayInput(entry.path, entry.original) : entry.original })),
-);
-const resourceOutputs = overlayEntries
+const outputs = verified
   .filter((entry) => entry.path.startsWith('skills/'))
   .flatMap((entry) => {
-    const { generated, transformations } = entry.path.endsWith('.md') ? markdown(entry) : adaptScriptsPolicy(entry, script(entry), compilerPolicy);
-    const adaptation = entry.source.startsWith('upstream-team-kit/') && teamKitAdaptations.find((record) => record.path === entry.path);
-    if (adaptation) transformations.unshift(`Replay canonical normalized team-kit adaptation. ${adaptation.reason}`);
+    const { generated, transformations } = entry.path.endsWith('.md') ? markdown(entry) : script(entry);
     const executable = (entry.mode & 0o111) !== 0;
     const skill = { source: entry.source, destination: entry.path, generated, mode: entry.mode, executable, transformations };
     return [...(entry.path === 'skills/bro/SKILL.md' ? [] : [skill]), ...promptOutput(entry, generated)];
   });
-const outputs = await formatGeneratedOutputs([...resourceOutputs, scriptsPolicyOutput(compilerPolicy)], policyRoot);
 const unusedHostPaths = hostPaths.filter((row) => !appliedHostPaths.has(row));
 if (unusedHostPaths.length) throw new Error(`Host path mapping no longer matches upstream: ${unusedHostPaths.map((row) => row[1].split('\n')[0]).join('; ')}`);
 for (const output of outputs) {
@@ -372,8 +324,7 @@ const generatedPaths = (await Promise.all(['skills', 'prompts'].map((directory) 
   .map((path) => relative(root, path))
   .toSorted();
 if (JSON.stringify(expected) !== JSON.stringify(generatedPaths)) throw new Error('Unexpected generated resource files.');
-const [formattedMap] = await formatGeneratedOutputs([{ destination: 'docs/resource-map.json', generated: Buffer.from(`${JSON.stringify(changes, null, 2)}\n`), transformations: [] }], policyRoot);
-const output = formattedMap.generated.toString('utf8');
+const output = `${JSON.stringify(changes, null, 2)}\n`;
 const mappingPath = join(root, 'docs/resource-map.json');
 if (write) await writeFile(mappingPath, output);
 else if ((await readFile(mappingPath, 'utf8')) !== output) throw new Error('Resource map drift.');

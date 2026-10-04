@@ -2,23 +2,12 @@ const skill = (name) => new RegExp(`^skills/${name}/SKILL\\.md$`);
 
 export default [
   [
-    skill('no-comments'),
-    '1. Spawn `Task` with `subagent_type: "Comment Sicko"`. Pass the scope. Do not restate its rules.',
-    '1. Spawn `Task` with `subagent_type: "Comment Sicko"` and `readonly: true`. Resolve the scope first and pass it as files or diff text, because a read-only persona cannot run the diff command itself. Do not restate its rules.',
-    'Enforce the read-only persona with the Task readonly flag, and state that the caller passes the resolved scope.',
+    /^skills\/reflect\/references\/synthesizer\.md$/,
+    '- "path-shaped triggers belong in `paths:`, not description prose"',
+    '- "Use directory-scoped `AGENTS.md` for persistent context and imperative descriptions or `/skill:name` for on-demand skills."',
+    'Map path-shaped guidance to Pi context files and native on-demand skill routing.',
   ],
-  [
-    skill('no-comments'),
-    'Offer the cheapest in-scope type, runtime, test, or CI lint.',
-    'Offer the cheapest in-scope type, runtime, test, or CI lint, per the **principle-encode-lessons-in-structure** skill.',
-    'Cite the principle that the encoding step applies.',
-  ],
-  [
-    skill('no-comments'),
-    'Otherwise delete, report the constraint open, and sketch out-of-scope work.',
-    'Otherwise delete, report the constraint open, record the declined constraint as a row in the **show-me-your-work** `decisions.tsv` trail, and sketch out-of-scope work.',
-    'Keep a durable trail of a declined constraint instead of only the chat report.',
-  ],
+  [skill('why'), '(open files, recent edits, cursor location, what was just discussed)', '(available file context, recent edits, what was just discussed)', 'Use available file context without assuming Pi exposes editor cursor metadata.'],
   [
     skill('automate-me'),
     'This skill orchestrates three others: an inline mining pass (see step 1), the `create-skill` skill (authoring), and the **unslop** skill (prose discipline).',
@@ -26,22 +15,10 @@ export default [
     'Count the inline mining pass separately from the skills.',
   ],
   [
-    skill('principle-prove-it-works'),
-    '- When verification fails, suspect the observation method before suspecting the system',
-    '- When verification fails, suspect the observation method before suspecting the system\n\n**Delegation.** Trust artifacts, not self-reports. When a subagent reports that work is done, read its diff or its output yourself before relying on it.',
-    'Restore the delegation rule in the leaf itself.',
-  ],
-  [
     skill('principle-experience-first'),
     'Foundational thinking governs the *sequence* of work.',
     '[Foundational thinking](../principle-foundational-thinking/SKILL.md) governs the *sequence* of work.',
     'Link the principle that the leaf names.',
-  ],
-  [
-    skill('principle-sequence-verifiable-units'),
-    "and don't advance until the current one is green.",
-    "and don't advance until the current one is green. Green means the check the plan declares for the unit. Under the **outcome-oriented-execution** principle skill, green at a declared phase boundary is the phase-boundary check that plan names, and breakage the plan scoped as temporary between boundaries is not red.",
-    'Define green at a declared phase boundary so the two principles agree.',
   ],
   [/^skills\/typescript-best-practices\/references\/patterns\.md$/, "Match the `readonly __brand: 'X'` shape.", 'Match the `readonly __brand: "X"` shape.', 'Use the double-quote style that the code and the rule table use.'],
   [
@@ -49,37 +26,6 @@ export default [
     'without the explorer-findings section.',
     'without the explorer-findings section. Drop the sentence that begins "Multiple explorer agents have traced", the paragraph that begins "The explorers each investigated", and the sentence "The explorers did the work, so you shouldn\'t need to re-explore from scratch." No explorer ran, so the explainer explores for itself.',
     'Remove explorer wording from the simple-path explainer prompt.',
-  ],
-  [skill('why'), 'Two valid reasons:', 'Three valid reasons:', 'Add the scoped-ask skip reason.'],
-  [
-    skill('why'),
-    '- **The source is provably irrelevant**, not just "probably irrelevant." A high bar.',
-    '- **The caller narrowed the ask.** The invoking skill or user scoped the question so a category cannot bear on it. Name the scoping ask in the justification.\n- **The source is provably irrelevant**, not just "probably irrelevant." A high bar.',
-    'Give a narrowed why a valid skip reason to record.',
-  ],
-  [
-    skill('why'),
-    "Don't ask one agent to cover multiple MCPs.",
-    "Don't ask one agent to cover multiple MCPs. An MCP that fits several categories gets one investigator per category, each with that category's playbook, so no investigator covers more than one category.",
-    'Cover every category of a multi-category MCP without breaking the one-category-per-investigator rule.',
-  ],
-  [
-    skill('architect'),
-    'even when the first looks sufficient.',
-    'even when the first looks sufficient. When arena reports that the runners converged on one shape, run the runners once more with a forced alternative direction before arena ships the consensus. That forced re-run satisfies this rule, and the arena rule that ships a converged shape applies only after it.',
-    'Reconcile the architect two-candidate rule with the arena convergence rule.',
-  ],
-  [
-    skill('interrogate'),
-    "- The code itself\n\nWrite one clear paragraph. If you're unsure about the intent, ask the user before proceeding.",
-    '\nWrite one clear paragraph. If the sources leave the intent unclear, state your inferred intent in the paragraph, mark it as inferred, and proceed. Ask the user only when none of these sources exists. Never derive intent from the code alone, because that can bake a visible bug into the accepted intent.',
-    'Infer and state intent instead of blocking, and never take intent from the code under review.',
-  ],
-  [
-    skill('interrogate'),
-    'and open a separate PR to update the default table.',
-    'and report the rejected default in the review summary and suggest running `/setup-pstack`, because the table default lives in the package.',
-    'Drop the pstack-repository PR step that a package user cannot follow.',
   ],
   [skill('arena'), 'per the Laziness Protocol', 'per the **laziness-protocol** principle skill', 'Name the principle skill so the reference is greppable.'],
   [
@@ -95,51 +41,15 @@ export default [
     'Verify the named transcript instead of scanning candidates.',
   ],
   [
-    skill('reflect'),
-    'Backlog items file to whatever devex / backlog tracker your team uses automatically. Only the Accepted list waits for approval.',
-    'File Backlog items to GitHub issues through `gh` after the same approval as the Accepted edits, because filing is an external write. When no tracker is configured, list the Backlog items in the summary unfiled.',
-    'Gate the external Backlog write on approval and name a default tracker.',
-  ],
-  [
     skill('teach'),
     "reach for the image-generation tool and draw it marker-on-whiteboard style with a few short labels, since image models garble long text. Generate that picture, don't settle for describing it in words.",
     "reach for an image tool only when the host contract names one. Pi registers no image-generation tool, so otherwise draw it as an SVG or mermaid sketch with a few short labels and say that you substituted it for an image. Keep labels short, since long text garbles. Produce that picture, don't settle for describing it in words.",
     'Name a fallback because Pi registers no image-generation tool.',
   ],
   [
-    skill('show-me-your-work'),
-    'spawn a subagent on a different model family from the one that did the work.',
-    'spawn a subagent on a different model family from the one that did the work, with `model` from the `trail reviewer` line in the `pstack-models.mdc` rule. A role line of `inherit-parent` or `auto` omits `model`, and with no line use a model of a different family from the worker.',
-    'Wire the trail reviewer to its role line.',
-  ],
-  [
-    skill('figure-it-out'),
-    '- Pair delegated work with a judge.',
-    "- Pair delegated work with a judge. Set the judge's `model` from the `figure-it-out judge` line in the `pstack-models.mdc` rule, or use a different family than the worker when the line is missing.",
-    'Wire the figure-it-out judge to its role line.',
-  ],
-  [
-    skill('recall'),
-    'Spawn parallel subagents on a fast, cheap model,',
-    'Spawn parallel subagents with `model` from the `recall miners` line in the `pstack-models.mdc` rule, or a fast, cheap model when the line is missing,',
-    'Wire the recall miners to their role line.',
-  ],
-  [
     skill('deslop'),
     'Keep the final summary concise (1-3 sentences).',
     'Keep the final summary concise (1-3 sentences) and end it with a receipt of files touched and edits per focus area, for example `3 files; comments 4, defensive checks 1, any casts 0, nesting 2, other 0`.',
     'Make the deslop result a countable receipt.',
-  ],
-  [
-    /^skills\/poteto-mode\/playbooks\/autopilot-(?:full|stack)\.md$/,
-    '(the **deslop** skill, `/deslop`)',
-    "(the **deslop** skill, `/deslop`, whose receipt of files touched and edits per focus area goes in the owner's report)",
-    'Require the deslop receipt in the owner report.',
-  ],
-  [
-    /^skills\/interrogate\/references\/code-quality-review\.md$/,
-    '## Core Prompt\n\nStart from this baseline:',
-    '## Core Prompt\n\nSource: the Core Prompt block below is a copy of the Core Prompt block in the team-kit `thermo-nuclear-code-quality-review` skill. Keep the two in sync.\n\nStart from this baseline:',
-    'Attribute the copied Core Prompt block to its source skill.',
   ],
 ];

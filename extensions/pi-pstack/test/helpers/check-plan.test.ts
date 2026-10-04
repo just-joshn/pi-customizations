@@ -142,7 +142,7 @@ const fails: { name: string; change: (parts: Parts) => Parts; message: string }[
   { name: 'no PR sections', change: (p) => ({ ...p, prs: [] }), message: 'no PR sections between Program checklist and Close the program' },
   { name: 'a missing Prototype evidence appendix', change: (p) => ({ ...p, tail: [['## Appendix B. Risks']] }), message: 'no "## Appendix ... Prototype evidence" section' },
   { name: 'a non-appendix H2 after Close', change: (p) => ({ ...p, tail: [...p.tail, ['## Notes']] }), message: '"## Notes" after Close the program is not an appendix' },
-  { name: 'Program checklist missing the origin trunk read', change: (p) => ({ ...p, programBody: p.programBody.filter((line) => !line.includes('git show')) }), message: 'Program checklist lacks "/git show origin' },
+  { name: 'Program checklist missing the origin/main read', change: (p) => ({ ...p, programBody: p.programBody.filter((line) => !line.includes('git show')) }), message: 'Program checklist lacks "git show origin/main:' },
   { name: 'Program checklist missing the hourly tick', change: (p) => ({ ...p, programBody: p.programBody.with(0, box('Arm the loop.')) }), message: 'Program checklist lacks "/loop 1h"' },
   { name: 'Program checklist missing the status message', change: (p) => ({ ...p, programBody: p.programBody.filter((line) => !line.includes('status message')) }), message: 'Program checklist lacks "status message"' },
   { name: 'a Program checklist H3 missing', change: (p) => ({ ...p, programH3: p.programH3.filter((name) => name !== 'PR mechanics') }), message: 'Program checklist lacks "### PR mechanics" in order' },
@@ -216,12 +216,8 @@ describe('check-plan.mjs failures', () => {
 });
 
 describe('check-plan.mjs prose rules and fences', () => {
-  test.each([
-    { name: 'a backtick fence', open: '```', close: '```' },
-    { name: 'a four-backtick fence holding a three-backtick fence', open: '````text', close: '````', inner: '```' },
-    { name: 'a fence indented three spaces', open: '   ```', close: '   ```' },
-  ])('prose findings are exempt inside $name', async ({ open, close, inner }) => {
-    const result = await run(mutate((p) => addIntro(p, open, 'Dash — quote “q” colon: here', ...(inner ? [inner, 'Still — inside: yes', inner] : []), close)));
+  test('prose findings are exempt inside a backtick fence', async () => {
+    const result = await run(mutate((p) => addIntro(p, '```', 'Dash — quote “q” colon: here', '```')));
     expect(result.problems).toEqual([]);
     expect(result.status).toBe(0);
   });
@@ -239,11 +235,21 @@ describe('check-plan.mjs prose rules and fences', () => {
     expect(result.problems).toEqual([]);
   });
 
-  test.each(['Owner: Josh', '- Owner: Josh', '**Owner:** Josh'])('a leading Label value line is allowed: %s', async (line) => {
+  test.each(['Owner: Josh', '- Owner: Josh'])('a leading label colon is flagged: %s', async (line) => {
     const result = await run(mutate((p) => ({ ...p, intro: [line] })));
+    expect(result.problems.filter((problem) => problem.includes('mid-sentence colon'))).toHaveLength(1);
+  });
+
+  test('a colon followed by bold markup does not match the literal colon-space lint', async () => {
+    const result = await run(mutate((p) => ({ ...p, intro: ['**Owner:** Josh'] })));
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('1 PR sections, 0 problems');
     expect(result.problems).toEqual([]);
+  });
+
+  test('an indented fence does not exempt prose', async () => {
+    const result = await run(mutate((p) => addIntro(p, '   ```', 'inside — flagged', '   ```')));
+    expect(result.problems.some((problem) => problem.includes('long dash'))).toBe(true);
   });
 
   test('a second colon after a leading label is still flagged', async () => {
@@ -251,11 +257,9 @@ describe('check-plan.mjs prose rules and fences', () => {
     expect(result.problems.filter((line) => line.includes('mid-sentence colon'))).toHaveLength(1);
   });
 
-  test('a repository whose trunk is not main satisfies the trunk read', async () => {
+  test('a non-main trunk does not satisfy the literal source marker', async () => {
     const result = await run(mutate((p) => ({ ...p, programBody: p.programBody.with(1, box('Read `git show origin/master:docs/playbook.md` first.')) })));
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('1 PR sections, 0 problems');
-    expect(result.problems).toEqual([]);
+    expect(result.problems.some((problem) => problem.includes('Program checklist lacks "git show origin/main:'))).toBe(true);
   });
 });
 
@@ -272,17 +276,16 @@ describe('check-plan.mjs location independence', () => {
   });
 });
 
-describe('check-plan.mjs against the generated skeleton', () => {
+describe('check-plan.mjs against the frozen source skeleton', () => {
   const skeleton = async () => {
-    const playbook = await readFile(join(root, 'skills/poteto-mode/playbooks/multi-phase-plan.md'), 'utf8');
+    const playbook = await readFile(join(root, 'upstream/skills/poteto-mode/playbooks/multi-phase-plan.md'), 'utf8');
     return expectDefined(expectDefined(playbook.split('\n````markdown\n')[1]).split('\n````')[0]);
   };
 
   test('the unfilled skeleton reports its box counts and exactly one problem, the LANES placeholder', async () => {
     const result = await run(await skeleton());
     expect(result.stdout).toBe('<Task as a verb phrase> (<PR id>)  boxes=27  files=3 build=1 you-see=1 verify-unit=1 verify-live=10 verify-perf=4 review-gate=3 merge=4\n1 PR sections, 1 problems\n');
-    expect(result.problems).toHaveLength(1);
-    expect(result.problems[0]).toContain('Verify, live lacks "Ten lanes on `<swarm workers model>` at the PR head"');
+    expect(result.problems).toEqual(['83: <Task as a verb phrase> (<PR id>): Verify, live lacks "Ten lanes on `<swarm workers model>` at the PR head" with the model filled in']);
   });
 
   test('the skeleton passes once the swarm workers model is filled in', async () => {

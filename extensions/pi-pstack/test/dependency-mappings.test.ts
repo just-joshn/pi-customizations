@@ -13,19 +13,7 @@ async function generatedFixture() {
   try {
     await mkdir(join(directory, 'docs'));
     await mkdir(join(directory, 'scripts'));
-    for (const path of [
-      'upstream',
-      'upstream-team-kit',
-      'skills',
-      'prompts',
-      'host/adapters',
-      'package.json',
-      'scripts',
-      'docs/source-inventory.json',
-      'docs/team-kit-source-inventory.json',
-      'docs/resource-map.json',
-      'docs/vitest-source-migration.json',
-    ]) {
+    for (const path of ['upstream', 'upstream-team-kit', 'skills', 'prompts', 'host/adapters', 'package.json', 'scripts', 'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json']) {
       await cp(join(root, path), join(directory, path), {
         recursive: true,
         filter: (source) => !source.split('/').includes('node_modules'),
@@ -61,13 +49,14 @@ test('dependency mappings close documented host gaps without changing source sna
     expect(deslop).toContain('except comments that document invariants, constraints, security, compatibility, or user intent');
     expect(deslop).toContain('Preserve all comments that document constraints, invariants, security, compatibility, or user intent. Do not delete or rewrite them.');
     expect(originalDeslop).toContain('Check the diff against main');
-    expect(shipping).toContain('map `VERIFIED` to `PASS` only when the required baseline, treatment, and evidence are present');
-    expect(shipping).toContain('Map `NOT VERIFIED` and `INCONCLUSIVE` to `FAIL`');
+    expect(shipping).not.toContain('map `VERIFIED` to `PASS`');
+    expect(shipping).toContain('Each returns `PASS`, `PASS+NOTES` or `FAIL` and posts that verdict on its own PR.');
     expect(shipping).toContain('Run a local app lane on the machine that can reach the app');
     expect(shipping).toContain('Run a genuinely remote lane only through a separately configured remote executor');
     expect(multiPhase).toContain('read the bundled skill from the package path named by the pstack host contract');
     expect(multiPhase).toContain('Do not run `git show` for a skill path absent from the target repository');
-    expect(multiPhase).toContain('do not store screenshots or video from a privacy-sensitive workspace and mark the lane BLOCKED');
+    expect(multiPhase).not.toContain('privacy-sensitive workspace');
+    expect(multiPhase).toContain('Save every screenshot to `/tmp/swarm-<pr-id>/worker-<n>/<slug>.png` and return the paths with the report.');
     expect(autopilotFull).toContain('Keep an owner local when the app, simulator, credentials, transcripts, or IDE state are local');
     expect(autopilotStack).toContain('Keep an owner local when the app, simulator, credentials, transcripts, or IDE state are local');
     expect(autopilotFull).toContain('This package\'s `environment: "cloud"` worker runs on a configured independent VM');

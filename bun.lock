@@ -58,7 +58,7 @@
     },
     "extensions/pi-pstack": {
       "name": "pi-pstack",
-      "version": "0.15.7-pi.1",
+      "version": "0.15.9-pi.1",
       "devDependencies": {
         "@earendil-works/pi-ai": "1.0.2",
         "@earendil-works/pi-coding-agent": "1.0.2",

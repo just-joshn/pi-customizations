@@ -1,8 +1,8 @@
 [
   {
     "path": "plugin-metadata/plugin.json",
-    "bytes": 710,
-    "sha256": "9aef74877a5e94d2575ce824b71388706767ad2018af4957802f0cc6bb670326"
+    "bytes": 721,
+    "sha256": "c17868a6a39a8f7c109fdedf5df7ebcc4d8cde127a10f40c663a8c46adc4087e"
   },
   {
     "path": ".gitignore",
@@ -181,13 +181,13 @@
   },
   {
     "path": "skills/architect/SKILL.md",
-    "bytes": 5540,
-    "sha256": "691cd39f52c7b613866e6baf9ea0b05451ffa21a6a9b4102f166418b89178fde"
+    "bytes": 5675,
+    "sha256": "741901140ee382ebf93263a7ed03c6ee3719e578416d81afcd195876fa16c496"
   },
   {
     "path": "skills/architect/references/design-red-flags.md",
-    "bytes": 1944,
-    "sha256": "905066f9bbac81c573c2b325be47751d2c0f9325e0a0772bd4384e82dafe9336"
+    "bytes": 3009,
+    "sha256": "d0e639e4cc588ec865f930d3a4111faad60987ae36925917e319d7ceca7c69ce"
   },
   {
     "path": "skills/architect/references/rationale-template.md",
@@ -346,8 +346,8 @@
   },
   {
     "path": "skills/poteto-mode/playbooks/hillclimb.md",
-    "bytes": 4222,
-    "sha256": "eaa8584c50eb6ca592b68329b366b0c9954c2817272675839909df8008ebb91b"
+    "bytes": 4403,
+    "sha256": "244f289898fe67a458065e90fe8217c916c5acf61cdee8975ade3f9831a12e91"
   },
   {
     "path": "skills/poteto-mode/playbooks/investigation.md",
@@ -376,8 +376,8 @@
   },
   {
     "path": "skills/poteto-mode/playbooks/perf-issue.md",
-    "bytes": 3155,
-    "sha256": "eaa538252e762331d46c6a48728c2187a3485c8ec86c99264b36ab5af6f7fb42"
+    "bytes": 1446,
+    "sha256": "2b88ad0f880e4d4d755ac19fe52414d6631d6baa816d060f53cf0a7429d7e14a"
   },
   {
     "path": "skills/poteto-mode/playbooks/prototype.md",
@@ -426,93 +426,93 @@
   },
   {
     "path": "skills/poteto-mode/scripts/bootstrap.ts",
-    "bytes": 1740,
-    "sha256": "0ed9c037e8bca1aef8aee40b3d2c856db6cab6d1b0b40daa7414450ca42d057a"
+    "bytes": 1737,
+    "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361"
   },
   {
     "path": "skills/poteto-mode/scripts/bun.lock",
-    "bytes": 21550,
-    "sha256": "3bfb478ec9a1f241cb9f8b959bcada86c6e9a4856b070cf49ef7184b3d26910f"
+    "bytes": 6681,
+    "sha256": "1be65bf9173ae2b5a00434cce32fedab7227b309f6d229bfde01382f281b3b5e"
   },
   {
     "path": "skills/poteto-mode/scripts/check-plan.mjs",
-    "bytes": 7780,
-    "sha256": "4b024673109a838d024d94553161f417ea22d52e30509a7e0d72682fc28fc886"
+    "bytes": 7594,
+    "sha256": "4f9432d9989880b6afc2bdda503d5b12a9d07d357ecf31936b7ab5e83bc80523"
   },
   {
     "path": "skills/poteto-mode/scripts/orch/orch.test.ts",
-    "bytes": 18549,
-    "sha256": "35d9d290b6dc0b650cba64f68b3f90e46e56cb21ff0fa7d1d19b130be7d958f6"
+    "bytes": 18424,
+    "sha256": "174b86d21ff51ccd28d1a8c938cb2e0c6fa287b209d4ca6c03932fcb1b53372e"
   },
   {
     "path": "skills/poteto-mode/scripts/orch/orch.ts",
-    "bytes": 15215,
-    "sha256": "59bbb3cc6247d375cdd4092a904dd22c7aa8e1228bf42d21aa5b36abe032d392"
+    "bytes": 15511,
+    "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434"
   },
   {
     "path": "skills/poteto-mode/scripts/orch/store.ts",
-    "bytes": 41216,
-    "sha256": "8c15679623f6c5c8d8a0433706d1bfbaa27b14541a586a562441364182824e9f"
+    "bytes": 42927,
+    "sha256": "0eae7cf69282e827b1227166f2e32cee3560f2f3e65b3f1f2faf6fb83d3b4c5b"
   },
   {
     "path": "skills/poteto-mode/scripts/package.json",
-    "bytes": 347,
-    "sha256": "456d549fd234090a8926699033da7a98f70eafde1b177ea2e3cd64517d7bba0f"
+    "bytes": 354,
+    "sha256": "06e28d290b1941eb2c6582e213e65923c86b29b0fdd8722fee3d5b4e1a6d1189"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/cli.test.ts",
-    "bytes": 5852,
-    "sha256": "34d4559e60fa569f5734fd882910cfd2273a03e21af7777f6bd00bb46890270f"
+    "bytes": 6161,
+    "sha256": "a35592b4c6da96caf8d47987e9cd503fab6c7774ab87d11a43f24b4b5df2a9d1"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/cli.ts",
-    "bytes": 6687,
-    "sha256": "1e3243d81bf8b863c83fe62f2eb0be92f71ae3bd19772b19fbefbf9350a08387"
+    "bytes": 6983,
+    "sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
-    "bytes": 2903,
-    "sha256": "70b8b8ecb7af669e924793ecba956462d7a7404aeaca524858a51aca966b6035"
+    "bytes": 2944,
+    "sha256": "e53e31b7f03068063f53a99a3591b052aaed66e4e2b196b3a364980f60324ab1"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/github.test.ts",
-    "bytes": 8900,
-    "sha256": "d5751d2c55f5f9c351fa362f8e51f2a01f36e6d5d6ccddc835b6e33c1bfb3fe4"
+    "bytes": 9059,
+    "sha256": "0cbce011050522938523e36bb42a260e92b812dcd2076930fa681672ad316b24"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/github.ts",
-    "bytes": 23059,
-    "sha256": "e5f24e5570c6dad9f509d691cac19c5b82cf917c87fe6019ab9e873e2649326f"
+    "bytes": 24072,
+    "sha256": "d1bbbafbe8e2c703c84da2029de7f2c4011412512f8cf65a42100f46bcb92c8a"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/policy.test.ts",
-    "bytes": 12054,
-    "sha256": "07b6d5933b765e090a06587175f1f5dac5f500840a458489806f2f0bac0e6f10"
+    "bytes": 12397,
+    "sha256": "a9fedb25feefd1f57ef6a662f80c99018690170a3a8070773a08eaf694d1d3d9"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/policy.ts",
-    "bytes": 24319,
-    "sha256": "c118ea6e22e9eea16fb7695623739f9bba08fa55667c52b33a283d309df49a24"
+    "bytes": 25132,
+    "sha256": "68d240505852cf23c9b2dea463342e9e61243f486b3cc86c735d140f9ee7be49"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/render.ts",
-    "bytes": 6734,
-    "sha256": "7375afe51313f95d23cbca3ce3d287c89a3511222aee7c334a88f0307a01f5cf"
+    "bytes": 7083,
+    "sha256": "2b709e86628d5b8fdb61f860e60ababc342b0626c67576305442cf548283a604"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/tsconfig.json",
-    "bytes": 3732,
-    "sha256": "f4027771cc58a6a45fedd7004e136162050ea61b36f5da50cff7059b3677498e"
+    "bytes": 270,
+    "sha256": "1ecccc72320b086c63ce3f73c959896fd747363e63553b3b1136296ea4069e45"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/types.compile.ts",
-    "bytes": 2247,
-    "sha256": "ade8da0534213b4ef333ebd8908dd0e11bc2943e40f237c4e49035042f46992d"
+    "bytes": 2258,
+    "sha256": "621af4c9a664fbf699a9737efccdc248abb416df8819c9dc5f824beae2b9b1d6"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/types.ts",
-    "bytes": 12230,
-    "sha256": "2fd91b0c2e54bdd893ad8dca3071f628063946246e407bc00247be49e12e71d3"
+    "bytes": 12359,
+    "sha256": "64ba6221e3bfe61bbb292337d199cdec6309455477280efb060203dba34e0e91"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/watch-pr",
@@ -726,8 +726,8 @@
   },
   {
     "path": "skills/why/SKILL.md",
-    "bytes": 10369,
-    "sha256": "084cbb93e057b7d64c291c4b005b573d79c679859f484754a38d5ed1f27e2f94"
+    "bytes": 10366,
+    "sha256": "b932c8c7a9344711e2b7692524c3d3124444e26b4167480aa96986b912e0ae0f"
   },
   {
     "path": "skills/why/references/epistemics.md",
@@ -791,8 +791,8 @@
   },
   {
     "path": "skills/benchmark-checklist/SKILL.md",
-    "bytes": 5393,
-    "sha256": "47f0c952d4bba67305ce838f2af5fb88f721497568e4d2d40e1d95af1d97b1af"
+    "bytes": 5409,
+    "sha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8"
   },
   {
     "path": "skills/correct/SKILL.md",

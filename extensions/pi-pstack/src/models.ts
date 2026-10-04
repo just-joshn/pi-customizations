@@ -30,9 +30,6 @@ const defaults = new Map<string, string[]>([
   ['swarm workers', [code]],
   ['architect runners', panel],
   ['interrogate reviewers', panel],
-  ['trail reviewer', ['inherit-parent']],
-  ['figure-it-out judge', ['inherit-parent']],
-  ['recall miners', ['inherit-parent']],
 ]);
 export const roleNames: readonly string[] = [...defaults.keys()];
 const panelRoles = new Set(['arena runners', 'arena cross-judge pool', 'architect runners', 'interrogate reviewers']);

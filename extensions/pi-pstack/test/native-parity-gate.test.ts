@@ -107,8 +107,15 @@ test('file and source-file checks require the file in the matching location', as
 });
 
 test('a configured Vitest check under test/helpers reads that file and only that file', async () => {
-  const native = { type: 'test', path: 'test/helpers/overlays.test.ts', name: 'shipped helpers match the complete policy-formatted resource replay' };
+  const native = { type: 'test', path: 'test/helpers/overlays.test.ts', name: 'every helper overlay edit is present in the shipped helper file' };
   const withNative = { ...clause, runtime: true, checks: [present, native] };
   expect((await gate([withNative])).code).toBe(0);
   expect((await gate([{ ...withNative, checks: [present, { ...native, name: 'no such overlay test' }] }])).stdout).toContain('L2.1 test did not pass: test/helpers/overlays.test.ts > no such overlay test');
+}, 60000);
+
+test('a bun test check reads the shipped helper suite results', async () => {
+  const helper = { type: 'test', runner: 'bun', path: 'skills/poteto-mode/scripts/orch/orch.test.ts', name: 'Store initializes an idempotent plain-file store and releases its lock' };
+  const withHelper = { ...clause, runtime: true, checks: [present, helper] };
+  expect((await gate([withHelper])).code).toBe(0);
+  expect((await gate([{ ...withHelper, checks: [present, { ...helper, name: 'Store invents a feature' }] }])).stdout).toContain('L2.1 test did not pass: skills/poteto-mode/scripts/orch/orch.test.ts > Store invents a feature');
 }, 60000);

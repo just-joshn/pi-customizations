@@ -2,11 +2,12 @@ import { expect, test } from 'vitest';
 import { readPersona } from '../src/personas.ts';
 import { fixture, prompt } from './session-fixture.ts';
 
-test('the poteto-agent persona scopes resume to one conversation and respawns after an interrupt', async () => {
+test('the poteto-agent persona defaults to fresh workers and permits reuse only for costly state', async () => {
   const { instructions } = await readPersona('poteto-agent');
-  expect(instructions).toContain(
-    'Resume rule. Resume an existing poteto-agent with Task resume only inside one conversation while its last run finished without an interrupt. After an interrupt or TaskStop, never resume it or chain a TaskMessage to it. Start a fresh poteto-agent with the consolidated scope, because an interrupt-chained resume silently drops directives.',
-  );
+  expect(instructions).toContain('**Fresh subagents by default.**');
+  expect(instructions).toContain('Resume, message, or queue a follow-up on an existing subagent only when the new work strictly needs state that lives in that agent and is costly to move:');
+  expect(instructions).toContain('Interrupt-chained resumes silently drop directives, so fire a fresh subagent with consolidated scope');
+  expect(instructions).not.toContain('Resume rule.');
   expect(instructions).not.toContain('Resume an existing `poteto-agent` for the conversation rather than spawning a sibling.');
   expect(instructions).toContain('Routing target for `/poteto-mode`');
 });

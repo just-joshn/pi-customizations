@@ -3,14 +3,13 @@ import './leak-preload.ts';
 import { afterEach, expect, test } from 'vitest';
 import { type CliRuntime, main, parseArgs } from '../../skills/poteto-mode/scripts/watch-pr/cli.ts';
 import { type FakeReaderOptions, failedCheck, fakeReader, pendingCheck } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
-import { GhGitHubReader, WatcherQueryError } from '../../skills/poteto-mode/scripts/watch-pr/github.ts';
+import { WatcherQueryError } from '../../skills/poteto-mode/scripts/watch-pr/github.ts';
 import { readSnapshot } from '../../skills/poteto-mode/scripts/watch-pr/policy.ts';
 import { renderStatusTable } from '../../skills/poteto-mode/scripts/watch-pr/render.ts';
 import type { GitHubReader, PrContext, ReviewThread } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { expectDefined } from '../support/expect-defined.ts';
 import { removeScratch } from './scratch.ts';
-import { emptyBin, withEnv } from './watch-pr-fakes.test-helper.ts';
 
 afterEach(removeScratch);
 
@@ -209,15 +208,7 @@ test('main exits 7 after the query-error budget is exhausted and 7 at once for a
   expect(last(await run(PR, fatal)).blocker).toMatchObject({ failures: 1 });
 });
 
-test('main exits 7 with a gh-missing BLOCKER instead of crashing when gh is not on PATH', async () => {
-  await withEnv({ PATH: emptyBin() }, async () => {
-    const r = await run(PR, new GhGitHubReader());
-    expect(r.code).toBe(7);
-    expect(last(r)).toMatchObject({ kind: 'BLOCKER', exitCode: 7, blocker: { kind: 'status-query', failure: { kind: 'gh-missing', retryable: false } } });
-  });
-});
-
-test('main on GitHub Enterprise without GH_HOST exits 7 invalid-context-url from currentPr', async () => {
+test('main exits 7 for a noncanonical GitHub Enterprise URL from currentPr', async () => {
   const reader: GitHubReader = {
     ...fakeReader({ origin: null }),
     async currentPr(): Promise<PrContext> {

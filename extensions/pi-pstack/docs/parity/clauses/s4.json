@@ -7,26 +7,10 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "package.json",
-        "quote": "\"typecheck\": \"tsc --noEmit && tsc --noEmit -p test/helpers\""
-      },
-      {
-        "type": "quote",
-        "path": "package.json",
-        "quote": "\"test:helpers\": \"vitest run test/helpers\""
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-typecheck.test.ts",
-        "name": "orch and bootstrap type-check under tsc --noEmit --strict with the helper compiler options"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-typecheck.test.ts",
-        "name": "the helper typecheck script passes strict tsc over watch-pr including its four ts-expect-error assertions"
-      }
+      { "type": "quote", "path": "package.json", "quote": "\"typecheck\": \"tsc --noEmit && tsc --noEmit -p test/helpers\"" },
+      { "type": "quote", "path": "package.json", "quote": "\"test:helpers\": \"bun test --preload ./test/helpers/leak-preload.ts test/helpers\"" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/orch-typecheck.test.ts", "name": "orch and bootstrap type-check under tsc --noEmit --strict with the helper compiler options" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-typecheck.test.ts", "name": "the helper typecheck script passes strict tsc over watch-pr including its four ts-expect-error assertions" }
     ],
     "note": "The 52-pass measurement is upstream history; the carried obligation is that the ported helpers execute under the package's own test:helpers and typecheck commands."
   },
@@ -38,36 +22,12 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/watch-pr/types.ts",
-        "quote": "export type WatcherVerdict = ProgressVerdict | TerminalVerdict;"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/watch-pr/types.ts",
-        "quote": "export type ExitCode = TerminalVerdict['exitCode'];"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/watch-pr/cli.test.ts",
-        "quote": "throw new Error('test unexpectedly slept');"
-      },
-      {
-        "type": "test",
-        "path": "skills/poteto-mode/scripts/watch-pr/cli.test.ts",
-        "name": "main bypasses the queue machine for queued-stack status-only"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-policy.test.ts",
-        "name": "runSimple retries with backoff 60 120 240 300 seconds and the fifth consecutive failure is terminal exit 7"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-policy.test.ts",
-        "name": "a BLOCKED PR with zero checks still fails closed instead of reaching READY"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/scripts/watch-pr/types.ts", "quote": "export type WatcherVerdict = ProgressVerdict | TerminalVerdict;" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/watch-pr/types.ts", "quote": "export type ExitCode = TerminalVerdict[\"exitCode\"];" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/watch-pr/cli.test.ts", "quote": "throw new Error(\"test unexpectedly slept\");" },
+      { "type": "test", "runner": "bun", "path": "skills/poteto-mode/scripts/watch-pr/cli.test.ts", "name": "main bypasses the queue machine for queued-stack status-only" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-policy.test.ts", "name": "runSimple retries with backoff 60 120 240 300 seconds and the fifth consecutive failure is terminal exit 7" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-policy.test.ts", "name": "a BLOCKED PR with zero checks still fails closed instead of reaching READY" }
     ]
   },
   {
@@ -78,26 +38,10 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked."
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "const LANES = /Ten lanes on `[^`<>]+` at the PR head/;"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/check-plan.test.ts",
-        "name": "check-plan.mjs on a valid plan exits 0 with one report line per PR section and a summary"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/check-plan.test.ts",
-        "name": "check-plan.mjs against the generated skeleton the unfilled skeleton reports its box counts and exactly one problem, the LANES placeholder"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/scripts/check-plan.mjs", "quote": "Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked." },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/check-plan.mjs", "quote": "const LANES = /Ten lanes on `[^`<>]+` at the PR head/;" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/check-plan.test.ts", "name": "check-plan.mjs on a valid plan exits 0 with one report line per PR section and a summary" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/check-plan.test.ts", "name": "check-plan.mjs against the generated skeleton the unfilled skeleton reports its box counts and exactly one problem, the LANES placeholder" }
     ]
   },
   {
@@ -107,16 +51,8 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/SKILL.md",
-        "quote": "Read the leaf skill in full for any principle you apply."
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "poteto-mode routes all 23 documented playbooks and 24 principles"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "Read the leaf skill in full for any principle you apply." },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 24 principles" }
     ]
   },
   {
@@ -127,26 +63,10 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/show-me-your-work/scripts/log.sh",
-        "quote": "Strip tabs/newlines/CR so cells stay on one line, and prefix any cell"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "const cleaned = value.replace(/[\\t\\n\\r]/g, ' ');"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-store.test.ts",
-        "name": "orch store cell and line cleaning a track with a tab and newline is stored with spaces"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/log.test.ts",
-        "name": "log.sh rows turns tabs and newlines into spaces so a row stays on one line"
-      }
+      { "type": "quote", "path": "skills/show-me-your-work/scripts/log.sh", "quote": "Strip tabs/newlines/CR so cells stay on one line, and prefix any cell" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/orch/store.ts", "quote": "const cleaned = value.replace(/[\\t\\n\\r]/g, \" \");" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/orch-store.test.ts", "name": "orch store cell and line cleaning a track with a tab and newline is stored with spaces" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/log.test.ts", "name": "log.sh rows turns tabs and newlines into spaces so a row stays on one line" }
     ]
   },
   {
@@ -157,26 +77,10 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/babysit.md",
-        "quote": "Watcher re-arms never authorize merging or arming merge-when-ready."
-      },
-      {
-        "type": "source",
-        "path": "upstream/automations/benny/README.md",
-        "quote": "may prepare a small draft fix"
-      },
-      {
-        "type": "source",
-        "path": "upstream/automations/benny/FOR_AGENTS.md",
-        "quote": "capture screenshots, video, and a read-only state cross-check."
-      },
-      {
-        "type": "test",
-        "path": "test/benny.test.ts",
-        "name": "the dormant native pack preserves source algorithms and replaces host setup mechanics"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/babysit.md", "quote": "Watcher re-arms never authorize merging or arming merge-when-ready." },
+      { "type": "source", "path": "upstream/automations/benny/README.md", "quote": "may prepare a small draft fix" },
+      { "type": "source", "path": "upstream/automations/benny/FOR_AGENTS.md", "quote": "capture screenshots, video, and a read-only state cross-check." },
+      { "type": "test", "path": "test/benny.test.ts", "name": "the dormant native pack preserves source algorithms and replaces host setup mechanics" }
     ]
   },
   {
@@ -186,31 +90,11 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/setup-pstack/SKILL.md",
-        "quote": "judgment and prose: claude-opus-5-5-max"
-      },
-      {
-        "type": "commit",
-        "rev": "ec44aed",
-        "subject": "update Opus 4.7 references to 4.8"
-      },
-      {
-        "type": "quote",
-        "path": "src/models.ts",
-        "quote": "const defaults = new Map<string, string[]>(["
-      },
-      {
-        "type": "quote",
-        "path": "src/host.ts",
-        "quote": "No override. Every role without a line runs on the parent model (inherit-parent)."
-      },
-      {
-        "type": "test",
-        "path": "test/parity-runtime-host.test.ts",
-        "name": "every role without a configured line resolves to the parent model on a fresh install"
-      }
+      { "type": "source", "path": "upstream/skills/setup-pstack/SKILL.md", "quote": "judgment and prose: claude-opus-5-5-max" },
+      { "type": "commit", "rev": "ec44aed", "subject": "update Opus 4.7 references to 4.8" },
+      { "type": "quote", "path": "src/models.ts", "quote": "const defaults = new Map<string, string[]>([" },
+      { "type": "quote", "path": "src/host.ts", "quote": "No override. Every role without a line runs on the parent model (inherit-parent)." },
+      { "type": "test", "path": "test/parity-runtime-host.test.ts", "name": "every role without a configured line resolves to the parent model on a fresh install" }
     ],
     "note": "Resolved: role defaults live in one module plus the generated setup skill, and a role with no configured line inherits the parent model; /setup-pstack validates every real slug against ctx.modelRegistry instead of requiring a multi-file slug edit."
   },
@@ -221,26 +105,10 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/setup-pstack/SKILL.md",
-        "quote": "using the same labels poteto-mode uses."
-      },
-      {
-        "type": "quote",
-        "path": "src/models.ts",
-        "quote": "export const roleNames: readonly string[] = [...defaults.keys()];"
-      },
-      {
-        "type": "quote",
-        "path": "src/models.ts",
-        "quote": "if (defaults.has(role)) working = new Map([...working, [role, values]]);"
-      },
-      {
-        "type": "test",
-        "path": "test/models.test.ts",
-        "name": "setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles"
-      }
+      { "type": "source", "path": "upstream/skills/setup-pstack/SKILL.md", "quote": "using the same labels poteto-mode uses." },
+      { "type": "quote", "path": "src/models.ts", "quote": "export const roleNames: readonly string[] = [...defaults.keys()];" },
+      { "type": "quote", "path": "src/models.ts", "quote": "if (defaults.has(role)) working = new Map([...working, [role, values]]);" },
+      { "type": "test", "path": "test/models.test.ts", "name": "setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles" }
     ],
     "note": "Resolved: src/models.ts owns roleNames and the default map, readTable drops unknown lines into a reported list, and resolveModel throws with the available choices for an unavailable slug."
   },
@@ -251,26 +119,10 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/setup-pstack/SKILL.md",
-        "quote": "and on a re-run keep any role you changed by family, list, or alias"
-      },
-      {
-        "type": "quote",
-        "path": "skills/setup-pstack/SKILL.md",
-        "quote": "Overwrite the whole file so re-runs stay idempotent."
-      },
-      {
-        "type": "quote",
-        "path": "src/models.ts",
-        "quote": "function needsChoice(role: string, values: string[], target: ThinkingLevel | undefined, ctx: ExtensionContext): boolean {"
-      },
-      {
-        "type": "test",
-        "path": "test/models.test.ts",
-        "name": "setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles"
-      }
+      { "type": "source", "path": "upstream/skills/setup-pstack/SKILL.md", "quote": "and on a re-run keep any role you changed by family, list, or alias" },
+      { "type": "quote", "path": "skills/setup-pstack/SKILL.md", "quote": "Overwrite the whole file so re-runs stay idempotent." },
+      { "type": "quote", "path": "src/models.ts", "quote": "function needsChoice(role: string, values: string[], target: ThinkingLevel | undefined, ctx: ExtensionContext): boolean {" },
+      { "type": "test", "path": "test/models.test.ts", "name": "setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles" }
     ],
     "note": "Resolved: writeConfiguration rewrites the rule atomically, and every real slug is resolved through ctx.modelRegistry so a stale Reference slug is surfaced as needing a choice instead of silently persisting."
   },
@@ -281,36 +133,12 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/scripts/orch/orch.ts",
-        "quote": ".description('manage the Graphite stack frontier')"
-      },
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "execFileSync('gt', ['--no-interactive', 'info', branch], {"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/orch/orch.ts",
-        "quote": "'discover the PR stack (gt when installed, otherwise gh) and set the frontier'"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "readonly source: 'gt' | 'gh';"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-frontier.test.ts",
-        "name": "orch gh frontier without gt orders the connected stack bottom to top from any branch in it and records PR head oids"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-frontier.test.ts",
-        "name": "orch frontier set through the CLI without gt seeds frontier.json from gh and prints the compact line"
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/scripts/orch/orch.ts", "quote": ".description(\"manage the Graphite stack frontier\")" },
+      { "type": "source", "path": "upstream/skills/poteto-mode/scripts/orch/store.ts", "quote": "execFileSync(\"gt\", [\"--no-interactive\", \"info\", branch], {" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/orch/orch.ts", "quote": "\"discover the PR stack (gt when installed, otherwise gh) and set the frontier\"" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/orch/store.ts", "quote": "readonly source: \"gt\" | \"gh\";" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/orch-frontier.test.ts", "name": "orch gh frontier without gt orders the connected stack bottom to top from any branch in it and records PR head oids" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/orch-frontier.test.ts", "name": "orch frontier set through the CLI without gt seeds frontier.json from gh and prints the compact line" }
     ],
     "note": "Resolved: the frontier carries a gt-or-gh source, uses a gh pull-request walk when Graphite is absent, and the gh path is covered by helper tests."
   },
@@ -321,36 +149,12 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/playbooks/multi-phase-plan.md",
-        "quote": "node pstack/skills/poteto-mode/scripts/check-plan.mjs <plan.md>"
-      },
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/playbooks/autopilot-full.md",
-        "quote": "git show origin/main:pstack/skills/poteto-mode/playbooks/autopilot-full.md"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/multi-phase-plan.md",
-        "quote": "Otherwise read the bundled copy at the path the host contract names."
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/multi-phase-plan.md",
-        "quote": "Run `node scripts/check-plan.mjs <plan.md>` with the working directory set to the poteto-mode skill directory"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-paths.test.ts",
-        "name": "no generated skill or prompt names a repository-root pstack path"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-paths.test.ts",
-        "name": "the plan check command runs from the poteto-mode skill directory against a plan outside the repository"
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/playbooks/multi-phase-plan.md", "quote": "node pstack/skills/poteto-mode/scripts/check-plan.mjs <plan.md>" },
+      { "type": "source", "path": "upstream/skills/poteto-mode/playbooks/autopilot-full.md", "quote": "git show origin/main:pstack/skills/poteto-mode/playbooks/autopilot-full.md" },
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/multi-phase-plan.md", "quote": "Otherwise read the bundled copy at the path the host contract names." },
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/multi-phase-plan.md", "quote": "Run `node scripts/check-plan.mjs <plan.md>` with the working directory set to the poteto-mode skill directory" },
+      { "type": "test", "path": "test/parity-generator-paths.test.ts", "name": "no generated skill or prompt names a repository-root pstack path" },
+      { "type": "test", "path": "test/parity-generator-paths.test.ts", "name": "the plan check command runs from the poteto-mode skill directory against a plan outside the repository" }
     ],
     "note": "Resolved: playbook self-reads use `git show origin/<trunk>:<repo path>` when the target repository commits the file and the bundled playbook otherwise, and check-plan runs from the bundled skill directory with an absolute plan path."
   },
@@ -361,21 +165,9 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/scripts/watch-pr/tsconfig.json",
-        "quote": "\"include\": [\"../**/*.ts\", \"../**/*.tsx\", \"../**/*.mts\", \"../**/*.cts\"]"
-      },
-      {
-        "type": "quote",
-        "path": "package.json",
-        "quote": "\"typecheck\": \"tsc --noEmit && tsc --noEmit -p test/helpers\""
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-typecheck.test.ts",
-        "name": "orch and bootstrap type-check under tsc --noEmit --strict with the helper compiler options"
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/scripts/watch-pr/tsconfig.json", "quote": "\"include\": [\"*.ts\"]" },
+      { "type": "quote", "path": "package.json", "quote": "\"typecheck\": \"tsc --noEmit && tsc --noEmit -p test/helpers\"" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/orch-typecheck.test.ts", "name": "orch and bootstrap type-check under tsc --noEmit --strict with the helper compiler options" }
     ],
     "note": "Resolved: the root typecheck runs tsc --noEmit plus tsc -p test/helpers, whose tsconfig includes every helper test, and the helper suite additionally type-checks orch, store, and bootstrap directly."
   },
@@ -386,31 +178,11 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/scripts/package.json",
-        "quote": "\"bun-types\": \"latest\","
-      },
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/scripts/package.json",
-        "quote": "\"typescript\": \"latest\""
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/package.json",
-        "quote": "\"bun-types\": \"1.3.14\","
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/package.json",
-        "quote": "\"typescript\": \"7.0.2\""
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-skills.test.ts",
-        "name": "the helper manifest and lock pin bun-types and typescript to the versions the lock resolves, and no latest survives"
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/scripts/package.json", "quote": "\"bun-types\": \"latest\"," },
+      { "type": "source", "path": "upstream/skills/poteto-mode/scripts/package.json", "quote": "\"typescript\": \"latest\"" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/package.json", "quote": "\"bun-types\": \"1.3.14\"," },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/package.json", "quote": "\"typescript\": \"7.0.2\"" },
+      { "type": "test", "path": "test/parity-generator-skills.test.ts", "name": "the helper manifest and lock pin bun-types and typescript to the versions the lock resolves, and no latest survives" }
     ],
     "note": "Resolved: the generated helper manifest pins bun-types 1.3.14 and typescript 7.0.2, and a generator test fails if latest returns."
   },
@@ -421,36 +193,12 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/scripts/worktree-audit.sh",
-        "quote": "xargs stat -f '%m %N'"
-      },
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/scripts/worktree-audit.sh",
-        "quote": "~/.upstream/projects"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/worktree-audit.sh",
-        "quote": "Pi session dirs: <agent-dir>/sessions/"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/worktree-audit.sh",
-        "quote": "xargs -0 perl -e 'printf \"%d %s\\n\", (stat)[9], $_ for @ARGV'"
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "worktree audit dates agent activity from Pi sessions and worker transcripts"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/worktree-audit.test.ts",
-        "name": "worktree-audit.sh columns and buckets rows sort by human size descending and keep spaces in the worktree path"
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/scripts/worktree-audit.sh", "quote": "xargs stat -f '%m %N'" },
+      { "type": "source", "path": "upstream/skills/poteto-mode/scripts/worktree-audit.sh", "quote": "~/.upstream/projects" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/worktree-audit.sh", "quote": "Pi session dirs: <agent-dir>/sessions/" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/worktree-audit.sh", "quote": "xargs -0 perl -e 'printf \"%d %s\\n\", (stat)[9], $_ for @ARGV'" },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "worktree audit dates agent activity from Pi sessions and worker transcripts" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/worktree-audit.test.ts", "name": "worktree-audit.sh columns and buckets rows sort by human size descending and keep spaces in the worktree path" }
     ],
     "note": "Resolved: the generator overlay replaces BSD stat/date with perl and points the audit at PI_CODING_AGENT_DIR sessions plus per-parent worker transcripts."
   },
@@ -461,31 +209,11 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/figure-it-out/SKILL.md",
-        "quote": "Open a todolist whose first item is to read the Principles section of the **poteto-mode** skill."
-      },
-      {
-        "type": "source",
-        "path": "upstream/skills/principle-type-system-discipline/SKILL.md",
-        "quote": "Skills like `typescript-best-practices` ground it in specific syntax."
-      },
-      {
-        "type": "quote",
-        "path": "skills/figure-it-out/SKILL.md",
-        "quote": "Open a todolist whose first item is to read the Principles section of the **poteto-mode** skill."
-      },
-      {
-        "type": "quote",
-        "path": "skills/principle-type-system-discipline/SKILL.md",
-        "quote": "Skills like `typescript-best-practices` ground it in specific syntax."
-      },
-      {
-        "type": "test",
-        "path": "test/skill-layering.test.ts",
-        "name": "every upward or cyclic skill reference is one the reference document documents"
-      }
+      { "type": "source", "path": "upstream/skills/figure-it-out/SKILL.md", "quote": "Open a todolist whose first item is to read the Principles section of the **poteto-mode** skill." },
+      { "type": "source", "path": "upstream/skills/principle-type-system-discipline/SKILL.md", "quote": "Skills like `typescript-best-practices` ground it in specific syntax." },
+      { "type": "quote", "path": "skills/figure-it-out/SKILL.md", "quote": "Open a todolist whose first item is to read the Principles section of the **poteto-mode** skill." },
+      { "type": "quote", "path": "skills/principle-type-system-discipline/SKILL.md", "quote": "Skills like `typescript-best-practices` ground it in specific syntax." },
+      { "type": "test", "path": "test/skill-layering.test.ts", "name": "every upward or cyclic skill reference is one the reference document documents" }
     ],
     "note": "Flagged rather than rewritten, as L663.1 does for the playbook tensions: each reference carries behavior. test/skill-layering.test.ts computes the decisive cross-skill references, classifies principle, craft, workflow, and router layers, and pins the eleven upward or cyclic edges that remain, the four this line names among them. A new upward or cyclic reference fails the test."
   },
@@ -496,26 +224,10 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/playbooks/babysit.md",
-        "quote": "No base retarget, rebase, stack-wide submit, or force-push from inside a babysit."
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/babysit.md",
-        "quote": "An Autopilot-full owner babysitting its own PR is that owner."
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/SKILL.md",
-        "quote": "Reaching for `drive` inside a phase agent stops that agent finishing its turn."
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/opening-a-pr.md",
-        "quote": "Then it returns to the parent without babysitting, unless it is an Autopilot-full or Autopilot-stack owner."
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/playbooks/babysit.md", "quote": "No base retarget, rebase, stack-wide submit, or force-push from inside a babysit." },
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/babysit.md", "quote": "An Autopilot-full owner babysitting its own PR is that owner." },
+      { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "Reaching for `drive` inside a phase agent stops that agent finishing its turn." },
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/opening-a-pr.md", "quote": "Then it returns to the parent without babysitting, unless it is an Autopilot-full or Autopilot-stack owner." }
     ],
     "note": "Resolved as documented exceptions: the generated babysit names the autopilot carve-out inline and opening-a-pr names the owner exception, so the tension is explicit rather than implicit."
   },
@@ -526,21 +238,9 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/playbooks/orchestrate.md",
-        "quote": "arm it via the loop skill"
-      },
-      {
-        "type": "quote",
-        "path": "src/host.ts",
-        "quote": "`/loop is a Pi prompt template for the local loop skill at "
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "local /loop ships as a Pi skill and template that the host contract names"
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/playbooks/orchestrate.md", "quote": "arm it via the loop skill" },
+      { "type": "quote", "path": "src/host.ts", "quote": "`/loop is a Pi prompt template for the local loop skill at " },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "local /loop ships as a Pi skill and template that the host contract names" }
     ],
     "note": "Resolved: the host contract names /loop as the local loop skill, so both wordings resolve to the bundled loop skill."
   },
@@ -551,26 +251,10 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/unslop/SKILL.md",
-        "quote": "Cut AI tells from any writing. Must always apply."
-      },
-      {
-        "type": "quote",
-        "path": "skills/unslop/SKILL.md",
-        "quote": "Cut AI tells from any writing. Must always apply."
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/SKILL.md",
-        "quote": "Any prose surface → the **unslop** skill."
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-flags.test.ts",
-        "name": "every generated skill keeps its upstream model-invocation flag"
-      }
+      { "type": "source", "path": "upstream/skills/unslop/SKILL.md", "quote": "Cut AI tells from any writing. Must always apply." },
+      { "type": "quote", "path": "skills/unslop/SKILL.md", "quote": "Cut AI tells from any writing. Must always apply." },
+      { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "Any prose surface → the **unslop** skill." },
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "every generated skill keeps its upstream model-invocation flag" }
     ],
     "note": "Resolved: the skill stays slash-only (disable-model-invocation preserved) and the router names unslop for any prose surface, which is the behavior the description claims."
   },
@@ -581,31 +265,11 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/README.md",
-        "quote": "you want the last message restated in plain human language, no jargon."
-      },
-      {
-        "type": "quote",
-        "path": "README.md",
-        "quote": "`/bro` is a standalone prompt template; use it instead of the retired `/skill:bro`."
-      },
-      {
-        "type": "test",
-        "path": "test/parity-package-docs.test.ts",
-        "name": "README direct-use table has a row for each routed skill"
-      },
-      {
-        "type": "test",
-        "path": "test/resources.test.ts",
-        "name": "generation migrates the former bro skill without deleting unrelated resources"
-      },
-      {
-        "type": "test",
-        "path": "test/dependency-mappings.test.ts",
-        "name": "bot UI discovers the native approved routine adapter"
-      }
+      { "type": "source", "path": "upstream/README.md", "quote": "you want the last message restated in plain human language, no jargon." },
+      { "type": "quote", "path": "README.md", "quote": "`/bro` is a standalone prompt template; use it instead of the retired `/skill:bro`." },
+      { "type": "test", "path": "test/parity-package-docs.test.ts", "name": "README direct-use table has a row for each routed skill" },
+      { "type": "test", "path": "test/resources.test.ts", "name": "generation migrates the former bro skill without deleting unrelated resources" },
+      { "type": "test", "path": "test/dependency-mappings.test.ts", "name": "bot UI discovers the native approved routine adapter" }
     ],
     "note": "Resolved: recall, teach, blast-radius, and make-bot-ui have README direct-use rows, bro ships as prompts/bro.md, and make-bot-ui reaches the reviewed routine adapter."
   },
@@ -616,26 +280,10 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/SKILL.md",
-        "quote": "name: Poteto Mode"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/SKILL.md",
-        "quote": "name: poteto-mode"
-      },
-      {
-        "type": "quote",
-        "path": "skills/make-bot-ui/SKILL.md",
-        "quote": "name: make-bot-ui"
-      },
-      {
-        "type": "test",
-        "path": "test/skills-parity.test.ts",
-        "name": "skills loader: all 71 skills discover cleanly with valid metadata and frontmatter"
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/SKILL.md", "quote": "name: Poteto Mode" },
+      { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "name: poteto-mode" },
+      { "type": "quote", "path": "skills/make-bot-ui/SKILL.md", "quote": "name: make-bot-ui" },
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 71 skills discover cleanly with valid metadata and frontmatter" }
     ],
     "note": "Resolved: the generator rewrites display names to directory slugs, so Pi's directory-derived invocation and the loader agree."
   },
@@ -646,26 +294,10 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "commit",
-        "rev": "3fe2823",
-        "subject": "parity sweep with the private skill tree"
-      },
-      {
-        "type": "quote",
-        "path": "scripts/resources.mjs",
-        "quote": "if (!entry.source.startsWith('upstream-team-kit/') && sha(original) !== entry.sha256) throw new Error(`Upstream hash mismatch: ${entry.source}`);"
-      },
-      {
-        "type": "test",
-        "path": "test/skills-parity.test.ts",
-        "name": "resource map: exactly 212 generated resources are verified with matching hashes"
-      },
-      {
-        "type": "test",
-        "path": "test/resources.test.ts",
-        "name": "a changed kit source prevents all generation writes"
-      }
+      { "type": "commit", "rev": "3fe2823", "subject": "parity sweep with the private skill tree" },
+      { "type": "quote", "path": "scripts/resources.mjs", "quote": "if (sha(original) !== entry.sha256) throw new Error(`Upstream hash mismatch: ${entry.source}`);" },
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "resource map: exactly 211 generated resources are verified with matching hashes" },
+      { "type": "test", "path": "test/resources.test.ts", "name": "a changed kit source prevents all generation writes" }
     ],
     "note": "Resolved: docs/source-inventory.json, docs/team-kit-source-inventory.json, and docs/resource-map.json pin every source hash; the generator rejects a changed source before writing."
   },
@@ -676,19 +308,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source-file",
-        "path": "upstream/plugin-metadata/plugin.json"
-      },
-      {
-        "type": "file",
-        "path": "src/index.ts"
-      },
-      {
-        "type": "quote",
-        "path": "package.json",
-        "quote": "\"./src/index.ts\""
-      }
+      { "type": "source-file", "path": "upstream/plugin-metadata/plugin.json" },
+      { "type": "file", "path": "src/index.ts" },
+      { "type": "quote", "path": "package.json", "quote": "\"./src/index.ts\"" }
     ],
     "note": "The upstream manifest is vendored unchanged at upstream/plugin-metadata/plugin.json; the Pi manifest is package.json."
   },
@@ -700,21 +322,9 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "src/personas.ts",
-        "quote": "const comment = { files: ['upstream/agents/comment-sicko.md'] };"
-      },
-      {
-        "type": "quote",
-        "path": "src/personas.ts",
-        "quote": "['poteto-agent', { files: ['upstream/agents/poteto-agent.md', 'skills/poteto-mode/SKILL.md'], text: resumeRule, drop: resumeSentence }],"
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped"
-      }
+      { "type": "quote", "path": "src/personas.ts", "quote": "const comment = { files: ['upstream/agents/comment-sicko.md'] };" },
+      { "type": "quote", "path": "src/personas.ts", "quote": "['poteto-agent', { files: ['upstream/agents/poteto-agent.md', 'skills/poteto-mode/SKILL.md'] }]," },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped" }
     ]
   },
   {
@@ -724,28 +334,11 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "file",
-        "path": "skills/poteto-mode/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/poteto-mode/playbooks/babysit.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/poteto-mode/references/bugbot-triage.md"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/SKILL.md",
-        "quote": "Triage fix / dismiss / ask per `references/bugbot-triage.md`."
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "poteto-mode routes all 23 documented playbooks and 24 principles"
-      }
+      { "type": "file", "path": "skills/poteto-mode/SKILL.md" },
+      { "type": "file", "path": "skills/poteto-mode/playbooks/babysit.md" },
+      { "type": "file", "path": "skills/poteto-mode/references/bugbot-triage.md" },
+      { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "Triage fix / dismiss / ask per `references/bugbot-triage.md`." },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 24 principles" }
     ]
   },
   {
@@ -756,32 +349,12 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "file",
-        "path": "skills/poteto-mode/scripts/package.json"
-      },
-      {
-        "type": "file",
-        "path": "skills/poteto-mode/scripts/bootstrap.ts"
-      },
-      {
-        "type": "file",
-        "path": "skills/poteto-mode/scripts/orch/orch.ts"
-      },
-      {
-        "type": "file",
-        "path": "skills/poteto-mode/scripts/watch-pr/cli.ts"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/bootstrap.ts",
-        "quote": "const installLockPath = join(scriptsDirectory, '.poteto-mode-tools-install.lock');"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-bootstrap.test.ts",
-        "name": "bootstrap installs under the scripts directory, not the cwd, when the launcher runs from an unrelated directory"
-      }
+      { "type": "file", "path": "skills/poteto-mode/scripts/package.json" },
+      { "type": "file", "path": "skills/poteto-mode/scripts/bootstrap.ts" },
+      { "type": "file", "path": "skills/poteto-mode/scripts/orch/orch.ts" },
+      { "type": "file", "path": "skills/poteto-mode/scripts/watch-pr/cli.ts" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/bootstrap.ts", "quote": "const installLockPath = join(scriptsDirectory, \".poteto-mode-tools-install.lock\");" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-bootstrap.test.ts", "name": "bootstrap installs under the scripts directory, not the cwd, when the launcher runs from an unrelated directory" }
     ]
   },
   {
@@ -792,24 +365,10 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "file",
-        "path": "skills/poteto-mode/scripts/check-plan.mjs"
-      },
-      {
-        "type": "file",
-        "path": "skills/poteto-mode/scripts/worktree-audit.sh"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/check-plan.test.ts",
-        "name": "check-plan.mjs on a valid plan reports one line per PR section"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/worktree-audit.test.ts",
-        "name": "worktree-audit.sh environment outside a git repository with no path it prints the usage hint and exits 1"
-      }
+      { "type": "file", "path": "skills/poteto-mode/scripts/check-plan.mjs" },
+      { "type": "file", "path": "skills/poteto-mode/scripts/worktree-audit.sh" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/check-plan.test.ts", "name": "check-plan.mjs on a valid plan reports one line per PR section" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/worktree-audit.test.ts", "name": "worktree-audit.sh environment outside a git repository with no path it prints the usage hint and exits 1" }
     ]
   },
   {
@@ -819,21 +378,9 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/setup-pstack/SKILL.md",
-        "quote": "Call `pstack_setup` to perform these steps through native Pi dialogs and validated writes."
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-flags.test.ts",
-        "name": "setup-pstack is the only pstack skill the model may invoke on its own"
-      },
-      {
-        "type": "test",
-        "path": "test/setup-tool.test.ts",
-        "name": "natural language setup uses the same interactive gate and rejects unattended writes"
-      }
+      { "type": "quote", "path": "skills/setup-pstack/SKILL.md", "quote": "Call `pstack_setup` to perform these steps through native Pi dialogs and validated writes." },
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "setup-pstack is the only pstack skill the model may invoke on its own" },
+      { "type": "test", "path": "test/setup-tool.test.ts", "name": "natural language setup uses the same interactive gate and rejects unattended writes" }
     ]
   },
   {
@@ -843,35 +390,13 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "file",
-        "path": "skills/how/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/why/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/interrogate/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/recall/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/teach/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/blast-radius/SKILL.md"
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped"
-      }
+      { "type": "file", "path": "skills/how/SKILL.md" },
+      { "type": "file", "path": "skills/why/SKILL.md" },
+      { "type": "file", "path": "skills/interrogate/SKILL.md" },
+      { "type": "file", "path": "skills/recall/SKILL.md" },
+      { "type": "file", "path": "skills/teach/SKILL.md" },
+      { "type": "file", "path": "skills/blast-radius/SKILL.md" },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped" }
     ]
   },
   {
@@ -881,40 +406,14 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "file",
-        "path": "skills/unslop/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/technical-writing/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/no-comments/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/tdd/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/typescript-best-practices/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "prompts/bro.md"
-      },
-      {
-        "type": "quote",
-        "path": "README.md",
-        "quote": "It is a prompt template, not a skill."
-      },
-      {
-        "type": "test",
-        "path": "test/resources.test.ts",
-        "name": "generation migrates the former bro skill without deleting unrelated resources"
-      }
+      { "type": "file", "path": "skills/unslop/SKILL.md" },
+      { "type": "file", "path": "skills/technical-writing/SKILL.md" },
+      { "type": "file", "path": "skills/no-comments/SKILL.md" },
+      { "type": "file", "path": "skills/tdd/SKILL.md" },
+      { "type": "file", "path": "skills/typescript-best-practices/SKILL.md" },
+      { "type": "file", "path": "prompts/bro.md" },
+      { "type": "quote", "path": "README.md", "quote": "It is a prompt template, not a skill." },
+      { "type": "test", "path": "test/resources.test.ts", "name": "generation migrates the former bro skill without deleting unrelated resources" }
     ]
   },
   {
@@ -925,15 +424,8 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "file",
-        "path": "skills/show-me-your-work/scripts/log.sh"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/log.test.ts",
-        "name": "log.sh rows writes the header once and a six-cell row with an ISO timestamp"
-      }
+      { "type": "file", "path": "skills/show-me-your-work/scripts/log.sh" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/log.test.ts", "name": "log.sh rows writes the header once and a six-cell row with an ISO timestamp" }
     ]
   },
   {
@@ -943,31 +435,12 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "file",
-        "path": "skills/create-verification-skill/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/maintain-verification-skill/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/automate-me/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/make-bot-ui/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "host/adapters/make-bot-ui/SKILL.md"
-      },
-      {
-        "type": "test",
-        "path": "test/dependency-mappings.test.ts",
-        "name": "bot UI discovers the native approved routine adapter"
-      }
+      { "type": "file", "path": "skills/create-verification-skill/SKILL.md" },
+      { "type": "file", "path": "skills/maintain-verification-skill/SKILL.md" },
+      { "type": "file", "path": "skills/automate-me/SKILL.md" },
+      { "type": "file", "path": "skills/make-bot-ui/SKILL.md" },
+      { "type": "file", "path": "host/adapters/make-bot-ui/SKILL.md" },
+      { "type": "test", "path": "test/dependency-mappings.test.ts", "name": "bot UI discovers the native approved routine adapter" }
     ]
   },
   {
@@ -977,19 +450,9 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "file",
-        "path": "skills/principle-attack-the-premise/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/principle-encode-lessons-in-structure/SKILL.md"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-flags.test.ts",
-        "name": "all 24 principle skills load as disabled and none reaches the model-visible skill list"
-      }
+      { "type": "file", "path": "skills/principle-attack-the-premise/SKILL.md" },
+      { "type": "file", "path": "skills/principle-encode-lessons-in-structure/SKILL.md" },
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 24 principle skills load as disabled and none reaches the model-visible skill list" }
     ]
   },
   {
@@ -1000,21 +463,9 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "README.md",
-        "quote": "The package does not register Benny's operational skills as public commands."
-      },
-      {
-        "type": "quote",
-        "path": "scripts/benny-domain.mjs",
-        "quote": "const thread = trigger.thread_ts || trigger.message_ts || trigger.ts;"
-      },
-      {
-        "type": "test",
-        "path": "test/benny.test.ts",
-        "name": "a fresh Pi process discovers all shared dependencies from the target project and no operational Benny skills"
-      }
+      { "type": "quote", "path": "README.md", "quote": "The package does not register Benny's operational skills as public commands." },
+      { "type": "quote", "path": "scripts/benny-domain.mjs", "quote": "const thread = trigger.thread_ts || trigger.message_ts || trigger.ts;" },
+      { "type": "test", "path": "test/benny.test.ts", "name": "a fresh Pi process discovers all shared dependencies from the target project and no operational Benny skills" }
     ]
   },
   {
@@ -1024,16 +475,8 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "test",
-        "path": "test/parity-package-docs.test.ts",
-        "name": "the guide index links each of the ten shipped chapters"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-package-docs.test.ts",
-        "name": "the guide links all twenty-three playbooks"
-      }
+      { "type": "test", "path": "test/parity-package-docs.test.ts", "name": "the guide index links each of the ten shipped chapters" },
+      { "type": "test", "path": "test/parity-package-docs.test.ts", "name": "the guide links all twenty-three playbooks" }
     ]
   },
   {
@@ -1043,21 +486,9 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "test",
-        "path": "test/parity-package-docs.test.ts",
-        "name": "README lists every playbook in the playbooks directory"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-package-docs.test.ts",
-        "name": "README shows twenty one-line example prompts"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-package-docs.test.ts",
-        "name": "README links the Pi guide"
-      }
+      { "type": "test", "path": "test/parity-package-docs.test.ts", "name": "README lists every playbook in the playbooks directory" },
+      { "type": "test", "path": "test/parity-package-docs.test.ts", "name": "README shows twenty one-line example prompts" },
+      { "type": "test", "path": "test/parity-package-docs.test.ts", "name": "README links the Pi guide" }
     ]
   },
   {
@@ -1067,20 +498,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source-file",
-        "path": "upstream/README.md"
-      },
-      {
-        "type": "quote",
-        "path": "src/host.ts",
-        "quote": "Reference snapshots live at "
-      },
-      {
-        "type": "test",
-        "path": "test/skills-parity.test.ts",
-        "name": "skills inventory: all pstack, team-kit, and loop skills are accounted for"
-      }
+      { "type": "source-file", "path": "upstream/README.md" },
+      { "type": "quote", "path": "src/host.ts", "quote": "Reference snapshots live at " },
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills inventory: all pstack, team-kit, and loop skills are accounted for" }
     ],
     "note": "The Reference install cache path is not used; upstream/ and upstream-team-kit/ are the pinned snapshots."
   },
@@ -1091,21 +511,9 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "src/models.ts",
-        "quote": "return join(getAgentDir(), 'pstack', 'models.mdc');"
-      },
-      {
-        "type": "quote",
-        "path": "src/models.ts",
-        "quote": "return join(cwd, '.pi', 'pstack', 'models.mdc');"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-runtime-host.test.ts",
-        "name": "the host contract carries the project model rule and names its path"
-      }
+      { "type": "quote", "path": "src/models.ts", "quote": "return join(getAgentDir(), \"pstack\", \"models.mdc\");" },
+      { "type": "quote", "path": "src/models.ts", "quote": "return join(cwd, \".pi\", \"pstack\", \"models.mdc\");" },
+      { "type": "test", "path": "test/parity-runtime-host.test.ts", "name": "the host contract carries the project model rule and names its path" }
     ]
   },
   {
@@ -1115,28 +523,11 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source-file",
-        "path": "~/src/experiments/plugins/.cursor-plugin/marketplace.json"
-      },
-      {
-        "type": "source-file",
-        "path": "~/src/experiments/plugins/schemas/plugin.schema.json"
-      },
-      {
-        "type": "source-file",
-        "path": "~/src/experiments/plugins/scripts/validate-plugins.mjs"
-      },
-      {
-        "type": "quote",
-        "path": "package.json",
-        "quote": "\"name\": \"pi-pstack\","
-      },
-      {
-        "type": "test",
-        "path": "test/parity-package-manifest.test.ts",
-        "name": "the manifest declares a homepage and repository for the package directory"
-      }
+      { "type": "source-file", "path": "~/src/experiments/plugins/.cursor-plugin/marketplace.json" },
+      { "type": "source-file", "path": "~/src/experiments/plugins/schemas/plugin.schema.json" },
+      { "type": "source-file", "path": "~/src/experiments/plugins/scripts/validate-plugins.mjs" },
+      { "type": "quote", "path": "package.json", "quote": "\"name\": \"pi-pstack\"," },
+      { "type": "test", "path": "test/parity-package-manifest.test.ts", "name": "the manifest declares a homepage and repository for the package directory" }
     ],
     "note": "Pi packages declare their resources through the package.json pi manifest instead of the Reference Marketplace schema and validator."
   },
@@ -1147,27 +538,11 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source-file",
-        "path": "upstream-team-kit/skills/deslop/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/deslop/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/control-ui/SKILL.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/control-cli/SKILL.md"
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped"
-      }
+      { "type": "source-file", "path": "upstream-team-kit/skills/deslop/SKILL.md" },
+      { "type": "file", "path": "skills/deslop/SKILL.md" },
+      { "type": "file", "path": "skills/control-ui/SKILL.md" },
+      { "type": "file", "path": "skills/control-cli/SKILL.md" },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped" }
     ]
   },
   {
@@ -1177,20 +552,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source-file",
-        "path": "~/src/experiments/plugins/dyl-stack/README.md"
-      },
-      {
-        "type": "quote",
-        "path": "scripts/resources.mjs",
-        "quote": "{ directory: 'upstream-team-kit', inventory: 'docs/team-kit-source-inventory.json' },"
-      },
-      {
-        "type": "test",
-        "path": "test/resources.test.ts",
-        "name": "resource generation is reproducible across both source bundles"
-      }
+      { "type": "source-file", "path": "~/src/experiments/plugins/dyl-stack/README.md" },
+      { "type": "quote", "path": "scripts/resources.mjs", "quote": "{ directory: 'upstream-team-kit', inventory: 'docs/team-kit-source-inventory.json' }," },
+      { "type": "test", "path": "test/resources.test.ts", "name": "resource generation is reproducible across both source bundles" }
     ],
     "note": "dyl-stack is a sibling consumer repo, not a bundled snapshot; scripts/resources.mjs reads only upstream/ and upstream-team-kit/."
   },
@@ -1201,21 +565,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/scripts/package.json",
-        "quote": "\"test\": \"vitest run\""
-      },
-      {
-        "type": "quote",
-        "path": "package.json",
-        "quote": "\"test:helpers\": \"vitest run test/helpers\""
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/orchestrate.md",
-        "quote": "Use `bun scripts/orch/orch.ts` for bookkeeping, written below as `orch`"
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/scripts/package.json", "quote": "\"test\": \"bun test orch watch-pr\"" },
+      { "type": "quote", "path": "package.json", "quote": "\"test:helpers\": \"bun test --preload ./test/helpers/leak-preload.ts test/helpers\"" },
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/orchestrate.md", "quote": "Use `bun scripts/orch/orch.ts` for bookkeeping, written below as `orch`" }
     ]
   },
   {
@@ -1225,21 +577,9 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/SKILL.md",
-        "quote": "disable-model-invocation: true"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-flags.test.ts",
-        "name": "every generated skill keeps its upstream model-invocation flag"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-flags.test.ts",
-        "name": "setup-pstack is the only pstack skill the model may invoke on its own"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "disable-model-invocation: true" },
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "every generated skill keeps its upstream model-invocation flag" },
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "setup-pstack is the only pstack skill the model may invoke on its own" }
     ]
   },
   {
@@ -1249,16 +589,8 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "poteto-mode routes all 23 documented playbooks and 24 principles"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-package-docs.test.ts",
-        "name": "README lists every playbook in the playbooks directory"
-      }
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 24 principles" },
+      { "type": "test", "path": "test/parity-package-docs.test.ts", "name": "README lists every playbook in the playbooks directory" }
     ]
   },
   {
@@ -1268,21 +600,9 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "src/models.ts",
-        "quote": "else dropped.push(line);"
-      },
-      {
-        "type": "test",
-        "path": "test/models.test.ts",
-        "name": "setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles"
-      },
-      {
-        "type": "test",
-        "path": "test/models.test.ts",
-        "name": "the setup-pstack role table lists every role the tool writes, so a re-run does not drop one as retired"
-      }
+      { "type": "quote", "path": "src/models.ts", "quote": "else dropped.push(line);" },
+      { "type": "test", "path": "test/models.test.ts", "name": "setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles" },
+      { "type": "test", "path": "test/models.test.ts", "name": "the setup-pstack role table lists every role the tool writes, so a re-run does not drop one as retired" }
     ]
   },
   {
@@ -1292,26 +612,9 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/setup-pstack/SKILL.md",
-        "quote": "Overwrite the whole file so re-runs stay idempotent."
-      },
-      {
-        "type": "quote",
-        "path": "src/models.ts",
-        "quote": "return join(getAgentDir(), 'pstack', 'models.mdc');"
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "setup retains the documented roles alongside native review roles"
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "setup documents all four reasoning budgets"
-      }
+      { "type": "quote", "path": "skills/setup-pstack/SKILL.md", "quote": "Overwrite the whole file so re-runs stay idempotent." },
+      { "type": "quote", "path": "src/models.ts", "quote": "return join(getAgentDir(), \"pstack\", \"models.mdc\");" },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "setup keeps the documented 17 roles and four budget labels" }
     ]
   },
   {
@@ -1322,31 +625,11 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/why/SKILL.md",
-        "quote": "It strips MCP access, which disables MCP-backed investigators entirely."
-      },
-      {
-        "type": "quote",
-        "path": "skills/reflect/SKILL.md",
-        "quote": "Readonly strips MCPs."
-      },
-      {
-        "type": "quote",
-        "path": "skills/why/SKILL.md",
-        "quote": "- `readonly`: `false` (agent mode)."
-      },
-      {
-        "type": "test",
-        "path": "test/parity-runtime-readonly.test.ts",
-        "name": "a readonly child keeps exactly the four read tools and drops every extension tool"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-skills.test.ts",
-        "name": "the why skill allows a scoped-ask skip and one investigator per category of a multi-category MCP"
-      }
+      { "type": "quote", "path": "skills/why/SKILL.md", "quote": "It strips MCP access, which disables MCP-backed investigators entirely." },
+      { "type": "quote", "path": "skills/reflect/SKILL.md", "quote": "Readonly strips MCPs." },
+      { "type": "quote", "path": "skills/why/SKILL.md", "quote": "- `readonly`: `false` (agent mode)." },
+      { "type": "test", "path": "test/parity-runtime-readonly.test.ts", "name": "a readonly child keeps exactly the four read tools and drops every extension tool" },
+      { "type": "test", "path": "test/parity-generator-skills.test.ts", "name": "the why skill allows a scoped-ask skip and one investigator per category of a multi-category MCP" }
     ]
   },
   {
@@ -1356,26 +639,10 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "src/personas.ts",
-        "quote": "['Comment Sicko', comment],"
-      },
-      {
-        "type": "quote",
-        "path": "skills/no-comments/SKILL.md",
-        "quote": "Spawn `Task` with `subagent_type: \"Comment Sicko\"` and `readonly: true`."
-      },
-      {
-        "type": "source",
-        "path": "upstream/agents/comment-sicko.md",
-        "quote": "I never write application code."
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped"
-      }
+      { "type": "quote", "path": "src/personas.ts", "quote": "['Comment Sicko', comment]," },
+      { "type": "quote", "path": "skills/no-comments/SKILL.md", "quote": "Spawn `Task` with `subagent_type: \"Comment Sicko\"` and `readonly: true`." },
+      { "type": "source", "path": "upstream/agents/comment-sicko.md", "quote": "I never write application code." },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped" }
     ]
   },
   {
@@ -1386,21 +653,9 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "src/host.ts",
-        "quote": "Omit Task model for it, because a skill default slug is a Reference catalog name and not a Pi model id."
-      },
-      {
-        "type": "quote",
-        "path": "src/models.ts",
-        "quote": "if (request === undefined || isAlias(request)) {"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-runtime-host.test.ts",
-        "name": "every role without a configured line resolves to the parent model on a fresh install"
-      }
+      { "type": "quote", "path": "src/host.ts", "quote": "Omit Task model for it, because a skill default slug is a Reference catalog name and not a Pi model id." },
+      { "type": "quote", "path": "src/models.ts", "quote": "if (request === undefined || isAlias(request)) {" },
+      { "type": "test", "path": "test/parity-runtime-host.test.ts", "name": "every role without a configured line resolves to the parent model on a fresh install" }
     ]
   },
   {
@@ -1411,26 +666,10 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "src/host.ts",
-        "quote": "orch takes --store or ORCH_STORE, so export ORCH_STORE="
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/orchestrate.md",
-        "quote": "because `orch` fails without one"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI rejects invalid arguments with exit 1 a group command without a subcommand requires a store, then fails with a valid-command message and help"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI default store ORCH_STORE beats the default and --store beats ORCH_STORE"
-      }
+      { "type": "quote", "path": "src/host.ts", "quote": "orch takes --store or ORCH_STORE, so export ORCH_STORE=" },
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/orchestrate.md", "quote": "because `orch` fails without one" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/orch-cli.test.ts", "name": "orch CLI rejects invalid arguments with exit 1 a group command without a subcommand requires a store, then fails with a valid-command message and help" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/orch-cli.test.ts", "name": "orch CLI default store ORCH_STORE beats the default and --store beats ORCH_STORE" }
     ]
   },
   {
@@ -1441,16 +680,8 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/orch/orch.ts",
-        "quote": "'discover the PR stack (gt when installed, otherwise gh) and set the frontier'"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-frontier.test.ts",
-        "name": "orch frontier set through the CLI without gt seeds frontier.json from gh and prints the compact line"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/scripts/orch/orch.ts", "quote": "\"discover the PR stack (gt when installed, otherwise gh) and set the frontier\"" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/orch-frontier.test.ts", "name": "orch frontier set through the CLI without gt seeds frontier.json from gh and prints the compact line" }
     ]
   },
   {
@@ -1461,26 +692,10 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/babysit.md",
-        "quote": "In `check` mode pass `--status-only`."
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/babysit.md",
-        "quote": "Queued mode never emits `READY`."
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-policy.test.ts",
-        "name": "runQueued waits with reason merge-queue for a blocker-free frontier, never emits READY, and ends in TIMEOUT 5"
-      },
-      {
-        "type": "test",
-        "path": "skills/poteto-mode/scripts/watch-pr/cli.test.ts",
-        "name": "main bypasses the queue machine for queued-stack status-only"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/babysit.md", "quote": "In `check` mode pass `--status-only`." },
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/babysit.md", "quote": "Queued mode never emits `READY`." },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-policy.test.ts", "name": "runQueued waits with reason merge-queue for a blocker-free frontier, never emits READY, and ends in TIMEOUT 5" },
+      { "type": "test", "runner": "bun", "path": "skills/poteto-mode/scripts/watch-pr/cli.test.ts", "name": "main bypasses the queue machine for queued-stack status-only" }
     ]
   },
   {
@@ -1491,16 +706,8 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/watch-pr/policy.ts",
-        "quote": "): number => Math.min(Math.max(interval, 60) * 2 ** (failures - 1), 300);"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-policy.test.ts",
-        "name": "runSimple retries with backoff 60 120 240 300 seconds and the fifth consecutive failure is terminal exit 7"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/scripts/watch-pr/policy.ts", "quote": "): number => Math.min(Math.max(interval, 60) * 2 ** (failures - 1), 300);" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-policy.test.ts", "name": "runSimple retries with backoff 60 120 240 300 seconds and the fifth consecutive failure is terminal exit 7" }
     ]
   },
   {
@@ -1511,16 +718,8 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/watch-pr/tsconfig.json",
-        "quote": "\"include\": [\"../**/*.ts\", \"../**/*.tsx\", \"../**/*.mts\", \"../**/*.cts\"]"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-typecheck.test.ts",
-        "name": "the helper typecheck script passes strict tsc over watch-pr including its four ts-expect-error assertions"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/scripts/watch-pr/tsconfig.json", "quote": "\"include\": [\"*.ts\"]" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-typecheck.test.ts", "name": "the helper typecheck script passes strict tsc over watch-pr including its four ts-expect-error assertions" }
     ]
   },
   {
@@ -1531,16 +730,8 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/bootstrap.ts",
-        "quote": "const result = await spawnForwarding("
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-bootstrap.test.ts",
-        "name": "launcher exit 7 with a bootstrap-failed BLOCKER and an untouched bun.lock when the frozen install fails"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/scripts/bootstrap.ts", "quote": "const result = await spawnForwarding(" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-bootstrap.test.ts", "name": "launcher exit 7 with a bootstrap-failed BLOCKER and an untouched bun.lock when the frozen install fails" }
     ]
   },
   {
@@ -1551,31 +742,11 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "if (/[\\u2013\\u2014]/.test(prose)) fail(n, 'long dash');"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "if (/[\\u2018\\u2019\\u201c\\u201d]/.test(prose)) fail(n, 'curly quote');"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "if (/: \\S/.test(prose)) fail(n, 'mid-sentence colon');"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/check-plan.test.ts",
-        "name": "check-plan.mjs failures flags a long dash outside a fence"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/check-plan.test.ts",
-        "name": "check-plan.mjs prose rules and fences a second colon after a leading label is still flagged"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/scripts/check-plan.mjs", "quote": "if (/[\\u2013\\u2014]/.test(prose)) fail(n, \"long dash\");" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/check-plan.mjs", "quote": "if (/[\\u2018\\u2019\\u201c\\u201d]/.test(prose)) fail(n, \"curly quote\");" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/check-plan.mjs", "quote": "if (/: \\S/.test(prose)) fail(n, \"mid-sentence colon\");" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/check-plan.test.ts", "name": "check-plan.mjs failures flags a long dash outside a fence" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/check-plan.test.ts", "name": "check-plan.mjs prose rules and fences a second colon after a leading label is still flagged" }
     ]
   },
   {
@@ -1585,16 +756,8 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/eval.md",
-        "quote": "No `eval`, `test`, `judge`, `experiment`, `rubric`, `score`, `compare`, `benchmark`, `candidate`, or `arena` in any directory, file, or prompt the candidate sees."
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-playbooks.test.ts",
-        "name": "eval overrides arena output paths so no blinded name contains a forbidden word"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/eval.md", "quote": "No `eval`, `test`, `judge`, `experiment`, `rubric`, `score`, `compare`, `benchmark`, `candidate`, or `arena` in any directory, file, or prompt the candidate sees." },
+      { "type": "test", "path": "test/parity-generator-playbooks.test.ts", "name": "eval overrides arena output paths so no blinded name contains a forbidden word" }
     ]
   },
   {
@@ -1604,21 +767,9 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "src/host.ts",
-        "quote": "Do not glob or mine the entire storage directory. Discovery completeness is unknown."
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "transcript consumers read the Pi session store, not Reference agent-transcripts"
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "host contract names the workspace session directory the transcript skills read"
-      }
+      { "type": "quote", "path": "src/host.ts", "quote": "Do not glob or mine the entire storage directory. Discovery completeness is unknown." },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "transcript consumers read the Pi session store, not Reference agent-transcripts" },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "host contract names the workspace session directory the transcript skills read" }
     ]
   },
   {
@@ -1628,16 +779,8 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/feature.md",
-        "quote": "Mandatory: no skip-with-reason escape, and Laziness Protocol does not override it"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-skills.test.ts",
-        "name": "architect forces one alternative re-run before arena may ship a converged consensus"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/feature.md", "quote": "Mandatory: no skip-with-reason escape, and Laziness Protocol does not override it" },
+      { "type": "test", "path": "test/parity-generator-skills.test.ts", "name": "architect forces one alternative re-run before arena may ship a converged consensus" }
     ]
   },
   {
@@ -1647,11 +790,7 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/prototype.md",
-        "quote": "The one playbook where the Laziness Protocol's \"smallest change\" and the verification bar invert."
-      }
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/prototype.md", "quote": "The one playbook where the Laziness Protocol's \"smallest change\" and the verification bar invert." }
     ]
   },
   {
@@ -1662,21 +801,9 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "README.md",
-        "quote": "The package does not register Benny's operational skills as public commands."
-      },
-      {
-        "type": "test",
-        "path": "test/benny.test.ts",
-        "name": "a fresh Pi process discovers all shared dependencies from the target project and no operational Benny skills"
-      },
-      {
-        "type": "test",
-        "path": "test/benny.test.ts",
-        "name": "a missing parent causes no Slack or tracker writes"
-      }
+      { "type": "quote", "path": "README.md", "quote": "The package does not register Benny's operational skills as public commands." },
+      { "type": "test", "path": "test/benny.test.ts", "name": "a fresh Pi process discovers all shared dependencies from the target project and no operational Benny skills" },
+      { "type": "test", "path": "test/benny.test.ts", "name": "a missing parent causes no Slack or tracker writes" }
     ],
     "note": "Slack is the external service the ported pack talks to; live Slack credentials do not exist here, and the ported behavior is the native routine adapter."
   },
@@ -1687,21 +814,9 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "README.md",
-        "quote": "An unavailable name fails with available choices."
-      },
-      {
-        "type": "quote",
-        "path": "skills/setup-pstack/SKILL.md",
-        "quote": "Never write a real slug you have not confirmed is available."
-      },
-      {
-        "type": "test",
-        "path": "test/models.test.ts",
-        "name": "setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles"
-      }
+      { "type": "quote", "path": "README.md", "quote": "An unavailable name fails with available choices." },
+      { "type": "quote", "path": "skills/setup-pstack/SKILL.md", "quote": "Never write a real slug you have not confirmed is available." },
+      { "type": "test", "path": "test/models.test.ts", "name": "setup confirms before writing all roles, preserves duplicate aliases, and drops retired roles" }
     ]
   },
   {
@@ -1711,16 +826,8 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "poteto-mode routes all 23 documented playbooks and 24 principles"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-flags.test.ts",
-        "name": "all 24 principle skills load as disabled and none reaches the model-visible skill list"
-      }
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "poteto-mode routes all 23 documented playbooks and 24 principles" },
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "all 24 principle skills load as disabled and none reaches the model-visible skill list" }
     ]
   },
   {
@@ -1731,61 +838,11 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/orch/orch.ts",
-        "quote": "leaf(program, 'init', 'initialize the store')"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/orch/orch.ts",
-        "quote": "leaf(program, 'status', 'render status.md and print a summary')"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/orch/orch.ts",
-        "quote": ".command('standing')"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line unit add prints a compact line"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line unit set prints a compact line"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line ledger record prints a compact line"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line gate park prints a compact line"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line gate resolve prints a compact line"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line standing add prints a compact line"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line inbox push prints unit, status, and the pointer filename"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI compact output prints exactly the documented lines init prints the absolute store"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/scripts/orch/orch.ts", "quote": "leaf(program, \"init\", \"initialize the store\")" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/orch/orch.ts", "quote": "leaf(program, \"status\", \"render status.md and print a summary\")" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/orch/orch.ts", "quote": ".command(\"standing\")" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/orch-cli.test.ts", "name": "orch CLI write commands print one compact line unit add, unit set, ledger record, gate park, gate resolve, inbox push, and standing add each print a single line" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/orch-cli.test.ts", "name": "orch CLI compact output prints exactly the documented lines init prints the absolute store" }
     ]
   },
   {
@@ -1796,21 +853,9 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/orch/orch.ts",
-        "quote": "import { ensureDependenciesInstalled } from '../bootstrap.ts';"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/watch-pr/watch-pr",
-        "quote": "import { ensureDependenciesInstalled } from \"../bootstrap.ts\";"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-bootstrap.test.ts",
-        "name": "bootstrap returns without reinstalling when the manifest, commander, and a matching key are present"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/scripts/orch/orch.ts", "quote": "import { ensureDependenciesInstalled } from \"../bootstrap.ts\";" },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/watch-pr/watch-pr", "quote": "import { ensureDependenciesInstalled } from \"../bootstrap.ts\";" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-bootstrap.test.ts", "name": "bootstrap returns without reinstalling when the manifest, commander, and a matching key are present" }
     ]
   },
   {
@@ -1820,21 +865,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/scripts/package.json",
-        "quote": "\"test\": \"vitest run\""
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/orch-typecheck.test.ts",
-        "name": "orch and bootstrap type-check under tsc --noEmit --strict with the helper compiler options"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-policy.test.ts",
-        "name": "runSimple retries with backoff 60 120 240 300 seconds and the fifth consecutive failure is terminal exit 7"
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/scripts/package.json", "quote": "\"test\": \"bun test orch watch-pr\"" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/orch-typecheck.test.ts", "name": "orch and bootstrap type-check under tsc --noEmit --strict with the helper compiler options" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-policy.test.ts", "name": "runSimple retries with backoff 60 120 240 300 seconds and the fifth consecutive failure is terminal exit 7" }
     ],
     "note": "The upstream measurement is history; the port reruns the helper suite through bun and typecheck through tsc."
   },
@@ -1845,21 +878,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "commit",
-        "rev": "6605d7a",
-        "subject": "per-role model configuration"
-      },
-      {
-        "type": "commit",
-        "rev": "70b2dc8",
-        "subject": "default to Opus 5.5 and Grok 4.7"
-      },
-      {
-        "type": "quote",
-        "path": "CHANGELOG.md",
-        "quote": "Revisions follow the pinned upstream pstack version, then `-pi.N` for this package's own releases."
-      }
+      { "type": "commit", "rev": "6605d7a", "subject": "per-role model configuration" },
+      { "type": "commit", "rev": "70b2dc8", "subject": "default to Opus 5.5 and Grok 4.7" },
+      { "type": "quote", "path": "CHANGELOG.md", "quote": "Revisions follow the pinned upstream pstack version, then `-pi.N` for this package's own releases." }
     ],
     "note": "The version path is preserved from the plugin repo history into the pinned package version."
   },
@@ -1870,19 +891,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source-file",
-        "path": "upstream/skills/show-me-your-work/scripts/log.sh"
-      },
-      {
-        "type": "file",
-        "path": "skills/show-me-your-work/scripts/log.sh"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/log.test.ts",
-        "name": "log.sh rows creates a missing log directory"
-      }
+      { "type": "source-file", "path": "upstream/skills/show-me-your-work/scripts/log.sh" },
+      { "type": "file", "path": "skills/show-me-your-work/scripts/log.sh" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/log.test.ts", "name": "log.sh rows creates a missing log directory" }
     ]
   },
   {
@@ -1892,41 +903,13 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "src/personas.ts",
-        "quote": "['generalPurpose', { files: [] }],"
-      },
-      {
-        "type": "quote",
-        "path": "skills/how/SKILL.md",
-        "quote": "- `subagent_type`: `generalPurpose`"
-      },
-      {
-        "type": "quote",
-        "path": "skills/why/SKILL.md",
-        "quote": "- `subagent_type`: `generalPurpose`"
-      },
-      {
-        "type": "quote",
-        "path": "skills/interrogate/SKILL.md",
-        "quote": "- `subagent_type`: `generalPurpose`"
-      },
-      {
-        "type": "quote",
-        "path": "skills/reflect/SKILL.md",
-        "quote": "`subagent_type: generalPurpose`"
-      },
-      {
-        "type": "quote",
-        "path": "skills/swarm/SKILL.md",
-        "quote": "Spawn all N workers in one message with `subagent_type: generalPurpose`"
-      },
-      {
-        "type": "test",
-        "path": "test/dependency-mappings.test.ts",
-        "name": "dependency mappings close documented host gaps without changing source snapshots"
-      }
+      { "type": "quote", "path": "src/personas.ts", "quote": "['generalPurpose', { files: [] }]," },
+      { "type": "quote", "path": "skills/how/SKILL.md", "quote": "- `subagent_type`: `generalPurpose`" },
+      { "type": "quote", "path": "skills/why/SKILL.md", "quote": "- `subagent_type`: `generalPurpose`" },
+      { "type": "quote", "path": "skills/interrogate/SKILL.md", "quote": "- `subagent_type`: `generalPurpose`" },
+      { "type": "quote", "path": "skills/reflect/SKILL.md", "quote": "`subagent_type: generalPurpose`" },
+      { "type": "quote", "path": "skills/swarm/SKILL.md", "quote": "Spawn all N workers in one message with `subagent_type: generalPurpose`" },
+      { "type": "test", "path": "test/dependency-mappings.test.ts", "name": "dependency mappings close documented host gaps without changing source snapshots" }
     ]
   },
   {
@@ -1936,26 +919,10 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/README.md",
-        "quote": "a read-only comment reviewer available as `subagent_type: \"Comment Sicko\"`"
-      },
-      {
-        "type": "quote",
-        "path": "skills/no-comments/SKILL.md",
-        "quote": "Spawn `Task` with `subagent_type: \"Comment Sicko\"` and `readonly: true`."
-      },
-      {
-        "type": "quote",
-        "path": "src/personas.ts",
-        "quote": "const comment = { files: ['upstream/agents/comment-sicko.md'] };"
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped"
-      }
+      { "type": "source", "path": "upstream/README.md", "quote": "a read-only comment reviewer available as `subagent_type: \"Comment Sicko\"`" },
+      { "type": "quote", "path": "skills/no-comments/SKILL.md", "quote": "Spawn `Task` with `subagent_type: \"Comment Sicko\"` and `readonly: true`." },
+      { "type": "quote", "path": "src/personas.ts", "quote": "const comment = { files: ['upstream/agents/comment-sicko.md'] };" },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped" }
     ]
   },
   {
@@ -1965,16 +932,8 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/SKILL.md",
-        "quote": "Pi has no built-in babysit or autopilot skill, so this playbook is the only route."
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-playbooks.test.ts",
-        "name": "the router and babysit playbook name no built-in babysit skill that Pi does not ship"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "Pi has no built-in babysit or autopilot skill, so this playbook is the only route." },
+      { "type": "test", "path": "test/parity-generator-playbooks.test.ts", "name": "the router and babysit playbook name no built-in babysit skill that Pi does not ship" }
     ]
   },
   {
@@ -1984,16 +943,8 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "src/host.ts",
-        "quote": "`/loop is a Pi prompt template for the local loop skill at "
-      },
-      {
-        "type": "test",
-        "path": "test/research-parity.test.ts",
-        "name": "local /loop ships as a Pi skill and template that the host contract names"
-      }
+      { "type": "quote", "path": "src/host.ts", "quote": "`/loop is a Pi prompt template for the local loop skill at " },
+      { "type": "test", "path": "test/research-parity.test.ts", "name": "local /loop ships as a Pi skill and template that the host contract names" }
     ]
   },
   {
@@ -2004,21 +955,9 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "src/state.ts",
-        "quote": "description: 'Set sticky Poteto mode when the user requests it or opts out. Persists on the active session branch.',"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-runtime-mode.test.ts",
-        "name": "the injected mode section begins with the upstream reminder and the reminder is gone after off"
-      },
-      {
-        "type": "test",
-        "path": "test/first-action-rule.test.ts",
-        "name": "an Anthropic model in poteto mode is told to read the playbook and open a todolist first"
-      }
+      { "type": "quote", "path": "src/state.ts", "quote": "description: 'Set sticky Poteto mode when the user requests it or opts out. Persists on the active session branch.'," },
+      { "type": "test", "path": "test/parity-runtime-mode.test.ts", "name": "the injected mode section begins with the upstream reminder and the reminder is gone after off" },
+      { "type": "test", "path": "test/first-action-rule.test.ts", "name": "an Anthropic model in poteto mode is told to read the playbook and open a todolist first" }
     ]
   },
   {
@@ -2028,21 +967,9 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/SKILL.md",
-        "quote": "name: poteto-mode"
-      },
-      {
-        "type": "quote",
-        "path": "skills/make-bot-ui/SKILL.md",
-        "quote": "name: make-bot-ui"
-      },
-      {
-        "type": "test",
-        "path": "test/skills-parity.test.ts",
-        "name": "skills loader: all 71 skills discover cleanly with valid metadata and frontmatter"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/SKILL.md", "quote": "name: poteto-mode" },
+      { "type": "quote", "path": "skills/make-bot-ui/SKILL.md", "quote": "name: make-bot-ui" },
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "skills loader: all 71 skills discover cleanly with valid metadata and frontmatter" }
     ]
   },
   {
@@ -2052,16 +979,8 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "commit",
-        "rev": "73f8be4",
-        "subject": "disable model invocation for five skills"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-flags.test.ts",
-        "name": "every generated skill keeps its upstream model-invocation flag"
-      }
+      { "type": "commit", "rev": "73f8be4", "subject": "disable model invocation for five skills" },
+      { "type": "test", "path": "test/parity-generator-flags.test.ts", "name": "every generated skill keeps its upstream model-invocation flag" }
     ],
     "note": "Only the commit subject is evidence; the port pins the resulting disable-model-invocation behavior."
   },
@@ -2072,16 +991,8 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/playbooks/babysit.md",
-        "quote": "Pi has no built-in babysit or autopilot skill, so this playbook is the only route for these requests."
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-playbooks.test.ts",
-        "name": "the router and babysit playbook name no built-in babysit skill that Pi does not ship"
-      }
+      { "type": "quote", "path": "skills/poteto-mode/playbooks/babysit.md", "quote": "Pi has no built-in babysit or autopilot skill, so this playbook is the only route for these requests." },
+      { "type": "test", "path": "test/parity-generator-playbooks.test.ts", "name": "the router and babysit playbook name no built-in babysit skill that Pi does not ship" }
     ]
   },
   {
@@ -2092,21 +1003,9 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "src/host.ts",
-        "quote": "Orchestrate state lives in orchestrate/<project-slug>/ under"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-runtime-host.test.ts",
-        "name": "host contract names the agent store, its orchestrate and docs directories, and the ORCH_STORE export"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-playbooks.test.ts",
-        "name": "orchestrate names the agent store, the ORCH_STORE export, and the orch writers that own each file"
-      }
+      { "type": "quote", "path": "src/host.ts", "quote": "Orchestrate state lives in orchestrate/<project-slug>/ under" },
+      { "type": "test", "path": "test/parity-runtime-host.test.ts", "name": "host contract names the agent store, its orchestrate and docs directories, and the ORCH_STORE export" },
+      { "type": "test", "path": "test/parity-generator-playbooks.test.ts", "name": "orchestrate names the agent store, the ORCH_STORE export, and the orch writers that own each file" }
     ]
   },
   {
@@ -2116,19 +1015,9 @@
     "kind": "fact",
     "verdict": "external",
     "checks": [
-      {
-        "type": "file",
-        "path": "skills/why/references/sources/linear.md"
-      },
-      {
-        "type": "file",
-        "path": "skills/why/references/sources/databricks.md"
-      },
-      {
-        "type": "test",
-        "path": "test/parity-package-docs.test.ts",
-        "name": "the guide index links each of the ten shipped chapters"
-      }
+      { "type": "file", "path": "skills/why/references/sources/linear.md" },
+      { "type": "file", "path": "skills/why/references/sources/databricks.md" },
+      { "type": "test", "path": "test/parity-package-docs.test.ts", "name": "the guide index links each of the ten shipped chapters" }
     ],
     "note": "External: Linear, Notion, Slack, Datadog, Sentry, and Databricks are live third-party services with no credentials on this machine; the port ships their source playbooks under skills/why/references/sources/ and the ten guide chapters."
   },
@@ -2139,21 +1028,9 @@
     "kind": "behavior",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "skills/reflect/SKILL.md",
-        "quote": "File Backlog items to GitHub issues through `gh` after the same approval as the Accepted edits, because filing is an external write."
-      },
-      {
-        "type": "quote",
-        "path": "skills/reflect/SKILL.md",
-        "quote": "When no tracker is configured, list the Backlog items in the summary unfiled."
-      },
-      {
-        "type": "test",
-        "path": "test/parity-generator-skills.test.ts",
-        "name": "reflect reads only the named transcript and files Backlog items after approval"
-      }
+      { "type": "quote", "path": "skills/reflect/SKILL.md", "quote": "File Backlog items to GitHub issues through `gh` after the same approval as the Accepted edits, because filing is an external write." },
+      { "type": "quote", "path": "skills/reflect/SKILL.md", "quote": "When no tracker is configured, list the Backlog items in the summary unfiled." },
+      { "type": "test", "path": "test/parity-generator-skills.test.ts", "name": "reflect reads only the named transcript and files Backlog items after approval" }
     ]
   },
   {
@@ -2163,26 +1040,10 @@
     "kind": "defect",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/scripts/bootstrap.ts",
-        "quote": "[process.execPath, 'install', '--frozen-lockfile'],"
-      },
-      {
-        "type": "quote",
-        "path": "skills/poteto-mode/scripts/bootstrap.ts",
-        "quote": "const installLockPath = join(scriptsDirectory, '.poteto-mode-tools-install.lock');"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-bootstrap.test.ts",
-        "name": "bootstrap waits while another process holds the install lock and installs once it is released"
-      },
-      {
-        "type": "test",
-        "path": "test/helpers/watch-pr-bootstrap.test.ts",
-        "name": "two launchers started together on a fresh install both succeed and leave one valid key and no lock"
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/scripts/bootstrap.ts", "quote": "[process.execPath, \"install\", \"--frozen-lockfile\"]," },
+      { "type": "quote", "path": "skills/poteto-mode/scripts/bootstrap.ts", "quote": "const installLockPath = join(scriptsDirectory, \".poteto-mode-tools-install.lock\");" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-bootstrap.test.ts", "name": "bootstrap waits while another process holds the install lock and installs once it is released" },
+      { "type": "test", "runner": "bun", "path": "test/helpers/watch-pr-bootstrap.test.ts", "name": "two launchers started together on a fresh install both succeed and leave one valid key and no lock" }
     ],
     "note": "Resolved: bootstrap creates a pid install lock, waits a bounded five minutes, reclaims a stale lock, and the helper suite covers the wait and two-launcher race."
   },
@@ -2194,21 +1055,9 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "quote",
-        "path": "scripts/benny-domain.mjs",
-        "quote": "const thread = trigger.thread_ts || trigger.message_ts || trigger.ts;"
-      },
-      {
-        "type": "test",
-        "path": "test/benny.test.ts",
-        "name": "a trusted marker in the original thread permits repro"
-      },
-      {
-        "type": "test",
-        "path": "test/benny.test.ts",
-        "name": "a reply outside the original thread cannot start repro"
-      }
+      { "type": "quote", "path": "scripts/benny-domain.mjs", "quote": "const thread = trigger.thread_ts || trigger.message_ts || trigger.ts;" },
+      { "type": "test", "path": "test/benny.test.ts", "name": "a trusted marker in the original thread permits repro" },
+      { "type": "test", "path": "test/benny.test.ts", "name": "a reply outside the original thread cannot start repro" }
     ]
   },
   {
@@ -2218,20 +1067,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source-file",
-        "path": "~/src/experiments/plugins/dyl-stack/README.md"
-      },
-      {
-        "type": "quote",
-        "path": "scripts/resources.mjs",
-        "quote": "{ directory: 'upstream', inventory: 'docs/source-inventory.json' },"
-      },
-      {
-        "type": "test",
-        "path": "test/resources.test.ts",
-        "name": "resource generation is reproducible across both source bundles"
-      }
+      { "type": "source-file", "path": "~/src/experiments/plugins/dyl-stack/README.md" },
+      { "type": "quote", "path": "scripts/resources.mjs", "quote": "{ directory: 'upstream', inventory: 'docs/source-inventory.json' }," },
+      { "type": "test", "path": "test/resources.test.ts", "name": "resource generation is reproducible across both source bundles" }
     ],
     "note": "No other consumer census exists; the package tracks only the two upstream snapshots."
   },
@@ -2243,24 +1081,10 @@
     "runtime": true,
     "verdict": "verified",
     "checks": [
-      {
-        "type": "file",
-        "path": "scripts/source-census.mjs"
-      },
-      {
-        "type": "file",
-        "path": "scripts/check-native-parity.mjs"
-      },
-      {
-        "type": "quote",
-        "path": "scripts/source-census.mjs",
-        "quote": "state: 'UNREVIEWED'"
-      },
-      {
-        "type": "test",
-        "path": "test/source-census.test.ts",
-        "name": "source census retains every nonblank Markdown line as unreviewed evidence, not verification"
-      }
+      { "type": "file", "path": "scripts/source-census.mjs" },
+      { "type": "file", "path": "scripts/check-native-parity.mjs" },
+      { "type": "quote", "path": "scripts/source-census.mjs", "quote": "state: 'UNREVIEWED'" },
+      { "type": "test", "path": "test/source-census.test.ts", "name": "source census retains every nonblank Markdown line as unreviewed evidence, not verification" }
     ]
   },
   {
@@ -2270,20 +1094,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source-file",
-        "path": "upstream/README.md"
-      },
-      {
-        "type": "quote",
-        "path": "scripts/source-census.mjs",
-        "quote": "const roots = process.argv"
-      },
-      {
-        "type": "test",
-        "path": "test/source-census.test.ts",
-        "name": "source census rejects missing inputs rather than reporting an empty verified inventory"
-      }
+      { "type": "source-file", "path": "upstream/README.md" },
+      { "type": "quote", "path": "scripts/source-census.mjs", "quote": "const roots = process.argv" },
+      { "type": "test", "path": "test/source-census.test.ts", "name": "source census rejects missing inputs rather than reporting an empty verified inventory" }
     ]
   },
   {
@@ -2293,15 +1106,8 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source-file",
-        "path": "upstream/README.md"
-      },
-      {
-        "type": "quote",
-        "path": "scripts/check-native-parity.mjs",
-        "quote": "const reference = JSON.parse(await readFile(join(directory, 'reference.json'), 'utf8'));"
-      }
+      { "type": "source-file", "path": "upstream/README.md" },
+      { "type": "quote", "path": "scripts/check-native-parity.mjs", "quote": "const reference = JSON.parse(await readFile(join(directory, 'reference.json'), 'utf8'));" }
     ]
   },
   {
@@ -2311,21 +1117,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source",
-        "path": "upstream/skills/poteto-mode/scripts/package.json",
-        "quote": "\"typecheck\": \"tsc --project watch-pr/tsconfig.json\""
-      },
-      {
-        "type": "quote",
-        "path": "package.json",
-        "quote": "\"typecheck\": \"tsc --noEmit && tsc --noEmit -p test/helpers\""
-      },
-      {
-        "type": "quote",
-        "path": "package.json",
-        "quote": "\"test:helpers\": \"vitest run test/helpers\""
-      }
+      { "type": "source", "path": "upstream/skills/poteto-mode/scripts/package.json", "quote": "\"typecheck\": \"tsc --project watch-pr/tsconfig.json --noEmit --strict\"" },
+      { "type": "quote", "path": "package.json", "quote": "\"typecheck\": \"tsc --noEmit && tsc --noEmit -p test/helpers\"" },
+      { "type": "quote", "path": "package.json", "quote": "\"test:helpers\": \"bun test --preload ./test/helpers/leak-preload.ts test/helpers\"" }
     ]
   },
   {
@@ -2335,20 +1129,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "source-file",
-        "path": "upstream/README.md"
-      },
-      {
-        "type": "quote",
-        "path": "scripts/resources.mjs",
-        "quote": "if (!entry.source.startsWith('upstream-team-kit/') && sha(original) !== entry.sha256) throw new Error(`Upstream hash mismatch: ${entry.source}`);"
-      },
-      {
-        "type": "test",
-        "path": "test/skills-parity.test.ts",
-        "name": "resource map: exactly 212 generated resources are verified with matching hashes"
-      }
+      { "type": "source-file", "path": "upstream/README.md" },
+      { "type": "quote", "path": "scripts/resources.mjs", "quote": "if (sha(original) !== entry.sha256) throw new Error(`Upstream hash mismatch: ${entry.source}`);" },
+      { "type": "test", "path": "test/skills-parity.test.ts", "name": "resource map: exactly 211 generated resources are verified with matching hashes" }
     ]
   },
   {
@@ -2358,21 +1141,9 @@
     "kind": "fact",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "commit",
-        "rev": "be6bcd1",
-        "subject": "bump to 0.15.5"
-      },
-      {
-        "type": "commit",
-        "rev": "773258b",
-        "subject": "bump to 0.15.4"
-      },
-      {
-        "type": "quote",
-        "path": "CHANGELOG.md",
-        "quote": "Revisions follow the pinned upstream pstack version, then `-pi.N` for this package's own releases."
-      }
+      { "type": "commit", "rev": "be6bcd1", "subject": "bump to 0.15.5" },
+      { "type": "commit", "rev": "773258b", "subject": "bump to 0.15.4" },
+      { "type": "quote", "path": "CHANGELOG.md", "quote": "Revisions follow the pinned upstream pstack version, then `-pi.N` for this package's own releases." }
     ]
   },
   {
@@ -2382,14 +1153,8 @@
     "kind": "index",
     "verdict": "verified",
     "checks": [
-      {
-        "type": "file",
-        "path": "scripts/source-census.mjs"
-      },
-      {
-        "type": "file",
-        "path": "scripts/check-native-parity.mjs"
-      }
+      { "type": "file", "path": "scripts/source-census.mjs" },
+      { "type": "file", "path": "scripts/check-native-parity.mjs" }
     ],
     "note": "The raw explorer reports and lead-findings.md live outside the package; the maintained equivalents are the vendored reference plus scripts/source-census.mjs and scripts/check-native-parity.mjs."
   }

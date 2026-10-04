@@ -70,6 +70,12 @@ test('README names make-bot-ui and its routine adapter', async () => {
   expect(readme).toContain('RoutinePrepare');
 });
 
+test('README identifies the authoritative generated-resource inventory', async () => {
+  const readme = await read('README.md');
+  expect(readme).toContain('`skills/` and `prompts/` are generated from both snapshots.');
+  expect(readme).toContain('[The resource map](docs/resource-map.json) lists every generated file and transformation.');
+});
+
 test('README links the Pi guide', async () => {
   const readme = await read('README.md');
   expect(readme).toContain('[pstack guide](docs/guide/README.md)');
@@ -113,6 +119,16 @@ test('the guide links all twenty-three playbooks', async () => {
   const files = (await readdir(join(root, 'skills/poteto-mode/playbooks'))).filter((name) => name.endsWith('.md'));
   const unlinked = files.filter((file) => !joined.includes(`skills/poteto-mode/playbooks/${file}`));
   expect(unlinked.join('\n')).toBe('');
+});
+
+test('the guide includes all twenty-four current-source principles', async () => {
+  const principles = await read('docs/guide/08-principles.md');
+  const index = await read('docs/guide/README.md');
+  expect(principles).toContain('pstack ships 24 principles');
+  expect(principles).toContain('## The 24, briefly');
+  expect([...principles.matchAll(/^- \[[^\]]+\]\(\.\.\/\.\.\/skills\/principle-/gm)]).toHaveLength(24);
+  expect(principles).toContain('[Explain the Number](../../skills/principle-explain-the-number/SKILL.md) names what limits a measured number and rules out that it measured something else, before anyone trusts or reports it.');
+  expect(index).toContain('The 24 names that redirect an agent mid-task.');
 });
 
 test('the guide mentions make-bot-ui', async () => {

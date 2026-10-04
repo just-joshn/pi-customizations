@@ -6,8 +6,6 @@ Above all, be ambitious about code structure. Do not merely identify local clean
 
 ## Core Prompt
 
-Source: the Core Prompt block below is a copy of the Core Prompt block in the team-kit `thermo-nuclear-code-quality-review` skill. Keep the two in sync.
-
 Start from this baseline:
 
 > Perform a deep code quality audit of the current branch's changes.

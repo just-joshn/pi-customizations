@@ -72,10 +72,6 @@ export function installFakeBin(rules: readonly FakeRule[]): FakeBin {
   return { dir, calls };
 }
 
-export function emptyBin(): string {
-  return scratchDir('watch-pr-empty-');
-}
-
 export function fakeEnv(bin: FakeBin, extra: Record<string, string> = {}): Record<string, string> {
   return { PATH: `${bin.dir}:${process.env['PATH'] ?? ''}`, FAKE_BIN_DIR: bin.dir, ...extra };
 }

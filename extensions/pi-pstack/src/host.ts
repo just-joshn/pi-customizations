@@ -8,9 +8,8 @@ import { childStorageDir } from './subagents/agent-storage.ts';
 export const referenceToolNames =
   'Upstream prose names Reference tools. Read is the read tool, Shell is bash, Grep is grep, and Glob is find. A /skill:name or /poteto-mode invocation appears in the transcript as a <skill name="..."> block in the user message, not as a read call.';
 
-const noOverride = 'No override. Every role without a line runs on the parent model (inherit-parent). Omit Task model for it, because a skill default slug is a Reference catalog name and not a Pi model id.';
-const roleLines =
-  'Role lines: "trail reviewer" is the show-me-your-work cross-model reviewer, "figure-it-out judge" is the figure-it-out judge, and "recall miners" are the recall fan-out subagents. The trail reviewer and the judge must run on a different model family from the work they review.';
+const noOverride =
+  "No override. Roles without a line keep their skill defaults. Resolve each default to an available Pi model ID. Apply the skill's fallback policy and report any model change. An omitted Task model inherits the parent; it does not select a workflow role default.";
 const webTools =
   "Reference WebSearch and WebFetch have no built-in Pi tool. Prefer a web search tool that another extension registers in the active tool list. Otherwise use bash: curl -sL --max-time 20 -A 'Mozilla/5.0' 'https://www.bing.com/search?q=<url-encoded query>' searches, and curl -sL --max-time 20 <url> fetches a page. Result links in the search HTML are redirects whose u= parameter is the target URL in base64 after a two-character a1 prefix.";
 const imageTool =
@@ -39,7 +38,6 @@ export function hostInstructions(root: string, ctx: ExtensionContext, rule: stri
     `Reference snapshots live at ${join(root, 'upstream')} and ${join(root, 'upstream-team-kit')}.`,
     '/poteto-mode, /setup-pstack, /pstack, and /goal are extension commands. Every other workflow name, including the team-kit skills, is a prompt template that reads the matching SKILL.md.',
     `Model role overrides live at ${modelConfigPath()}, the Pi location of ~/.upstream/rules/pstack-models.mdc. A project rule at ${projectModelConfigPath(ctx.cwd)} overrides the user rule for the roles it names when the file exists. The active rule follows:\n${rule || noOverride}`,
-    roleLines,
     `Pi session storage directory: ${manager.getSessionDir()}. The storage directory may contain other workspaces. For workspace history, call pstack_context({ history: true }) and use only its matching transcript paths. Do not glob or mine the entire storage directory. Discovery completeness is unknown. Task child transcripts owned by this parent session: ${childTranscripts}. Transcript-reading skills must distinguish storage location from workspace scope. workflow-from-chats reads this history through pstack_context.`,
     `/loop is a Pi prompt template for the local loop skill at ${join(root, 'host/skills/loop/SKILL.md')}. When a playbook arms a /loop tick, follow that skill with BackgroundShell.`,
     'SubscribeTimer runs fixed-delay or cron subscriptions in an explicitly named durable Pi root. ListSubscriptions reads that root and Unsubscribe cancels and drains a subscription. Timer roots continue after this UI closes. Their transcripts are separate from this active session. No timer starts merely because pstack loads.',

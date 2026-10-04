@@ -293,12 +293,15 @@ function analyzeNativeSource(source, path) {
   return found;
 }
 
-async function collectTestFiles(directory) {
+async function collectTestFiles(directory, base) {
+  const preserved = ['pi-pstack/upstream/', 'pi-pstack/upstream-team-kit/', 'pi-pstack/skills/'];
+  const local = `${relative(base, directory).replaceAll('\\', '/')}/`;
+  if (preserved.some((prefix) => local.startsWith(prefix))) return [];
   const files = [];
   for (const child of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, child.name);
     if (child.isDirectory()) {
-      if (!skipDirectories.has(child.name)) files.push(...(await collectTestFiles(path)));
+      if (!skipDirectories.has(child.name)) files.push(...(await collectTestFiles(path, base)));
     } else if (/\.(test|spec)\.[cm]?[jt]sx?$/.test(child.name)) {
       const text = await readFile(path, 'utf8');
       files.push({ path, text });
@@ -310,7 +313,7 @@ async function collectTestFiles(directory) {
 export async function testFiles(base = root) {
   const entries = await readdir(base, { withFileTypes: true });
   const directories = entries.filter((entry) => entry.isDirectory() && !skipDirectories.has(entry.name));
-  const files = (await Promise.all(directories.map((entry) => collectTestFiles(join(base, entry.name))))).flat();
+  const files = (await Promise.all(directories.map((entry) => collectTestFiles(join(base, entry.name), base)))).flat();
   return files.sort((left, right) => left.path.localeCompare(right.path));
 }
 

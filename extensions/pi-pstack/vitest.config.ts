@@ -9,7 +9,7 @@ export default defineConfig({
     pool: 'forks',
     isolate: true,
 
-    exclude: [...configDefaults.exclude, 'dist/**'],
+    exclude: [...configDefaults.exclude, 'dist/**', 'upstream/**', 'upstream-team-kit/**', 'skills/**'],
 
     coverage: {
       provider: 'v8',

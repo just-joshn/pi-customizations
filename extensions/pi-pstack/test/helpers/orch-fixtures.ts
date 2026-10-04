@@ -27,7 +27,7 @@ export function baseEnv(extra: Record<string, string | undefined> = {}): Record<
 }
 
 export function runCli(args: readonly string[], options: { env?: Record<string, string | undefined>; cwd?: string } = {}): Run {
-  const result = spawnSync(bun, [script, ...args], { env: options.env ?? baseEnv(), cwd: options.cwd, encoding: 'utf8', timeout: 15_000 });
+  const result = spawnSync(bun, [script, ...args], { env: options.env ?? baseEnv(), cwd: options.cwd, encoding: 'utf8' });
   if (result.error) throw result.error;
   if (result.status === null) throw new Error(`orch terminated by signal ${result.signal}`);
   return { code: result.status, stdout: result.stdout, stderr: result.stderr };
@@ -78,22 +78,6 @@ esac
 `;
   await writeFile(join(bin, 'gt'), body);
   await chmod(join(bin, 'gt'), 0o755);
-  return bin;
-}
-
-export async function installGh(directory: string, body: string): Promise<string> {
-  const bin = join(directory, 'gh-bin');
-  await mkdir(bin, { recursive: true });
-  await writeFile(join(bin, 'gh'), `#!/bin/sh\n${body}\n`);
-  await chmod(join(bin, 'gh'), 0o755);
-  return bin;
-}
-
-export async function installGit(directory: string): Promise<string> {
-  const bin = join(directory, 'git-bin');
-  await mkdir(bin, { recursive: true });
-  await writeFile(join(bin, 'git'), `#!/bin/sh\nexec ${execFileSync('which', ['git'], { encoding: 'utf8' }).trim()} "$@"\n`);
-  await chmod(join(bin, 'git'), 0o755);
   return bin;
 }
 

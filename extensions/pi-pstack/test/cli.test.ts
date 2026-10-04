@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
@@ -27,9 +27,9 @@ const packedPaths = (directory: string, archive: string) =>
   );
 
 const declaredPaths = () =>
-  execFileSync('git', ['ls-files', '--', ...JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).files], { cwd: root, encoding: 'utf8' })
+  execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '--', ...JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).files], { cwd: root, encoding: 'utf8' })
     .split('\n')
-    .filter(Boolean);
+    .filter((path) => path && existsSync(join(root, path)));
 
 test('the journey verifier rejects an unknown selector instead of passing without checks', () => {
   expect(() => run('verify-journeys.mjs', [root, 'not-a-journey'])).toThrow('Unknown journey selector: not-a-journey');
@@ -46,7 +46,7 @@ test(
 test(
   'the shipped resource checker verifies both source inventories and generated resources',
   () => {
-    expect(run('resources.mjs')).toBe('Verified 190 upstream files and 212 generated resources.\n');
+    expect(run('resources.mjs')).toBe('Verified 190 upstream files and 211 generated resources.\n');
   },
   verificationDeadlineMs,
 );
@@ -59,7 +59,7 @@ test(
     expect(output).toMatch(/watch-pr\/render.ts/);
     const linesCoverage = Number(output.match(/lines: \d+\/\d+ \(([\d.]+)%\)/)?.[1]);
     expect(linesCoverage).toBeGreaterThanOrEqual(80);
-    expect(run('resources.mjs')).toBe('Verified 190 upstream files and 212 generated resources.\n');
+    expect(run('resources.mjs')).toBe('Verified 190 upstream files and 211 generated resources.\n');
   },
   verificationDeadlineMs,
 );

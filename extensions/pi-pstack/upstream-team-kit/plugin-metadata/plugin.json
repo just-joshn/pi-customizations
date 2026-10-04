@@ -10,9 +10,23 @@
   "repository": "the upstream plugins repository",
   "license": "MIT",
   "logo": "assets/avatar.png",
-  "keywords": ["team-kit", "ci", "code-review", "shipping", "testing", "verification", "local-automation"],
+  "keywords": [
+    "team-kit",
+    "ci",
+    "code-review",
+    "shipping",
+    "testing",
+    "verification",
+    "local-automation"
+  ],
   "category": "developer-tools",
-  "tags": ["internal-workflows", "quality", "delivery", "review", "automation"],
+  "tags": [
+    "internal-workflows",
+    "quality",
+    "delivery",
+    "review",
+    "automation"
+  ],
   "skills": "./skills/",
   "agents": "./agents/",
   "rules": "./rules/"

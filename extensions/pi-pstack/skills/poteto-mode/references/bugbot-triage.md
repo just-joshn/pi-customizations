@@ -12,8 +12,6 @@ Classify each Bugbot thread before acting:
 
 When in doubt, ask. Skipping a noisy code-quality comment is cheap. Skipping a real data or security bug is not.
 
-Under a full-autonomy grant, decide an `ask` finding outside security, privacy, auth, billing, data, and migrations, and log the decision with its reason in the decision trail. Park an `ask` finding inside those categories as an operator gate and keep working the rest.
-
 ## Learned pattern format
 
 Add future patterns in this shape:

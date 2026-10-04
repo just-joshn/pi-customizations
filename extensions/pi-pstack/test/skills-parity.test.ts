@@ -88,10 +88,10 @@ test('generated resources: repository-relative references resolve in this checko
   expect(targets).toEqual([]);
 });
 
-test('resource map: exactly 212 generated resources are verified with matching hashes', async () => {
+test('resource map: exactly 211 generated resources are verified with matching hashes', async () => {
   const mapPath = join(packageRoot, 'docs/resource-map.json');
   const resources = JSON.parse(await readFile(mapPath, 'utf8')) as { destination: string; sha256: string }[];
-  expect(resources.length).toBe(212);
+  expect(resources.length).toBe(211);
 
   for (const entry of resources) {
     const full = join(packageRoot, entry.destination);
@@ -287,9 +287,7 @@ test('subagent personas resolve their mapped instruction files', async () => {
   for (const { type, files } of mappedSubagents) {
     const persona = await readPersona(type);
     const contents = await Promise.all(files.map((file) => readFile(join(packageRoot, file), 'utf8')));
-    const expected = contents.join('\n').replace('Resume an existing `poteto-agent` for the conversation rather than spawning a sibling. ', '');
-    if (type === 'poteto-agent') expect(persona.instructions.endsWith(`\n${expected}`)).toBe(true);
-    else expect(persona.instructions).toBe(expected);
+    expect(persona.instructions).toBe(contents.join('\n'));
   }
 
   await expect(readPersona('unsupported-role')).rejects.toThrow(/Unsupported agent unsupported-role/);

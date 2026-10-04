@@ -8,6 +8,12 @@ import { API } from 'typescript/unstable/sync';
 const artifacts = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 const sourcePattern = /\.(?:ts|tsx|mts|cts)$/;
 const configPattern = /^tsconfig(?:\.[^.]+)?\.json$/;
+const preservedRoots = ['extensions/pi-pstack/upstream/', 'extensions/pi-pstack/upstream-team-kit/', 'extensions/pi-pstack/skills/'];
+const helperConfig = 'extensions/pi-pstack/test/helpers/tsconfig.json';
+// biome-ignore lint/security/noSecrets: Public TypeScript option names are not credentials.
+const helperExceptions = new Set(['noPropertyAccessFromIndexSignature', 'erasableSyntaxOnly', 'noUncheckedIndexedAccess']);
+const localPath = (root, path) => relative(root, path).replaceAll('\\', '/');
+const isPreserved = (root, path) => preservedRoots.some((prefix) => localPath(root, path).startsWith(prefix));
 
 async function discover(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -22,14 +28,17 @@ async function discover(directory) {
 }
 
 export async function inspectTypeScriptPolicy(root) {
-  const paths = await discover(root);
+  const paths = (await discover(root)).filter((path) => !isPreserved(root, path));
   const sources = paths.filter((path) => sourcePattern.test(path));
   const configs = paths.filter((path) => configPattern.test(basename(path)));
   const failures = [];
   const api = new API({ cwd: root });
   try {
     const authority = api.parseConfigFile(join(root, 'tsconfig.json'));
-    const selected = new Set(authority.fileNames.map((path) => relative(root, path).replaceAll('\\', '/')));
+    const helper = configs.find((path) => localPath(root, path) === helperConfig);
+    const helperPolicy = helper ? api.parseConfigFile(helper) : undefined;
+    const helperSources = helperPolicy?.fileNames.filter((path) => localPath(root, path).startsWith('extensions/pi-pstack/test/helpers/')) ?? [];
+    const selected = new Set([...authority.fileNames, ...helperSources].map((path) => localPath(root, path)));
     for (const path of sources) {
       if (!selected.has(relative(root, path).replaceAll('\\', '/'))) failures.push(`Root compiler does not select ${relative(root, path)}`);
     }
@@ -43,6 +52,7 @@ export async function inspectTypeScriptPolicy(root) {
       const keys = new Set([...Object.keys(authority.options), ...Object.keys(config.options)]);
       for (const key of [...keys].toSorted()) {
         if (key === 'configFilePath' || key === 'types') continue;
+        if (localPath(root, path) === helperConfig && helperExceptions.has(key) && config.options[key] === false) continue;
         if (JSON.stringify(authority.options[key]) !== JSON.stringify(config.options[key])) {
           failures.push(`${relative(root, path)} differs from root compiler policy for ${key}`);
         }

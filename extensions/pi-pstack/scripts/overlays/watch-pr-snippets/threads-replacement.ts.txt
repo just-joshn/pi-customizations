@@ -1,1 +1,0 @@
-    return parseReviewThreads(await allReviewThreadPages(context));

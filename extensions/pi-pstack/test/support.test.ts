@@ -128,7 +128,7 @@ test('hostInstructions formats defaults without overrides or transcript file', a
     sessionManager: { getSessionDir: () => '/sessions', getSessionFile: () => undefined },
   } as unknown as ExtensionContext;
   const output = hostInstructions('/root', ctx, '', '');
-  expect(output).toContain('No override. Every role without a line runs on the parent model (inherit-parent).');
+  expect(output).toContain('No override. Roles without a line keep their skill defaults.');
   expect(output).toContain('This session transcript is in memory.');
 });
 

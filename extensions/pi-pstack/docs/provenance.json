@@ -1,14 +1,14 @@
 {
   "pstack": {
     "repository": "the upstream plugins repository",
-    "commit": "9511e60321f7e533a187d62854a3d53a53752874",
+    "commit": "e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a",
     "path": "pstack",
-    "version": "0.15.7",
+    "version": "0.15.9",
     "normalization": "Cursor becomes Reference; cursor-team-kit becomes team-kit; .cursor becomes .upstream; .cursor-plugin is stored as plugin-metadata."
   },
   "pi": {
     "repository": "https://github.com/earendil-works/pi",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "parity": "partial",
   "inventory": "source-inventory.json",

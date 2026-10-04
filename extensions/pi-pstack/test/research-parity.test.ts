@@ -100,9 +100,9 @@ test('poteto-mode routes all 23 documented playbooks and 24 principles', async (
   for (const name of principles) expect(mode.includes(`**principle-${name}**`)).toBe(true);
 });
 
-test('setup retains the documented roles alongside native review roles', async () => {
+test('setup keeps the documented 17 roles and four budget labels', async () => {
   const setup = await read('skills/setup-pstack/SKILL.md');
-  expect(roleNames).toEqual([...roles, 'trail reviewer', 'figure-it-out judge', 'recall miners']);
+  expect(roleNames).toEqual(roles);
   for (const role of roles) expect(setup).toContain(`\n${role}: `);
 });
 

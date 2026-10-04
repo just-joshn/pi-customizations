@@ -128,7 +128,7 @@ test('setup confirms before writing all roles, preserves duplicate aliases, and 
     expect(result).toMatch(/arena runners: auto, auto, inherit-parent/);
     expect(result).not.toMatch(/how critics/);
     const lines = result.split('\n').filter((line) => line && !line.startsWith('#') && !line.startsWith('---') && !line.startsWith('description:') && !line.startsWith('alwaysApply:'));
-    expect(lines.length).toBe(20);
+    expect(lines.length).toBe(17);
     expect(notices().join('\n')).toMatch(/feature, refactoring[\s\S]*interrogate reviewers[\s\S]*Dropped retired roles:\nhow critics: retired/);
     expect(result).toMatch(/:medium/);
     expect(await setupModels(context({ hasUI: true, ui: ui({ select: async () => undefined }) }))).toBe(false);

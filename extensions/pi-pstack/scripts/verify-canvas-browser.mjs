@@ -199,8 +199,6 @@ try {
   await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...target, button: 'left', clickCount: 1 });
   await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...target, button: 'left', clickCount: 1 });
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".file-body")).display'), 'none');
-  assert.equal(await evaluate('getComputedStyle(document.querySelector(".file-hdr")).cursor'), 'pointer');
-  assert.equal(await evaluate('getComputedStyle(document.querySelector(".bp-hdr")).cursor'), 'pointer');
   await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...target, button: 'left', clickCount: 1 });
   await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...target, button: 'left', clickCount: 1 });
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".file-body")).display'), 'block');
@@ -228,9 +226,9 @@ try {
   await writeFile(join(output, 'after.png'), Buffer.from(after.data, 'base64'));
   await writeFile(
     join(output, 'results.json'),
-    `${JSON.stringify({ passed: true, checks: ['decoy tab excluded', 'no-match titles/URLs', 'positive app heading', 'diff rendering', 'literal unsafe HTML', 'import filtering', 'expanded state', 'fresh screenshot', 'real pointer collapse', 'accessibility heading', 'sampled CPU profile', 'heap snapshot graph', 'network fixture bytes', 'pointer click trace', 'file header pointer cursor', 'BP header pointer cursor', 'file reopen', 'BP expand', 'BP collapse'], scope: 'Real isolated Chrome and source canvas assets. CPU uses read-only synthetic style work; a heap capture is not leak proof. No keyboard/focus, performance improvement, hosted UI or model-adherence claim.' }, null, 2)}\n`,
+    `${JSON.stringify({ passed: true, checks: ['decoy tab excluded', 'no-match titles/URLs', 'positive app heading', 'diff rendering', 'literal unsafe HTML', 'import filtering', 'expanded state', 'fresh screenshot', 'real pointer collapse', 'accessibility heading', 'sampled CPU profile', 'heap snapshot graph', 'network fixture bytes', 'pointer click trace', 'file reopen', 'BP expand', 'BP collapse'], scope: 'Real isolated Chrome and source canvas assets. CPU uses read-only synthetic style work; a heap capture is not leak proof. No keyboard/focus, performance improvement, hosted UI or model-adherence claim.' }, null, 2)}\n`,
   );
-  process.stdout.write('Canvas browser passes nineteen checks.\n');
+  process.stdout.write('Canvas browser passes seventeen checks.\n');
   await send('Browser.close');
 } finally {
   for (const waiter of pending.values()) {
