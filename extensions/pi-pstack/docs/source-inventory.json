@@ -2,7 +2,7 @@
   {
     "path": "plugin-metadata/plugin.json",
     "bytes": 721,
-    "sha256": "038e68152891d94476aab330f326620e22dbfbaf6aa48f70d2d21b8e9125d451"
+    "sha256": "c17868a6a39a8f7c109fdedf5df7ebcc4d8cde127a10f40c663a8c46adc4087e"
   },
   {
     "path": ".gitignore",
@@ -181,13 +181,13 @@
   },
   {
     "path": "skills/architect/SKILL.md",
-    "bytes": 5540,
-    "sha256": "691cd39f52c7b613866e6baf9ea0b05451ffa21a6a9b4102f166418b89178fde"
+    "bytes": 5675,
+    "sha256": "741901140ee382ebf93263a7ed03c6ee3719e578416d81afcd195876fa16c496"
   },
   {
     "path": "skills/architect/references/design-red-flags.md",
-    "bytes": 1944,
-    "sha256": "905066f9bbac81c573c2b325be47751d2c0f9325e0a0772bd4384e82dafe9336"
+    "bytes": 3009,
+    "sha256": "d0e639e4cc588ec865f930d3a4111faad60987ae36925917e319d7ceca7c69ce"
   },
   {
     "path": "skills/architect/references/rationale-template.md",
@@ -346,8 +346,8 @@
   },
   {
     "path": "skills/poteto-mode/playbooks/hillclimb.md",
-    "bytes": 4222,
-    "sha256": "eaa8584c50eb6ca592b68329b366b0c9954c2817272675839909df8008ebb91b"
+    "bytes": 4403,
+    "sha256": "244f289898fe67a458065e90fe8217c916c5acf61cdee8975ade3f9831a12e91"
   },
   {
     "path": "skills/poteto-mode/playbooks/investigation.md",
@@ -376,8 +376,8 @@
   },
   {
     "path": "skills/poteto-mode/playbooks/perf-issue.md",
-    "bytes": 3155,
-    "sha256": "eaa538252e762331d46c6a48728c2187a3485c8ec86c99264b36ab5af6f7fb42"
+    "bytes": 1446,
+    "sha256": "2b88ad0f880e4d4d755ac19fe52414d6631d6baa816d060f53cf0a7429d7e14a"
   },
   {
     "path": "skills/poteto-mode/playbooks/prototype.md",
@@ -476,13 +476,13 @@
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/github.test.ts",
-    "bytes": 9062,
-    "sha256": "6eac3cd488c57f3b818ec2b739e98cfdb442d7c242f7c5233e2351374007b3cb"
+    "bytes": 9059,
+    "sha256": "0cbce011050522938523e36bb42a260e92b812dcd2076930fa681672ad316b24"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/github.ts",
-    "bytes": 24084,
-    "sha256": "273c0960a2f998620c59c280b865addae7ace78134da6716dee50383f30d3df4"
+    "bytes": 24072,
+    "sha256": "d1bbbafbe8e2c703c84da2029de7f2c4011412512f8cf65a42100f46bcb92c8a"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/policy.test.ts",
@@ -726,8 +726,8 @@
   },
   {
     "path": "skills/why/SKILL.md",
-    "bytes": 10369,
-    "sha256": "084cbb93e057b7d64c291c4b005b573d79c679859f484754a38d5ed1f27e2f94"
+    "bytes": 10366,
+    "sha256": "b932c8c7a9344711e2b7692524c3d3124444e26b4167480aa96986b912e0ae0f"
   },
   {
     "path": "skills/why/references/epistemics.md",
@@ -791,8 +791,8 @@
   },
   {
     "path": "skills/benchmark-checklist/SKILL.md",
-    "bytes": 5393,
-    "sha256": "47f0c952d4bba67305ce838f2af5fb88f721497568e4d2d40e1d95af1d97b1af"
+    "bytes": 5409,
+    "sha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8"
   },
   {
     "path": "skills/correct/SKILL.md",

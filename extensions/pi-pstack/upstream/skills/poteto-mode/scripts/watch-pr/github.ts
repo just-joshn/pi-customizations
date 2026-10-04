@@ -336,7 +336,7 @@ function isBugbot(comment: T.ReviewComment | null): boolean {
   const body = comment.body.toLowerCase();
   return (
     author.includes("bugbot") ||
-    (author === "reference" &&
+    (author === "cursor" &&
       [
         "bugbot",
         "cursor_automation_id",
@@ -562,11 +562,11 @@ export class GhGitHubReader implements T.GitHubReader {
     const page = record(contexts.pageInfo, "contexts.pageInfo");
     if (typeof page.hasNextPage !== "boolean")
       missing("contexts.pageInfo.hasNextPage", page.hasNextPage);
-    const reference = optionalString(
+    const cursor = optionalString(
       page.endCursor,
       "contexts.pageInfo.endCursor"
     );
-    return { checks, endCursor: page.hasNextPage && reference ? reference : null };
+    return { checks, endCursor: page.hasNextPage && cursor ? cursor : null };
   }
   async reviewThreads(
     context: T.PrContext

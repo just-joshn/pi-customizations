@@ -38,7 +38,7 @@ that absolute path.
 ## 2. Install
 
 ```bash
-curl -fsSL https://downloads.the vendor site/origin/install.sh | sh
+curl -fsSL https://downloads.cursor.com/origin/install.sh | sh
 ```
 
 The installer verifies the download's checksum and symlinks

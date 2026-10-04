@@ -4,12 +4,6 @@ const placement = 'Restore the upstream cloud default placement and name the loc
 
 export default [
   [
-    /^skills\/swarm\/SKILL\.md$/,
-    'and respawn that worker once. After a second miss, record a gap.',
-    'and respawn that worker once. After a second miss, record a gap. Also drop a result that does not cover its named slice with evidence, and respawn that worker once. After a second miss, record a gap.',
-    'Reject an exploration result that answers off its slice or reports nothing evidenced.',
-  ],
-  [
     /^skills\/poteto-mode\/playbooks\/shipping\.md$/,
     'ignoring `READY` until `mergedAt` is non-null or `state` is `MERGED`',
     "ignoring the watcher's non-terminal `QUEUE`, `STATUS`, `WAITING`, and `ADVANCE` wakes (queued mode never emits `READY`) until `mergedAt` is non-null or `state` is `MERGED`",

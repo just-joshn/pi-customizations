@@ -7,6 +7,16 @@ import { expect, test } from 'vitest';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const read = (path: string) => readFile(join(root, path), 'utf8');
 
+test('the origin skill installs from the official HTTPS URL', async () => {
+  const origin = await read('host/skills/origin/SKILL.md');
+  expect(origin).toContain('curl -fsSL https://downloads.cursor.com/origin/install.sh | sh');
+});
+
+test('the origin skill does not substitute a branding placeholder into the installer URL', async () => {
+  const origin = await read('host/skills/origin/SKILL.md');
+  expect(origin).not.toContain('https://downloads.the vendor site/origin/install.sh');
+});
+
 test('the goal skill is not model-invocable', async () => {
   const goal = await read('host/skills/goal/SKILL.md');
   expect(goal).toMatch(/^---\nname: goal\ndescription: .+\ndisable-model-invocation: true\n---\n/);

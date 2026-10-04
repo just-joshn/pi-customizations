@@ -286,9 +286,7 @@ test('subagent personas resolve their mapped instruction files', async () => {
   for (const { type, files } of mappedSubagents) {
     const persona = await readPersona(type);
     const contents = await Promise.all(files.map((file) => readFile(join(packageRoot, file), 'utf8')));
-    const expected = contents.join('\n').replace('Resume an existing `poteto-agent` for the conversation rather than spawning a sibling. ', '');
-    if (type === 'poteto-agent') expect(persona.instructions.endsWith(`\n${expected}`)).toBe(true);
-    else expect(persona.instructions).toBe(expected);
+    expect(persona.instructions).toBe(contents.join('\n'));
   }
 
   await expect(readPersona('unsupported-role')).rejects.toThrow(/Unsupported agent unsupported-role/);

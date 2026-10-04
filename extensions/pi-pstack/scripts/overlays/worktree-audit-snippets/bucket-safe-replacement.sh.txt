@@ -1,1 +1,0 @@
-elif [ "$merged" = YES ] || [ "${pr#*/}" = MERGED ]; then bucket=safe

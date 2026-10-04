@@ -2,6 +2,20 @@
 
 Revisions follow the pinned upstream pstack version, then `-pi.N` for this package's own releases.
 
+## 0.15.9-pi.1
+
+- Tracks upstream pstack commit `e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a` with the existing source-name normalization.
+- Replaces the perf-issue strategy families with seven ordered performance mantras. The playbook stops when an earlier mantra meets the target.
+- Makes hillclimb borrow the mantra order without the perf-issue stop rule, and updates the benchmark checklist cross-reference.
+- Screens architecture candidates for agent contributors and adds design flags for split ownership, duplicate task paths, importable internals, and hand-synced lists.
+- Removes the obsolete Poteto persona resume override so workers receive the authoritative fresh-worker policy without conflicting instructions.
+- Adds a `--current` source verification option that rejects stale pins and uncommitted authoritative pstack changes.
+- Removes downstream workflow-policy overrides and restores source-defined investigation coverage, review gates, model roles, plan data, and orchestration rules.
+- Restores the authoritative helper behavior instead of adding generic bootstrap locks, GitHub pagination, synthetic zero-check readiness, Graphite alternatives, and cleanup classifications.
+- Preserves the external GitHub account `cursor`, pagination terminology, and editor caret terminology during normalization. Reflection now recommends supported Pi context and skill routing instead of `paths:` triggers.
+- Protects decision-log evidence against spreadsheet text qualifiers while retaining the source's first-character formula guard and append semantics.
+- Preserves 161 pstack source files, 190 total source files, 211 generated resources, 71 discoverable skills, and 69 prompt templates.
+
 ## 0.15.7-pi.1
 
 - Tracks upstream pstack commit `9511e60321f7e533a187d62854a3d53a53752874` with documented source-name normalization.

@@ -1,6 +1,6 @@
 {
   "name": "pi-pstack",
-  "version": "0.15.7-pi.1",
+  "version": "0.15.9-pi.1",
   "description": "pstack workflows for pi with preserved upstream sources and explicit host compatibility limits",
   "type": "module",
   "license": "MIT",

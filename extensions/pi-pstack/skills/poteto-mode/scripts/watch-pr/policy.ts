@@ -1,4 +1,4 @@
-import { WatcherQueryError, isNoChecksReading, resolveChecks } from "./github.ts";
+import { WatcherQueryError, resolveChecks } from "./github.ts";
 import type * as T from "./types.ts";
 import { nonEmpty } from "./types.ts";
 export function assessGitHubMerge(args: {
@@ -64,12 +64,7 @@ export async function readSnapshot(args: {
   if (facts.state === "CLOSED")
     return { kind: "closed", context: args.context, facts };
   const threads = await args.reader.reviewThreads(args.context);
-  const checks = await resolveChecks(
-    args.reader,
-    args.context,
-    facts.mergeStateStatus !== "BLOCKED" &&
-      facts.mergeStateStatus !== "UNKNOWN"
-  );
+  const checks = await resolveChecks(args.reader, args.context);
   const failed = nonEmpty(
     checks.checks.filter(
       (check): check is T.FailedCheck => check.kind === "failed"
@@ -415,27 +410,6 @@ async function pollUntilTerminal<V>(args: {
     }
   }
 }
-const NO_CHECKS_READINGS_REQUIRED = 2;
-type Streaks = ReadonlyMap<T.PrNumber, { sha: string | null; count: number }>;
-function nextStreaks(prev: Streaks, rows: readonly T.PrSnapshot[]): Streaks {
-  const next = new Map<T.PrNumber, { sha: string | null; count: number }>();
-  for (const row of rows) {
-    if (row.kind !== "open" || !isNoChecksReading(row.ci.all)) continue;
-    const sha = row.facts.headRefOid;
-    const before = prev.get(row.context.number);
-    const same = before !== undefined && sha !== null && before.sha === sha;
-    next.set(row.context.number, { sha, count: same ? before.count + 1 : 1 });
-  }
-  return next;
-}
-function unconfirmed(rows: readonly T.PrSnapshot[], streaks: Streaks) {
-  for (const row of rows) {
-    const streak = streaks.get(row.context.number);
-    if (streak !== undefined && (streak.count < NO_CHECKS_READINGS_REQUIRED || streak.sha === null))
-      return { context: row.context, readings: streak.count };
-  }
-  return null;
-}
 export async function runSimple(args: {
   readonly dependencies: RunDependencies;
   readonly contexts: T.NonEmpty<T.PrContext>;
@@ -444,7 +418,6 @@ export async function runSimple(args: {
   readonly options: T.PollingOptions;
 }): Promise<T.TerminalVerdict> {
   const stamp = verdictFactory(args.dependencies.clock, args.mode);
-  let streaks: Streaks = new Map();
   const step = async (): Promise<StepResult<T.TerminalVerdict>> => {
     const rows: T.PrSnapshot[] = [];
     for (const context of args.contexts)
@@ -487,14 +460,6 @@ export async function runSimple(args: {
         kind: "terminal",
         verdict: blockerVerdict(stamp, decision.blocker),
       };
-    streaks = nextStreaks(streaks, complete);
-    const wait = decision.kind === "waiting" ? null : unconfirmed(complete, streaks);
-    if (wait !== null) {
-      const reason = { kind: "no-checks-unconfirmed", readings: wait.readings, required: NO_CHECKS_READINGS_REQUIRED } as const;
-      args.dependencies.emit(stamp({ kind: "WAITING", terminal: false, frontier: wait.context, reason }));
-      const onDeadline = () => stamp({ kind: "TIMEOUT", terminal: true, exitCode: 5, reason });
-      return { kind: "sleep", seconds: args.options.interval, onDeadline };
-    }
     if (decision.kind === "ready" || decision.kind === "merged")
       return {
         kind: "terminal",
@@ -735,21 +700,6 @@ export function evaluateQueue(
     emit: state.lastWaitKey !== key,
   };
 }
-function queuedTimeout(stamp: VerdictStamp, state: QueueState): T.TimeoutVerdict {
-  const unmerged = state.queue.filter(
-    (context) => state.snapshots.get(context.number)?.kind !== "merged"
-  );
-  return stamp({
-    kind: "TIMEOUT",
-    terminal: true,
-    exitCode: 5,
-    reason: {
-      kind: "queued-stack",
-      frontier: unmerged[0] ?? state.queue[0],
-      unmergedCount: unmerged.length,
-    },
-  });
-}
 export async function runQueued(args: {
   readonly dependencies: RunDependencies;
   readonly contexts: T.NonEmpty<T.PrContext>;
@@ -762,15 +712,6 @@ export async function runQueued(args: {
   );
   const step = async (): Promise<StepResult<T.QueueTerminalVerdict>> => {
     state = planQueue(state, args.dependencies.clock.now());
-    if (
-      state.work !== null &&
-      deadlinePassed(
-        state.startedAt,
-        args.options,
-        args.dependencies.clock.now()
-      )
-    )
-      return { kind: "terminal", verdict: queuedTimeout(stamp, state) };
     if (state.work === null) {
       const complete = evaluateQueue(
         state,
@@ -875,11 +816,7 @@ export async function runQueued(args: {
               reason: evaluation.reason,
             })
           );
-        return {
-          kind: "sleep",
-          seconds: args.options.interval,
-          onDeadline: () => queuedTimeout(stamp, state),
-        };
+        return { kind: "sleep", seconds: args.options.interval };
       default: {
         const exhaustive: never = evaluation;
         return exhaustive;

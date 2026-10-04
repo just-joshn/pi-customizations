@@ -15,8 +15,9 @@ test('Poteto and both Comment Sicko names preserve complete existing prompts', a
   const agent = await readFile(join(root, 'upstream/agents/poteto-agent.md'), 'utf8');
   const mode = await readFile(join(root, 'skills/poteto-mode/SKILL.md'), 'utf8');
   const { instructions } = await readPersona('poteto-agent');
-  expect(instructions.endsWith(`\n${agent.replace('Resume an existing `poteto-agent` for the conversation rather than spawning a sibling. ', '')}\n${mode}`)).toBe(true);
-  expect(instructions.startsWith('Resume rule. ')).toBe(true);
+  expect(instructions).toBe(`${agent}\n${mode}`);
+  expect(instructions).toContain('Spawn a fresh `poteto-agent` for each new task');
+  expect(instructions).not.toContain('Resume rule.');
   const comment = await readFile(join(root, 'upstream/agents/comment-sicko.md'), 'utf8');
   for (const name of ['comment-sicko', 'Comment Sicko']) {
     expect(await readPersona(name)).toEqual({ instructions: comment, defaultModel: undefined });

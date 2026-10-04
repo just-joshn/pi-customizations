@@ -2,11 +2,9 @@
   {
     "source": "upstream/skills/architect/SKILL.md",
     "destination": "skills/architect/SKILL.md",
-    "sha256": "25d68041120903c0088aaa2965c09df844b0e6cc6ee738241fdce3f6ab2b48af",
+    "sha256": "741901140ee382ebf93263a7ed03c6ee3719e578416d81afcd195876fa16c496",
     "executable": false,
-    "transformations": [
-      "Reconcile the architect two-candidate rule with the arena convergence rule."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/architect/SKILL.md",
@@ -20,7 +18,7 @@
   {
     "source": "upstream/skills/architect/references/design-red-flags.md",
     "destination": "skills/architect/references/design-red-flags.md",
-    "sha256": "905066f9bbac81c573c2b325be47751d2c0f9325e0a0772bd4384e82dafe9336",
+    "sha256": "d0e639e4cc588ec865f930d3a4111faad60987ae36925917e319d7ceca7c69ce",
     "executable": false,
     "transformations": []
   },
@@ -146,11 +144,9 @@
   {
     "source": "upstream/skills/figure-it-out/SKILL.md",
     "destination": "skills/figure-it-out/SKILL.md",
-    "sha256": "874780548ec18422701e8b3aa5d4ce1231a92effcb2b73379b89f6d672d11391",
+    "sha256": "0eb9485f0e7d84fee56b5d0f0af0faf4635e3ca87c8cba3970c01293b76ecc19",
     "executable": false,
-    "transformations": [
-      "Wire the figure-it-out judge to its role line."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/figure-it-out/SKILL.md",
@@ -196,12 +192,10 @@
   {
     "source": "upstream/skills/interrogate/SKILL.md",
     "destination": "skills/interrogate/SKILL.md",
-    "sha256": "f8d3c1fe1cb046e2164775e0aa1ebf7f7b567fa2aa3f694f2f9dd1e5212d548b",
+    "sha256": "4aa6b6528ed842163d41672a495f87fb80cdc009c68cc3894e74071a0b6254de",
     "executable": false,
     "transformations": [
-      "Map model rule location to Pi agent configuration.",
-      "Infer and state intent instead of blocking, and never take intent from the code under review.",
-      "Drop the pstack-repository PR step that a package user cannot follow."
+      "Map model rule location to Pi agent configuration."
     ]
   },
   {
@@ -216,11 +210,9 @@
   {
     "source": "upstream/skills/interrogate/references/code-quality-review.md",
     "destination": "skills/interrogate/references/code-quality-review.md",
-    "sha256": "eafb2cda8e6386354cf425212675a122fd5bc4afb7b13baaab9fee5fbd404add",
+    "sha256": "79162fda183eafd40d51661fbb5e151c7ba250f89e506ba17f5bd135dcbd50a8",
     "executable": false,
-    "transformations": [
-      "Attribute the copied Core Prompt block to its source skill."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/interrogate/references/lead-judgment.md",
@@ -265,7 +257,7 @@
   {
     "source": "upstream/skills/make-bot-ui/SKILL.md",
     "destination": "skills/make-bot-ui/SKILL.md",
-    "sha256": "85e2c697285963aa3bc36b702abe1bb3bfbadd130ff28a25c44ce13e1dc6c94f",
+    "sha256": "82fa833cbcbbbf79bf3baf887c907c39f168aa7612cacecd2bab6e5a97bb0b72",
     "executable": false,
     "transformations": [
       "Replace Reference routine panel and secret card with the native reviewed Pi routine adapter at host/adapters/make-bot-ui/SKILL.md."
@@ -283,13 +275,9 @@
   {
     "source": "upstream/skills/no-comments/SKILL.md",
     "destination": "skills/no-comments/SKILL.md",
-    "sha256": "86952c8e3c0e153f1561113806b7f8a8f61658fef461d483a2b6758aa11e605b",
+    "sha256": "5c5b0882297d704c3a9720c52b7a793c68b013eaf717989f0945624efdfe2b05",
     "executable": false,
-    "transformations": [
-      "Enforce the read-only persona with the Task readonly flag, and state that the caller passes the resolved scope.",
-      "Cite the principle that the encoding step applies.",
-      "Keep a durable trail of a declined constraint instead of only the chat report."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/no-comments/SKILL.md",
@@ -303,15 +291,14 @@
   {
     "source": "upstream/skills/poteto-mode/SKILL.md",
     "destination": "skills/poteto-mode/SKILL.md",
-    "sha256": "3fcc8d990b547a153282c5f20980f9f7253389edd31ce6a17e5459f59ec19022",
+    "sha256": "6765f057a932c392906053931c4e2b7503d38006ef12533eef0fe0cb42bbe621",
     "executable": false,
     "transformations": [
       "Normalize skill name to its directory slug for Pi discovery.",
       "Remove Reference-only frontmatter; Pi runtime behavior belongs to the extension.",
       "Replace a Reference-only noun with its Pi equivalent.",
       "Resolve a stale or contradictory upstream guard natively.",
-      "Name the resolved forge for the reply link, since Origin PRs are not on GitHub.",
-      "Route bot UI requests to the bundled make-bot-ui skill."
+      "Name the resolved forge for the reply link, since Origin PRs are not on GitHub."
     ]
   },
   {
@@ -326,32 +313,29 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/autonomous-run.md",
     "destination": "skills/poteto-mode/playbooks/autonomous-run.md",
-    "sha256": "b9f1782080e36f62cb3e69f1bbb1568b117fe5f1c711f00ab2c637182f40a7b0",
+    "sha256": "b22d2124fae7f3bfe647dbad803b1ad632e0c890edcab792cedfe4a9ab0adcb9",
     "executable": false,
     "transformations": [
-      "Replace a Reference-only noun with its Pi equivalent.",
-      "Arm a goal so an autonomous run has a predicate that the goal system checks."
+      "Replace a Reference-only noun with its Pi equivalent."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/autopilot-full.md",
     "destination": "skills/poteto-mode/playbooks/autopilot-full.md",
-    "sha256": "6538ece36e2a3e2605813e2eaca0bd7287fd50a016bd21b7ef9c7d53ee1c1549",
+    "sha256": "2c00f0471aeb403ea27b5540cc27a465a1eb4c2a4f9d57553921b333d71e9b20",
     "executable": false,
     "transformations": [
       "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
       "Name bundled skill files relative to the poteto-mode skill directory or by skill name, since an installed package or another repository has no extensions/pi-pstack tree.",
       "Resolve references from the skill directory the host contract names, not from the playbook file.",
       "Replace a Reference-only noun with its Pi equivalent.",
-      "Require the deslop receipt in the owner report.",
-      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
-      "Define the countersign that the autopilots require but never define."
+      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/autopilot-stack.md",
     "destination": "skills/poteto-mode/playbooks/autopilot-stack.md",
-    "sha256": "563c2f3c9ef4999c04081d306a83b9bec208e46969e79a65f6d00cf080ccb962",
+    "sha256": "45075f6fd4666c78fd1fca9449a3de771ef24c50deebd79c346bc5f3e003b302",
     "executable": false,
     "transformations": [
       "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
@@ -359,7 +343,6 @@
       "Name bundled skill files relative to the poteto-mode skill directory or by skill name, since an installed package or another repository has no extensions/pi-pstack tree.",
       "Resolve references from the skill directory the host contract names, not from the playbook file.",
       "Replace a Reference-only noun with its Pi equivalent.",
-      "Require the deslop receipt in the owner report.",
       "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
       "Define STACK-READY, which the stack playbook uses but never defines."
     ]
@@ -367,14 +350,12 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/babysit.md",
     "destination": "skills/poteto-mode/playbooks/babysit.md",
-    "sha256": "55b99ad1f9bce5c9cf2644550d8ec4c3d17466f18e7efc298e298dd1c7f7cc85",
+    "sha256": "54b802f8e97a8425cfe29c8e6780d4c8e7a045fac8944904e7541ccfb3aaa642",
     "executable": false,
     "transformations": [
       "Resolve references from the skill directory the host contract names, not from the playbook file.",
       "Resolve a stale or contradictory upstream guard natively.",
-      "Exclude prose-pinning contract-test claims from the third-pass dismissal lean.",
       "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
-      "List only unresolved Origin threads.",
       "Reconcile the babysit one-watcher rule with the loop skill heartbeat.",
       "Run the Origin check watch as an event instead of a blocking foreground call."
     ]
@@ -408,12 +389,9 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/hillclimb.md",
     "destination": "skills/poteto-mode/playbooks/hillclimb.md",
-    "sha256": "e2fd70db71b522d08215689a8d902564b573a35cbc73d95990897a4c10e9e0b7",
+    "sha256": "244f289898fe67a458065e90fe8217c916c5acf61cdee8975ade3f9831a12e91",
     "executable": false,
-    "transformations": [
-      "Use the show-me-your-work log name and columns instead of a second schema.",
-      "Use the show-me-your-work log name instead of a second schema."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/investigation.md",
@@ -425,61 +403,49 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/multi-phase-plan.md",
     "destination": "skills/poteto-mode/playbooks/multi-phase-plan.md",
-    "sha256": "4af4518fa6a4f33f39198e255f6dd1931e01cac22b68dcbdf1e116ca1691cb7d",
+    "sha256": "69eda385c6cbece2bb2bdcd960d048755a50c90e6a084cd73cb3376e8f7681a3",
     "executable": false,
     "transformations": [
       "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
       "Name bundled skill files relative to the poteto-mode skill directory or by skill name, since an installed package or another repository has no extensions/pi-pstack tree.",
       "Replace a Reference-only noun with its Pi equivalent.",
       "Name the agent store directory from the host contract and the orch writers that own each store file.",
-      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
-      "Prefer the repository verification skill over the generic recipe.",
-      "Name the command surface a lane restricts input to when only a recipe exists.",
-      "Keep lane screenshots against the control skill cleanup guardrails."
+      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/opening-a-pr.md",
     "destination": "skills/poteto-mode/playbooks/opening-a-pr.md",
-    "sha256": "2eaf335cd11b559384a744f637a5ab5124870c3c602c21a259b6bab8fe85b879",
+    "sha256": "5a26744db43c822d0dac60281992b19e2d0ce3bff96e0e683f64bd2b588401c2",
     "executable": false,
     "transformations": [
-      "Resolve a stale or contradictory upstream guard natively.",
       "Replace a Reference-only noun with its Pi equivalent.",
-      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh.",
-      "Push before an Origin PR create.",
-      "Use the Origin stack flag for a stacked child."
+      "Detect the origin CLI at its installed path, repair it before any gh fallback, and keep an Origin repository off gh."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/orchestrate.md",
     "destination": "skills/poteto-mode/playbooks/orchestrate.md",
-    "sha256": "0d8d7d798d782732a02d309d39bb9162e30acc43c93c2b8bf9d6ca32b535f901",
+    "sha256": "2d6a1960296787ce7e42f18b1cd412462e86104126c5aba575ceaba0040851e9",
     "executable": false,
     "transformations": [
       "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Restore the upstream cloud default placement and name the local fallback and its record.",
       "Replace a Reference-only noun with its Pi equivalent.",
-      "Name the agent store directory from the host contract and the orch writers that own each store file.",
-      "Seed the frontier from fetched refs and forge heads, since a lagging local branch records a stale SHA.",
-      "Make the frontier forge-neutral so a repository without Graphite can run orchestrate.",
-      "Make the single-stacker rule forge-neutral.",
-      "Name the lock recovery for a live holder and a reused pid."
+      "Name the agent store directory from the host contract and the orch writers that own each store file."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/pause-safely.md",
     "destination": "skills/poteto-mode/playbooks/pause-safely.md",
-    "sha256": "40ed73194c9555bea41193fb41c95a9c6fb321325aa519312350187b57ba7490",
+    "sha256": "77968cfe5f4a71a8cd33e0ae8ffcdbd88dd693a212c240457773e6c40c96c21d",
     "executable": false,
-    "transformations": [
-      "Resolve a stale or contradictory upstream guard natively."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/perf-issue.md",
     "destination": "skills/poteto-mode/playbooks/perf-issue.md",
-    "sha256": "eaa538252e762331d46c6a48728c2187a3485c8ec86c99264b36ab5af6f7fb42",
+    "sha256": "2b88ad0f880e4d4d755ac19fe52414d6631d6baa816d060f53cf0a7429d7e14a",
     "executable": false,
     "transformations": []
   },
@@ -507,18 +473,17 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/session-pickup.md",
     "destination": "skills/poteto-mode/playbooks/session-pickup.md",
-    "sha256": "f1fab202cfcdbfb29244b2677b970df4346ff311af9d54b14fa40549453612f8",
+    "sha256": "09cd747f0b3b47d8730748876db6aaae12bcbca5b045241b16d222dc02852276",
     "executable": false,
     "transformations": [
       "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
-      "Replace a Reference-only noun with its Pi equivalent.",
-      "Resolve a stale or contradictory upstream guard natively."
+      "Replace a Reference-only noun with its Pi equivalent."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/shipping.md",
     "destination": "skills/poteto-mode/playbooks/shipping.md",
-    "sha256": "187b3f4b25e6e37a2d334f259257969e23ad6982af79ddc78943c829e244112d",
+    "sha256": "da78cb38165d041ce942e213cd6195d72666846937f6d5911dbbee078ddd9dce",
     "executable": false,
     "transformations": [
       "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
@@ -544,57 +509,42 @@
   {
     "source": "upstream/skills/poteto-mode/playbooks/worktree-cleanup.md",
     "destination": "skills/poteto-mode/playbooks/worktree-cleanup.md",
-    "sha256": "39e3fd6831e4a8408624c852dd45f49820d9e506ecd94f28e41bed1c8aafa484",
+    "sha256": "cb36759a720eaa1ddfa21455bf17d422545573d59a5c9ecb6859a10357830ac9",
     "executable": false,
     "transformations": [
-      "Replace a Reference-only noun with its Pi equivalent.",
-      "Never bucket untracked or ignored work for deletion without the user seeing it.",
-      "Gate irreversible simulator and cache deletion on a listed-size confirmation."
+      "Replace a Reference-only noun with its Pi equivalent."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/references/bugbot-triage.md",
     "destination": "skills/poteto-mode/references/bugbot-triage.md",
-    "sha256": "18d3f53d1eb40be922306596eac50ed70e21104c15a0f82cfe1ec5e624003fbd",
+    "sha256": "f2bc4b5b21a106629a1487007d7ff7fc34063a2f86adb40be6f2bf28bc53ea16",
     "executable": false,
     "transformations": [
       "Resolve playbooks from the skill directory the host contract names, not from the reference file.",
-      "Rewrite long dashes and semicolons in the triage reference as plain sentences.",
-      "State how an ask-class finding resolves under a full-autonomy grant."
+      "Rewrite long dashes and semicolons in the triage reference as plain sentences."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/bootstrap.ts",
     "destination": "skills/poteto-mode/scripts/bootstrap.ts",
-    "sha256": "fe546713c9f655a0cd2941eed60cc1047ae786cb1df2a560472481921c9c056a",
+    "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
     "executable": false,
-    "transformations": [
-      "Import the filesystem and signal helpers the locked, signal-forwarding install needs.",
-      "Serialize the install behind an exclusive lock directory, forward SIGINT and SIGTERM to the install and the re-exec child, and wait for a concurrent install instead of racing it."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/bun.lock",
     "destination": "skills/poteto-mode/scripts/bun.lock",
-    "sha256": "6360445e33d1544db2cec4d8d70e1f025ceff48b72e56931a83e8522324f0faa",
+    "sha256": "1be65bf9173ae2b5a00434cce32fedab7227b309f6d229bfde01382f281b3b5e",
     "executable": false,
-    "transformations": [
-      "Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/check-plan.mjs",
     "destination": "skills/poteto-mode/scripts/check-plan.mjs",
-    "sha256": "3220dbe8eecfa8f64e1355a0c5236f9e8460803ba0d04d93c74b9f39232f0d98",
+    "sha256": "4f9432d9989880b6afc2bdda503d5b12a9d07d357ecf31936b7ab5e83bc80523",
     "executable": true,
-    "transformations": [
-      "Accept any trunk branch in the `git show origin/<trunk>:` marker instead of requiring main.",
-      "Preserve native trunk matching while requiring the upstream hourly loop marker.",
-      "Add fence and leading-label patterns for the prose checks.",
-      "Track the opening fence length instead of a boolean.",
-      "Close a fence only with a marker at least as long as the opener, and allow up to three spaces of indentation.",
-      "Exempt a leading `Label: value` colon from the mid-sentence colon rule."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/orch/orch.test.ts",
@@ -606,40 +556,23 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/orch/orch.ts",
     "destination": "skills/poteto-mode/scripts/orch/orch.ts",
-    "sha256": "9b1d7a5157a564a5118754caab49c311d09a3e93c88c911a7ebeee93746ec8af",
+    "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
     "executable": true,
-    "transformations": [
-      "Import path helpers for the default store location.",
-      "Default the store to the pstack agent store for the workspace when neither --store nor ORCH_STORE is set.",
-      "Document the default store in help.",
-      "The frontier no longer requires Graphite.",
-      "Describe the forge-neutral frontier source.",
-      "Install dependencies only when orch.ts is the entry point so importing it has no side effect."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/orch/store.ts",
     "destination": "skills/poteto-mode/scripts/orch/store.ts",
-    "sha256": "9f5cc61d833912c017d56e35249e80113467410396586ad9ce0e761f3cb817c5",
+    "sha256": "0eae7cf69282e827b1227166f2e32cee3560f2f3e65b3f1f2faf6fb83d3b4c5b",
     "executable": false,
-    "transformations": [
-      "Import spawnSync to detect a missing gt binary.",
-      "Let a writer wait a bounded time for a live lock holder instead of failing at once.",
-      "Serialize stale-lock take-over behind a guard file, retry with backoff, and name the --force recovery for a reused pid.",
-      "Resolve the frontier from gh when gt is not installed, and record the remote PR head instead of a stale local branch.",
-      "Name the frontier source in pin mismatch errors.",
-      "Read the frontier source alongside the rows.",
-      "Pass the frontier source to the pin check."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/package.json",
     "destination": "skills/poteto-mode/scripts/package.json",
-    "sha256": "5c96ec710945183ee7596cf6a106add229b137d84cf49d9c71df73e385a8dc94",
+    "sha256": "06e28d290b1941eb2c6582e213e65923c86b29b0fdd8722fee3d5b4e1a6d1189",
     "executable": false,
-    "transformations": [
-      "Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
@@ -665,31 +598,16 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/github.test.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/github.test.ts",
-    "sha256": "6eac3cd488c57f3b818ec2b739e98cfdb442d7c242f7c5233e2351374007b3cb",
+    "sha256": "0cbce011050522938523e36bb42a260e92b812dcd2076930fa681672ad316b24",
     "executable": false,
     "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/github.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/github.ts",
-    "sha256": "bd8da3aca40e69a319f573a20b0fe998f491e1a14b00e87f0f107054dcfc1dfd",
+    "sha256": "d1bbbafbe8e2c703c84da2029de7f2c4011412512f8cf65a42100f46bcb92c8a",
     "executable": false,
-    "transformations": [
-      "Request pageInfo and accept a reference so review threads can be paged.",
-      "Declare the review thread reference variable.",
-      "Bound every gh and git subprocess with a timeout and report a missing gh as a typed non-retryable failure instead of an uncaught crash.",
-      "Accept the host gh is configured for (GH_HOST) as well as github.com.",
-      "Normalize scp and ssh remotes for any host, then let the host check decide.",
-      "Apply the configured-host rule to origin remotes.",
-      "Apply the configured-host rule to pull request URLs.",
-      "Treat a missing or unrunnable git as no origin so context falls back to gh.",
-      "Read open PRs through a helper that keeps raising the limit until the list is not full.",
-      "Add the open PR paging and review thread paging helpers.",
-      "Fetch every review thread page so an unresolved thread past 100 cannot be hidden.",
-      "Fail closed on a cyclic stack instead of looping forever.",
-      "Let a caller read a confirmed zero-check PR as one skipped placeholder.",
-      "Return the zero-check placeholder only when gh confirms there are no checks."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/policy.test.ts",
@@ -701,30 +619,16 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/policy.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/policy.ts",
-    "sha256": "58aae40a014a3969761776c9494f65777f5503b32db99b5ef9ad08b866d1a4b5",
+    "sha256": "68d240505852cf23c9b2dea463342e9e61243f486b3cc86c735d140f9ee7be49",
     "executable": false,
-    "transformations": [
-      "Read a PR with zero checks as having no required checks unless GitHub reports it blocked or still computing.",
-      "Import the zero-check reading predicate.",
-      "Track consecutive same-head zero-check readings per PR.",
-      "Keep the zero-check streak across polls of one run.",
-      "Fail closed: update the streak, then wait until a zero-check reading persists across two polls at one head SHA.",
-      "Build the queued-stack TIMEOUT verdict in one place.",
-      "Check the queued deadline between sweep reads so a long sweep cannot overshoot --timeout.",
-      "Give the queued waiting sleep a deadline hook like the single and stack runner has."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/render.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/render.ts",
-    "sha256": "abeb80da89ba8d3d65a63ebaca36bf633917b6b0a65096981519a15b119827d9",
+    "sha256": "2b709e86628d5b8fdb61f860e60ababc342b0626c67576305442cf548283a604",
     "executable": false,
-    "transformations": [
-      "Import the zero-check reading predicate.",
-      "Show a zero-check PR as having no checks instead of a passing mark.",
-      "Render the zero-check WAITING reason.",
-      "Render the zero-check TIMEOUT reason."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/tsconfig.json",
@@ -743,37 +647,26 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/types.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/types.ts",
-    "sha256": "7e3d0c2065b4b5e983397122744203f23d9d9f6379d81bd0957aa3aeb253d91b",
+    "sha256": "64ba6221e3bfe61bbb292337d199cdec6309455477280efb060203dba34e0e91",
     "executable": false,
-    "transformations": [
-      "Add non-retryable failure kinds for a missing gh, a failed dependency install, and a cyclic stack so each reaches the exit-7 BLOCKER path.",
-      "Give a zero-check PR that has not yet persisted across polls its own WAITING reason.",
-      "Let the deadline report a zero-check PR that never confirmed."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/watch-pr",
     "destination": "skills/poteto-mode/scripts/watch-pr/watch-pr",
-    "sha256": "3b5db4a9c7a526efc8cb94382036d6b22e94ff503ea9528cae3696e33bf98521",
+    "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4",
     "executable": true,
-    "transformations": [
-      "Render a failed dependency install as the documented exit-7 BLOCKER instead of an uncaught throw."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/worktree-audit.sh",
     "destination": "skills/poteto-mode/scripts/worktree-audit.sh",
-    "sha256": "791973929ee225487d583856d13c4708f2c5cd36673cc24a13b9c6e810989022",
+    "sha256": "35aa22cbbb1fe4c5e2ece992e955e30e2865a58535d49e2c21a4686b698b3688",
     "executable": true,
     "transformations": [
       "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Replace BSD-only stat and date calls with Perl so transcript dates survive GNU or uutils coreutils on PATH.",
-      "Warn on stderr when jq, rg, or perl is missing instead of silently blanking the PR and LAST_CHAT columns.",
-      "Parse worktree paths by stripping the `worktree ` prefix so paths with spaces survive.",
-      "Read each worktree path whole instead of splitting on whitespace.",
-      "Count ignored and every untracked file, and treat any dirty tree as work to hold (upstream reference/plugins#459).",
-      "Bucket scratch worktrees as hold-wip.",
-      "Only merged ancestry or a MERGED PR is safe. A CLOSED unmerged PR needs review."
+      "Warn on stderr when jq, rg, or perl is missing instead of silently blanking the PR and LAST_CHAT columns."
     ]
   },
   {
@@ -1068,10 +961,9 @@
   {
     "source": "upstream/skills/principle-prove-it-works/SKILL.md",
     "destination": "skills/principle-prove-it-works/SKILL.md",
-    "sha256": "f4d7449de421810d6409f72d100378e3070b53d2c3b0e06f199b64b65260d742",
+    "sha256": "5acf90187d43f9f1c4bb367f857be9cb9441229f5718b4dbdc2ed50f49b26e2a",
     "executable": false,
     "transformations": [
-      "Restore the delegation rule in the leaf itself.",
       "Use sentence case for headings, per the prose style rules."
     ]
   },
@@ -1123,10 +1015,9 @@
   {
     "source": "upstream/skills/principle-sequence-verifiable-units/SKILL.md",
     "destination": "skills/principle-sequence-verifiable-units/SKILL.md",
-    "sha256": "09eac2a7550db9b48e5477aea516911f20e4b1f09195cf0e3e9cacf501a25028",
+    "sha256": "2ccbbacc56ace5afdfb8670cef19d7bd009fb2a0033b9a741cbdf2b6baf72187",
     "executable": false,
     "transformations": [
-      "Define green at a declared phase boundary so the two principles agree.",
       "Use sentence case for headings, per the prose style rules."
     ]
   },
@@ -1196,11 +1087,10 @@
   {
     "source": "upstream/skills/recall/SKILL.md",
     "destination": "skills/recall/SKILL.md",
-    "sha256": "fcb60e2f860c91a7cd3b8a4f1e717aeda56475204813d86d6a36d7c1ce31a4ed",
+    "sha256": "31782d3ca8cf9c2e2ce2717912c5481454a518df339f54492e4a21cd22f4ffcc",
     "executable": false,
     "transformations": [
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
-      "Wire the recall miners to their role line."
+      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts."
     ]
   },
   {
@@ -1215,14 +1105,13 @@
   {
     "source": "upstream/skills/reflect/SKILL.md",
     "destination": "skills/reflect/SKILL.md",
-    "sha256": "318438a1fa8ba9c5d67a66a6683c394d8c83ea0dd29716433e715006bb58a021",
+    "sha256": "68ee1cd5ac00988eceef7ee48b43a84fe8c874037f64323e23e0d8f6d32e77fa",
     "executable": false,
     "transformations": [
       "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
       "Replace a Reference-only noun with its Pi equivalent.",
       "Use the exact transcript path the host contract names instead of globbing the shared session directory.",
-      "Verify the named transcript instead of scanning candidates.",
-      "Gate the external Backlog write on approval and name a default tracker."
+      "Verify the named transcript instead of scanning candidates."
     ]
   },
   {
@@ -1255,9 +1144,11 @@
   {
     "source": "upstream/skills/reflect/references/synthesizer.md",
     "destination": "skills/reflect/references/synthesizer.md",
-    "sha256": "2f76c847eb45b182dc6fbcbf7d96c8ee7e2986ecfd9e0d640fec44e3cc5a617c",
+    "sha256": "695fa5c6d68a0167a252460746861252d17b674f693c99bd87018f22cf33a9c2",
     "executable": false,
-    "transformations": []
+    "transformations": [
+      "Map path-shaped guidance to Pi context files and native on-demand skill routing."
+    ]
   },
   {
     "source": "upstream/skills/reflect/references/tooling-reviewer.md",
@@ -1271,12 +1162,10 @@
   {
     "source": "upstream/skills/setup-pstack/SKILL.md",
     "destination": "skills/setup-pstack/SKILL.md",
-    "sha256": "b7fa9b0733a9795e20be055716980af463143cb3fae3ca85191f27dd8fd76806",
+    "sha256": "f6125e52a45841694a9eaa7ee6d576a23619ba476e375bbd7567fa85ae58ce6a",
     "executable": false,
     "transformations": [
       "Preserve ambient setup invocation and route it through the same native validated dialogs as the slash entry points.",
-      "List the three port-added role lines so a re-run preserves them instead of dropping them as retired.",
-      "Keep the setup-pstack role table in step with src/models.ts roleNames.",
       "Map model rule location to Pi agent configuration.",
       "Replace a Reference-only noun with its Pi equivalent."
     ]
@@ -1284,11 +1173,10 @@
   {
     "source": "upstream/skills/show-me-your-work/SKILL.md",
     "destination": "skills/show-me-your-work/SKILL.md",
-    "sha256": "2b1c08f1c9c7d042b895f675c8ebfa8e13d435f9096b8d60c0b022cd0ba06071",
+    "sha256": "45706fe3600c76acf85d0a5b16d2f6dc18ff0eb07c71c8fe3fe6a50fef93cd7a",
     "executable": false,
     "transformations": [
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
-      "Wire the trail reviewer to its role line."
+      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts."
     ]
   },
   {
@@ -1310,22 +1198,20 @@
   {
     "source": "upstream/skills/show-me-your-work/scripts/log.sh",
     "destination": "skills/show-me-your-work/scripts/log.sh",
-    "sha256": "9ec3e9e58c3194bd18877c7cbcfe3580be1681354c8409856ca8b6e60322d029",
+    "sha256": "1795dbadb8a331b3943032a697709a5b8c152823df0f4b8c00f7363e8edc157a",
     "executable": true,
     "transformations": [
-      "Take a mkdir lock around the header test and the append so concurrent first writers write one header.",
-      "Guard on the first non-blank character so leading whitespace cannot hide a formula prefix."
+      "Mandatory spreadsheet text-qualifier protection for attacker-controlled evidence."
     ]
   },
   {
     "source": "upstream/skills/swarm/SKILL.md",
     "destination": "skills/swarm/SKILL.md",
-    "sha256": "94b43b01d449344f87dc2e6535d1d9f1731f1a51f2c009c5adaa6bba8944f507",
+    "sha256": "f5152d6edcd4fe41ac7418707fb2dddebdf8273e0f34894f194778af5a6f92fc",
     "executable": false,
     "transformations": [
       "Map model rule location to Pi agent configuration.",
-      "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
-      "Reject an exploration result that answers off its slice or reports nothing evidenced."
+      "Adapt external dependency instructions to Pi host capabilities and evidence rules."
     ]
   },
   {
@@ -1437,13 +1323,11 @@
   {
     "source": "upstream/skills/why/SKILL.md",
     "destination": "skills/why/SKILL.md",
-    "sha256": "c075e190c3bf1d69e5c7c3e91e4e7813b6f078d59f2b098bb2b6750bb84b450b",
+    "sha256": "d2fd751011884f1b651d3ca2805bbf5f68eae30c70aafd80940e2493948050d5",
     "executable": false,
     "transformations": [
       "Replace a Reference-only noun with its Pi equivalent.",
-      "Add the scoped-ask skip reason.",
-      "Give a narrowed why a valid skip reason to record.",
-      "Cover every category of a multi-category MCP without breaking the one-category-per-investigator rule."
+      "Use available file context without assuming Pi exposes editor cursor metadata."
     ]
   },
   {
@@ -1542,7 +1426,7 @@
   {
     "source": "upstream/skills/benchmark-checklist/SKILL.md",
     "destination": "skills/benchmark-checklist/SKILL.md",
-    "sha256": "47f0c952d4bba67305ce838f2af5fb88f721497568e4d2d40e1d95af1d97b1af",
+    "sha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8",
     "executable": false,
     "transformations": []
   },

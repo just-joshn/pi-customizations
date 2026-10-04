@@ -323,7 +323,7 @@
     "verdict": "verified",
     "checks": [
       { "type": "quote", "path": "src/personas.ts", "quote": "const comment = { files: ['upstream/agents/comment-sicko.md'] };" },
-      { "type": "quote", "path": "src/personas.ts", "quote": "['poteto-agent', { files: ['upstream/agents/poteto-agent.md', 'skills/poteto-mode/SKILL.md'], text: resumeRule, drop: resumeSentence }]," },
+      { "type": "quote", "path": "src/personas.ts", "quote": "['poteto-agent', { files: ['upstream/agents/poteto-agent.md', 'skills/poteto-mode/SKILL.md'] }]," },
       { "type": "test", "path": "test/research-parity.test.ts", "name": "documented agents, team-kit skills, helper scripts, and Benny pack are shipped" }
     ]
   },

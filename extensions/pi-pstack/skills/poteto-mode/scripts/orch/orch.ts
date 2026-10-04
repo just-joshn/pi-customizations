@@ -16,11 +16,8 @@ import {
   type Unit,
   type Verdict,
 } from "./store.ts";
-import { createHash } from "node:crypto";
-import { homedir } from "node:os";
-import { basename, join } from "node:path";
 
-if (import.meta.main) await ensureDependenciesInstalled();
+ensureDependenciesInstalled();
 const {
   Command: CommanderCommand,
   CommanderError,
@@ -203,21 +200,10 @@ function emit<T>(
   io.stdout(rendered.endsWith("\n") ? rendered : `${rendered}\n`);
 }
 
-function defaultStore(): string {
-  const configured = process.env.PI_CODING_AGENT_DIR;
-  const agent = configured
-    ? configured.replace(/^~(?=$|\/)/, homedir())
-    : join(homedir(), ".pi", "agent");
-  const workspace = process.cwd();
-  const project = basename(workspace).replace(/[^\w.-]+/g, "-");
-  const digest = createHash("sha256").update(workspace).digest("hex").slice(0, 8);
-  return join(agent, "pstack", "store", `${project}-${digest}`, "orchestrate", project);
-}
-
 function storeDirectory(program: Command): string {
   const value = program.opts<GlobalOptions>().store;
   if (value === undefined || value.trim().length === 0) {
-    return defaultStore();
+    throw new UsageError("set --store <dir> or ORCH_STORE");
   }
   return value;
 }
@@ -274,10 +260,7 @@ function createProgram(io: Io): Command {
     .showHelpAfterError()
     .allowExcessArguments(false)
     .addOption(
-      new Option(
-        "--store <dir>",
-        "store directory (or ORCH_STORE; defaults to the pstack agent store for the workspace)"
-      ).env(
+      new Option("--store <dir>", "store directory (or ORCH_STORE)").env(
         "ORCH_STORE"
       )
     )
@@ -489,13 +472,9 @@ function createProgram(io: Io): Command {
 
   const frontier = program
     .command("frontier")
-    .description("manage the PR stack frontier")
+    .description("manage the Graphite stack frontier")
     .action(() => requireSubcommand(program));
-  leaf(
-    frontier,
-    "set",
-    "discover the PR stack (gt when installed, otherwise gh) and set the frontier"
-  )
+  leaf(frontier, "set", "discover the Graphite stack and set the frontier")
     .addOption(
       new Option(
         "--repo <dir>",
