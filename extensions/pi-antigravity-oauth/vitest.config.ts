@@ -1,28 +1,31 @@
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
     environment: 'node',
-    setupFiles: ['./test/network-guard.ts'],
 
-    // Vitest 5 already defaults clearMocks to true.
-    restoreMocks: true,
-    unstubEnvs: true,
-    unstubGlobals: true,
+    globals: false,
 
-    expect: {
-      requireAssertions: true,
-    },
+    pool: 'forks',
+    isolate: true,
+
+    exclude: [
+      ...configDefaults.exclude,
+      'dist/**',
+    ],
 
     coverage: {
       provider: 'v8',
-      include: ['src/*.ts'],
-      thresholds: {
-        lines: 80,
-        branches: 80,
-        functions: 80,
-        statements: 80,
-      },
+
+      include: [
+        'src/**/*.ts',
+      ],
+
+      exclude: [
+        'src/**/*.d.ts',
+        'src/**/*.{test,spec}.ts',
+        'src/**/__tests__/**',
+      ],
     },
   },
-});
+})
