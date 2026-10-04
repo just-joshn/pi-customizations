@@ -1,6 +1,7 @@
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
-import { expect, test, vi } from 'vitest';
+import { expect, vi } from 'vitest';
 import extension from '../src/index.ts';
+import { test } from './network-guard.ts';
 import { captureProvider } from './support/load-extension.ts';
 
 vi.mock(import('@earendil-works/pi-ai/providers/all'), async (importOriginal) => {
@@ -18,6 +19,6 @@ test('loading fails when Pi has no anthropic provider', () => {
 test('loading fails when the anthropic provider has no OAuth', () => {
   const anthropic = builtinProviders().find((provider) => provider.id === 'anthropic');
   if (!anthropic) throw new Error('Pi has no anthropic provider to strip');
-  vi.mocked(builtinProviders).mockReturnValueOnce([{ ...anthropic, auth: { apiKey: anthropic.auth.apiKey } }]);
+  vi.mocked(builtinProviders).mockReturnValueOnce([{ ...anthropic, auth: anthropic.auth.apiKey === undefined ? {} : { apiKey: anthropic.auth.apiKey } }]);
   expect(() => captureProvider(extension)).toThrow(MISSING);
 });

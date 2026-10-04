@@ -9,6 +9,7 @@ import { expect, test } from 'vitest';
 import { hostInstructions, referenceToolNames } from '../src/host.ts';
 import { readPersona } from '../src/personas.ts';
 import { fixture, packageRoot, prompt } from './session-fixture.ts';
+import { expectDefined } from './support/expect-defined.ts';
 
 const upstreamPstack = join(packageRoot, 'upstream');
 const upstreamTeamKit = join(packageRoot, 'upstream-team-kit');
@@ -77,7 +78,7 @@ test('generated resources: repository-relative references resolve in this checko
   for (const file of scanned) {
     const text = await readFile(file, 'utf8');
     for (const match of text.matchAll(pattern)) {
-      const target = match[1].replace(/\/$/, '');
+      const target = expectDefined(match[1]).replace(/\/$/, '');
       expect(target.startsWith('pstack/'), `${file} still names the upstream repository path ${target}`).toBe(false);
       if (target.includes('<') || target.includes('*')) continue;
       targets.push(target);
@@ -87,10 +88,10 @@ test('generated resources: repository-relative references resolve in this checko
   expect(targets).toEqual([]);
 });
 
-test('resource map: exactly 211 generated resources are verified with matching hashes', async () => {
+test('resource map: exactly 212 generated resources are verified with matching hashes', async () => {
   const mapPath = join(packageRoot, 'docs/resource-map.json');
   const resources = JSON.parse(await readFile(mapPath, 'utf8')) as { destination: string; sha256: string }[];
-  expect(resources.length).toBe(211);
+  expect(resources.length).toBe(212);
 
   for (const entry of resources) {
     const full = join(packageRoot, entry.destination);
@@ -116,7 +117,7 @@ async function validateSkillMetadata(skill: { name: string; description: string;
   }
 
   const nameMatch = fm.match(/^name:\s*(.+)$/m);
-  expect(nameMatch?.[1].trim()).toBe(skill.name);
+  expect(expectDefined(nameMatch?.[1]).trim()).toBe(skill.name);
 }
 
 test('skills loader: all 71 skills discover cleanly with valid metadata and frontmatter', async () => {
@@ -174,12 +175,12 @@ test('session prompt execution: prompt templates and native /skill: load complet
 
       f.calls.push({ type: 'toolCall', id: `read-${name}`, name: 'read', arguments: { path: skill?.filePath ?? '' } });
       await prompt(session, `/${name} ${arg}`);
-      const reqJson = JSON.stringify(f.requests[f.requests.length - 1].messages);
+      const reqJson = JSON.stringify(expectDefined(f.requests.at(-1)).messages);
       expect(reqJson.includes(needle)).toBe(true);
       expect(reqJson.includes(arg)).toBe(true);
 
       await prompt(session, `/skill:${name} ${arg}`);
-      const nativeJson = JSON.stringify(f.requests[f.requests.length - 1].messages);
+      const nativeJson = JSON.stringify(expectDefined(f.requests.at(-1)).messages);
       expect(nativeJson.includes(needle)).toBe(true);
     }
   } finally {
@@ -267,7 +268,7 @@ test('scripts: permissions are executable, syntax is valid, and helpers execute 
     const lines = content.trim().split('\n');
     expect(lines.length).toBe(2);
     expect(lines[0]).toBe(['ts', 'phase', 'decision', 'why', 'evidence', 'result'].join('\t'));
-    expect(lines[1].includes("'=formula-eval")).toBe(true);
+    expect(expectDefined(lines[1]).includes("'=formula-eval")).toBe(true);
   } finally {
     await rm(logDirectory, { recursive: true, force: true });
   }

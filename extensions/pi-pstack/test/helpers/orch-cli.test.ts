@@ -1,7 +1,9 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import './leak-preload.ts';
 import { createHash } from 'node:crypto';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { baseEnv, cleanDirectories, git, installGt, makeDirectory, makeRepo, runCli, stackLog } from './orch-fixtures.ts';
 
 const cli = (store: string, ...args: string[]) => runCli(['--store', store, ...args]);
@@ -11,7 +13,7 @@ const ok = (store: string, ...args: string[]) => {
   return result.stdout;
 };
 
-afterAll(cleanDirectories);
+afterEach(cleanDirectories);
 
 let seeded = '';
 let empty = '';
@@ -37,7 +39,7 @@ async function seed(): Promise<void> {
   ({ store: seeded, pushed: pushedLines } = await seedStore());
 }
 
-beforeAll(seed, 120_000);
+beforeEach(seed, 120_000);
 
 describe('orch CLI compact output prints exactly the documented lines', () => {
   test.each([
@@ -67,18 +69,18 @@ describe('orch CLI compact output prints exactly the documented lines', () => {
 });
 
 describe('orch CLI write commands print one compact line', () => {
-  test('unit add, unit set, ledger record, gate park, gate resolve, inbox push, and standing add each print a single line', async () => {
+  test.for([
+    { name: 'unit add', setup: [], args: ['unit', 'add', 'w1', '--track', 'tr'], expected: 'w1\ttr\tpending\t\t\t\t\n' },
+    { name: 'unit set', setup: [['unit', 'add', 'w1', '--track', 'tr']], args: ['unit', 'set', 'w1', '--state', 'building', '--branch', 'b', '--sha', 's1'], expected: 'w1\ttr\tbuilding\tb\t\ts1\t\n' },
+    { name: 'ledger record', setup: [], args: ['ledger', 'record', '5', 'deadbeef', 'unit-test-verified', '--evidence', 'ev'], expected: '5\tdeadbeef\tunit-test-verified\n' },
+    { name: 'gate park', setup: [], args: ['gate', 'park', 'gx', '--question', 'q', '--options', 'o', '--default', 'd'], expected: 'gx\topen\n' },
+    { name: 'gate resolve', setup: [['gate', 'park', 'gx', '--question', 'q', '--options', 'o', '--default', 'd']], args: ['gate', 'resolve', 'gx', '--answer', 'yes'], expected: 'gx\tresolved\tyes\n' },
+    { name: 'standing add', setup: [], args: ['standing', 'add', 'never force push'], expected: '1. never force push\n' },
+  ])('$name prints a compact line', async ({ setup, args, expected }) => {
     const store = await makeDirectory();
     ok(store, 'init');
-    const lines = [
-      ok(store, 'unit', 'add', 'w1', '--track', 'tr'),
-      ok(store, 'unit', 'set', 'w1', '--state', 'building', '--branch', 'b', '--sha', 's1'),
-      ok(store, 'ledger', 'record', '5', 'deadbeef', 'unit-test-verified', '--evidence', 'ev'),
-      ok(store, 'gate', 'park', 'gx', '--question', 'q', '--options', 'o', '--default', 'd'),
-      ok(store, 'gate', 'resolve', 'gx', '--answer', 'yes'),
-      ok(store, 'standing', 'add', 'never force push'),
-    ];
-    expect(lines).toEqual(['w1\ttr\tpending\t\t\t\t\n', 'w1\ttr\tbuilding\tb\t\ts1\t\n', '5\tdeadbeef\tunit-test-verified\n', 'gx\topen\n', 'gx\tresolved\tyes\n', '1. never force push\n']);
+    for (const command of setup) ok(store, ...command);
+    expect(ok(store, ...args)).toBe(expected);
   });
 
   test('inbox push prints unit, status, and the pointer filename', () => {
@@ -147,7 +149,8 @@ describe('orch CLI default store', () => {
   test('derives a durable agent store from the workspace when no store is given', async () => {
     const agent = await makeDirectory();
     const workspace = join(await makeDirectory(), 'my project');
-    await Bun.write(join(workspace, '.keep'), '');
+    await mkdir(workspace);
+    await writeFile(join(workspace, '.keep'), '');
     const result = runCli(['init'], { cwd: workspace, env: baseEnv({ PI_CODING_AGENT_DIR: agent }) });
     expect(result.code).toBe(0);
     expect(result.stdout).toBe(`initialized ${join(agent, 'pstack', 'store', `my-project-${digest(workspace)}`, 'orchestrate', 'my-project')}\n`);
@@ -178,7 +181,7 @@ describe('orch CLI frontier set environment', () => {
     const gt = await installGt(directory, repo, { logShort: stackLog('stack/a'), info: { 'stack/a': 'stack/a\nPR #31 (Needs approvals) change' } });
     const store = await makeDirectory();
     ok(store, 'init');
-    const env = baseEnv({ ORCH_REPO: repo, ORCH_STORE: store, PATH: `${gt}:${process.env.PATH}` });
+    const env = baseEnv({ ORCH_REPO: repo, ORCH_STORE: store, PATH: `${gt}:${process.env['PATH']}` });
     const result = runCli(['frontier', 'set'], { env });
     expect({ code: result.code, stderr: result.stderr }).toEqual({ code: 0, stderr: '' });
     expect(result.stdout).toBe(`generation=1 prs=stack/a#31@${sha}:OPEN lowest-unmerged=31\n`);

@@ -1,7 +1,9 @@
-import { afterEach, expect, test } from 'bun:test';
+import './leak-preload.ts';
 import { spawnSync } from 'node:child_process';
+import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { afterEach, expect, test } from 'vitest';
 import { cleanDirectories, makeDirectory } from './orch-fixtures.ts';
 
 const scripts = new URL('../../skills/poteto-mode/scripts/', import.meta.url).pathname.replace(/\/$/, '');
@@ -10,7 +12,7 @@ afterEach(cleanDirectories);
 
 test('orch and bootstrap type-check under tsc --noEmit --strict with the helper compiler options', async () => {
   const config = join(await makeDirectory(), 'tsconfig.json');
-  await Bun.write(
+  await writeFile(
     config,
     JSON.stringify({
       compilerOptions: { allowImportingTsExtensions: true, module: 'esnext', moduleResolution: 'bundler', noEmit: true, skipLibCheck: true, strict: true, target: 'esnext', types: ['bun-types'], typeRoots: [join(scripts, 'node_modules')] },

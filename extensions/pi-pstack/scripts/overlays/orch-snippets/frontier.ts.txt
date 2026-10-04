@@ -17,25 +17,25 @@ function parseGhPullRequests(raw: string): readonly GhPullRequest[] {
     throw new UserError("gh pr list output must be an array");
   }
   return value.map((row) => {
-    const state = isRecord(row) ? frontierPrStateOrNull(row.state) : null;
+    const state = isRecord(row) ? frontierPrStateOrNull(row["state"]) : null;
     if (
       !isRecord(row) ||
-      typeof row.number !== "number" ||
-      !Number.isSafeInteger(row.number) ||
-      row.number < 1 ||
-      typeof row.headRefName !== "string" ||
-      typeof row.baseRefName !== "string" ||
-      typeof row.headRefOid !== "string" ||
+      typeof row["number"] !== "number" ||
+      !Number.isSafeInteger(row["number"]) ||
+      row["number"] < 1 ||
+      typeof row["headRefName"] !== "string" ||
+      typeof row["baseRefName"] !== "string" ||
+      typeof row["headRefOid"] !== "string" ||
       state === null
     ) {
       throw new UserError("gh pr list output has an invalid PR row");
     }
     return {
-      number: row.number,
+      number: row["number"],
       state,
-      headRefName: row.headRefName,
-      baseRefName: row.baseRefName,
-      headRefOid: row.headRefOid,
+      headRefName: row["headRefName"],
+      baseRefName: row["baseRefName"],
+      headRefOid: row["headRefOid"],
     };
   });
 }

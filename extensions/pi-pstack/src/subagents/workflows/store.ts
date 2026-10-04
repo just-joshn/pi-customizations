@@ -64,9 +64,12 @@ function apply(tables: Tables, change: Change): Tables {
 }
 
 export class WorkflowStore {
+  private readonly persist: (change: Change) => void;
   private tables: Tables = empty;
 
-  constructor(private readonly persist: (change: Change) => void) {}
+  constructor(persist: (change: Change) => void) {
+    this.persist = persist;
+  }
 
   restore(branch: Branch): void {
     this.tables = branch.flatMap((entry) => (entry.type === 'custom' && entry.customType === workflowEntryType && Check(ChangeSchema, entry.data) ? [entry.data] : [])).reduce(apply, empty);

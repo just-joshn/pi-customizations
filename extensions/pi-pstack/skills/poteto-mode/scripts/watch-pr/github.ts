@@ -1,12 +1,13 @@
-import { spawn } from "node:child_process";
-import type * as T from "./types.ts";
-import { nonEmpty, parsePrNumber } from "./types.ts";
+import { spawn } from 'node:child_process';
+
+import type * as T from './types.ts';
+import { nonEmpty, parsePrNumber } from './types.ts';
 export const REVIEW_THREADS_QUERY =
-  "\nquery ReviewThreads($owner: String!, $repo: String!, $pr: Int!, $after: String) {\n  repository(owner: $owner, name: $repo) {\n    pullRequest(number: $pr) {\n      reviewThreads(first: 100, after: $after) {\n        pageInfo {\n          hasNextPage\n          endCursor\n        }\n        nodes {\n          id\n          isResolved\n          comments(first: 10) {\n            nodes {\n              body\n              createdAt\n              path\n              line\n              author { login }\n            }\n          }\n        }\n      }\n    }\n  }\n}\n";
+  '\nquery ReviewThreads($owner: String!, $repo: String!, $pr: Int!, $after: String) {\n  repository(owner: $owner, name: $repo) {\n    pullRequest(number: $pr) {\n      reviewThreads(first: 100, after: $after) {\n        pageInfo {\n          hasNextPage\n          endCursor\n        }\n        nodes {\n          id\n          isResolved\n          comments(first: 10) {\n            nodes {\n              body\n              createdAt\n              path\n              line\n              author { login }\n            }\n          }\n        }\n      }\n    }\n  }\n}\n';
 export const PR_COMMIT_STATUS_QUERY =
-  "\nquery PrCommitStatuses($owner: String!, $repo: String!, $pr: Int!) {\n  repository(owner: $owner, name: $repo) {\n    pullRequest(number: $pr) {\n      commits(last: 50) {\n        nodes {\n          commit {\n            oid\n            statusCheckRollup {\n              state\n            }\n          }\n        }\n      }\n    }\n  }\n}\n";
+  '\nquery PrCommitStatuses($owner: String!, $repo: String!, $pr: Int!) {\n  repository(owner: $owner, name: $repo) {\n    pullRequest(number: $pr) {\n      commits(last: 50) {\n        nodes {\n          commit {\n            oid\n            statusCheckRollup {\n              state\n            }\n          }\n        }\n      }\n    }\n  }\n}\n';
 export const PR_CHECK_ROLLUP_QUERY =
-  "\nquery PrCheckRollup($owner: String!, $repo: String!, $pr: Int!, $after: String) {\n  repository(owner: $owner, name: $repo) {\n    pullRequest(number: $pr) {\n      commits(last: 1) {\n        nodes {\n          commit {\n            statusCheckRollup {\n              contexts(first: 100, after: $after) {\n                pageInfo {\n                  hasNextPage\n                  endCursor\n                }\n                nodes {\n                  __typename\n                  ... on CheckRun {\n                    name\n                    status\n                    conclusion\n                    detailsUrl\n                  }\n                  ... on StatusContext {\n                    context\n                    state\n                    targetUrl\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}\n";
+  '\nquery PrCheckRollup($owner: String!, $repo: String!, $pr: Int!, $after: String) {\n  repository(owner: $owner, name: $repo) {\n    pullRequest(number: $pr) {\n      commits(last: 1) {\n        nodes {\n          commit {\n            statusCheckRollup {\n              contexts(first: 100, after: $after) {\n                pageInfo {\n                  hasNextPage\n                  endCursor\n                }\n                nodes {\n                  __typename\n                  ... on CheckRun {\n                    name\n                    status\n                    conclusion\n                    detailsUrl\n                  }\n                  ... on StatusContext {\n                    context\n                    state\n                    targetUrl\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}\n';
 
 interface CommandResult {
   readonly code: number;
@@ -17,75 +18,62 @@ export class WatcherQueryError extends Error {
   readonly failure: T.QueryFailure;
   constructor(failure: T.QueryFailure) {
     super(failure.detail);
-    this.name = "WatcherQueryError";
+    this.name = 'WatcherQueryError';
     this.failure = failure;
   }
 }
 export class ChecksUnavailable extends WatcherQueryError {
   constructor(detail: string) {
-    super({ kind: "checks-unavailable", retryable: true, detail });
-    this.name = "ChecksUnavailable";
+    super({ kind: 'checks-unavailable', retryable: true, detail });
+    this.name = 'ChecksUnavailable';
   }
 }
-const firstLine = (value: string): string =>
-  value.trim().split(/\r?\n/, 1)[0]?.slice(0, 240) ?? "";
+const firstLine = (value: string): string => value.trim().split(/\r?\n/, 1)[0]?.slice(0, 240) ?? '';
 const DEFAULT_COMMAND_TIMEOUT_SECONDS = 120;
 function commandTimeoutMs(): number {
-  const seconds = Number(process.env.WATCH_PR_COMMAND_TIMEOUT_SECONDS);
-  return (
-    (Number.isFinite(seconds) && seconds > 0
-      ? seconds
-      : DEFAULT_COMMAND_TIMEOUT_SECONDS) * 1_000
-  );
+  const seconds = Number(process.env['WATCH_PR_COMMAND_TIMEOUT_SECONDS']);
+  return (Number.isFinite(seconds) && seconds > 0 ? seconds : DEFAULT_COMMAND_TIMEOUT_SECONDS) * 1_000;
 }
 function spawnFailure(argv: readonly string[], error: unknown): Error {
-  const absent =
-    error instanceof Error &&
-    ((error as NodeJS.ErrnoException).code === "ENOENT" ||
-      /not found/i.test(error.message));
-  if (absent && argv[0] === "gh")
+  const absent = error instanceof Error && ((error as NodeJS.ErrnoException).code === 'ENOENT' || /not found/i.test(error.message));
+  if (absent && argv[0] === 'gh')
     return new WatcherQueryError({
-      kind: "gh-missing",
+      kind: 'gh-missing',
       retryable: false,
-      detail:
-        "gh was not found on PATH; install the GitHub CLI and run gh auth login",
+      detail: 'gh was not found on PATH; install the GitHub CLI and run gh auth login',
     });
   return error instanceof Error ? error : new Error(String(error));
 }
-function launch(
-  argv: readonly [string, ...string[]],
-  resolve: (result: CommandResult) => void,
-  reject: (error: unknown) => void
-): void {
+function launch(argv: readonly [string, ...string[]], resolve: (result: CommandResult) => void, reject: (error: unknown) => void): void {
   const child = spawn(argv[0], argv.slice(1), {
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: ['ignore', 'pipe', 'pipe'],
   });
-  let stdout = "";
-  let stderr = "";
-  child.stdout.setEncoding("utf8");
-  child.stderr.setEncoding("utf8");
-  child.stdout.on("data", (chunk: string) => {
+  let stdout = '';
+  let stderr = '';
+  child.stdout.setEncoding('utf8');
+  child.stderr.setEncoding('utf8');
+  child.stdout.on('data', (chunk: string) => {
     stdout += chunk;
   });
-  child.stderr.on("data", (chunk: string) => {
+  child.stderr.on('data', (chunk: string) => {
     stderr += chunk;
   });
   const timer = setTimeout(() => {
-    child.kill("SIGKILL");
+    child.kill('SIGKILL');
     reject(
       new WatcherQueryError({
-        kind: "command-exit",
+        kind: 'command-exit',
         retryable: true,
         code: -1,
-        detail: `${argv[0]} ${argv.slice(1, 4).join(" ")} timed out after ${commandTimeoutMs() / 1_000}s`,
-      })
+        detail: `${argv[0]} ${argv.slice(1, 4).join(' ')} timed out after ${commandTimeoutMs() / 1_000}s`,
+      }),
     );
   }, commandTimeoutMs());
-  child.on("error", (error) => {
+  child.on('error', (error) => {
     clearTimeout(timer);
     reject(spawnFailure(argv, error));
   });
-  child.on("close", (code) => {
+  child.on('close', (code) => {
     clearTimeout(timer);
     resolve({ code: code ?? -1, stdout, stderr });
   });
@@ -104,7 +92,7 @@ function parseJson(text: string, label: string): unknown {
     return JSON.parse(text);
   } catch (error) {
     throw new WatcherQueryError({
-      kind: "json-parse",
+      kind: 'json-parse',
       retryable: true,
       detail: `${label}: ${error instanceof Error ? error.message : String(error)}`,
     });
@@ -114,13 +102,12 @@ async function runJson(argv: readonly [string, ...string[]]): Promise<unknown> {
   const result = await run(argv);
   if (result.code !== 0)
     throw new WatcherQueryError({
-      kind: "command-exit",
+      kind: 'command-exit',
       retryable: true,
       code: result.code,
-      detail:
-        firstLine(result.stderr) || `${argv.join(" ")} exited ${result.code}`,
+      detail: firstLine(result.stderr) || `${argv.join(' ')} exited ${result.code}`,
     });
-  return parseJson(result.stdout, argv.join(" "));
+  return parseJson(result.stdout, argv.join(' '));
 }
 function raw(value: unknown): string {
   try {
@@ -131,17 +118,14 @@ function raw(value: unknown): string {
 }
 function missing(path: string, value?: unknown): never {
   throw new WatcherQueryError({
-    kind: "missing-key",
+    kind: 'missing-key',
     retryable: true,
-    detail:
-      value === undefined
-        ? `missing ${path}`
-        : `invalid ${path}: ${raw(value)}`,
+    detail: value === undefined ? `missing ${path}` : `invalid ${path}: ${raw(value)}`,
     ...(value === undefined ? {} : { rawValue: raw(value) }),
   });
 }
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 function record(value: unknown, path: string): Record<string, unknown> {
   if (!isRecord(value)) missing(path, value);
@@ -154,92 +138,44 @@ function list(value: unknown, path: string): readonly unknown[] {
 function at(value: unknown, path: readonly string[]): unknown {
   let current = value;
   for (const key of path) {
-    const object = record(current, path.join("."));
-    if (!(key in object)) missing(path.join("."));
+    const object = record(current, path.join('.'));
+    if (!(key in object)) missing(path.join('.'));
     current = object[key];
   }
   return current;
 }
 function string(value: unknown, path: string): string {
-  if (typeof value !== "string") missing(path, value);
+  if (typeof value !== 'string') missing(path, value);
   return value;
 }
-const optionalString = (value: unknown, path: string): string | null =>
-  value === null ? null : string(value, path);
-function enumValue<const V extends readonly string[]>(
-  value: unknown,
-  values: V,
-  path: string
-): V[number] {
-  if (typeof value === "string")
-    for (const candidate of values) if (candidate === value) return candidate;
+const optionalString = (value: unknown, path: string): string | null => (value === null ? null : string(value, path));
+function enumValue<const V extends readonly string[]>(value: unknown, values: V, path: string): V[number] {
+  if (typeof value === 'string') for (const candidate of values) if (candidate === value) return candidate;
   return missing(path, value);
 }
-const nullableEnum = <const V extends readonly string[]>(
-  value: unknown,
-  values: V,
-  path: string
-): V[number] | null => (value === null ? null : enumValue(value, values, path));
-const MERGE_STATES = [
-  "BEHIND",
-  "BLOCKED",
-  "CLEAN",
-  "CONFLICTING",
-  "DIRTY",
-  "DRAFT",
-  "HAS_HOOKS",
-  "UNKNOWN",
-  "UNSTABLE",
-] as const satisfies readonly T.MergeStateStatus[];
-const ROLLUP_STATES = [
-  "ERROR",
-  "EXPECTED",
-  "FAILURE",
-  "PENDING",
-  "SUCCESS",
-] as const;
-const REVIEW_DECISIONS = [
-  "APPROVED",
-  "CHANGES_REQUESTED",
-  "REVIEW_REQUIRED",
-] as const;
+const nullableEnum = <const V extends readonly string[]>(value: unknown, values: V, path: string): V[number] | null => (value === null ? null : enumValue(value, values, path));
+const MERGE_STATES = ['BEHIND', 'BLOCKED', 'CLEAN', 'CONFLICTING', 'DIRTY', 'DRAFT', 'HAS_HOOKS', 'UNKNOWN', 'UNSTABLE'] as const satisfies readonly T.MergeStateStatus[];
+const ROLLUP_STATES = ['ERROR', 'EXPECTED', 'FAILURE', 'PENDING', 'SUCCESS'] as const;
+const REVIEW_DECISIONS = ['APPROVED', 'CHANGES_REQUESTED', 'REVIEW_REQUIRED'] as const;
 // `gh pr view` reports no review decision as "", not null. Only this field does
 // it, so the normalization stays here rather than in nullableEnum, where it
 // would stop a genuinely unexpected rollup state from failing closed.
-const reviewDecision = (value: unknown): T.ReviewDecision =>
-  nullableEnum(
-    value === "" ? null : value,
-    REVIEW_DECISIONS,
-    "pull request.reviewDecision"
-  );
+const reviewDecision = (value: unknown): T.ReviewDecision => nullableEnum(value === '' ? null : value, REVIEW_DECISIONS, 'pull request.reviewDecision');
 function isKnownHost(hostname: string): boolean {
-  const configured = process.env.GH_HOST?.trim().toLowerCase();
-  return (
-    hostname === "github.com" ||
-    (configured !== undefined && configured !== "" && hostname === configured)
-  );
+  const configured = process.env['GH_HOST']?.trim().toLowerCase();
+  return hostname === 'github.com' || (configured !== undefined && configured !== '' && hostname === configured);
 }
 function parseRemote(value: string): T.Repository | null {
   let normalized = value.trim();
-  normalized = normalized.replace(/^git@([^:/]+):/, "https://$1/");
-  normalized = normalized.replace(/^ssh:\/\/git@([^/:]+)\//, "https://$1/");
+  normalized = normalized.replace(/^git@([^:/]+):/, 'https://$1/');
+  normalized = normalized.replace(/^ssh:\/\/git@([^/:]+)\//, 'https://$1/');
   try {
     const url = new URL(normalized);
     const parts = url.pathname
-      .replace(/\.git$/, "")
-      .split("/")
+      .replace(/\.git$/, '')
+      .split('/')
       .filter(Boolean);
-    if (
-      url.protocol !== "https:" ||
-      !isKnownHost(url.hostname) ||
-      url.port ||
-      url.username ||
-      url.password ||
-      url.search ||
-      url.hash ||
-      parts.length !== 2
-    )
-      return null;
+    if (url.protocol !== 'https:' || !isKnownHost(url.hostname) || url.port || url.username || url.password || url.search || url.hash || parts.length !== 2 || parts[0] === undefined || parts[1] === undefined) return null;
     return { owner: parts[0], repo: parts[1] };
   } catch {
     return null;
@@ -248,19 +184,9 @@ function parseRemote(value: string): T.Repository | null {
 function parsePrUrl(value: string): T.PrContext {
   try {
     const url = new URL(value);
-    const parts = url.pathname.split("/").filter(Boolean);
-    if (
-      url.protocol !== "https:" ||
-      !isKnownHost(url.hostname) ||
-      url.port ||
-      url.username ||
-      url.password ||
-      url.search ||
-      url.hash ||
-      parts.length !== 4 ||
-      parts[2] !== "pull"
-    )
-      throw new Error("not a canonical GitHub pull URL");
+    const parts = url.pathname.split('/').filter(Boolean);
+    if (url.protocol !== 'https:' || !isKnownHost(url.hostname) || url.port || url.username || url.password || url.search || url.hash || parts.length !== 4 || parts[0] === undefined || parts[1] === undefined || parts[2] !== 'pull')
+      throw new Error('not a canonical GitHub pull URL');
     return {
       owner: parts[0],
       repo: parts[1],
@@ -268,7 +194,7 @@ function parsePrUrl(value: string): T.PrContext {
     };
   } catch (error) {
     throw new WatcherQueryError({
-      kind: "invalid-context-url",
+      kind: 'invalid-context-url',
       retryable: false,
       rawValue: value,
       detail: `could not infer owner/repo from PR URL: ${value} (${error instanceof Error ? error.message : String(error)})`,
@@ -278,32 +204,21 @@ function parsePrUrl(value: string): T.PrContext {
 function checkDetails(value: Record<string, unknown>, nameKey: string) {
   return {
     name: string(value[nameKey], nameKey),
-    description: typeof value.description === "string" ? value.description : "",
-    link:
-      typeof value.link === "string"
-        ? value.link
-        : typeof value.detailsUrl === "string"
-          ? value.detailsUrl
-          : "",
-    workflow: typeof value.workflow === "string" ? value.workflow : "",
+    description: typeof value['description'] === 'string' ? value['description'] : '',
+    link: typeof value['link'] === 'string' ? value['link'] : typeof value['detailsUrl'] === 'string' ? value['detailsUrl'] : '',
+    workflow: typeof value['workflow'] === 'string' ? value['workflow'] : '',
   };
 }
 export function parseFastCheck(value: unknown): T.Check {
-  const object = record(value, "check");
-  const details = checkDetails(object, "name");
-  const state = string(object.state, "check.state").toUpperCase();
-  const bucket = string(object.bucket, "check.bucket");
-  if (
-    bucket === "fail" ||
-    ["FAILURE", "ERROR", "ACTION_REQUIRED"].includes(state)
-  )
-    return { ...details, kind: "failed", reportedState: state };
-  if (bucket === "pending") return pendingOrGate(details, state);
-  if (bucket === "pass")
-    return { ...details, kind: "passed", reportedState: state };
-  if (bucket === "skipping")
-    return { ...details, kind: "skipped", reportedState: state };
-  return { ...details, kind: "failed", reportedState: state };
+  const object = record(value, 'check');
+  const details = checkDetails(object, 'name');
+  const state = string(object['state'], 'check.state').toUpperCase();
+  const bucket = string(object['bucket'], 'check.bucket');
+  if (bucket === 'fail' || ['FAILURE', 'ERROR', 'ACTION_REQUIRED'].includes(state)) return { ...details, kind: 'failed', reportedState: state };
+  if (bucket === 'pending') return pendingOrGate(details, state);
+  if (bucket === 'pass') return { ...details, kind: 'passed', reportedState: state };
+  if (bucket === 'skipping') return { ...details, kind: 'skipped', reportedState: state };
+  return { ...details, kind: 'failed', reportedState: state };
 }
 // The owner-approval gate is excluded from pending everywhere, so the rule has
 // one home. Classifying it as pending on either read path makes the watcher
@@ -315,126 +230,80 @@ function pendingOrGate(
     readonly link: string;
     readonly workflow: string;
   },
-  reportedState: string
+  reportedState: string,
 ): T.Check {
-  return details.name === "Code Review Gate"
+  return details.name === 'Code Review Gate'
     ? {
         ...details,
-        kind: "code-review-gate",
-        name: "Code Review Gate",
+        kind: 'code-review-gate',
+        name: 'Code Review Gate',
         reportedState,
       }
-    : { ...details, kind: "pending", reportedState };
+    : { ...details, kind: 'pending', reportedState };
 }
 export function mapRollupNode(value: unknown): T.Check | null {
-  const object = record(value, "rollup node");
-  const typename = object.__typename;
-  if (typename !== "CheckRun" && typename !== "StatusContext") return null;
-  const details = checkDetails(
-    object,
-    typename === "CheckRun" ? "name" : "context"
-  );
-  const link =
-    typeof object.targetUrl === "string" ? object.targetUrl : details.link;
-  if (typename === "CheckRun") {
-    const status =
-      typeof object.status === "string" ? object.status.toUpperCase() : "";
-    const conclusion =
-      typeof object.conclusion === "string"
-        ? object.conclusion.toUpperCase()
-        : "";
-    if (status !== "COMPLETED")
-      return pendingOrGate({ ...details, link }, "PENDING");
-    if (conclusion === "SUCCESS")
-      return { ...details, link, kind: "passed", reportedState: "SUCCESS" };
-    if (conclusion === "NEUTRAL" || conclusion === "SKIPPED")
-      return { ...details, link, kind: "skipped", reportedState: conclusion };
+  const object = record(value, 'rollup node');
+  const typename = object['__typename'];
+  if (typename !== 'CheckRun' && typename !== 'StatusContext') return null;
+  const details = checkDetails(object, typename === 'CheckRun' ? 'name' : 'context');
+  const link = typeof object['targetUrl'] === 'string' ? object['targetUrl'] : details.link;
+  if (typename === 'CheckRun') {
+    const status = typeof object['status'] === 'string' ? object['status'].toUpperCase() : '';
+    const conclusion = typeof object['conclusion'] === 'string' ? object['conclusion'].toUpperCase() : '';
+    if (status !== 'COMPLETED') return pendingOrGate({ ...details, link }, 'PENDING');
+    if (conclusion === 'SUCCESS') return { ...details, link, kind: 'passed', reportedState: 'SUCCESS' };
+    if (conclusion === 'NEUTRAL' || conclusion === 'SKIPPED') return { ...details, link, kind: 'skipped', reportedState: conclusion };
     return {
       ...details,
       link,
-      kind: "failed",
-      reportedState: conclusion === "ACTION_REQUIRED" ? conclusion : "FAILURE",
+      kind: 'failed',
+      reportedState: conclusion === 'ACTION_REQUIRED' ? conclusion : 'FAILURE',
     };
   }
-  const state =
-    typeof object.state === "string" ? object.state.toUpperCase() : "";
-  if (state === "PENDING" || state === "EXPECTED")
-    return pendingOrGate({ ...details, link }, "PENDING");
-  return state === "SUCCESS"
-    ? { ...details, link, kind: "passed", reportedState: state }
-    : { ...details, link, kind: "failed", reportedState: state || "FAILURE" };
+  const state = typeof object['state'] === 'string' ? object['state'].toUpperCase() : '';
+  if (state === 'PENDING' || state === 'EXPECTED') return pendingOrGate({ ...details, link }, 'PENDING');
+  return state === 'SUCCESS' ? { ...details, link, kind: 'passed', reportedState: state } : { ...details, link, kind: 'failed', reportedState: state || 'FAILURE' };
 }
 function parseComment(value: unknown): T.ReviewComment {
-  const object = record(value, "review comment");
-  const author =
-    object.author === null
-      ? null
-      : record(object.author, "review comment.author");
+  const object = record(value, 'review comment');
+  const author = object['author'] === null ? null : record(object['author'], 'review comment.author');
   return {
-    authorLogin:
-      author === null
-        ? null
-        : optionalString(author.login, "review comment.author.login"),
-    body: string(object.body, "review comment.body"),
-    path: optionalString(object.path, "review comment.path"),
-    line:
-      object.line === null
-        ? null
-        : Number.isInteger(object.line)
-          ? Number(object.line)
-          : missing("review comment.line", object.line),
-    createdAt: string(object.createdAt, "review comment.createdAt"),
+    authorLogin: author === null ? null : optionalString(author['login'], 'review comment.author.login'),
+    body: string(object['body'], 'review comment.body'),
+    path: optionalString(object['path'], 'review comment.path'),
+    line: object['line'] === null ? null : Number.isInteger(object['line']) ? Number(object['line']) : missing('review comment.line', object['line']),
+    createdAt: string(object['createdAt'], 'review comment.createdAt'),
   };
 }
 function isBugbot(comment: T.ReviewComment | null): boolean {
   if (comment === null) return false;
-  const author = (comment.authorLogin ?? "").toLowerCase();
+  const author = (comment.authorLogin ?? '').toLowerCase();
   const body = comment.body.toLowerCase();
-  return (
-    author.includes("bugbot") ||
-    (author === "reference" &&
-      [
-        "bugbot",
-        "cursor_automation_id",
-        "agentic security review",
-        "description start",
-        "severity",
-      ].some((token) => body.includes(token)))
-  );
+  return author.includes('bugbot') || (author === 'reference' && ['bugbot', 'cursor_automation_id', 'agentic security review', 'description start', 'severity'].some((token) => body.includes(token)));
 }
 function passKey(comment: T.ReviewComment | null): string | null {
   if (comment === null) return null;
-  for (const pattern of [
-    /RUN_ID:\s*([a-zA-Z0-9_.:-]+)/,
-    /CURSOR_AUTOMATION_ID:\s*([a-zA-Z0-9_.:-]+)/,
-  ]) {
+  for (const pattern of [/RUN_ID:\s*([a-zA-Z0-9_.:-]+)/, /CURSOR_AUTOMATION_ID:\s*([a-zA-Z0-9_.:-]+)/]) {
     const match = pattern.exec(comment.body);
     if (match?.[1]) return match[1];
   }
   return null;
 }
 export function parseReviewThreads(value: unknown): readonly T.ReviewThread[] {
-  const nodes = list(
-    at(value, ["data", "repository", "pullRequest", "reviewThreads", "nodes"]),
-    "reviewThreads.nodes"
-  );
+  const nodes = list(at(value, ['data', 'repository', 'pullRequest', 'reviewThreads', 'nodes']), 'reviewThreads.nodes');
   const threads: {
     readonly id: string;
     readonly firstComment: T.ReviewComment | null;
     readonly resolved: boolean;
   }[] = [];
   for (const node of nodes) {
-    const thread = record(node, "review thread");
-    if (typeof thread.isResolved !== "boolean")
-      missing("review thread.isResolved", thread.isResolved);
-    const comments = list(
-      at(thread, ["comments", "nodes"]),
-      "review thread.comments.nodes"
-    );
+    const thread = record(node, 'review thread');
+    if (typeof thread['isResolved'] !== 'boolean') missing('review thread.isResolved', thread['isResolved']);
+    const comments = list(at(thread, ['comments', 'nodes']), 'review thread.comments.nodes');
     threads.push({
-      id: string(thread.id, "review thread.id"),
+      id: string(thread['id'], 'review thread.id'),
       firstComment: comments.length === 0 ? null : parseComment(comments[0]),
-      resolved: thread.isResolved,
+      resolved: thread['isResolved'],
     });
   }
   const keys = new Set<string>();
@@ -455,83 +324,35 @@ export function parseReviewThreads(value: unknown): readonly T.ReviewThread[] {
       bugbotReviewPasses: passes,
     }));
 }
-export function parsePullRequest(
-  value: unknown,
-  context: T.PrContext
-): T.PullRequestFacts {
-  const object = record(value, "pull request");
-  if (typeof object.isDraft !== "boolean")
-    missing("pull request.isDraft", object.isDraft);
+export function parsePullRequest(value: unknown, context: T.PrContext): T.PullRequestFacts {
+  const object = record(value, 'pull request');
+  if (typeof object['isDraft'] !== 'boolean') missing('pull request.isDraft', object['isDraft']);
   return {
     context,
-    mergeable: enumValue(
-      object.mergeable,
-      ["MERGEABLE", "CONFLICTING", "UNKNOWN"] as const,
-      "pull request.mergeable"
-    ),
-    mergeStateStatus: enumValue(
-      object.mergeStateStatus,
-      MERGE_STATES,
-      "pull request.mergeStateStatus"
-    ),
-    reviewDecision: reviewDecision(object.reviewDecision),
-    headRefOid: optionalString(object.headRefOid, "pull request.headRefOid"),
-    headRefName: string(object.headRefName, "pull request.headRefName"),
-    baseRefName: string(object.baseRefName, "pull request.baseRefName"),
-    state: enumValue(
-      object.state,
-      ["OPEN", "CLOSED", "MERGED"] as const,
-      "pull request.state"
-    ),
-    mergedAt: optionalString(object.mergedAt, "pull request.mergedAt"),
-    isDraft: object.isDraft,
+    mergeable: enumValue(object['mergeable'], ['MERGEABLE', 'CONFLICTING', 'UNKNOWN'] as const, 'pull request.mergeable'),
+    mergeStateStatus: enumValue(object['mergeStateStatus'], MERGE_STATES, 'pull request.mergeStateStatus'),
+    reviewDecision: reviewDecision(object['reviewDecision']),
+    headRefOid: optionalString(object['headRefOid'], 'pull request.headRefOid'),
+    headRefName: string(object['headRefName'], 'pull request.headRefName'),
+    baseRefName: string(object['baseRefName'], 'pull request.baseRefName'),
+    state: enumValue(object['state'], ['OPEN', 'CLOSED', 'MERGED'] as const, 'pull request.state'),
+    mergedAt: optionalString(object['mergedAt'], 'pull request.mergedAt'),
+    isDraft: object['isDraft'],
   };
 }
-function graphqlArgs(
-  query: string,
-  context: T.PrContext
-): [string, ...string[]] {
-  return [
-    "gh",
-    "api",
-    "graphql",
-    "-f",
-    `query=${query}`,
-    "-f",
-    `owner=${context.owner}`,
-    "-f",
-    `repo=${context.repo}`,
-    "-F",
-    `pr=${context.number}`,
-  ];
+function graphqlArgs(query: string, context: T.PrContext): [string, ...string[]] {
+  return ['gh', 'api', 'graphql', '-f', `query=${query}`, '-f', `owner=${context.owner}`, '-f', `repo=${context.repo}`, '-F', `pr=${context.number}`];
 }
 
 const OPEN_PR_LIMIT_CEILING = 10_000;
-async function listOpenPullRequests(
-  repository: T.Repository
-): Promise<readonly unknown[]> {
+async function listOpenPullRequests(repository: T.Repository): Promise<readonly unknown[]> {
   let limit = 300;
   while (true) {
-    const items = list(
-      await runJson([
-        "gh",
-        "pr",
-        "list",
-        "--repo",
-        `${repository.owner}/${repository.repo}`,
-        "--state",
-        "open",
-        "--limit",
-        String(limit),
-        "--json",
-        "number,headRefName,baseRefName",
-      ]),
-      "open PRs"
-    );
+    const items = list(await runJson(['gh', 'pr', 'list', '--repo', `${repository.owner}/${repository.repo}`, '--state', 'open', '--limit', String(limit), '--json', 'number,headRefName,baseRefName']), 'open PRs');
     if (items.length < limit) return items;
     if (limit >= OPEN_PR_LIMIT_CEILING)
       throw new WatcherQueryError({
-        kind: "missing-key",
+        kind: 'missing-key',
         retryable: true,
         detail: `open PR list was truncated at ${limit}`,
       });
@@ -539,16 +360,11 @@ async function listOpenPullRequests(
   }
 }
 function nextThreadCursor(pageInfo: unknown, seen: Set<string>): string | null {
-  const info = record(pageInfo, "reviewThreads.pageInfo");
-  if (typeof info.hasNextPage !== "boolean")
-    missing("reviewThreads.pageInfo.hasNextPage", info.hasNextPage);
-  if (!info.hasNextPage) return null;
-  const reference = optionalString(
-    info.endCursor,
-    "reviewThreads.pageInfo.endCursor"
-  );
-  if (reference === null || reference === "" || seen.has(reference))
-    missing("reviewThreads.pageInfo.endCursor", info.endCursor);
+  const info = record(pageInfo, 'reviewThreads.pageInfo');
+  if (typeof info['hasNextPage'] !== 'boolean') missing('reviewThreads.pageInfo.hasNextPage', info['hasNextPage']);
+  if (!info['hasNextPage']) return null;
+  const reference = optionalString(info['endCursor'], 'reviewThreads.pageInfo.endCursor');
+  if (reference === null || reference === '' || seen.has(reference)) missing('reviewThreads.pageInfo.endCursor', info['endCursor']);
   seen.add(reference);
   return reference;
 }
@@ -558,18 +374,10 @@ async function allReviewThreadPages(context: T.PrContext): Promise<unknown> {
   let after: string | null = null;
   do {
     const argv = graphqlArgs(REVIEW_THREADS_QUERY, context);
-    if (after !== null) argv.push("-f", `after=${after}`);
-    const connection = record(
-      at(await runJson(argv), [
-        "data",
-        "repository",
-        "pullRequest",
-        "reviewThreads",
-      ]),
-      "reviewThreads"
-    );
-    nodes.push(...list(connection.nodes, "reviewThreads.nodes"));
-    after = nextThreadCursor(connection.pageInfo, seen);
+    if (after !== null) argv.push('-f', `after=${after}`);
+    const connection = record(at(await runJson(argv), ['data', 'repository', 'pullRequest', 'reviewThreads']), 'reviewThreads');
+    nodes.push(...list(connection['nodes'], 'reviewThreads.nodes'));
+    after = nextThreadCursor(connection['pageInfo'], seen);
   } while (after !== null);
   return { data: { repository: { pullRequest: { reviewThreads: { nodes } } } } };
 }
@@ -577,167 +385,105 @@ async function allReviewThreadPages(context: T.PrContext): Promise<unknown> {
 export class GhGitHubReader implements T.GitHubReader {
   async originRepo(): Promise<T.Repository | null> {
     try {
-      const result = await run(["git", "remote", "get-url", "origin"]);
+      const result = await run(['git', 'remote', 'get-url', 'origin']);
       return result.code === 0 ? parseRemote(result.stdout) : null;
     } catch {
       return null;
     }
   }
   async currentPr(pr: T.PrNumber | null): Promise<T.PrContext> {
-    const argv: [string, ...string[]] = ["gh", "pr", "view"];
+    const argv: [string, ...string[]] = ['gh', 'pr', 'view'];
     if (pr !== null) argv.push(String(pr));
-    argv.push("--json", "number,url");
-    const object = record(await runJson(argv), "current PR");
-    const parsed = parsePrUrl(string(object.url, "current PR.url"));
+    argv.push('--json', 'number,url');
+    const object = record(await runJson(argv), 'current PR');
+    const parsed = parsePrUrl(string(object['url'], 'current PR.url'));
     return {
       ...parsed,
-      number: pr ?? parsePrNumber(object.number, "current PR.number"),
+      number: pr ?? parsePrNumber(object['number'], 'current PR.number'),
     };
   }
   async pullRequest(context: T.PrContext): Promise<T.PullRequestFacts> {
     return parsePullRequest(
-      await runJson([
-        "gh",
-        "pr",
-        "view",
-        String(context.number),
-        "--repo",
-        `${context.owner}/${context.repo}`,
-        "--json",
-        "mergeable,mergeStateStatus,reviewDecision,headRefOid,headRefName,baseRefName,state,mergedAt,isDraft",
-      ]),
-      context
+      await runJson(['gh', 'pr', 'view', String(context.number), '--repo', `${context.owner}/${context.repo}`, '--json', 'mergeable,mergeStateStatus,reviewDecision,headRefOid,headRefName,baseRefName,state,mergedAt,isDraft']),
+      context,
     );
   }
-  async openPullRequests(
-    repository: T.Repository
-  ): Promise<readonly T.OpenPullRequest[]> {
+  async openPullRequests(repository: T.Repository): Promise<readonly T.OpenPullRequest[]> {
     const value = await listOpenPullRequests(repository);
     return value.map((item, index) => {
       const object = record(item, `open PRs[${index}]`);
       return {
-        number: parsePrNumber(object.number, `open PRs[${index}].number`),
-        headRefName: string(
-          object.headRefName,
-          `open PRs[${index}].headRefName`
-        ),
-        baseRefName: string(
-          object.baseRefName,
-          `open PRs[${index}].baseRefName`
-        ),
+        number: parsePrNumber(object['number'], `open PRs[${index}].number`),
+        headRefName: string(object['headRefName'], `open PRs[${index}].headRefName`),
+        baseRefName: string(object['baseRefName'], `open PRs[${index}].baseRefName`),
       };
     });
   }
   async checksFastPath(context: T.PrContext): Promise<T.ChecksFastPath> {
-    const result = await run([
-      "gh",
-      "pr",
-      "checks",
-      String(context.number),
-      "--repo",
-      `${context.owner}/${context.repo}`,
-      "--json",
-      "name,state,description,link,workflow,bucket",
-    ]);
+    const result = await run(['gh', 'pr', 'checks', String(context.number), '--repo', `${context.owner}/${context.repo}`, '--json', 'name,state,description,link,workflow,bucket']);
     if ([0, 1, 8].includes(result.code) && result.stdout.trim()) {
       try {
-        const value = parseJson(result.stdout, "gh pr checks");
-        if (Array.isArray(value))
-          return { kind: "checks", checks: value.map(parseFastCheck) };
+        const value = parseJson(result.stdout, 'gh pr checks');
+        if (Array.isArray(value)) return { kind: 'checks', checks: value.map(parseFastCheck) };
       } catch (error) {
         if (!(error instanceof WatcherQueryError)) throw error;
       }
     }
-    return { kind: "unusable", exitCode: result.code, stderr: result.stderr };
+    return { kind: 'unusable', exitCode: result.code, stderr: result.stderr };
   }
-  async checkRollupPage(
-    context: T.PrContext,
-    after: string | null
-  ): Promise<T.RollupPage> {
+  async checkRollupPage(context: T.PrContext, after: string | null): Promise<T.RollupPage> {
     const argv = graphqlArgs(PR_CHECK_ROLLUP_QUERY, context);
-    if (after !== null) argv.push("-f", `after=${after}`);
+    if (after !== null) argv.push('-f', `after=${after}`);
     const value = await runJson(argv);
-    const commits = list(
-      at(value, ["data", "repository", "pullRequest", "commits", "nodes"]),
-      "commits.nodes"
-    );
+    const commits = list(at(value, ['data', 'repository', 'pullRequest', 'commits', 'nodes']), 'commits.nodes');
     if (commits.length === 0) return { checks: [], endCursor: null };
-    const commit = record(
-      at(commits[commits.length - 1], ["commit"]),
-      "commit"
-    );
-    if (commit.statusCheckRollup === null)
-      return { checks: [], endCursor: null };
-    const contexts = record(
-      at(commit, ["statusCheckRollup", "contexts"]),
-      "contexts"
-    );
-    const checks = list(contexts.nodes, "contexts.nodes")
+    const commit = record(at(commits[commits.length - 1], ['commit']), 'commit');
+    if (commit['statusCheckRollup'] === null) return { checks: [], endCursor: null };
+    const contexts = record(at(commit, ['statusCheckRollup', 'contexts']), 'contexts');
+    const checks = list(contexts['nodes'], 'contexts.nodes')
       .map(mapRollupNode)
       .filter((check): check is T.Check => check !== null);
-    const page = record(contexts.pageInfo, "contexts.pageInfo");
-    if (typeof page.hasNextPage !== "boolean")
-      missing("contexts.pageInfo.hasNextPage", page.hasNextPage);
-    const reference = optionalString(
-      page.endCursor,
-      "contexts.pageInfo.endCursor"
-    );
-    return { checks, endCursor: page.hasNextPage && reference ? reference : null };
+    const page = record(contexts['pageInfo'], 'contexts.pageInfo');
+    if (typeof page['hasNextPage'] !== 'boolean') missing('contexts.pageInfo.hasNextPage', page['hasNextPage']);
+    const reference = optionalString(page['endCursor'], 'contexts.pageInfo.endCursor');
+    return { checks, endCursor: page['hasNextPage'] && reference ? reference : null };
   }
-  async reviewThreads(
-    context: T.PrContext
-  ): Promise<readonly T.ReviewThread[]> {
+  async reviewThreads(context: T.PrContext): Promise<readonly T.ReviewThread[]> {
     return parseReviewThreads(await allReviewThreadPages(context));
   }
-  async commitRollups(
-    context: T.PrContext
-  ): Promise<readonly T.CommitRollup[]> {
+  async commitRollups(context: T.PrContext): Promise<readonly T.CommitRollup[]> {
     const value = await runJson(graphqlArgs(PR_COMMIT_STATUS_QUERY, context));
-    const commits = list(
-      at(value, ["data", "repository", "pullRequest", "commits", "nodes"]),
-      "commits.nodes"
-    );
+    const commits = list(at(value, ['data', 'repository', 'pullRequest', 'commits', 'nodes']), 'commits.nodes');
     return commits.map((item, index) => {
-      const commit = record(at(item, ["commit"]), `commits[${index}].commit`);
-      const rollup = commit.statusCheckRollup;
+      const commit = record(at(item, ['commit']), `commits[${index}].commit`);
+      const rollup = commit['statusCheckRollup'];
       return {
-        oid: string(commit.oid, `commits[${index}].oid`),
-        state:
-          rollup === null
-            ? null
-            : nullableEnum(
-                at(rollup, ["state"]),
-                ROLLUP_STATES,
-                `commits[${index}].statusCheckRollup.state`
-              ),
+        oid: string(commit['oid'], `commits[${index}].oid`),
+        state: rollup === null ? null : nullableEnum(at(rollup, ['state']), ROLLUP_STATES, `commits[${index}].statusCheckRollup.state`),
       };
     });
   }
 }
 
 const NO_CHECKS_PLACEHOLDER: T.Check = {
-  kind: "skipped",
-  name: "no checks reported",
-  reportedState: "NONE",
-  description: "gh pr checks and the GraphQL rollup both report zero checks",
-  link: "",
-  workflow: "",
+  kind: 'skipped',
+  name: 'no checks reported',
+  reportedState: 'NONE',
+  description: 'gh pr checks and the GraphQL rollup both report zero checks',
+  link: '',
+  workflow: '',
 };
 export function isNoChecksReading(checks: readonly T.Check[]): boolean {
   return checks.length === 1 && checks[0] === NO_CHECKS_PLACEHOLDER;
 }
 function confirmsNoChecks(fast: T.ChecksFastPath): boolean {
-  if (fast.kind === "checks") return true;
+  if (fast.kind === 'checks') return true;
   return fast.exitCode === 1 && /no checks reported/i.test(fast.stderr);
 }
-export async function resolveChecks(
-  reader: T.GitHubReader,
-  context: T.PrContext,
-  allowEmpty = false
-): Promise<T.CheckRead> {
+export async function resolveChecks(reader: T.GitHubReader, context: T.PrContext, allowEmpty = false): Promise<T.CheckRead> {
   const fast = await reader.checksFastPath(context);
-  const direct = fast.kind === "checks" ? nonEmpty(fast.checks) : null;
-  if (direct !== null) return { source: "gh-pr-checks", checks: direct };
+  const direct = fast.kind === 'checks' ? nonEmpty(fast.checks) : null;
+  if (direct !== null) return { source: 'gh-pr-checks', checks: direct };
   const checks: T.Check[] = [];
   let after: string | null = null;
   do {
@@ -746,23 +492,13 @@ export async function resolveChecks(
     after = page.endCursor;
   } while (after !== null);
   const fallback = nonEmpty(checks);
-  if (fallback !== null) return { source: "graphql-rollup", checks: fallback };
-  if (allowEmpty && confirmsNoChecks(fast))
-    return { source: "graphql-rollup", checks: [NO_CHECKS_PLACEHOLDER] };
-  const suffix =
-    fast.kind === "unusable"
-      ? `fast path exit=${fast.exitCode}; GraphQL rollup was empty${firstLine(fast.stderr) ? `; ${firstLine(fast.stderr)}` : ""}`
-      : "fast path and GraphQL rollup were empty";
+  if (fallback !== null) return { source: 'graphql-rollup', checks: fallback };
+  if (allowEmpty && confirmsNoChecks(fast)) return { source: 'graphql-rollup', checks: [NO_CHECKS_PLACEHOLDER] };
+  const suffix = fast.kind === 'unusable' ? `fast path exit=${fast.exitCode}; GraphQL rollup was empty${firstLine(fast.stderr) ? `; ${firstLine(fast.stderr)}` : ''}` : 'fast path and GraphQL rollup were empty';
   throw new ChecksUnavailable(`could not read PR checks: ${suffix}`);
 }
-export async function resolveContext(args: {
-  readonly reader: T.GitHubReader;
-  readonly owner: string | null;
-  readonly repo: string | null;
-  readonly pr: T.PrNumber | null;
-}): Promise<T.PrContext> {
-  if (args.pr !== null && args.owner !== null && args.repo !== null)
-    return { owner: args.owner, repo: args.repo, number: args.pr };
+export async function resolveContext(args: { readonly reader: T.GitHubReader; readonly owner: string | null; readonly repo: string | null; readonly pr: T.PrNumber | null }): Promise<T.PrContext> {
+  if (args.pr !== null && args.owner !== null && args.repo !== null) return { owner: args.owner, repo: args.repo, number: args.pr };
   if (args.pr !== null) {
     const origin = await args.reader.originRepo();
     if (origin !== null)
@@ -779,17 +515,12 @@ export async function resolveContext(args: {
     number: args.pr ?? inferred.number,
   };
 }
-export function orderStack(
-  context: T.PrContext,
-  open: readonly T.OpenPullRequest[]
-): T.NonEmpty<T.PrContext> {
+export function orderStack(context: T.PrContext, open: readonly T.OpenPullRequest[]): T.NonEmpty<T.PrContext> {
   const byNumber = new Map(open.map((pr) => [pr.number, pr]));
   const byHead = new Map(open.map((pr) => [pr.headRefName, pr]));
   const children = new Map<string, T.OpenPullRequest[]>();
-  for (const pr of open)
-    children.set(pr.baseRefName, [...(children.get(pr.baseRefName) ?? []), pr]);
-  for (const values of children.values())
-    values.sort((a, b) => a.number - b.number);
+  for (const pr of open) children.set(pr.baseRefName, [...(children.get(pr.baseRefName) ?? []), pr]);
+  for (const values of children.values()) values.sort((a, b) => a.number - b.number);
   const start = byNumber.get(context.number);
   if (start === undefined) return [context];
   const down: T.OpenPullRequest[] = [];
@@ -800,7 +531,7 @@ export function orderStack(
     if (parent === undefined) break;
     if (visited.has(parent.number))
       throw new WatcherQueryError({
-        kind: "stack-cycle",
+        kind: 'stack-cycle',
         retryable: false,
         detail: `stack discovery found a cycle: PR #${parent.number} is both above and below PR #${start.number}`,
       });
@@ -808,10 +539,7 @@ export function orderStack(
     down.push(parent);
     current = parent;
   }
-  const seen = new Set<T.PrNumber>([
-    ...down.map((pr) => pr.number),
-    start.number,
-  ]);
+  const seen = new Set<T.PrNumber>([...down.map((pr) => pr.number), start.number]);
   const up: T.OpenPullRequest[] = [];
   const visit = (parent: T.OpenPullRequest): void => {
     for (const child of children.get(parent.headRefName) ?? []) {
@@ -827,13 +555,10 @@ export function orderStack(
       [...down.reverse(), start, ...up].map((pr) => ({
         ...context,
         number: pr.number,
-      }))
+      })),
     ) ?? [context]
   );
 }
-export async function discoverStack(
-  reader: T.GitHubReader,
-  context: T.PrContext
-): Promise<T.NonEmpty<T.PrContext>> {
+export async function discoverStack(reader: T.GitHubReader, context: T.PrContext): Promise<T.NonEmpty<T.PrContext>> {
   return orderStack(context, await reader.openPullRequests(context));
 }

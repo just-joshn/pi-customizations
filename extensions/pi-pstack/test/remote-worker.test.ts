@@ -4,12 +4,17 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { DefaultResourceLoader, SettingsManager } from '@earendil-works/pi-coding-agent';
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import type { RemoteExecutor } from '../src/remote-executors.ts';
 import { remoteWorkerArguments, resolveRemotePlacement, startRemoteWorker } from '../src/remote-worker.ts';
 import * as transport from '../src/remote-worker-transport.ts';
 import type { TaskRecord } from '../src/worker-records.ts';
 import type { prepareWorkerSession } from '../src/worker-support.ts';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 type Prepared = Awaited<ReturnType<typeof prepareWorkerSession>>;
 const executor: RemoteExecutor = {

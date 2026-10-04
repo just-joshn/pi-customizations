@@ -83,11 +83,7 @@ test('copy-code login keeps native PKCE exchange', async ({ provider, models, to
   await expect(credentials.read(provider.id)).resolves.toStrictEqual(credential);
 });
 
-test('refresh errors do not expose server tokens', async ({ provider, onTestFinished }) => {
-  const previous = globalThis.fetch;
-  onTestFinished(() => {
-    vi.stubGlobal('fetch', previous);
-  });
+test('refresh errors do not expose server tokens', async ({ provider }) => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ access_token: 'sensitive-server-value' }, { status: 400 })));
   const oauth = provider.auth.oauth;
   if (!oauth) throw new Error('No OAuth login');

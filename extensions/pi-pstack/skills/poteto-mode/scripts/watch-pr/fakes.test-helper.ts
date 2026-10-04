@@ -1,19 +1,8 @@
-import type {
-  Check,
-  ChecksFastPath,
-  CommitRollup,
-  GitHubReader,
-  OpenPullRequest,
-  PrContext,
-  PullRequestFacts,
-  Repository,
-  ReviewThread,
-  RollupPage,
-} from "./types.ts";
-import { parsePrNumber } from "./types.ts";
+import type { Check, ChecksFastPath, CommitRollup, GitHubReader, OpenPullRequest, PrContext, PullRequestFacts, Repository, ReviewThread, RollupPage } from './types.ts';
+import { parsePrNumber } from './types.ts';
 
 export interface FakeReaderOptions {
-  readonly facts?: Partial<Omit<PullRequestFacts, "context">>;
+  readonly facts?: Partial<Omit<PullRequestFacts, 'context'>>;
   readonly fastPath?: ChecksFastPath;
   readonly rollupPages?: readonly RollupPage[];
   readonly threads?: readonly ReviewThread[];
@@ -23,57 +12,55 @@ export interface FakeReaderOptions {
   readonly current?: PrContext;
 }
 
-export function passingCheck(name = "ci"): Check {
+export function passingCheck(name = 'ci'): Check {
   return {
-    kind: "passed",
+    kind: 'passed',
     name,
-    reportedState: "SUCCESS",
-    description: "",
-    link: "",
-    workflow: "",
+    reportedState: 'SUCCESS',
+    description: '',
+    link: '',
+    workflow: '',
   };
 }
 
-export function pendingCheck(name = "ci"): Check {
+export function pendingCheck(name = 'ci'): Check {
   return {
-    kind: "pending",
+    kind: 'pending',
     name,
-    reportedState: "PENDING",
-    description: "",
-    link: "",
-    workflow: "",
+    reportedState: 'PENDING',
+    description: '',
+    link: '',
+    workflow: '',
   };
 }
 
-export function failedCheck(name = "ci"): Check {
+export function failedCheck(name = 'ci'): Check {
   return {
-    kind: "failed",
+    kind: 'failed',
     name,
-    reportedState: "FAILURE",
-    description: "",
-    link: "",
-    workflow: "",
+    reportedState: 'FAILURE',
+    description: '',
+    link: '',
+    workflow: '',
   };
 }
 
-export function fakeReader(
-  options: FakeReaderOptions = {}
-): GitHubReader & { readonly calls: readonly string[] } {
+export function fakeReader(options: FakeReaderOptions = {}): GitHubReader & { readonly calls: readonly string[] } {
   const calls: string[] = [];
   const context = options.current ?? {
-    owner: "owner",
-    repo: "repo",
+    owner: 'owner',
+    repo: 'repo',
     number: parsePrNumber(1),
   };
   const defaults: PullRequestFacts = {
     context,
-    mergeable: "MERGEABLE",
-    mergeStateStatus: "CLEAN",
-    reviewDecision: "APPROVED",
-    headRefOid: "head",
-    headRefName: "feature",
-    baseRefName: "main",
-    state: "OPEN",
+    mergeable: 'MERGEABLE',
+    mergeStateStatus: 'CLEAN',
+    reviewDecision: 'APPROVED',
+    headRefOid: 'head',
+    headRefName: 'feature',
+    baseRefName: 'main',
+    state: 'OPEN',
     mergedAt: null,
     isDraft: false,
   };
@@ -81,38 +68,36 @@ export function fakeReader(
   return {
     calls,
     async originRepo() {
-      calls.push("originRepo");
-      return options.origin === undefined
-        ? { owner: "owner", repo: "repo" }
-        : options.origin;
+      calls.push('originRepo');
+      return options.origin === undefined ? { owner: 'owner', repo: 'repo' } : options.origin;
     },
     async currentPr(pr) {
-      calls.push("currentPr");
+      calls.push('currentPr');
       return { ...context, number: pr ?? context.number };
     },
     async pullRequest(requested) {
-      calls.push("pullRequest");
+      calls.push('pullRequest');
       return { ...defaults, ...options.facts, context: requested };
     },
     async openPullRequests() {
-      calls.push("openPullRequests");
+      calls.push('openPullRequests');
       return options.openPullRequests ?? [];
     },
     async checksFastPath() {
-      calls.push("checksFastPath");
-      return options.fastPath ?? { kind: "checks", checks: [passingCheck()] };
+      calls.push('checksFastPath');
+      return options.fastPath ?? { kind: 'checks', checks: [passingCheck()] };
     },
     async checkRollupPage(_requested, after) {
-      calls.push(`checkRollupPage:${after ?? "null"}`);
+      calls.push(`checkRollupPage:${after ?? 'null'}`);
       return options.rollupPages?.[page++] ?? { checks: [], endCursor: null };
     },
     async reviewThreads() {
-      calls.push("reviewThreads");
+      calls.push('reviewThreads');
       return options.threads ?? [];
     },
     async commitRollups() {
-      calls.push("commitRollups");
-      return options.commitRollups ?? [{ oid: "head", state: "SUCCESS" }];
+      calls.push('commitRollups');
+      return options.commitRollups ?? [{ oid: 'head', state: 'SUCCESS' }];
     },
   };
 }

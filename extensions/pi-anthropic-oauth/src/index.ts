@@ -95,7 +95,7 @@ export default function (pi: Pick<ExtensionAPI, 'registerProvider'>) {
     createProvider({
       id: PROVIDER_ID,
       name: 'Claude subscription',
-      baseUrl: anthropic.baseUrl,
+      ...(anthropic.baseUrl === undefined ? {} : { baseUrl: anthropic.baseUrl }),
       auth: subscriptionAuth(oauth),
       models: anthropic.getModels().map((model) => ({ ...model, provider: PROVIDER_ID, promptCache: PROMPT_CACHE })),
       api: {

@@ -27,7 +27,10 @@ async function launch(ctx: ExtensionContext, pi: ExtensionAPI, path: string, sig
   signal?.throwIfAborted();
   if (!ctx.model) throw new Error('Choose a Pi model before enabling a routine.');
   const own = fileURLToPath(new URL('./index.ts', import.meta.url));
-  const extra = process.argv.flatMap((arg, index) => ((arg === '-e' || arg === '--extension') && process.argv[index + 1] ? [process.argv[index + 1]] : []));
+  const extra = process.argv.flatMap((arg, index) => {
+    const path = process.argv[index + 1];
+    return (arg === '-e' || arg === '--extension') && path ? [path] : [];
+  });
   const settingsManager = childSettings(ctx.cwd, ctx);
   const projectTrusted = settingsManager.isProjectTrusted();
   const loader = new DefaultResourceLoader({ cwd: ctx.cwd, agentDir: getAgentDir(), settingsManager, additionalExtensionPaths: [own, ...extra], extensionsOverride: (value) => workerExtensions(value, own) });
@@ -101,7 +104,7 @@ function registerLifecycleTools(pi: ExtensionAPI): void {
       if (draft.revision !== input.revision) throw new Error('Routine revision changed. Inspect and approve the current draft.');
       if (!ctx.hasUI) throw new Error('Routine activation requires interactive operator approval.');
       signal?.throwIfAborted();
-      const approved = await ctx.ui.confirm('Enable webhook routine?', JSON.stringify({ name: draft.name, revision: draft.revision, prompt: draft.prompt, fields: draft.fields, port: draft.port }, null, 2), { signal });
+      const approved = await ctx.ui.confirm('Enable webhook routine?', JSON.stringify({ name: draft.name, revision: draft.revision, prompt: draft.prompt, fields: draft.fields, port: draft.port }, null, 2), signal ? { signal } : {});
       signal?.throwIfAborted();
       if (!approved) return result({ enabled: false, revision: draft.revision });
       return result(await startRoutine(path, input.revision, await launch(ctx, pi, path, signal), signal));

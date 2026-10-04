@@ -11,7 +11,7 @@ const output = resolve(process.argv[2] ?? '/tmp/pstack-canvas-browser');
 await mkdir(output, { recursive: true });
 const [template, css, renderer] = await Promise.all(['template.html', 'styles.css', 'renderer.js'].map((name) => readFile(join(root, name), 'utf8')));
 const body =
-  '<div class="header"><h1>Pi review canvas probe</h1></div><div class="content"><div class="file-card"><div class="file-hdr" onclick="toggle(this)"><span class="fname">fixture.js</span><span class="chev open">&gt;</span></div><div class="file-body open"><div data-diff="fixture"></div></div></div></div>';
+  '<div class="header"><h1>Pi review canvas probe</h1></div><div class="content"><div class="file-card"><div class="file-hdr" onclick="toggle(this)"><span class="fname">fixture.js</span><span class="chev open">&gt;</span></div><div class="file-body open"><div data-diff="fixture"></div></div></div><div class="bp-section"><div class="bp-hdr" onclick="toggleBP(this)"><span>Before policy</span><span class="chev">&gt;</span></div><div class="bp-body"><div data-diff="fixture"></div></div></div></div>';
 const patch = '@@ -1,3 +1,3 @@\n-import old from "old";\n+import next from "next";\n-const value = 1;\n+const value = 2;\n+const unsafe = "</script><img src=x onerror=alert(1)>";';
 const safe = JSON.stringify({ fixture: patch }).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e').replaceAll('&', '\\u0026');
 const html = template
@@ -149,7 +149,7 @@ try {
     await new Promise((done) => setTimeout(done, 40));
   }
   assert.equal(await evaluate('document.querySelector("h1").textContent'), 'Pi review canvas probe');
-  assert.equal(await evaluate('document.querySelectorAll(".diff-add").length'), 2);
+  assert.equal(await evaluate('document.querySelectorAll(".diff-add").length'), 4);
   assert.equal(await evaluate('document.querySelectorAll("img").length'), 0);
   const rendered = await evaluate('document.querySelector(".diff-table").textContent');
   assert.ok(rendered.includes('</script><img src=x onerror=alert(1)>'));
@@ -199,6 +199,19 @@ try {
   await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...target, button: 'left', clickCount: 1 });
   await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...target, button: 'left', clickCount: 1 });
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".file-body")).display'), 'none');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".file-hdr")).cursor'), 'pointer');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".bp-hdr")).cursor'), 'pointer');
+  await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...target, button: 'left', clickCount: 1 });
+  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...target, button: 'left', clickCount: 1 });
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".file-body")).display'), 'block');
+  const bpTarget = await evaluate('(() => { const box = document.querySelector(".bp-hdr").getBoundingClientRect(); return { x: box.x + box.width / 2, y: box.y + box.height / 2 }; })()');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".bp-body")).display'), 'none');
+  await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...bpTarget, button: 'left', clickCount: 1 });
+  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...bpTarget, button: 'left', clickCount: 1 });
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".bp-body")).display'), 'block');
+  await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...bpTarget, button: 'left', clickCount: 1 });
+  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...bpTarget, button: 'left', clickCount: 1 });
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".bp-body")).display'), 'none');
   await send('Tracing.end');
   const traceDeadline = Date.now() + 15000;
   while (!traceComplete) {
@@ -215,9 +228,9 @@ try {
   await writeFile(join(output, 'after.png'), Buffer.from(after.data, 'base64'));
   await writeFile(
     join(output, 'results.json'),
-    `${JSON.stringify({ passed: true, checks: ['decoy tab excluded', 'no-match titles/URLs', 'positive app heading', 'diff rendering', 'literal unsafe HTML', 'import filtering', 'expanded state', 'fresh screenshot', 'real pointer collapse', 'accessibility heading', 'sampled CPU profile', 'heap snapshot graph', 'network fixture bytes', 'pointer click trace'], scope: 'Real isolated Chrome and source canvas assets. CPU uses read-only synthetic style work; a heap capture is not leak proof. No keyboard/focus, performance improvement, hosted UI or model-adherence claim.' }, null, 2)}\n`,
+    `${JSON.stringify({ passed: true, checks: ['decoy tab excluded', 'no-match titles/URLs', 'positive app heading', 'diff rendering', 'literal unsafe HTML', 'import filtering', 'expanded state', 'fresh screenshot', 'real pointer collapse', 'accessibility heading', 'sampled CPU profile', 'heap snapshot graph', 'network fixture bytes', 'pointer click trace', 'file header pointer cursor', 'BP header pointer cursor', 'file reopen', 'BP expand', 'BP collapse'], scope: 'Real isolated Chrome and source canvas assets. CPU uses read-only synthetic style work; a heap capture is not leak proof. No keyboard/focus, performance improvement, hosted UI or model-adherence claim.' }, null, 2)}\n`,
   );
-  process.stdout.write('Canvas browser passes fourteen checks.\n');
+  process.stdout.write('Canvas browser passes nineteen checks.\n');
   await send('Browser.close');
 } finally {
   for (const waiter of pending.values()) {

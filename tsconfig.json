@@ -59,7 +59,7 @@
     "skipLibCheck": true
   },
 
-  "include": ["extensions/**/*.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
 
-  "exclude": ["node_modules", "dist", "coverage"]
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/coverage/**"]
 }

@@ -1,7 +1,8 @@
 import { getSupportedThinkingLevels } from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
-import { expect, test } from 'vitest';
+import { expect } from 'vitest';
 import { BASELINE, catalogFailure, effortAliases, listPrices, meteredCost, parseCatalog, toPiModel } from '../src/catalog.ts';
+import { test } from './network-guard.ts';
 import { liveBody, liveEntry } from './support/catalog-body.ts';
 
 const xai = builtinProviders().find((provider) => provider.id === 'xai');

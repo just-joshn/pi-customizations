@@ -1,7 +1,11 @@
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { assistantText, foldTurn, initialTurn, type SessionStats, settledPatch, type TurnState, usageFromStats } from '../src/subagents/child-turn.ts';
 import type { RpcRecord } from '../src/subagents/rpc-child.ts';
 import { taskOutputLimit } from '../src/worker-records.ts';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 const assistant = (fields: Record<string, unknown>): RpcRecord => ({ type: 'message_end', message: { role: 'assistant', ...fields } });
 

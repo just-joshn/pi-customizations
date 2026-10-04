@@ -6,7 +6,7 @@ import { modelConfigPath, setupModels } from '../src/models.ts';
 export default function setupFixture(pi: ExtensionAPI): void {
   pi.registerCommand('fixture-setup-cancel', {
     handler: async (_args, ctx) => {
-      const output = process.env.PSTACK_TUI_ANSWERS;
+      const output = process.env['PSTACK_TUI_ANSWERS'];
       if (!output) throw new Error('Setup fixture requires an output path');
       const completed = await setupModels(ctx);
       const configurationExists = await stat(modelConfigPath()).then(

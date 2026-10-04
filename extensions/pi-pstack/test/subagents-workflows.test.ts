@@ -12,6 +12,7 @@ import { Slots } from '../src/subagents/workflows/slots.ts';
 import { type Change, WorkflowStore, workflowEntryType } from '../src/subagents/workflows/store.ts';
 import { workflowTools } from '../src/subagents/workflows/tools.ts';
 import { defineWorkflow, type RunRecord, type WorkflowDeclaration, WorkflowPause } from '../src/subagents/workflows/types.ts';
+import { expectDefined } from './support/expect-defined.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 const limits: WorkflowLimits = { maxConcurrentSubagents: 2, maxTotalSubagents: 3, timeoutSeconds: 60, maxAiCredits: 2 };
@@ -40,7 +41,7 @@ test('a soft credit ceiling only bites after the paying turn settles', () => {
 });
 
 test('a run with no total or timeout limit keeps admitting subagents', () => {
-  const unbounded = { effectiveLimits: { maxTotalSubagents: undefined, timeoutSeconds: undefined }, consumption: consumption(99, 0) };
+  const unbounded = { effectiveLimits: {}, consumption: consumption(99, 0) };
   expect(checkLimits(unbounded, 10_000_000)).toEqual({ ok: true });
 });
 
@@ -220,7 +221,7 @@ test('pausing and halting every run emit workflow.run_settled', async () => {
   runtime.register(holding('pause-hold'));
   runtime.register(holding('halt-hold'));
   const pausing = runtime.start('pause-hold', undefined, {} as never, 'rpc');
-  const paused = await runtime.pause(runtime.runs()[0].id);
+  const paused = await runtime.pause(expectDefined(runtime.runs()[0]).id);
   holds.shift()?.();
   await pausing;
   const halting = runtime.start('halt-hold', undefined, {} as never, 'rpc');
@@ -345,7 +346,6 @@ test('a registered workflow runs, delegates, journals and settles completed', as
   const { fixture } = await workflowFixture();
   const seen: { type: string; data?: Record<string, unknown>; agentId?: string }[] = [];
   fixture.eventBus.on('reference-assistant:event', (payload) => {
-    const _event = payload as { type: string; data?: Record<string, unknown> };
     seen.push(payload as { type: string; data?: Record<string, unknown> });
   });
   try {
@@ -360,13 +360,13 @@ test('a registered workflow runs, delegates, journals and settles completed', as
     expect((await rpc(fixture, 'session.tasks.list')).result).toEqual([]);
     const childStart = seen.find((event) => event.type === 'subagent.started');
     expect(childStart?.data).toMatchObject({ agentType: 'general-purpose', executionMode: 'sync' });
-    expect(childStart?.data?.workflowRunId).toBe(id);
-    expect(childStart?.data?.factoryRunId).toBe(id);
+    expect(childStart?.data?.['workflowRunId']).toBe(id);
+    expect(childStart?.data?.['factoryRunId']).toBe(id);
     const childId = String(childStart?.agentId);
     await expect(fixture.call('read_agent', { agent_id: childId })).rejects.toThrow(`Agent ${childId} is managed by workflow run ${id}.`);
     const put = await rpc(fixture, 'session.workflow.journal.put', { id, key: 'manual', value: 7 });
     expect(put.ok).toBe(true);
-    expect(((await rpc(fixture, 'session.workflow.getRunDetail', { id })).result as { journal: Record<string, unknown> }).journal.manual).toBe(7);
+    expect(((await rpc(fixture, 'session.workflow.getRunDetail', { id })).result as { journal: Record<string, unknown> }).journal['manual']).toBe(7);
   } finally {
     await fixture.close();
   }

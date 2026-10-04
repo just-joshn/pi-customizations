@@ -24,7 +24,7 @@ export const test = base.extend<{ workspace: Workspace }>({
 });
 
 export function spawnEnv(workspace: Workspace, extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
-  return { PATH: process.env.PATH, FAKE_PI_LOG: workspace.logFile, ...extra };
+  return { PATH: process.env['PATH'], FAKE_PI_LOG: workspace.logFile, ...extra };
 }
 
 export function rpcChild(workspace: Workspace, extra: NodeJS.ProcessEnv = {}, args: readonly string[] = []): RpcChild {

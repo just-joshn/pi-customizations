@@ -8,6 +8,7 @@ import { promisify } from 'node:util';
 import { expect, onTestFinished, test } from 'vitest';
 import { disableRoutine, inspectRoutine, prepareRoutine, startRoutine } from '../scripts/routine-client.mjs';
 import { relayEvent } from '../scripts/routine-relay.mjs';
+import { expectDefined } from './support/expect-defined.ts';
 
 const run = promisify(execFile);
 
@@ -75,5 +76,5 @@ test('the UI relay spools exactly the original object after a failed single atte
   expect(result).toMatchObject({ accepted: false, spooled: true });
   const files = await readdir(join(f.draft.directory, 'fallback'));
   expect(files).toHaveLength(1);
-  expect(JSON.parse(await readFile(join(f.draft.directory, 'fallback', files[0]), 'utf8')).envelope.body).toBe(JSON.stringify(body));
+  expect(JSON.parse(await readFile(join(f.draft.directory, 'fallback', expectDefined(files[0])), 'utf8')).envelope.body).toBe(JSON.stringify(body));
 });

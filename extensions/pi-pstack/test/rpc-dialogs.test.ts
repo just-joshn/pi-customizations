@@ -119,7 +119,7 @@ async function runDialog(cancelled: boolean): Promise<Outcome> {
       ],
       {
         cwd: directory,
-        env: { PATH: process.env.PATH, HOME: directory, PI_CODING_AGENT_DIR: directory, PI_OFFLINE: '1' },
+        env: { PATH: process.env['PATH'], HOME: directory, PI_CODING_AGENT_DIR: directory, PI_OFFLINE: '1' },
         stdio: ['pipe', 'pipe', 'pipe'],
       },
     );

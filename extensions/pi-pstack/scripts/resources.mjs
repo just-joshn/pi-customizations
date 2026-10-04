@@ -3,8 +3,11 @@ import { chmod, mkdir, readdir, readFile, rmdir, stat, unlink, writeFile } from 
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { adaptScriptsPolicy, formatGeneratedOutputs, scriptsCompilerPolicy, scriptsPolicyOutput } from './resource-policy.mjs';
 import { cloudVm, localState, remoteFallback } from './resource-text.mjs';
 import { pinLatest, sentenceCaseHeadings, tabIndentFences } from './resource-transforms.mjs';
+import { overlayInput } from './source-overlay-input.mjs';
+import { teamKitRecords, teamKitSource } from './team-kit-source.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const sources = [
@@ -12,6 +15,9 @@ const sources = [
   { directory: 'upstream-team-kit', inventory: 'docs/team-kit-source-inventory.json' },
 ];
 const write = process.argv.includes('--write');
+const policyRootIndex = process.argv.indexOf('--policy-root');
+if (policyRootIndex !== -1 && !process.argv[policyRootIndex + 1]) throw new Error('--policy-root requires a repository root path.');
+const policyRoot = policyRootIndex === -1 ? fileURLToPath(new URL('../../../', import.meta.url)) : process.argv[policyRootIndex + 1];
 const routineAdapter = await readFile(join(root, 'host/adapters/make-bot-ui/SKILL.md'));
 const overlayNames = (await readdir(join(root, 'scripts/overlays'))).filter((name) => name.endsWith('.mjs')).sort();
 const overlays = (await Promise.all(overlayNames.map((name) => import(new URL(`./overlays/${name}`, import.meta.url))))).flatMap((module) => module.default);
@@ -50,11 +56,13 @@ const inventories = await Promise.all(
 const entries = inventories.flat();
 const destinations = entries.filter((entry) => entry.path.startsWith('skills/')).map((entry) => entry.path);
 if (new Set(destinations).size !== destinations.length) throw new Error('Duplicate generated skill destination across source bundles.');
+const teamKitAdaptations = await teamKitRecords(root);
 const verified = await Promise.all(
   entries.map(async (entry) => {
     const path = join(root, entry.source);
-    const original = await readFile(path);
-    if (sha(original) !== entry.sha256) throw new Error(`Upstream hash mismatch: ${entry.source}`);
+    const live = await readFile(path);
+    const original = entry.source.startsWith('upstream-team-kit/') ? teamKitSource(entry, live, teamKitAdaptations) : live;
+    if (!entry.source.startsWith('upstream-team-kit/') && sha(original) !== entry.sha256) throw new Error(`Upstream hash mismatch: ${entry.source}`);
     return { ...entry, original, mode: (await stat(path)).mode & 0o777 };
   }),
 );
@@ -266,7 +274,8 @@ function pinnedText(entry) {
 }
 
 function script(entry) {
-  const mapped = worktreeAudit.test(entry.path) ? mapHostPaths(entry, entry.original.toString('utf8')) : pinnedText(entry);
+  const input = { ...entry, original: entry.overlayOriginal };
+  const mapped = worktreeAudit.test(entry.path) ? mapHostPaths(input, input.original.toString('utf8')) : pinnedText(input);
   const overlaid = overlays.filter((overlay) => overlay.path === entry.path).reduce((acc, overlay) => applyOverlay(acc, overlay), mapped);
   if (overlaid.text === entry.original.toString('utf8')) return { generated: entry.original, transformations: [] };
   return { generated: Buffer.from(overlaid.text), transformations: overlaid.transformations };
@@ -313,14 +322,21 @@ function promptOutput(entry, generated) {
   ];
 }
 
-const outputs = verified
+const compilerPolicy = await scriptsCompilerPolicy(policyRoot);
+const overlayEntries = await Promise.all(
+  verified.map(async (entry) => (entry.path.endsWith('.md') ? entry : { ...entry, overlayOriginal: entry.source.startsWith('upstream/') ? await overlayInput(entry.path, entry.original) : entry.original })),
+);
+const resourceOutputs = overlayEntries
   .filter((entry) => entry.path.startsWith('skills/'))
   .flatMap((entry) => {
-    const { generated, transformations } = entry.path.endsWith('.md') ? markdown(entry) : script(entry);
+    const { generated, transformations } = entry.path.endsWith('.md') ? markdown(entry) : adaptScriptsPolicy(entry, script(entry), compilerPolicy);
+    const adaptation = entry.source.startsWith('upstream-team-kit/') && teamKitAdaptations.find((record) => record.path === entry.path);
+    if (adaptation) transformations.unshift(`Replay canonical normalized team-kit adaptation. ${adaptation.reason}`);
     const executable = (entry.mode & 0o111) !== 0;
     const skill = { source: entry.source, destination: entry.path, generated, mode: entry.mode, executable, transformations };
     return [...(entry.path === 'skills/bro/SKILL.md' ? [] : [skill]), ...promptOutput(entry, generated)];
   });
+const outputs = await formatGeneratedOutputs([...resourceOutputs, scriptsPolicyOutput(compilerPolicy)], policyRoot);
 const unusedHostPaths = hostPaths.filter((row) => !appliedHostPaths.has(row));
 if (unusedHostPaths.length) throw new Error(`Host path mapping no longer matches upstream: ${unusedHostPaths.map((row) => row[1].split('\n')[0]).join('; ')}`);
 for (const output of outputs) {
@@ -356,7 +372,8 @@ const generatedPaths = (await Promise.all(['skills', 'prompts'].map((directory) 
   .map((path) => relative(root, path))
   .toSorted();
 if (JSON.stringify(expected) !== JSON.stringify(generatedPaths)) throw new Error('Unexpected generated resource files.');
-const output = `${JSON.stringify(changes, null, 2)}\n`;
+const [formattedMap] = await formatGeneratedOutputs([{ destination: 'docs/resource-map.json', generated: Buffer.from(`${JSON.stringify(changes, null, 2)}\n`), transformations: [] }], policyRoot);
+const output = formattedMap.generated.toString('utf8');
 const mappingPath = join(root, 'docs/resource-map.json');
 if (write) await writeFile(mappingPath, output);
 else if ((await readFile(mappingPath, 'utf8')) !== output) throw new Error('Resource map drift.');

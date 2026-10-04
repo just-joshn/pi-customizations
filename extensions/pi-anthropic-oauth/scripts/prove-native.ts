@@ -12,10 +12,10 @@ import { sseReply, startMessagesServer } from '../test/support/messages-server.t
 import { isRecord, systemTexts } from '../test/support/request-body.ts';
 import { textMessage, toolUseMessage } from '../test/support/sse.ts';
 
-const cliPath = process.env.PI_OAUTH_CLI_PATH ?? join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
+const cliPath = process.env['PI_OAUTH_CLI_PATH'] ?? join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 const { stdout: version } = await promisify(execFile)(process.execPath, [cliPath, '--version']);
 const reference: unknown = JSON.parse(await readFile(new URL('../test/fixtures/claude-code-2.1.288.json', import.meta.url), 'utf8'));
-if (!isRecord(reference) || typeof reference.prompt !== 'string' || typeof reference.billing !== 'string' || !isRecord(reference.headers) || typeof reference.headers['user-agent'] !== 'string')
+if (!isRecord(reference) || typeof reference['prompt'] !== 'string' || typeof reference['billing'] !== 'string' || !isRecord(reference['headers']) || typeof reference['headers']['user-agent'] !== 'string')
   throw new Error('The captured Claude reference is invalid.');
 const root = await mkdtemp(join(tmpdir(), 'pi-oauth-native-'));
 const server = await startMessagesServer(sseReply(textMessage('LOCAL_OK')));
@@ -32,35 +32,35 @@ try {
   await writeFile(join(agentDir, 'models.json'), JSON.stringify({ providers: { 'claude-subscription': { baseUrl: server.baseUrl } } }));
   await writeFile(join(cwd, 'probe.txt'), 'LOCAL_FILE\n');
 
-  const printRun = promisify(execFile)(process.execPath, [cliPath, ...args, '-p', reference.prompt], { cwd, env, timeout });
+  const printRun = promisify(execFile)(process.execPath, [cliPath, ...args, '-p', reference['prompt']], { cwd, env, timeout });
   printRun.child.stdin?.end();
   const print = await printRun;
   assert.equal(print.stdout.trim(), 'LOCAL_OK');
-  const jsonRun = promisify(execFile)(process.execPath, [cliPath, ...args, '--mode', 'json', '-p', reference.prompt], { cwd, env, timeout });
+  const jsonRun = promisify(execFile)(process.execPath, [cliPath, ...args, '--mode', 'json', '-p', reference['prompt']], { cwd, env, timeout });
   jsonRun.child.stdin?.end();
   const json = await jsonRun;
   const records: unknown[] = json.stdout
     .trim()
     .split('\n')
     .map((line) => JSON.parse(line));
-  assert.ok(records.some((record) => isRecord(record) && record.type === 'agent_settled'));
-  const jsonMessage = records.find((record) => isRecord(record) && record.type === 'message_end' && isRecord(record.message) && record.message.role === 'assistant');
-  assert.ok(isRecord(jsonMessage) && isRecord(jsonMessage.message) && Array.isArray(jsonMessage.message.content));
-  assert.ok(jsonMessage.message.content.some((block: unknown) => isRecord(block) && block.type === 'text' && block.text === 'LOCAL_OK'));
+  assert.ok(records.some((record) => isRecord(record) && record['type'] === 'agent_settled'));
+  const jsonMessage = records.find((record) => isRecord(record) && record['type'] === 'message_end' && isRecord(record['message']) && record['message']['role'] === 'assistant');
+  assert.ok(isRecord(jsonMessage) && isRecord(jsonMessage['message']) && Array.isArray(jsonMessage['message']['content']));
+  assert.ok(jsonMessage['message']['content'].some((block: unknown) => isRecord(block) && block['type'] === 'text' && block['text'] === 'LOCAL_OK'));
 
   const client = new RpcClient({ cliPath, cwd, env, args });
   await client.start();
   try {
-    assert.ok((await client.getAvailableModels()).some((model) => model.provider === 'claude-subscription' && model.id === reference.model));
-    await client.promptAndWait(reference.prompt, undefined, timeout);
+    assert.ok((await client.getAvailableModels()).some((model) => model.provider === 'claude-subscription' && model.id === reference['model']));
+    await client.promptAndWait(reference['prompt'], undefined, timeout);
     assert.equal(await client.getLastAssistantText(), 'LOCAL_OK');
     const usage = (await client.getSessionStats()).tokens;
     assert.deepEqual(usage, { input: 10, output: 7, cacheRead: 4, cacheWrite: 2, total: 23 });
     assert.equal(server.requests.length, 3);
     assert.equal(server.requests[2]?.headers['x-claude-code-session-id'], (await client.getState()).sessionId);
     for (const request of server.requests) {
-      assert.equal(systemTexts(request.body)[0], reference.billing);
-      assert.equal(request.headers['user-agent'], reference.headers['user-agent']);
+      assert.equal(systemTexts(request.body)[0], reference['billing']);
+      assert.equal(request.headers['user-agent'], reference['headers']['user-agent']);
       assert.equal(request.headers['x-app'], 'cli');
       assert.equal(request.headers['x-api-key'], undefined);
     }
@@ -75,8 +75,8 @@ try {
     await client.promptAndWait('after reload', undefined, timeout);
     assert.equal(await client.getLastAssistantText(), 'LOCAL_OK');
     assert.equal((await client.newSession()).cancelled, false);
-    await client.promptAndWait(reference.prompt, undefined, timeout);
-    assert.equal(systemTexts(server.requests.at(-1)?.body)[0], reference.billing);
+    await client.promptAndWait(reference['prompt'], undefined, timeout);
+    assert.equal(systemTexts(server.requests.at(-1)?.body)[0], reference['billing']);
 
     server.respond((res) => {
       sseReply(toolUseMessage('toolu_read_probe', 'Read', ['{"path":"probe.txt"}']))(res);

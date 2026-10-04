@@ -95,7 +95,7 @@ test('a gh failure is reported on the subscription and polling recovers without 
   const forge = await fakeForge({ head: 'sha-one', checks: [pass], broken: true });
   const directory = await ownerWithRoot('ci-broken');
   const receipt = await subscribeGithub(directory);
-  await expect.poll(async () => (await timerCommand(directory, { type: 'list' }))[0].ci?.error, { timeout: 20000 }).toContain('502');
+  await expect.poll(async () => (await timerCommand(directory, { type: 'list' }))[0]?.ci?.error, { timeout: 20000 }).toContain('502');
   expect(await wakes(receipt, 'success')).toHaveLength(0);
   await forge.set({ head: 'sha-one', checks: [pass] });
   await expect.poll(async () => (await wakes(receipt, 'success')).length, { timeout: 20000 }).toBe(1);

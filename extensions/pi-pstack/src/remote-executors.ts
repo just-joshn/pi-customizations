@@ -35,7 +35,7 @@ export function remoteArguments(executor: RemoteExecutor): { executable: string;
 }
 
 export async function configuredExecutor(cwd: string, requested?: string): Promise<RemoteExecutor> {
-  const path = process.env.PI_PSTACK_EXECUTORS ?? join(getAgentDir(), 'pstack/executors.json');
+  const path = process.env['PI_PSTACK_EXECUTORS'] ?? join(getAgentDir(), 'pstack/executors.json');
   let data: unknown;
   try {
     data = JSON.parse(await readFile(path, 'utf8'));
@@ -53,8 +53,9 @@ export async function configuredExecutor(cwd: string, requested?: string): Promi
   if (new Set(executors.map((executor) => executor.machineId)).size !== executors.length) throw new Error('Duplicate remote machine identity. Independent lanes require different actual machines.');
   const workspace = await realpath(cwd);
   const matches = executors.filter((executor) => (!requested || executor.id === requested) && containsWorkspace(executor.localRepository, workspace));
-  if (matches.length !== 1) throw new Error('Choose exactly one remote executor for this repository. Configure its localRepository and explicit executor ID.');
-  return matches[0];
+  const [executor] = matches;
+  if (matches.length !== 1 || executor === undefined) throw new Error('Choose exactly one remote executor for this repository. Configure its localRepository and explicit executor ID.');
+  return executor;
 }
 
 function containsWorkspace(repository: string, workspace: string): boolean {

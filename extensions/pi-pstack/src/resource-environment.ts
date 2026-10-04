@@ -16,7 +16,7 @@ function exclusions(frontmatter: Record<string, unknown>, path: string): string[
 export function availableInEnvironment(path: string, environment: 'local' | 'cloud'): boolean {
   const { frontmatter } = parseFrontmatter<Record<string, unknown>>(readFileSync(path, 'utf8'));
   const declared = exclusions(frontmatter, path);
-  const name = frontmatter.name ?? (basename(path) === 'SKILL.md' ? basename(dirname(path)) : basename(path, '.md'));
+  const name = frontmatter['name'] ?? (basename(path) === 'SKILL.md' ? basename(dirname(path)) : basename(path, '.md'));
   const authoritative = typeof name === 'string' ? authoritativeResources.get(name) : undefined;
   const inherited = authoritative ? exclusions(parseFrontmatter<Record<string, unknown>>(readFileSync(authoritative, 'utf8')).frontmatter, authoritative) : [];
   return ![...declared, ...inherited].includes(environment);

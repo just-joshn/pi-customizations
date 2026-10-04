@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { expect, test } from 'vitest';
+import { roleNames } from '../src/models.ts';
+import { expectDefined } from './support/expect-defined.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const read = (path: string) => readFile(join(root, path), 'utf8');
@@ -98,17 +100,16 @@ test('poteto-mode routes all 23 documented playbooks and 24 principles', async (
   for (const name of principles) expect(mode.includes(`**principle-${name}**`)).toBe(true);
 });
 
-test('setup keeps the documented 17 roles and four budget labels', async () => {
+test('setup retains the documented roles alongside native review roles', async () => {
   const setup = await read('skills/setup-pstack/SKILL.md');
-  const models = await read('src/models.ts');
-  for (const role of roles) {
-    expect(setup.includes(`\n${role}: `)).toBe(true);
-    expect(models.includes(`["${role}", `)).toBe(true);
-  }
-  for (const label of ['unlimited — keep max', 'large — xhigh reasoning', 'medium — high reasoning', 'small — medium reasoning']) {
-    expect(setup.includes(`\`${label}\``)).toBe(true);
-    expect(models.includes(`"${label}"`)).toBe(true);
-  }
+  expect(roleNames).toEqual([...roles, 'trail reviewer', 'figure-it-out judge', 'recall miners']);
+  for (const role of roles) expect(setup).toContain(`\n${role}: `);
+});
+
+test('setup documents all four reasoning budgets', async () => {
+  expect.hasAssertions();
+  const setup = await read('skills/setup-pstack/SKILL.md');
+  for (const label of ['unlimited — keep max', 'large — xhigh reasoning', 'medium — high reasoning', 'small — medium reasoning']) expect(setup).toContain(`\`${label}\``);
 });
 
 test('documented agents, team-kit skills, helper scripts, and Benny pack are shipped', async () => {
@@ -175,7 +176,7 @@ test('worktree audit dates agent activity from Pi sessions and worker transcript
         .split('\n')
         .slice(1)
         .map((line) => line.split('\t'))
-        .map((cells) => [cells[8].split('/').at(-1), cells]),
+        .map((cells) => [expectDefined(cells[8]).split('/').at(-1), cells]),
     );
     expect([...rows.keys()].toSorted()).toEqual(['from-main', 'idle', 'own-session']);
     expect(rows.get('from-main')?.slice(6, 8)).toEqual([today, 'verify-recent-chat']);

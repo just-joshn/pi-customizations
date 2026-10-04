@@ -25,21 +25,21 @@ function transcript(initial: Tool[], added: Tool[], removed: string[] = []): Con
 
 function changes(body: unknown): Record<string, unknown>[] {
   return messagesOf(body).flatMap((message) => {
-    if (!isRecord(message) || !Array.isArray(message.content)) return [];
-    return message.content.filter(isRecord).filter((block) => block.type === 'tool_addition' || block.type === 'tool_removal');
+    if (!isRecord(message) || !Array.isArray(message['content'])) return [];
+    return message['content'].filter(isRecord).filter((block) => block['type'] === 'tool_addition' || block['type'] === 'tool_removal');
   });
 }
 
 function taskDeclaration(body: unknown): unknown {
-  const initial = isRecord(body) && Array.isArray(body.tools) ? body.tools : [];
+  const initial = isRecord(body) && Array.isArray(body['tools']) ? body['tools'] : [];
   return changes(body).reduce<unknown>(
     (current, block) => {
-      if (!isRecord(block.tool)) return current;
-      if (block.type === 'tool_removal' && block.tool.name === 'Task') return undefined;
-      const definition = block.tool.definition;
-      return isRecord(definition) && definition.name === 'Task' ? definition : current;
+      if (!isRecord(block['tool'])) return current;
+      if (block['type'] === 'tool_removal' && block['tool']['name'] === 'Task') return undefined;
+      const definition = block['tool']['definition'];
+      return isRecord(definition) && definition['name'] === 'Task' ? definition : current;
     },
-    initial.find((tool) => isRecord(tool) && tool.name === 'Task'),
+    initial.find((tool) => isRecord(tool) && tool['name'] === 'Task'),
   );
 }
 
@@ -76,7 +76,7 @@ test('case-folded custom names outside the canonical alias list retain first-act
   const run = await collect(models.streamSimple(routed, transcript([readTool, first], [shadow])));
   const body = soleRequest(server).body;
 
-  expect(isRecord(body) ? body.tools : undefined).toMatchObject([{ name: 'Read' }, { name: 'custom_probe', description: 'first active task', input_schema: task.parameters }]);
+  expect(isRecord(body) ? body['tools'] : undefined).toMatchObject([{ name: 'Read' }, { name: 'custom_probe', description: 'first active task', input_schema: task.parameters }]);
   expect(run.message.content).toEqual([expect.objectContaining({ type: 'toolCall', name: 'custom_probe' })]);
 });
 
@@ -106,6 +106,6 @@ test('unambiguous tool changes keep inline definitions and the fixed initial pre
   await collect(models.streamSimple(routed, transcript([readTool], [task])));
   const body = soleRequest(server).body;
 
-  expect(isRecord(body) ? body.tools : undefined).toEqual([expect.objectContaining({ name: 'Read', description: 'Read a file' }), expect.objectContaining({ name: '__pi_deferred_placeholder__', defer_loading: true })]);
+  expect(isRecord(body) ? body['tools'] : undefined).toEqual([expect.objectContaining({ name: 'Read', description: 'Read a file' }), expect.objectContaining({ name: '__pi_deferred_placeholder__', defer_loading: true })]);
   expect(changes(body)).toEqual([expect.objectContaining({ type: 'tool_addition', tool: { type: 'tool_definition', definition: expect.objectContaining({ name: 'Task', description: 'first active task' }) } })]);
 });

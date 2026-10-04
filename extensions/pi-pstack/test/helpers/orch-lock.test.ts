@@ -1,8 +1,10 @@
-import { afterEach, describe, expect, test } from 'bun:test';
-import { spawn, spawnSync } from 'node:child_process';
+import './leak-preload.ts';
+import { execFile, spawnSync } from 'node:child_process';
 import { readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
 
+import { afterEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { type OpenStoreOptions, openStore, type Store } from '../../skills/poteto-mode/scripts/orch/store.ts';
 import { cleanDirectories, makeDirectory } from './orch-fixtures.ts';
 
@@ -27,10 +29,16 @@ const deadPid = (): string => String(spawnSync('true').pid);
 afterEach(async () => {
   for (const store of handles.splice(0)) await store.close();
   await cleanDirectories();
+  vi.restoreAllMocks();
 });
 
 describe('orch lock holders', () => {
-  test.skipIf(process.getuid?.() === 0)('a holder pid that raises EPERM counts as a live holder', async () => {
+  test('a holder pid that raises EPERM counts as a live holder', async () => {
+    const kill = process.kill.bind(process);
+    vi.spyOn(process, 'kill').mockImplementation((pid, signal) => {
+      if (pid === 1 && signal === 0) throw Object.assign(new Error('permission denied'), { code: 'EPERM' });
+      return kill(pid, signal);
+    });
     const { directory, store } = await initialized({ lockWaitMs: 0 });
     await writeFile(lockOf(directory), '1\n');
     await expect(store.units.add({ id: 'u', track: 't' })).rejects.toThrow('store lock held by pid 1');
@@ -83,8 +91,14 @@ describe('orch lock recovery', () => {
     const { directory, store } = await initialized({ lockWaitMs: 3000 });
     await writeFile(lockOf(directory), `${liveForeignPid}\n`);
     const started = Date.now();
-    setTimeout(() => void rm(lockOf(directory), { force: true }), 200);
+    const release = new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        void rm(lockOf(directory), { force: true }).then(() => resolve(), reject);
+      }, 200);
+      onTestFinished(() => clearTimeout(timer));
+    });
     await store.units.add({ id: 'u', track: 't' });
+    await release;
     expect(Date.now() - started).toBeGreaterThanOrEqual(150);
     expect((await store.units.get('u')).id).toBe('u');
   });
@@ -107,60 +121,64 @@ catch (error) { process.stdout.write('lost ' + error.message + '\\n'); }
 finally { await store.close(); }
 `;
 
-function runScript(path: string): Promise<string> {
-  return new Promise((resolve) => {
-    let out = '';
-    const child = spawn(process.execPath, [path]);
-    child.stdout.on('data', (chunk) => (out += chunk));
-    child.on('close', () => resolve(out.trim()));
-  });
+async function runScript(path: string): Promise<string> {
+  const { stdout } = await promisify(execFile)('bun', [path], { timeout: 15_000 });
+  return stdout.trim();
 }
 
-describe('orch lock races', () => {
-  test('two processes racing a dead-holder lock leave exactly one winner and the loser names the winner', async () => {
-    const { directory } = await initialized();
-    const scripts = await Promise.all(
-      ['a', 'b'].map(async (id) => {
-        const path = join(directory, `racer-${id}.ts`);
-        await writeFile(path, racer(directory, id));
-        return path;
-      }),
-    );
-    for (let round = 0; round < 6; round += 1) {
-      await writeFile(lockOf(directory), `${deadPid()}\n`);
-      const outputs = await Promise.all(scripts.map(runScript));
-      expect(outputs.filter((line) => line === 'won')).toHaveLength(1);
-      expect(outputs.find((line) => line !== 'won')).toMatch(/^lost store lock held by pid \d+/);
-      await rm(lockOf(directory), { force: true });
-      await rm(join(directory, 'units.tsv'), { force: true });
-      await writeFile(join(directory, 'units.tsv'), 'id\ttrack\tstate\tbranch\tpr\tsha\tbrief\n');
-    }
-  }, 60_000);
+test('two processes racing a dead-holder lock leave exactly one winner and the loser names the winner', async () => {
+  const { directory } = await initialized();
+  const scripts = await Promise.all(
+    ['a', 'b'].map(async (id) => {
+      const path = join(directory, `racer-${id}.ts`);
+      await writeFile(path, racer(directory, id));
+      return path;
+    }),
+  );
+  expect.hasAssertions();
+  for (let round = 0; round < 6; round += 1) {
+    await writeFile(lockOf(directory), `${deadPid()}\n`);
+    const results = await Promise.allSettled(scripts.map(runScript));
+    expect(results.map((result) => result.status)).toEqual(['fulfilled', 'fulfilled']);
+    const outputs = results.flatMap((result) => (result.status === 'fulfilled' ? [result.value] : []));
+    expect(outputs.filter((line) => line === 'won')).toHaveLength(1);
+    expect(outputs.find((line) => line !== 'won')).toMatch(/^lost store lock held by pid \d+/);
+    await rm(lockOf(directory), { force: true });
+    await rm(join(directory, 'units.tsv'), { force: true });
+    await writeFile(join(directory, 'units.tsv'), 'id\ttrack\tstate\tbranch\tpr\tsha\tbrief\n');
+  }
+}, 60_000);
 
-  test('a reader never observes a half-written units file while another process rewrites it', async () => {
-    const { directory, store } = await initialized();
-    const writer = join(directory, 'writer.ts');
-    await writeFile(
-      writer,
-      `import { openStore } from ${JSON.stringify(storeModule)};
+test('a reader never observes a half-written units file while another process rewrites it', async () => {
+  const { directory, store } = await initialized();
+  const writer = join(directory, 'writer.ts');
+  await writeFile(
+    writer,
+    `import { openStore } from ${JSON.stringify(storeModule)};
 const store = openStore(${JSON.stringify(directory)});
 for (let n = 0; n < 150; n += 1) await store.units.add({ id: 'u' + n, track: 'tt'.repeat(40) });
 await store.close();
 `,
-    );
-    const done = runScript(writer);
-    let finished = false;
-    void done.then(() => (finished = true));
-    let reads = 0;
-    let last = 0;
+  );
+  expect.hasAssertions();
+  const done = runScript(writer);
+  let finished = false;
+  void done.then(
+    () => (finished = true),
+    () => (finished = true),
+  );
+  let reads = 0;
+  let last = 0;
+  try {
     while (!finished) {
       const rows = await store.units.list();
       expect(rows.length).toBeGreaterThanOrEqual(last);
       last = rows.length;
       reads += 1;
     }
+  } finally {
     await done;
-    expect(reads).toBeGreaterThan(1);
-    expect((await store.units.list()).length).toBe(150);
-  }, 60_000);
-});
+  }
+  expect(reads).toBeGreaterThan(1);
+  expect((await store.units.list()).length).toBe(150);
+}, 60_000);

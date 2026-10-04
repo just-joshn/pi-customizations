@@ -72,7 +72,7 @@ function readModel(ctx: ExtensionContext): string | undefined {
  */
 
 export function createFooter(ctx: ExtensionContext, store: PresentationStore): (tui: TUI, theme: Theme, footerData: ReadonlyFooterDataProvider) => Component & { dispose(): void } {
-  const home = typeof process.env.HOME === 'string' ? process.env.HOME : '';
+  const home = typeof process.env['HOME'] === 'string' ? process.env['HOME'] : '';
   const directory = shortenHomePath(ctx.cwd, home);
   const startingLevel = readThinking(ctx)?.level;
 

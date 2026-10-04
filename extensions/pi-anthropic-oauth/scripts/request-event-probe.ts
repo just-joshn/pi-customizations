@@ -8,7 +8,7 @@ const ROUTED_PROVIDER = 'claude-subscription';
 const ROUTED_MODEL = 'claude-sonnet-4-6';
 
 export default function (pi: Pick<ExtensionAPI, 'on' | 'registerVirtualModel' | 'registerCommand'>) {
-  const log = process.env.REQUEST_EVENT_LOG;
+  const log = process.env['REQUEST_EVENT_LOG'];
   if (!log) throw new Error('REQUEST_EVENT_LOG is not set.');
   pi.registerVirtualModel({
     provider: ROUTER_PROVIDER,

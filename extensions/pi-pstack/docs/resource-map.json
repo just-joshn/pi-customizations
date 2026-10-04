@@ -4,18 +4,14 @@
     "destination": "skills/architect/SKILL.md",
     "sha256": "25d68041120903c0088aaa2965c09df844b0e6cc6ee738241fdce3f6ab2b48af",
     "executable": false,
-    "transformations": [
-      "Reconcile the architect two-candidate rule with the arena convergence rule."
-    ]
+    "transformations": ["Reconcile the architect two-candidate rule with the arena convergence rule."]
   },
   {
     "source": "upstream/skills/architect/SKILL.md",
     "destination": "prompts/architect.md",
     "sha256": "2eba27a9b79f54e149470890c7500b2f04dfe62c2908dfa55818d02e9451de44",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/architect/references/design-red-flags.md",
@@ -43,19 +39,14 @@
     "destination": "skills/arena/SKILL.md",
     "sha256": "9cebba38a48f5b5fd83eff1d4a49d53902d192d12d4385041110390ad42bc35f",
     "executable": false,
-    "transformations": [
-      "Map model rule location to Pi agent configuration.",
-      "Name the principle skill so the reference is greppable."
-    ]
+    "transformations": ["Map model rule location to Pi agent configuration.", "Name the principle skill so the reference is greppable."]
   },
   {
     "source": "upstream/skills/arena/SKILL.md",
     "destination": "prompts/arena.md",
     "sha256": "cc98d9bb7cf0bb95fe928fa7c4281a11551f662aa0e8ed7dfb38edeea95ee19a",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/automate-me/SKILL.md",
@@ -74,9 +65,7 @@
     "destination": "prompts/automate-me.md",
     "sha256": "ed6f5d0a6253a907e1510a3e2398c1153682779f1c1f6a8b970354e1b4b3861b",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/blast-radius/SKILL.md",
@@ -90,18 +79,14 @@
     "destination": "prompts/blast-radius.md",
     "sha256": "f7e3e1a4f5dcdbad40902e35c8bbf65b356eb7af47f980010642ca7fcbe49b82",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/bro/SKILL.md",
     "destination": "prompts/bro.md",
     "sha256": "a9c853afc279dfd543e6c0181c80e01ac7ba7279b2191ceb2e2181e421bc5f01",
     "executable": false,
-    "transformations": [
-      "Classify reusable restatement text as a Pi prompt template."
-    ]
+    "transformations": ["Classify reusable restatement text as a Pi prompt template."]
   },
   {
     "source": "upstream/skills/create-verification-skill/SKILL.md",
@@ -118,9 +103,7 @@
     "destination": "prompts/create-verification-skill.md",
     "sha256": "b5012faf2cc49cd441d9968731619346c8d4e6dd309c990b41f25262aae54ce3",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/create-verification-skill/references/feature-map-example/README.md",
@@ -148,36 +131,28 @@
     "destination": "skills/figure-it-out/SKILL.md",
     "sha256": "874780548ec18422701e8b3aa5d4ce1231a92effcb2b73379b89f6d672d11391",
     "executable": false,
-    "transformations": [
-      "Wire the figure-it-out judge to its role line."
-    ]
+    "transformations": ["Wire the figure-it-out judge to its role line."]
   },
   {
     "source": "upstream/skills/figure-it-out/SKILL.md",
     "destination": "prompts/figure-it-out.md",
     "sha256": "470c08951a2cfa329a719480f4447018713220566b7a6b91863acb80bcc899ad",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/how/SKILL.md",
     "destination": "skills/how/SKILL.md",
     "sha256": "1b012ec069221ae49c83b9f61c58946b7de7bd185655538baa4c1ce9b52505d6",
     "executable": false,
-    "transformations": [
-      "Remove explorer wording from the simple-path explainer prompt."
-    ]
+    "transformations": ["Remove explorer wording from the simple-path explainer prompt."]
   },
   {
     "source": "upstream/skills/how/SKILL.md",
     "destination": "prompts/how.md",
     "sha256": "4b90641cc7cf255b9e5e76fbdb8011e508986aca587a51d9acee4b4f9d96df77",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/how/references/explainer-prompt.md",
@@ -209,18 +184,14 @@
     "destination": "prompts/interrogate.md",
     "sha256": "aa0aa761d5af1ef1265c032732be2a2ae1d56b0fb47475e3b5ba77b9bcb2cda2",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/interrogate/references/code-quality-review.md",
     "destination": "skills/interrogate/references/code-quality-review.md",
     "sha256": "eafb2cda8e6386354cf425212675a122fd5bc4afb7b13baaab9fee5fbd404add",
     "executable": false,
-    "transformations": [
-      "Attribute the copied Core Prompt block to its source skill."
-    ]
+    "transformations": ["Attribute the copied Core Prompt block to its source skill."]
   },
   {
     "source": "upstream/skills/interrogate/references/lead-judgment.md",
@@ -258,27 +229,21 @@
     "destination": "prompts/maintain-verification-skill.md",
     "sha256": "d2342d8b820fc173fbc4ecdcfd48820e4aed8a31966bce20bb5ed6bc25ca7d72",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/make-bot-ui/SKILL.md",
     "destination": "skills/make-bot-ui/SKILL.md",
     "sha256": "85e2c697285963aa3bc36b702abe1bb3bfbadd130ff28a25c44ce13e1dc6c94f",
     "executable": false,
-    "transformations": [
-      "Replace Reference routine panel and secret card with the native reviewed Pi routine adapter at host/adapters/make-bot-ui/SKILL.md."
-    ]
+    "transformations": ["Replace Reference routine panel and secret card with the native reviewed Pi routine adapter at host/adapters/make-bot-ui/SKILL.md."]
   },
   {
     "source": "upstream/skills/make-bot-ui/SKILL.md",
     "destination": "prompts/make-bot-ui.md",
     "sha256": "bd884268b99e2a3fae5aa7f4ccb22ff5dbebd582527c00a5326eba7afa1e1e64",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/no-comments/SKILL.md",
@@ -296,9 +261,7 @@
     "destination": "prompts/no-comments.md",
     "sha256": "f7c10cf364040ecb312bd0fda181a24d7d369362109b078f8e473a4175fbb37a",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/poteto-mode/SKILL.md",
@@ -319,19 +282,14 @@
     "destination": "skills/poteto-mode/playbooks/authoring-a-skill.md",
     "sha256": "3da0794aa406d58114e24536fe1a01b397bb929666e9f854ef2ecfc30338e2c3",
     "executable": false,
-    "transformations": [
-      "Replace a Reference-only noun with its Pi equivalent."
-    ]
+    "transformations": ["Replace a Reference-only noun with its Pi equivalent."]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/autonomous-run.md",
     "destination": "skills/poteto-mode/playbooks/autonomous-run.md",
     "sha256": "b9f1782080e36f62cb3e69f1bbb1568b117fe5f1c711f00ab2c637182f40a7b0",
     "executable": false,
-    "transformations": [
-      "Replace a Reference-only noun with its Pi equivalent.",
-      "Arm a goal so an autonomous run has a predicate that the goal system checks."
-    ]
+    "transformations": ["Replace a Reference-only noun with its Pi equivalent.", "Arm a goal so an autonomous run has a predicate that the goal system checks."]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/autopilot-full.md",
@@ -384,19 +342,14 @@
     "destination": "skills/poteto-mode/playbooks/bug-fix.md",
     "sha256": "4162bed648f0dddaec985a3b72c081b2798c5f1cce2fdf5bc676631f077682c6",
     "executable": false,
-    "transformations": [
-      "Replace a Reference-only noun with its Pi equivalent."
-    ]
+    "transformations": ["Replace a Reference-only noun with its Pi equivalent."]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/eval.md",
     "destination": "skills/poteto-mode/playbooks/eval.md",
     "sha256": "4397c8a91ba8dc0225426d60b63bd16833c28e1ee387c170601648a97e0d0fe1",
     "executable": false,
-    "transformations": [
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
-      "Resolve the arena path defaults that contain the words that the eval blinding rules forbid."
-    ]
+    "transformations": ["Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.", "Resolve the arena path defaults that contain the words that the eval blinding rules forbid."]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/feature.md",
@@ -410,10 +363,7 @@
     "destination": "skills/poteto-mode/playbooks/hillclimb.md",
     "sha256": "e2fd70db71b522d08215689a8d902564b573a35cbc73d95990897a4c10e9e0b7",
     "executable": false,
-    "transformations": [
-      "Use the show-me-your-work log name and columns instead of a second schema.",
-      "Use the show-me-your-work log name instead of a second schema."
-    ]
+    "transformations": ["Use the show-me-your-work log name and columns instead of a second schema.", "Use the show-me-your-work log name instead of a second schema."]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/investigation.md",
@@ -472,9 +422,7 @@
     "destination": "skills/poteto-mode/playbooks/pause-safely.md",
     "sha256": "40ed73194c9555bea41193fb41c95a9c6fb321325aa519312350187b57ba7490",
     "executable": false,
-    "transformations": [
-      "Resolve a stale or contradictory upstream guard natively."
-    ]
+    "transformations": ["Resolve a stale or contradictory upstream guard natively."]
   },
   {
     "source": "upstream/skills/poteto-mode/playbooks/perf-issue.md",
@@ -566,26 +514,25 @@
   {
     "source": "upstream/skills/poteto-mode/scripts/bootstrap.ts",
     "destination": "skills/poteto-mode/scripts/bootstrap.ts",
-    "sha256": "fe546713c9f655a0cd2941eed60cc1047ae786cb1df2a560472481921c9c056a",
+    "sha256": "ded12a3fd18be08d180c2e32c12b0c877672552b3ee6159027b5585f33a81d1b",
     "executable": false,
     "transformations": [
       "Import the filesystem and signal helpers the locked, signal-forwarding install needs.",
-      "Serialize the install behind an exclusive lock directory, forward SIGINT and SIGTERM to the install and the re-exec child, and wait for a concurrent install instead of racing it."
+      "Serialize the install behind an exclusive lock directory, forward SIGINT and SIGTERM to the install and the re-exec child, and wait for a concurrent install instead of racing it.",
+      "Format and organize generated code with the root Biome policy."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/bun.lock",
     "destination": "skills/poteto-mode/scripts/bun.lock",
-    "sha256": "6360445e33d1544db2cec4d8d70e1f025ceff48b72e56931a83e8522324f0faa",
+    "sha256": "2001255f8dc1ac6426169fbe3dbc7e1c5e2c8566fc7bd5e0156dd7680f1e882a",
     "executable": false,
-    "transformations": [
-      "Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible."
-    ]
+    "transformations": ["Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible."]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/check-plan.mjs",
     "destination": "skills/poteto-mode/scripts/check-plan.mjs",
-    "sha256": "3220dbe8eecfa8f64e1355a0c5236f9e8460803ba0d04d93c74b9f39232f0d98",
+    "sha256": "d7e6ea53544313408ce8b8185ad277b4adc2bb8e09a95d9a42924635a341fa32",
     "executable": true,
     "transformations": [
       "Accept any trunk branch in the `git show origin/<trunk>:` marker instead of requiring main.",
@@ -593,20 +540,21 @@
       "Add fence and leading-label patterns for the prose checks.",
       "Track the opening fence length instead of a boolean.",
       "Close a fence only with a marker at least as long as the opener, and allow up to three spaces of indentation.",
-      "Exempt a leading `Label: value` colon from the mid-sentence colon rule."
+      "Exempt a leading `Label: value` colon from the mid-sentence colon rule.",
+      "Format and organize generated code with the root Biome policy."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/orch/orch.test.ts",
     "destination": "skills/poteto-mode/scripts/orch/orch.test.ts",
-    "sha256": "174b86d21ff51ccd28d1a8c938cb2e0c6fa287b209d4ca6c03932fcb1b53372e",
+    "sha256": "35d9d290b6dc0b650cba64f68b3f90e46e56cb21ff0fa7d1d19b130be7d958f6",
     "executable": false,
-    "transformations": []
+    "transformations": ["Format and organize generated code with the root Biome policy."]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/orch/orch.ts",
     "destination": "skills/poteto-mode/scripts/orch/orch.ts",
-    "sha256": "9b1d7a5157a564a5118754caab49c311d09a3e93c88c911a7ebeee93746ec8af",
+    "sha256": "e6f16dc0db568bd71434bc1c14fbbdbb266ecd06f62bfdff20fb3826eb8bb972",
     "executable": true,
     "transformations": [
       "Import path helpers for the default store location.",
@@ -614,13 +562,14 @@
       "Document the default store in help.",
       "The frontier no longer requires Graphite.",
       "Describe the forge-neutral frontier source.",
-      "Install dependencies only when orch.ts is the entry point so importing it has no side effect."
+      "Install dependencies only when orch.ts is the entry point so importing it has no side effect.",
+      "Format and organize generated code with the root Biome policy."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/orch/store.ts",
     "destination": "skills/poteto-mode/scripts/orch/store.ts",
-    "sha256": "9f5cc61d833912c017d56e35249e80113467410396586ad9ce0e761f3cb817c5",
+    "sha256": "fea5f5b507a64e3fa6c4d068e0a7e8682499a6c3d20e0918d1d3bf6961c217e7",
     "executable": false,
     "transformations": [
       "Import spawnSync to detect a missing gt binary.",
@@ -629,50 +578,49 @@
       "Resolve the frontier from gh when gt is not installed, and record the remote PR head instead of a stale local branch.",
       "Name the frontier source in pin mismatch errors.",
       "Read the frontier source alongside the rows.",
-      "Pass the frontier source to the pin check."
+      "Pass the frontier source to the pin check.",
+      "Format and organize generated code with the root Biome policy."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/package.json",
     "destination": "skills/poteto-mode/scripts/package.json",
-    "sha256": "5c96ec710945183ee7596cf6a106add229b137d84cf49d9c71df73e385a8dc94",
+    "sha256": "1492598043a00861451884955da006d931b7e62214af42d6b8b556a482630d33",
     "executable": false,
-    "transformations": [
-      "Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible."
-    ]
+    "transformations": ["Pin the helper dev dependencies to the versions that bun.lock resolves, so a fresh install is reproducible.", "Typecheck the entire portable scripts project, including tests, under the root-derived policy."]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/cli.test.ts",
-    "sha256": "a35592b4c6da96caf8d47987e9cd503fab6c7774ab87d11a43f24b4b5df2a9d1",
+    "sha256": "34d4559e60fa569f5734fd882910cfd2273a03e21af7777f6bd00bb46890270f",
     "executable": false,
-    "transformations": []
+    "transformations": ["Format and organize generated code with the root Biome policy."]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/cli.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/cli.ts",
-    "sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+    "sha256": "1e3243d81bf8b863c83fe62f2eb0be92f71ae3bd19772b19fbefbf9350a08387",
     "executable": false,
-    "transformations": []
+    "transformations": ["Format and organize generated code with the root Biome policy."]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
-    "sha256": "e53e31b7f03068063f53a99a3591b052aaed66e4e2b196b3a364980f60324ab1",
+    "sha256": "70b8b8ecb7af669e924793ecba956462d7a7404aeaca524858a51aca966b6035",
     "executable": false,
-    "transformations": []
+    "transformations": ["Format and organize generated code with the root Biome policy."]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/github.test.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/github.test.ts",
-    "sha256": "6eac3cd488c57f3b818ec2b739e98cfdb442d7c242f7c5233e2351374007b3cb",
+    "sha256": "d5751d2c55f5f9c351fa362f8e51f2a01f36e6d5d6ccddc835b6e33c1bfb3fe4",
     "executable": false,
-    "transformations": []
+    "transformations": ["Format and organize generated code with the root Biome policy."]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/github.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/github.ts",
-    "sha256": "bd8da3aca40e69a319f573a20b0fe998f491e1a14b00e87f0f107054dcfc1dfd",
+    "sha256": "d1cbed78465cc942669a7bcc126b32ccb3bc2bf118e672627f3ef0d2388789a6",
     "executable": false,
     "transformations": [
       "Request pageInfo and accept a reference so review threads can be paged.",
@@ -688,20 +636,21 @@
       "Fetch every review thread page so an unresolved thread past 100 cannot be hidden.",
       "Fail closed on a cyclic stack instead of looping forever.",
       "Let a caller read a confirmed zero-check PR as one skipped placeholder.",
-      "Return the zero-check placeholder only when gh confirms there are no checks."
+      "Return the zero-check placeholder only when gh confirms there are no checks.",
+      "Format and organize generated code with the root Biome policy."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/policy.test.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/policy.test.ts",
-    "sha256": "a9fedb25feefd1f57ef6a662f80c99018690170a3a8070773a08eaf694d1d3d9",
+    "sha256": "07b6d5933b765e090a06587175f1f5dac5f500840a458489806f2f0bac0e6f10",
     "executable": false,
-    "transformations": []
+    "transformations": ["Format and organize generated code with the root Biome policy."]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/policy.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/policy.ts",
-    "sha256": "58aae40a014a3969761776c9494f65777f5503b32db99b5ef9ad08b866d1a4b5",
+    "sha256": "95a56c849bc25bb48eef6dd1c3b7db7ab504810c76106042814031686252d81c",
     "executable": false,
     "transformations": [
       "Read a PR with zero checks as having no required checks unless GitHub reports it blocked or still computing.",
@@ -711,44 +660,47 @@
       "Fail closed: update the streak, then wait until a zero-check reading persists across two polls at one head SHA.",
       "Build the queued-stack TIMEOUT verdict in one place.",
       "Check the queued deadline between sweep reads so a long sweep cannot overshoot --timeout.",
-      "Give the queued waiting sleep a deadline hook like the single and stack runner has."
+      "Give the queued waiting sleep a deadline hook like the single and stack runner has.",
+      "Format and organize generated code with the root Biome policy."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/render.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/render.ts",
-    "sha256": "abeb80da89ba8d3d65a63ebaca36bf633917b6b0a65096981519a15b119827d9",
+    "sha256": "1bc14709a1b81f1b6d50baee85362d04be629ff32877218b784672b8d0a64a2d",
     "executable": false,
     "transformations": [
       "Import the zero-check reading predicate.",
       "Show a zero-check PR as having no checks instead of a passing mark.",
       "Render the zero-check WAITING reason.",
-      "Render the zero-check TIMEOUT reason."
+      "Render the zero-check TIMEOUT reason.",
+      "Format and organize generated code with the root Biome policy."
     ]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/tsconfig.json",
     "destination": "skills/poteto-mode/scripts/watch-pr/tsconfig.json",
-    "sha256": "1ecccc72320b086c63ce3f73c959896fd747363e63553b3b1136296ea4069e45",
+    "sha256": "9a75344b6508cc303fd44e4a97f55e3bb7fcac8408258edf30bc98d16c91e8b5",
     "executable": false,
-    "transformations": []
+    "transformations": ["Snapshot the root compiler policy for portable scripts, including tests, with Node and Bun ambient types."]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/types.compile.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/types.compile.ts",
-    "sha256": "621af4c9a664fbf699a9737efccdc248abb416df8819c9dc5f824beae2b9b1d6",
+    "sha256": "ade8da0534213b4ef333ebd8908dd0e11bc2943e40f237c4e49035042f46992d",
     "executable": false,
-    "transformations": []
+    "transformations": ["Format and organize generated code with the root Biome policy."]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/watch-pr/types.ts",
     "destination": "skills/poteto-mode/scripts/watch-pr/types.ts",
-    "sha256": "7e3d0c2065b4b5e983397122744203f23d9d9f6379d81bd0957aa3aeb253d91b",
+    "sha256": "a3b9d1b53d5f3566cd16bfdab4eb04545c466a3fb0f9f26aa6f29a7f110ce1c3",
     "executable": false,
     "transformations": [
       "Add non-retryable failure kinds for a missing gh, a failed dependency install, and a cyclic stack so each reaches the exit-7 BLOCKER path.",
       "Give a zero-check PR that has not yet persisted across polls its own WAITING reason.",
-      "Let the deadline report a zero-check PR that never confirmed."
+      "Let the deadline report a zero-check PR that never confirmed.",
+      "Format and organize generated code with the root Biome policy."
     ]
   },
   {
@@ -756,9 +708,7 @@
     "destination": "skills/poteto-mode/scripts/watch-pr/watch-pr",
     "sha256": "3b5db4a9c7a526efc8cb94382036d6b22e94ff503ea9528cae3696e33bf98521",
     "executable": true,
-    "transformations": [
-      "Render a failed dependency install as the documented exit-7 BLOCKER instead of an uncaught throw."
-    ]
+    "transformations": ["Render a failed dependency install as the documented exit-7 BLOCKER instead of an uncaught throw."]
   },
   {
     "source": "upstream/skills/poteto-mode/scripts/worktree-audit.sh",
@@ -781,436 +731,336 @@
     "destination": "skills/principle-attack-the-premise/SKILL.md",
     "sha256": "806fed97bedc5120c2ab330cde7c65c35f5df8521e630192de6b6bc81b8b33cf",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-attack-the-premise/SKILL.md",
     "destination": "prompts/principle-attack-the-premise.md",
     "sha256": "3e9966c7e8e30d7f2a46a5f80111684c70f39dba542601f4423217c63c4354de",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-boundary-discipline/SKILL.md",
     "destination": "skills/principle-boundary-discipline/SKILL.md",
     "sha256": "91ffeea79067d7fbeb39e4c9e634f82124dd418a8795f764e0ac43b73af33467",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-boundary-discipline/SKILL.md",
     "destination": "prompts/principle-boundary-discipline.md",
     "sha256": "f6f46103d5ce0c892da7430462eb535439ec45f1b5ac770dcfc6053c18de97cb",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-build-the-lever/SKILL.md",
     "destination": "skills/principle-build-the-lever/SKILL.md",
     "sha256": "7ee28e5fc20a4bdfce2c7c54204c7d948ea25185c284be00086bab1fe07e7ad6",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-build-the-lever/SKILL.md",
     "destination": "prompts/principle-build-the-lever.md",
     "sha256": "a7a0d18242007d24b701c404654c56c801a0e965e03a81046429a5d2dc6653dc",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-encode-lessons-in-structure/SKILL.md",
     "destination": "skills/principle-encode-lessons-in-structure/SKILL.md",
     "sha256": "4f3a96abbab331719bf2450318b74c28a3a2b7f62049f5c2cae0acaf156ea142",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-encode-lessons-in-structure/SKILL.md",
     "destination": "prompts/principle-encode-lessons-in-structure.md",
     "sha256": "03631cf8de6c10c004de004f5337d1e81ead3f74a0fa0088dc56ddd59637316a",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-exhaust-the-design-space/SKILL.md",
     "destination": "skills/principle-exhaust-the-design-space/SKILL.md",
     "sha256": "1c49513675d330f174f92c5cf8e9c329702a293656ab098a68bd428643aa0b54",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-exhaust-the-design-space/SKILL.md",
     "destination": "prompts/principle-exhaust-the-design-space.md",
     "sha256": "1968fef44f49e177f67b96269affa91acbf52c2d6aff125b55f36addc4d5694d",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-experience-first/SKILL.md",
     "destination": "skills/principle-experience-first/SKILL.md",
     "sha256": "089e41de04eef7539c850bbd7935f80679b2e022547885ada720126ac34ebbd5",
     "executable": false,
-    "transformations": [
-      "Link the principle that the leaf names.",
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Link the principle that the leaf names.", "Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-experience-first/SKILL.md",
     "destination": "prompts/principle-experience-first.md",
     "sha256": "380ab267a9549432f4cb84e1f49aef9dda90ce5ba407892c3dac2a93e123ead7",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-fix-root-causes/SKILL.md",
     "destination": "skills/principle-fix-root-causes/SKILL.md",
     "sha256": "f919ea2473076b4a804a8ec7612dfeb3d57500f292ba4696980942d908b71f96",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-fix-root-causes/SKILL.md",
     "destination": "prompts/principle-fix-root-causes.md",
     "sha256": "7d56494ea50bcb37a59e42d8665151d5fc26f103965c5bf2dc5fe85288d170bc",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-foundational-thinking/SKILL.md",
     "destination": "skills/principle-foundational-thinking/SKILL.md",
     "sha256": "bf392bf7d47e60a032a37440f9e10d91d02018728d5189910c3d0e6e7e01b51b",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-foundational-thinking/SKILL.md",
     "destination": "prompts/principle-foundational-thinking.md",
     "sha256": "f7005f1fcdfd6e938aac494642070296481457a3c499cfa050a8834aa7ad1019",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-guard-the-context-window/SKILL.md",
     "destination": "skills/principle-guard-the-context-window/SKILL.md",
     "sha256": "0a834395b7242056dfb6ff476645bb7ee2491ee0d4465ceeadd8a4261d81f26d",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-guard-the-context-window/SKILL.md",
     "destination": "prompts/principle-guard-the-context-window.md",
     "sha256": "fb024702e2d6cc227cc97f425afa9795d80e8704c485c98ded76532c00461383",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-laziness-protocol/SKILL.md",
     "destination": "skills/principle-laziness-protocol/SKILL.md",
     "sha256": "9f4c6eaffd409e1339c9999b0afeefacb4ffea2d0708aa1f259997c4f85635e6",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-laziness-protocol/SKILL.md",
     "destination": "prompts/principle-laziness-protocol.md",
     "sha256": "0b5eaff3c2ce50961e2ba8fbd32cac89e2918b60b6dc404fa7ad0718fd835dff",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-make-operations-idempotent/SKILL.md",
     "destination": "skills/principle-make-operations-idempotent/SKILL.md",
     "sha256": "a2986a4a3dda4eed4041740f84ee24b7e9ade8ee1669fba2ca7610b45c3eb7eb",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-make-operations-idempotent/SKILL.md",
     "destination": "prompts/principle-make-operations-idempotent.md",
     "sha256": "81131441eae68d981077fc6c5a39960c12e21b87c0f218121ed3d11b3425d150",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
     "destination": "skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
     "sha256": "09099bc2c173de531f5dc6b75db426e8de295ccf4b6bf9a0e5f6722b1b012fe8",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
     "destination": "prompts/principle-migrate-callers-then-delete-legacy-apis.md",
     "sha256": "2cc503056069e5619c38a2c4dd70ca02855a4cc348719c531736af517b44b9dc",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-minimize-reader-load/SKILL.md",
     "destination": "skills/principle-minimize-reader-load/SKILL.md",
     "sha256": "4e2560a16b3b3e5e05f6b0b15823f2ca884b6163f0d63b89a4704ac1fa76ca69",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-minimize-reader-load/SKILL.md",
     "destination": "prompts/principle-minimize-reader-load.md",
     "sha256": "790ed3785d7fcdc1806b3d4a7398294f022aab2d8039b56053d659f365b20a20",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-model-the-domain/SKILL.md",
     "destination": "skills/principle-model-the-domain/SKILL.md",
     "sha256": "ce6f6de05e995590c1774db74027849392ec6a74a87f25fa63cddf356ca79d54",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-model-the-domain/SKILL.md",
     "destination": "prompts/principle-model-the-domain.md",
     "sha256": "ab5a704c35c55d25ea432130c4279a8600c88c46c0007d949fd652dfd42ad898",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-never-block-on-the-human/SKILL.md",
     "destination": "skills/principle-never-block-on-the-human/SKILL.md",
     "sha256": "ba827760ea20a5a245c7b68455647b3216e8d4029ae739aeeb46f17cf5cd9169",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-never-block-on-the-human/SKILL.md",
     "destination": "prompts/principle-never-block-on-the-human.md",
     "sha256": "58bd7e85f8ff580918775032586a3207aca1feb3742356496e635615866839f3",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-outcome-oriented-execution/SKILL.md",
     "destination": "skills/principle-outcome-oriented-execution/SKILL.md",
     "sha256": "7ce3bac71bdac948a54e200e40ad8295eba108660853644f2901e639bf3ecead",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-outcome-oriented-execution/SKILL.md",
     "destination": "prompts/principle-outcome-oriented-execution.md",
     "sha256": "08d17b591c3a666333939f3d77de67bc506586f363a8173ae9b25770ff1459fd",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-prove-it-works/SKILL.md",
     "destination": "skills/principle-prove-it-works/SKILL.md",
     "sha256": "f4d7449de421810d6409f72d100378e3070b53d2c3b0e06f199b64b65260d742",
     "executable": false,
-    "transformations": [
-      "Restore the delegation rule in the leaf itself.",
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Restore the delegation rule in the leaf itself.", "Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-prove-it-works/SKILL.md",
     "destination": "prompts/principle-prove-it-works.md",
     "sha256": "034d37645e993ea6f9f59357fa3e37384ce27dc6e0937c941d80be8d1795f385",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-redesign-from-first-principles/SKILL.md",
     "destination": "skills/principle-redesign-from-first-principles/SKILL.md",
     "sha256": "0b5fb8b42f582dab467359091c8762713b9025935e7797da7c830a8c00bb6a7b",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-redesign-from-first-principles/SKILL.md",
     "destination": "prompts/principle-redesign-from-first-principles.md",
     "sha256": "5092af6ab70d65904d83de4d0ebe414df693f7762f36a41dffa945f9b7404863",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-separate-before-serializing-shared-state/SKILL.md",
     "destination": "skills/principle-separate-before-serializing-shared-state/SKILL.md",
     "sha256": "9a32d09a9a6eaa2baa29e551495865256943a28911eccbbc0e3f9b94f20d8870",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-separate-before-serializing-shared-state/SKILL.md",
     "destination": "prompts/principle-separate-before-serializing-shared-state.md",
     "sha256": "cba4f182f13c23079b1f5ea0114f4d1749307513eec64a8c77fa8f22a86dbc1d",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-sequence-verifiable-units/SKILL.md",
     "destination": "skills/principle-sequence-verifiable-units/SKILL.md",
     "sha256": "09eac2a7550db9b48e5477aea516911f20e4b1f09195cf0e3e9cacf501a25028",
     "executable": false,
-    "transformations": [
-      "Define green at a declared phase boundary so the two principles agree.",
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Define green at a declared phase boundary so the two principles agree.", "Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-sequence-verifiable-units/SKILL.md",
     "destination": "prompts/principle-sequence-verifiable-units.md",
     "sha256": "ef0a7a5b37b8566df259c96b18bf598dcc2842530c298c4ea7b88dcd23f05f49",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-subtract-before-you-add/SKILL.md",
     "destination": "skills/principle-subtract-before-you-add/SKILL.md",
     "sha256": "43f5ef904054fb9770e07c5706075593a72eaa8cf94778d093a912de60799307",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-subtract-before-you-add/SKILL.md",
     "destination": "prompts/principle-subtract-before-you-add.md",
     "sha256": "94800c018440e008005f191486ca54337566a4701864dc2941ffeb3964f32d43",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-test-behavior-not-implementation/SKILL.md",
     "destination": "skills/principle-test-behavior-not-implementation/SKILL.md",
     "sha256": "d121fb885c200b3fe518b8b0766180513b5bdee4a0371d00e7e910cabd8e10fe",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-test-behavior-not-implementation/SKILL.md",
     "destination": "prompts/principle-test-behavior-not-implementation.md",
     "sha256": "dc27c9c6ea816a59baf48d4bf79c83826bcbe6fbe1ff89039472df2d874b5e6d",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-type-system-discipline/SKILL.md",
     "destination": "skills/principle-type-system-discipline/SKILL.md",
     "sha256": "ee4d581bb074611861dc2dfa2bdb96aebbb5db3dba097e23bbc9df24e8ace427",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-type-system-discipline/SKILL.md",
     "destination": "prompts/principle-type-system-discipline.md",
     "sha256": "abdc794340080f12ee1823fe3fb6915b36f44e0d63afb498bf1e3133e198f2a7",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/recall/SKILL.md",
     "destination": "skills/recall/SKILL.md",
     "sha256": "fcb60e2f860c91a7cd3b8a4f1e717aeda56475204813d86d6a36d7c1ce31a4ed",
     "executable": false,
-    "transformations": [
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
-      "Wire the recall miners to their role line."
-    ]
+    "transformations": ["Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.", "Wire the recall miners to their role line."]
   },
   {
     "source": "upstream/skills/recall/SKILL.md",
     "destination": "prompts/recall.md",
     "sha256": "19d1723ac0705699824b100bce5c4618aa697fe96d04d661f65f3f018c70a437",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/reflect/SKILL.md",
@@ -1230,27 +1080,21 @@
     "destination": "prompts/reflect.md",
     "sha256": "52e7bbbdd3e8a5e048d1e272073c6641ae0863a187fcfe74562b74bdd51f5f56",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/reflect/references/divergent-reviewer.md",
     "destination": "skills/reflect/references/divergent-reviewer.md",
     "sha256": "d222a93009bf7ac5159ce4bfd867bc104d14a89ab4fb87416b1f009d494df9c6",
     "executable": false,
-    "transformations": [
-      "Map user and project skill directories to Pi discovery locations."
-    ]
+    "transformations": ["Map user and project skill directories to Pi discovery locations."]
   },
   {
     "source": "upstream/skills/reflect/references/judgment-reviewer.md",
     "destination": "skills/reflect/references/judgment-reviewer.md",
     "sha256": "6e61926cb0161fa9289fd2c314a225e166f5effee19c9d241f47b3a69fe3cca3",
     "executable": false,
-    "transformations": [
-      "Map user and project skill directories to Pi discovery locations."
-    ]
+    "transformations": ["Map user and project skill directories to Pi discovery locations."]
   },
   {
     "source": "upstream/skills/reflect/references/synthesizer.md",
@@ -1264,9 +1108,7 @@
     "destination": "skills/reflect/references/tooling-reviewer.md",
     "sha256": "0debb381d7016a759e3bc2d3872a9638536801b5018614d35ed0966c45e4bd92",
     "executable": false,
-    "transformations": [
-      "Map user and project skill directories to Pi discovery locations."
-    ]
+    "transformations": ["Map user and project skill directories to Pi discovery locations."]
   },
   {
     "source": "upstream/skills/setup-pstack/SKILL.md",
@@ -1286,19 +1128,14 @@
     "destination": "skills/show-me-your-work/SKILL.md",
     "sha256": "2b1c08f1c9c7d042b895f675c8ebfa8e13d435f9096b8d60c0b022cd0ba06071",
     "executable": false,
-    "transformations": [
-      "Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.",
-      "Wire the trail reviewer to its role line."
-    ]
+    "transformations": ["Map Reference agent-transcripts to the Pi session store and per-parent subagents child transcripts.", "Wire the trail reviewer to its role line."]
   },
   {
     "source": "upstream/skills/show-me-your-work/SKILL.md",
     "destination": "prompts/show-me-your-work.md",
     "sha256": "b11966e55dc20e5364ee8cadb20920b512a604385b6a3485f8a89b4797130ea9",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/show-me-your-work/references/decision-log-template.tsv",
@@ -1312,10 +1149,7 @@
     "destination": "skills/show-me-your-work/scripts/log.sh",
     "sha256": "9ec3e9e58c3194bd18877c7cbcfe3580be1681354c8409856ca8b6e60322d029",
     "executable": true,
-    "transformations": [
-      "Take a mkdir lock around the header test and the append so concurrent first writers write one header.",
-      "Guard on the first non-blank character so leading whitespace cannot hide a formula prefix."
-    ]
+    "transformations": ["Take a mkdir lock around the header test and the append so concurrent first writers write one header.", "Guard on the first non-blank character so leading whitespace cannot hide a formula prefix."]
   },
   {
     "source": "upstream/skills/swarm/SKILL.md",
@@ -1333,45 +1167,35 @@
     "destination": "prompts/swarm.md",
     "sha256": "da36600cc59c64731bc41ac2115fbfffb83cffe712daca8aee7506785e3da72f",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/tdd/SKILL.md",
     "destination": "skills/tdd/SKILL.md",
     "sha256": "68f1bb2a4248f7f869c22a9ab297d675f18a16c5e13e4fa4ed964938634a1eb3",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/tdd/SKILL.md",
     "destination": "prompts/tdd.md",
     "sha256": "3972f07348bf42d150bcb1516aa836fc71836e5403919f08bf34345fa8dec857",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/teach/SKILL.md",
     "destination": "skills/teach/SKILL.md",
     "sha256": "a9b09d2bec36e21e325098631c8c5b5505574cdbb692d097513198abb575f462",
     "executable": false,
-    "transformations": [
-      "Name a fallback because Pi registers no image-generation tool."
-    ]
+    "transformations": ["Name a fallback because Pi registers no image-generation tool."]
   },
   {
     "source": "upstream/skills/teach/SKILL.md",
     "destination": "prompts/teach.md",
     "sha256": "a1b0233c3c8ade582a890f3094fd6209b53b18db6edab11ea78d34539b07078f",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/technical-writing/SKILL.md",
@@ -1385,9 +1209,7 @@
     "destination": "prompts/technical-writing.md",
     "sha256": "c6c2c2b2bcde905fb1bb6eaebebc8093a447a5e90de3414cfc373999ba1f8045",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/typescript-best-practices/SKILL.md",
@@ -1404,19 +1226,14 @@
     "destination": "prompts/typescript-best-practices.md",
     "sha256": "25c90dca40f9da5387b44ec357fe3f8ba02bb38fba672f1d727e77d4a9b8d4f6",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/typescript-best-practices/references/patterns.md",
     "destination": "skills/typescript-best-practices/references/patterns.md",
     "sha256": "d22576b38a84533d13b1130f4b1e7cebbe6dc7fd31f8d16f0c4fd143f465b202",
     "executable": false,
-    "transformations": [
-      "Use the double-quote style that the code and the rule table use.",
-      "Indent code snippets with tabs, per the technical-writing rule."
-    ]
+    "transformations": ["Use the double-quote style that the code and the rule table use.", "Indent code snippets with tabs, per the technical-writing rule."]
   },
   {
     "source": "upstream/skills/unslop/SKILL.md",
@@ -1430,9 +1247,7 @@
     "destination": "prompts/unslop.md",
     "sha256": "a008146e23cecaf4e588e45e3fa3933931cc6ed44b0d598ea7ba04614bc2de04",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/why/SKILL.md",
@@ -1451,9 +1266,7 @@
     "destination": "prompts/why.md",
     "sha256": "a0160f7f42961b7876af73760e35d6fa494da7a009b5217fd9000b04790231e5",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/why/references/epistemics.md",
@@ -1551,9 +1364,7 @@
     "destination": "prompts/benchmark-checklist.md",
     "sha256": "8f2fdb5a11d8a945379dfd6d9eaa61ee9adc731956730fecab1a67e17416cb98",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/correct/SKILL.md",
@@ -1567,27 +1378,21 @@
     "destination": "prompts/correct.md",
     "sha256": "57965f999699a3245663ed8c9c1cd6a27c7f9789884ca29e8c201e2d2091002a",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream/skills/principle-explain-the-number/SKILL.md",
     "destination": "skills/principle-explain-the-number/SKILL.md",
     "sha256": "a4e3bb7cf6de49706a333832b1a8c552fc1a27bd1beb83a0a6ebdf8826a8395a",
     "executable": false,
-    "transformations": [
-      "Use sentence case for headings, per the prose style rules."
-    ]
+    "transformations": ["Use sentence case for headings, per the prose style rules."]
   },
   {
     "source": "upstream/skills/principle-explain-the-number/SKILL.md",
     "destination": "prompts/principle-explain-the-number.md",
     "sha256": "b039a6f36121adb95e326e4cb158f7d641a859d4c8d7fa0f2dd092eb15bd4a99",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/check-compiler-errors/SKILL.md",
@@ -1601,9 +1406,7 @@
     "destination": "prompts/check-compiler-errors.md",
     "sha256": "cdd869565e6d4afca7ae48ca92a34e207b8f21810fd9a600cdbdb5ab6ddaa12d",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/control-cli/SKILL.md",
@@ -1617,9 +1420,7 @@
     "destination": "prompts/control-cli.md",
     "sha256": "e4d4b9532b53ce7743c10e8b474fbb9675c1db04d3f8824622fbd199b5fcf7ad",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/control-ui/SKILL.md",
@@ -1633,28 +1434,21 @@
     "destination": "prompts/control-ui.md",
     "sha256": "3dc6cd743b59a474229ec4394be2b7861adf83827a12a25b0943cb0db6a166d0",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/deslop/SKILL.md",
     "destination": "skills/deslop/SKILL.md",
     "sha256": "99a7ef3b7042ee9e376d905bbc5e1df75af17bf3b020d986796a6e7db3bff839",
     "executable": false,
-    "transformations": [
-      "Adapt external dependency instructions to Pi host capabilities and evidence rules.",
-      "Make the deslop result a countable receipt."
-    ]
+    "transformations": ["Adapt external dependency instructions to Pi host capabilities and evidence rules.", "Make the deslop result a countable receipt."]
   },
   {
     "source": "upstream-team-kit/skills/deslop/SKILL.md",
     "destination": "prompts/deslop.md",
     "sha256": "b61b2940359929534434acffe5013a71f298b453d0a68574f4ffd7e3b000540c",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/fix-ci/SKILL.md",
@@ -1668,9 +1462,7 @@
     "destination": "prompts/fix-ci.md",
     "sha256": "862cc8acfab8b0b3272cf9f0c9bbbeed9e630cce20a7a9de521385fc18148c3d",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/fix-merge-conflicts/SKILL.md",
@@ -1684,9 +1476,7 @@
     "destination": "prompts/fix-merge-conflicts.md",
     "sha256": "381487330b10b209e7bd917057e7e74d1c235a673fd03af3e3d1d62b411200df",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/get-pr-comments/SKILL.md",
@@ -1700,9 +1490,7 @@
     "destination": "prompts/get-pr-comments.md",
     "sha256": "28c54bf6f492203590a36a60a873775da81c517d6782c34e75b04e46e6cd339c",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/loop-on-ci/SKILL.md",
@@ -1716,9 +1504,7 @@
     "destination": "prompts/loop-on-ci.md",
     "sha256": "2f758d18b8e12ada7e8e1c3f30177d9e1ec9476dc5ce1407b2fd588cd6017c66",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/make-pr-easy-to-review/SKILL.md",
@@ -1732,9 +1518,7 @@
     "destination": "prompts/make-pr-easy-to-review.md",
     "sha256": "a044f3799d2876ea2d1f47c51d2412933e7982728fa991c55675e3a2389e07c0",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/new-branch-and-pr/SKILL.md",
@@ -1748,9 +1532,7 @@
     "destination": "prompts/new-branch-and-pr.md",
     "sha256": "8d3ada223e0b3cede7b4e82c1f72867b5f679338a2880dff97c3ea8476cf0dc1",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/pr-review-canvas/SKILL.md",
@@ -1767,23 +1549,21 @@
     "destination": "prompts/pr-review-canvas.md",
     "sha256": "16358d70e9679eaf53f292ec9669fd65ee9aae089bb5e57ce16e6d0d4a07b2d6",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/pr-review-canvas/renderer.js",
     "destination": "skills/pr-review-canvas/renderer.js",
-    "sha256": "d78d36a46b0aeae755e2edd9b712970fd181183bb1c320d10caa8d9f776695c6",
+    "sha256": "a822a8e3a798e8639e1e12202aaf75d201da53039603119ace014bbadd0df461",
     "executable": false,
-    "transformations": []
+    "transformations": ["Replay canonical normalized team-kit adaptation. Lexical scopes, lexical callbacks, own-property checks, explicit classic-script handler exports and root formatting."]
   },
   {
     "source": "upstream-team-kit/skills/pr-review-canvas/styles.css",
     "destination": "skills/pr-review-canvas/styles.css",
-    "sha256": "cb1c65cd441e9a882396a92e8e1fc397c6ffe662637fb78168e0ccbd05b02f4e",
+    "sha256": "c80574ed62da3b2dc4daa0552de31517c8952f9097030b4ac0e8584a186b6e8b",
     "executable": false,
-    "transformations": []
+    "transformations": ["Replay canonical normalized team-kit adaptation. Replace invalid normalized reference property with standard cursor property and root formatting."]
   },
   {
     "source": "upstream-team-kit/skills/pr-review-canvas/template.html",
@@ -1804,9 +1584,7 @@
     "destination": "prompts/review-and-ship.md",
     "sha256": "17325c1f672845e8b5a3b0918cdf3bc774a2004d199aba9054aadc9d19eb264c",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/run-smoke-tests/SKILL.md",
@@ -1820,9 +1598,7 @@
     "destination": "prompts/run-smoke-tests.md",
     "sha256": "b6388f44f8056b6d891535f7134e0af76ee9526842c4dc7c8cd1e34366e923d7",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
@@ -1836,9 +1612,7 @@
     "destination": "prompts/thermo-nuclear-code-quality-review.md",
     "sha256": "67467f0e78c75f93b2d9719816b89202e43889a202f07129ede60ccccc6aa5c3",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/verify-this/SKILL.md",
@@ -1852,9 +1626,7 @@
     "destination": "prompts/verify-this.md",
     "sha256": "29ddd870d5bc0cfe0372eda0da7b4f0ed6dab613b3ebf5fa0d29b3b5e694cae1",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/weekly-review/SKILL.md",
@@ -1868,9 +1640,7 @@
     "destination": "prompts/weekly-review.md",
     "sha256": "29a23c3302e15eeba6d83fcc24296173f64b949b8bdcec730908ac2f319fe31b",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/what-did-i-get-done/SKILL.md",
@@ -1884,26 +1654,27 @@
     "destination": "prompts/what-did-i-get-done.md",
     "sha256": "57bc8b6bd5c95fcf2486214e41bf79fac15210db2414d67db50ed270bd2160fc",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
   },
   {
     "source": "upstream-team-kit/skills/workflow-from-chats/SKILL.md",
     "destination": "skills/workflow-from-chats/SKILL.md",
     "sha256": "3b6add31046002009c95002b34659286a309020dc1e2190ed041bcc0782f17d2",
     "executable": false,
-    "transformations": [
-      "Replace a Reference-only noun with its Pi equivalent."
-    ]
+    "transformations": ["Replace a Reference-only noun with its Pi equivalent."]
   },
   {
     "source": "upstream-team-kit/skills/workflow-from-chats/SKILL.md",
     "destination": "prompts/workflow-from-chats.md",
     "sha256": "f598d6cd65aa14e994aea460ae2c6f558ac65d7953cfd29452aa3d2acec087d4",
     "executable": false,
-    "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
-    ]
+    "transformations": ["Expose the skill entry point as a native Pi prompt template with user arguments."]
+  },
+  {
+    "source": "../../tsconfig.json",
+    "destination": "skills/poteto-mode/scripts/tsconfig.json",
+    "sha256": "2cf337fc1acc08cd78be14b5c5aa6accd8cb71632796952ce07b58e42934bad8",
+    "executable": false,
+    "transformations": ["Snapshot the root compiler policy for portable scripts, including tests, with Node and Bun ambient types.", "Format and organize generated code with the root Biome policy."]
   }
 ]

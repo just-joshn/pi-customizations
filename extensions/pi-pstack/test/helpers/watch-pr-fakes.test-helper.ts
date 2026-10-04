@@ -1,6 +1,8 @@
 import { chmodSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { type Static, Type } from 'typebox';
+import { Check } from 'typebox/value';
 import { scratchDir } from './scratch.ts';
 export interface FakeReply {
   readonly code?: number;
@@ -13,19 +15,18 @@ export interface FakeRule {
   readonly match: readonly string[];
   readonly replies: readonly FakeReply[];
 }
-export interface FakeCall {
-  readonly tool: string;
-  readonly argv: readonly string[];
-  readonly ppid: number;
-}
+const FakeCallSchema = Type.Object({ tool: Type.String(), argv: Type.Array(Type.String()), ppid: Type.Integer() });
+export type FakeCall = Static<typeof FakeCallSchema>;
 export interface FakeBin {
   readonly dir: string;
   readonly calls: () => FakeCall[];
 }
 
-const FAKE_PROGRAM = `#!/usr/bin/env bun
-import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, join } from "node:path";
+const FAKE_PROGRAM = `#!${process.execPath}
+const { appendFileSync, existsSync, readFileSync, writeFileSync } = require("node:fs");
+const { basename, join } = require("node:path");
+const { setTimeout: sleep } = require("node:timers/promises");
+(async () => {
 
 const dir = process.env.FAKE_BIN_DIR;
 const tool = basename(process.argv[1]);
@@ -44,10 +45,11 @@ const seen = state[index] ?? 0;
 state[index] = seen + 1;
 writeFileSync(statePath, JSON.stringify(state));
 const reply = rules[index].replies[Math.min(seen, rules[index].replies.length - 1)];
-if (reply.delayMs) await Bun.sleep(reply.delayMs);
+if (reply.delayMs) await sleep(reply.delayMs);
 process.stdout.write(reply.stdout ?? "");
 process.stderr.write(reply.stderr ?? "");
-process.exit(reply.code ?? 0);
+process.exitCode = reply.code ?? 0;
+})().catch((error) => { process.stderr.write(String(error)); process.exitCode = 99; });
 `;
 
 export function installFakeBin(rules: readonly FakeRule[]): FakeBin {
@@ -62,7 +64,11 @@ export function installFakeBin(rules: readonly FakeRule[]): FakeBin {
     readFileSync(join(dir, 'calls.jsonl'), 'utf8')
       .split('\n')
       .filter(Boolean)
-      .map((line) => JSON.parse(line) as FakeCall);
+      .map((line) => {
+        const call: unknown = JSON.parse(line);
+        if (!Check(FakeCallSchema, call)) throw new Error('invalid fake command log');
+        return call;
+      });
   return { dir, calls };
 }
 
@@ -71,7 +77,7 @@ export function emptyBin(): string {
 }
 
 export function fakeEnv(bin: FakeBin, extra: Record<string, string> = {}): Record<string, string> {
-  return { PATH: `${bin.dir}:${process.env.PATH ?? ''}`, FAKE_BIN_DIR: bin.dir, ...extra };
+  return { PATH: `${bin.dir}:${process.env['PATH'] ?? ''}`, FAKE_BIN_DIR: bin.dir, ...extra };
 }
 
 export async function withEnv<T>(env: Record<string, string>, body: () => Promise<T>): Promise<T> {

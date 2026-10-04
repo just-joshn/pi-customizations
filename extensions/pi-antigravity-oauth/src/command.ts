@@ -9,11 +9,11 @@ export interface CommandEndpoints {
 }
 
 export interface AccountSummary {
-  email?: string;
+  email?: string | undefined;
   projectId: string;
-  tier?: string;
+  tier?: string | undefined;
   models: AvailableModel[];
-  modelsError?: string;
+  modelsError?: string | undefined;
 }
 
 function tierName(data: unknown): string | undefined {

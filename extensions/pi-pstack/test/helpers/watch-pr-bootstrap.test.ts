@@ -1,15 +1,21 @@
-import { afterEach, expect, test } from 'bun:test';
+import './leak-preload.ts';
+
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { afterEach, expect, test } from 'vitest';
 import { removeScratch, scratchDir } from './scratch.ts';
 import { commitsPage, type FakeBin, fakeEnv, fastCheck, installFakeBin, ok, prView, threadsPage } from './watch-pr-fakes.test-helper.ts';
+import { runProcess, startProcess, stopProcesses } from './watch-pr-process.ts';
 
 const shipped = new URL('../../skills/poteto-mode/scripts', import.meta.url).pathname;
 const scratch = (label: string): string => scratchDir(`watch-pr-${label}-`);
 
-afterEach(removeScratch);
+afterEach(async () => {
+  await stopProcesses();
+  removeScratch();
+});
 
 function freshScripts(): string {
   const root = scratch('scripts');
@@ -27,10 +33,9 @@ const expectedKey = (scripts: string): string =>
     .digest('hex');
 
 function launch(scripts: string, args: string[], cwd = scratch('cwd')) {
-  const result = Bun.spawnSync(['bun', launcher(scripts), ...args], { cwd, env: process.env });
+  const result = runProcess(['bun', launcher(scripts), ...args], { cwd, env: process.env });
   return { code: result.exitCode, stdout: result.stdout.toString(), stderr: result.stderr.toString(), cwd };
 }
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test('bootstrap installs under the scripts directory, not the cwd, when the launcher runs from an unrelated directory', () => {
   const scripts = freshScripts();
@@ -50,8 +55,9 @@ test('bootstrap writes the install key as sha256 of package.json, a NUL byte, th
 test('bootstrap returns without reinstalling when the manifest, commander, and a matching key are present', async () => {
   const scripts = freshScripts();
   launch(scripts, ['--help']);
+  const stamp = new Date('2000-01-01T00:00:00Z');
+  utimesSync(keyPath(scripts), stamp, stamp);
   const before = statSync(keyPath(scripts)).mtimeMs;
-  await sleep(30);
   const again = launch(scripts, ['--help']);
   expect(again.code).toBe(0);
   expect(statSync(keyPath(scripts)).mtimeMs).toBe(before);
@@ -111,8 +117,15 @@ test('bootstrap waits while another process holds the install lock and installs 
   const scripts = freshScripts();
   mkdirSync(lockPath(scripts));
   writeFileSync(join(lockPath(scripts), 'pid'), String(process.pid));
-  const child = Bun.spawn(['bun', launcher(scripts), '--help'], { cwd: scratch('cwd'), stdout: 'pipe', stderr: 'pipe' });
-  await sleep(1200);
+  const probe = `const sleepSync = Bun.sleepSync;
+Bun.sleepSync = (milliseconds) => {
+  process.stdout.write('waiting-for-install-lock\\n');
+  return sleepSync(milliseconds);
+};
+process.argv = ['bun', ${JSON.stringify(launcher(scripts))}, '--help'];
+await import(${JSON.stringify(launcher(scripts))});`;
+  const child = startProcess(['bun', '-e', probe], { cwd: scratch('cwd') });
+  await expect.poll(() => child.stdout(), { timeout: 5000 }).toContain('waiting-for-install-lock');
   expect(existsSync(join(scripts, 'node_modules'))).toBe(false);
   rmSync(lockPath(scripts), { recursive: true });
   expect(await child.exited).toBe(0);
@@ -129,7 +142,7 @@ test('bootstrap reclaims an install lock whose owner process is gone', () => {
 
 test('two launchers started together on a fresh install both succeed and leave one valid key and no lock', async () => {
   const scripts = freshScripts();
-  const spawn = () => Bun.spawn(['bun', launcher(scripts), '--help'], { cwd: scratch('cwd'), stdout: 'pipe', stderr: 'pipe' });
+  const spawn = () => startProcess(['bun', launcher(scripts), '--help'], { cwd: scratch('cwd') });
   const children = [spawn(), spawn(), spawn()];
   const codes = await Promise.all(children.map((child) => child.exited));
   expect(codes).toEqual([0, 0, 0]);
@@ -158,19 +171,16 @@ test('a signal sent only to the launcher reaches the re-exec child so no polling
   const scripts = freshScripts();
   const bin = pendingWatchRules();
   const args = ['--owner', 'o', '--repo', 'r', '--pr', '1', '--interval', '300'];
-  const parent = Bun.spawn(['bun', launcher(scripts), ...args], { cwd: scratch('cwd'), env: { ...process.env, ...fakeEnv(bin) }, stdout: 'pipe', stderr: 'pipe' });
+  const parent = startProcess(['bun', launcher(scripts), ...args], { cwd: scratch('cwd'), env: { ...process.env, ...fakeEnv(bin) } });
   let child = 0;
-  for (let waited = 0; waited < 20000 && child === 0; waited += 200) {
-    await sleep(200);
-    child = bin.calls().find((call) => call.argv.includes('checks') || call.argv.join(' ').includes('pr checks'))?.ppid ?? 0;
-  }
   try {
-    expect(child).toBeGreaterThan(0);
+    const watcherPid = () => bin.calls().find((call) => call.argv.includes('checks') || call.argv.join(' ').includes('pr checks'))?.ppid ?? 0;
+    await expect.poll(watcherPid, { timeout: 20000 }).toBeGreaterThan(0);
+    child = watcherPid();
     expect(child).not.toBe(parent.pid);
     parent.kill('SIGTERM');
     await parent.exited;
-    await sleep(1500);
-    expect(alive(child)).toBe(false);
+    await expect.poll(() => alive(child), { timeout: 5000 }).toBe(false);
   } finally {
     if (child > 0 && alive(child)) process.kill(child, 'SIGKILL');
     parent.kill('SIGKILL');
@@ -179,7 +189,7 @@ test('a signal sent only to the launcher reaches the re-exec child so no polling
 
 test('importing orch.ts does not run the dependency install', () => {
   const scripts = freshScripts();
-  Bun.spawnSync(['bun', '-e', `await import(${JSON.stringify(join(scripts, 'orch', 'orch.ts'))})`], { cwd: scratch('cwd') });
+  runProcess(['bun', '-e', `await import(${JSON.stringify(join(scripts, 'orch', 'orch.ts'))})`], { cwd: scratch('cwd') });
   expect(existsSync(keyPath(scripts))).toBe(false);
   expect(existsSync(join(scripts, 'node_modules'))).toBe(false);
 });

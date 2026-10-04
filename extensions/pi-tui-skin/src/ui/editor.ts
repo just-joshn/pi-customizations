@@ -73,7 +73,7 @@ export class SkinStyleEditor extends CustomEditor {
     super.setPaddingX(PADDING_X + (Number.isFinite(padding) ? Math.max(0, Math.floor(padding)) : 0));
   }
 
-  render(width: number): string[] {
+  override render(width: number): string[] {
     const text = this.getText();
     const running = this.store.getSnapshot().phase.kind === 'running';
     // The frames carry baked theme colors and Pi renders them verbatim, so this
@@ -112,14 +112,14 @@ export class SkinStyleEditor extends CustomEditor {
   }
 
   /** A band row. Pi hands over a rule, so the rule glyphs become half blocks in place. */
-  protected renderTopBorder(width: number, hiddenLineCount: number): string {
+  protected override renderTopBorder(width: number, hiddenLineCount: number): string {
     this.hiddenAbove = hiddenLineCount > 0;
     if (!this.drawingBar) return super.renderTopBorder(width, hiddenLineCount);
     this.topBarLine = this.band(super.renderTopBorder(this.bandWidth(width), hiddenLineCount), TOP_BLOCK, width);
     return this.topBarLine;
   }
 
-  protected renderBottomBorder(width: number, hiddenLineCount: number): string {
+  protected override renderBottomBorder(width: number, hiddenLineCount: number): string {
     if (!this.drawingBar) return super.renderBottomBorder(width, hiddenLineCount);
     this.bottomBarLine = this.band(super.renderBottomBorder(this.bandWidth(width), hiddenLineCount), BOTTOM_BLOCK, width);
     return this.bottomBarLine;

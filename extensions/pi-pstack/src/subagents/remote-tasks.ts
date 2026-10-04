@@ -12,9 +12,12 @@ export type ChildListing = Readonly<{ id: string; kind: ChildKind; alive: boolea
 
 /** The roster of pi RPC child processes (remote destinations and teammates). Records live in WorkerRuntime; processes live here. */
 export class RemoteTasks {
+  private readonly host: ChildHost;
   private readonly tasks = new Map<string, ChildTask>();
 
-  constructor(private readonly host: ChildHost) {}
+  constructor(host: ChildHost) {
+    this.host = host;
+  }
 
   has(id: string): boolean {
     return this.tasks.has(id);

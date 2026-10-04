@@ -93,7 +93,7 @@ export function argNumber(source: unknown, key: string): number | undefined {
 
 /** The home directory to shorten against, or undefined. */
 export function currentHome(): string | undefined {
-  const home = process.env.HOME;
+  const home = process.env['HOME'];
   return typeof home === 'string' && home.length > 0 ? home : undefined;
 }
 

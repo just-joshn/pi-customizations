@@ -210,7 +210,6 @@ shellTest('a shell stopped in the same busy turn sends no stale wake afterwards'
 shellTest('a matching command exiting zero records its status without an extra response', async (f, session) => {
   f.calls.push(call('BackgroundShell', { command: 'echo AGENT_LOOP_TICK_q; sleep 0.1; exit 0', title: 'quiet', notify_on_output: '^AGENT_LOOP_TICK_q' }));
   await prompt(session, 'start quiet shell');
-  const _shell = detailsOf<ShellRecord>(session, 'BackgroundShell');
   await waitFor(() => !groupAlive(detailsOf<ShellRecord>(session, 'BackgroundShell').pid), 'the quiet shell process to exit');
   await waitFor(() => !session.isStreaming && custom(session, 'pstack-shell-output').length === 1, 'the match wake');
   expect(custom(session, 'pstack-shell-exit').length).toBe(0);

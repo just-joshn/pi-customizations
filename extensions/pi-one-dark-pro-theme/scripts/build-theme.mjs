@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { buildTheme, parseRoleMap, THEME_NAME } from '../parity/theme.ts';
+import { formatJSON } from '../parity/upstream.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const upstreamPath = join(root, 'upstream', 'OneDark-Pro-flat.json');
@@ -15,7 +16,7 @@ const reason = (error) => (error instanceof Error ? error.message : String(error
 try {
   const document = JSON.parse(readFileSync(upstreamPath, 'utf8'));
   const rows = parseRoleMap(readFileSync(roleMapPath, 'utf8'));
-  writeFileSync(themePath, `${JSON.stringify(buildTheme(document, rows), null, '\t')}\n`);
+  writeFileSync(themePath, formatJSON(JSON.stringify(buildTheme(document, rows), null, 2), themePath));
   process.stdout.write(`wrote themes/${THEME_NAME}.json from ${rows.length} role map rows\n`);
 } catch (error) {
   process.stderr.write(`build:theme failed: ${reason(error)}\n`);

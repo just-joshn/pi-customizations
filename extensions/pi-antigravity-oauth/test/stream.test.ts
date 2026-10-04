@@ -1,10 +1,11 @@
 import { type Api, type AssistantMessage, type Context, isContextOverflow, isRetryableAssistantError, type Model, normalizeContext, type SimpleStreamOptions } from '@earendil-works/pi-ai';
-import { expect, test } from 'vitest';
+import { expect } from 'vitest';
 import { userAgent } from '../src/cloudcode.ts';
 import { createAntigravityProvider } from '../src/index.ts';
 import { GOOGLE_OAUTH } from '../src/oauth.ts';
 import type { CloudCodeRequest } from '../src/stream.ts';
 import { type FakeServer, fakeServer, json, type Recorded, sse, stream } from './fake-server.ts';
+import { test } from './network-guard.ts';
 
 const API_KEY = JSON.stringify({ token: 'ya29.test', projectId: 'proj-123' });
 
@@ -75,6 +76,14 @@ async function run(
 function body(request: Recorded | undefined): CloudCodeRequest {
   return JSON.parse(request?.body ?? '{}') as CloudCodeRequest;
 }
+
+test('unsigned text omits the optional SDK signature field', async () => {
+  expect.hasAssertions();
+  const { message } = await run((_, res) => stream(res, textAndThinking));
+  for (const block of message.content) {
+    if (block.type === 'text') expect(block).not.toHaveProperty('textSignature');
+  }
+});
 
 test('text and thinking stream into balanced Pi events with usage', async () => {
   const { message, events } = await run((_, res) => stream(res, textAndThinking), { stream: { reasoning: 'high' } });
@@ -271,10 +280,10 @@ test('a supplied fetch implementation carries the request', async () => {
   const urls: string[] = [];
   const { message } = await run((_, res) => stream(res, textAndThinking), {
     stream: {
-      fetch: (input, init) => {
+      fetch: Object.assign((input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
         urls.push(String(input));
         return fetch(input, init);
-      },
+      }, fetch),
     },
   });
   expect(message.stopReason).toBe('stop');
@@ -311,7 +320,7 @@ test('onResponse sees the response status', async () => {
 });
 
 test('a missing credential asks the user to log in without calling Cloud Code', async () => {
-  const { server, message } = await run((_, res) => stream(res, textAndThinking), { stream: { apiKey: undefined } });
+  const { server, message } = await run((_, res) => stream(res, textAndThinking), { stream: { apiKey: '' } });
   expect(message.stopReason).toBe('error');
   expect(message.errorMessage).toBe('No Google Antigravity credentials. Run /login and choose Google Antigravity.');
   expect(server.requests.length).toBe(0);

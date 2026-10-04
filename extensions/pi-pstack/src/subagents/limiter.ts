@@ -9,9 +9,12 @@ export const concurrentResumeMessage = (limit: number): string => `Cannot resume
 export const depthMessage = (limit: number): string => `Maximum sub-agent depth of ${limit} reached. Complete this task without spawning further sub-agents.`;
 
 export class SubagentLimiter {
+  private readonly config: LimiterConfig;
   private leases: ReadonlySet<symbol> = new Set();
 
-  constructor(private readonly config: LimiterConfig) {}
+  constructor(config: LimiterConfig) {
+    this.config = config;
+  }
 
   info(): LimiterInfo {
     return { ...this.config, active: this.leases.size };

@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, test } from 'bun:test';
+import './leak-preload.ts';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { openStore, type Store } from '../../skills/poteto-mode/scripts/orch/store.ts';
 import { baseEnv, cleanDirectories, type GtFixture, git, installGh, installGit, installGt, makeDirectory, makeRepo, runCli, stackLog } from './orch-fixtures.ts';
 
@@ -9,12 +10,11 @@ const handles: Store[] = [];
 const sha = (char: string) => char.repeat(40);
 
 async function withPath<T>(path: string, operation: () => Promise<T>): Promise<T> {
-  const original = process.env.PATH;
-  process.env.PATH = path;
+  vi.stubEnv('PATH', path);
   try {
     return await operation();
   } finally {
-    process.env.PATH = original;
+    vi.unstubAllEnvs();
   }
 }
 
@@ -35,7 +35,7 @@ async function gtFrontier(fixture: GtFixture) {
   const repo = await makeRepo(directory, ['stack/a', 'stack/b']);
   const gt = await installGt(directory, repo, fixture);
   const store = await freshStore();
-  return withPath(`${gt}:${process.env.PATH}`, () => store.frontier.set({ repo }));
+  return withPath(`${gt}:${process.env['PATH']}`, () => store.frontier.set({ repo }));
 }
 
 const info = (line: string) => `x\n${line} change`;
@@ -75,7 +75,7 @@ describe('orch frontier sha', () => {
     git(repo, 'commit', '-q', '-m', 'local only');
     const gt = await installGt(directory, repo, { logShort: stackLog('stack/a'), info: { 'stack/a': info('PR #8 (Needs approvals)') } });
     const store = await freshStore();
-    const result = await withPath(`${gt}:${process.env.PATH}`, () => store.frontier.set({ repo }));
+    const result = await withPath(`${gt}:${process.env['PATH']}`, () => store.frontier.set({ repo }));
     expect(git(repo, 'rev-parse', 'stack/a')).not.toBe(remoteHead);
     expect(result.prs[0]?.sha).toBe(remoteHead);
   });
@@ -91,7 +91,7 @@ async function ghFrontier(pulls: unknown, options: { checkout?: string; pin?: nu
   const gh = await installGh(directory, body);
   const gitBin = await installGit(directory);
   const store = await freshStore();
-  return withPath(`${gh}:${gitBin}`, () => store.frontier.set({ repo, prs: options.pin }));
+  return withPath(`${gh}:${gitBin}`, () => store.frontier.set(options.pin === undefined ? { repo } : { repo, prs: options.pin }));
 }
 
 const stack = [pull(21, 'stack/a', 'main', 'MERGED'), pull(22, 'stack/b', 'stack/a'), pull(23, 'stack/c', 'stack/b'), pull(30, 'other', 'main')];

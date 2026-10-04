@@ -101,8 +101,8 @@ test('TodoWrite registers promptSnippet, promptGuidelines, and schema descriptio
   expect(tool?.promptSnippet).toBe('Replace or merge the ordered todo list.');
   expect(tool?.promptGuidelines).toEqual(['Copy the selected playbook steps verbatim before task-specific steps.', 'Keep skipped steps with a reason.']);
   const properties = (tool?.parameters as { properties?: Record<string, { description?: string }> } | undefined)?.properties;
-  expect(properties?.todos?.description).toBe('The list of todo items to set or merge');
-  expect(properties?.merge?.description).toBe('If true, merges with existing todos by id while preserving order; if false or omitted, replaces the entire todo list');
+  expect(properties?.['todos']?.description).toBe('The list of todo items to set or merge');
+  expect(properties?.['merge']?.description).toBe('If true, merges with existing todos by id while preserving order; if false or omitted, replaces the entire todo list');
 });
 
 test('TodoWrite renderCall formats call summaries', () => {

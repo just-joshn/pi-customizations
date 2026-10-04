@@ -1,5 +1,5 @@
 function defaultStore(): string {
-  const configured = process.env.PI_CODING_AGENT_DIR;
+  const configured = process.env["PI_CODING_AGENT_DIR"];
   const agent = configured
     ? configured.replace(/^~(?=$|\/)/, homedir())
     : join(homedir(), ".pi", "agent");

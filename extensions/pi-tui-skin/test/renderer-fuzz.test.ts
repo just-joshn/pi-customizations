@@ -18,7 +18,7 @@ import type { ExtensionContext, ReadonlyFooterDataProvider, Theme, ToolRenderRes
 import { Theme as ThemeClass } from '@earendil-works/pi-coding-agent';
 import type { Component, TUI } from '@earendil-works/pi-tui';
 import { stripTerminalSequences, visibleWidth } from '@earendil-works/pi-tui';
-import { describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createPresentationStore } from '../src/state/presentation-store.ts';
 import { renderEditCall, renderEditResult } from '../src/tools/render-edit.ts';
 import { renderFindCall, renderFindResult } from '../src/tools/render-find.ts';
@@ -31,6 +31,8 @@ import { renderWriteCall, renderWriteResult } from '../src/tools/render-write.ts
 import { createActivityComponent } from '../src/ui/activity-widget.ts';
 import { createFooter } from '../src/ui/footer.ts';
 import { createHeader } from '../src/ui/header.ts';
+
+afterEach(() => vi.unstubAllEnvs());
 
 const HOME = '/tmp/fakehome';
 const ESC = '\x1b';

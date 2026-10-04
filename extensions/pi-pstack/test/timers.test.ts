@@ -5,12 +5,18 @@ import { join } from 'node:path';
 
 import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, DefaultResourceLoader, type Extension, type ExtensionAPI, type ExtensionToolContext, SessionManager } from '@earendil-works/pi-coding-agent';
 import { Check } from 'typebox/value';
-import { beforeEach, expect, onTestFinished, test, vi } from 'vitest';
+import { afterEach, beforeEach, expect, onTestFinished, test, vi } from 'vitest';
 import { restartTimerService, startTimerService, timerCommand, timerRecord } from '../scripts/timer-client.mjs';
 import { registerTimers, rootExtensions } from '../src/timers.ts';
 import { model } from './session-fixture.ts';
+import { expectDefined } from './support/expect-defined.ts';
 
 vi.mock(import('../scripts/timer-client.mjs'), () => ({ restartTimerService: vi.fn(), startTimerService: vi.fn(), timerCommand: vi.fn(), timerRecord: vi.fn() }));
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 beforeEach(() => {
   for (const mocked of [restartTimerService, startTimerService, timerCommand, timerRecord]) vi.mocked(mocked).mockReset();
@@ -72,7 +78,7 @@ test('first subscription starts a dedicated root with context and reports owners
   vi.mocked(timerRecord).mockResolvedValue(undefined);
   vi.mocked(timerCommand).mockResolvedValue({ name: 'audit', prompt: 'check', delaySeconds: 30, subscriptionId: 'timer-1', runId: 'root-1', sessionFile: '/session', rpcDirectory: '/rpc' } as never);
   const output = await f.invoke('SubscribeTimer', { name: 'audit', prompt: 'check', delaySeconds: 30 });
-  const [directory, launch] = vi.mocked(startTimerService).mock.calls[0];
+  const [directory, launch] = expectDefined(vi.mocked(startTimerService).mock.calls[0]);
   expect(directory).toContain(join(f.root, 'pstack-timers'));
   expect(launch.args).toContain('--session-dir');
   expect(await readFile(join(directory, 'system.txt'), 'utf8')).toContain('Follow the test contract.');
@@ -274,7 +280,7 @@ test('timer launch retains discovered provider extension arguments', async () =>
   const provider = { path: 'provider.ts', resolvedPath: 'provider.ts', commands: new Map() } as Extension;
   vi.spyOn(DefaultResourceLoader.prototype, 'getExtensions').mockReturnValue({ ...baseline, extensions: [provider] });
   await f.invoke('SubscribeTimer', { name: 'provider', prompt: 'check', delaySeconds: 30 });
-  expect(vi.mocked(startTimerService).mock.calls[0][1].args.slice(-2)).toEqual(['-e', 'provider.ts']);
+  expect(expectDefined(vi.mocked(startTimerService).mock.calls[0])[1].args.slice(-2)).toEqual(['-e', 'provider.ts']);
 });
 
 test('resource loading errors prevent timer startup', async () => {

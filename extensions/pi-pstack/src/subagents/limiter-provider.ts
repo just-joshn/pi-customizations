@@ -36,13 +36,16 @@ export function parentLimiter(events: ExtensionAPI['events']): LimiterLike {
 
 /** One limiter per root session, configured once from the settings in force at the first use. A child never configures one. */
 export class LimiterProvider {
+  private readonly settings: SettingsStore;
+  private readonly parent: () => LimiterLike | undefined;
+  private readonly parallelism: () => number;
   private root: SubagentLimiter | undefined;
 
-  constructor(
-    private readonly settings: SettingsStore,
-    private readonly parent: () => LimiterLike | undefined,
-    private readonly parallelism: () => number = availableParallelism,
-  ) {}
+  constructor(settings: SettingsStore, parent: () => LimiterLike | undefined, parallelism: () => number = availableParallelism) {
+    this.settings = settings;
+    this.parent = parent;
+    this.parallelism = parallelism;
+  }
 
   get(): LimiterLike {
     const inherited = this.parent();

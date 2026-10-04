@@ -42,7 +42,7 @@ function resolveThemeSchemaPath(): string {
 const schema: ThemeSchema = JSON.parse(readFileSync(resolveThemeSchemaPath(), 'utf8'));
 const theme: ThemeDocument = JSON.parse(readFileSync(fileURLToPath(new URL('../themes/tui-skin.json', import.meta.url)), 'utf8'));
 
-function resolveColor(value: ColorValue): ColorValue {
+function resolveColor(value: ColorValue | undefined): ColorValue | undefined {
   return typeof value === 'string' && value !== '' && !value.startsWith('#') ? (theme.vars[value] ?? value) : value;
 }
 
@@ -71,7 +71,7 @@ describe('tui-skin theme', () => {
   });
 
   test('starts the thinking ramp at the success green', () => {
-    expect(theme.vars.green).toBe('#3ed07a');
-    expect(resolveColor(theme.colors.thinkingOff)).toBe('#3ed07a');
+    expect(theme.vars['green']).toBe('#3ed07a');
+    expect(resolveColor(theme.colors['thinkingOff'])).toBe('#3ed07a');
   });
 });

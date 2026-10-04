@@ -126,7 +126,7 @@ const github = {
       'function parseRemote(value: string): T.Repository | null {',
       L(
         'function isKnownHost(hostname: string): boolean {',
-        '  const configured = process.env.GH_HOST?.trim().toLowerCase();',
+        '  const configured = process.env["GH_HOST"]?.trim().toLowerCase();',
         '  return (',
         '    hostname === "github.com" ||',
         '    (configured !== undefined && configured !== "" && hostname === configured)',

@@ -69,21 +69,25 @@ function lastReport(messages: AgentSession['messages']): string {
 }
 
 class LiveChild {
+  readonly id: string;
+  readonly runtime: AgentSessionRuntime;
+  readonly control: ReturnType<typeof workerControl>;
+  readonly groups: ProcessGroups;
+  readonly ctx: ExtensionContext;
+  readonly limit: TurnLimit | undefined;
   lease: (() => void) | undefined;
   limited = false;
   settled: Promise<unknown> = Promise.resolve();
   readonly promote: () => void;
   readonly promoted: Promise<void>;
 
-  constructor(
-    readonly id: string,
-    readonly runtime: AgentSessionRuntime,
-    readonly control: ReturnType<typeof workerControl>,
-    readonly groups: ProcessGroups,
-    readonly ctx: ExtensionContext,
-    readonly limit: TurnLimit | undefined,
-    lease: () => void,
-  ) {
+  constructor(id: string, runtime: AgentSessionRuntime, control: ReturnType<typeof workerControl>, groups: ProcessGroups, ctx: ExtensionContext, limit: TurnLimit | undefined, lease: () => void) {
+    this.id = id;
+    this.runtime = runtime;
+    this.control = control;
+    this.groups = groups;
+    this.ctx = ctx;
+    this.limit = limit;
     this.lease = lease;
     let resolve = () => {};
     this.promoted = new Promise<void>((done) => {
@@ -107,13 +111,15 @@ class LiveChild {
 }
 
 export class SubagentScheduler {
+  private readonly deps: SchedulerDeps;
   private readonly live = new Map<string, LiveChild>();
   private readonly wakes: DeferredWakes;
   private rewinding = false;
   private disposing = false;
   private announcing = false;
 
-  constructor(private readonly deps: SchedulerDeps) {
+  constructor(deps: SchedulerDeps) {
+    this.deps = deps;
     this.wakes = new DeferredWakes(deps.pi);
     deps.registry.subscribe((change) => {
       if (this.announcing) return; // launch emits this one after subagent.started

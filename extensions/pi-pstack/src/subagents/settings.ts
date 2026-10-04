@@ -56,7 +56,7 @@ function entryOf(owner: string, raw: unknown, warnings: string[]): SubagentSetti
 
 function subagentsOf(raw: unknown, legacy: unknown, warnings: string[]): ReferenceSettings['subagents'] {
   const source: Source = { ...asSource(legacy), ...asSource(raw) };
-  const agents = Object.entries(asSource(source.agents)).map(([name, entry]) => [name, entryOf(`subagents.agents.${name}`, entry, warnings)] as const);
+  const agents = Object.entries(asSource(source['agents'])).map(([name, entry]) => [name, entryOf(`subagents.agents.${name}`, entry, warnings)] as const);
   const maxConcurrency = field('subagents', source, 'maxConcurrency', Limit, warnings);
   const maxDepth = field('subagents', source, 'maxDepth', Limit, warnings);
   return {
@@ -87,10 +87,10 @@ function limitsOf(raw: unknown, warnings: string[]): WorkflowLimits {
 export function parseReferenceSettings(raw: unknown): ParsedSettings {
   const source = asSource(raw);
   const warnings: string[] = [];
-  const builtIn = asSource(source.builtInAgents);
-  const workflows = asSource(source.workflows);
+  const builtIn = asSource(source['builtInAgents']);
+  const workflows = asSource(source['workflows']);
   const settings: ReferenceSettings = {
-    subagents: subagentsOf(source.subagents, source.sub_agents, warnings),
+    subagents: subagentsOf(source['subagents'], source['sub_agents'], warnings),
     builtInAgents: {
       rubberDuck: field('builtInAgents', builtIn, 'rubberDuck', Type.Boolean(), warnings) ?? true,
       rubberDuckAutoInvoke: field('builtInAgents', builtIn, 'rubberDuckAutoInvoke', Type.Boolean(), warnings) ?? true,
@@ -98,7 +98,7 @@ export function parseReferenceSettings(raw: unknown): ParsedSettings {
     workflows: {
       maxConcurrentRuns: field('workflows', workflows, 'maxConcurrentRuns', RunCap, warnings) ?? defaultWorkflowRuns,
       logPhaseNames: field('workflows', workflows, 'logPhaseNames', Type.Boolean(), warnings) ?? false,
-      defaultLimits: limitsOf(workflows.defaultLimits, warnings),
+      defaultLimits: limitsOf(workflows['defaultLimits'], warnings),
     },
   };
   return { settings, warnings };

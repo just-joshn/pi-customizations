@@ -18,7 +18,7 @@ const PROMPT_TIMEOUT_MS = 60_000;
 const USER_AGENT = 'claude-cli/9.9.9';
 const extension = fileURLToPath(new URL('../src/index.ts', import.meta.url));
 const probe = fileURLToPath(new URL('./request-event-probe.ts', import.meta.url));
-const cliPath = process.env.PI_OAUTH_CLI_PATH ?? join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
+const cliPath = process.env['PI_OAUTH_CLI_PATH'] ?? join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 const { stdout: cliVersion } = await promisify(execFile)(process.execPath, [cliPath, '--version']);
 const BILLING_PATTERN = /^x-anthropic-billing-header: cc_version=2\.1\.288\.[a-f0-9]{3}; cc_entrypoint=sdk-cli;$/;
 

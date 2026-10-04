@@ -1,7 +1,8 @@
 import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
-import { expect, test, vi } from 'vitest';
+import { expect, vi } from 'vitest';
 import { createAntigravityCommand, fetchAccountSummary, formatAccountSummary } from '../src/command.ts';
 import { fakeServer, json } from './fake-server.ts';
+import { test } from './network-guard.ts';
 
 const API_KEY = JSON.stringify({ token: 'ya29.t', projectId: 'proj-9' });
 

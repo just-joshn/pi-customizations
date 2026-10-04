@@ -59,7 +59,7 @@ export function describeActivity(activities: readonly RunningToolActivity[], hom
 }
 
 export function installActivityWidget(ctx: ExtensionContext, store: PresentationStore, onTui?: (tui: TUI) => void): void {
-  const home = typeof process.env.HOME === 'string' ? process.env.HOME : '';
+  const home = typeof process.env['HOME'] === 'string' ? process.env['HOME'] : '';
 
   ctx.ui.setWidget(
     ACTIVITY_WIDGET_KEY,

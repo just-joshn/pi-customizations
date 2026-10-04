@@ -28,10 +28,13 @@ const savedKeys = ['subagents', 'builtInAgents'] as const;
  * overrides of updateSubagentSettings layered on top. Pi reads its settings files once, so saved edits need the overlay to apply at once.
  */
 export class SettingsStore {
+  private readonly load: () => object;
   private override: SettingsUpdate = {};
   private saved: Readonly<Record<string, unknown>> = {};
 
-  constructor(private readonly load: () => object) {}
+  constructor(load: () => object) {
+    this.load = load;
+  }
 
   read(): { settings: ReferenceSettings; warnings: readonly string[]; raw: unknown } {
     const raw = { ...this.load(), ...this.saved };

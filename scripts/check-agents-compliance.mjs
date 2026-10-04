@@ -25,14 +25,14 @@
 //   the enclosing function's first line. The reason is required, so the exemption is
 //   a reviewed claim rather than a silencer.
 import { readdir, readFile } from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import * as ts from 'typescript/unstable/ast';
 import { SKIP_DIRECTORIES } from './skip-directories.mjs';
+import { closeTypeScriptSources, withTypeScriptSource } from './typescript-source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const ts = createRequire(join(root, 'extensions/pi-pstack/package.json'))('typescript');
 
 const limits = { file: 800, typicalFile: 400, function: 50, nesting: 4 };
 const generatedPrefixes = ['extensions/pi-pstack/skills/', 'extensions/pi-pstack/prompts/'];
@@ -91,8 +91,8 @@ function isElseIf(node) {
 
 function controlDepth(node, depth) {
   let deepest = depth;
-  ts.forEachChild(node, (child) => {
-    if (ts.isFunctionLike(child)) return;
+  node.forEachChild((child) => {
+    if (ts.isFunctionLikeDeclaration(child)) return;
     const enters = controlKinds.has(ts.SyntaxKind[child.kind]) && !isElseIf(child);
     deepest = Math.max(deepest, controlDepth(child, enters ? depth + 1 : depth));
   });
@@ -110,7 +110,7 @@ function checkFunctionShape(source, node, report) {
 function parameterNames(node) {
   const names = new Set();
   for (const parameter of node.parameters) {
-    const collect = (current) => (ts.isIdentifier(current) ? names.add(current.text) : ts.forEachChild(current, collect));
+    const collect = (current) => (ts.isIdentifier(current) ? names.add(current.text) : current.forEachChild(collect));
     collect(parameter.name);
   }
   return names;
@@ -138,9 +138,9 @@ function checkParameterMutation(source, node, report) {
     const mutation = mutationOf(child, params);
     if (mutation?.kind === 'field') report('violation', 'parameter-mutation', child, `${child.getText(source).split('\n')[0]} writes into parameter ${mutation.target} instead of returning a new object`);
     if (mutation?.kind === 'collection') report('note', 'accumulator-mutation', child, `${child.getText(source).split('\n')[0]} mutates parameter ${mutation.target}; confirm it is an output sink and not shared state`);
-    ts.forEachChild(child, walk);
+    child.forEachChild(walk);
   };
-  ts.forEachChild(node, walk);
+  node.forEachChild(walk);
 }
 
 function checkCatch(node, report) {
@@ -180,7 +180,7 @@ function checkQuadratic(node, loops, report) {
   const source = loopSource(node);
   if (source && loops.includes(source)) report('note', 'quadratic-scan', node, `loop iterates ${source} again inside itself, which reads as O(n^2)`);
   const path = source ? [...loops, source] : loops;
-  ts.forEachChild(node, (child) => checkQuadratic(child, path, report));
+  node.forEachChild((child) => checkQuadratic(child, path, report));
 }
 
 function checkConsole(node, path, report) {
@@ -202,7 +202,10 @@ function enclosingScopeLine(scopes, line) {
 }
 
 function analyzeTypeScript(text, path) {
-  const source = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true);
+  return withTypeScriptSource(text, path, (source) => analyzeTypeScriptSource(source, text, path));
+}
+
+function analyzeTypeScriptSource(source, text, path) {
   const { found, report } = createReporter(source, path);
   const lineCount = text.split('\n').length;
   if (lineCount > limits.file) report('violation', 'file-length', undefined, `${lineCount} lines, over the ${limits.file} line maximum`);
@@ -211,7 +214,7 @@ function analyzeTypeScript(text, path) {
   const scopes = [];
   const lineOf = (node) => source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
   const visit = (node) => {
-    if (ts.isFunctionLike(node) && node.body) {
+    if (ts.isFunctionLikeDeclaration(node) && node.body) {
       scopes.push({ start: lineOf(node), end: source.getLineAndCharacterOfPosition(node.getEnd()).line + 1 });
       checkFunctionShape(source, node, report);
       checkParameterMutation(source, node, report);
@@ -221,7 +224,7 @@ function analyzeTypeScript(text, path) {
     checkEnvFallback(node, report);
     checkQuadratic(node, loops, report);
     checkConsole(node, path, report);
-    ts.forEachChild(node, visit);
+    node.forEachChild(visit);
   };
   visit(source);
   return found.map((item) => ({ ...item, scopeLine: enclosingScopeLine(scopes, item.line) }));
@@ -349,7 +352,13 @@ async function main() {
   for (const item of violations) counts.set(item.rule, (counts.get(item.rule) ?? 0) + 1);
   process.stdout.write(`\n${results.length} findings. ${violations.length} violations, ${results.length - violations.length} review items.\n`);
   for (const [rule, count] of [...counts].toSorted((left, right) => right[1] - left[1])) process.stdout.write(`  ${rule}: ${count}\n`);
-  process.exit(violations.length ? 1 : 0);
+  process.exitCode = violations.length ? 1 : 0;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    await main();
+  } finally {
+    closeTypeScriptSources();
+  }
+}

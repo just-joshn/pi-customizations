@@ -20,6 +20,7 @@ function parseRecord(line: string): RpcRecord | undefined {
 
 /** A pi process in RPC mode: strict LF-framed JSONL, id-correlated commands, and every other record fanned out to listeners. */
 export class RpcChild {
+  private readonly process: ChildProcess;
   private readonly pending = new Map<string, Pending>();
   private readonly listeners = new Set<(record: RpcRecord) => void>();
   private buffer = '';
@@ -27,7 +28,8 @@ export class RpcChild {
   private stderr = '';
   readonly closed: Promise<ChildExit>;
 
-  private constructor(private readonly process: ChildProcess) {
+  private constructor(process: ChildProcess) {
+    this.process = process;
     process.stdout?.setEncoding('utf8');
     process.stdout?.on('data', (chunk: string) => this.receive(chunk));
     process.stderr?.on('data', (chunk: Buffer) => {
@@ -74,7 +76,7 @@ export class RpcChild {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new Error(`RPC timed out: ${String(command.type)}`));
+        reject(new Error(`RPC timed out: ${String(command['type'])}`));
       }, deadlineMs);
       this.pending.set(id, { resolve, reject, timer });
       this.process.stdin?.write(`${JSON.stringify({ id, ...command })}\n`, (error) => {
@@ -131,12 +133,12 @@ export class RpcChild {
       for (const listener of this.listeners) listener(record);
       return;
     }
-    const id = typeof record.id === 'string' ? record.id : undefined;
+    const id = typeof record['id'] === 'string' ? record['id'] : undefined;
     const pending = id === undefined ? undefined : this.pending.get(id);
     if (!id || !pending) return;
     clearTimeout(pending.timer);
     this.pending.delete(id);
-    if (record.success === true) pending.resolve(record.data);
-    else pending.reject(new Error(typeof record.error === 'string' ? record.error : 'RPC command failed'));
+    if (record['success'] === true) pending.resolve(record['data']);
+    else pending.reject(new Error(typeof record['error'] === 'string' ? record['error'] : 'RPC command failed'));
   }
 }

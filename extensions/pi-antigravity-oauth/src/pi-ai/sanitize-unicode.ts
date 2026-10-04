@@ -1,4 +1,4 @@
-// Vendored from @earendil-works/pi-ai 1.0.2 src/utils/sanitize-unicode.ts (MIT) by scripts/vendor-pi-ai.mjs. Only import specifiers differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 1.0.2 src/utils/sanitize-unicode.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
 /**
  * Removes unpaired Unicode surrogate characters from a string.
  *
@@ -20,7 +20,7 @@
  * sanitizeSurrogates(`Text ${unpaired} here`) // => "Text  here"
  */
 export function sanitizeSurrogates(text: string): string {
-	// Replace unpaired high surrogates (0xD800-0xDBFF not followed by low surrogate)
-	// Replace unpaired low surrogates (0xDC00-0xDFFF not preceded by high surrogate)
-	return text.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "");
+  // Replace unpaired high surrogates (0xD800-0xDBFF not followed by low surrogate)
+  // Replace unpaired low surrogates (0xDC00-0xDFFF not preceded by high surrogate)
+  return text.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
 }

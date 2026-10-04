@@ -1,13 +1,12 @@
 import { createModels, type Model } from '@earendil-works/pi-ai';
-import { expect, test } from 'vitest';
+import { expect } from 'vitest';
 import { createGrokBuildProvider } from '../src/index.ts';
+import { test as base } from './network-guard.ts';
 import { builtinXai } from './support/builtin-xai.ts';
 import { oauthCredential, storeWith } from './support/credentials.ts';
-import { startResponsesServer } from './support/responses-server.ts';
+import { type ResponsesServer, startResponsesServer } from './support/responses-server.ts';
 
-test('native streaming preserves identity, effort, and default < level < request sampling precedence', async ({ onTestFinished }) => {
-  const server = await startResponsesServer();
-  onTestFinished(() => server.close());
+async function streamReply(server: ResponsesServer) {
   const credential = oauthCredential();
   const provider = createGrokBuildProvider(builtinXai());
   const models = createModels({ credentials: await storeWith(credential) });
@@ -21,21 +20,48 @@ test('native streaming preserves identity, effort, and default < level < request
     samplingParams: { top_k: 40, top_p: 0.9, min_p: 0.01 },
     samplingParamsByThinkingLevel: { xhigh: { top_k: 20, min_p: 0.05 } },
   };
-
   const stream = models.streamSimple(model, { messages: [{ role: 'user', content: 'ping', timestamp: 1 }] }, { sessionId: 'session-1', reasoning: 'xhigh', samplingParams: { min_p: 0.1 } });
-  const message = await stream.result();
+  return { credential, message: await stream.result(), requests: server.requests };
+}
 
-  const [recorded] = server.requests;
-  expect(server.requests).toHaveLength(1);
-  expect(recorded?.path).toBe('/v1/responses');
-  expect(recorded?.headers).toMatchObject({
+const test = base.extend<{ server: ResponsesServer; exchange: Awaited<ReturnType<typeof streamReply>> }>({
+  server: async ({ networkGuard: _networkGuard }, use) => {
+    const server = await startResponsesServer();
+    try {
+      await use(server);
+    } finally {
+      await server.close();
+    }
+  },
+  exchange: async ({ server }, use) => {
+    await use(await streamReply(server));
+  },
+});
+
+test('native streaming sends one request to the responses endpoint', ({ exchange }) => {
+  expect(exchange.requests).toHaveLength(1);
+  expect(exchange.requests[0]?.path).toBe('/v1/responses');
+});
+
+test('native streaming preserves the Grok Build identity and bearer token', ({ exchange }) => {
+  expect(exchange.requests[0]?.headers).toMatchObject({
     'x-grok-client-version': '1.0.46',
     'x-xai-token-auth': 'xai-grok-cli',
     'x-grok-model-override': 'grok-4.7-build-fast',
     'x-grok-context-window': '256000',
     'x-grok-conv-id': 'session-1',
-    authorization: `Bearer ${credential.access}`,
+    authorization: `Bearer ${exchange.credential.access}`,
   });
-  expect(recorded?.body).toMatchObject({ model: 'grok-4.7-build-fast', reasoning: { effort: 'xhigh' }, top_k: 20, top_p: 0.9, min_p: 0.1 });
-  expect(message.content.map((block) => (block.type === 'text' ? block.text : ''))).toStrictEqual(['OK']);
+});
+
+test('native streaming sends the requested model and effort', ({ exchange }) => {
+  expect(exchange.requests[0]?.body).toMatchObject({ model: 'grok-4.7-build-fast', reasoning: { effort: 'xhigh' } });
+});
+
+test('native streaming applies default < level < request sampling precedence', ({ exchange }) => {
+  expect(exchange.requests[0]?.body).toMatchObject({ top_k: 20, top_p: 0.9, min_p: 0.1 });
+});
+
+test('native streaming returns the server text', ({ exchange }) => {
+  expect(exchange.message.content.map((block) => (block.type === 'text' ? block.text : ''))).toStrictEqual(['OK']);
 });

@@ -47,8 +47,8 @@ test('unknown shell output leaves the started shell list untouched', async () =>
     cwd: scratch,
     sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch },
   } as unknown as ExtensionContext;
-  const messageEnd = listeners.message_end?.[0];
-  const shutdown = listeners.session_shutdown?.[0];
+  const messageEnd = listeners['message_end']?.[0];
+  const shutdown = listeners['session_shutdown']?.[0];
   expect(messageEnd).toBeDefined();
   try {
     const started = (await tools.get('BackgroundShell')?.execute('1', { command: 'sleep 30', title: 'running' }, undefined, undefined, ctx)) as { details: { id: string } };
@@ -81,7 +81,7 @@ test('registerShells stops a started shell on request', async () => {
     cwd: scratch,
     sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch },
   } as unknown as ExtensionContext;
-  const shutdown = listeners.session_shutdown?.[0];
+  const shutdown = listeners['session_shutdown']?.[0];
   try {
     const started = (await tools.get('BackgroundShell')?.execute('1', { command: 'sleep 30', title: 'long-running', notify_on_output: '^tick' }, undefined, undefined, ctx)) as {
       details: { id: string; title: string; pattern: string; status: unknown; pid: number };
@@ -118,7 +118,7 @@ test('session_shutdown stops every running shell', async () => {
     cwd: scratch,
     sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch },
   } as unknown as ExtensionContext;
-  const shutdown = listeners.session_shutdown?.[0];
+  const shutdown = listeners['session_shutdown']?.[0];
   expect(shutdown).toBeDefined();
   try {
     const first = (await tools.get('BackgroundShell')?.execute('1', { command: 'sleep 30', title: 'first' }, undefined, undefined, ctx)) as { details: { pid: number } };
@@ -153,8 +153,8 @@ test('a second session lists no shells from the session before it', async () => 
     sessionManager: { getSessionFile: () => join(scratch, 's.jsonl'), getSessionId: () => 's1', getSessionDir: () => scratch, getBranch: () => [] },
     isIdle: () => true,
   } as unknown as ExtensionContext;
-  const shutdown = listeners.session_shutdown?.[0];
-  const start = listeners.session_start?.[0];
+  const shutdown = listeners['session_shutdown']?.[0];
+  const start = listeners['session_start']?.[0];
   try {
     const firstShell = (await tools.get('BackgroundShell')?.execute('1', { command: 'sleep 30', title: 'first session' }, undefined, undefined, ctx)) as { details: { id: string } };
     await shutdown?.({ type: 'session_shutdown', reason: 'quit' }, ctx);
@@ -220,13 +220,13 @@ test('pstack index before_agent_start with enabled and todos', async () => {
     ui: { setStatus() {}, setWidget() {} },
   } as unknown as ExtensionContext;
 
-  for (const fn of listeners.session_start ?? []) await fn({}, ctx);
+  for (const fn of listeners['session_start'] ?? []) await fn({}, ctx);
 
   const event = { systemPromptOptions: { sections: {} as Record<string, string> } };
-  for (const fn of listeners.before_agent_start ?? []) await fn(event, ctx);
+  for (const fn of listeners['before_agent_start'] ?? []) await fn(event, ctx);
 
-  expect(event.systemPromptOptions.sections.pstack_mode).toMatch(/References are relative to/);
-  expect(event.systemPromptOptions.sections.pstack_todos).toMatch(/Step 1/);
+  expect(event.systemPromptOptions.sections['pstack_mode']).toMatch(/References are relative to/);
+  expect(event.systemPromptOptions.sections['pstack_todos']).toMatch(/Step 1/);
 });
 
 test('pick filters the TUI list before resolving the selected choice', async () => {

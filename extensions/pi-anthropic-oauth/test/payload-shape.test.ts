@@ -1,6 +1,7 @@
 import { createModels, InMemoryCredentialStore, type SimpleStreamOptions } from '@earendil-works/pi-ai';
-import { expect, test, vi } from 'vitest';
+import { expect, vi } from 'vitest';
 import extension from '../src/index.ts';
+import { test } from './network-guard.ts';
 import { oauthCredential } from './support/credentials.ts';
 import { captureProvider } from './support/load-extension.ts';
 import { promptCarrying } from './support/payload-probe.ts';

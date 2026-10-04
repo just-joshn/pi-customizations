@@ -5,7 +5,7 @@ import { join } from 'node:path';
 
 import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, type ExtensionAPI, type ExtensionToolContext, SessionManager } from '@earendil-works/pi-coding-agent';
 import { Check } from 'typebox/value';
-import { expect, onTestFinished, test, vi } from 'vitest';
+import { afterEach, expect, onTestFinished, test, vi } from 'vitest';
 import { startRoutine } from '../scripts/routine-client.mjs';
 import { parseRoutine, webhookBody } from '../src/routine-domain.ts';
 import { registerRoutines } from '../src/routines.ts';
@@ -26,6 +26,10 @@ vi.mock(import('../scripts/routine-client.mjs'), async (original) => {
       sessionFile: '/session',
     })),
   };
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 async function fixture() {

@@ -4,12 +4,13 @@ import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
 import { noParentSkillsMessage } from '../src/subagents/skill-loading.ts';
+import { expectDefined } from './support/expect-defined.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 async function childTranscript(dir: string): Promise<string> {
   const paths = globSync(join(dir, 'sessions', '**', 'subagents', '**', 'agent-*.jsonl'));
   if (paths.length === 0) throw new Error('no child transcript');
-  return (await readFile(paths[0], 'utf8')) ?? '';
+  return (await readFile(expectDefined(paths[0]), 'utf8')) ?? '';
 }
 
 test('a declared skill is copied into the child before its first turn', async () => {
@@ -31,9 +32,9 @@ test('the child transcript keeps the agent filename while its session id differs
     const agentId = String((started as { details: { agent_id: string } }).details.agent_id);
     const paths = globSync(join(fixture.dir, 'sessions', '**', 'subagents', '**', 'agent-*.jsonl'));
     expect(paths).toHaveLength(1);
-    const path = paths[0];
+    const path = expectDefined(paths[0]);
     expect(path.endsWith(`agent-${agentId}.jsonl`)).toBe(true);
-    const header = JSON.parse((await readFile(path, 'utf8')).split('\n')[0]) as { id: string; parentSession?: string };
+    const header = JSON.parse(expectDefined((await readFile(path, 'utf8')).split('\n')[0])) as { id: string; parentSession?: string };
     expect(header.id).not.toBe(agentId);
     expect(header.parentSession).toBe(fixture.session.sessionManager.getSessionFile());
   } finally {

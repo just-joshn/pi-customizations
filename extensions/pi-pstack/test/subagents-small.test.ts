@@ -110,7 +110,7 @@ test('settings overrides layer over the files per agent and per field', () => {
   expect(warnings).toEqual([]);
   expect(settings.subagents).toEqual({ agents: { explore: { model: 'm', effortLevel: 'high' }, task: { model: 't' } }, disabledSubagents: ['b'], contextManagementTools: true });
   store.update({ agents: { explore: { contextTier: 'default' } } });
-  expect(store.read().settings.subagents.agents.explore).toEqual({ model: 'm', effortLevel: 'high', contextTier: 'default' });
+  expect(store.read().settings.subagents.agents['explore']).toEqual({ model: 'm', effortLevel: 'high', contextTier: 'default' });
 });
 
 test('saved preferences shadow the settings Pi loaded and leave other keys alone', () => {

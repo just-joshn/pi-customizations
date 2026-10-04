@@ -10,7 +10,7 @@ import { boundedForModel } from '../src/subagents/tool-results.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 type Result = { content: { text: string }[]; details: Record<string, unknown>; structuredContent?: unknown; usage?: { input: number; output: number; totalTokens: number } };
-const idOf = (result: unknown) => String((result as Result).details.agent_id);
+const idOf = (result: unknown) => String((result as Result).details['agent_id']);
 
 test('each subagent tool returns the structuredContent its outputSchema promises', async () => {
   const fixture = await workerFixture();

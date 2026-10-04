@@ -32,15 +32,15 @@ async function listOpenPullRequests(
 }
 function nextThreadCursor(pageInfo: unknown, seen: Set<string>): string | null {
   const info = record(pageInfo, "reviewThreads.pageInfo");
-  if (typeof info.hasNextPage !== "boolean")
-    missing("reviewThreads.pageInfo.hasNextPage", info.hasNextPage);
-  if (!info.hasNextPage) return null;
+  if (typeof info["hasNextPage"] !== "boolean")
+    missing("reviewThreads.pageInfo.hasNextPage", info["hasNextPage"]);
+  if (!info["hasNextPage"]) return null;
   const reference = optionalString(
-    info.endCursor,
+    info["endCursor"],
     "reviewThreads.pageInfo.endCursor"
   );
   if (reference === null || reference === "" || seen.has(reference))
-    missing("reviewThreads.pageInfo.endCursor", info.endCursor);
+    missing("reviewThreads.pageInfo.endCursor", info["endCursor"]);
   seen.add(reference);
   return reference;
 }
@@ -60,8 +60,8 @@ async function allReviewThreadPages(context: T.PrContext): Promise<unknown> {
       ]),
       "reviewThreads"
     );
-    nodes.push(...list(connection.nodes, "reviewThreads.nodes"));
-    after = nextThreadCursor(connection.pageInfo, seen);
+    nodes.push(...list(connection["nodes"], "reviewThreads.nodes"));
+    after = nextThreadCursor(connection["pageInfo"], seen);
   } while (after !== null);
   return { data: { repository: { pullRequest: { reviewThreads: { nodes } } } } };
 }

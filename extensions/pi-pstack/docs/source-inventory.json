@@ -1,8 +1,8 @@
 [
   {
     "path": "plugin-metadata/plugin.json",
-    "bytes": 721,
-    "sha256": "038e68152891d94476aab330f326620e22dbfbaf6aa48f70d2d21b8e9125d451"
+    "bytes": 710,
+    "sha256": "9aef74877a5e94d2575ce824b71388706767ad2018af4957802f0cc6bb670326"
   },
   {
     "path": ".gitignore",
@@ -426,93 +426,93 @@
   },
   {
     "path": "skills/poteto-mode/scripts/bootstrap.ts",
-    "bytes": 1737,
-    "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361"
+    "bytes": 1740,
+    "sha256": "0ed9c037e8bca1aef8aee40b3d2c856db6cab6d1b0b40daa7414450ca42d057a"
   },
   {
     "path": "skills/poteto-mode/scripts/bun.lock",
-    "bytes": 6681,
-    "sha256": "1be65bf9173ae2b5a00434cce32fedab7227b309f6d229bfde01382f281b3b5e"
+    "bytes": 21550,
+    "sha256": "3bfb478ec9a1f241cb9f8b959bcada86c6e9a4856b070cf49ef7184b3d26910f"
   },
   {
     "path": "skills/poteto-mode/scripts/check-plan.mjs",
-    "bytes": 7594,
-    "sha256": "4f9432d9989880b6afc2bdda503d5b12a9d07d357ecf31936b7ab5e83bc80523"
+    "bytes": 7780,
+    "sha256": "4b024673109a838d024d94553161f417ea22d52e30509a7e0d72682fc28fc886"
   },
   {
     "path": "skills/poteto-mode/scripts/orch/orch.test.ts",
-    "bytes": 18424,
-    "sha256": "174b86d21ff51ccd28d1a8c938cb2e0c6fa287b209d4ca6c03932fcb1b53372e"
+    "bytes": 18549,
+    "sha256": "35d9d290b6dc0b650cba64f68b3f90e46e56cb21ff0fa7d1d19b130be7d958f6"
   },
   {
     "path": "skills/poteto-mode/scripts/orch/orch.ts",
-    "bytes": 15511,
-    "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434"
+    "bytes": 15215,
+    "sha256": "59bbb3cc6247d375cdd4092a904dd22c7aa8e1228bf42d21aa5b36abe032d392"
   },
   {
     "path": "skills/poteto-mode/scripts/orch/store.ts",
-    "bytes": 42927,
-    "sha256": "0eae7cf69282e827b1227166f2e32cee3560f2f3e65b3f1f2faf6fb83d3b4c5b"
+    "bytes": 41216,
+    "sha256": "8c15679623f6c5c8d8a0433706d1bfbaa27b14541a586a562441364182824e9f"
   },
   {
     "path": "skills/poteto-mode/scripts/package.json",
-    "bytes": 354,
-    "sha256": "06e28d290b1941eb2c6582e213e65923c86b29b0fdd8722fee3d5b4e1a6d1189"
+    "bytes": 347,
+    "sha256": "456d549fd234090a8926699033da7a98f70eafde1b177ea2e3cd64517d7bba0f"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/cli.test.ts",
-    "bytes": 6161,
-    "sha256": "a35592b4c6da96caf8d47987e9cd503fab6c7774ab87d11a43f24b4b5df2a9d1"
+    "bytes": 5852,
+    "sha256": "34d4559e60fa569f5734fd882910cfd2273a03e21af7777f6bd00bb46890270f"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/cli.ts",
-    "bytes": 6983,
-    "sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680"
+    "bytes": 6687,
+    "sha256": "1e3243d81bf8b863c83fe62f2eb0be92f71ae3bd19772b19fbefbf9350a08387"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
-    "bytes": 2944,
-    "sha256": "e53e31b7f03068063f53a99a3591b052aaed66e4e2b196b3a364980f60324ab1"
+    "bytes": 2903,
+    "sha256": "70b8b8ecb7af669e924793ecba956462d7a7404aeaca524858a51aca966b6035"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/github.test.ts",
-    "bytes": 9062,
-    "sha256": "6eac3cd488c57f3b818ec2b739e98cfdb442d7c242f7c5233e2351374007b3cb"
+    "bytes": 8900,
+    "sha256": "d5751d2c55f5f9c351fa362f8e51f2a01f36e6d5d6ccddc835b6e33c1bfb3fe4"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/github.ts",
-    "bytes": 24084,
-    "sha256": "273c0960a2f998620c59c280b865addae7ace78134da6716dee50383f30d3df4"
+    "bytes": 23059,
+    "sha256": "e5f24e5570c6dad9f509d691cac19c5b82cf917c87fe6019ab9e873e2649326f"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/policy.test.ts",
-    "bytes": 12397,
-    "sha256": "a9fedb25feefd1f57ef6a662f80c99018690170a3a8070773a08eaf694d1d3d9"
+    "bytes": 12054,
+    "sha256": "07b6d5933b765e090a06587175f1f5dac5f500840a458489806f2f0bac0e6f10"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/policy.ts",
-    "bytes": 25132,
-    "sha256": "68d240505852cf23c9b2dea463342e9e61243f486b3cc86c735d140f9ee7be49"
+    "bytes": 24319,
+    "sha256": "c118ea6e22e9eea16fb7695623739f9bba08fa55667c52b33a283d309df49a24"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/render.ts",
-    "bytes": 7083,
-    "sha256": "2b709e86628d5b8fdb61f860e60ababc342b0626c67576305442cf548283a604"
+    "bytes": 6734,
+    "sha256": "7375afe51313f95d23cbca3ce3d287c89a3511222aee7c334a88f0307a01f5cf"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/tsconfig.json",
-    "bytes": 270,
-    "sha256": "1ecccc72320b086c63ce3f73c959896fd747363e63553b3b1136296ea4069e45"
+    "bytes": 3732,
+    "sha256": "f4027771cc58a6a45fedd7004e136162050ea61b36f5da50cff7059b3677498e"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/types.compile.ts",
-    "bytes": 2258,
-    "sha256": "621af4c9a664fbf699a9737efccdc248abb416df8819c9dc5f824beae2b9b1d6"
+    "bytes": 2247,
+    "sha256": "ade8da0534213b4ef333ebd8908dd0e11bc2943e40f237c4e49035042f46992d"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/types.ts",
-    "bytes": 12359,
-    "sha256": "64ba6221e3bfe61bbb292337d199cdec6309455477280efb060203dba34e0e91"
+    "bytes": 12230,
+    "sha256": "2fd91b0c2e54bdd893ad8dca3071f628063946246e407bc00247be49e12e71d3"
   },
   {
     "path": "skills/poteto-mode/scripts/watch-pr/watch-pr",

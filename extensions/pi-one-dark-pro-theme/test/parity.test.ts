@@ -7,12 +7,13 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { RoleRow, UpstreamDocument } from '../parity/theme.ts';
 import { buildTheme, checkParity, parseRoleMap, readThemeSchema, resolveRow, THEME_NAME, themeSchemaPath, UPSTREAM_SHA256 } from '../parity/theme.ts';
+import { readPinnedSource } from '../parity/upstream.ts';
 import { test } from './harness/package-fixture.ts';
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (path: string) => readFileSync(join(packageRoot, path), 'utf8');
-const upstreamText = read('upstream/OneDark-Pro-flat.json');
-const upstream = JSON.parse(upstreamText) as UpstreamDocument;
+const { upstreamText, upstreamArtifact } = readPinnedSource(packageRoot);
+const upstream = JSON.parse(upstreamArtifact.text) as UpstreamDocument;
 const rows = parseRoleMap(read('parity/role-map.tsv'));
 const committed = JSON.parse(read(`themes/${THEME_NAME}.json`)) as {
   $schema: string;
@@ -103,6 +104,7 @@ describe('check-parity through the real CLI', () => {
 
 const parityBase = {
   upstreamText,
+  upstreamArtifact,
   schema,
   themeLabel: 'themes/one-dark-pro-flat.json',
 };

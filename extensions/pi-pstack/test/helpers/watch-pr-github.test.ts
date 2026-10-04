@@ -1,5 +1,6 @@
-import { afterEach, expect, test } from 'bun:test';
+import './leak-preload.ts';
 
+import { afterEach, expect, test } from 'vitest';
 import { failedCheck, fakeReader, passingCheck } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
 import {
   ChecksUnavailable,
@@ -18,6 +19,7 @@ import {
 import { readSnapshot } from '../../skills/poteto-mode/scripts/watch-pr/policy.ts';
 import type { Check } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
+import { expectDefined } from '../support/expect-defined.ts';
 import { removeScratch } from './scratch.ts';
 import { commitsPage, emptyBin, type FakeBin, type FakeRule, fakeEnv, fastCheck, installFakeBin, ok, prView, rollupPage, thread, threadsPage, withEnv } from './watch-pr-fakes.test-helper.ts';
 
@@ -33,7 +35,7 @@ async function withFakes<T>(rules: readonly FakeRule[], body: (bin: FakeBin) => 
 }
 const gh = (match: string[], ...replies: FakeRule['replies'][number][]): FakeRule => ({ tool: 'gh', match, replies });
 const git = (match: string[], ...replies: FakeRule['replies'][number][]): FakeRule => ({ tool: 'git', match, replies });
-const argvOf = (bin: FakeBin, index = 0): readonly string[] => bin.calls()[index].argv;
+const argvOf = (bin: FakeBin, index = 0): readonly string[] => expectDefined(bin.calls()[index]).argv;
 async function failureOf(promise: Promise<unknown>): Promise<WatcherQueryError> {
   try {
     await promise;
@@ -103,7 +105,7 @@ test(`${GhGitHubReader.name}.checkRollupPage sends the reference as -f after and
     await new GhGitHubReader().checkRollupPage(ctx, 'CUR');
     const argv = argvOf(bin);
     expect(argv.slice(0, 3)).toEqual(['api', 'graphql', '-f']);
-    expect(argv[3]).toStartWith('query=');
+    expect(argv[3]).toMatch(/^query=/);
     expect(argv[3]).toContain('contexts(first: 100, after: $after)');
     expect(argv.slice(4)).toEqual(['-f', 'owner=o', '-f', 'repo=r', '-F', 'pr=7', '-f', 'after=CUR']);
   });
@@ -305,8 +307,8 @@ test(`${GhGitHubReader.name}.openPullRequests keeps asking with a larger limit u
   await withFakes(rules, async () => {
     const stack = await discoverStack(new GhGitHubReader(), pr(301));
     expect(stack).toHaveLength(301);
-    expect(stack[0].number).toBe(parsePrNumber(1));
-    expect(stack[300].number).toBe(parsePrNumber(301));
+    expect(expectDefined(stack[0]).number).toBe(parsePrNumber(1));
+    expect(expectDefined(stack[300]).number).toBe(parsePrNumber(301));
   });
 });
 
@@ -365,7 +367,7 @@ const bugbot = (id: string, runId: string | null, author = 'reference-bugbot') =
 
 test('parseReviewThreads counts one bugbot pass when a keyless bugbot thread exists and zero for human threads only', () => {
   const keyless = parseReviewThreads(threadsPage([bugbot('b1', null)]));
-  expect(keyless[0].bugbotReviewPasses).toBe(1);
+  expect(expectDefined(keyless[0]).bugbotReviewPasses).toBe(1);
   const human = parseReviewThreads(threadsPage([thread('h1', false)]));
   expect(human[0]).toMatchObject({ isBugbot: false, bugbotReviewPasses: 0 });
 });

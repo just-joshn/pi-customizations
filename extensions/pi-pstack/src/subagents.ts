@@ -47,7 +47,7 @@ const defaultWaitSeconds = 300;
 const sidekickEntryType = 'reference-assistant-sidekick';
 
 function persistTo(env: NodeJS.ProcessEnv, sessionId: () => string): (envelope: EventEnvelope) => void {
-  const directory = env.COPILOT_EVENTS_LOG_DIRECTORY;
+  const directory = env['COPILOT_EVENTS_LOG_DIRECTORY'];
   if (!directory) return () => {};
   return (envelope) => {
     mkdirSync(directory, { recursive: true });
@@ -56,7 +56,7 @@ function persistTo(env: NodeJS.ProcessEnv, sessionId: () => string): (envelope: 
 }
 
 export function waitSeconds(env: NodeJS.ProcessEnv): number {
-  const raw = env.COPILOT_TASK_WAIT_TIMEOUT_SECONDS;
+  const raw = env['COPILOT_TASK_WAIT_TIMEOUT_SECONDS'];
   const parsed = raw !== undefined && /^\d+$/.test(raw.trim()) ? Number(raw) : Number.NaN;
   return Number.isSafeInteger(parsed) && parsed >= 1 ? parsed : defaultWaitSeconds;
 }
@@ -234,15 +234,15 @@ function registerPromptSections(pi: ExtensionAPI, system: SubagentSystem): void 
     if (selection.refresh(offered)) pi.events.emit('pstack:subagent-log', 'The selected agent is no longer available and was cleared.');
     const { settings: loaded } = settings.read();
     const current = selection.getCurrent();
-    if (current) event.systemPromptOptions.sections.selected_agent = current.prompt;
-    else delete event.systemPromptOptions.sections.selected_agent;
-    event.systemPromptOptions.sections.subagent_usage = subagentUsageBlock({
+    if (current) event.systemPromptOptions.sections['selected_agent'] = current.prompt;
+    else delete event.systemPromptOptions.sections['selected_agent'];
+    event.systemPromptOptions.sections['subagent_usage'] = subagentUsageBlock({
       rubberDuck: offered.some((agent) => agent.name === 'rubber-duck') && loaded.builtInAgents.rubberDuckAutoInvoke,
       securityReview: offered.some((agent) => agent.name === 'security-review'),
     });
     const preferences = modelPreferencesBlock(loaded.subagents.agents);
-    if (preferences) event.systemPromptOptions.sections.subagent_model_preferences = preferences;
-    else delete event.systemPromptOptions.sections.subagent_model_preferences;
+    if (preferences) event.systemPromptOptions.sections['subagent_model_preferences'] = preferences;
+    else delete event.systemPromptOptions.sections['subagent_model_preferences'];
   });
 }
 

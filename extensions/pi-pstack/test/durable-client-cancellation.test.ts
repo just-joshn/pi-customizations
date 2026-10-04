@@ -4,9 +4,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
-import { expect, onTestFinished, test, vi } from 'vitest';
+import { afterEach, expect, onTestFinished, test, vi } from 'vitest';
 import { disableRoutine, inspectRoutine, prepareRoutine, routineRecord, startRoutine, durableRecord as writeRecord } from '../scripts/routine-client.mjs';
 import { restartTimerService, startTimerService, timerCommand, timerRecord } from '../scripts/timer-client.mjs';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 async function fixture() {
   const directory = await mkdtemp(join(tmpdir(), 'pstack-caller-abort-'));
@@ -153,7 +157,7 @@ test('canceling real timer startup abandons only the caller wait', async () => {
   await expect.poll(() => timerRecord(join(directory, 'launch.json'))).toBeDefined();
   controller.abort();
   await rejected;
-  await expect.poll(async () => (await routineRecord(join(directory, 'status.json')))?.kind, { timeout: 15000 }).toBe('ready');
+  await expect.poll(async () => (await routineRecord(join(directory, 'status.json')))?.['kind'], { timeout: 15000 }).toBe('ready');
   expect(await timerCommand(directory, { type: 'list' })).toEqual([]);
   const id = randomUUID();
   const command = { type: 'subscribe', timer: { name: 'accepted-after-abort', prompt: 'check', delaySeconds: 60, runImmediately: false } } satisfies {

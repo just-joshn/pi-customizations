@@ -14,7 +14,7 @@ function roster(): { tasks: RemoteTasks; host: FakeHost } {
 }
 
 async function startedArgs(workspace: Workspace): Promise<unknown[]> {
-  return (await loggedCommands(workspace)).filter((entry) => entry.type === 'started').map((entry) => entry.args);
+  return (await loggedCommands(workspace)).filter((entry) => entry['type'] === 'started').map((entry) => entry['args']);
 }
 
 test('a session url names this host plus the session', () => {
@@ -147,5 +147,5 @@ test('shutdown stops every child, then empties the roster', async ({ workspace }
   await tasks.shutdown();
 
   expect([tasks.has('a'), tasks.list()]).toEqual([false, []]);
-  expect((await loggedCommands(workspace)).filter((entry) => entry.type === 'stdin_closed')).toHaveLength(2);
+  expect((await loggedCommands(workspace)).filter((entry) => entry['type'] === 'stdin_closed')).toHaveLength(2);
 });

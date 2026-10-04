@@ -1,8 +1,7 @@
-import { expect, test } from 'bun:test';
-
-import { failedCheck, fakeReader, pendingCheck } from '../watch-pr/fakes.test-helper.ts';
-import { classifyPr, readSnapshot } from '../watch-pr/policy.ts';
-import { renderJson, renderPretty, renderStatusTable } from '../watch-pr/render.ts';
+import { expect, test } from 'vitest';
+import { failedCheck, fakeReader, pendingCheck } from '../../upstream/skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
+import { classifyPr, readSnapshot } from '../../upstream/skills/poteto-mode/scripts/watch-pr/policy.ts';
+import { renderJson, renderPretty, renderStatusTable } from '../../upstream/skills/poteto-mode/scripts/watch-pr/render.ts';
 
 const context = { owner: 'owner', repo: 'repo', number: 1 };
 const second = { ...context, number: 2 };

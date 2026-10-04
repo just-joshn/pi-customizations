@@ -1,6 +1,6 @@
 const DEFAULT_COMMAND_TIMEOUT_SECONDS = 120;
 function commandTimeoutMs(): number {
-  const seconds = Number(process.env.WATCH_PR_COMMAND_TIMEOUT_SECONDS);
+  const seconds = Number(process.env["WATCH_PR_COMMAND_TIMEOUT_SECONDS"]);
   return (
     (Number.isFinite(seconds) && seconds > 0
       ? seconds

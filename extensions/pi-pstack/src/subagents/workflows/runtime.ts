@@ -12,11 +12,11 @@ import { type Change, WorkflowStore } from './store.ts';
 import { type AgentOutcome, type RunRecord, type WorkflowAgentOptions, type WorkflowDeclaration, WorkflowPause } from './types.ts';
 
 export function workflowsEnabled(env: NodeJS.ProcessEnv): boolean {
-  const on = ['1', 'true', 'yes', 'on'].includes(env.COPILOT_DYNAMIC_WORKFLOWS?.trim().toLowerCase() ?? '');
+  const on = ['1', 'true', 'yes', 'on'].includes(env['COPILOT_DYNAMIC_WORKFLOWS']?.trim().toLowerCase() ?? '');
   return (
     on ||
     ['dynamic_workflows', 'EXTENSIONS'].some((flag) =>
-      (env.COPILOT_CLI_ENABLED_FEATURE_FLAGS ?? env.COPILOT_EXPERIMENTS ?? '')
+      (env['COPILOT_CLI_ENABLED_FEATURE_FLAGS'] ?? env['COPILOT_EXPERIMENTS'] ?? '')
         .toLowerCase()
         .split(',')
         .map((entry) => entry.trim())
@@ -43,12 +43,14 @@ const agentCredits = 1;
 class SchemaMiss extends Error {}
 
 export class WorkflowRuntime {
+  private readonly ports: WorkflowPorts;
   private readonly store: WorkflowStore;
   private declarations: ReadonlyMap<string, WorkflowDeclaration> = new Map();
   private readonly cancelled = new Map<string, AbortController>();
   private readonly slots = new Map<string, Slots>();
 
-  constructor(private readonly ports: WorkflowPorts) {
+  constructor(ports: WorkflowPorts) {
+    this.ports = ports;
     this.store = new WorkflowStore(ports.persist);
   }
 
@@ -192,7 +194,6 @@ export class WorkflowRuntime {
   }
 
   private fail(id: string, epoch: number, error: unknown): RunRecord {
-    const _run = this.store.get(id);
     const message = error instanceof Error ? error.message : String(error);
     if (error instanceof WorkflowPause) return this.settle(id, epoch, { status: 'paused', checkpoint: error.key });
     const limit = message.includes('maxTotalSubagents') || message.includes('timeoutSeconds') || message.includes('maxAiCredits');

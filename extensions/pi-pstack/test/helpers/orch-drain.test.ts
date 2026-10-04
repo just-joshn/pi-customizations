@@ -1,21 +1,23 @@
-import { afterEach, expect, mock, test } from 'bun:test';
+import './leak-preload.ts';
 import * as real from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { afterEach, expect, test, vi } from 'vitest';
 import { cleanDirectories, makeDirectory } from './orch-fixtures.ts';
 
-const original = { ...real };
-let blockInbox = false;
-mock.module('node:fs/promises', () => ({
-  ...original,
-  mkdir: async (path: string, ...rest: unknown[]) => {
-    if (blockInbox && String(path).endsWith('/inbox')) throw new Error('mkdir blocked');
-    return (original.mkdir as (...args: unknown[]) => Promise<unknown>)(path, ...rest);
-  },
-}));
+const fault = vi.hoisted(() => ({ blockInbox: false }));
+vi.mock('node:fs/promises', async (importOriginal) => {
+  const original = await importOriginal<typeof import('node:fs/promises')>();
+  const mkdir = vi.fn(original.mkdir);
+  mkdir.mockImplementation((...args) => {
+    if (fault.blockInbox && String(args[0]).endsWith('/inbox')) throw new Error('mkdir blocked');
+    return original.mkdir(...args);
+  });
+  return { ...original, mkdir };
+});
 
 afterEach(async () => {
-  blockInbox = false;
+  fault.blockInbox = false;
   await cleanDirectories();
 });
 
@@ -27,12 +29,12 @@ test('an inbox drain whose inbox directory cannot be recreated puts the pointers
     await store.init();
     await store.inbox.push({ agent: 'a', unit: 'u1', status: 'done' });
     await store.inbox.push({ agent: 'b', unit: 'u2', status: 'done' });
-    blockInbox = true;
+    fault.blockInbox = true;
     await expect(store.inbox.drain()).rejects.toThrow('mkdir blocked');
-    blockInbox = false;
+    fault.blockInbox = false;
     expect((await store.inbox.peek()).map((row) => row.agent).toSorted()).toEqual(['a', 'b']);
-    expect((await original.readdir(directory)).filter((name) => name.startsWith('.inbox-drain'))).toEqual([]);
-    expect(await original.readdir(join(directory, 'inbox'))).toHaveLength(2);
+    expect((await real.readdir(directory)).filter((name) => name.startsWith('.inbox-drain'))).toEqual([]);
+    expect(await real.readdir(join(directory, 'inbox'))).toHaveLength(2);
   } finally {
     await store.close();
   }

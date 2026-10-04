@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 
-const upstream = (path) => readFileSync(new URL(`../../upstream/skills/poteto-mode/scripts/orch/${path}`, import.meta.url), 'utf8');
+import { overlayInput } from '../source-overlay-input.mjs';
+
+const upstream = async (path) => (await overlayInput(`skills/poteto-mode/scripts/orch/${path}`, readFileSync(new URL(`../../upstream/skills/poteto-mode/scripts/orch/${path}`, import.meta.url)))).toString('utf8');
 const snippet = (name) => readFileSync(new URL(`./orch-snippets/${name}.ts.txt`, import.meta.url), 'utf8');
 
 function span(text, start, end) {
@@ -10,7 +12,7 @@ function span(text, start, end) {
   return text.slice(from, to);
 }
 
-const store = upstream('store.ts');
+const store = await upstream('store.ts');
 const pinFunction = span(store, 'function validateFrontierPin(', 'export function openStore(');
 
 export default [

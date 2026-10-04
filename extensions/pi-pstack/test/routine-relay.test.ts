@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { expect, onTestFinished, test } from 'vitest';
 import { durableRecord, prepareRoutine } from '../scripts/routine-client.mjs';
 import { relayEvent, startRelay } from '../scripts/routine-relay.mjs';
+import { expectDefined } from './support/expect-defined.ts';
 
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), 'pstack-routine-relay-'));
@@ -55,7 +56,7 @@ test('a redirect is never followed and spools the original delivery ID', async (
   await durableRecord(join(draft.directory, 'status.json'), { kind: 'ready', url: endpoint.url });
   expect(await relayEvent(draft.directory, { action: 'probe' })).toEqual({ accepted: false, spooled: true });
   expect(endpoint.requests).toHaveLength(1);
-  const deliveryId = endpoint.requests[0].headers['x-pstack-delivery-id'];
+  const deliveryId = expectDefined(endpoint.requests[0]).headers['x-pstack-delivery-id'];
   expect(JSON.parse(await readFile(join(draft.directory, 'fallback', `${deliveryId}.json`), 'utf8'))).toMatchObject({ deliveryId, envelope: { body: '{"action":"probe"}' } });
 });
 

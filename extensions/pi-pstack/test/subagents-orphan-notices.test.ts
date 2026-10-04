@@ -6,6 +6,10 @@ import type { TaskRecord } from '../src/worker-records.ts';
 function record(id: string, extra: Partial<TaskRecord> = {}): TaskRecord {
   return { id, persona: 'general-purpose', cwd: '/w', readonly: false, sessionFile: `/s/agent-${id}.jsonl`, outputFile: `/s/${id}.output.txt`, status: 'running', output: '', description: `job ${id}`, requestShape: 'background', ...extra };
 }
+function undescribedRecord(id: string, extra: Partial<TaskRecord> = {}): TaskRecord {
+  const { description: _description, ...withoutDescription } = record(id, extra);
+  return withoutDescription;
+}
 const settlement = (id: string, extra: Partial<Settlement> = {}): Settlement => ({ record: record(id), status: 'failed', redispatched: false, transcriptSaved: false, ...extra });
 
 const redispatchedHead = 'No completion record was found for it after it was re-dispatched via SendMessage in the previous session.';
@@ -55,7 +59,7 @@ test.for([
 });
 
 test('group notices fall back to the persona when a record has no description and escape markup', () => {
-  const items = [settlement('a'), { ...settlement('b'), record: record('b', { description: undefined, persona: 'a<b>&c' }) }];
+  const items = [settlement('a'), { ...settlement('b'), record: undescribedRecord('b', { persona: 'a<b>&c' }) }];
   const notice = groupNotice('failed', items, false);
   expect(notice.summary).toBe(`2 background agents didn't finish before the previous session ended: "job a" (a), "a<b>&c" (b).`);
   expect(notice.content).toContain('"a&lt;b&gt;&amp;c" (b)');
@@ -113,7 +117,7 @@ test('restarted notices omit the output file when the reader cannot read it', ()
 });
 
 test('settled notices name the persona when the record has no description', () => {
-  const settled = settledNotice({ ...settlement('x'), record: record('x', { description: undefined }) }, false);
+  const settled = settledNotice({ ...settlement('x'), record: undescribedRecord('x') }, false);
   expect(settled.summary).toBe(`Background agent "general-purpose" didn't finish before the previous session ended`);
 });
 

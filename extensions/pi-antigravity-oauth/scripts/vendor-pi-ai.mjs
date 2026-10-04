@@ -1,13 +1,16 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, realpathSync } from 'node:fs';
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Pi supplies extensions with only the pi-ai root, compat, oauth, and
 // providers/all entry points. The Cloud Code stream needs Pi's internal Google
 // conversion modules, so this copies their TypeScript sources out of the pinned
-// devDependency's source maps and rewrites only import specifiers.
+// devDependency's source maps. Import rewrites, the reviewed strict-policy patch,
+// and root formatting are applied reproducibly before integrity comparison.
 const root = fileURLToPath(new URL('..', import.meta.url));
 // The package manager may link the Pi install instead of copying it. Resolving
 // through the link's real location finds the @google/genai version Pi pins,
@@ -85,9 +88,38 @@ async function genaiShim() {
   return `// Generated from @google/genai ${await version(genai)} by scripts/vendor-pi-ai.mjs. Do not edit.\n// Stand-ins for the @google/genai values and types the vendored Google modules use.\n${values.join('\n')}\n${genaiTypes}`;
 }
 
+async function adaptedModules(original) {
+  const scratch = await mkdtemp(join(tmpdir(), 'pi-ai-vendor-'));
+  try {
+    for (const [name, text] of original) await writeFile(join(scratch, name), text);
+    const patch = join(root, 'scripts/vendor-strict.patch');
+    const paths = execFileSync('git', ['apply', '--numstat', '-p5', patch], { cwd: scratch, encoding: 'utf8' });
+    for (const entry of paths.trim().split('\n')) {
+      const [added, deleted, name] = entry.split('\t');
+      if (!/^\d+$/.test(added) || !/^\d+$/.test(deleted) || !original.has(name)) {
+        throw new Error(`Unexpected vendor patch entry: ${entry}`);
+      }
+    }
+    execFileSync('git', ['apply', '--check', '-p5', patch], { cwd: scratch });
+    execFileSync('git', ['apply', '-p5', patch], { cwd: scratch });
+    const repository = join(root, '../..');
+    const biome = join(repository, 'node_modules/.bin/biome');
+    const modules = new Map();
+    for (const name of original.keys()) {
+      const text = (await readFile(join(scratch, name), 'utf8')).replace('Only import specifiers differ.', 'Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ.');
+      const formatted = execFileSync(biome, ['check', '--write', '--stdin-file-path', join(target, name), '--config-path', join(repository, 'biome.json')], { input: text, encoding: 'utf8' });
+      modules.set(name, formatted);
+    }
+    return modules;
+  } finally {
+    await rm(scratch, { recursive: true, force: true });
+  }
+}
+
 const piAiVersion = await version(piAi);
-const expected = new Map([['genai.ts', await genaiShim()]]);
-for (const source of sources) expected.set(`${source.split('/').at(-1)}.ts`, await vendored(source, piAiVersion));
+const original = new Map([['genai.ts', await genaiShim()]]);
+for (const source of sources) original.set(`${source.split('/').at(-1)}.ts`, await vendored(source, piAiVersion));
+const expected = await adaptedModules(original);
 
 if (process.argv.includes('--check')) {
   const present = new Set((await readdir(target).catch(() => [])).filter((name) => name.endsWith('.ts')));

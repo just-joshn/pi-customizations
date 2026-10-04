@@ -1,5 +1,6 @@
-import { expect, test } from 'bun:test';
+import './leak-preload.ts';
 
+import { expect, test } from 'vitest';
 import { type FakeReaderOptions, failedCheck, fakeReader, passingCheck, pendingCheck } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
 import { ChecksUnavailable, WatcherQueryError } from '../../skills/poteto-mode/scripts/watch-pr/github.ts';
 import {
@@ -33,6 +34,7 @@ import type {
   RollupState,
 } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
+import { expectDefined } from '../support/expect-defined.ts';
 
 const at = (n: number): PrContext => ({ owner: 'owner', repo: 'repo', number: parsePrNumber(n) });
 const base: PollingOptions = { interval: 10, sweepInterval: 300, timeout: 0, maxQueryErrors: 5, allowDraft: false };
@@ -368,7 +370,7 @@ interface ZeroReading {
 function zeroReader(readings: ZeroReading[]): GitHubReader & { readonly reads: () => number } {
   const reader = fakeReader();
   let polls = 0;
-  const current = () => readings[Math.min(Math.max(polls - 1, 0), readings.length - 1)];
+  const current = () => expectDefined(readings[Math.min(Math.max(polls - 1, 0), readings.length - 1)]);
   return {
     ...reader,
     reads: () => polls,
@@ -453,7 +455,7 @@ test('status-only shows a zero-check PR as having no checks and does not claim R
   const verdict = await runSimple({ dependencies: deps(h, zeroReader([{ sha: 'a' }])), contexts: [at(1)], mode: 'single', statusOnly: true, options: base });
   expect(verdict).toMatchObject({ kind: 'STATUS', exitCode: 0, reason: 'status-only' });
   const row = renderStatusTable((verdict as Extract<typeof verdict, { kind: 'STATUS' }>).rows).split('\n')[2];
-  expect(row.split('|')[2].trim()).toBe('\u2796 no checks');
+  expect(expectDefined(expectDefined(row).split('|')[2]).trim()).toBe('\u2796 no checks');
 });
 
 test('a BLOCKED PR with zero checks still fails closed instead of reaching READY', async () => {

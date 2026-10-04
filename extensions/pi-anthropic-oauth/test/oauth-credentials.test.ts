@@ -41,6 +41,11 @@ test('a refresh with an aborted signal rejects before any request', async ({ pro
   expect(tokenEndpoint.requests).toHaveLength(0);
 });
 
+test('the token stub still blocks unrelated external requests', async ({ tokenEndpoint }) => {
+  await expect(fetch('https://example.invalid/blocked')).rejects.toThrow('Blocked external network request');
+  expect(tokenEndpoint.requests).toStrictEqual([]);
+});
+
 test('a login with an aborted signal rejects', async ({ provider }) => {
   const oauth = provider.auth.oauth;
   if (!oauth) throw new Error('provider has no OAuth');

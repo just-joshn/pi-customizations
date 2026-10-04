@@ -9,7 +9,7 @@ import { workerFixture } from './worker-fixture.ts';
 type Fixture = Awaited<ReturnType<typeof workerFixture>>;
 type Result = { content: { text: string }[]; details: Record<string, unknown> };
 const textOf = (result: unknown) => (result as Result).content[0]?.text ?? '';
-const idOf = (result: unknown) => String((result as Result).details.agent_id);
+const idOf = (result: unknown) => String((result as Result).details['agent_id']);
 const task = (fixture: Fixture, prompt: string, extra: Record<string, unknown> = {}) => fixture.call('task', { agent_type: 'general-purpose', name: 'probe', description: 'probe', prompt, ...extra });
 
 function collect(fixture: Fixture): EventEnvelope[] {

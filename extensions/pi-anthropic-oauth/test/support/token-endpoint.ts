@@ -16,12 +16,9 @@ function urlOf(input: Parameters<typeof fetch>[0]): string {
   return input instanceof Request ? input.url : String(input);
 }
 
-// Answers the OAuth token URL at the HTTP boundary and hands every other URL to the
-// fetch that was installed before, which is the repository's network guard.
-export function stubTokenEndpoint(): TokenEndpoint {
-  const delegate = globalThis.fetch;
+export function stubTokenEndpoint(delegate: (...args: Parameters<typeof fetch>) => ReturnType<typeof fetch>): TokenEndpoint {
   const requests: TokenRequest[] = [];
-  const answer: typeof fetch = async (input, init) => {
+  const answer: typeof delegate = async (input, init) => {
     if (urlOf(input) !== TOKEN_URL) return delegate(input, init);
     init?.signal?.throwIfAborted();
     const body: unknown = JSON.parse(String(init?.body));

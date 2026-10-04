@@ -2,10 +2,11 @@ import { createHash } from 'node:crypto';
 import { createServer } from 'node:net';
 
 import type { AuthEvent, AuthPrompt, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
-import { expect, test } from 'vitest';
+import { expect } from 'vitest';
 import { parseApiKey } from '../src/cloudcode.ts';
 import { createAntigravityOAuth, fetchEmail, type OAuthEndpoints, parseCredential, projectFromLoadCodeAssist } from '../src/oauth.ts';
 import { type FakeServer, fakeServer, json } from './fake-server.ts';
+import { test } from './network-guard.ts';
 
 async function freePort(): Promise<number> {
   const server = createServer();
@@ -93,8 +94,8 @@ test('login with a pasted redirect exchanges the code with PKCE and discovers th
     expect(credential.type).toBe('oauth');
     expect(credential.access).toBe('ya29.first');
     expect(credential.refresh).toBe('1//refresh');
-    expect(credential.projectId).toBe('companion-42');
-    expect(credential.email).toBe('dev@example.com');
+    expect(credential['projectId']).toBe('companion-42');
+    expect(credential['email']).toBe('dev@example.com');
     expect(credential.expires).toBeGreaterThanOrEqual(before + 3300 * 1000);
     expect(credential.expires).toBeLessThanOrEqual(Date.now() + 3300 * 1000);
   } finally {
@@ -107,6 +108,7 @@ test('login through the browser callback cancels the manual prompt', async () =>
   try {
     const config = await endpoints(server);
     let promptAborted = false;
+    let callbackRequest: Promise<Response> | undefined;
     const flow = interaction(
       (authUrl, prompt) =>
         new Promise((_, reject) => {
@@ -115,13 +117,15 @@ test('login through the browser callback cancels the manual prompt', async () =>
             reject(new Error('prompt cancelled'));
           });
           const state = authUrl.searchParams.get('state');
-          void fetch(`http://127.0.0.1:${config.callbackPort}/oauth-callback?code=xyz&state=${state}`);
+          callbackRequest = fetch(`http://127.0.0.1:${config.callbackPort}/oauth-callback?code=xyz&state=${state}`);
+          callbackRequest.catch(reject);
         }),
     );
     const credential = await createAntigravityOAuth(config).login(flow.value);
+    expect((await callbackRequest)?.status).toBe(200);
     const tokenReq = server.requests.find((request) => request.path === '/token');
     expect(new URLSearchParams(tokenReq?.body).get('code')).toBe('xyz');
-    expect(credential.projectId).toBe('companion-42');
+    expect(credential['projectId']).toBe('companion-42');
     expect(promptAborted).toBe(true);
   } finally {
     server.close();
@@ -157,8 +161,8 @@ test('refresh keeps the refresh token and project when Google omits a new refres
     expect(form.get('refresh_token')).toBe('1//refresh');
     expect(refreshed.access).toBe('ya29.refreshed');
     expect(refreshed.refresh).toBe('1//refresh');
-    expect(refreshed.projectId).toBe('companion-42');
-    expect(refreshed.email).toBe('dev@example.com');
+    expect(refreshed['projectId']).toBe('companion-42');
+    expect(refreshed['email']).toBe('dev@example.com');
   } finally {
     server.close();
   }
@@ -207,11 +211,12 @@ test('refresh refuses a credential without a project', async () => {
   await expect(createAntigravityOAuth().refresh(stored, new AbortController().signal)).rejects.toThrow('Google Antigravity credentials lack a project. Run /login and choose Google Antigravity.');
 });
 
-test('fetchEmail returns nothing for a failed or empty userinfo body', async () => {
-  const server = await fakeServer((request, res) => (request.path === '/fail' ? json(res, 500, {}) : json(res, 200, {})));
+test.for([{ status: 500 }, { status: 200 }])('fetchEmail returns nothing for an empty HTTP $status userinfo body', async ({ status }) => {
+  const server = await fakeServer((_, res) => json(res, status, {}));
   try {
-    expect(await fetchEmail(`${server.url}/fail`, 't')).toBe(undefined);
-    expect(await fetchEmail(`${server.url}/ok`, 't')).toBe(undefined);
+    expect(await fetchEmail(`${server.url}/userinfo`, 't')).toBeUndefined();
+    expect(server.requests).toMatchObject([{ method: 'GET', path: '/userinfo', headers: { authorization: 'Bearer t' }, body: '' }]);
+    expect(server.requests).toHaveLength(1);
   } finally {
     server.close();
   }
@@ -221,11 +226,13 @@ test('fetchEmail returns nothing when the request itself fails', async () => {
   expect(await fetchEmail('http://127.0.0.1:1/userinfo', 't')).toBe(undefined);
 });
 
-test('projectFromLoadCodeAssist reads a string, a nested id, or nothing', () => {
-  expect(projectFromLoadCodeAssist({ cloudaicompanionProject: 'p1' })).toBe('p1');
-  expect(projectFromLoadCodeAssist({ cloudaicompanionProject: { id: 'p2' } })).toBe('p2');
-  expect(projectFromLoadCodeAssist({ cloudaicompanionProject: {} })).toBe(undefined);
-  expect(projectFromLoadCodeAssist(null)).toBe(undefined);
+test.for([
+  { name: 'a string project', body: { cloudaicompanionProject: 'p1' }, expected: 'p1' },
+  { name: 'a nested project id', body: { cloudaicompanionProject: { id: 'p2' } }, expected: 'p2' },
+  { name: 'an empty project object', body: { cloudaicompanionProject: {} }, expected: undefined },
+  { name: 'a null body', body: null, expected: undefined },
+])('project discovery reads $name', ({ body, expected }) => {
+  expect(projectFromLoadCodeAssist(body)).toBe(expected);
 });
 
 test('login fails when Google returns no refresh token', async () => {
@@ -253,8 +260,8 @@ test('login falls back to the shared project when discovery fails', async () => 
     const config = await endpoints(server);
     const flow = interaction(async (authUrl) => `http://localhost:${config.callbackPort}/oauth-callback?code=abc&state=${authUrl.searchParams.get('state')}`);
     const credential = await createAntigravityOAuth(config).login(flow.value);
-    expect(credential.projectId).toBe('rising-fact-p41fc');
-    expect(credential.email).toBe('dev@example.com');
+    expect(credential['projectId']).toBe('rising-fact-p41fc');
+    expect(credential['email']).toBe('dev@example.com');
   } finally {
     server.close();
   }
@@ -270,8 +277,8 @@ test('login uses the shared project when loadCodeAssist names none', async () =>
     const config = await endpoints(server);
     const flow = interaction(async (authUrl) => `http://localhost:${config.callbackPort}/oauth-callback?code=abc&state=${authUrl.searchParams.get('state')}`);
     const credential = await createAntigravityOAuth(config).login(flow.value);
-    expect(credential.projectId).toBe('rising-fact-p41fc');
-    expect(credential.email).toBe(undefined);
+    expect(credential['projectId']).toBe('rising-fact-p41fc');
+    expect(credential['email']).toBe(undefined);
   } finally {
     server.close();
   }

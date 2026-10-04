@@ -19,6 +19,28 @@ function ui(handlers: Partial<ExtensionContext['ui']>): ExtensionContext['ui'] {
   return { notify: () => {}, select: async () => undefined, input: async () => undefined, confirm: async () => false, ...handlers } as ExtensionContext['ui'];
 }
 
+test('setup offers the four documented reasoning budgets', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pstack-budget-options-'));
+  vi.stubEnv('PI_CODING_AGENT_DIR', directory);
+  let offered: readonly string[] = [];
+  try {
+    const ctx = context({
+      hasUI: true,
+      ui: ui({
+        select: async (_title, options) => {
+          offered = [...options];
+          return undefined;
+        },
+      }),
+    });
+    expect(await setupModels(ctx)).toBe(false);
+    expect(offered).toEqual(['unlimited — keep max', 'large — xhigh reasoning', 'medium — high reasoning', 'small — medium reasoning']);
+  } finally {
+    vi.unstubAllEnvs();
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test('parent aliases, qualified models, and supported reasoning resolve', () => {
   const ctx = context();
   for (const alias of [undefined, 'auto', 'inherit-parent']) expect(resolveModel(alias, ctx)).toEqual({ model, thinkingLevel: 'medium' });
@@ -239,7 +261,8 @@ test('TUI accept list and confirm question fit on a 24-line screen', async () =>
     const accept = frames[0]?.join('\n');
     expect(accept).toMatch(/Accept model table or change a role/);
     expect(accept).toMatch(/bug-fix: inherit-parent/);
-    expect(frames[0]?.length <= 14).toBe(true);
+    expect(frames[0]).toBeDefined();
+    expect(frames[0]?.length).toBeLessThanOrEqual(14);
     expect(confirmMessage.split('\n').length <= 4).toBe(true);
     expect(confirmMessage).toMatch(/models\.mdc/);
   } finally {

@@ -1,6 +1,6 @@
 import { type Api, createModels, InMemoryCredentialStore, type Model, type MutableModels, type Provider } from '@earendil-works/pi-ai';
-import { test as base, vi } from 'vitest';
 import extension from '../../src/index.ts';
+import { test as base } from '../network-guard.ts';
 import { oauthCredential } from './credentials.ts';
 import { captureProvider } from './load-extension.ts';
 import { type MessagesServer, sseReply, startMessagesServer } from './messages-server.ts';
@@ -41,11 +41,7 @@ export const test = base.extend<Fixtures>({
     if (!model) throw new Error(`model ${PROVIDER_ID}/${MODEL_ID} is not registered`);
     await use({ ...model, baseUrl: server.baseUrl });
   },
-  tokenEndpoint: async ({ onTestFinished }, use) => {
-    const guarded = globalThis.fetch;
-    onTestFinished(() => {
-      vi.stubGlobal('fetch', guarded);
-    });
-    await use(stubTokenEndpoint());
+  tokenEndpoint: async ({ networkGuard }, use) => {
+    await use(stubTokenEndpoint(networkGuard));
   },
 });

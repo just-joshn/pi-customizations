@@ -180,9 +180,9 @@ Mode, todo, and task records follow the current session branch. Child transcript
 
 `upstream/` contains the complete pinned plugin, including its license, scripts, tests, guides, images, and dormant Benny automation pack. The package does not register Benny's operational skills as public commands.
 
-`upstream-team-kit/` contains all 29 files from the pinned team-kit plugin, with its license, manifest, agents, rules, and canvas assets. The original pstack snapshot remains unchanged.
+`upstream-team-kit/` contains all 29 files from the pinned team-kit plugin, with its license, manifest, agents, rules, and canvas assets. The pstack snapshot retains its pinned Git revision and file paths, with explicit replayable test, compiler, and formatting adaptations.
 
-`skills/` contains 142 files and `prompts/` contains 63 templates generated from both snapshots. The generator normalizes two display names, removes unsupported Reference frontmatter, and maps model-rule, skill-authoring, transcript, and repository paths to Pi locations. The generated worktree audit reads Pi session directories. It retains the workflow bodies and supporting resources, with `bro` moved to a prompt template. It rejects overlapping source destinations before writing. [The resource map](docs/resource-map.json) lists every generated file and transformation. It is a maintenance inventory, not a Pi manifest or API.
+`skills/` contains 146 generated files, including the portable scripts compiler-policy snapshot, and `prompts/` contains 66 templates generated from both snapshots. The generator normalizes two display names, removes unsupported Reference frontmatter, and maps model-rule, skill-authoring, transcript, and repository paths to Pi locations. The generated worktree audit reads Pi session directories. It retains the workflow bodies and supporting resources, with `bro` moved to a prompt template. It rejects overlapping source destinations before writing. [The resource map](docs/resource-map.json) lists every generated file and transformation. It is a maintenance inventory, not a Pi manifest or API.
 
 Development verification requires Node, Bun, and uv. From the repository root, `make verify` runs all maintained checks and the isolated helper suite. Use these commands inside this directory:
 
@@ -204,7 +204,7 @@ bun run check:progress-tui
 
 `bun run check:journeys` starts the real Pi CLI against the package with a deterministic local provider. It loads every skill and prompt template as a user would, drives the mode, status, todo, context, dialog, delegation, shell, setup, helper-script, and worktree journeys, and reports one line per check. `bun run check:progress-tui` requires the pinned Pi development version and tmux. It launches an isolated TUI with the deterministic provider and checks the visible foreground Task updates.
 
-`bun run generate` recreates the operational skills and prompts from the immutable snapshot. The checker rejects changed upstream hashes and generated resource drift. Do not edit generated resources directly.
+`bun run generate` recreates the operational skills and prompts from the hash-pinned normalized snapshot. `docs/vitest-source-migration.json` records the Vitest migration, strict compiler fixes, portable root-derived compiler policy, and root Biome formatting as exact line edits with original, intermediate, and resulting hashes. `scripts/check-latest-source.mjs` independently replays both adaptation stages against the unchanged pinned Git revision before comparing complete snapshot bytes. The generator reverses only the recorded formatting before applying exact host overlays, then formats its output with the root policy. Refreshing inventories alone cannot authorize unrecorded source drift. Do not edit generated resources directly.
 
 The CLI check starts an isolated local pi process and exercises RPC commands without model calls. Helper scripts may install their locked dependencies into their generated `node_modules` directory. The resource checker excludes that dependency directory and still checks every generated source file.
 

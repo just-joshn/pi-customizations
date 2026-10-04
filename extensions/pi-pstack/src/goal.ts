@@ -57,8 +57,8 @@ function registerGoalHooks(pi: ExtensionAPI, store: GoalStore): void {
   pi.on('session_tree', (_event, ctx) => store.restore(ctx));
   pi.on('before_agent_start', (event) => {
     const goal = store.read();
-    if (goal?.status === 'active') event.systemPromptOptions.sections.pstack_goal = `Active goal. Pursue it to completion and never shrink its scope.\n${goal.objective}`;
-    else delete event.systemPromptOptions.sections.pstack_goal;
+    if (goal?.status === 'active') event.systemPromptOptions.sections['pstack_goal'] = `Active goal. Pursue it to completion and never shrink its scope.\n${goal.objective}`;
+    else delete event.systemPromptOptions.sections['pstack_goal'];
   });
   pi.on('agent_before_settle', (event) => {
     const goal = store.read();

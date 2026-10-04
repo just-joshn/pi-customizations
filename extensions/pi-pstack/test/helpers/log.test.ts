@@ -1,17 +1,21 @@
-import { afterEach, describe, expect, test } from 'bun:test';
-import { spawn, spawnSync } from 'node:child_process';
+import './leak-preload.ts';
+import { type ChildProcess, execFile, spawnSync } from 'node:child_process';
 import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
+
+import { afterEach, describe, expect, test } from 'vitest';
 
 const script = new URL('../../skills/show-me-your-work/scripts/log.sh', import.meta.url).pathname;
 const header = ['ts', 'phase', 'decision', 'why', 'evidence', 'result'].join('\t');
-const directories: string[] = [];
+const directories: Promise<string>[] = [];
+const writerJobs: Array<Promise<unknown> & { child: ChildProcess }> = [];
 
 async function logPath(name = 'decisions.tsv'): Promise<string> {
-  const directory = await mkdtemp(join(tmpdir(), 'log-sh-'));
+  const directory = mkdtemp(join(tmpdir(), 'log-sh-'));
   directories.push(directory);
-  return join(directory, name);
+  return join(await directory, name);
 }
 
 function append(file: string, cells: string[]) {
@@ -26,7 +30,10 @@ async function rows(file: string): Promise<string[][]> {
 }
 
 afterEach(async () => {
-  for (const directory of directories.splice(0)) await rm(directory, { recursive: true, force: true });
+  const pending = writerJobs.splice(0);
+  for (const job of pending) if (job.child.exitCode === null && job.child.signalCode === null) job.child.kill('SIGKILL');
+  await Promise.allSettled(pending);
+  for (const directory of directories.splice(0)) await rm(await directory, { recursive: true, force: true });
 });
 
 describe('log.sh rows', () => {
@@ -67,7 +74,7 @@ describe('log.sh rows', () => {
 });
 
 describe('log.sh formula guard', () => {
-  test.each([
+  test.for([
     { name: 'equals', cell: '=1+1', stored: "'=1+1" },
     { name: 'plus', cell: '+SUM(A1)', stored: "'+SUM(A1)" },
     { name: 'minus', cell: '-2', stored: "'-2" },
@@ -85,19 +92,16 @@ describe('log.sh formula guard', () => {
 });
 
 describe('log.sh concurrency', () => {
-  test('concurrent first writers produce one header and every row', async () => {
+  test('concurrent first writers produce one header and every row', async ({ signal }) => {
+    expect.hasAssertions();
     const file = await logPath();
+    if (signal.aborted) return;
     const writers = 60;
-    await Promise.all(
-      Array.from(
-        { length: writers },
-        (_, index) =>
-          new Promise<void>((resolve, reject) => {
-            const child = spawn('bash', [script, file, `p${index}`, 'd', 'w', 'e', 'r']);
-            child.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`writer ${index} exited ${code}`))));
-          }),
-      ),
-    );
+    const jobs = Array.from({ length: writers }, (_, index) => promisify(execFile)('bash', [script, file, `p${index}`, 'd', 'w', 'e', 'r'], { timeout: 10_000, killSignal: 'SIGKILL' }));
+    writerJobs.push(...jobs);
+    const results = await Promise.allSettled(jobs);
+    if (signal.aborted) return;
+    expect(results.map((result) => result.status)).toEqual(Array(writers).fill('fulfilled'));
     expect(await readdir(join(file, '..'))).toEqual(['decisions.tsv']);
     const table = await rows(file);
     expect(table.filter((row) => row.join('\t') === header)).toHaveLength(1);

@@ -4,7 +4,7 @@ import { createServer, type Server } from 'node:http';
 import type { OAuthAuth, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { CLOUD_CODE_ENDPOINTS, encodeApiKey, errorText, postCloudCode } from './cloudcode.ts';
 
-export type AntigravityCredential = OAuthCredential & { projectId: string; email?: string };
+export type AntigravityCredential = OAuthCredential & { projectId: string; email?: string | undefined };
 
 export interface OAuthEndpoints {
   authUrl: string;
@@ -20,7 +20,7 @@ export const GOOGLE_OAUTH: OAuthEndpoints = {
   tokenUrl: 'https://oauth2.googleapis.com/token',
   userInfoUrl: 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json',
   cloudCode: CLOUD_CODE_ENDPOINTS,
-  callbackHost: process.env.PI_OAUTH_CALLBACK_HOST || '127.0.0.1',
+  callbackHost: process.env['PI_OAUTH_CALLBACK_HOST'] || '127.0.0.1',
   callbackPort: 51121,
 };
 
@@ -82,7 +82,7 @@ async function requestToken(url: string, params: Record<string, string>, signal:
 
 export async function fetchEmail(userInfoUrl: string, token: string, signal?: AbortSignal): Promise<string | undefined> {
   try {
-    const response = await fetch(userInfoUrl, { headers: { Authorization: `Bearer ${token}` }, signal });
+    const response = await fetch(userInfoUrl, { headers: { Authorization: `Bearer ${token}` }, ...(signal !== undefined && { signal }) });
     if (!response.ok) return undefined;
     const { email } = (await response.json()) as { email?: unknown };
     return typeof email === 'string' ? email : undefined;

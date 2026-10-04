@@ -43,15 +43,15 @@ test('an empty board spawns nothing', () => {
 });
 
 test('nothing spawns when no pi command can be resolved', () => {
-  const previous = process.argv[1];
-  process.argv[1] = join(scratchDir('pstack-rem-missing-'), 'missing-cli.js');
+  const previous = process.argv;
+  process.argv = process.argv.with(1, join(scratchDir('pstack-rem-missing-'), 'missing-cli.js'));
   try {
     const spawned: unknown[] = [];
     const spawnedProcess: Spawn = (...parts) => spawned.push(parts);
     const launched = launchRemOnShutdown({ env: { COPILOT_SUBCONSCIOUS: '1', PATH: '' }, cwd: '/repo', boardFile: board({ a: 'b' }), spawnProcess: spawnedProcess });
     expect({ launched, spawned }).toEqual({ launched: false, spawned: [] });
   } finally {
-    process.argv[1] = previous;
+    process.argv = previous;
   }
 });
 

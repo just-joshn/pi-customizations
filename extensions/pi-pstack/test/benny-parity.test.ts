@@ -8,10 +8,11 @@ import { promisify } from 'node:util';
 import { expect, onTestFinished, test } from 'vitest';
 import { mergePackageEntry } from '../scripts/benny-settings.mjs';
 import { bennyCommitted, installBenny, nativeBennyFiles } from '../scripts/benny-setup.mjs';
+import { expectDefined } from './support/expect-defined.ts';
 
 const run = promisify(execFile);
 const root = fileURLToPath(new URL('../', import.meta.url));
-const setupText = async () => (await nativeBennyFiles())['skills/setup-benny/SKILL.md'];
+const setupText = async () => expectDefined((await nativeBennyFiles())['skills/setup-benny/SKILL.md']);
 
 async function project(prefix: string) {
   const directory = await mkdtemp(join(tmpdir(), prefix));

@@ -9,6 +9,7 @@ import { fileTrackingGate } from '../src/subagents/file-tracking.ts';
 import { gatherParentServers, inheritedMcpExtension, serversForChild } from '../src/subagents/mcp-inheritance.ts';
 import { toolPolicyExtension } from '../src/subagents/tool-policy.ts';
 import { writeGateExtension } from '../src/subagents/write-gate.ts';
+import { expectDefined } from './support/expect-defined.ts';
 import { workerFixture } from './worker-fixture.ts';
 
 function fakePi(servers: { name: string; config: Record<string, unknown> }[] = [], _changes = 0) {
@@ -182,7 +183,7 @@ test('a child session persists its lineage, tool policy and servers beside the t
     expect(fixture.subagentLogs.filter((line): line is string => typeof line === 'string' && stages.includes(line))).toEqual(stages);
     const { globSync } = await import('node:fs');
     const transcript = globSync(join(fixture.dir, 'sessions', '**', 'subagents', '**', 'agent-*.jsonl'))[0];
-    const text = await readFile(transcript, 'utf8');
+    const text = await readFile(expectDefined(transcript), 'utf8');
     expect(text).toContain('reference-assistant-child-context');
     expect(text).toContain(['prompt', 'Cache', 'Lineage'].join(''));
     expect(text).toContain('"tools"');

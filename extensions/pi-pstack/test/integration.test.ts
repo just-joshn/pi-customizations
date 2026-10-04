@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { expect, test, vi } from 'vitest';
 import { DIALOG_TEST_QUESTIONS, fixture, INVALID_QUESTION_CASES, KIT_SKILL_NAMES, lastRequest, packageRoot, prompt, section, toolResults } from './session-fixture.ts';
+import { expectDefined } from './support/expect-defined.ts';
 
 test('integration fixture setup failure removes its directory', async () => {
   let directory = '';
@@ -359,12 +360,12 @@ test('team-kit templates request skill reading and native skills expand complete
       f.calls.push({ type: 'toolCall', id: `read-${name}`, name: 'read', arguments: { path: skill?.filePath ?? '' } });
       await prompt(session, `/${name} Inspect this workspace.`);
       const request = JSON.stringify(lastRequest(f.requests).messages);
-      expect(request.includes(evidence)).toBe(true);
+      expect(request.includes(expectDefined(evidence))).toBe(true);
       expect(request).toMatch(/Inspect this workspace/);
       expect((section(f.requests, 'pstack_host') ?? '').includes(join(packageRoot, 'skills'))).toBe(true);
       await prompt(session, `/skill:${name} Preserve this request.`);
       const text = JSON.stringify(lastRequest(f.requests).messages);
-      expect(text.includes(evidence)).toBe(true);
+      expect(text.includes(expectDefined(evidence))).toBe(true);
       expect(text).toMatch(/Preserve this request/);
     }
     expect(f.errors).toEqual([]);

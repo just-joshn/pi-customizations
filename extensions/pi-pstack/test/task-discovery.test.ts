@@ -3,9 +3,13 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { discoverTasks, publishTask, selectTask } from '../src/task-discovery.ts';
 import type { TaskRecord } from '../src/worker-records.ts';
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 async function fixture(onTestFinished: (cleanup: () => Promise<void>) => void) {
   const directory = await mkdtemp(join(tmpdir(), 'task-discovery-'));

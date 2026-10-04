@@ -13,7 +13,7 @@ export default function questionFixture(pi: ExtensionAPI): void {
   });
   pi.registerCommand('fixture-question', {
     handler: async (args, ctx) => {
-      const output = process.env.PSTACK_TUI_ANSWERS;
+      const output = process.env['PSTACK_TUI_ANSWERS'];
       if (!output || !execute) throw new Error('Question fixture requires an output path and registered handler');
       if (!['single', 'multiple', 'text'].includes(args.trim())) throw new Error('Unknown terminal question fixture mode');
       const questions = [

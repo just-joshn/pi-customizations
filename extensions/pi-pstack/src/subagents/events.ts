@@ -82,12 +82,14 @@ export type EventSink = Readonly<{ emit: (envelope: EventEnvelope) => void; pers
 type Options = Readonly<{ agentId?: string; ephemeral?: boolean }>;
 
 export class EventLog {
+  private readonly sink: EventSink;
+  private readonly clock: () => Date;
   private last: string | null = null;
 
-  constructor(
-    private readonly sink: EventSink,
-    private readonly clock: () => Date = () => new Date(),
-  ) {}
+  constructor(sink: EventSink, clock: () => Date = () => new Date()) {
+    this.sink = sink;
+    this.clock = clock;
+  }
 
   emit<Type extends string, Data>(type: Type, data: Data, options: Options = {}): EventEnvelope<Type, Data> {
     const envelope: EventEnvelope<Type, Data> = {
@@ -127,4 +129,4 @@ export function provenanceOf(input: { model: string; firstDispatched: string; so
   };
 }
 
-export const eventsLogIncludesSubagents = (env: NodeJS.ProcessEnv): boolean => env.COPILOT_EVENTS_LOG_INCLUDE_SUBAGENTS === 'true';
+export const eventsLogIncludesSubagents = (env: NodeJS.ProcessEnv): boolean => env['COPILOT_EVENTS_LOG_INCLUDE_SUBAGENTS'] === 'true';

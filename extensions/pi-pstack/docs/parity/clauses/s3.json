@@ -1,10 +1,7 @@
 [
   {
     "id": "L450.1",
-    "lines": [
-      450,
-      455
-    ],
+    "lines": [450, 455],
     "requirement": "The /setup-pstack model flow runs from the user through the setup command, the models rule file, consumer skills, and the Task tool; Pi implements setup in src/models.ts, writes the rule at ~/.pi/agent/pstack/models.mdc, and spawns through the native Task tool.",
     "kind": "behavior",
     "runtime": true,
@@ -13,7 +10,7 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "export function modelConfigPath(): string { return join(getAgentDir(), \"pstack\", \"models.mdc\"); }"
+        "quote": "export function modelConfigPath(): string { return join(getAgentDir(), 'pstack', 'models.mdc'); }"
       },
       {
         "type": "test",
@@ -24,10 +21,7 @@
   },
   {
     "id": "L456.1",
-    "lines": [
-      456,
-      457
-    ],
+    "lines": [456, 457],
     "requirement": "/setup-pstack detects the model slugs available to Task by enumerating the session model registry before offering choices.",
     "kind": "behavior",
     "runtime": true,
@@ -47,10 +41,7 @@
   },
   {
     "id": "L458.1",
-    "lines": [
-      458,
-      458
-    ],
+    "lines": [458, 458],
     "requirement": "Setup loads the current rule and drops role lines it no longer knows, such as how critics.",
     "kind": "behavior",
     "runtime": true,
@@ -70,10 +61,7 @@
   },
   {
     "id": "L459.1",
-    "lines": [
-      459,
-      459
-    ],
+    "lines": [459, 459],
     "requirement": "Setup asks for the reasoning budget with the four labels unlimited keep max, large xhigh reasoning, medium high reasoning, and small medium reasoning.",
     "kind": "behavior",
     "runtime": true,
@@ -82,7 +70,7 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"unlimited — keep max\", undefined],"
+        "quote": "['unlimited — keep max', undefined],"
       },
       {
         "type": "test",
@@ -93,10 +81,7 @@
   },
   {
     "id": "L460.1",
-    "lines": [
-      460,
-      460
-    ],
+    "lines": [460, 460],
     "requirement": "Setup downshifts each real slug to its same family's closest detected slug at or below the target effort.",
     "kind": "behavior",
     "runtime": true,
@@ -116,10 +101,7 @@
   },
   {
     "id": "L461.1",
-    "lines": [
-      461,
-      461
-    ],
+    "lines": [461, 461],
     "requirement": "Setup shows the role table and gets an explicit confirmation before writing the rule.",
     "kind": "behavior",
     "runtime": true,
@@ -128,7 +110,7 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "if (!(await ctx.ui.confirm(\"Write pstack model configuration?\","
+        "quote": "if (!(await ctx.ui.confirm('Write pstack model configuration?',"
       },
       {
         "type": "test",
@@ -139,10 +121,7 @@
   },
   {
     "id": "L462.1",
-    "lines": [
-      462,
-      462
-    ],
+    "lines": [462, 462],
     "requirement": "Setup overwrites the whole rule file atomically, so reruns stay idempotent.",
     "kind": "behavior",
     "runtime": true,
@@ -162,10 +141,7 @@
   },
   {
     "id": "L463.1",
-    "lines": [
-      463,
-      463
-    ],
+    "lines": [463, 463],
     "requirement": "The models rule is always-applied: the host contract injects it into the model context every turn, with a project rule overriding the user rule per role.",
     "kind": "behavior",
     "runtime": true,
@@ -185,10 +161,7 @@
   },
   {
     "id": "L464.1",
-    "lines": [
-      464,
-      464
-    ],
+    "lines": [464, 464],
     "requirement": "Each consumer skill looks up its one role line in the injected rule and falls back to the inline default when the rule or line is missing.",
     "kind": "behavior",
     "runtime": false,
@@ -208,10 +181,7 @@
   },
   {
     "id": "L465.1",
-    "lines": [
-      465,
-      465
-    ],
+    "lines": [465, 465],
     "requirement": "A role value of auto or inherit-parent leaves the Task model unset so the subagent runs on the parent model.",
     "kind": "behavior",
     "runtime": true,
@@ -220,7 +190,7 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "return value === \"auto\" || value === \"inherit-parent\";"
+        "quote": "return value === 'auto' || value === 'inherit-parent';"
       },
       {
         "type": "test",
@@ -231,10 +201,7 @@
   },
   {
     "id": "L466.1",
-    "lines": [
-      466,
-      466
-    ],
+    "lines": [466, 466],
     "requirement": "A rejected model is answered with the exact valid provider/id choices, and Pi reports the aliases inherit-parent and auto.",
     "kind": "behavior",
     "runtime": true,
@@ -243,7 +210,7 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "Use an exact provider/id from: ${choices || \"none (configure Pi provider credentials first)\"}"
+        "quote": "Use an exact provider/id from: ${choices || 'none (configure Pi provider credentials first)'}"
       },
       {
         "type": "test",
@@ -254,10 +221,7 @@
   },
   {
     "id": "L467.1",
-    "lines": [
-      467,
-      467
-    ],
+    "lines": [467, 467],
     "requirement": "After a rejection the skill retries with the role default, then with the closest valid slug of the same family from the error message.",
     "kind": "behavior",
     "runtime": false,
@@ -277,10 +241,7 @@
   },
   {
     "id": "L470.1",
-    "lines": [
-      470,
-      470
-    ],
+    "lines": [470, 470],
     "requirement": "The rule is injected into context rather than parsed by Reference; Pi additionally parses it in src/models.ts while each skill still looks up its one line, and there is no second schema.",
     "kind": "behavior",
     "runtime": false,
@@ -300,10 +261,7 @@
   },
   {
     "id": "L474.1",
-    "lines": [
-      474,
-      474
-    ],
+    "lines": [474, 474],
     "requirement": "PKG keeps almost no state of its own: orchestrate state lives under orchestrate/<project-slug>/ in the agent store, and plans default to the agent store's docs directory.",
     "kind": "behavior",
     "runtime": false,
@@ -323,10 +281,7 @@
   },
   {
     "id": "L476.1",
-    "lines": [
-      476,
-      478
-    ],
+    "lines": [476, 478],
     "requirement": "The models rule artifact is an .mdc file with the pstack frontmatter description and alwaysApply: true, a budget comment, and one role line per role, written by setup-pstack and injected by the host contract.",
     "kind": "behavior",
     "runtime": true,
@@ -346,10 +301,7 @@
   },
   {
     "id": "L479.1",
-    "lines": [
-      479,
-      479
-    ],
+    "lines": [479, 479],
     "requirement": "Orch units are a TSV with columns id, track, state, branch, pr, sha, brief, at <store>/units.tsv, written by orch unit add and unit set and read by unit get, list, counts, and status.",
     "kind": "behavior",
     "runtime": true,
@@ -358,11 +310,10 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "const UNIT_HEADER = \"id\\ttrack\\tstate\\tbranch\\tpr\\tsha\\tbrief\";"
+        "quote": "const UNIT_HEADER = 'id\\ttrack\\tstate\\tbranch\\tpr\\tsha\\tbrief';"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-store.test.ts",
         "name": "orch store cell and line cleaning blank lines inside units.tsv and ledger.tsv are skipped"
       }
@@ -370,10 +321,7 @@
   },
   {
     "id": "L480.1",
-    "lines": [
-      480,
-      480
-    ],
+    "lines": [480, 480],
     "requirement": "The orch ledger is a TSV with columns pr, sha, verdict, evidence, verifier, ts at <store>/ledger.tsv; ledger record upserts on (pr, sha), and check, summary, and status read it.",
     "kind": "behavior",
     "runtime": true,
@@ -382,27 +330,53 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "const LEDGER_HEADER = \"pr\\tsha\\tverdict\\tevidence\\tverifier\\tts\";"
+        "quote": "const LEDGER_HEADER = 'pr\\tsha\\tverdict\\tevidence\\tverifier\\tts';"
       },
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "const index = rows.findIndex( (old) => old.pr === row.pr && old.sha === row.sha );"
+        "quote": "const index = rows.findIndex((old) => old.pr === row.pr && old.sha === row.sha);"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line unit add, unit set, ledger record, gate park, gate resolve, inbox push, and standing add each print a single line"
+        "name": "orch CLI write commands print one compact line unit add prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line unit set prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line ledger record prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line gate park prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line gate resolve prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line standing add prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line inbox push prints unit, status, and the pointer filename"
       }
     ]
   },
   {
     "id": "L481.1",
-    "lines": [
-      481,
-      481
-    ],
+    "lines": [481, 481],
     "requirement": "Orch inbox pointers are one TSV file per pointer with ts, agent, unit, status, report, named by timestamp, PID, and UUID under <store>/inbox/, written by inbox push and read by inbox drain and peek.",
     "kind": "behavior",
     "runtime": true,
@@ -415,7 +389,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-drain.test.ts",
         "name": "an inbox drain whose inbox directory cannot be recreated puts the pointers back"
       }
@@ -423,10 +396,7 @@
   },
   {
     "id": "L482.1",
-    "lines": [
-      482,
-      482
-    ],
+    "lines": [482, 482],
     "requirement": "Orch gates are markdown ## <id> blocks with Status, Question, Options, Default, and Answer in <store>/gates.md, written by gate park and gate resolve and read by gate list and status.",
     "kind": "behavior",
     "runtime": true,
@@ -439,18 +409,24 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-store.test.ts",
-        "name": "orch store gate transitions re-parking an open gate replaces its text, re-resolving records the new answer, and re-parking a resolved gate reopens it"
+        "name": "orch store gate transitions re-parking an open gate replaces its question"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-store.test.ts",
+        "name": "orch store gate transitions re-resolving a gate records the new answer"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-store.test.ts",
+        "name": "orch store gate transitions re-parking a resolved gate reopens it"
       }
     ]
   },
   {
     "id": "L483.1",
-    "lines": [
-      483,
-      483
-    ],
+    "lines": [483, 483],
     "requirement": "Standing orders are a consecutive numbered N. text list in <store>/preferences.md, written by orch standing add, shown by orch standing show, and pasted into every spawn and resume.",
     "kind": "behavior",
     "runtime": true,
@@ -464,11 +440,10 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "const raw = (await requiredFile(join(store, \"preferences.md\"))).replace("
+        "quote": "const raw = (await requiredFile(join(store, 'preferences.md'))).replace("
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-store.test.ts",
         "name": "orch store cell and line cleaning a standing order drops CR and LF, trims, and gets no formula prefix"
       }
@@ -476,10 +451,7 @@
   },
   {
     "id": "L484.1",
-    "lines": [
-      484,
-      484
-    ],
+    "lines": [484, 484],
     "requirement": "The frontier is JSON with generation, prs rows of pr/branches/sha/state, and lowestUnmerged at <store>/frontier.json; frontier set discovers the stack from gt when installed and otherwise from gh, while frontier show and status read it.",
     "kind": "behavior",
     "runtime": true,
@@ -488,7 +460,7 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "if (graphiteMissing(repo)) { return { prs: githubFrontier(repo), source: \"gh\" }; }"
+        "quote": "if (graphiteMissing(repo)) { return { prs: githubFrontier(repo), source: 'gh' }; }"
       },
       {
         "type": "quote",
@@ -497,7 +469,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-frontier.test.ts",
         "name": "orch frontier set through the CLI without gt seeds frontier.json from gh and prints the compact line"
       }
@@ -505,10 +476,7 @@
   },
   {
     "id": "L485.1",
-    "lines": [
-      485,
-      485
-    ],
+    "lines": [485, 485],
     "requirement": "The status summary is markdown tables plus an embedded <!-- orch-summary {json} --> comment in <store>/status.md, derived by orch status and reused for the changed line.",
     "kind": "behavior",
     "runtime": true,
@@ -521,18 +489,19 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-store.test.ts",
-        "name": "orch store status rendering changed reports unit, ledger, frontier, and gate differences and every render stamps a new time"
+        "name": "orch store status rendering changed reports the derived differences since the previous render"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-store.test.ts",
+        "name": "orch store status rendering each status render stamps its current time"
       }
     ]
   },
   {
     "id": "L486.1",
-    "lines": [
-      486,
-      486
-    ],
+    "lines": [486, 486],
     "requirement": "The orch lock is PID text at <store>/.orch.lock, taken on the first write or init and read by other orch processes.",
     "kind": "behavior",
     "runtime": true,
@@ -541,11 +510,10 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "const LOCK_FILE = \".orch.lock\";"
+        "quote": "const LOCK_FILE = '.orch.lock';"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-lock.test.ts",
         "name": "orch lock holders a lock that a foreign holder wrote survives our close"
       }
@@ -553,10 +521,7 @@
   },
   {
     "id": "L487.1",
-    "lines": [
-      487,
-      487
-    ],
+    "lines": [487, 487],
     "requirement": "The ledger is the only verdict store, and its verdict values are exactly live-ui-verified, unit-test-verified, type-check-only, verifier-blocked, and verifier-failed.",
     "kind": "behavior",
     "runtime": true,
@@ -569,18 +534,44 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line unit add, unit set, ledger record, gate park, gate resolve, inbox push, and standing add each print a single line"
+        "name": "orch CLI write commands print one compact line unit add prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line unit set prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line ledger record prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line gate park prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line gate resolve prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line standing add prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line inbox push prints unit, status, and the pointer filename"
       }
     ]
   },
   {
     "id": "L488.1",
-    "lines": [
-      488,
-      488
-    ],
+    "lines": [488, 488],
     "requirement": "The append-only decision log is TSV with ts, phase, decision, why, evidence, result in the work dir or .audit/<slug>.tsv, written by scripts/log.sh; hillclimb records hypothesis, before/after, delta, tests, and kept/reverted verdict per attempt.",
     "kind": "behavior",
     "runtime": true,
@@ -606,10 +597,7 @@
   },
   {
     "id": "L489.1",
-    "lines": [
-      489,
-      489
-    ],
+    "lines": [489, 489],
     "requirement": "The children log is a TSV kept beside decisions.tsv in autopilot owner dirs, written by owners and read by the root.",
     "kind": "behavior",
     "runtime": false,
@@ -629,10 +617,7 @@
   },
   {
     "id": "L490.1",
-    "lines": [
-      490,
-      490
-    ],
+    "lines": [490, 490],
     "requirement": "Plan files are markdown following the multi-phase-plan skeleton, stored under the agent store's docs directory, written by the agent, and linted by check-plan.mjs.",
     "kind": "behavior",
     "runtime": true,
@@ -650,7 +635,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/check-plan.test.ts",
         "name": "check-plan.mjs on a valid plan exits 0 with one report line per PR section and a summary"
       }
@@ -658,10 +642,7 @@
   },
   {
     "id": "L491.1",
-    "lines": [
-      491,
-      491
-    ],
+    "lines": [491, 491],
     "requirement": "watch-pr verdicts are NDJSON on stdout, one event per line, with an exit code that mirrors the terminal verdict.",
     "kind": "behavior",
     "runtime": true,
@@ -674,7 +655,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/watch-pr-cli.test.ts",
         "name": "main exits 0 on STATUS for a merged PR with schemaVersion 1, sequence 1, mode single and a merged row"
       }
@@ -682,10 +662,7 @@
   },
   {
     "id": "L492.1",
-    "lines": [
-      492,
-      492
-    ],
+    "lines": [492, 492],
     "requirement": "The bootstrap key is hex text at skills/poteto-mode/scripts/node_modules/.poteto-mode-tools-install-key, written and read by bootstrap.ts.",
     "kind": "behavior",
     "runtime": true,
@@ -703,7 +680,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/watch-pr-bootstrap.test.ts",
         "name": "bootstrap writes the install key as sha256 of package.json, a NUL byte, then bun.lock, plus a newline"
       }
@@ -711,10 +687,7 @@
   },
   {
     "id": "L493.1",
-    "lines": [
-      493,
-      493
-    ],
+    "lines": [493, 493],
     "requirement": "Arena candidates write to separate locations, a git worktree where possible and otherwise /tmp/arena-<slug>/candidate-<n>/, plus a synthesis note.",
     "kind": "behavior",
     "runtime": false,
@@ -734,10 +707,7 @@
   },
   {
     "id": "L494.1",
-    "lines": [
-      494,
-      494
-    ],
+    "lines": [494, 494],
     "requirement": "Swarm workers save PNG screenshots at /tmp/swarm-<pr-id>/worker-<n>/<slug>.png and return the paths with the report.",
     "kind": "behavior",
     "runtime": false,
@@ -752,10 +722,7 @@
   },
   {
     "id": "L495.1",
-    "lines": [
-      495,
-      495
-    ],
+    "lines": [495, 495],
     "requirement": "Benny configuration is prepared outside the pack in project locations such as .pi/benny/, with a feature map and routing map, and setup stops if a required value remains a placeholder.",
     "kind": "behavior",
     "runtime": false,
@@ -775,10 +742,7 @@
   },
   {
     "id": "L496.1",
-    "lines": [
-      496,
-      496
-    ],
+    "lines": [496, 496],
     "requirement": "The Benny pack is copied as a whole to <target>/.pi/automations/benny/ by the reviewed Native Benny setup.",
     "kind": "behavior",
     "runtime": false,
@@ -798,10 +762,7 @@
   },
   {
     "id": "L498.1",
-    "lines": [
-      498,
-      498
-    ],
+    "lines": [498, 498],
     "requirement": "TSV writers turn tab, CR, and LF into spaces and prefix a quote to any cell that starts with =, +, -, or @ to block spreadsheet formula injection, and orch file writes go through atomicWrite with a wx temp file plus rename.",
     "kind": "behavior",
     "runtime": true,
@@ -810,22 +771,20 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "const cleaned = value.replace(/[\\t\\n\\r]/g, \" \");"
+        "quote": "const cleaned = value.replace(/[\\t\\n\\r]/g, ' ');"
       },
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "await writeFile(temporary, contents, { flag: \"wx\" });"
+        "quote": "await writeFile(temporary, contents, { flag: 'wx' });"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-store.test.ts",
         "name": "orch store cell and line cleaning a formula-looking id is stored with a quote prefix and found again by its raw spelling"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/log.test.ts",
         "name": "log.sh rows turns tabs and newlines into spaces so a row stays on one line"
       }
@@ -833,10 +792,7 @@
   },
   {
     "id": "L502.1",
-    "lines": [
-      502,
-      502
-    ],
+    "lines": [502, 502],
     "requirement": "PKG replaces the Reference marketplace deployment with a Pi package: package.json declares the pi manifest with the extension entry, skills directories, and prompts directories, and the README installs it with pi install.",
     "kind": "behavior",
     "runtime": false,
@@ -861,10 +817,7 @@
   },
   {
     "id": "L502.2",
-    "lines": [
-      502,
-      502
-    ],
+    "lines": [502, 502],
     "requirement": "Upstream pstack was listed by the reference-plugins monorepo marketplace with source \"pstack\" and validated by scripts/validate-plugins.mjs against schemas/plugin.schema.json; those Upstream-hosted paths remain preserved provenance, not the Pi deployment path.",
     "kind": "fact",
     "runtime": false,
@@ -887,10 +840,7 @@
   },
   {
     "id": "L504.1",
-    "lines": [
-      504,
-      504
-    ],
+    "lines": [504, 504],
     "requirement": "The Bun bootstrap hashes package.json and bun.lock, checks the install key, runs bun install --frozen-lockfile in the scripts directory under an install lock, writes the key, and re-executes the original command; it needs Bun and network access once per cache directory.",
     "kind": "behavior",
     "runtime": true,
@@ -904,7 +854,7 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/bootstrap.ts",
-        "quote": "[process.execPath, \"install\", \"--frozen-lockfile\"],"
+        "quote": "[process.execPath, 'install', '--frozen-lockfile'],"
       },
       {
         "type": "quote",
@@ -913,7 +863,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/watch-pr-bootstrap.test.ts",
         "name": "bootstrap reinstalls and rewrites the key when the stored key is stale"
       }
@@ -921,10 +870,7 @@
   },
   {
     "id": "L506.1",
-    "lines": [
-      506,
-      510
-    ],
+    "lines": [506, 510],
     "requirement": "The gh CLI is the default forge dependency for watch-pr and the playbooks; when missing, watch-pr cannot read PRs and exits with a non-retryable gh-missing query error rather than crashing.",
     "kind": "behavior",
     "runtime": true,
@@ -937,7 +883,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/watch-pr-github.test.ts",
         "name": "GhGitHubReader turns a missing gh binary into a non-retryable gh-missing failure instead of a crash"
       }
@@ -945,10 +890,7 @@
   },
   {
     "id": "L511.1",
-    "lines": [
-      511,
-      511
-    ],
+    "lines": [511, 511],
     "requirement": "git is a hard requirement for watch-pr, the orch frontier, worktree audit, and most playbooks.",
     "kind": "behavior",
     "runtime": true,
@@ -957,11 +899,10 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/watch-pr/github.ts",
-        "quote": "[\"git\", \"remote\", \"get-url\", \"origin\"]"
+        "quote": "['git', 'remote', 'get-url', 'origin']"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/watch-pr-github.test.ts",
         "name": "GhGitHubReader.originRepo returns null when git is not on PATH"
       }
@@ -969,10 +910,7 @@
   },
   {
     "id": "L512.1",
-    "lines": [
-      512,
-      512
-    ],
+    "lines": [512, 512],
     "requirement": "Graphite gt is optional: orch frontier set uses gt when installed and otherwise resolves the stack through gh, so the frontier still works without gt; playbooks never require gt and use base-branch chains.",
     "kind": "behavior",
     "runtime": true,
@@ -981,7 +919,7 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "if (graphiteMissing(repo)) { return { prs: githubFrontier(repo), source: \"gh\" }; }"
+        "quote": "if (graphiteMissing(repo)) { return { prs: githubFrontier(repo), source: 'gh' }; }"
       },
       {
         "type": "quote",
@@ -990,7 +928,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-frontier.test.ts",
         "name": "orch gh frontier without gt orders the connected stack bottom to top from any branch in it and records PR head oids"
       }
@@ -998,10 +935,7 @@
   },
   {
     "id": "L513.1",
-    "lines": [
-      513,
-      513
-    ],
+    "lines": [513, 513],
     "requirement": "The origin CLI is detected with command -v origin or ~/.local/bin/origin, playbooks fall back to gh and record the fallback, and the origin skill is loaded to repair a missing or unauthenticated CLI before falling back on an the origin host remote.",
     "kind": "behavior",
     "runtime": false,
@@ -1021,10 +955,7 @@
   },
   {
     "id": "L514.1",
-    "lines": [
-      514,
-      514
-    ],
+    "lines": [514, 514],
     "requirement": "Bun runs the helper scripts, bootstrap, orch, and the helper test suites; without Bun, orch and watch-pr do not run while check-plan.mjs still runs under Node.",
     "kind": "behavior",
     "runtime": true,
@@ -1037,7 +968,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/watch-pr-bootstrap.test.ts",
         "name": "bootstrap installs under the scripts directory, not the cwd, when the launcher runs from an unrelated directory"
       }
@@ -1045,10 +975,7 @@
   },
   {
     "id": "L515.1",
-    "lines": [
-      515,
-      515
-    ],
+    "lines": [515, 515],
     "requirement": "Node runs check-plan.mjs, so plan linting is available even without Bun.",
     "kind": "behavior",
     "runtime": true,
@@ -1061,7 +988,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/check-plan.test.ts",
         "name": "check-plan.mjs on a valid plan exits 2 with usage when no plan path is given"
       }
@@ -1069,10 +995,7 @@
   },
   {
     "id": "L516.1",
-    "lines": [
-      516,
-      516
-    ],
+    "lines": [516, 516],
     "requirement": "worktree-audit.sh warns on stderr when jq, rg, or perl is missing instead of silently blanking columns, and uses perl for stat and date so it does not depend on BSD-only stat -f or date -r.",
     "kind": "behavior",
     "runtime": true,
@@ -1090,7 +1013,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/worktree-audit.test.ts",
         "name": "worktree-audit.sh missing tools a PATH without jq warns on stderr"
       }
@@ -1098,10 +1020,7 @@
   },
   {
     "id": "L517.1",
-    "lines": [
-      517,
-      517
-    ],
+    "lines": [517, 517],
     "requirement": "worktree-cleanup reclaims iOS simulators with xcrun simctl and only after listing sizes and getting user confirmation.",
     "kind": "behavior",
     "runtime": false,
@@ -1121,10 +1040,7 @@
   },
   {
     "id": "L518.1",
-    "lines": [
-      518,
-      518
-    ],
+    "lines": [518, 518],
     "requirement": "Why, reflect, and recall classify MCP servers into source control, issue tracker, docs, chat, observability, errors, and analytics categories through pstack_context, and a missing category is recorded as a written gap rather than silently skipped.",
     "kind": "behavior",
     "runtime": false,
@@ -1144,10 +1060,7 @@
   },
   {
     "id": "L519.1",
-    "lines": [
-      519,
-      519
-    ],
+    "lines": [519, 519],
     "requirement": "The native Task tool exposes the parameters every workflow needs: model, readonly, run_in_background, and environment local or cloud.",
     "kind": "behavior",
     "runtime": true,
@@ -1177,10 +1090,7 @@
   },
   {
     "id": "L520.1",
-    "lines": [
-      520,
-      520
-    ],
+    "lines": [520, 520],
     "requirement": "AskQuestion is a native Pi tool used by setup-pstack, automate-me, and the router; without TUI or RPC dialogs it errors and falls back to plain conversation questions instead of fabricating consent.",
     "kind": "behavior",
     "runtime": true,
@@ -1205,10 +1115,7 @@
   },
   {
     "id": "L521.1",
-    "lines": [
-      521,
-      521
-    ],
+    "lines": [521, 521],
     "requirement": "Reference's built-in create-skill maps to host/skills/create-skill/SKILL.md, which the router, authoring-a-skill, automate-me, and reflect follow for skill authoring guidance.",
     "kind": "behavior",
     "runtime": false,
@@ -1227,10 +1134,7 @@
   },
   {
     "id": "L522.1",
-    "lines": [
-      522,
-      522
-    ],
+    "lines": [522, 522],
     "requirement": "Reference's built-in /loop maps to host/skills/loop plus the loop prompt template: session work uses BackgroundShell with monitored sentinels and durable work uses SubscribeTimer, ListSubscriptions, and Unsubscribe, so long runs wake instead of stalling.",
     "kind": "behavior",
     "runtime": true,
@@ -1255,10 +1159,7 @@
   },
   {
     "id": "L523.1",
-    "lines": [
-      523,
-      523
-    ],
+    "lines": [523, 523],
     "requirement": "Reference's built-in /goal maps to native CreateGoal, GetGoal, and UpdateGoal. A playbook that says to arm a goal calls CreateGoal itself. Upstream 0.15.7 supersedes the historical plan requirement with an hourly /loop 1h audit.",
     "kind": "behavior",
     "runtime": true,
@@ -1272,7 +1173,7 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "const PROGRAM_MARKERS = [/git show origin\\/[^\\s:`]+:/, \"/loop 1h\", \"status message\"];"
+        "quote": "const PROGRAM_MARKERS = [/git show origin\\/[^\\s:`]+:/, '/loop 1h', 'status message'];"
       },
       {
         "type": "test",
@@ -1283,10 +1184,7 @@
   },
   {
     "id": "L524.1",
-    "lines": [
-      524,
-      524
-    ],
+    "lines": [524, 524],
     "requirement": "The team-kit deslop, control-ui, and control-cli skills are shipped as generated Pi skills and prompt templates; when absent, guide guidance says to ask for the same outcome in plain words.",
     "kind": "behavior",
     "runtime": false,
@@ -1318,10 +1216,7 @@
   },
   {
     "id": "L525.1",
-    "lines": [
-      525,
-      525
-    ],
+    "lines": [525, 525],
     "requirement": "Reference's built-in /babysit is replaced by the bundled babysit playbook, which the router declares the only route for PR-status requests on Pi.",
     "kind": "behavior",
     "runtime": false,
@@ -1340,10 +1235,7 @@
   },
   {
     "id": "L526.1",
-    "lines": [
-      526,
-      526
-    ],
+    "lines": [526, 526],
     "requirement": "Reference agent-transcripts under the active workspace map to the Pi session store and Task child transcripts; reflect, recall, eval, session-pickup, and worktree-audit read them through pstack_context history scoped to the workspace.",
     "kind": "behavior",
     "runtime": true,
@@ -1363,10 +1255,7 @@
   },
   {
     "id": "L527.1",
-    "lines": [
-      527,
-      527
-    ],
+    "lines": [527, 527],
     "requirement": "The Slack integration, tracker adapter, and control adapter needed by benny are live third-party capabilities; the native adapter keeps both benny workflows disabled until each capability is explicitly configured and never sends Slack messages during installation.",
     "kind": "behavior",
     "runtime": true,
@@ -1392,10 +1281,7 @@
   },
   {
     "id": "L529.1",
-    "lines": [
-      529,
-      529
-    ],
+    "lines": [529, 529],
     "requirement": "dyl-stack in the same monorepo depends on pstack and team-kit; its dyl-mode skill states the requirement.",
     "kind": "fact",
     "runtime": false,
@@ -1414,10 +1300,7 @@
   },
   {
     "id": "L529.2",
-    "lines": [
-      529,
-      529
-    ],
+    "lines": [529, 529],
     "requirement": "The Pi port keeps a pinned upstream snapshot and tracks pstack 0.15.5; the bump commit and the vendored upstream directory record that revision.",
     "kind": "fact",
     "runtime": false,
@@ -1440,10 +1323,7 @@
   },
   {
     "id": "L531.1",
-    "lines": [
-      531,
-      531
-    ],
+    "lines": [531, 531],
     "requirement": "The eight named team-kit skills exist in the pinned team kit and PKG exposes each as a generated prompt template and skill; pstack's own skills do not route to them.",
     "kind": "behavior",
     "runtime": false,
@@ -1481,10 +1361,7 @@
   },
   {
     "id": "L535.1",
-    "lines": [
-      535,
-      535
-    ],
+    "lines": [535, 535],
     "requirement": "The only user configuration is the models rule: a project .pi/pstack/models.mdc can override the user ~/.pi/agent/pstack/models.mdc per role, and there is no other config file.",
     "kind": "behavior",
     "runtime": false,
@@ -1504,10 +1381,7 @@
   },
   {
     "id": "L537.1",
-    "lines": [
-      537,
-      539
-    ],
+    "lines": [537, 539],
     "requirement": "The role table maps each role line to a default and consumers; feature and refactoring default to grok-4.7-xhigh-fast for the feature and refactoring playbooks and the router.",
     "kind": "behavior",
     "runtime": false,
@@ -1516,7 +1390,7 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"feature, refactoring\", [code]],"
+        "quote": "['feature, refactoring', [code]],"
       },
       {
         "type": "quote",
@@ -1527,10 +1401,7 @@
   },
   {
     "id": "L540.1",
-    "lines": [
-      540,
-      542
-    ],
+    "lines": [540, 542],
     "requirement": "bug-fix, perf-issue, and hillclimb each default to grok-4.7-xhigh-fast.",
     "kind": "behavior",
     "runtime": false,
@@ -1539,26 +1410,23 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"bug-fix\", [code]],"
+        "quote": "['bug-fix', [code]],"
       },
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"perf-issue\", [code]],"
+        "quote": "['perf-issue', [code]],"
       },
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"hillclimb\", [code]],"
+        "quote": "['hillclimb', [code]],"
       }
     ]
   },
   {
     "id": "L543.1",
-    "lines": [
-      543,
-      544
-    ],
+    "lines": [543, 544],
     "requirement": "hardest tasks and judgment and prose both default to claude-opus-5-5-max, used by router tiering.",
     "kind": "behavior",
     "runtime": false,
@@ -1567,21 +1435,18 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"judgment and prose\", [judgment]],"
+        "quote": "['judgment and prose', [judgment]],"
       },
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"hardest tasks\", [judgment]],"
+        "quote": "['hardest tasks', [judgment]],"
       }
     ]
   },
   {
     "id": "L545.1",
-    "lines": [
-      545,
-      548
-    ],
+    "lines": [545, 548],
     "requirement": "The how explorer and why investigators default to grok-4.7-xhigh-fast, while the how explainer and why synthesizer default to claude-opus-5-5-max.",
     "kind": "behavior",
     "runtime": false,
@@ -1590,31 +1455,28 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"how explorer\", [code]],"
+        "quote": "['how explorer', [code]],"
       },
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"how explainer\", [judgment]],"
+        "quote": "['how explainer', [judgment]],"
       },
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"why investigators\", [code]],"
+        "quote": "['why investigators', [code]],"
       },
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"why synthesizer\", [judgment]],"
+        "quote": "['why synthesizer', [judgment]],"
       }
     ]
   },
   {
     "id": "L549.1",
-    "lines": [
-      549,
-      550
-    ],
+    "lines": [549, 550],
     "requirement": "Reflect tooling defaults to gpt-5.6-sol-max, and reflect judgment, divergent, and synthesizer default to claude-opus-5-5-max.",
     "kind": "behavior",
     "runtime": false,
@@ -1623,21 +1485,18 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"reflect tooling\", [\"gpt-5.6-sol-max\"]],"
+        "quote": "['reflect tooling', ['gpt-5.6-sol-max']],"
       },
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"reflect judgment, divergent, synthesizer\", [judgment]],"
+        "quote": "['reflect judgment, divergent, synthesizer', [judgment]],"
       }
     ]
   },
   {
     "id": "L551.1",
-    "lines": [
-      551,
-      554
-    ],
+    "lines": [551, 554],
     "requirement": "The arena runners, arena cross-judge pool, architect runners, and interrogate reviewers lines are comma lists defaulting to opus, sol, and grok.",
     "kind": "behavior",
     "runtime": false,
@@ -1646,36 +1505,33 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "const panel = [judgment, \"gpt-5.6-sol-max\", code];"
+        "quote": "const panel = [judgment, 'gpt-5.6-sol-max', code];"
       },
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"arena runners\", panel],"
+        "quote": "['arena runners', panel],"
       },
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"arena cross-judge pool\", panel],"
+        "quote": "['arena cross-judge pool', panel],"
       },
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"architect runners\", panel],"
+        "quote": "['architect runners', panel],"
       },
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"interrogate reviewers\", panel],"
+        "quote": "['interrogate reviewers', panel],"
       }
     ]
   },
   {
     "id": "L555.1",
-    "lines": [
-      555,
-      555
-    ],
+    "lines": [555, 555],
     "requirement": "Swarm workers default to grok-4.7-xhigh-fast and that line also drives the live lanes in multi-phase-plan.",
     "kind": "behavior",
     "runtime": false,
@@ -1684,7 +1540,7 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"swarm workers\", [code]],"
+        "quote": "['swarm workers', [code]],"
       },
       {
         "type": "quote",
@@ -1695,10 +1551,7 @@
   },
   {
     "id": "L557.1",
-    "lines": [
-      557,
-      557
-    ],
+    "lines": [557, 557],
     "requirement": "The resolution rules live in how/SKILL.md and why/SKILL.md and are copied with small variations into the other routed skills.",
     "kind": "behavior",
     "runtime": false,
@@ -1718,10 +1571,7 @@
   },
   {
     "id": "L559.1",
-    "lines": [
-      559,
-      559
-    ],
+    "lines": [559, 559],
     "requirement": "Resolution rule 1: read the role line from the injected rule, and when the rule or line is missing use the inline default.",
     "kind": "behavior",
     "runtime": true,
@@ -1741,10 +1591,7 @@
   },
   {
     "id": "L560.1",
-    "lines": [
-      560,
-      560
-    ],
+    "lines": [560, 560],
     "requirement": "Resolution rule 2: a value of auto or inherit-parent leaves the Task model unset, and in a panel such an entry still counts as one seat.",
     "kind": "behavior",
     "runtime": true,
@@ -1769,10 +1616,7 @@
   },
   {
     "id": "L561.1",
-    "lines": [
-      561,
-      561
-    ],
+    "lines": [561, 561],
     "requirement": "Resolution rule 3: when Task rejects a slug, use the role default and say so.",
     "kind": "behavior",
     "runtime": false,
@@ -1787,10 +1631,7 @@
   },
   {
     "id": "L562.1",
-    "lines": [
-      562,
-      562
-    ],
+    "lines": [562, 562],
     "requirement": "Resolution rule 4: when Task rejects the default, use the closest valid slug of the same family from the error message.",
     "kind": "behavior",
     "runtime": false,
@@ -1805,10 +1646,7 @@
   },
   {
     "id": "L563.1",
-    "lines": [
-      563,
-      563
-    ],
+    "lines": [563, 563],
     "requirement": "Resolution rule 5: panels use a family-prefix fallback (claude-*, gpt-*, grok-*), arena falls back to the opus slug, interrogate to reviewer A's default, and neither fallback applies to an alias entry.",
     "kind": "behavior",
     "runtime": false,
@@ -1833,10 +1671,7 @@
   },
   {
     "id": "L565.1",
-    "lines": [
-      565,
-      565
-    ],
+    "lines": [565, 565],
     "requirement": "The budget ladder is unlimited keep max, large xhigh, medium high, small medium; the effort token is the last token or the one before fast; slugs downshift within the same family to the closest detected slug at or below the target; every real slug must be in the detected set; reruns overwrite the file and drop retired roles; the change applies to new sessions.",
     "kind": "behavior",
     "runtime": true,
@@ -1845,7 +1680,7 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "[\"small — medium reasoning\", \"medium\"],"
+        "quote": "['small — medium reasoning', 'medium'],"
       },
       {
         "type": "quote",
@@ -1866,10 +1701,7 @@
   },
   {
     "id": "L567.1",
-    "lines": [
-      567,
-      567
-    ],
+    "lines": [567, 567],
     "requirement": "poteto-agent has no model field; its model comes from the spawner's Task argument, and the native persona carries no default model.",
     "kind": "behavior",
     "runtime": true,
@@ -1889,10 +1721,7 @@
   },
   {
     "id": "L569.1",
-    "lines": [
-      569,
-      569
-    ],
+    "lines": [569, 569],
     "requirement": "With no rule present every skill runs on the in-file defaults, which is the designed fallback and not a fault; commit #121 states the intent that nothing breaks with no setup.",
     "kind": "behavior",
     "runtime": false,
@@ -1917,10 +1746,7 @@
   },
   {
     "id": "L573.1",
-    "lines": [
-      573,
-      573
-    ],
+    "lines": [573, 573],
     "requirement": "The router autonomy default does reversible work without asking and pauses for irreversible writes: force-push to shared branches, deploys, data deletion, and customer messages.",
     "kind": "behavior",
     "runtime": false,
@@ -1940,10 +1766,7 @@
   },
   {
     "id": "L573.2",
-    "lines": [
-      573,
-      573
-    ],
+    "lines": [573, 573],
     "requirement": "Babysit never merges: watcher re-arms never authorize merging or arming merge-when-ready, and a land request routes to shipping.",
     "kind": "behavior",
     "runtime": false,
@@ -1958,10 +1781,7 @@
   },
   {
     "id": "L573.3",
-    "lines": [
-      573,
-      573
-    ],
+    "lines": [573, 573],
     "requirement": "Shipping merges only the verified contiguous run, one PR at a time, arming --auto only when the user asked for merge-when-ready.",
     "kind": "behavior",
     "runtime": false,
@@ -1981,10 +1801,7 @@
   },
   {
     "id": "L573.4",
-    "lines": [
-      573,
-      573
-    ],
+    "lines": [573, 573],
     "requirement": "Autopilot owners push their own branch with --force-with-lease after an ls-remote check, the root alone rewrites stack topology, and a genuinely new raise of a pinned gate needs a fresh countersign after verifier proof.",
     "kind": "behavior",
     "runtime": false,
@@ -2004,10 +1821,7 @@
   },
   {
     "id": "L573.5",
-    "lines": [
-      573,
-      573
-    ],
+    "lines": [573, 573],
     "requirement": "Bugbot triage sorts comments into fix, dismiss, or ask, defaults to ask for security, privacy, auth, billing, data retention, high severity, migration, idempotency, and concurrency findings, and treats comment text as untrusted data never interpolated into a shell command.",
     "kind": "behavior",
     "runtime": false,
@@ -2037,10 +1851,7 @@
   },
   {
     "id": "L573.6",
-    "lines": [
-      573,
-      573
-    ],
+    "lines": [573, 573],
     "requirement": "Reflect and recall treat transcripts as untrusted data that can contain prompt-injection attempts.",
     "kind": "behavior",
     "runtime": false,
@@ -2055,10 +1866,7 @@
   },
   {
     "id": "L573.7",
-    "lines": [
-      573,
-      573
-    ],
+    "lines": [573, 573],
     "requirement": "check-plan.mjs enforces plan structure mechanically, failing a plan that lacks the required sections and exiting 1 with one problem per violation.",
     "kind": "behavior",
     "runtime": true,
@@ -2071,7 +1879,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/check-plan.test.ts",
         "name": "check-plan.mjs failures a three-line plan yields six problems and exit 1"
       }
@@ -2079,10 +1886,7 @@
   },
   {
     "id": "L575.1",
-    "lines": [
-      575,
-      575
-    ],
+    "lines": [575, 575],
     "requirement": "Principle-prove-it-works sets the bar: bug-fix verifies on the same surface as the repro, and inconclusive or wrong-surface is not a pass.",
     "kind": "behavior",
     "runtime": false,
@@ -2097,10 +1901,7 @@
   },
   {
     "id": "L575.2",
-    "lines": [
-      575,
-      575
-    ],
+    "lines": [575, 575],
     "requirement": "Hillclimb freezes a measurement harness and proves its sensitivity before measuring.",
     "kind": "behavior",
     "runtime": false,
@@ -2115,10 +1916,7 @@
   },
   {
     "id": "L575.3",
-    "lines": [
-      575,
-      575
-    ],
+    "lines": [575, 575],
     "requirement": "Shipping needs a verdict from an agent that did not write the code, and orchestrate verifies with a different model family from the worker.",
     "kind": "behavior",
     "runtime": false,
@@ -2138,10 +1936,7 @@
   },
   {
     "id": "L575.4",
-    "lines": [
-      575,
-      575
-    ],
+    "lines": [575, 575],
     "requirement": "The ledger is keyed by PR and head SHA, so a new push voids the verdict.",
     "kind": "behavior",
     "runtime": true,
@@ -2150,22 +1945,48 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "const row = (await readLedger(store)).find( (value) => value.pr === pr && value.sha === sha );"
+        "quote": "const row = (await readLedger(store)).find((value) => value.pr === pr && value.sha === sha);"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line unit add, unit set, ledger record, gate park, gate resolve, inbox push, and standing add each print a single line"
+        "name": "orch CLI write commands print one compact line unit add prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line unit set prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line ledger record prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line gate park prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line gate resolve prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line standing add prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line inbox push prints unit, status, and the pointer filename"
       }
     ]
   },
   {
     "id": "L575.5",
-    "lines": [
-      575,
-      575
-    ],
+    "lines": [575, 575],
     "requirement": "show-me-your-work ends with an Attention section whose first line is reviewed by <model>, and multi-phase plans require ten live swarm lanes with lane 1 as a regression lane against trunk.",
     "kind": "behavior",
     "runtime": false,
@@ -2190,10 +2011,7 @@
   },
   {
     "id": "L577.1",
-    "lines": [
-      577,
-      577
-    ],
+    "lines": [577, 577],
     "requirement": "The router's Writing the reply rules, unslop, and technical-writing apply to every prose surface including agent-facing skill text.",
     "kind": "behavior",
     "runtime": false,
@@ -2208,10 +2026,7 @@
   },
   {
     "id": "L577.2",
-    "lines": [
-      577,
-      577
-    ],
+    "lines": [577, 577],
     "requirement": "check-plan.mjs lints plans for long dashes, curly quotes, and mid-sentence colons, exempting a leading label colon.",
     "kind": "behavior",
     "runtime": true,
@@ -2220,21 +2035,20 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "if (/[\\u2013\\u2014]/.test(prose)) fail(n, \"long dash\");"
+        "quote": "if (/[\\u2013\\u2014]/.test(prose)) fail(n, 'long dash');"
       },
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "if (/[\\u2018\\u2019\\u201c\\u201d]/.test(prose)) fail(n, \"curly quote\");"
+        "quote": "if (/[\\u2018\\u2019\\u201c\\u201d]/.test(prose)) fail(n, 'curly quote');"
       },
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "if (/: \\S/.test(prose)) fail(n, \"mid-sentence colon\");"
+        "quote": "if (/: \\S/.test(prose)) fail(n, 'mid-sentence colon');"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/check-plan.test.ts",
         "name": "check-plan.mjs prose rules and fences a second colon after a leading label is still flagged"
       }
@@ -2242,10 +2056,7 @@
   },
   {
     "id": "L577.3",
-    "lines": [
-      577,
-      577
-    ],
+    "lines": [577, 577],
     "requirement": "Every playbook ends with a reply whose **Reply:** line names only that playbook's unique content.",
     "kind": "behavior",
     "runtime": false,
@@ -2265,10 +2076,7 @@
   },
   {
     "id": "L577.4",
-    "lines": [
-      577,
-      577
-    ],
+    "lines": [577, 577],
     "requirement": "Claims carry an evidence label of measured, inferred, or guess in the same sentence.",
     "kind": "behavior",
     "runtime": false,
@@ -2283,10 +2091,7 @@
   },
   {
     "id": "L579.1",
-    "lines": [
-      579,
-      579
-    ],
+    "lines": [579, 579],
     "requirement": "Principle-guard-the-context-window is the rule: subagents run in the background, receive file pointers rather than pasted context, return summaries, and the parent owns the final reply.",
     "kind": "behavior",
     "runtime": false,
@@ -2311,10 +2116,7 @@
   },
   {
     "id": "L579.2",
-    "lines": [
-      579,
-      579
-    ],
+    "lines": [579, 579],
     "requirement": "Trace and runtime forensics reduce artifacts in subagents, and swarm forbids pasting raw dumps.",
     "kind": "behavior",
     "runtime": false,
@@ -2329,10 +2131,7 @@
   },
   {
     "id": "L579.3",
-    "lines": [
-      579,
-      579
-    ],
+    "lines": [579, 579],
     "requirement": "Playbooks forbid interrupt-chain resumes and say to start a fresh subagent with consolidated scope.",
     "kind": "behavior",
     "runtime": false,
@@ -2347,10 +2146,7 @@
   },
   {
     "id": "L581.1",
-    "lines": [
-      581,
-      583
-    ],
+    "lines": [581, 583],
     "requirement": "orch takes .orch.lock with the wx flag and writes its PID, replaces a lock whose holder PID is dead via process.kill(pid, 0) ESRCH, steals a live lock only with --force, releases only its own PID, and takes the lock lazily on the first write while reads take no lock.",
     "kind": "behavior",
     "runtime": true,
@@ -2359,27 +2155,25 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "const handle = await open(path, \"wx\");"
+        "quote": "const handle = await open(path, 'wx');"
       },
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "return errorCode(error) === \"ESRCH\";"
+        "quote": "return errorCode(error) === 'ESRCH';"
       },
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "if ((await readFile(path, \"utf8\")).trim() === pid) {"
+        "quote": "if ((await readFile(path, 'utf8')).trim() === pid) {"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-lock.test.ts",
         "name": "orch lock holders every read works while another holder owns the lock, and writes are refused"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-lock.test.ts",
         "name": "orch lock recovery the held error names the force recovery for a reused pid, and force takes the lock"
       }
@@ -2387,10 +2181,7 @@
   },
   {
     "id": "L584.1",
-    "lines": [
-      584,
-      584
-    ],
+    "lines": [584, 584],
     "requirement": "orch init uses writeIfMissing, ledger record upserts on (pr, sha), gate park upserts by id, and unit add rejects duplicates.",
     "kind": "behavior",
     "runtime": true,
@@ -2399,7 +2190,7 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "await writeIfMissing(join(store, \"units.tsv\"),"
+        "quote": "await writeIfMissing(join(store, 'units.tsv'),"
       },
       {
         "type": "quote",
@@ -2408,24 +2199,59 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line unit add, unit set, ledger record, gate park, gate resolve, inbox push, and standing add each print a single line"
+        "name": "orch CLI write commands print one compact line unit add prints a compact line"
       },
       {
         "type": "test",
-        "runner": "bun",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line unit set prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line ledger record prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line gate park prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line gate resolve prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line standing add prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line inbox push prints unit, status, and the pointer filename"
+      },
+      {
+        "type": "test",
         "path": "test/helpers/orch-store.test.ts",
-        "name": "orch store gate transitions re-parking an open gate replaces its text, re-resolving records the new answer, and re-parking a resolved gate reopens it"
+        "name": "orch store gate transitions re-parking an open gate replaces its question"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-store.test.ts",
+        "name": "orch store gate transitions re-resolving a gate records the new answer"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-store.test.ts",
+        "name": "orch store gate transitions re-parking a resolved gate reopens it"
       }
     ]
   },
   {
     "id": "L585.1",
-    "lines": [
-      585,
-      585
-    ],
+    "lines": [585, 585],
     "requirement": "inbox drain renames inbox/ aside, creates a fresh inbox/, then deletes the old one so pushes during a drain land in the new directory; every push takes the lock and a concurrent push hits the store lock held error.",
     "kind": "behavior",
     "runtime": true,
@@ -2443,7 +2269,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-drain.test.ts",
         "name": "an inbox drain whose inbox directory cannot be recreated puts the pointers back"
       }
@@ -2451,10 +2276,7 @@
   },
   {
     "id": "L586.1",
-    "lines": [
-      586,
-      586
-    ],
+    "lines": [586, 586],
     "requirement": "log.sh appends with >> on purpose, writes a header only when the file is empty, and never truncates.",
     "kind": "behavior",
     "runtime": true,
@@ -2472,7 +2294,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/log.test.ts",
         "name": "log.sh rows writes the header once and a six-cell row with an ISO timestamp"
       }
@@ -2480,10 +2301,7 @@
   },
   {
     "id": "L587.1",
-    "lines": [
-      587,
-      587
-    ],
+    "lines": [587, 587],
     "requirement": "bootstrap is idempotent through the install key; the native lock and post-install key write close the concurrency race so two concurrent first runs leave one valid key and no lock.",
     "kind": "behavior",
     "runtime": true,
@@ -2496,7 +2314,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/watch-pr-bootstrap.test.ts",
         "name": "two launchers started together on a fresh install both succeed and leave one valid key and no lock"
       }
@@ -2504,10 +2321,7 @@
   },
   {
     "id": "L588.1",
-    "lines": [
-      588,
-      588
-    ],
+    "lines": [588, 588],
     "requirement": "watch-pr is a read-only poller that never mutates PRs and keeps its state in memory per run.",
     "kind": "behavior",
     "runtime": true,
@@ -2520,7 +2334,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/watch-pr-github.test.ts",
         "name": "GhGitHubReader issues only read-only gh and git subcommands across a snapshot and stack discovery"
       }
@@ -2528,10 +2341,7 @@
   },
   {
     "id": "L589.1",
-    "lines": [
-      589,
-      589
-    ],
+    "lines": [589, 589],
     "requirement": "Playbook-level idempotency: setup-pstack overwrites the full rule file, shipping uses the patch-id rule to decide which verdicts survive a rebase, and worktree cleanup treats the audit bucket as advice only and requires human checks on wip:N.",
     "kind": "behavior",
     "runtime": false,
@@ -2561,10 +2371,7 @@
   },
   {
     "id": "L593.1",
-    "lines": [
-      593,
-      593
-    ],
+    "lines": [593, 593],
     "requirement": "The pstack history runs from the initial Add pstack plugin commit to the 0.15.5 era and includes Reference Agent commits on 2026-07-30.",
     "kind": "fact",
     "runtime": false,
@@ -2589,10 +2396,7 @@
   },
   {
     "id": "L595.1",
-    "lines": [
-      595,
-      597
-    ],
+    "lines": [595, 597],
     "requirement": "Version 0.1.0 on 2026-05-22 landed at commit 24bd6eb with poteto-agent, poteto-mode, 12 playbooks, 18 principles, and the architect, arena, automate-me, how, interrogate, reflect, tdd, typescript-best-practices, unslop, and why skills.",
     "kind": "fact",
     "runtime": false,
@@ -2607,10 +2411,7 @@
   },
   {
     "id": "L598.1",
-    "lines": [
-      598,
-      598
-    ],
+    "lines": [598, 598],
     "requirement": "The 0.2.0 to 0.7.0 range added figure-it-out and show-me-your-work (#78), the refactoring playbook (#81), session-pickup and trace-forensics (#83), build-the-lever (#84), and pause-safely (#115), and moved model references to Opus 4.8 (#98).",
     "kind": "fact",
     "runtime": false,
@@ -2650,10 +2451,7 @@
   },
   {
     "id": "L599.1",
-    "lines": [
-      599,
-      599
-    ],
+    "lines": [599, 599],
     "requirement": "Version 0.8.0 on 2026-06-06 added setup-pstack and per-role model configuration (#121).",
     "kind": "fact",
     "runtime": false,
@@ -2668,10 +2466,7 @@
   },
   {
     "id": "L600.1",
-    "lines": [
-      600,
-      600
-    ],
+    "lines": [600, 600],
     "requirement": "The 0.9.0 to 0.9.2 range added self-unblock empirical forks (#122), sequence-verifiable-units (#123), hillclimb (#132), and recall and blast-radius (#135).",
     "kind": "fact",
     "runtime": false,
@@ -2701,10 +2496,7 @@
   },
   {
     "id": "L601.1",
-    "lines": [
-      601,
-      601
-    ],
+    "lines": [601, 601],
     "requirement": "Version 0.10.0 on 2026-06-23 added the benny automation pack (#137).",
     "kind": "fact",
     "runtime": false,
@@ -2719,10 +2511,7 @@
   },
   {
     "id": "L602.1",
-    "lines": [
-      602,
-      602
-    ],
+    "lines": [602, 602],
     "requirement": "The 0.10.1 to 0.10.4 range routed composer slots to Grok (#142), hardest tasks to a Fable slug (#143), sticky mode with a conditional reminder (#144), and added model-the-domain (#147); the Poteto Mode display name (#149) came without a version bump.",
     "kind": "fact",
     "runtime": false,
@@ -2757,10 +2546,7 @@
   },
   {
     "id": "L603.1",
-    "lines": [
-      603,
-      603
-    ],
+    "lines": [603, 603],
     "requirement": "The 0.11.0 to 0.11.15 range added create-verification-skill and maintain-verification-skill (#150), teach (#153), a parity sweep with a private skill tree (#156), and panel model changes (#165, #166, #169); swarm landed on 2026-07-30 as 0.11.15 from Reference Agent and a review-feedback commit moved the version back to 0.11.14.",
     "kind": "fact",
     "runtime": false,
@@ -2810,10 +2596,7 @@
   },
   {
     "id": "L604.1",
-    "lines": [
-      604,
-      604
-    ],
+    "lines": [604, 604],
     "requirement": "Version 0.12.0 on 2026-07-30 carried the swarm release and Reference Agent's guide refresh at commit 0b7ef5b.",
     "kind": "fact",
     "runtime": false,
@@ -2828,10 +2611,7 @@
   },
   {
     "id": "L605.1",
-    "lines": [
-      605,
-      605
-    ],
+    "lines": [605, 605],
     "requirement": "Version 0.13.0 added autopilot-full, autopilot-stack, no-comments, Comment Sicko, and technical-writing (#185).",
     "kind": "fact",
     "runtime": false,
@@ -2846,10 +2626,7 @@
   },
   {
     "id": "L606.1",
-    "lines": [
-      606,
-      606
-    ],
+    "lines": [606, 606],
     "requirement": "The 0.14.0 to 0.14.8 range added bro, the babysit, shipping, orchestrate, and worktree-cleanup playbooks and all of scripts/ (#187), moved Grok 4.5 to 4.6 (#210), added check-plan.mjs (#258), make-bot-ui (#271, moved by #275), disabled model invocation for five skills (#300), and ended with forge-neutral playbooks and the plugin logo.",
     "kind": "fact",
     "runtime": false,
@@ -2899,10 +2676,7 @@
   },
   {
     "id": "L607.1",
-    "lines": [
-      607,
-      607
-    ],
+    "lines": [607, 607],
     "requirement": "Version 0.15.0 on 2026-09-07 added attack-the-premise and test-behavior-not-implementation (#329), and #331 removed semicolons, em dashes, and connector colons from skill prose.",
     "kind": "fact",
     "runtime": false,
@@ -2922,10 +2696,7 @@
   },
   {
     "id": "L608.1",
-    "lines": [
-      608,
-      608
-    ],
+    "lines": [608, 608],
     "requirement": "The 0.15.1 to 0.15.2 range made every claim carry its evidence or label (#341) and used operator-neutral pronouns (#362); without a version bump, bug-fix, perf, and hillclimb defaults moved to Grok 4.6 (#365) and setup-pstack gained the budget question (#366).",
     "kind": "fact",
     "runtime": false,
@@ -2955,10 +2726,7 @@
   },
   {
     "id": "L609.1",
-    "lines": [
-      609,
-      609
-    ],
+    "lines": [609, 609],
     "requirement": "Version 0.15.3 moved defaults to Opus 5.5 and Grok 4.7 (#414), and rules written before 0.15.3 pin older defaults.",
     "kind": "fact",
     "runtime": false,
@@ -2973,10 +2741,7 @@
   },
   {
     "id": "L610.1",
-    "lines": [
-      610,
-      610
-    ],
+    "lines": [610, 610],
     "requirement": "Version 0.15.4 cut 19 instructions that Opus 5.5 follows without the text (#419).",
     "kind": "fact",
     "runtime": false,
@@ -2991,10 +2756,7 @@
   },
   {
     "id": "L611.1",
-    "lines": [
-      611,
-      611
-    ],
+    "lines": [611, 611],
     "requirement": "Version 0.15.5 on 2026-09-23 made every routed skill read its role line the same way, ran plan live lanes on swarm workers, and dropped retired role lines in setup-pstack (#422).",
     "kind": "fact",
     "runtime": false,
@@ -3024,10 +2786,7 @@
   },
   {
     "id": "L613.1",
-    "lines": [
-      613,
-      613
-    ],
+    "lines": [613, 613],
     "requirement": "Version 0.11.11 was skipped, 0.11.14 appears twice, port and parity-sweep commits show periodic syncs from a private skill tree, #156 fixed a dangling databricks reference, and watch-pr is a port whose comments still name an older Python watcher.",
     "kind": "fact",
     "runtime": false,
@@ -3052,10 +2811,7 @@
   },
   {
     "id": "L615.1",
-    "lines": [
-      615,
-      615
-    ],
+    "lines": [615, 615],
     "requirement": "Three drivers show in the history: model churn forced hard-coded slug edits and led to per-role config (#121), growing autonomy pushed the plugin from single-task playbooks to orchestration and autopilot (#187), and model improvement drove subtraction (#419).",
     "kind": "fact",
     "runtime": false,
@@ -3080,10 +2836,7 @@
   },
   {
     "id": "L619.1",
-    "lines": [
-      619,
-      621
-    ],
+    "lines": [619, 621],
     "requirement": "PKG still ships prose programs as the product: generated skills and prompt templates carry the behavior and the Pi manifest registers extension, skills, and prompts with the package.",
     "kind": "behavior",
     "runtime": false,
@@ -3092,7 +2845,7 @@
       {
         "type": "quote",
         "path": "README.md",
-        "quote": "This Pi package ports pstack 0.15.7 and team-kit 1.2.0 workflows to Pi 1.0.0."
+        "quote": "This Pi package ports pstack 0.15.7 and team-kit 1.2.0 workflows to Pi 1.0.2."
       },
       {
         "type": "quote",
@@ -3108,10 +2861,7 @@
   },
   {
     "id": "L622.1",
-    "lines": [
-      622,
-      622
-    ],
+    "lines": [622, 622],
     "requirement": "Every generated pstack skill except setup-pstack keeps disable-model-invocation: true, so the model never auto-picks a pstack skill and the user must type the slash entry; setup-pstack remains model-selectable and routes through the native validated setup.",
     "kind": "behavior",
     "runtime": false,
@@ -3136,10 +2886,7 @@
   },
   {
     "id": "L623.1",
-    "lines": [
-      623,
-      623
-    ],
+    "lines": [623, 623],
     "requirement": "One router plus indexed playbooks: skills/poteto-mode/SKILL.md is the single entry point and its playbook index matches the 23 files under skills/poteto-mode/playbooks/.",
     "kind": "behavior",
     "runtime": false,
@@ -3159,10 +2906,7 @@
   },
   {
     "id": "L624.1",
-    "lines": [
-      624,
-      624
-    ],
+    "lines": [624, 624],
     "requirement": "Pi playbooks have no frontmatter and each starts with a ### heading, so they are not listed as skills and routing is by prose only.",
     "kind": "behavior",
     "runtime": false,
@@ -3182,10 +2926,7 @@
   },
   {
     "id": "L625.1",
-    "lines": [
-      625,
-      625
-    ],
+    "lines": [625, 625],
     "requirement": "Model choice comes from role lines in the always-applied rule, read by skills in prose; Pi also validates and resolves those lines in src/models.ts, and a typo surfaces as an unavailable-model error with the valid choices instead of silently falling back.",
     "kind": "behavior",
     "runtime": false,
@@ -3205,10 +2946,7 @@
   },
   {
     "id": "L626.1",
-    "lines": [
-      626,
-      626
-    ],
+    "lines": [626, 626],
     "requirement": "Defaults are inline and config is optional: a fresh install with no rule resolves every role to the parent model, so zero-config start works and stale rules only pin old slugs.",
     "kind": "behavior",
     "runtime": false,
@@ -3228,10 +2966,7 @@
   },
   {
     "id": "L627.1",
-    "lines": [
-      627,
-      627
-    ],
+    "lines": [627, 627],
     "requirement": "Panels run three model families by default, and setup warns when a panel line lists seats from only one family.",
     "kind": "behavior",
     "runtime": false,
@@ -3240,7 +2975,7 @@
       {
         "type": "quote",
         "path": "src/models.ts",
-        "quote": "const panel = [judgment, \"gpt-5.6-sol-max\", code];"
+        "quote": "const panel = [judgment, 'gpt-5.6-sol-max', code];"
       },
       {
         "type": "test",
@@ -3251,10 +2986,7 @@
   },
   {
     "id": "L628.1",
-    "lines": [
-      628,
-      628
-    ],
+    "lines": [628, 628],
     "requirement": "Readonly is used only where MCP access is not needed: how and interrogate spawn readonly, while why and reflect spawn agent mode because readonly strips MCP and would disable MCP-backed investigators.",
     "kind": "behavior",
     "runtime": true,
@@ -3279,10 +3011,7 @@
   },
   {
     "id": "L629.1",
-    "lines": [
-      629,
-      629
-    ],
+    "lines": [629, 629],
     "requirement": "The 23 one-paragraph principle leaves under skills/principle-* are the cheap citation vocabulary, and the router requires citing only principles whose leaf was read this session.",
     "kind": "behavior",
     "runtime": false,
@@ -3302,10 +3031,7 @@
   },
   {
     "id": "L630.1",
-    "lines": [
-      630,
-      630
-    ],
+    "lines": [630, 630],
     "requirement": "The dedicated poteto-agent persona wraps the router so each subagent reads it fully, and it carries no default model.",
     "kind": "behavior",
     "runtime": false,
@@ -3325,10 +3051,7 @@
   },
   {
     "id": "L631.1",
-    "lines": [
-      631,
-      631
-    ],
+    "lines": [631, 631],
     "requirement": "A separate comment-sicko persona handles comment deletion with fresh perspective, and the no-comments skill audits its report rather than trusting it.",
     "kind": "behavior",
     "runtime": false,
@@ -3348,10 +3071,7 @@
   },
   {
     "id": "L632.1",
-    "lines": [
-      632,
-      632
-    ],
+    "lines": [632, 632],
     "requirement": "The orch store stays plain files with a PID lock rather than a database, is easy to inspect, and assumes a single writer.",
     "kind": "behavior",
     "runtime": true,
@@ -3360,22 +3080,18 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "const LOCK_FILE = \".orch.lock\";"
+        "quote": "const LOCK_FILE = '.orch.lock';"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-lock.test.ts",
-        "name": "orch lock races two processes racing a dead-holder lock leave exactly one winner and the loser names the winner"
+        "name": "two processes racing a dead-holder lock leave exactly one winner and the loser names the winner"
       }
     ]
   },
   {
     "id": "L633.1",
-    "lines": [
-      633,
-      633
-    ],
+    "lines": [633, 633],
     "requirement": "The verdict ledger is keyed by PR and SHA so a force-push voids verification and stale approvals cannot land.",
     "kind": "behavior",
     "runtime": true,
@@ -3384,22 +3100,48 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/orch/store.ts",
-        "quote": "const row = (await readLedger(store)).find( (value) => value.pr === pr && value.sha === sha );"
+        "quote": "const row = (await readLedger(store)).find((value) => value.pr === pr && value.sha === sha);"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-cli.test.ts",
-        "name": "orch CLI write commands print one compact line unit add, unit set, ledger record, gate park, gate resolve, inbox push, and standing add each print a single line"
+        "name": "orch CLI write commands print one compact line unit add prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line unit set prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line ledger record prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line gate park prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line gate resolve prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line standing add prints a compact line"
+      },
+      {
+        "type": "test",
+        "path": "test/helpers/orch-cli.test.ts",
+        "name": "orch CLI write commands print one compact line inbox push prints unit, status, and the pointer filename"
       }
     ]
   },
   {
     "id": "L634.1",
-    "lines": [
-      634,
-      634
-    ],
+    "lines": [634, 634],
     "requirement": "Forge neutrality keeps gh as the default and origin as an optional CLI, so the workflows run without Reference's forge while orbiting the gt exception through the gh frontier fallback.",
     "kind": "behavior",
     "runtime": false,
@@ -3424,10 +3166,7 @@
   },
   {
     "id": "L635.1",
-    "lines": [
-      635,
-      635
-    ],
+    "lines": [635, 635],
     "requirement": "watch-pr fails closed: an unknown bucket is failed and a BLOCKED merge state plus a failing rollup is a blocker, accepting a possible false blocker over a false READY.",
     "kind": "behavior",
     "runtime": true,
@@ -3436,11 +3175,10 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/watch-pr/policy.ts",
-        "quote": "if (args.mergeStateStatus === \"BLOCKED\") {"
+        "quote": "if (args.mergeStateStatus === 'BLOCKED') {"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/watch-pr-policy.test.ts",
         "name": "a BLOCKED PR with zero checks still fails closed instead of reaching READY"
       }
@@ -3448,10 +3186,7 @@
   },
   {
     "id": "L636.1",
-    "lines": [
-      636,
-      636
-    ],
+    "lines": [636, 636],
     "requirement": "The tooling uses branded types and compile-time tests, and PKG extends strict typechecking to orch and bootstrap even though no tsconfig includes them.",
     "kind": "behavior",
     "runtime": true,
@@ -3460,17 +3195,15 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/watch-pr/types.ts",
-        "quote": "export type PrNumber = number & { readonly [prNumberBrand]: \"PrNumber\" };"
+        "quote": "export type PrNumber = number & { readonly [prNumberBrand]: 'PrNumber' };"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/watch-pr-typecheck.test.ts",
         "name": "the helper typecheck script passes strict tsc over watch-pr including its four ts-expect-error assertions"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/orch-typecheck.test.ts",
         "name": "orch and bootstrap type-check under tsc --noEmit --strict with the helper compiler options"
       }
@@ -3478,10 +3211,7 @@
   },
   {
     "id": "L637.1",
-    "lines": [
-      637,
-      637
-    ],
+    "lines": [637, 637],
     "requirement": "Dependencies install lazily via bootstrap.ts; node_modules is gitignored and not committed, and the first run needs Bun and network access.",
     "kind": "behavior",
     "runtime": true,
@@ -3499,7 +3229,6 @@
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/watch-pr-bootstrap.test.ts",
         "name": "bootstrap returns without reinstalling when the manifest, commander, and a matching key are present"
       }
@@ -3507,10 +3236,7 @@
   },
   {
     "id": "L638.1",
-    "lines": [
-      638,
-      638
-    ],
+    "lines": [638, 638],
     "requirement": "Benny lives outside skills/ as host/adapters/benny with a routine adapter, so the pack is copied into target projects and cannot load as a slash skill; the pi manifest registers only src, skills, and prompts.",
     "kind": "behavior",
     "runtime": false,
@@ -3534,10 +3260,7 @@
   },
   {
     "id": "L639.1",
-    "lines": [
-      639,
-      639
-    ],
+    "lines": [639, 639],
     "requirement": "Long runs re-read their playbook from trunk when the target repository commits it, falling back to the bundled playbook path otherwise, and check-plan's PROGRAM_MARKERS accepts any origin trunk rather than requiring main.",
     "kind": "behavior",
     "runtime": true,
@@ -3551,11 +3274,10 @@
       {
         "type": "quote",
         "path": "skills/poteto-mode/scripts/check-plan.mjs",
-        "quote": "const PROGRAM_MARKERS = [/git show origin\\/[^\\s:`]+:/, \"/loop 1h\", \"status message\"];"
+        "quote": "const PROGRAM_MARKERS = [/git show origin\\/[^\\s:`]+:/, '/loop 1h', 'status message'];"
       },
       {
         "type": "test",
-        "runner": "bun",
         "path": "test/helpers/check-plan.test.ts",
         "name": "check-plan.mjs prose rules and fences a repository whose trunk is not main satisfies the trunk read"
       }

@@ -7,6 +7,7 @@ import { expect, test } from 'vitest';
 import { boundedResult, dataResult } from '../src/results.ts';
 import { restoreTaskRecords } from '../src/worker-records.ts';
 import { deduplicateExtensions, sumUsage, workerExtensions } from '../src/worker-support.ts';
+import { expectDefined } from './support/expect-defined.ts';
 
 test('data results preserve ordinary JSON text and empty structured data', () => {
   expect(dataResult([])).toEqual({ content: [{ type: 'text', text: '[]' }], details: [], structuredContent: [] });
@@ -16,9 +17,9 @@ test('data results preserve ordinary JSON text and empty structured data', () =>
 test('data results cap UTF-8 preview bytes while preserving complete structured data', () => {
   const details = { prompt: '界'.repeat(DEFAULT_MAX_BYTES) };
   const result = dataResult(details);
-  expect(Buffer.byteLength(result.content[0].text)).toBeLessThanOrEqual(DEFAULT_MAX_BYTES);
-  expect(result.content[0].text).toContain('[Output truncated.');
-  expect(result.content[0].text).not.toContain('\ufffd');
+  expect(Buffer.byteLength(expectDefined(result.content[0]).text)).toBeLessThanOrEqual(DEFAULT_MAX_BYTES);
+  expect(expectDefined(result.content[0]).text).toContain('[Output truncated.');
+  expect(expectDefined(result.content[0]).text).not.toContain('\ufffd');
   expect(result.details).toEqual(details);
   expect(result.structuredContent).toEqual(details);
 });
@@ -102,7 +103,7 @@ test('restored task records do not expose caller-owned records or usage', () => 
 test('result previews respect native byte and line bounds', () => {
   const ctx = { sessionManager: { getSessionFile: () => '/tmp/transcript' } } as ExtensionContext;
   for (const text of ['界'.repeat(48000), 'line\n'.repeat(3000)]) {
-    const preview = boundedResult(text, {}, ctx).content[0].text;
+    const preview = expectDefined(boundedResult(text, {}, ctx).content[0]).text;
     expect(Buffer.byteLength(preview)).toBeLessThanOrEqual(51200);
     expect(preview.split('\n').length).toBeLessThanOrEqual(2000);
     expect(preview).toContain('[Truncated.');
@@ -116,8 +117,8 @@ test('result truncation preserves empty and exact-boundary values', () => {
     expect(boundedResult(text, {}, ctx).content[0]?.text).toBe(text);
   }
   const result = boundedResult('a'.repeat(60000), {}, ctx);
-  expect(Buffer.byteLength(result.content[0].text)).toBeLessThanOrEqual(51200);
-  expect(result.content[0].text).toContain('Read the complete current transcript at /tmp/transcript.');
+  expect(Buffer.byteLength(expectDefined(result.content[0]).text)).toBeLessThanOrEqual(51200);
+  expect(expectDefined(result.content[0]).text).toContain('Read the complete current transcript at /tmp/transcript.');
 });
 
 test('hostInstructions formats defaults without overrides or transcript file', async () => {
