@@ -1,6 +1,8 @@
 # Pi Reference-style UI extension implementation specification
 
-> **Status:** implementation-ready
+> **Status:** historical design. Pi 1.0.1 supersedes the tool-registration sections below.
+>
+> **Current implementation:** `pi.registerToolRenderer()` supplies all eight built-in renderers without registering tools, wrapping execution, or reading tool settings. Pi owns tool activation. The [package README](../README.md) documents the current behavior.
 >
 > **Reference baseline:** Pi `0.87.1`, released 2026-09-22
 >
