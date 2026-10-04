@@ -18,7 +18,7 @@ test('the billing block reaches the wire byte for byte', async ({ models, model,
   await collect(models.streamSimple(model, prompt));
   expect(systemBlocks(soleRequest(server).body)[0]).toStrictEqual({
     type: 'text',
-    text: 'x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;',
+    text: 'x-anthropic-billing-header: cc_version=2.1.288.9ae; cc_entrypoint=sdk-cli;',
   });
 });
 
@@ -28,7 +28,7 @@ test('the non-simple stream carries the billing block', async ({ models, model, 
 });
 
 test.for([
-  { header: 'user-agent', value: 'claude-cli/2.1.280' },
+  { header: 'user-agent', value: 'claude-cli/2.1.288 (external, sdk-cli)' },
   { header: 'x-app', value: 'cli' },
   { header: 'anthropic-version', value: '2023-06-01' },
   { header: 'anthropic-beta', value: 'claude-code-20250219,oauth-2025-04-20' },
@@ -41,6 +41,16 @@ test.for([
 test('caller headers override the user agent Pi sends', async ({ models, model, server }) => {
   await collect(models.streamSimple(model, prompt, { headers: { 'user-agent': 'claude-cli/9.9.9' } }));
   expect(soleRequest(server).headers).toHaveProperty('user-agent', 'claude-cli/9.9.9');
+});
+
+test('the request uses Pi session identity for the Claude session header', async ({ models, model, server }) => {
+  await collect(models.streamSimple(model, prompt, { sessionId: 'pi-session-probe' }));
+  expect(soleRequest(server).headers['x-claude-code-session-id']).toBe('pi-session-probe');
+});
+
+test('explicit session headers override Pi session identity', async ({ models, model, server }) => {
+  await collect(models.streamSimple(model, prompt, { sessionId: 'pi-session-probe', headers: { 'X-Claude-Code-Session-Id': 'caller-session' } }));
+  expect(soleRequest(server).headers['x-claude-code-session-id']).toBe('caller-session');
 });
 
 test('no x-api-key header is sent', async ({ models, model, server }) => {

@@ -1,0 +1,21 @@
+{
+  "cliVersion": "1.0.0",
+  "print": "LOCAL_OK",
+  "json": "agent_settled",
+  "rpc": "LOCAL_OK",
+  "captureIdentity": "equal",
+  "usage": {
+    "input": 10,
+    "output": 7,
+    "cacheRead": 4,
+    "cacheWrite": 2,
+    "total": 23
+  },
+  "ambientTokenStored": false,
+  "fork": "fresh fingerprint",
+  "reload": "handled",
+  "newSession": "fresh fingerprint",
+  "readTool": "LOCAL_FILE",
+  "bashTool": "40000 native characters",
+  "abort": "aborted"
+}

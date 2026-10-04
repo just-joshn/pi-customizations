@@ -1,0 +1,19 @@
+{
+  "cliVersion": "1.0.1",
+  "agentLoop": {
+    "requests": 3,
+    "withBillingBlock": 3,
+    "eventProviders": ["claude-subscription", "claude-subscription", "claude-subscription"]
+  },
+  "compaction": {
+    "requests": 2,
+    "withBillingBlock": 2,
+    "eventProviders": []
+  },
+  "virtualRoute": {
+    "requests": 1,
+    "withBillingBlock": 1,
+    "eventProviders": ["router"]
+  },
+  "userAgents": ["claude-cli/9.9.9"]
+}

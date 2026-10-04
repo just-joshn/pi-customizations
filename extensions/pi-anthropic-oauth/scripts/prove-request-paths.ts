@@ -1,12 +1,14 @@
+import { execFile } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
 import { RpcClient } from '@earendil-works/pi-coding-agent';
 import { oauthCredential } from '../test/support/credentials.ts';
 import { type RecordedRequest, sseReply, startMessagesServer } from '../test/support/messages-server.ts';
-import { BILLING_TEXT, systemTexts } from '../test/support/request-body.ts';
+import { systemTexts } from '../test/support/request-body.ts';
 import { textMessage } from '../test/support/sse.ts';
 import { ROUTER_MODEL, ROUTER_PROVIDER } from './request-event-probe.ts';
 
@@ -16,7 +18,9 @@ const PROMPT_TIMEOUT_MS = 60_000;
 const USER_AGENT = 'claude-cli/9.9.9';
 const extension = fileURLToPath(new URL('../src/index.ts', import.meta.url));
 const probe = fileURLToPath(new URL('./request-event-probe.ts', import.meta.url));
-const cliPath = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
+const cliPath = process.env.PI_OAUTH_CLI_PATH ?? join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
+const { stdout: cliVersion } = await promisify(execFile)(process.execPath, [cliPath, '--version']);
+const BILLING_PATTERN = /^x-anthropic-billing-header: cc_version=2\.1\.288\.[a-f0-9]{3}; cc_entrypoint=sdk-cli;$/;
 
 const root = await mkdtemp(join(tmpdir(), 'pi-oauth-paths-'));
 const server = await startMessagesServer(sseReply(textMessage('ok')));
@@ -27,7 +31,7 @@ async function eventProviders(): Promise<readonly string[]> {
 }
 
 function carriesBillingBlock(request: RecordedRequest): boolean {
-  return systemTexts(request.body)[0] === BILLING_TEXT;
+  return BILLING_PATTERN.test(systemTexts(request.body)[0] ?? '');
 }
 
 try {
@@ -63,6 +67,7 @@ try {
     const routedProviders = (await eventProviders()).slice(agentLoopProviders.length + compactionProviders.length);
 
     const report = {
+      cliVersion: cliVersion.trim(),
       agentLoop: { requests: agentLoopRequests, withBillingBlock: server.requests.slice(0, agentLoopRequests).filter(carriesBillingBlock).length, eventProviders: agentLoopProviders },
       compaction: { requests: compactionRequests.length, withBillingBlock: compactionRequests.filter(carriesBillingBlock).length, eventProviders: compactionProviders },
       virtualRoute: { requests: routedRequests.length, withBillingBlock: routedRequests.filter(carriesBillingBlock).length, eventProviders: routedProviders },
@@ -70,6 +75,7 @@ try {
     };
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
 
+    if (systemTexts(server.requests[0]?.body)[0] !== 'x-anthropic-billing-header: cc_version=2.1.288.d44; cc_entrypoint=sdk-cli;') throw new Error('The first prompt did not get its captured fingerprint.');
     if (agentLoopRequests !== PROMPTS.length || agentLoopProviders.length !== PROMPTS.length) throw new Error('Each agent-loop prompt should send one request and fire one before_provider_request event.');
     if (compactionRequests.length === 0) throw new Error('Compaction sent no request to the gateway.');
     if (routedRequests.length !== 1) throw new Error('The routed prompt should send one request to the gateway.');

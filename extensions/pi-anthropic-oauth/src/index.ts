@@ -1,16 +1,10 @@
 import { type Api, createProvider, getDeclaredTools, type Model, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { subscriptionAuth } from './auth.ts';
+import { billingBlock, CLAUDE_USER_AGENT } from './identity.ts';
 
 export const PROVIDER_ID = 'claude-subscription';
-
-// Anthropic's subscription gateway attributes a request to the Provider CLI plan
-// by this first system block. Without it the request is billed against extra
-// usage and refused, so the captured string must stay byte-for-byte intact.
-const BILLING_BLOCK = {
-  type: 'text',
-  text: 'x-anthropic-billing-header: cc_version=2.1.280.3a6; cc_entrypoint=sdk-cli;',
-};
 
 // Provider CLI writes its prompt cache with a one-hour lifetime, and Pi's own
 // default is five minutes. The models declare the lifetime the request really
@@ -27,11 +21,14 @@ function unexpectedPayload(expectation: string, received: unknown): Error {
   return new Error(`Unexpected request payload from Pi's anthropic provider: expected ${expectation}, received ${describeType(received)}.`);
 }
 
-function withBillingBlock(payload: unknown): unknown {
+function withBillingBlock(payload: unknown, block: ReturnType<typeof billingBlock>): unknown {
   if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) throw unexpectedPayload('an object', payload);
-  if (!('system' in payload)) return { ...payload, system: [BILLING_BLOCK] };
+  if (!('system' in payload)) return { ...payload, system: [block] };
   if (!Array.isArray(payload.system)) throw unexpectedPayload('system to be an array or absent', payload.system);
-  return { ...payload, system: [BILLING_BLOCK, ...payload.system] };
+  const system = payload.system.filter(
+    (entry: unknown) => !(typeof entry === 'object' && entry !== null && 'type' in entry && entry.type === 'text' && 'text' in entry && typeof entry.text === 'string' && entry.text.startsWith('x-anthropic-billing-header:')),
+  );
+  return { ...payload, system: [block, ...system] };
 }
 
 // Pi's Anthropic implementation renames OAuth tools to Provider CLI's canonical casing, so
@@ -75,11 +72,16 @@ function modelForCaseCollisions(model: Model<Api>, context: TranscriptContext): 
   return { ...model, compat: { ...model.compat, supportsMidConvoToolChanges: false } };
 }
 
-function billingOverrides(options: StreamOptions | undefined): Pick<StreamOptions, 'onPayload' | 'cacheRetention'> {
+function requestOverrides(model: Model<Api>, context: TranscriptContext, options: StreamOptions | undefined): Pick<StreamOptions, 'onPayload' | 'cacheRetention' | 'headers'> {
+  const block = billingBlock(context);
+  const configuredHeaders = new Set([model.headers, options?.headers].flatMap((headers) => Object.keys(headers ?? {}).map((name) => name.toLowerCase())));
+  const defaults = { 'user-agent': CLAUDE_USER_AGENT, ...(options?.sessionId ? { 'x-claude-code-session-id': options.sessionId } : {}) };
+  const headers = Object.fromEntries(Object.entries(defaults).filter(([name]) => !configuredHeaders.has(name)));
   return {
+    headers: { ...headers, ...options?.headers },
     cacheRetention: options?.cacheRetention === 'none' ? 'none' : 'long',
     onPayload: async (payload, model) => {
-      const billed = withBillingBlock(withUniqueToolNames(payload));
+      const billed = withBillingBlock(withUniqueToolNames(payload), block);
       return (await options?.onPayload?.(billed, model)) ?? billed;
     },
   };
@@ -94,11 +96,11 @@ export default function (pi: Pick<ExtensionAPI, 'registerProvider'>) {
       id: PROVIDER_ID,
       name: 'Claude subscription',
       baseUrl: anthropic.baseUrl,
-      auth: { oauth: { ...oauth, name: 'Claude subscription (Provider CLI)' } },
+      auth: subscriptionAuth(oauth),
       models: anthropic.getModels().map((model) => ({ ...model, provider: PROVIDER_ID, promptCache: PROMPT_CACHE })),
       api: {
-        stream: (model, context, options) => anthropic.stream(modelForCaseCollisions(model, context), context, { ...options, ...billingOverrides(options) }),
-        streamSimple: (model, context, options) => anthropic.streamSimple(modelForCaseCollisions(model, context), context, { ...options, ...billingOverrides(options) }),
+        stream: (model, context, options) => anthropic.stream(modelForCaseCollisions(model, context), context, { ...options, ...requestOverrides(model, context, options) }),
+        streamSimple: (model, context, options) => anthropic.streamSimple(modelForCaseCollisions(model, context), context, { ...options, ...requestOverrides(model, context, options) }),
       },
     }),
   );

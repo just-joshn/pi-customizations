@@ -34,6 +34,7 @@ const accepted = [
   { name: 'a system array', payload: { model: 'm', system: [NOTE] }, sent: { model: 'm', system: [BILLING, NOTE] } },
   { name: 'an empty system array', payload: { model: 'm', system: [] }, sent: { model: 'm', system: [BILLING] } },
   { name: 'an absent system', payload: { model: 'm' }, sent: { model: 'm', system: [BILLING] } },
+  { name: 'an already attributed system', payload: { model: 'm', system: [BILLING, NOTE] }, sent: { model: 'm', system: [BILLING, NOTE] } },
 ];
 
 test.for(accepted)('$name gets the billing block first', async ({ payload, sent }) => {
