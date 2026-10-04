@@ -1,4 +1,4 @@
-import { configDefaults, defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -9,23 +9,14 @@ export default defineConfig({
     pool: 'forks',
     isolate: true,
 
-    exclude: [
-      ...configDefaults.exclude,
-      'dist/**',
-    ],
+    exclude: [...configDefaults.exclude, 'dist/**'],
 
     coverage: {
       provider: 'v8',
 
-      include: [
-        'src/**/*.ts',
-      ],
+      include: ['src/**/*.ts'],
 
-      exclude: [
-        'src/**/*.d.ts',
-        'src/**/*.{test,spec}.ts',
-        'src/**/__tests__/**',
-      ],
+      exclude: ['src/**/*.d.ts', 'src/**/*.{test,spec}.ts', 'src/**/__tests__/**'],
     },
   },
-})
+});
