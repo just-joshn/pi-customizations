@@ -14,8 +14,10 @@ The review covered source, tests, probes, captured reference data, the parity ma
 
 ## Verification
 
-The final targeted suite passes 118 tests in 15 files. Typecheck, coverage, shuffled tests, repository-wide tests and typechecks, Biome, agent rules, test conventions, and native-mechanism checks pass.
+The merged targeted suite passes 136 tests in 16 files, including the upstream tool-transition regressions. Typecheck, coverage, shuffled tests, repository-wide tests and typechecks, Biome, agent rules, test conventions, and native-mechanism checks pass.
 
 The four reports in `verification/` record actual Pi `1.0.0` and `1.0.1` runs. They cover print, JSON, RPC, ambient authentication without credential persistence, request identity, session correlation, fork, reload, session replacement, native tools, cancellation, usage, compaction, virtual routing, and explicit header overrides.
 
-The packaging and disclosure follow-up did not change the reviewed production source. No complete live authentication or Anthropic inference was performed.
+The packaging and disclosure follow-up did not change the original reviewed production source. The subsequent rebase preserves the upstream Pi `1.0.1` pins and request-local tool-transition compatibility fix. The four runtime reports were regenerated against this merged source, including the cached Pi `1.0.0` host. A fresh integration review covers the combined adapter.
+
+No complete live authentication or Anthropic inference was performed.

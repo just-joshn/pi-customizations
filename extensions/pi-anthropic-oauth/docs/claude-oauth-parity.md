@@ -65,6 +65,8 @@ The required behavior is a request Anthropic can accept when native OAuth tool r
 
 Active-tool selection changes session-owned declarations and can persist across provider changes. `prepareLoadout` has no physical-model scope. Request events have the compaction and virtual-route gaps above. None supplies lossless per-provider renaming and response mapping.
 
+Pi `1.0.1` also sends tool changes inline on capable models. The upstream migration's request-local model adjustment is preserved. Public `getDeclaredTools()` detects colliding identities in the transcript, then `supportsMidConvoToolChanges: false` selects native current-tool conversion for that request. Other transcripts retain inline additions, removals, and redefinitions. No separate tool history is retained.
+
 The existing wire-only deduplication remains the smallest compatibility adapter, but it is lossy and is not full tool parity. It preserves the first declaration and relocates a dropped last-tool cache marker. Native Pi still owns the registry, permissions, execution, and response mapping. The collision suite checks these declared wire results, while the real CLI probe verifies ordinary tool round-trips.
 
 The adapter can be deleted when native Pi preserves unique declarations and maps each response unambiguously. Removing it now would reintroduce duplicate-name failures rather than close the gap.
