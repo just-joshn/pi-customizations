@@ -9,7 +9,7 @@ function listed(value: string | undefined): readonly string[] {
 
 export function featureEnabled(env: NodeJS.ProcessEnv, name: string): boolean {
   const wanted = name.toLowerCase();
-  return [...listed(env.COPILOT_CLI_ENABLED_FEATURE_FLAGS), ...listed(env.COPILOT_EXPERIMENTS)].includes(wanted);
+  return [...listed(env['COPILOT_CLI_ENABLED_FEATURE_FLAGS']), ...listed(env['COPILOT_EXPERIMENTS'])].includes(wanted);
 }
 
 export function rubberDuckRollout(env: NodeJS.ProcessEnv): boolean {
@@ -17,5 +17,5 @@ export function rubberDuckRollout(env: NodeJS.ProcessEnv): boolean {
 }
 
 export function subconsciousEnabled(env: NodeJS.ProcessEnv): boolean {
-  return ['1', 'true', 'yes', 'on'].includes(env.COPILOT_SUBCONSCIOUS?.trim().toLowerCase() ?? '') || featureEnabled(env, 'COPILOT_SUBCONSCIOUS');
+  return ['1', 'true', 'yes', 'on'].includes(env['COPILOT_SUBCONSCIOUS']?.trim().toLowerCase() ?? '') || featureEnabled(env, 'COPILOT_SUBCONSCIOUS');
 }

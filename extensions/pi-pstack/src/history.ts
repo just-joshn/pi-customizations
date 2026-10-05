@@ -34,8 +34,8 @@ async function ownership(handle: FileHandle, signal?: AbortSignal): Promise<Head
     const line = buffer.subarray(start, offset).toString('utf8').trim();
     if (line) {
       const value = object(line);
-      if (value?.type !== 'session' || typeof value.id !== 'string' || typeof value.cwd !== 'string' || !value.cwd) return undefined;
-      return { id: value.id, cwd: value.cwd, timestamp: typeof value.timestamp === 'string' ? value.timestamp : undefined };
+      if (value?.['type'] !== 'session' || typeof value['id'] !== 'string' || typeof value['cwd'] !== 'string' || !value['cwd']) return undefined;
+      return { id: value['id'], cwd: value['cwd'], ...(typeof value['timestamp'] === 'string' ? { timestamp: value['timestamp'] } : {}) };
     }
     if (!bytesRead) return undefined;
     start = offset + 1;
@@ -52,16 +52,16 @@ async function metadata(handle: FileHandle, header: Header, path: string, signal
     for await (const line of lines) {
       signal?.throwIfAborted();
       const entry = object(line);
-      if (entry?.type === 'session_info') name = typeof entry.name === 'string' ? entry.name.trim() || undefined : undefined;
-      if (entry?.type !== 'message' || !entry.message || typeof entry.message !== 'object') continue;
-      const message = entry.message as Record<string, unknown>;
-      if (!['user', 'assistant'].includes(String(message.role)) || !('content' in message)) continue;
-      const time = typeof message.timestamp === 'number' ? message.timestamp : typeof entry.timestamp === 'string' ? Date.parse(entry.timestamp) : NaN;
+      if (entry?.['type'] === 'session_info') name = typeof entry['name'] === 'string' ? entry['name'].trim() || undefined : undefined;
+      if (entry?.['type'] !== 'message' || !entry['message'] || typeof entry['message'] !== 'object') continue;
+      const message = entry['message'] as Record<string, unknown>;
+      if (!['user', 'assistant'].includes(String(message['role'])) || !('content' in message)) continue;
+      const time = typeof message['timestamp'] === 'number' ? message['timestamp'] : typeof entry['timestamp'] === 'string' ? Date.parse(entry['timestamp']) : NaN;
       if (Number.isFinite(time)) activity = Math.max(activity ?? time, time);
     }
     const headerTime = header.timestamp ? Date.parse(header.timestamp) : NaN;
     const modified = activity ?? (Number.isFinite(headerTime) ? headerTime : (await handle.stat()).mtimeMs);
-    return { value: { id: header.id, path, name } satisfies History, modified };
+    return { value: { id: header.id, path, ...(name !== undefined ? { name } : {}) } satisfies History, modified };
   } finally {
     lines.close();
     stream.destroy();

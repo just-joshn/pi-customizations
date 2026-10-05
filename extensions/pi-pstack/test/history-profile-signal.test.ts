@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 import { expect, test, vi } from 'vitest';
 import { packageRoot } from './session-fixture.ts';
+import { expectDefined } from './support/expect-defined.ts';
 
 test.each(['SIGINT', 'SIGTERM'] as const)(
   'interrupting the owned history profiler with %s removes its corpus',
@@ -32,7 +33,7 @@ test.each(['SIGINT', 'SIGTERM'] as const)(
         },
         { timeout: 10000 },
       );
-      corpus = JSON.parse(output.split('\n')[0]).directory;
+      corpus = JSON.parse(expectDefined(output.split('\n')[0])).directory;
       if (!corpus) throw new Error('missing owned corpus');
       expect((await stat(corpus)).isDirectory()).toBe(true);
       expect(child.kill(signal)).toBe(true);

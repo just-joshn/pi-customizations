@@ -43,6 +43,7 @@
     "scripts",
     "test",
     "tsconfig.json",
+    "tsconfig.policy.json",
     "LICENSE",
     "README.md",
     "CHANGELOG.md"
@@ -58,8 +59,8 @@
     "check:native-parity": "node scripts/check-native-parity.mjs",
     "check:upstream": "node scripts/verify-upstream.mjs",
     "typecheck": "tsc --noEmit && tsc --noEmit -p test/helpers",
-    "test": "vitest run && bun run test:helpers",
-    "test:helpers": "bun test --preload ./test/helpers/leak-preload.ts test/helpers",
+    "test": "vitest run",
+    "test:helpers": "vitest run test/helpers",
     "test:coverage": "vitest run --coverage",
     "check:parity": "node scripts/check-subagent-parity.mjs",
     "check:native-first": "node scripts/check-subagent-native-first.mjs"
@@ -79,7 +80,7 @@
     "bun-types": "1.3.14",
     "commander": "14.0.0",
     "typebox": "1.3.27",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "vitest": "^5.0.2"
   }
 }

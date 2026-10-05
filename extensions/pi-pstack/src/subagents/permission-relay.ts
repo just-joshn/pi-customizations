@@ -38,15 +38,15 @@ const dialogMethods = new Set(['select', 'confirm', 'input', 'editor']);
 
 /** Answers one extension-UI record from a child. Only permission asks for allowed tools reach the parent. */
 export async function relayUiRequest(child: Pick<RpcChild, 'respond'>, record: RpcRecord, deps: RelayDeps): Promise<void> {
-  const id = typeof record.id === 'string' ? record.id : undefined;
-  const method = typeof record.method === 'string' ? record.method : undefined;
+  const id = typeof record['id'] === 'string' ? record['id'] : undefined;
+  const method = typeof record['method'] === 'string' ? record['method'] : undefined;
   if (!id || !method || !dialogMethods.has(method)) return;
-  const tool = requestedTool(record.title);
+  const tool = requestedTool(record['title']);
   if (tool === undefined || !deps.allowedToolNames.has(tool)) {
     child.respond(id, { cancelled: true });
     return;
   }
-  const body = typeof record.message === 'string' ? record.message : '';
+  const body = typeof record['message'] === 'string' ? record['message'] : '';
   const confirmed = await deps.ask(`${deps.label} wants to use ${tool}`, body).catch(() => false);
   child.respond(id, { confirmed });
 }

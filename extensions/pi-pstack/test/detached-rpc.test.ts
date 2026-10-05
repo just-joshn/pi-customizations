@@ -217,8 +217,8 @@ test('a completed snapshot remains readable after the coordinator, supervisor, a
     const snapshot = await handle.snapshot();
     expect(JSON.stringify(snapshot?.entries)).toContain('UpdateGoal');
     expect(snapshot?.error).toBeUndefined();
-    if (process.env.PSTACK_EVIDENCE_DIRECTORY) {
-      const evidence = join(process.env.PSTACK_EVIDENCE_DIRECTORY, 'durable-snapshot');
+    if (process.env['PSTACK_EVIDENCE_DIRECTORY']) {
+      const evidence = join(process.env['PSTACK_EVIDENCE_DIRECTORY'], 'durable-snapshot');
       await mkdir(evidence, { recursive: true });
       await cp(handle.directory, evidence, { recursive: true });
       await writeFile(join(evidence, 'identity.json'), JSON.stringify(raw, null, 2));

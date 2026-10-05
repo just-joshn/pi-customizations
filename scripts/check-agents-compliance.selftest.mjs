@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import { audit } from './check-agents-compliance.mjs';
+import { closeTypeScriptSources } from './typescript-source.mjs';
 
 const longFunction = (count) => ['export function longOne(a: number): number {', ...Array.from({ length: count }, (_, index) => `  const v${index} = a + ${index};`), '  return a;', '}'].join('\n');
 
@@ -78,4 +79,5 @@ for (const [name, overrides, expected] of cases) {
   }
 }
 
+closeTypeScriptSources();
 process.stdout.write(`check-agents-compliance self-test: ${cases.length} fixtures behaved as expected.\n`);

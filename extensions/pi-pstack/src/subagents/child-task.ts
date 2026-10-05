@@ -44,6 +44,8 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 /** One pi RPC process serving one task. A remote task ends its process after each turn; a teammate keeps it for follow-ups. */
 export class ChildTask {
+  private readonly launch: ChildLaunch;
+  private readonly host: ChildHost;
   private child: RpcChild | undefined;
   private turn: Turn | undefined;
   private stopRequested = false;
@@ -51,10 +53,9 @@ export class ChildTask {
   private permission: RelayDeps;
   private parentIdle: () => boolean;
 
-  constructor(
-    private readonly launch: ChildLaunch,
-    private readonly host: ChildHost,
-  ) {
+  constructor(launch: ChildLaunch, host: ChildHost) {
+    this.launch = launch;
+    this.host = host;
     this.completion = Promise.resolve(launch.record);
     this.permission = launch.permission;
     this.parentIdle = launch.parentIdle;
@@ -90,8 +91,8 @@ export class ChildTask {
     child.onRecord((record) => this.observe(child, record));
     try {
       const state = asRecord(await child.send({ type: 'get_state' }));
-      if (typeof state.sessionId !== 'string' || typeof state.sessionFile !== 'string') throw new Error('pi did not report a persisted session');
-      return { sessionId: state.sessionId, sessionFile: state.sessionFile };
+      if (typeof state['sessionId'] !== 'string' || typeof state['sessionFile'] !== 'string') throw new Error('pi did not report a persisted session');
+      return { sessionId: state['sessionId'], sessionFile: state['sessionFile'] };
     } catch (error) {
       child.kill('SIGKILL');
       throw new Error(`Failed to create remote pi session: ${error instanceof Error ? error.message : String(error)}`);
@@ -118,7 +119,7 @@ export class ChildTask {
     this.turn = turn;
     this.stopRequested = false;
     const response = child.send({ type: 'prompt', message: prompt }).then<PromptResult, PromptResult>(
-      (data) => ({ kind: asRecord(data).disposition === 'handled' ? 'handled' : 'run' }),
+      (data) => ({ kind: asRecord(data)['disposition'] === 'handled' ? 'handled' : 'run' }),
       (error: unknown) => {
         turn.state = { ...turn.state, failure: error instanceof Error ? error.message : String(error) };
         return { kind: 'failed', error };
@@ -137,7 +138,7 @@ export class ChildTask {
     if (prompt.kind !== 'run') return { output: '' };
     await Promise.race([turn.settled, child.closed]);
     if (child.exited) return { output: '' };
-    const text = asRecord(await child.send({ type: 'get_last_assistant_text' }).catch(() => undefined)).text;
+    const text = asRecord(await child.send({ type: 'get_last_assistant_text' }).catch(() => undefined))['text'];
     const stats = await child.send({ type: 'get_session_stats' }).catch(() => undefined);
     return { output: typeof text === 'string' ? text : '', ...(stats ? { stats: asRecord(stats) as SessionStats } : {}) };
   }

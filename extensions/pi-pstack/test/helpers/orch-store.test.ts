@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, test } from 'bun:test';
+import './leak-preload.ts';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { openStore, type Store } from '../../skills/poteto-mode/scripts/orch/store.ts';
 import { cleanDirectories, makeDirectory } from './orch-fixtures.ts';
 
@@ -18,6 +19,7 @@ async function fresh(): Promise<{ directory: string; store: Store }> {
 afterEach(async () => {
   for (const store of handles.splice(0)) await store.close();
   await cleanDirectories();
+  vi.useRealTimers();
 });
 
 describe('orch store cell and line cleaning', () => {
@@ -52,14 +54,26 @@ describe('orch store cell and line cleaning', () => {
 });
 
 describe('orch store inbox pointers', () => {
-  test('peek keeps push order, ignores non-tsv files, and rejects a two-line pointer', async () => {
-    const { directory, store } = await fresh();
+  test('peek preserves chronological push order', async () => {
+    const { store } = await fresh();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
     for (const agent of ['a', 'b', 'c']) {
       await store.inbox.push({ agent, unit: 'u', status: 'done' });
-      await Bun.sleep(5);
+      vi.setSystemTime(Date.now() + 5);
     }
-    await writeFile(join(directory, 'inbox', 'notes.txt'), 'not a pointer');
     expect((await store.inbox.peek()).map((row) => row.agent)).toEqual(['a', 'b', 'c']);
+  });
+
+  test('peek ignores files without the pointer extension', async () => {
+    const { directory, store } = await fresh();
+    await store.inbox.push({ agent: 'a', unit: 'u', status: 'done' });
+    await writeFile(join(directory, 'inbox', 'notes.txt'), 'not a pointer');
+    expect((await store.inbox.peek()).map((row) => row.agent)).toEqual(['a']);
+  });
+
+  test('peek rejects a pointer containing two lines', async () => {
+    const { directory, store } = await fresh();
     await writeFile(join(directory, 'inbox', 'zzz.tsv'), 'ts\tagent\tunit\tstatus\treport\nsecond line\n');
     await expect(store.inbox.peek()).rejects.toThrow('inbox pointer zzz.tsv is malformed');
   });
@@ -92,38 +106,65 @@ describe('orch store malformed gates and standing orders', () => {
 });
 
 describe('orch store gate transitions', () => {
-  test('re-parking an open gate replaces its text, re-resolving records the new answer, and re-parking a resolved gate reopens it', async () => {
+  test('parking a gate makes its question visible', async () => {
     const { store } = await fresh();
-    const park = (question: string) => store.gates.park({ id: 'g', question, options: 'a|b', defaultAnswer: 'a' });
-    await park('first');
+    await store.gates.park({ id: 'g', question: 'first', options: 'a|b', defaultAnswer: 'a' });
     expect(await store.gates.list()).toEqual([{ kind: 'open', id: 'g', question: 'first', options: 'a|b', defaultAnswer: 'a' }]);
-    await park('second');
+  });
+
+  test('re-parking an open gate replaces its question', async () => {
+    const { store } = await fresh();
+    await store.gates.park({ id: 'g', question: 'first', options: 'a|b', defaultAnswer: 'a' });
+    await store.gates.park({ id: 'g', question: 'second', options: 'a|b', defaultAnswer: 'a' });
     expect((await store.gates.list()).map((row) => row.question)).toEqual(['second']);
+  });
+
+  test('re-resolving a gate records the new answer', async () => {
+    const { store } = await fresh();
+    await store.gates.park({ id: 'g', question: 'first', options: 'a|b', defaultAnswer: 'a' });
     expect(await store.gates.resolve({ id: 'g', answer: 'A' })).toMatchObject({ kind: 'resolved', answer: 'A' });
     expect(await store.gates.resolve({ id: 'g', answer: 'B' })).toMatchObject({ kind: 'resolved', answer: 'B' });
     expect(await store.gates.list()).toEqual([]);
-    expect(await park('third')).toEqual({ kind: 'open', id: 'g', question: 'third', options: 'a|b', defaultAnswer: 'a' });
+  });
+
+  test('re-parking a resolved gate reopens it', async () => {
+    const { store } = await fresh();
+    await store.gates.park({ id: 'g', question: 'first', options: 'a|b', defaultAnswer: 'a' });
+    await store.gates.resolve({ id: 'g', answer: 'A' });
+    expect(await store.gates.park({ id: 'g', question: 'third', options: 'a|b', defaultAnswer: 'a' })).toEqual({ kind: 'open', id: 'g', question: 'third', options: 'a|b', defaultAnswer: 'a' });
     expect((await store.gates.list()).map((row) => row.question)).toEqual(['third']);
   });
 });
 
 describe('orch store status rendering', () => {
-  test('changed reports unit, ledger, frontier, and gate differences and every render stamps a new time', async () => {
+  test('changed reports the derived differences since the previous render', async () => {
     const { directory, store } = await fresh();
     await store.units.add({ id: 'u', track: 't' });
     await store.status.render();
-    const first = await readFile(join(directory, 'status.md'), 'utf8');
-    await Bun.sleep(5);
     await store.units.set({ id: 'u', state: 'done' });
     await store.ledger.record({ pr: 3, sha: 's', verdict: 'live-ui-verified', evidence: 'e' });
     await writeFile(join(directory, 'frontier.json'), '{"generation":1,"prs":[],"lowestUnmerged":null}\n');
     await store.gates.park({ id: 'g', question: 'a | b \\ c', options: 'o', defaultAnswer: 'd' });
     const report = await store.status.render();
     expect(report.changed).toBe('units done 0->1; units pending 1->0; ledger live-ui-verified 0->1; frontier generation 0->1; open gates 0->1');
-    const second = await readFile(join(directory, 'status.md'), 'utf8');
-    expect(second).toContain('| g | open | a \\| b \\\\ c | o | d |  |');
-    const stamp = (text: string) => text.match(/^Generated: .*$/m)?.[0];
-    expect(stamp(second)).not.toBe(stamp(first));
+  });
+
+  test('status escapes Markdown separators in gate questions', async () => {
+    const { directory, store } = await fresh();
+    await store.gates.park({ id: 'g', question: 'a | b \\ c', options: 'o', defaultAnswer: 'd' });
+    await store.status.render();
+    expect(await readFile(join(directory, 'status.md'), 'utf8')).toContain('| g | open | a \\| b \\\\ c | o | d |  |');
+  });
+
+  test('each status render stamps its current time', async () => {
+    const { directory, store } = await fresh();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
+    await store.status.render();
+    expect(await readFile(join(directory, 'status.md'), 'utf8')).toContain('Generated: 2026-01-01T00:00:00.000Z');
+    vi.setSystemTime(new Date('2026-01-01T00:00:01Z'));
+    await store.status.render();
+    expect(await readFile(join(directory, 'status.md'), 'utf8')).toContain('Generated: 2026-01-01T00:00:01.000Z');
   });
 
   test('an unchanged store reports no derived changes', async () => {

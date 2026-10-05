@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { expect, test, vi } from 'vitest';
 import { startDetachedRpc } from '../scripts/detached-rpc-client.mjs';
 import { fixture, packageRoot } from './session-fixture.ts';
+import { expectDefined } from './support/expect-defined.ts';
 
 test.each([
   { input: '/how inspect the fixture without executing agents', resource: '--prompt-template', path: 'prompts/how.md', expected: ['Read how/SKILL.md in full', 'resolving references and supporting scripts'] },
@@ -31,7 +32,7 @@ test.each([
         await vi.waitFor(async () => {
           const log = (await readdir(f.root)).find((name) => /^requests-\d+\.jsonl$/.test(name));
           if (!log) throw new Error('no provider request captured');
-          const request = JSON.parse((await readFile(join(f.root, log), 'utf8')).trim().split('\n')[0]);
+          const request = JSON.parse(expectDefined((await readFile(join(f.root, log), 'utf8')).trim().split('\n')[0]));
           const users = request.messages.filter((message: { role: string }) => message.role === 'user');
           const text = JSON.stringify(users);
           expect(text).toContain('inspect the fixture without executing agents');

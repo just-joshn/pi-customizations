@@ -1,9 +1,11 @@
-import { afterEach, expect, test } from 'bun:test';
+import './leak-preload.ts';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { afterEach, expect, test } from 'vitest';
 import { removeScratch, scratchDir } from './scratch.ts';
+import { runProcess } from './watch-pr-process.ts';
 
 const shipped = new URL('../../skills/poteto-mode/scripts', import.meta.url).pathname;
 const scratch = (label: string): string => scratchDir(`watch-pr-${label}-`);
@@ -25,10 +27,9 @@ const expectedKey = (scripts: string): string =>
     .digest('hex');
 
 function launch(scripts: string, args: string[], cwd = scratch('cwd')) {
-  const result = Bun.spawnSync(['bun', launcher(scripts), ...args], { cwd, env: process.env });
+  const result = runProcess(['bun', launcher(scripts), ...args], { cwd, env: process.env });
   return { code: result.exitCode, stdout: result.stdout.toString(), stderr: result.stderr.toString(), cwd };
 }
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test('bootstrap installs under the scripts directory, not the cwd, when the launcher runs from an unrelated directory', () => {
   const scripts = freshScripts();
@@ -48,8 +49,9 @@ test('bootstrap writes the install key as sha256 of package.json, a NUL byte, th
 test('bootstrap returns without reinstalling when the manifest, commander, and a matching key are present', async () => {
   const scripts = freshScripts();
   launch(scripts, ['--help']);
+  const stamp = new Date('2000-01-01T00:00:00Z');
+  utimesSync(keyPath(scripts), stamp, stamp);
   const before = statSync(keyPath(scripts)).mtimeMs;
-  await sleep(30);
   const again = launch(scripts, ['--help']);
   expect(again.code).toBe(0);
   expect(statSync(keyPath(scripts)).mtimeMs).toBe(before);

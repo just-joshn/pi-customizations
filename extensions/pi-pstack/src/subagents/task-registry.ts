@@ -6,10 +6,13 @@ export type RegistryChange = Readonly<{ transition?: Transition; progress?: Prog
 export type RegistryHooks = Readonly<{ persist: (node: AgentNode) => void }>;
 
 export class TaskRegistry {
+  private readonly hooks: RegistryHooks;
   private nodes: ReadonlyMap<string, AgentNode> = new Map();
   private listeners: ReadonlySet<(change: RegistryChange) => void> = new Set();
 
-  constructor(private readonly hooks: RegistryHooks) {}
+  constructor(hooks: RegistryHooks) {
+    this.hooks = hooks;
+  }
 
   replace(nodes: ReadonlyMap<string, AgentNode>): void {
     this.nodes = nodes;

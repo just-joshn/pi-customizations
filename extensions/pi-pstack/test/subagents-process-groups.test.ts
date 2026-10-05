@@ -2,9 +2,13 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { tmpdir } from 'node:os';
 
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { groupSpawned, ProcessGroups } from '../src/subagents/process-groups.ts';
 import { trackedBashOperations } from '../src/subagents/tracked-bash.ts';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function alive(pid: number): boolean {
   try {
@@ -19,17 +23,22 @@ test('killAll SIGKILLs every tracked group and counts the owning agents', async 
   const published: unknown[] = [];
   const groups = new ProcessGroups('parent', (spawned) => published.push(spawned));
   const sleeper = spawn('sleep', ['30'], { detached: true, stdio: 'ignore' });
-  await once(sleeper, 'spawn');
-  const pid = sleeper.pid ?? 0;
   const exited = once(sleeper, 'exit');
-  groups.add({ pid });
-  groups.add({ pid: 2 ** 22 + 7, agentId: 'grandchild' });
-  expect(published).toEqual([
-    { pid, agentId: 'parent' },
-    { pid: 2 ** 22 + 7, agentId: 'grandchild' },
-  ]);
-  expect(groups.killAll()).toBe(2);
-  expect(await exited).toEqual([null, 'SIGKILL']);
+  await once(sleeper, 'spawn');
+  try {
+    const pid = sleeper.pid ?? 0;
+    groups.add({ pid });
+    groups.add({ pid: 2 ** 22 + 7, agentId: 'grandchild' });
+    expect(published).toEqual([
+      { pid, agentId: 'parent' },
+      { pid: 2 ** 22 + 7, agentId: 'grandchild' },
+    ]);
+    expect(groups.killAll()).toBe(2);
+    expect(await exited).toEqual([null, 'SIGKILL']);
+  } finally {
+    sleeper.kill('SIGKILL');
+    await exited;
+  }
 });
 
 test('killAll clears groups before signaling so a retry cannot signal a reused PID', () => {

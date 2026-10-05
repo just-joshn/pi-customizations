@@ -36,7 +36,7 @@ try {
   );
   for (const row of rows) {
     const before = server.requests.length;
-    const child = exec(process.env.PI_SAMPLING_EXECUTABLE ?? 'pi', ['--offline', '--no-extensions', '-e', packageDir, '--no-session', '--print', '--model', `grok-build/${row.model}`, '--thinking', row.thinking, 'Reply OK.'], {
+    const child = exec(process.env['PI_SAMPLING_EXECUTABLE'] ?? 'pi', ['--offline', '--no-extensions', '-e', packageDir, '--no-session', '--print', '--model', `grok-build/${row.model}`, '--thinking', row.thinking, 'Reply OK.'], {
       cwd: agentDir,
       env: { ...process.env, PI_CODING_AGENT_DIR: agentDir },
       timeout: 60_000,

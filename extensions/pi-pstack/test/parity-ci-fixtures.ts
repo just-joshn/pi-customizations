@@ -2,8 +2,12 @@ import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises
 import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
 
-import { onTestFinished, vi } from 'vitest';
-import { timerCommand } from '../scripts/timer-client.mjs';
+import { Type } from 'typebox';
+import { Check } from 'typebox/value';
+import { afterEach, onTestFinished, vi } from 'vitest';
+import { timerCommand, timerRecord } from '../scripts/timer-client.mjs';
+
+afterEach(() => vi.unstubAllEnvs());
 
 export type FakeCheck = { name: string; bucket: 'pass' | 'fail' | 'pending' | 'skipping' | 'cancel' };
 export type FakeForge = { head: string; prState?: 'OPEN' | 'MERGED' | 'CLOSED'; checks: FakeCheck[]; broken?: boolean };
@@ -35,7 +39,7 @@ export async function fakeForge(initial: FakeForge) {
   await mkdir(bin);
   await writeFile(join(bin, 'gh'), GH);
   await chmod(join(bin, 'gh'), 0o755);
-  vi.stubEnv('PATH', `${bin}${delimiter}${process.env.PATH}`);
+  vi.stubEnv('PATH', `${bin}${delimiter}${process.env['PATH']}`);
   vi.stubEnv('FAKE_GH_STATE', join(directory, 'state.json'));
   vi.stubEnv('FAKE_GH_LOG', join(directory, 'calls.log'));
   return {
@@ -45,10 +49,16 @@ export async function fakeForge(initial: FakeForge) {
   };
 }
 
+const ReadyService = Type.Object({ kind: Type.Literal('ready') });
+
+export async function stopTimerOwner(directory: string): Promise<void> {
+  if (Check(ReadyService, await timerRecord(join(directory, 'status.json')))) await timerCommand(directory, { type: 'shutdown' });
+}
+
 export async function timerOwner(prefix: string) {
   const directory = await mkdtemp(join(tmpdir(), `pstack-${prefix}-`));
   onTestFinished(async () => {
-    await timerCommand(directory, { type: 'shutdown' }).catch(() => {});
+    await stopTimerOwner(directory);
     await rm(directory, { recursive: true, force: true });
   });
   return directory;

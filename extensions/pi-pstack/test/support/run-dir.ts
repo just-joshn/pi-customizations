@@ -55,8 +55,8 @@ async function liveProcessesAfterGrace(dir: string): Promise<LiveProcess[]> {
 // The base stays short because macOS unix socket paths are limited to 104 bytes.
 export function openRunDir(): RunDir {
   const dir = mkdtempSync(join(realpathSync(tmpdir()), 'pv-'));
-  const previous = { TMPDIR: process.env.TMPDIR };
-  process.env.TMPDIR = dir;
+  const previous = { TMPDIR: process.env['TMPDIR'] };
+  process.env['TMPDIR'] = dir;
   return { dir, previous };
 }
 

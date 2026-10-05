@@ -20,7 +20,7 @@ export function finishedRecord(worker: Awaited<ReturnType<typeof openWorkerSessi
     usage: sumUsage(end.messages, pendingUsage),
     toolUseCount,
     durationMs: Date.now() - end.startedAt,
-    modelReference: session.model ? `${session.model.provider}/${session.model.id}:${session.thinkingLevel}` : record.modelReference,
+    ...(session.model ? { modelReference: `${session.model.provider}/${session.model.id}:${session.thinkingLevel}` } : {}),
     modelsUsed: modelsUsed.snapshot(),
     ...(totalTokens !== undefined ? { totalTokens } : {}),
     ...(end.limited ? { maxTurnsReached: end.limited } : {}),

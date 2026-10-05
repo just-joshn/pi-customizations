@@ -25,9 +25,11 @@
     "check:tests": "node extensions/scripts/check-vitest-conventions.selftest.mjs && node extensions/scripts/check-vitest-conventions.mjs",
     "check:toolchain": "node scripts/check-bun-toolchain.selftest.mjs && node scripts/check-bun-toolchain.mjs",
     "test:coverage": "bun run --sequential --filter pi-pstack --filter pi-one-dark-pro-theme test:coverage",
-    "typecheck": "bun run --sequential --filter '*' typecheck",
+    "sync:types-policy": "node scripts/sync-typescript-policy.mjs --write",
+    "check:types-policy": "node scripts/typescript-policy.selftest.mjs && node scripts/sync-typescript-policy.mjs && node scripts/check-typescript-policy.selftest.mjs && node scripts/check-typescript-policy.mjs",
+    "typecheck": "bun run check:types-policy && tsc --noEmit -p tsconfig.json && bun run --sequential --filter '*' typecheck",
     "check": "biome check .",
-    "check:write": "biome check --write .",
+    "check:write": "node scripts/format-write.selftest.mjs && node scripts/format-write.mjs",
     "ci": "biome ci . --error-on-warnings --max-diagnostics=none"
   },
   "devDependencies": {

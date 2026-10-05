@@ -1,6 +1,10 @@
 import type { ExtensionAPI, ExtensionContext, ExtensionToolContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
-import { beforeEach, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { continuationPrompt, parseGoalArgs, registerGoal } from '../src/goal.ts';
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 type CommandHandler = (args: string, ctx: ExtensionContext) => Promise<void>;
 type Hook = (...args: unknown[]) => unknown;
@@ -170,7 +174,7 @@ test('the system prompt carries an active goal and drops a stale section', async
   await callTool(h, 'CreateGoal', { objective: 'Pursue the goal' });
   const during = { systemPromptOptions: { sections: {} as Record<string, string> } };
   hooksFor(h, 'before_agent_start')[0]?.(during, h.ctx);
-  expect(during.systemPromptOptions.sections.pstack_goal).toBe('Active goal. Pursue it to completion and never shrink its scope.\nPursue the goal');
+  expect(during.systemPromptOptions.sections['pstack_goal']).toBe('Active goal. Pursue it to completion and never shrink its scope.\nPursue the goal');
 
   await callTool(h, 'UpdateGoal', { status: 'complete' });
   const after = { systemPromptOptions: { sections: { pstack_goal: 'stale' } as Record<string, string> } };

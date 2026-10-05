@@ -4,12 +4,14 @@ export type TurnVerdict = 'continue' | 'warn' | 'stop';
 
 /** Counts the turns of a child that called tools and tells the scheduler when to warn it and when to stop it. */
 export class TurnLimit {
+  readonly max: number;
+  readonly warning: string;
   private turns = 0;
 
-  constructor(
-    readonly max: number,
-    readonly warning: string = defaultLastTurnWarning,
-  ) {}
+  constructor(max: number, warning: string = defaultLastTurnWarning) {
+    this.max = max;
+    this.warning = warning;
+  }
 
   onTurnEnd(toolCalls: number): TurnVerdict {
     if (toolCalls === 0) return 'continue';

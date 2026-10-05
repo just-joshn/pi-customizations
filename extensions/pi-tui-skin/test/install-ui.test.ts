@@ -179,8 +179,9 @@ describe('install-ui controller', () => {
 });
 
 describe('install-ui controller removal failures', () => {
-  test('a failing step lets later steps run, then one error names each failure', () => {
+  test('a failing step lets later steps run, then one error names each failure', ({ onTestFinished }) => {
     const consoleError = vi.spyOn(console, 'error');
+    onTestFinished(() => consoleError.mockRestore());
     const { ctx, calls, failOn } = fakeContext('tui');
     const controller = createUiController(createPresentationStore());
     controller.install(ctx);

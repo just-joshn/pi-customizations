@@ -52,6 +52,7 @@ export async function discoverTasks(cwd: string, branch?: string) {
 export async function selectTask(cwd: string, selector: { task_id?: string; branch?: string }) {
   if (Boolean(selector.task_id) === Boolean(selector.branch)) throw new Error('TaskAttach requires exactly one selector: task_id or branch.');
   const matches = (await discoverTasks(cwd, selector.branch)).filter((item) => selector.task_id === undefined || item.record.id === selector.task_id);
-  if (matches.length !== 1) throw new Error('TaskAttach must resolve exactly one repository task. Select an explicit task_id from TaskList.');
-  return matches[0];
+  const [task] = matches;
+  if (matches.length !== 1 || task === undefined) throw new Error('TaskAttach must resolve exactly one repository task. Select an explicit task_id from TaskList.');
+  return task;
 }

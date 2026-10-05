@@ -200,7 +200,7 @@ function streamWorker(model: StreamArguments[0], context: StreamArguments[1], op
       model: model.id,
       content: calls.length ? calls : [{ type: 'text', text: replyText(text, users.length) }],
       stopReason: aborted ? 'aborted' : error ? 'error' : calls.length ? 'toolUse' : 'stop',
-      errorMessage: retryFailure ? 'network error' : error ? 'scripted failure' : undefined,
+      ...(retryFailure ? { errorMessage: 'network error' } : error ? { errorMessage: 'scripted failure' } : {}),
       timestamp: Date.now(),
       usage: scriptedUsage(text, context),
     };

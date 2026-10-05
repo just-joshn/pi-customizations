@@ -1,5 +1,5 @@
-import { expect, test } from 'bun:test';
-
+import './leak-preload.ts';
+import { expect, test } from 'vitest';
 import { type FakeReaderOptions, failedCheck, fakeReader, passingCheck, pendingCheck } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
 import { WatcherQueryError } from '../../skills/poteto-mode/scripts/watch-pr/github.ts';
 import {

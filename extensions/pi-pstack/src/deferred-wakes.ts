@@ -7,10 +7,12 @@ type Wake = Parameters<ExtensionAPI['sendMessage']>[0];
  * Hold undelivered wakes until a clean boundary so blocking reads can suppress them.
  */
 export class DeferredWakes {
+  private readonly pi: ExtensionAPI;
   private held = new Map<string, Wake>();
   private aborted = false;
 
-  constructor(private readonly pi: ExtensionAPI) {
+  constructor(pi: ExtensionAPI) {
+    this.pi = pi;
     pi.on('agent_end', (event) => {
       const last = event.messages.findLast((message) => message.role === 'assistant');
       this.aborted = last?.role === 'assistant' && (last.stopReason === 'aborted' || last.stopReason === 'error');

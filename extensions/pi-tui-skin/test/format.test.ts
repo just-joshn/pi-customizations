@@ -51,7 +51,7 @@ describe('shortenPathForDisplay', () => {
   test('tails a long path to the display width', () => {
     const result = shortenPathForDisplay('/Users/x/proj/src/deep/file.ts', '/Users/x', 10);
     expect(result).toBe('…/file.ts');
-    expect(visibleWidth(result) <= 10).toBe(true);
+    expect(visibleWidth(result)).toBeLessThanOrEqual(10);
   });
 
   test('returns the shortened path when it fits', () => {
@@ -93,7 +93,7 @@ describe('fitWidth', () => {
   test('measures an ANSI-colored line by visible width', () => {
     const result = fitWidth('\x1b[31mhello world\x1b[0m', 6);
     expect(result).toContain('…');
-    expect(visibleWidth(result) <= 6).toBe(true);
+    expect(visibleWidth(result)).toBeLessThanOrEqual(6);
   });
 });
 
@@ -147,6 +147,6 @@ describe('fitLeftRight', () => {
   test('measures an ANSI-colored left part by visible width', () => {
     const result = fitLeftRight(`${ESC}[31mred${ESC}[0m`, 'right', 20);
     expect(visibleWidth(result)).toBe(20);
-    expect(result.endsWith('right')).toBe(true);
+    expect(result).toMatch(/right$/);
   });
 });

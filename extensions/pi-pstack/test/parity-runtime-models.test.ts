@@ -28,7 +28,7 @@ async function runSetup(panel: string, available: (typeof claude)[]) {
       thinkingLevel: 'medium',
       modelRegistry: { getAvailable: () => available },
       ui: {
-        notify: (message: string, level?: string) => notices.push({ message, level }),
+        notify: (message: string, level?: string) => notices.push(level === undefined ? { message } : { message, level }),
         select: async (title: string) => (title.startsWith('pstack reasoning budget') ? 'unlimited — keep max' : 'Accept as-is'),
         input: async () => undefined,
         confirm: async () => true,

@@ -1,10 +1,22 @@
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
-import { expect, test, vi } from 'vitest';
+import { expect, onTestFinished, test, vi } from 'vitest';
 import { startDetachedRpc } from '../scripts/detached-rpc-client.mjs';
 import { timerCommand } from '../scripts/timer-client.mjs';
-import { fakeForge, timerOwner, userEntries } from './parity-ci-fixtures.ts';
+import { fakeForge, stopTimerOwner, timerOwner, userEntries } from './parity-ci-fixtures.ts';
+
+async function stopGuestTimers(agentDir: string): Promise<void> {
+  const directory = join(agentDir, 'pstack-timers');
+  const owners = await readdir(directory, { withFileTypes: true }).catch((error: unknown) => {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return [];
+    throw error;
+  });
+  for (const owner of owners.filter((entry) => entry.isDirectory())) {
+    const service = join(directory, owner.name);
+    await stopTimerOwner(service);
+  }
+}
 
 async function toolDetails(sessionFile: string, name: string) {
   const entries = (await readFile(sessionFile, 'utf8'))
@@ -41,6 +53,7 @@ test('a timer and a CI subscription armed from a cloud Task root run on the gues
   const guestAgent = join(workspace, 'guest', 'agent');
   await mkdir(hostAgent, { recursive: true });
   await mkdir(guestAgent, { recursive: true });
+  onTestFinished(() => stopGuestTimers(guestAgent));
   vi.stubEnv('PI_CODING_AGENT_DIR', hostAgent);
   const root = await startDetachedRpc({
     directory: join(workspace, 'guest', 'task', 'rpc-one'),
@@ -51,6 +64,7 @@ test('a timer and a CI subscription armed from a cloud Task root run on the gues
     closeAfterSettle: true,
     args: rootArguments(workspace),
   });
+  onTestFinished(() => root.close());
   const state = await root.send({ type: 'get_state' });
   if (!state.success || state.command !== 'get_state') throw new Error('Cloud root did not report its state.');
   const rootSession = state.data.sessionFile ?? '';

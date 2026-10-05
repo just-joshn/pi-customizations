@@ -1,19 +1,19 @@
-import { afterEach, describe, expect, test } from 'bun:test';
+import './leak-preload.ts';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { openStore, type Store } from '../../skills/poteto-mode/scripts/orch/store.ts';
 import { cleanDirectories, type GtFixture, git, installGt, makeDirectory, makeRepo, stackLog } from './orch-fixtures.ts';
 
 const handles: Store[] = [];
 
 async function withPath<T>(path: string, operation: () => Promise<T>): Promise<T> {
-  const original = process.env.PATH;
-  process.env.PATH = path;
+  vi.stubEnv('PATH', path);
   try {
     return await operation();
   } finally {
-    process.env.PATH = original;
+    vi.unstubAllEnvs();
   }
 }
 
@@ -34,7 +34,7 @@ async function gtFrontier(fixture: GtFixture) {
   const repo = await makeRepo(directory, ['stack/a', 'stack/b']);
   const gt = await installGt(directory, repo, fixture);
   const store = await freshStore();
-  return withPath(`${gt}:${process.env.PATH}`, () => store.frontier.set({ repo }));
+  return withPath(`${gt}:${process.env['PATH']}`, () => store.frontier.set({ repo }));
 }
 
 const info = (line: string) => `x\n${line} change`;
@@ -73,7 +73,7 @@ test('frontier records the local branch head even when it differs from origin', 
   git(repo, 'commit', '-q', '-m', 'local only');
   const gt = await installGt(directory, repo, { logShort: stackLog('stack/a'), info: { 'stack/a': info('PR #8 (Needs approvals)') } });
   const store = await freshStore();
-  const result = await withPath(`${gt}:${process.env.PATH}`, () => store.frontier.set({ repo }));
+  const result = await withPath(`${gt}:${process.env['PATH']}`, () => store.frontier.set({ repo }));
   const localHead = git(repo, 'rev-parse', 'stack/a');
   expect(localHead).not.toBe(remoteHead);
   expect(result.prs[0]?.sha).toBe(localHead);

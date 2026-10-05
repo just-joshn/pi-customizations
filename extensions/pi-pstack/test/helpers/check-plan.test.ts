@@ -1,8 +1,11 @@
-import { afterEach, describe, expect, test } from 'bun:test';
+import './leak-preload.ts';
 import { spawnSync } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
+import { afterEach, describe, expect, test } from 'vitest';
+import { expectDefined } from '../support/expect-defined.ts';
 
 const root = new URL('../../', import.meta.url).pathname;
 const script = join(root, 'skills/poteto-mode/scripts/check-plan.mjs');
@@ -143,9 +146,13 @@ const fails: { name: string; change: (parts: Parts) => Parts; message: string }[
   { name: 'Program checklist missing the hourly tick', change: (p) => ({ ...p, programBody: p.programBody.with(0, box('Arm the loop.')) }), message: 'Program checklist lacks "/loop 1h"' },
   { name: 'Program checklist missing the status message', change: (p) => ({ ...p, programBody: p.programBody.filter((line) => !line.includes('status message')) }), message: 'Program checklist lacks "status message"' },
   { name: 'a Program checklist H3 missing', change: (p) => ({ ...p, programH3: p.programH3.filter((name) => name !== 'PR mechanics') }), message: 'Program checklist lacks "### PR mechanics" in order' },
-  { name: 'Program checklist H3s out of order', change: (p) => ({ ...p, programH3: p.programH3.toSpliced(3, 2, p.programH3[4], p.programH3[3]) }), message: 'Program checklist lacks "### Boot recipe" in order' },
+  {
+    name: 'Program checklist H3s out of order',
+    change: (p) => ({ ...p, programH3: p.programH3.toSpliced(3, 2, expectDefined(p.programH3[4]), expectDefined(p.programH3[3])) }),
+    message: 'Program checklist lacks "### Boot recipe" in order',
+  },
   { name: 'empty Depends on', change: (p) => withBlock(p, 'Depends on.', (b) => ({ head: b.head, lines: b.lines })), message: 'Depends on names nothing' },
-  { name: 'sub-blocks out of order', change: (p) => ({ ...p, prs: p.prs.with(0, p.prs[0].toReversed()) }), message: 'sub-blocks are [' },
+  { name: 'sub-blocks out of order', change: (p) => ({ ...p, prs: p.prs.with(0, expectDefined(p.prs[0]).toReversed()) }), message: 'sub-blocks are [' },
   ...['Files.', 'Build.', 'You see.', 'Verify, unit.', 'Merge.'].map((head) => ({
     name: `${head} without a box`,
     change: (p: Parts) => withBlock(p, head, (b) => ({ ...b, lines: [] })),
@@ -223,6 +230,8 @@ describe('check-plan.mjs prose rules and fences', () => {
 
   test.each(['`a — b: c`', '![alt — text](x—y.png)', '[doc](path/with—dash)'])('inline code, image, and link targets are exempt: %s', async (text) => {
     const result = await run(mutate((p) => addIntro(p, `See ${text}.`)));
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('1 PR sections, 0 problems');
     expect(result.problems).toEqual([]);
   });
 
@@ -233,6 +242,8 @@ describe('check-plan.mjs prose rules and fences', () => {
 
   test('a colon followed by bold markup does not match the literal colon-space lint', async () => {
     const result = await run(mutate((p) => ({ ...p, intro: ['**Owner:** Josh'] })));
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('1 PR sections, 0 problems');
     expect(result.problems).toEqual([]);
   });
 
@@ -268,7 +279,7 @@ describe('check-plan.mjs location independence', () => {
 describe('check-plan.mjs against the frozen source skeleton', () => {
   const skeleton = async () => {
     const playbook = await readFile(join(root, 'upstream/skills/poteto-mode/playbooks/multi-phase-plan.md'), 'utf8');
-    return playbook.split('\n````markdown\n')[1].split('\n````')[0];
+    return expectDefined(expectDefined(playbook.split('\n````markdown\n')[1]).split('\n````')[0]);
   };
 
   test('the unfilled skeleton reports its box counts and exactly one problem, the LANES placeholder', async () => {

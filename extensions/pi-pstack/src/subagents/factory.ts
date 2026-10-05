@@ -56,11 +56,13 @@ export function modelOption(model: Model<never> | Pick<Model<never>, 'provider' 
 
 /** Turns an agent type and a prompt into a running child: gates, type, limits, model, plan, then the scheduler launches it. */
 export class SubagentFactory {
+  private readonly deps: FactoryDeps;
   private readonly rootAgentId = randomUUID();
   private readonly discovery: DiscoveryCache;
   private offeredCache: readonly AgentDefinition[] | undefined;
 
-  constructor(private readonly deps: FactoryDeps) {
+  constructor(deps: FactoryDeps) {
+    this.deps = deps;
     this.discovery = deps.discovery ?? new DiscoveryCache();
   }
 

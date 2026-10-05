@@ -1,10 +1,11 @@
 import type { ModelsPublication, Provider, RefreshModelsContext } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { expect, test } from 'vitest';
+import { expect } from 'vitest';
 import extension, { createAntigravityProvider } from '../src/index.ts';
 import { catalogFromAvailable, FAMILY, familyOf, parseAvailableModels } from '../src/models.ts';
 import { GOOGLE_OAUTH } from '../src/oauth.ts';
 import { fakeServer, json } from './fake-server.ts';
+import { test } from './network-guard.ts';
 
 const AVAILABLE = {
   models: {
@@ -20,7 +21,7 @@ const AVAILABLE = {
 
 function refreshContext(credential: RefreshModelsContext['credential']): RefreshModelsContext {
   return {
-    credential,
+    ...(credential !== undefined && { credential }),
     allowNetwork: true,
     signal: new AbortController().signal,
     publish: async (publication: ModelsPublication) => {
@@ -63,7 +64,7 @@ test('fetchModels overlays fetchAvailableModels onto the baseline', async () => 
     const provider = createAntigravityProvider({ endpoints: [server.url], oauth: GOOGLE_OAUTH });
     await provider.refreshModels?.(refreshContext(CREDENTIAL));
     expect(server.requests[0]?.path).toBe('/v1internal:fetchAvailableModels');
-    expect(JSON.parse(server.requests[0]?.body)).toEqual({ project: 'proj-9' });
+    expect(JSON.parse(server.requests[0]?.body ?? '')).toEqual({ project: 'proj-9' });
     expect(server.requests[0]?.headers.authorization).toBe('Bearer ya29.t');
     expect(provider.getModels().map((model) => model.id)).toEqual(['gemini-3.1-pro-low', 'gemini-3-flash-agent', 'claude-sonnet-4-6', 'claude-opus-4-6-thinking', 'gpt-oss-120b-medium', 'gemini-3.8-flash-high']);
     const flash = provider.getModels().find((model) => model.id === 'gemini-3.8-flash-high');
@@ -74,7 +75,6 @@ test('fetchModels overlays fetchAvailableModels onto the baseline', async () => 
       provider: 'google-antigravity',
       baseUrl: server.url,
       reasoning: true,
-      thinkingLevelMap: undefined,
       input: ['text', 'image'],
       cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
       contextWindow: 1048576,
@@ -116,11 +116,17 @@ test('an empty endpoint list falls back to the default endpoint', () => {
   expect(provider.getModels()[0]?.baseUrl).toBe('https://daily-cloudcode-pa.googleapis.com');
 });
 
-test('parseAvailableModels ignores a response without a model map', () => {
+test('an available model retains its id and display name without optional metadata', () => {
   const parsed = parseAvailableModels({ models: { 'gemini-3.9-flash': { displayName: 'F' } } });
-  expect(parsed.map((model) => [model.id, model.displayName, model.supportsThinking, model.supportsImages, model.remainingFraction, model.resetTime])).toEqual([['gemini-3.9-flash', 'F', undefined, undefined, undefined, undefined]]);
-  expect(parseAvailableModels({})).toEqual([]);
-  expect(parseAvailableModels(null)).toEqual([]);
+  expect(parsed.map((model) => [model.id, model.displayName, model.supportsThinking, model.supportsImages, model.remainingFraction, model.resetTime])).toStrictEqual([['gemini-3.9-flash', 'F', undefined, undefined, undefined, undefined]]);
+});
+
+test.for([
+  { name: 'an object without a model map', body: {} },
+  { name: 'a null body', body: null },
+])('$name contains no available models', ({ body }) => {
+  expect(parseAvailableModels(body)).toStrictEqual([]);
+  expect(parseAvailableModels({ models: { 'gemini-3.9-flash': { displayName: 'Flash' } } })).toMatchObject([{ id: 'gemini-3.9-flash', displayName: 'Flash' }]);
 });
 
 test('catalogFromAvailable infers wire defaults for unknown models', () => {

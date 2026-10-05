@@ -17,23 +17,26 @@ export type SidekickPorts = Readonly<{
 }>;
 
 export function sidekickEnabled(spec: SidekickSpec, env: NodeJS.ProcessEnv, facts: LaunchFacts): boolean {
-  const flagged = env.COPILOT_DEBUG_ENABLE_SIDEKICKS === '1' || env.COPILOT_DEBUG_ENABLE_SIDEKICKS === 'true' || featureEnabled(env, spec.featureFlag) || env[spec.featureFlag] === '1' || env[spec.featureFlag] === 'true';
+  const flagged = env['COPILOT_DEBUG_ENABLE_SIDEKICKS'] === '1' || env['COPILOT_DEBUG_ENABLE_SIDEKICKS'] === 'true' || featureEnabled(env, spec.featureFlag) || env[spec.featureFlag] === '1' || env[spec.featureFlag] === 'true';
   return flagged && spec.launchConditions.every((condition) => facts[condition] === true);
 }
 
 /** Event driven helpers with their own task store: each trigger starts, reuses or restarts one agent per sidekick. */
 export class SidekickManager {
+  private readonly specs: readonly SidekickSpec[];
+  private readonly env: NodeJS.ProcessEnv;
+  private readonly ports: SidekickPorts;
   private readonly counts = new Map<string, number>();
   private readonly agents = new Map<string, string>();
   private readonly owners = new Map<string, SidekickSpec>();
   private sends = new Map<string, number>();
   private warned: ReadonlySet<string> = new Set();
 
-  constructor(
-    private readonly specs: readonly SidekickSpec[],
-    private readonly env: NodeJS.ProcessEnv,
-    private readonly ports: SidekickPorts,
-  ) {}
+  constructor(specs: readonly SidekickSpec[], env: NodeJS.ProcessEnv, ports: SidekickPorts) {
+    this.specs = specs;
+    this.env = env;
+    this.ports = ports;
+  }
 
   async enabled(): Promise<readonly SidekickSpec[]> {
     const facts = await this.ports.facts();

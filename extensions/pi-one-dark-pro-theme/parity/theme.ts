@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 
+import type { UpstreamArtifact } from './upstream.ts';
+
 export type RoleKind = 'color' | 'alpha' | 'scope' | 'composite';
 
 export interface RoleRow {
@@ -203,6 +205,7 @@ function sortRecord(values: Readonly<Record<string, string>>): Record<string, st
 
 export interface ParityInput {
   readonly upstreamText: string;
+  readonly upstreamArtifact: UpstreamArtifact;
   readonly rows: readonly RoleRow[];
   readonly schema: {
     readonly required: string[];
@@ -224,6 +227,7 @@ export function checkParity(input: ParityInput): string[] {
   const problems: string[] = [];
   const digest = createHash('sha256').update(input.upstreamText).digest('hex');
   if (digest !== UPSTREAM_SHA256) problems.push(`upstream file sha256 is ${digest}, expected ${UPSTREAM_SHA256}`);
+  if (input.upstreamArtifact.text !== input.upstreamArtifact.policyFormattedText) problems.push('upstream artifact differs from shared Biome formatting of the pinned original source');
 
   const colors = new Set([...input.schema.required, ...input.schema.optional]);
   const exported = new Set(input.schema.exportProps);

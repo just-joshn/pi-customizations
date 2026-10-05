@@ -6,8 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { createModels } from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
 import { discoverAndLoadExtensions, type ExtensionFactory } from '@earendil-works/pi-coding-agent';
-import { expect, test } from 'vitest';
+import { expect } from 'vitest';
 import extension from '../src/index.ts';
+import { test } from './network-guard.ts';
 import { captureProvider } from './support/load-extension.ts';
 import { declaredExtensions } from './support/package-manifest.ts';
 
@@ -29,7 +30,7 @@ test('the default export is a Pi extension factory', () => {
 // Pi falls back to scanning subdirectories when the manifest names a missing file, so the test
 // also requires the loaded path to be the one the manifest declares.
 test('Pi loads the manifest extensions with one provider', async ({ onTestFinished }) => {
-  const [cwd, agentDir, packageDir] = await Promise.all(['cwd', 'agent', 'package'].map((name) => mkdtemp(join(tmpdir(), `pi-oauth-${name}-`))));
+  const [cwd, agentDir, packageDir] = await Promise.all([mkdtemp(join(tmpdir(), 'pi-oauth-cwd-')), mkdtemp(join(tmpdir(), 'pi-oauth-agent-')), mkdtemp(join(tmpdir(), 'pi-oauth-package-'))]);
   onTestFinished(async () => {
     await Promise.all([cwd, agentDir, packageDir].map((dir) => rm(dir, { recursive: true, force: true })));
   });

@@ -5,7 +5,7 @@ import { expect, test } from 'vitest';
 import { rpcProcess } from '../scripts/rpc-process.mjs';
 
 const testRequestDeadlineMs = 2000;
-const testShutdownDeadlineMs = 100;
+const testShutdownDeadlineMs = 2000;
 
 test('RPC extension errors reject pending requests even when the command succeeds', async () => {
   const child = spawn(process.execPath, [

@@ -1,4 +1,3 @@
-import { CustomEditor } from '@earendil-works/pi-coding-agent';
 import { CURSOR_MARKER, KeybindingsManager, TUI_KEYBINDINGS, visibleWidth } from '@earendil-works/pi-tui';
 import { describe, expect, test } from 'vitest';
 import { createPresentationStore } from '../src/state/presentation-store.ts';
@@ -45,7 +44,7 @@ describe('SkinStyleEditor', () => {
     expect(strip(lines[0] ?? '')).toBe(` ${'▄'.repeat(58)} `);
     expect(strip(lines[1] ?? '')).toContain('→ Plan, search, build anything');
     expect(strip(lines[2] ?? '')).toBe(` ${'▀'.repeat(58)} `);
-    expect(lines[1]?.includes(CURSOR_MARKER), 'focused row carries the hardware cursor marker').toBe(true);
+    expect(lines[1], 'focused row carries the hardware cursor marker').toContain(CURSOR_MARKER);
     expect(lines.every((line) => visibleWidth(line) === 60)).toBe(true);
   });
 
@@ -56,26 +55,27 @@ describe('SkinStyleEditor', () => {
     const row = strip(lines[1] ?? '');
     expect(strip(row)).toContain('→ Add a follow-up');
     expect(row).toContain('esc to stop');
-    expect(row.trimEnd().endsWith('esc to stop')).toBe(true);
-    expect(lines[2]?.includes('esc to stop')).toBe(false);
+    expect(row.trimEnd()).toMatch(/esc to stop$/);
+    expect(lines[2]).not.toContain('esc to stop');
   });
 
   test('typed text keeps the reference glyph at column two and the text at column four', () => {
     const { editor } = editorHarness();
     editor.setText('hello world');
     const content = editor.render(60)[1] ?? '';
-    expect(strip(content).startsWith('  → hello world')).toBe(true);
+    expect(strip(content)).toMatch(/^ {2}→ hello world/);
     expect(strip(content).indexOf('hello world')).toBe(4);
-    expect(content.includes('Plan, search, build anything')).toBe(false);
+    expect(content).not.toContain('Plan, search, build anything');
   });
 
   test('continuation rows keep the reference indent and no glyph', () => {
     const { editor } = editorHarness();
-    (editor as unknown as { setTextInternal(text: string, reference: 'start' | 'end'): void }).setTextInternal('first\nsecond', 'start');
+    editor.addToHistory('first\nsecond');
+    editor.handleInput('\x1b[A');
     const rows = editor.render(60).map(strip);
-    expect(rows[1]?.startsWith('  → first')).toBe(true);
-    expect(rows[2]?.startsWith('    second')).toBe(true);
-    expect(rows[2]?.includes('→')).toBe(false);
+    expect(rows[1]).toMatch(/^ {2}→ first/);
+    expect(rows[2]).toMatch(/^ {4}second/);
+    expect(rows[2]).not.toContain('→');
   });
 
   test('wrapped input keeps the glyph and the reference marker inside the pane', () => {
@@ -111,9 +111,9 @@ describe('SkinStyleEditor layout', () => {
   test('scrolled input keeps its visible rows plain so the glyph is not read as a fresh prompt', () => {
     const { editor } = editorHarness({ rows: 20 });
     const text = Array.from({ length: 12 }, (_, index) => `line ${index}`).join('\n');
-    (editor as unknown as { setTextInternal(text: string, reference: 'start' | 'end'): void }).setTextInternal(text, 'end');
+    editor.setText(text);
     const lines = editor.render(60);
-    expect(strip(lines[0] ?? '').includes('↑'), 'the frame is scrolled above the first input row').toBe(true);
+    expect(strip(lines[0] ?? ''), 'the frame is scrolled above the first input row').toContain('↑');
     expect(lines.map(strip).some((line) => line.includes('→'))).toBe(false);
     expect(lines.every((line) => visibleWidth(line) === 60)).toBe(true);
   });
@@ -126,14 +126,14 @@ describe('SkinStyleEditor shell, scrolling', () => {
     // Pi repaints the editor border in its bash accent once the text starts with `!`.
     editor.borderColor = (text) => `X${text}`;
     const shellLine = editor.render(60)[0] ?? '';
-    expect(shellLine.startsWith(` ${'X'}`)).toBe(true);
-    expect(strip(shellLine).trim().startsWith('X')).toBe(true);
+    expect(shellLine).toMatch(/^ X/);
+    expect(strip(shellLine).trim()).toMatch(/^X/);
     expect(strip(shellLine)).toContain('▄');
-    expect(strip(editor.render(60)[1] ?? '').startsWith('  → !ls')).toBe(true);
+    expect(strip(editor.render(60)[1] ?? '')).toMatch(/^ {2}→ !ls/);
 
     editor.setText('plain');
     const idleLine = editor.render(60)[0] ?? '';
-    expect(idleLine.includes('X')).toBe(false);
+    expect(idleLine).not.toContain('X');
     expect(strip(idleLine).trim()).toBe('▄'.repeat(58));
   });
 
@@ -149,7 +149,8 @@ describe('SkinStyleEditor running state', () => {
   test('running editor keeps the hidden-line indicator in the bottom band', () => {
     const { editor, store } = editorHarness({ rows: 20 });
     const text = Array.from({ length: 12 }, (_, index) => `line ${index}`).join('\n');
-    (editor as unknown as { setTextInternal(text: string, reference: 'start' | 'end'): void }).setTextInternal(text, 'start');
+    editor.addToHistory(text);
+    editor.handleInput('\x1b[A');
 
     const bottom = (): string => {
       const lines = editor.render(60);
@@ -165,23 +166,30 @@ describe('SkinStyleEditor running state', () => {
     expect(visibleWidth(rendered[rendered.length - 1] ?? '')).toBe(60);
   });
 
-  test('inherits the pi input handler', () => {
-    expect(Object.hasOwn(SkinStyleEditor.prototype, 'handleInput')).toBe(false);
-    expect(SkinStyleEditor.prototype.handleInput).toBe(CustomEditor.prototype.handleInput);
+  test('accepts text through the Pi input handler', () => {
+    const { editor } = editorHarness();
+
+    editor.handleInput('hello');
+    editor.handleInput('\x1b[D');
+    editor.handleInput('!');
+
+    expect(editor.getText()).toBe('hell!o');
   });
 
-  test('fits every line into a narrow width', () => {
+  test('fits the running prompt into a narrow width', () => {
     const { editor, store } = editorHarness();
     store.setAgentRunning(1);
-    const lines = editor.render(20);
-    expect(lines.every((line) => visibleWidth(line) <= 20)).toBe(true);
+
+    const lines = editor.render(20).map(strip);
+
+    expect(lines).toEqual([' ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄ ', '  → Add a follow-…  ', ' ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ']);
   });
 
   test('unfocused editor omits the reference marker', () => {
     const { editor } = editorHarness();
     editor.focused = false;
     const content = editor.render(60)[1] ?? '';
-    expect(content.includes(CURSOR_MARKER)).toBe(false);
+    expect(content).not.toContain(CURSOR_MARKER);
     expect(strip(content)).toContain('→ Plan, search, build anything');
     expect(strip(content).indexOf('→')).toBe(2);
     expect(visibleWidth(content)).toBe(60);
@@ -200,8 +208,8 @@ describe('SkinStyleEditor narrow widths', () => {
   test('idle band is drawn in the composer fill role', () => {
     const { editor } = editorHarness();
     const lines = editor.render(60);
-    expect(lines[0]?.includes(`${ANSI.borderMuted}▄`)).toBe(true);
-    expect(lines[2]?.includes(`${ANSI.borderMuted}▀`)).toBe(true);
+    expect(lines[0]).toContain(`${ANSI.borderMuted}▄`);
+    expect(lines[2]).toContain(`${ANSI.borderMuted}▀`);
   });
 
   test('keeps the text column aligned with the padding Pi subtracts for mouse hits', () => {
@@ -245,8 +253,8 @@ describe('SkinStyleEditor row geometry', () => {
     const { editor } = editorHarness();
     const lines = editor.render(40).map(strip);
     const [top, bottom] = [lines[0] ?? '', lines[lines.length - 1] ?? ''];
-    expect(top.startsWith(' ')).toBe(true);
-    expect(top.endsWith(' ')).toBe(true);
+    expect(top).toMatch(/^ /);
+    expect(top).toMatch(/ $/);
     expect(top.trim()).toBe('▄'.repeat(38));
     expect(bottom.trim()).toBe('▀'.repeat(38));
     expect(bandText(lines, '▄').length).toBe(1);
@@ -263,7 +271,7 @@ describe('SkinStyleEditor row geometry', () => {
     const tui = { requestRender: () => {}, terminal: { rows: 40, columns: 120 } } as never;
     const editor = build(tui, { borderColor: (text: string) => text } as never, new KeybindingsManager(TUI_KEYBINDINGS as never) as never);
     store.setAgentRunning(1);
-    expect(editor.render(60)[1]?.includes('Add a follow-up')).toBe(true);
+    expect(editor.render(60)[1]).toContain('Add a follow-up');
     expect(synced).toBe(1);
     editor.render(60);
     expect(synced).toBe(2);

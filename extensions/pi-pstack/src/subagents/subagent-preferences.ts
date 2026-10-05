@@ -54,15 +54,15 @@ function record(value: unknown): Json {
 }
 
 function setEntry(settings: Json, agent: string, fields: Json | undefined): Json {
-  const subagents = record(settings.subagents);
-  const agents = Object.fromEntries(Object.entries(record(subagents.agents)).filter(([name]) => name !== agent));
-  const entry = fields === undefined ? undefined : { ...record(record(subagents.agents)[agent]), ...fields };
+  const subagents = record(settings['subagents']);
+  const agents = Object.fromEntries(Object.entries(record(subagents['agents'])).filter(([name]) => name !== agent));
+  const entry = fields === undefined ? undefined : { ...record(record(subagents['agents'])[agent]), ...fields };
   return { ...settings, subagents: { ...subagents, agents: entry === undefined ? agents : { ...agents, [agent]: entry } } };
 }
 
 function setDisabled(settings: Json, agent: string, disabled: boolean): Json {
-  const subagents = record(settings.subagents);
-  const current = Array.isArray(subagents.disabledSubagents) ? subagents.disabledSubagents.filter((name): name is string => typeof name === 'string') : [];
+  const subagents = record(settings['subagents']);
+  const current = Array.isArray(subagents['disabledSubagents']) ? subagents['disabledSubagents'].filter((name): name is string => typeof name === 'string') : [];
   const next = disabled ? [...new Set([...current, agent])] : current.filter((name) => name !== agent);
   return { ...settings, subagents: { ...subagents, disabledSubagents: next } };
 }
@@ -82,7 +82,7 @@ export function applyPreference(settings: Json, command: Exclude<PreferenceComma
     case 'enable':
       return setDisabled(settings, command.agent, false);
     case 'rubber-duck':
-      return { ...settings, builtInAgents: { ...record(settings.builtInAgents), rubberDuck: command.enabled } };
+      return { ...settings, builtInAgents: { ...record(settings['builtInAgents']), rubberDuck: command.enabled } };
     default: {
       const exhaustive: never = command;
       return exhaustive;

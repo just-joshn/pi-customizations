@@ -1,6 +1,8 @@
-import { expect, test } from 'bun:test';
+import './leak-preload.ts';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
+import { expect, test } from 'vitest';
 
 const root = new URL('../../', import.meta.url).pathname;
 const source = join(root, 'upstream/skills/poteto-mode/scripts');

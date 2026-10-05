@@ -9,6 +9,7 @@ import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { expect, onTestFinished, test } from 'vitest';
 import { openDetachedRpc } from '../scripts/detached-rpc-client.mjs';
 import { restartTimerService, timerCommand } from '../scripts/timer-client.mjs';
+import { expectDefined } from './support/expect-defined.ts';
 import { letTimersTick, occurrences } from './timer-clock.ts';
 
 async function owner(prompt = 'TIMER:survive', deferred = false) {
@@ -75,9 +76,9 @@ test('recovery resumes a dead root exclusively and preserves pending subscriptio
   await openDetachedRpc(receipt.rpcDirectory).close();
   await restartTimerService(directory);
   const result = await timerCommand(directory, { type: 'list' });
-  expect(result[0].subscriptionId).toBe(deferred.subscriptionId);
-  expect(result[0].sessionFile).toBe(receipt.sessionFile);
-  expect(result[0].rpcDirectory).not.toBe(receipt.rpcDirectory);
+  expect(expectDefined(result[0]).subscriptionId).toBe(deferred.subscriptionId);
+  expect(expectDefined(result[0]).sessionFile).toBe(receipt.sessionFile);
+  expect(expectDefined(result[0]).rpcDirectory).not.toBe(receipt.rpcDirectory);
   expect((await openDetachedRpc(receipt.rpcDirectory).info()).kind).toBe('exited');
 }, 15000);
 
@@ -189,7 +190,7 @@ test('a deferred first occurrence has a persistent root before its first model t
   await openDetachedRpc(receipt.rpcDirectory).close();
   await restartTimerService(directory);
   const result = await timerCommand(directory, { type: 'list' });
-  expect(result[0].sessionFile).toBe(receipt.sessionFile);
+  expect(expectDefined(result[0]).sessionFile).toBe(receipt.sessionFile);
   expect(await readFile(receipt.sessionFile, 'utf8')).not.toContain('DEFERRED_ROOT');
 }, 15000);
 

@@ -19,7 +19,7 @@ function executable(path: string): boolean {
 }
 
 function onPath(env: NodeJS.ProcessEnv): string | undefined {
-  return (env.PATH ?? '')
+  return (env['PATH'] ?? '')
     .split(delimiter)
     .filter(Boolean)
     .map((directory) => join(directory, 'pi'))
@@ -28,7 +28,7 @@ function onPath(env: NodeJS.ProcessEnv): string | undefined {
 
 /** The pi that is running this extension wins, so a remote child matches its parent's installation. */
 export function resolvePiCommand(env: NodeJS.ProcessEnv, argv1: string | undefined = process.argv[1], execPath: string = process.execPath): PiCommand | undefined {
-  const configured = env.PSTACK_PI_COMMAND?.trim();
+  const configured = env['PSTACK_PI_COMMAND']?.trim();
   if (configured) return launcher(configured, execPath);
   if (argv1 && scriptPattern.test(argv1) && existsSync(argv1)) return launcher(argv1, execPath);
   const found = onPath(env);

@@ -1,10 +1,14 @@
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { signalProcess } from '../src/process-signal.ts';
 import { descendants, killSurvivors } from '../src/shell-descendants.ts';
 import { ProcessGroups } from '../src/subagents/process-groups.ts';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function errno(code: string): NodeJS.ErrnoException {
   return Object.assign(new Error(`kill ${code}`), { code });
@@ -86,10 +90,12 @@ test('signalProcess propagates an Error that carries no code', () => {
 
 test('descendants walks the process tree below a live root', async () => {
   const child = spawn('sleep', ['30'], { stdio: 'ignore' });
+  const exited = once(child, 'exit');
   await once(child, 'spawn');
   try {
     expect(await descendants(process.pid)).toContain(child.pid);
   } finally {
     child.kill('SIGKILL');
+    await exited;
   }
 });

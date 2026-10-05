@@ -73,13 +73,16 @@ function describe(record: ShellRecord): string {
 }
 
 export class ShellRuntime {
+  private readonly pi: ExtensionAPI;
   private shells = new Map<string, Shell>();
   private readonly wakes: DeferredWakes;
   private adopted: readonly ShellRuntime[] = [];
   private owner: ShellRuntime | undefined;
   private idle: () => boolean = () => true;
   private endsWithFinalResponse = false;
-  constructor(private readonly pi: ExtensionAPI) {
+
+  constructor(pi: ExtensionAPI) {
+    this.pi = pi;
     this.wakes = new DeferredWakes(pi);
   }
 

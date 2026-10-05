@@ -10,22 +10,22 @@ function asObject(value: unknown): Record<string, unknown> | undefined {
 }
 
 function assistantMessage(record: RpcRecord): Record<string, unknown> | undefined {
-  const message = record.type === 'message_end' ? asObject(record.message) : undefined;
-  return message?.role === 'assistant' ? message : undefined;
+  const message = record.type === 'message_end' ? asObject(record['message']) : undefined;
+  return message?.['role'] === 'assistant' ? message : undefined;
 }
 
 export function foldTurn(state: TurnState, record: RpcRecord): TurnState {
   if (record.type === 'tool_execution_end') return { ...state, toolUses: state.toolUses + 1 };
   const message = assistantMessage(record);
-  if (message?.stopReason === 'aborted') return { ...state, aborted: true };
-  if (message?.stopReason === 'error') return { ...state, failure: typeof message.errorMessage === 'string' ? message.errorMessage : 'The model request failed.' };
+  if (message?.['stopReason'] === 'aborted') return { ...state, aborted: true };
+  if (message?.['stopReason'] === 'error') return { ...state, failure: typeof message['errorMessage'] === 'string' ? message['errorMessage'] : 'The model request failed.' };
   return state;
 }
 
 export function assistantText(record: RpcRecord): string | undefined {
-  const content = assistantMessage(record)?.content;
+  const content = assistantMessage(record)?.['content'];
   if (!Array.isArray(content)) return undefined;
-  const text = content.flatMap((block) => (asObject(block)?.type === 'text' ? [String(asObject(block)?.text ?? '')] : [])).join('\n');
+  const text = content.flatMap((block) => (asObject(block)?.['type'] === 'text' ? [String(asObject(block)?.['text'] ?? '')] : [])).join('\n');
   return text || undefined;
 }
 
@@ -34,11 +34,11 @@ export type SessionStats = Readonly<{ tokens?: Record<string, number>; cost?: nu
 export function usageFromStats(stats: SessionStats): NonNullable<TaskRecord['usage']> {
   const tokens = stats.tokens ?? {};
   return {
-    input: tokens.input ?? 0,
-    output: tokens.output ?? 0,
-    cacheRead: tokens.cacheRead ?? 0,
-    cacheWrite: tokens.cacheWrite ?? 0,
-    totalTokens: tokens.total ?? 0,
+    input: tokens['input'] ?? 0,
+    output: tokens['output'] ?? 0,
+    cacheRead: tokens['cacheRead'] ?? 0,
+    cacheWrite: tokens['cacheWrite'] ?? 0,
+    totalTokens: tokens['total'] ?? 0,
     cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: stats.cost ?? 0 },
   };
 }
@@ -53,6 +53,6 @@ export function settledPatch({ state, output, stopped, startedAt, stats }: TurnO
     output: text.slice(0, taskOutputLimit),
     toolUseCount: state.toolUses,
     durationMs: Date.now() - startedAt,
-    ...(stats ? { usage: usageFromStats(stats), totalTokens: stats.tokens?.total ?? 0 } : {}),
+    ...(stats ? { usage: usageFromStats(stats), totalTokens: stats.tokens?.['total'] ?? 0 } : {}),
   };
 }

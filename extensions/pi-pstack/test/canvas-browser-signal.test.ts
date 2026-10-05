@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 import { expect, test, vi } from 'vitest';
 import { packageRoot } from './session-fixture.ts';
+import { expectDefined } from './support/expect-defined.ts';
 
 const available =
   process.platform === 'darwin' &&
@@ -68,7 +69,7 @@ test.skipIf(!available).each(['SIGINT', 'SIGTERM'] as const)(
         },
         { timeout: 10000 },
       );
-      allocation = JSON.parse(output.split('\n')[0]);
+      allocation = JSON.parse(expectDefined(output.split('\n')[0]));
       if (!allocation) throw new Error('missing owned Chrome allocation');
       expect(alive(allocation.pid)).toBe(true);
       expect(child.kill(signal)).toBe(true);

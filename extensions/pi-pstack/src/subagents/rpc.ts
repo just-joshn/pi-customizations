@@ -109,7 +109,11 @@ const agentSummary = (agent: AgentDefinition) => ({ name: agent.name, displayNam
 
 /** The session.tasks, session.tools, session.agent and session.workflow surface of the report, served over the extension event bus. */
 export class SubagentRpc {
-  constructor(private readonly parts: Parts) {}
+  private readonly parts: Parts;
+
+  constructor(parts: Parts) {
+    this.parts = parts;
+  }
 
   private ctx(): ExtensionContext {
     const ctx = this.parts.context();

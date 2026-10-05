@@ -1,5 +1,5 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-
+import './leak-preload.ts';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { baseEnv, cleanDirectories, git, installGt, makeDirectory, makeRepo, runCli, stackLog } from './orch-fixtures.ts';
 
 const cli = (store: string, ...args: string[]) => runCli(['--store', store, ...args]);
@@ -9,7 +9,7 @@ const ok = (store: string, ...args: string[]) => {
   return result.stdout;
 };
 
-afterAll(cleanDirectories);
+afterEach(cleanDirectories);
 
 let seeded = '';
 let empty = '';
@@ -35,7 +35,7 @@ async function seed(): Promise<void> {
   ({ store: seeded, pushed: pushedLines } = await seedStore());
 }
 
-beforeAll(seed, 120_000);
+beforeEach(seed, 120_000);
 
 describe('orch CLI compact output prints exactly the documented lines', () => {
   test.each([
@@ -163,7 +163,7 @@ describe('orch CLI frontier set environment', () => {
     const gt = await installGt(directory, repo, { logShort: stackLog('stack/a'), info: { 'stack/a': 'stack/a\nPR #31 (Needs approvals) change' } });
     const store = await makeDirectory();
     ok(store, 'init');
-    const env = baseEnv({ ORCH_REPO: repo, ORCH_STORE: store, PATH: `${gt}:${process.env.PATH}` });
+    const env = baseEnv({ ORCH_REPO: repo, ORCH_STORE: store, PATH: `${gt}:${process.env['PATH']}` });
     const result = runCli(['frontier', 'set'], { env });
     expect({ code: result.code, stderr: result.stderr }).toEqual({ code: 0, stderr: '' });
     expect(result.stdout).toBe(`generation=1 prs=stack/a#31@${sha}:OPEN lowest-unmerged=31\n`);
@@ -176,4 +176,18 @@ describe('orch CLI frontier set environment', () => {
     expect(result.code).toBe(1);
     expect(result.stderr).toContain('set --repo <dir> or ORCH_REPO');
   });
+});
+
+test.for([
+  { name: 'unit add', setup: [], args: ['unit', 'add', 'w1', '--track', 'tr'], expected: 'w1\ttr\tpending\t\t\t\t\n' },
+  { name: 'unit set', setup: [['unit', 'add', 'w1', '--track', 'tr']], args: ['unit', 'set', 'w1', '--state', 'building', '--branch', 'b', '--sha', 's1'], expected: 'w1\ttr\tbuilding\tb\t\ts1\t\n' },
+  { name: 'ledger record', setup: [], args: ['ledger', 'record', '5', 'deadbeef', 'unit-test-verified', '--evidence', 'ev'], expected: '5\tdeadbeef\tunit-test-verified\n' },
+  { name: 'gate park', setup: [], args: ['gate', 'park', 'gx', '--question', 'q', '--options', 'o', '--default', 'd'], expected: 'gx\topen\n' },
+  { name: 'gate resolve', setup: [['gate', 'park', 'gx', '--question', 'q', '--options', 'o', '--default', 'd']], args: ['gate', 'resolve', 'gx', '--answer', 'yes'], expected: 'gx\tresolved\tyes\n' },
+  { name: 'standing add', setup: [], args: ['standing', 'add', 'never force push'], expected: '1. never force push\n' },
+])('$name prints a compact line', async ({ setup, args, expected }) => {
+  const store = await makeDirectory();
+  ok(store, 'init');
+  for (const command of setup) ok(store, ...command);
+  expect(ok(store, ...args)).toBe(expected);
 });

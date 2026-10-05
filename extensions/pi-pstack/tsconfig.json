@@ -1,14 +1,5 @@
 {
-  "compilerOptions": {
-    "target": "ES2023",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "allowImportingTsExtensions": true,
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "types": ["node"]
-  },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
-  "exclude": ["test/helpers"]
+  "extends": "./tsconfig.policy.json",
+  "include": ["src/**/*.ts", "test/**/*.ts", "scripts/**/*.ts", "scripts/**/*.mts", "host/**/*.ts", "*.ts"],
+  "exclude": ["test/helpers", "node_modules", "dist", "build", "coverage"]
 }

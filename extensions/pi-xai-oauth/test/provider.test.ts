@@ -1,8 +1,9 @@
 import { createModels, getSupportedThinkingLevels, type Model, type Provider } from '@earendil-works/pi-ai';
 import type { ExtensionVirtualModel } from '@earendil-works/pi-coding-agent';
-import { expect, test } from 'vitest';
+import { expect } from 'vitest';
 import { BASELINE, listPrices, toPiModel } from '../src/catalog.ts';
 import extension, { createGrokBuildProvider } from '../src/index.ts';
+import { test } from './network-guard.ts';
 import { builtinXai } from './support/builtin-xai.ts';
 import { contextFinding, onlyProvider, register } from './support/fake-pi.ts';
 

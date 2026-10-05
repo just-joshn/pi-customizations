@@ -1,10 +1,12 @@
-import { expect, test } from 'bun:test';
+import './leak-preload.ts';
+import { expect, test } from 'vitest';
+import { runProcess } from './watch-pr-process.ts';
 
 const scripts = new URL('../../skills/poteto-mode/scripts', import.meta.url).pathname;
 const tsc = `${scripts}/node_modules/.bin/tsc`;
 
-function run(command: string[]) {
-  const result = Bun.spawnSync(command, { cwd: scripts });
+function run(command: [string, ...string[]]) {
+  const result = runProcess(command, { cwd: scripts });
   return { code: result.exitCode, output: `${result.stdout}${result.stderr}` };
 }
 
@@ -18,4 +20,10 @@ test('strict tsc passes over bootstrap.ts, orch.ts, and store.ts, which no tscon
   const result = run([tsc, ...flags, 'bootstrap.ts', 'orch/orch.ts', 'orch/store.ts']);
   expect(result.output.trim()).toBe('');
   expect(result.code).toBe(0);
+});
+
+test('the full helper project passes its shared compiler policy', () => {
+  const config = new URL('./tsconfig.json', import.meta.url).pathname;
+  const result = run([tsc, '--project', config]);
+  expect(result).toEqual({ code: 0, output: '' });
 });

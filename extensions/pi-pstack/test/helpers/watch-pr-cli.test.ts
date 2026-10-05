@@ -1,5 +1,6 @@
-import { afterEach, expect, test } from 'bun:test';
+import './leak-preload.ts';
 
+import { afterEach, expect, test } from 'vitest';
 import { type CliRuntime, main, parseArgs } from '../../skills/poteto-mode/scripts/watch-pr/cli.ts';
 import { type FakeReaderOptions, failedCheck, fakeReader, pendingCheck } from '../../skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts';
 import { WatcherQueryError } from '../../skills/poteto-mode/scripts/watch-pr/github.ts';
@@ -7,6 +8,7 @@ import { readSnapshot } from '../../skills/poteto-mode/scripts/watch-pr/policy.t
 import { renderStatusTable } from '../../skills/poteto-mode/scripts/watch-pr/render.ts';
 import type { GitHubReader, PrContext, ReviewThread } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
 import { parsePrNumber } from '../../skills/poteto-mode/scripts/watch-pr/types.ts';
+import { expectDefined } from '../support/expect-defined.ts';
 import { removeScratch } from './scratch.ts';
 
 afterEach(removeScratch);
@@ -61,7 +63,7 @@ async function run(argv: string[], reader: GitHubReader): Promise<Run> {
     : [];
   return { code, lines, text, sleeps };
 }
-const last = (r: Run) => r.lines[r.lines.length - 1];
+const last = (r: Run) => expectDefined(r.lines.at(-1));
 const thread = (id: string, isBugbot: boolean): ReviewThread => ({ id, firstComment: null, isBugbot, bugbotReviewPasses: isBugbot ? 1 : 0 });
 
 test('parseArgs --stack alone selects stack mode', () => {
@@ -117,7 +119,7 @@ test('main prints the status table for --pretty --status-only', async () => {
 test('main exits 0 on STATUS with a conflicting row because status-only never blocks', async () => {
   const r = await run([...PR, '--status-only'], fakeReader({ facts: { mergeable: 'CONFLICTING' } }));
   expect(r.code).toBe(0);
-  expect(last(r).rows[0].facts.mergeable).toBe('CONFLICTING');
+  expect(expectDefined(last(r).rows[0]).facts.mergeable).toBe('CONFLICTING');
 });
 
 test('main exits 0 on READY scope single for a clean open PR', async () => {
@@ -251,7 +253,7 @@ test('main --queued-stack without --status-only emits QUEUE, STATUS whole-stack-
   const r = await run(['--queued-stack', '--stack-prs', '1'], fakeReader({ facts: MERGED }));
   expect(r.code).toBe(0);
   expect(r.lines.map((line) => line.kind)).toEqual(['QUEUE', 'STATUS', 'COMPLETE']);
-  expect(r.lines[1].reason).toBe('whole-stack-sweep');
+  expect(expectDefined(r.lines[1]).reason).toBe('whole-stack-sweep');
 });
 
 const mergeCells: readonly [string, FakeReaderOptions['facts'], string][] = [
@@ -262,7 +264,7 @@ const mergeCells: readonly [string, FakeReaderOptions['facts'], string][] = [
 ];
 for (const [label, facts, cell] of mergeCells) {
   test(`renderStatusTable merge cell precedence: ${label}`, async () => {
-    const row = await readSnapshot({ reader: fakeReader({ facts }), context: { owner: 'o', repo: 'r', number: parsePrNumber(1) }, pendingHistory: 'include', allowDraft: false });
+    const row = await readSnapshot({ reader: fakeReader(facts === undefined ? {} : { facts }), context: { owner: 'o', repo: 'r', number: parsePrNumber(1) }, pendingHistory: 'include', allowDraft: false });
     expect(renderStatusTable([row])).toContain(`| ${cell} |`);
   });
 }

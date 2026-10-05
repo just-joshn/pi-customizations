@@ -2,8 +2,10 @@
 
 Pi package `extensions/pi-one-dark-pro-theme` (pi 1.0.0) reproduces the Visual Studio Code theme
 **One Dark Pro Flat** as a Pi theme. Every value in `themes/one-dark-pro-flat.json` is computed
-from the pinned file in `upstream/`, so the theme cannot drift from the source without failing
-`bun run check:parity`.
+from the pinned source in `upstream/`, so the theme cannot drift from the source without failing
+`bun run check:parity`. `upstream/provenance.json` preserves the authentic original bytes.
+`upstream/OneDark-Pro-flat.json` is their shared Biome-formatted artifact.
+The checker verifies both the unchanged original SHA-256 and the exact policy transform.
 
 ## What a theme file can express
 

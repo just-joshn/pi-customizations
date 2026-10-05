@@ -9,6 +9,7 @@ import { promisify } from 'node:util';
 import { expect, onTestFinished, test } from 'vitest';
 import { disableRoutine, durableRecord, inspectRoutine, prepareRoutine, startRoutine as startNativeRoutine } from '../scripts/routine-client.mjs';
 import { relayEvent } from '../scripts/routine-relay.mjs';
+import { expectDefined } from './support/expect-defined.ts';
 
 const run = promisify(execFile);
 async function ackStatusByDeadline(response: Promise<Response>): Promise<number | 'pending'> {
@@ -138,7 +139,7 @@ test('an isolated failed relay wakes an idle real Pi routine once and stops drai
   expect(transcript.split('<webhook_event>').length - 1).toBe(1);
   expect(transcript).toContain('idle-fallback');
   expect(transcript).not.toContain(f.key);
-  const [eventFile] = await readdir(join(f.draft.directory, 'events'));
+  const eventFile = expectDefined((await readdir(join(f.draft.directory, 'events')))[0]);
   const delivered = JSON.parse(await readFile(join(f.draft.directory, 'events', eventFile), 'utf8'));
   await durableRecord(join(f.draft.directory, 'fallback', eventFile), { deliveryId: delivered.deliveryId, envelope: delivered.envelope });
   await expect.poll(() => readdir(join(f.draft.directory, 'fallback'))).toEqual([]);
@@ -178,11 +179,12 @@ test('HTTP acknowledgement waits for native wake and duplicate acknowledgement d
   expect(native.filter((record) => record.type === 'agent_start')).toHaveLength(1);
   expect(native.filter((record) => record.type === 'agent_settled')).toHaveLength(0);
   expect(native.filter((record) => record.command === 'prompt' && record.type === 'response')).toEqual([expect.objectContaining({ success: true, data: { disposition: 'started' } })]);
-  if (process.env.PSTACK_ROUTINE_ACK_EVIDENCE) {
+  const evidenceDirectory = process.env['PSTACK_ROUTINE_ACK_EVIDENCE'];
+  if (evidenceDirectory) {
     const lifecycle = native.filter((record) => record.type === 'agent_start' || record.type === 'agent_settled' || (record.type === 'response' && record.command === 'prompt'));
-    await writeFile(join(process.env.PSTACK_ROUTINE_ACK_EVIDENCE, 'routine-ack-native-events.jsonl'), `${lifecycle.map((record) => JSON.stringify(record)).join('\n')}\n`);
+    await writeFile(join(evidenceDirectory, 'routine-ack-native-events.jsonl'), `${lifecycle.map((record) => JSON.stringify(record)).join('\n')}\n`);
     await writeFile(
-      join(process.env.PSTACK_ROUTINE_ACK_EVIDENCE, 'routine-ack-native-proof.json'),
+      join(evidenceDirectory, 'routine-ack-native-proof.json'),
       JSON.stringify({ firstStatus: firstResponse.status, duplicateAcknowledgement, eventStateAtAcknowledgement: event.state, wokeAt: event.wokeAt, modelCompletionGate: 'closed', lifecycle }, null, 2),
     );
   }
@@ -196,7 +198,7 @@ test('a busy wake deadline spools the same ID and fallback plus duplicate-before
   expect((await ackPost(f, receipt.url, 'hold-model')).status).toBe(200);
   await ackMarker(f, 'ack-stream-hold-model');
   expect(await relayEvent(f.draft.directory, { action: 'busy' })).toEqual({ accepted: false, spooled: true });
-  const [fallback] = await readdir(join(f.draft.directory, 'fallback'));
+  const fallback = expectDefined((await readdir(join(f.draft.directory, 'fallback')))[0]);
   const spooled = JSON.parse(await readFile(join(f.draft.directory, 'fallback', fallback), 'utf8'));
   expect(await ackEvent(f, spooled.deliveryId)).toMatchObject({ state: 'accepted', envelope: { body: spooled.envelope.body, body_digest: spooled.envelope.body_digest, headers: spooled.envelope.headers } });
   const duplicate = ackPost(f, receipt.url, 'busy', spooled.deliveryId);
@@ -288,5 +290,5 @@ test('the UI relay spools exactly the original object after a failed single atte
   expect(result).toMatchObject({ accepted: false, spooled: true });
   const files = await readdir(join(f.draft.directory, 'fallback'));
   expect(files).toHaveLength(1);
-  expect(JSON.parse(await readFile(join(f.draft.directory, 'fallback', files[0]), 'utf8')).envelope.body).toBe(JSON.stringify(body));
+  expect(JSON.parse(await readFile(join(f.draft.directory, 'fallback', expectDefined(files[0])), 'utf8')).envelope.body).toBe(JSON.stringify(body));
 });

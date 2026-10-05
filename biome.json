@@ -8,16 +8,14 @@
   "files": {
     "includes": [
       "**",
-      "!extensions/pi-antigravity-oauth/src/pi-ai",
-      "!extensions/pi-pstack/upstream",
-      "!extensions/pi-pstack/upstream-team-kit",
-      "!extensions/pi-pstack/skills",
-      "!extensions/pi-pstack/docs",
       "!!**/dist",
       "!!**/build",
       "!!**/coverage",
-      "!!**/upstream",
-      "!!**/upstream-team-kit"
+      "!!extensions/pi-pstack/upstream",
+      "!!extensions/pi-pstack/upstream-team-kit",
+      "!!extensions/pi-pstack/skills",
+      "!!extensions/pi-pstack/docs/resource-map.json",
+      "!!extensions/pi-pstack/docs/parity/clauses"
     ]
   },
   "formatter": {
@@ -32,24 +30,6 @@
       "semicolons": "always"
     }
   },
-  "overrides": [
-    {
-      "includes": ["**/personas.ts"],
-      "javascript": {
-        "formatter": {
-          "quoteStyle": "single"
-        }
-      }
-    },
-    {
-      "includes": ["**/models.ts"],
-      "javascript": {
-        "formatter": {
-          "quoteStyle": "double"
-        }
-      }
-    }
-  ],
   "linter": {
     "enabled": true,
     "domains": {

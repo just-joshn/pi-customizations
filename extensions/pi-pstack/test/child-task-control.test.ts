@@ -72,7 +72,7 @@ test('stopping a running turn records a remote cancel', async ({ workspace }) =>
   expect(stopped).toMatchObject({ status: 'interrupted', output: '', abort: { reason: 'remote-cancel', telemetry: 'remote_cancel', userInitiated: true } });
   expect(await turn).toBe(stopped);
   expect(host.settlements).toEqual([{ record: stopped, output: '', send: false, parentIdle: true }]);
-  expect((await loggedCommands(workspace)).map((command) => command.type)).toContain('abort');
+  expect((await loggedCommands(workspace)).map((command) => command['type'])).toContain('abort');
   expect([task.alive, closed]).toEqual([false, ['pane']]);
 });
 

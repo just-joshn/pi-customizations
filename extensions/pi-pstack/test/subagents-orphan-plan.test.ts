@@ -10,6 +10,11 @@ function record(id: string, extra: Partial<TaskRecord> = {}): TaskRecord {
   return { id, persona: 'general-purpose', cwd: '/w', readonly: false, sessionFile: `/s/agent-${id}.jsonl`, outputFile: `/s/${id}.output.txt`, status: 'running', output: '', description: `job ${id}`, requestShape: 'background', ...extra };
 }
 
+function legacyRecord(id: string): TaskRecord {
+  const { requestShape: _requestShape, ...legacy } = record(id);
+  return legacy;
+}
+
 const entry = (data: TaskRecord) => ({ type: 'custom', customType: 'pstack-task', data });
 
 test('[C110] only background tasks whose latest record is running are orphans, and repeat launches mark a redispatch', () => {
@@ -18,7 +23,7 @@ test('[C110] only background tasks whose latest record is running are orphans, a
     entry(record('done')),
     entry(record('done', { status: 'settled' })),
     entry(record('fg', { requestShape: 'foreground' })),
-    entry(record('legacy', { requestShape: undefined })),
+    entry(legacyRecord('legacy')),
     entry(record('again')),
     entry(record('again', { status: 'settled' })),
     entry(record('again')),

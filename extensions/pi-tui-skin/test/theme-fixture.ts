@@ -7,10 +7,10 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { Theme } from '@earendil-works/pi-coding-agent';
+import { Theme, type ThemeToken } from '@earendil-works/pi-coding-agent';
 
 type ThemeDocument = { vars: Record<string, string | number>; colors: Record<string, string | number> };
-type ResolvedColors = Record<string, string | number>;
+type ResolvedColors = Readonly<Record<string, string | number>>;
 
 function resolveColors(): ResolvedColors {
   const document: ThemeDocument = JSON.parse(readFileSync(fileURLToPath(new URL('../themes/tui-skin.json', import.meta.url)), 'utf8'));
@@ -18,64 +18,70 @@ function resolveColors(): ResolvedColors {
   return Object.fromEntries(Object.entries(document.colors).map(([role, value]) => [role, resolve(value)]));
 }
 
+function requiredColor(resolved: ResolvedColors, role: ThemeToken): string | number {
+  const value = resolved[role];
+  if (value === undefined) throw new Error(`Shipped theme is missing color ${role}`);
+  return value;
+}
+
 function foregroundColors(resolved: ResolvedColors): ConstructorParameters<typeof Theme>[0] {
   return {
-    accent: resolved.accent,
-    border: resolved.border,
-    borderAccent: resolved.borderAccent,
-    borderMuted: resolved.borderMuted,
-    success: resolved.success,
-    error: resolved.error,
-    warning: resolved.warning,
-    muted: resolved.muted,
-    dim: resolved.dim,
-    text: resolved.text,
-    thinkingText: resolved.thinkingText,
-    userMessageText: resolved.userMessageText,
-    customMessageText: resolved.customMessageText,
-    customMessageLabel: resolved.customMessageLabel,
-    toolTitle: resolved.toolTitle,
-    toolOutput: resolved.toolOutput,
-    mdHeading: resolved.mdHeading,
-    mdLink: resolved.mdLink,
-    mdLinkUrl: resolved.mdLinkUrl,
-    mdCode: resolved.mdCode,
-    mdCodeBlock: resolved.mdCodeBlock,
-    mdCodeBlockBorder: resolved.mdCodeBlockBorder,
-    mdQuote: resolved.mdQuote,
-    mdQuoteBorder: resolved.mdQuoteBorder,
-    mdHr: resolved.mdHr,
-    mdListBullet: resolved.mdListBullet,
-    toolDiffAdded: resolved.toolDiffAdded,
-    toolDiffRemoved: resolved.toolDiffRemoved,
-    toolDiffContext: resolved.toolDiffContext,
-    syntaxComment: resolved.syntaxComment,
-    syntaxKeyword: resolved.syntaxKeyword,
-    syntaxFunction: resolved.syntaxFunction,
-    syntaxVariable: resolved.syntaxVariable,
-    syntaxString: resolved.syntaxString,
-    syntaxNumber: resolved.syntaxNumber,
-    syntaxType: resolved.syntaxType,
-    syntaxOperator: resolved.syntaxOperator,
-    syntaxPunctuation: resolved.syntaxPunctuation,
-    thinkingOff: resolved.thinkingOff,
-    thinkingMinimal: resolved.thinkingMinimal,
-    thinkingLow: resolved.thinkingLow,
-    thinkingMedium: resolved.thinkingMedium,
-    thinkingHigh: resolved.thinkingHigh,
-    thinkingXhigh: resolved.thinkingXhigh,
-    bashMode: resolved.bashMode,
+    accent: requiredColor(resolved, 'accent'),
+    border: requiredColor(resolved, 'border'),
+    borderAccent: requiredColor(resolved, 'borderAccent'),
+    borderMuted: requiredColor(resolved, 'borderMuted'),
+    success: requiredColor(resolved, 'success'),
+    error: requiredColor(resolved, 'error'),
+    warning: requiredColor(resolved, 'warning'),
+    muted: requiredColor(resolved, 'muted'),
+    dim: requiredColor(resolved, 'dim'),
+    text: requiredColor(resolved, 'text'),
+    thinkingText: requiredColor(resolved, 'thinkingText'),
+    userMessageText: requiredColor(resolved, 'userMessageText'),
+    customMessageText: requiredColor(resolved, 'customMessageText'),
+    customMessageLabel: requiredColor(resolved, 'customMessageLabel'),
+    toolTitle: requiredColor(resolved, 'toolTitle'),
+    toolOutput: requiredColor(resolved, 'toolOutput'),
+    mdHeading: requiredColor(resolved, 'mdHeading'),
+    mdLink: requiredColor(resolved, 'mdLink'),
+    mdLinkUrl: requiredColor(resolved, 'mdLinkUrl'),
+    mdCode: requiredColor(resolved, 'mdCode'),
+    mdCodeBlock: requiredColor(resolved, 'mdCodeBlock'),
+    mdCodeBlockBorder: requiredColor(resolved, 'mdCodeBlockBorder'),
+    mdQuote: requiredColor(resolved, 'mdQuote'),
+    mdQuoteBorder: requiredColor(resolved, 'mdQuoteBorder'),
+    mdHr: requiredColor(resolved, 'mdHr'),
+    mdListBullet: requiredColor(resolved, 'mdListBullet'),
+    toolDiffAdded: requiredColor(resolved, 'toolDiffAdded'),
+    toolDiffRemoved: requiredColor(resolved, 'toolDiffRemoved'),
+    toolDiffContext: requiredColor(resolved, 'toolDiffContext'),
+    syntaxComment: requiredColor(resolved, 'syntaxComment'),
+    syntaxKeyword: requiredColor(resolved, 'syntaxKeyword'),
+    syntaxFunction: requiredColor(resolved, 'syntaxFunction'),
+    syntaxVariable: requiredColor(resolved, 'syntaxVariable'),
+    syntaxString: requiredColor(resolved, 'syntaxString'),
+    syntaxNumber: requiredColor(resolved, 'syntaxNumber'),
+    syntaxType: requiredColor(resolved, 'syntaxType'),
+    syntaxOperator: requiredColor(resolved, 'syntaxOperator'),
+    syntaxPunctuation: requiredColor(resolved, 'syntaxPunctuation'),
+    thinkingOff: requiredColor(resolved, 'thinkingOff'),
+    thinkingMinimal: requiredColor(resolved, 'thinkingMinimal'),
+    thinkingLow: requiredColor(resolved, 'thinkingLow'),
+    thinkingMedium: requiredColor(resolved, 'thinkingMedium'),
+    thinkingHigh: requiredColor(resolved, 'thinkingHigh'),
+    thinkingXhigh: requiredColor(resolved, 'thinkingXhigh'),
+    bashMode: requiredColor(resolved, 'bashMode'),
   };
 }
 
 function backgroundColors(resolved: ResolvedColors): ConstructorParameters<typeof Theme>[1] {
   return {
-    selectedBg: resolved.selectedBg,
-    userMessageBg: resolved.userMessageBg,
-    customMessageBg: resolved.customMessageBg,
-    toolPendingBg: resolved.toolPendingBg,
-    toolSuccessBg: resolved.toolSuccessBg,
-    toolErrorBg: resolved.toolErrorBg,
+    selectedBg: requiredColor(resolved, 'selectedBg'),
+    userMessageBg: requiredColor(resolved, 'userMessageBg'),
+    customMessageBg: requiredColor(resolved, 'customMessageBg'),
+    toolPendingBg: requiredColor(resolved, 'toolPendingBg'),
+    toolSuccessBg: requiredColor(resolved, 'toolSuccessBg'),
+    toolErrorBg: requiredColor(resolved, 'toolErrorBg'),
   };
 }
 

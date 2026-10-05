@@ -32,7 +32,7 @@ function entriesOf(cwd: string): readonly { name: string; directory: boolean }[]
 }
 
 function onPath(binary: string): boolean {
-  return (process.env.PATH ?? '').split(delimiter).some((directory) => {
+  return (process.env['PATH'] ?? '').split(delimiter).some((directory) => {
     try {
       accessSync(join(directory, binary), constants.X_OK);
       return true;

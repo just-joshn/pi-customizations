@@ -24,8 +24,8 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 async function loadSkill(name: string) {
   const path = join(root, 'skills', name, 'SKILL.md');
   const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(await readFile(path, 'utf8'));
-  if (typeof frontmatter.description !== 'string') throw new Error(`Missing description in ${path}`);
-  return { path, body, description: frontmatter.description };
+  if (typeof frontmatter['description'] !== 'string') throw new Error(`Missing description in ${path}`);
+  return { path, body, description: frontmatter['description'] };
 }
 
 async function testedHostVersion() {
@@ -39,16 +39,16 @@ async function listPlaybooks(dir: string) {
 
 async function loadModeSource() {
   const { frontmatter } = parseFrontmatter<Record<string, unknown>>(await readFile(join(root, 'upstream/skills/poteto-mode/SKILL.md'), 'utf8'));
-  if (typeof frontmatter.reminder !== 'string' || typeof frontmatter.name !== 'string') throw new Error('Missing poteto-mode name or reminder in the upstream source.');
+  if (typeof frontmatter['reminder'] !== 'string' || typeof frontmatter['name'] !== 'string') throw new Error('Missing poteto-mode name or reminder in the upstream source.');
   const text = (value: unknown) => (typeof value === 'string' ? value : undefined);
-  return { reminder: frontmatter.reminder, badge: { name: frontmatter.name, icon: text(frontmatter.icon), color: text(frontmatter.color) } };
+  return { reminder: frontmatter['reminder'], badge: { name: frontmatter['name'], icon: text(frontmatter['icon']), color: text(frontmatter['color']) } };
 }
 
 export default async function pstack(pi: ExtensionAPI) {
   const [[mode, setup], { reminder, badge }, catalog, testedVersion] = await Promise.all([
     Promise.all(['poteto-mode', 'setup-pstack'].map(loadSkill)),
     loadModeSource(),
-    skillCatalog(root, process.env.PI_PSTACK_WORKER_OWNER ? 'cloud' : 'local'),
+    skillCatalog(root, process.env['PI_PSTACK_WORKER_OWNER'] ? 'cloud' : 'local'),
     testedHostVersion(),
   ]);
   if (!mode || !setup) throw new Error('Missing pstack resource. Run bun run generate.');
@@ -70,12 +70,13 @@ export default async function pstack(pi: ExtensionAPI) {
   pi.on('session_tree', (_event, ctx) => store.restore(ctx));
   pi.on('before_agent_start', async (event, ctx) => {
     const state = store.read();
-    event.systemPromptOptions.sections.pstack_host = hostInstructions(root, ctx, await readModelRule(ctx.cwd), catalog);
-    if (state.enabled) event.systemPromptOptions.sections.pstack_mode = `${reminder}\n\nReferences are relative to ${dirname(mode.path)}.\n\n${mode.body}`;
-    else delete event.systemPromptOptions.sections.pstack_mode;
-    if (state.todos.length) event.systemPromptOptions.sections.pstack_todos = JSON.stringify(state.todos);
-    else delete event.systemPromptOptions.sections.pstack_todos;
+    event.systemPromptOptions.sections['pstack_host'] = hostInstructions(root, ctx, await readModelRule(ctx.cwd), catalog);
+    if (state.enabled) event.systemPromptOptions.sections['pstack_mode'] = `${reminder}\n\nReferences are relative to ${dirname(mode.path)}.\n\n${mode.body}`;
+    else delete event.systemPromptOptions.sections['pstack_mode'];
+    if (state.todos.length) event.systemPromptOptions.sections['pstack_todos'] = JSON.stringify(state.todos);
+    else delete event.systemPromptOptions.sections['pstack_todos'];
     if (state.enabled && usesAnthropicMessages(ctx.model)) return { message: { customType: FIRST_ACTION_RULE_TYPE, content: rule, display: false } };
+    return undefined;
   });
   registerStateTools(pi, store);
   registerQuestions(pi);

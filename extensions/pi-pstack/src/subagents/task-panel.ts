@@ -17,22 +17,19 @@ function statusLineCommand(settings: object): string | undefined {
 }
 
 class TaskPanel {
+  private readonly registry: Registry;
   private ctx: ExtensionContext | undefined;
   private decorations: Decorations = {};
   private readonly dismissed = new Set<string>();
   readonly poller: StatusLinePoller;
 
-  constructor(
-    private readonly registry: Registry,
-    log: (message: string) => void,
-    env: NodeJS.ProcessEnv,
-    settings: () => object,
-  ) {
+  constructor(registry: Registry, log: (message: string) => void, env: NodeJS.ProcessEnv, settings: () => object) {
+    this.registry = registry;
     this.poller = new StatusLinePoller({
       tasks: () => this.tasks(),
       command: () => Promise.resolve(this.ctx ? statusLineCommand(settings()) : undefined),
       trusted: () => this.ctx?.isProjectTrusted() ?? false,
-      enabled: () => !env.CLAUDE_CODE_SIMPLE,
+      enabled: () => !env['CLAUDE_CODE_SIMPLE'],
       columns: () => process.stdout.columns ?? 80,
       base: () => this.hookBase(),
       run: runShellCommand,

@@ -23,9 +23,12 @@ type Launch = Readonly<{ id: string; params: TaskParameters; prior: TaskRecord |
 
 /** Tasks that run in a detached Pi root, either on a remote VM or beside this session. Records live in WorkerRuntime. */
 export class CloudTasks {
+  private readonly host: CloudHost;
   private workers = new Map<string, CloudWorker>();
 
-  constructor(private readonly host: CloudHost) {}
+  constructor(host: CloudHost) {
+    this.host = host;
+  }
 
   has(id: string): boolean {
     return this.workers.has(id);

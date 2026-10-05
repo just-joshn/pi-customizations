@@ -23,9 +23,9 @@ test('a background task starts at once and read_agent waits for the idle turn', 
   const { call, close } = await workerFixture();
   try {
     const started = await call('task', { agent_type: 'general-purpose', name: 'alpha', description: 'probe', prompt: 'WAIT hello', mode: 'background' });
-    const id = String(detailsOf(started).agent_id);
+    const id = String(detailsOf(started)['agent_id']);
     expect(textOf(started)).toContain(`Agent started in background with agent_id: ${id}. You'll be notified when it completes.`);
-    expect(detailsOf(started).detailedContent).toBe(`Prompt to general-purpose agent (${id})\n\nWAIT hello`);
+    expect(detailsOf(started)['detailedContent']).toBe(`Prompt to general-purpose agent (${id})\n\nWAIT hello`);
     const read = await call('read_agent', { agent_id: id, wait: true, timeout: 30 });
     expect(textOf(read)).toMatch(/^Agent is idle \(waiting for messages\)\.\nagent_id: .+\nagent_type: general-purpose\nstatus: idle\ndescription: probe\nelapsed: \d+s\ntotal_turns: 1\n\n\[Turn 0\]\nusers=1$/);
   } finally {
@@ -37,7 +37,7 @@ test('write_agent resumes an idle background agent for a second turn', async () 
   const { call, close, dir } = await workerFixture();
   try {
     const started = await call('task', { agent_type: 'general-purpose', name: 'beta', description: 'probe', prompt: 'one', mode: 'background' });
-    const id = String(detailsOf(started).agent_id);
+    const id = String(detailsOf(started)['agent_id']);
     await call('read_agent', { agent_id: id, wait: true });
     const sent = await call('write_agent', { agent_id: id, message: 'two' });
     expect(textOf(sent)).toContain(`Message sent to agent ${id}.`);
@@ -55,7 +55,7 @@ test('list_agents reports started agents with their status', async () => {
   const { call, close } = await workerFixture();
   try {
     const started = await call('task', { agent_type: 'general-purpose', name: 'gamma', description: 'probe', prompt: 'one', mode: 'background' });
-    const id = String(detailsOf(started).agent_id);
+    const id = String(detailsOf(started)['agent_id']);
     await call('read_agent', { agent_id: id, wait: true });
     expect(textOf(await call('list_agents', {}))).toBe(`agent_id: ${id} | agent_type: general-purpose | name: gamma | mode: background | status: idle | description: probe`);
   } finally {

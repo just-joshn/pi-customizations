@@ -13,12 +13,14 @@ export function groupSpawned(payload: unknown): GroupSpawned | undefined {
 
 /** OS process groups spawned during one agent run and by its descendants, keyed by group leader pid. */
 export class ProcessGroups {
+  private readonly agentId: string;
+  private readonly publish: (spawned: GroupSpawned) => void;
   private groups: ReadonlyMap<number, string> = new Map();
 
-  constructor(
-    private readonly agentId: string,
-    private readonly publish: (spawned: GroupSpawned) => void,
-  ) {}
+  constructor(agentId: string, publish: (spawned: GroupSpawned) => void) {
+    this.agentId = agentId;
+    this.publish = publish;
+  }
 
   add(spawned: GroupSpawned): void {
     const owner = spawned.agentId ?? this.agentId;

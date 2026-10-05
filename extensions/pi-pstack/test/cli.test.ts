@@ -51,14 +51,18 @@ test(
   verificationDeadlineMs,
 );
 
-test('preserved helper behavior and its aggregate coverage pass without changing source files', () => {
-  const output = run('verify-upstream.mjs');
-  expect(output).toMatch(/Upstream coverage includes 7 imported helper files/);
-  expect(output).toMatch(/watch-pr\/render.ts/);
-  const linesCoverage = Number(output.match(/lines: \d+\/\d+ \(([\d.]+)%\)/)?.[1]);
-  expect(linesCoverage).toBeGreaterThanOrEqual(80);
-  expect(run('resources.mjs')).toBe('Verified 190 upstream files and 211 generated resources.\n');
-});
+test(
+  'preserved helper behavior and its aggregate coverage pass without changing source files',
+  () => {
+    const output = run('verify-upstream.mjs');
+    expect(output).toMatch(/Upstream coverage includes 7 imported helper files/);
+    expect(output).toMatch(/watch-pr\/render.ts/);
+    const linesCoverage = Number(output.match(/lines: \d+\/\d+ \(([\d.]+)%\)/)?.[1]);
+    expect(linesCoverage).toBeGreaterThanOrEqual(80);
+    expect(run('resources.mjs')).toBe('Verified 190 upstream files and 211 generated resources.\n');
+  },
+  verificationDeadlineMs,
+);
 
 test(
   'the packed distribution loads in the actual Pi CLI and shuts down cleanly',

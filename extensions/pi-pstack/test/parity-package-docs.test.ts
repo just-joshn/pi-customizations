@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { expect, test } from 'vitest';
+import { expectDefined } from './support/expect-defined.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const read = (path: string) => readFile(join(root, path), 'utf8');
@@ -107,7 +108,7 @@ test('every relative link in the guide resolves to a file', async () => {
   const missing: string[] = [];
   for (const { name, text } of await guideTexts()) {
     for (const match of text.matchAll(/\]\((\.[^)#\s]+)(?:#[^)]*)?\)/g)) {
-      if (!existsSync(join(guideDirectory, dirname(name), match[1]))) missing.push(`${name} -> ${match[1]}`);
+      if (!existsSync(join(guideDirectory, dirname(name), expectDefined(match[1])))) missing.push(`${name} -> ${match[1]}`);
     }
   }
   expect(missing.join('\n')).toBe('');

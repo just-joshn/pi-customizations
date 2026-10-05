@@ -5,7 +5,8 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { analyzeSource, configViolations } from './check-vitest-conventions.mjs';
+import { closeTypeScriptSources } from '../../scripts/typescript-source.mjs';
+import { analyzeSource, configViolations, testFiles } from './check-vitest-conventions.mjs';
 
 const bad = `
 import { describe, expect, it, test, vi } from 'vitest';
@@ -145,6 +146,24 @@ assert.ok(noAssertionRules.has('no-assertion'), 'expected no-assertion to fire o
 const workspace = await mkdtemp(join(tmpdir(), 'check-vitest-conventions-'));
 try {
   await mkdir(join(workspace, 'bad-extension'));
+  const discoveredNames = ['test', 'spec'].flatMap((kind) => ['ts', 'mts', 'cts', 'tsx', 'js', 'mjs', 'cjs', 'jsx'].map((extension) => `behavior.${kind}.${extension}`));
+  for (const name of discoveredNames) await writeFile(join(workspace, 'bad-extension', name), noAssertion);
+  await writeFile(join(workspace, 'bad-extension/fixture.test-helper.ts'), clean);
+  const discovered = (await testFiles(workspace)).map(({ path }) => path.slice(path.lastIndexOf('/') + 1));
+  assert.deepEqual(discovered.toSorted(), discoveredNames.toSorted(), 'scan every test filename discovered by the current Vitest defaults');
+  await mkdir(join(workspace, 'bad-extension/upstream'));
+  await writeFile(join(workspace, 'bad-extension/upstream/snapshot.test.ts'), noAssertion);
+  assert.equal((await testFiles(workspace)).length, discoveredNames.length + 1, 'audit discovered tests inside reference snapshots');
+  for (const directory of ['pi-pstack/upstream', 'pi-pstack/upstream-team-kit', 'pi-pstack/skills/poteto-mode/scripts', 'pi-pstack/test/helpers']) {
+    await mkdir(join(workspace, directory), { recursive: true });
+    await writeFile(join(workspace, directory, 'contract.test.ts'), noAssertion);
+  }
+  const pstack = (await testFiles(workspace)).filter(({ path }) => path.includes('/pi-pstack/'));
+  assert.deepEqual(
+    pstack.map(({ path }) => path),
+    [join(workspace, 'pi-pstack/test/helpers/contract.test.ts')],
+    'scan maintained helper tests without treating preserved native Bun copies as Vitest tests',
+  );
   await writeFile(join(workspace, 'bad-extension/package.json'), JSON.stringify({ scripts: { test: 'vitest' } }));
   await writeFile(join(workspace, 'bad-extension/vitest.config.ts'), `export default { test: { isolate: false, sequence: { concurrent: true }, coverage: { provider: 'v8' } } }`);
   await mkdir(join(workspace, 'no-config'));
@@ -163,4 +182,5 @@ try {
   await rm(workspace, { recursive: true, force: true });
 }
 
+closeTypeScriptSources();
 process.stdout.write('check-vitest-conventions self-test: every detector fires and the clean fixture is silent.\n');

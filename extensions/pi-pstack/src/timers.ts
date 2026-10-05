@@ -14,7 +14,7 @@ import { parseTimer, TimerSchema } from './timer-schedules.ts';
 import { workerExtensions } from './worker-support.ts';
 
 function ownerDirectory(ctx: ExtensionContext): string {
-  if (process.env.PI_PSTACK_TIMER_DIRECTORY) return process.env.PI_PSTACK_TIMER_DIRECTORY;
+  if (process.env['PI_PSTACK_TIMER_DIRECTORY']) return process.env['PI_PSTACK_TIMER_DIRECTORY'];
   const owner = createHash('sha256').update(`${ctx.cwd}\0${ctx.sessionManager.getSessionId()}`).digest('hex');
   return join(getAgentDir(), 'pstack-timers', owner);
 }
@@ -60,7 +60,10 @@ async function launch(ctx: ExtensionContext, pi: ExtensionAPI, directory: string
     { mode: 0o600 },
   );
   const own = fileURLToPath(new URL('./index.ts', import.meta.url));
-  const extra = process.argv.flatMap((arg, index) => ((arg === '-e' || arg === '--extension') && process.argv[index + 1] ? [process.argv[index + 1]] : []));
+  const extra = process.argv.flatMap((arg, index) => {
+    const path = process.argv[index + 1];
+    return (arg === '-e' || arg === '--extension') && path ? [path] : [];
+  });
   const settingsManager = childSettings(ctx.cwd, ctx);
   const projectTrusted = settingsManager.isProjectTrusted();
   const loader = new DefaultResourceLoader({ cwd: ctx.cwd, agentDir: getAgentDir(), settingsManager, additionalExtensionPaths: [own, ...extra], extensionsOverride: (value) => rootExtensions(value, own) });
@@ -129,7 +132,7 @@ function registerCiSubscription(pi: ExtensionAPI, forge: 'github' | 'origin'): v
     parameters: CiToolSchema,
     execute: async (_id, input, signal, _update, ctx) => {
       signal?.throwIfAborted();
-      const origin = process.env.PI_PSTACK_ORIGIN_CI_COMMAND;
+      const origin = process.env['PI_PSTACK_ORIGIN_CI_COMMAND'];
       if (!github && !origin) throw new Error(ORIGIN_UNSUPPORTED);
       const ci = parseCi({ ...input, forge, cwd: ctx.cwd, ...(origin && !github ? { command: [origin] } : {}) });
       const directory = await ensureService(ctx, pi, signal);
@@ -202,7 +205,8 @@ export function registerTimers(pi: ExtensionAPI): void {
     parameters: Type.Object({ subscriptionId: Type.String({ minLength: 1 }) }),
     execute: async (_id, input, signal, _update, ctx) => {
       signal?.throwIfAborted();
-      await timerCommand(ownerDirectory(ctx), { type: 'unsubscribe', subscriptionId: input.subscriptionId, ...(process.env.PI_PSTACK_TIMER_DIRECTORY ? { fromSession: ctx.sessionManager.getSessionFile() } : {}) }, undefined, signal);
+      const fromSession = process.env['PI_PSTACK_TIMER_DIRECTORY'] ? ctx.sessionManager.getSessionFile() : undefined;
+      await timerCommand(ownerDirectory(ctx), { type: 'unsubscribe', subscriptionId: input.subscriptionId, ...(fromSession !== undefined ? { fromSession } : {}) }, undefined, signal);
       return result({ subscriptionId: input.subscriptionId, stopped: true });
     },
   });

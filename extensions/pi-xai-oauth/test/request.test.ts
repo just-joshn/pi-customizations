@@ -1,8 +1,9 @@
 import type { Model, SimpleStreamOptions, TranscriptContext } from '@earendil-works/pi-ai';
 import { normalizeContext } from '@earendil-works/pi-ai/utils/transcript';
-import { expect, test } from 'vitest';
+import { expect } from 'vitest';
 import { BASELINE, toPiModel } from '../src/catalog.ts';
 import { GROK_CLIENT_VERSION, grokHeaders, withGrokHeaders } from '../src/request.ts';
+import { test } from './network-guard.ts';
 
 const FAST = { id: 'grok-4.7-build-fast', contextWindow: 256000 };
 

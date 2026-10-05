@@ -34,8 +34,9 @@ function validateQuestions(questions: Question[]): void {
 }
 
 async function ask(question: Question, ctx: ExtensionContext, signal: AbortSignal | undefined): Promise<Answer> {
+  const options = signal ? { signal } : {};
   if (!question.options?.length) {
-    const answer = await ctx.ui.input(question.prompt, undefined, { signal });
+    const answer = await ctx.ui.input(question.prompt, undefined, options);
     return { id: question.id, answers: answer === undefined ? [] : [answer], cancelled: answer === undefined };
   }
   let choices = new Map(question.options.map((option) => [`${option.label} [${option.id}]`, option]));
@@ -45,10 +46,10 @@ async function ask(question: Question, ctx: ExtensionContext, signal: AbortSigna
   while (true) {
     const labels = [...choices.keys(), ...(freeTextUsed ? [] : [freeText]), ...(question.allow_multiple ? [done] : [])];
     const title = shown.length ? `${question.prompt} (selected: ${shown.join(', ')})` : question.prompt;
-    const selected = await ctx.ui.select(title, labels, { signal });
+    const selected = await ctx.ui.select(title, labels, options);
     if (selected === undefined) return { id: question.id, answers, cancelled: true };
     if (selected === done && question.allow_multiple) return { id: question.id, answers, cancelled: false };
-    const answer = selected === freeText ? await ctx.ui.input(question.prompt, undefined, { signal }) : choices.get(selected)?.id;
+    const answer = selected === freeText ? await ctx.ui.input(question.prompt, undefined, options) : choices.get(selected)?.id;
     if (answer === undefined) return { id: question.id, answers, cancelled: true };
     answers = [...answers, answer];
     shown = [...shown, choices.get(selected)?.label ?? answer];
@@ -72,7 +73,7 @@ export function registerQuestions(pi: ExtensionAPI): void {
     annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     async execute(_id, params, signal, _update, ctx) {
       validateQuestions(params.questions);
-      if (!ctx.hasUI || process.env.PI_PSTACK_HEADLESS) throw new Error('AskQuestion requires Pi TUI or an RPC client supporting extension dialogs. Ask in the conversation and wait for a user reply.');
+      if (!ctx.hasUI || process.env['PI_PSTACK_HEADLESS']) throw new Error('AskQuestion requires Pi TUI or an RPC client supporting extension dialogs. Ask in the conversation and wait for a user reply.');
       let answers: Answer[] = [];
       for (const question of params.questions) {
         const answer = await ask(question, ctx, signal);

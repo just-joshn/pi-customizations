@@ -184,11 +184,13 @@ function applyTextPart(stream: AssistantMessageEventStream, output: AssistantMes
   const block = lastBlock(output);
   if (block?.type === 'thinking') {
     block.thinking += part.text;
-    block.thinkingSignature = retainThoughtSignature(block.thinkingSignature, part.thoughtSignature);
+    const signature = retainThoughtSignature(block.thinkingSignature, part.thoughtSignature);
+    if (signature !== undefined) block.thinkingSignature = signature;
     stream.push({ type: 'thinking_delta', contentIndex: output.content.length - 1, delta: part.text, partial: output });
   } else if (block?.type === 'text') {
     block.text += part.text;
-    block.textSignature = retainThoughtSignature(block.textSignature, part.thoughtSignature);
+    const signature = retainThoughtSignature(block.textSignature, part.thoughtSignature);
+    if (signature !== undefined) block.textSignature = signature;
     stream.push({ type: 'text_delta', contentIndex: output.content.length - 1, delta: part.text, partial: output });
   }
 }
@@ -216,14 +218,14 @@ function resolveStopReason(finishReason: string, content: AssistantMessage['cont
 }
 
 function usageFor(model: Model<Api>, metadata: Record<string, number | undefined>): Usage {
-  const cacheRead = metadata.cachedContentTokenCount ?? 0;
+  const cacheRead = metadata['cachedContentTokenCount'] ?? 0;
   const usage: Usage = {
-    input: (metadata.promptTokenCount ?? 0) - cacheRead,
-    output: (metadata.candidatesTokenCount ?? 0) + (metadata.thoughtsTokenCount ?? 0),
+    input: (metadata['promptTokenCount'] ?? 0) - cacheRead,
+    output: (metadata['candidatesTokenCount'] ?? 0) + (metadata['thoughtsTokenCount'] ?? 0),
     cacheRead,
     cacheWrite: 0,
-    reasoning: metadata.thoughtsTokenCount ?? 0,
-    totalTokens: metadata.totalTokenCount ?? 0,
+    reasoning: metadata['thoughtsTokenCount'] ?? 0,
+    totalTokens: metadata['totalTokenCount'] ?? 0,
     cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
   };
   calculateCost(model, usage);
@@ -249,7 +251,8 @@ function createReducer(output: AssistantMessage, stream: AssistantMessageEventSt
     chunk(model: Model<Api>, chunk: CloudCodeChunk) {
       const response = chunk.response;
       if (!response) return;
-      output.responseId ||= response.responseId;
+      // agents-compliance-ignore parameter-mutation: pi-ai consumers share this live partial, including its first known response ID
+      if (!output.responseId && response.responseId !== undefined) output.responseId = response.responseId;
       for (const part of response.candidates?.[0]?.content?.parts ?? []) {
         if (part.text !== undefined) applyTextPart(stream, output, part as GeminiPart & { text: string });
         if (part.functionCall) emitToolCall(stream, output, part.functionCall, part.thoughtSignature);
@@ -303,18 +306,18 @@ async function buildRequestInit(model: Model<Api>, context: TranscriptContext, o
   const base = buildBaseOptions(model, context, options);
   const thinking = resolveThinking(model, options, base.maxTokens ?? model.maxTokens);
   const request = buildRequest(model, context, projectId, {
-    temperature: base.temperature,
+    ...(base.temperature !== undefined && { temperature: base.temperature }),
     maxTokens: thinking.maxTokens,
-    thinkingConfig: thinking.thinkingConfig,
-    toolChoice: options?.toolChoice,
-    sessionId: options?.sessionId,
+    ...(thinking.thinkingConfig !== undefined && { thinkingConfig: thinking.thinkingConfig }),
+    ...(options?.toolChoice !== undefined && { toolChoice: options.toolChoice }),
+    ...(options?.sessionId !== undefined && { sessionId: options.sessionId }),
   });
   const payload = (await options?.onPayload?.(request, model)) ?? request;
   return {
     method: 'POST',
     headers: requestHeaders(model, token, options?.headers),
     body: JSON.stringify(payload),
-    signal: options?.signal,
+    ...(options?.signal !== undefined && { signal: options.signal }),
   };
 }
 

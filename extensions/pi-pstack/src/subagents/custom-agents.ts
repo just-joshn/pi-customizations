@@ -68,14 +68,14 @@ function serverSpecs(value: unknown, name: string, warn: (message: string) => vo
 }
 
 function partsOf(frontmatter: Readonly<Record<string, unknown>>, path: string, warnings: string[]): PromptParts {
-  const overrides = typeof frontmatter.promptParts === 'object' && frontmatter.promptParts !== null && !Array.isArray(frontmatter.promptParts) ? Object.entries(frontmatter.promptParts) : [];
+  const overrides = typeof frontmatter['promptParts'] === 'object' && frontmatter['promptParts'] !== null && !Array.isArray(frontmatter['promptParts']) ? Object.entries(frontmatter['promptParts']) : [];
   const valid = overrides.flatMap(([key, value]) => {
     const parsed = flag(value);
     if (promptPartFlags.includes(key) && parsed !== undefined) return [[key, parsed] as const];
     warnings.push(`Agent file ${path} has invalid promptParts entry '${key}' and it was ignored`);
     return [];
   });
-  const instructions = flag(frontmatter.includeCustomInstructions);
+  const instructions = flag(frontmatter['includeCustomInstructions']);
   return { ...customPromptParts, ...(instructions !== undefined ? { includeCustomInstructions: instructions } : {}), ...Object.fromEntries(valid) };
 }
 
@@ -88,9 +88,9 @@ function enumField<T extends string>(frontmatter: Readonly<Record<string, unknow
 }
 
 function identity(frontmatter: Readonly<Record<string, unknown>>, path: string): { name: string; description: string } | string {
-  const raw = typeof frontmatter.name === 'string' && frontmatter.name.trim() ? frontmatter.name.trim() : basename(path).replace(/\.agent\.md$|\.md$/, '');
+  const raw = typeof frontmatter['name'] === 'string' && frontmatter['name'].trim() ? frontmatter['name'].trim() : basename(path).replace(/\.agent\.md$|\.md$/, '');
   if (!namePattern.test(raw)) return `Failed to parse agent from ${path}: invalid name '${raw}'`;
-  const description = typeof frontmatter.description === 'string' ? frontmatter.description.trim() : '';
+  const description = typeof frontmatter['description'] === 'string' ? frontmatter['description'].trim() : '';
   if (!description) return `Failed to parse agent from ${path}: missing required "description" in frontmatter`;
   return { name: raw, description };
 }
@@ -110,27 +110,27 @@ export function parseCustomAgent(text: string, origin: CustomAgentOrigin): Parse
   const { frontmatter, body } = parseDocument(text, origin.path, warnings);
   const named = identity(frontmatter, origin.path);
   if (typeof named === 'string') return { warnings, error: named };
-  const model = modelField(frontmatter.model);
-  const models = strings(frontmatter.models);
+  const model = modelField(frontmatter['model']);
+  const models = strings(frontmatter['models']);
   const modelPolicy = enumField(frontmatter, 'modelPolicy', policies, origin.path, warnings);
   const reasoningEffort = enumField(frontmatter, 'reasoningEffort', efforts, origin.path, warnings);
-  const skills = strings(frontmatter.skills);
-  const mcpServers = serverSpecs(frontmatter.mcpServers, named.name, (message) => warnings.push(message));
-  const invocable = flag(frontmatter.userInvocable);
-  const legacyInfer = flag(frontmatter.infer);
+  const skills = strings(frontmatter['skills']);
+  const mcpServers = serverSpecs(frontmatter['mcpServers'], named.name, (message) => warnings.push(message));
+  const invocable = flag(frontmatter['userInvocable']);
+  const legacyInfer = flag(frontmatter['infer']);
   const agent: AgentDefinition = {
     name: named.name,
-    displayName: typeof frontmatter.displayName === 'string' && frontmatter.displayName.trim() ? frontmatter.displayName.trim() : named.name,
+    displayName: typeof frontmatter['displayName'] === 'string' && frontmatter['displayName'].trim() ? frontmatter['displayName'].trim() : named.name,
     description: named.description,
     ...(model !== undefined ? { model } : {}),
     ...(models !== undefined && models.length > 0 ? { models } : {}),
     ...(modelPolicy !== undefined ? { modelPolicy } : {}),
     ...(reasoningEffort !== undefined ? { reasoningEffort } : {}),
-    tools: toolSelection(frontmatter.tools) ?? allTools,
+    tools: toolSelection(frontmatter['tools']) ?? allTools,
     promptParts: partsOf(frontmatter, origin.path, warnings),
     prompt: body.trim(),
     userInvocable: invocable ?? true,
-    disableModelInvocation: flag(frontmatter.disableModelInvocation) ?? legacyInfer === false,
+    disableModelInvocation: flag(frontmatter['disableModelInvocation']) ?? legacyInfer === false,
     ...(mcpServers !== undefined && mcpServers.length > 0 ? { mcpServers } : {}),
     ...(skills !== undefined && skills.length > 0 ? { skills } : {}),
     source: origin.source,

@@ -45,15 +45,16 @@ type StartupOutcome = { error: unknown } | undefined;
 type StartRequest = Readonly<{ callId: string; id: string; params: TaskParameters; prior: TaskRecord | undefined; signal: AbortSignal | undefined; ctx: ExtensionContext; owner: number }>;
 
 class StartupCleanupError extends AggregateError {
-  constructor(
-    error: unknown,
-    readonly cleanup: unknown,
-  ) {
+  readonly cleanup: unknown;
+
+  constructor(error: unknown, cleanup: unknown) {
     super([error, cleanup], `${String(error)}; Worker cleanup failed: ${String(cleanup)}`);
+    this.cleanup = cleanup;
   }
 }
 type Lifecycle = { kind: 'active' } | { kind: 'stopped' } | { kind: 'stopping'; completion: Promise<void> };
 export class WorkerRuntime {
+  private readonly pi: ExtensionAPI;
   private records = new Map<string, TaskRecord>();
   private workers = new Map<string, Worker>();
   private starting = new Map<string, Promise<StartupOutcome>>();
@@ -76,7 +77,9 @@ export class WorkerRuntime {
     pendingUsage: (owner, record) => this.pendingUsage(owner, record),
     notify: (record, parentIdle) => this.notifyCompletion(record, record.output, parentIdle),
   });
-  constructor(private readonly pi: ExtensionAPI) {
+
+  constructor(pi: ExtensionAPI) {
+    this.pi = pi;
     this.completions = new DeferredWakes(pi);
     this.settings = new SettingsStore(() => pi.getSettings());
   }
@@ -131,7 +134,7 @@ export class WorkerRuntime {
   }
 
   registerLifecycle(): void {
-    if (process.env.PI_PSTACK_WORKER_OWNER)
+    if (process.env['PI_PSTACK_WORKER_OWNER'])
       this.pi.registerCommand('pstack-worker-finalize', {
         handler: async () => {
           try {
@@ -255,7 +258,7 @@ export class WorkerRuntime {
   }
 
   private restoreOwnership(ctx: ExtensionContext): void {
-    const marker = process.env.PI_PSTACK_WORKER_OWNER;
+    const marker = process.env['PI_PSTACK_WORKER_OWNER'];
     const recorded = taskOwner(ctx.sessionManager.getEntries());
     this.owned = Boolean(marker || recorded);
     if (marker && recorded !== marker) this.pi.appendEntry(taskOwnerEntryType, { id: marker });
@@ -505,7 +508,7 @@ export class WorkerRuntime {
       details: structuredClone(current),
       structuredContent: structuredClone(current) as unknown as JsonValue,
       isError: current.status === 'failed',
-      usage: usage ? structuredClone(usage) : undefined,
+      ...(usage ? { usage: structuredClone(usage) } : {}),
     };
   }
 

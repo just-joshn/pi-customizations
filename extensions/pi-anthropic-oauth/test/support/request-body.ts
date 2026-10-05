@@ -14,22 +14,22 @@ export function soleRequest(server: MessagesServer): RecordedRequest {
 }
 
 export function systemBlocks(body: unknown): readonly unknown[] {
-  return isRecord(body) && Array.isArray(body.system) ? body.system : [];
+  return isRecord(body) && Array.isArray(body['system']) ? body['system'] : [];
 }
 
 export function systemTexts(body: unknown): readonly string[] {
-  return systemBlocks(body).flatMap((block) => (isRecord(block) && typeof block.text === 'string' ? [block.text] : []));
+  return systemBlocks(body).flatMap((block) => (isRecord(block) && typeof block['text'] === 'string' ? [block['text']] : []));
 }
 
 export function toolNames(body: unknown): readonly string[] {
-  if (!isRecord(body) || !Array.isArray(body.tools)) return [];
-  return body.tools.flatMap((tool) => (isRecord(tool) && typeof tool.name === 'string' ? [tool.name] : []));
+  if (!isRecord(body) || !Array.isArray(body['tools'])) return [];
+  return body['tools'].flatMap((tool) => (isRecord(tool) && typeof tool['name'] === 'string' ? [tool['name']] : []));
 }
 
 export function messagesOf(body: unknown): readonly unknown[] {
-  return isRecord(body) && Array.isArray(body.messages) ? body.messages : [];
+  return isRecord(body) && Array.isArray(body['messages']) ? body['messages'] : [];
 }
 
 export function eventType(data: unknown): string | undefined {
-  return isRecord(data) && typeof data.type === 'string' ? data.type : undefined;
+  return isRecord(data) && typeof data['type'] === 'string' ? data['type'] : undefined;
 }

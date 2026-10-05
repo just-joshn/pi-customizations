@@ -1,0 +1,59 @@
+{
+  "compilerOptions": {
+    // ─────────────────────────────────────────────────────────────
+    // Runtime: Pi >= Node 22.19
+    // ─────────────────────────────────────────────────────────────
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "types": ["node"],
+
+    // Pi/jiti executes the TypeScript source directly.
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+
+    // ─────────────────────────────────────────────────────────────
+    // Type safety
+    // ─────────────────────────────────────────────────────────────
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    // ─────────────────────────────────────────────────────────────
+    // Control-flow / correctness
+    // ─────────────────────────────────────────────────────────────
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+
+    // ─────────────────────────────────────────────────────────────
+    // Dead-code hygiene
+    // ─────────────────────────────────────────────────────────────
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    // ─────────────────────────────────────────────────────────────
+    // Module correctness
+    // ─────────────────────────────────────────────────────────────
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noUncheckedSideEffectImports": true,
+
+    // Keep TS syntax compatible with simple erasure.
+    // No enum, namespace runtime code, parameter properties, etc.
+    "erasableSyntaxOnly": true,
+
+    // ─────────────────────────────────────────────────────────────
+    // Resolution / platform
+    // ─────────────────────────────────────────────────────────────
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Don't type-check third-party declaration implementation details.
+    "skipLibCheck": true
+  }
+}

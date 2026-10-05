@@ -2,8 +2,12 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
 
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { enforceCoverage, run } from '../scripts/verify-upstream.mjs';
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 test.each(['', 'invalid', 'SF:example.ts\nLF:0\nLH:0\nFNF:0\nFNH:0\n', 'SF:example.ts\nLF:1\nLH:2\nFNF:1\nFNH:1\n'])('coverage policy rejects invalid report %j', async (report) => {
   const dir = await mkdtemp(join(tmpdir(), 'pstack-coverage-policy-'));
@@ -45,7 +49,7 @@ test('upstream subprocess failure reports the failing command with its status', 
   const bin = await mkdtemp(join(tmpdir(), 'pstack-bun-'));
   try {
     await writeFile(join(bin, 'bun'), '#!/bin/sh\nexit 3\n', { mode: 0o755 });
-    vi.stubEnv('PATH', `${bin}${delimiter}${process.env.PATH ?? ''}`);
+    vi.stubEnv('PATH', `${bin}${delimiter}${process.env['PATH'] ?? ''}`);
     expect(() => run(['run', '/missing-pstack-script'], tmpdir())).toThrow(/^bun run \/missing-pstack-script failed with 3$/);
   } finally {
     await rm(bin, { recursive: true, force: true });

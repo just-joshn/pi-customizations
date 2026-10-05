@@ -63,7 +63,7 @@ test('real RPC delivers the cloud host catalog to a deterministic main-session p
         const path = (await readdir(f.root)).find((name) => /^requests-\d+\.jsonl$/.test(name));
         expect(path).toBeDefined();
         const request = JSON.parse((await readFile(join(f.root, path ?? ''), 'utf8')).trim().split('\n')[0] ?? '');
-        const host = request.messages.find((message: { role: string; sections?: Record<string, string> }) => message.role === 'system' && message.sections?.pstack_host)?.sections.pstack_host;
+        const host = request.messages.find((message: { role: string; sections?: Record<string, string> }) => message.role === 'system' && message.sections?.['pstack_host'])?.sections.pstack_host;
         expect(host?.match(/^Host skills live at .+SKILL.md: (.+)\.$/m)?.[1]).toBe('create-skill, goal, loop');
         expect(host).toContain(`Pi session storage directory: ${join(f.root, 'shared-session-store')}`);
         expect(host).toContain('pstack_context({ history: true })');

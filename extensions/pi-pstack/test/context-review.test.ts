@@ -6,6 +6,7 @@ import { type ExtensionAPI, type ExtensionContext, type ExtensionToolContext, Se
 import { expect, test, vi } from 'vitest';
 import { registerContext, registerStatus } from '../src/context.ts';
 import { createState } from '../src/state.ts';
+import { expectDefined } from './support/expect-defined.ts';
 
 type Evidence = { entries: unknown[]; models: string[]; tools: unknown[]; history: unknown[]; omitted: Record<string, number>; historyDiscovery: { mode: string; completeness: string } };
 
@@ -33,10 +34,10 @@ test.each([
   const exact = await call(manager, { models: [{ provider: 'p', id }] });
   expect(exact.models).toEqual([`p/${id}`]);
   expect(Buffer.byteLength(JSON.stringify(exact.models))).toBe(8192);
-  expect(exact.omitted.models).toBe(0);
+  expect(exact.omitted['models']).toBe(0);
   const oversized = await call(manager, { models: [{ provider: 'p', id: `${id}a` }] });
   expect(oversized.models).toEqual([]);
-  expect(oversized.omitted.models).toBe(1);
+  expect(oversized.omitted['models']).toBe(1);
 });
 
 test('context counts separators at the exact multibyte list boundary', async () => {
@@ -49,7 +50,7 @@ test('context counts separators at the exact multibyte list boundary', async () 
   const result = await call(manager, { models });
   expect(result.models).toEqual(['p/a', `p/${'🙂'.repeat(2045)}`]);
   expect(Buffer.byteLength(JSON.stringify(result.models))).toBe(8192);
-  expect(result.omitted.models).toBe(1);
+  expect(result.omitted['models']).toBe(1);
 });
 
 async function historyFixture() {
@@ -81,7 +82,7 @@ test('history uses the active custom session directory without crossing workspac
       [own, 'own-session', cwd],
       [other, 'other-session', join(root, 'other-workspace')],
     ]) {
-      await writeFile(path, `${JSON.stringify({ type: 'session', version: 3, id, timestamp: '2026-10-01T00:00:00.000Z', cwd: workspace })}\n`);
+      await writeFile(expectDefined(path), `${JSON.stringify({ type: 'session', version: 3, id, timestamp: '2026-10-01T00:00:00.000Z', cwd: workspace })}\n`);
     }
     const manager = SessionManager.open(own, directory);
     const result = await call(manager, { history: true });
@@ -108,7 +109,7 @@ test.each(['directory', 'session'])('real SDK %s read failures retain unknown hi
     expect(await SessionManager.list(f.root)).toEqual([]);
     const result = await call(f.manager, { history: true });
     expect(result.history).toEqual([]);
-    expect(result.omitted.history).toBe(0);
+    expect(result.omitted['history']).toBe(0);
     expect(result.historyDiscovery).toEqual({ mode: 'best-effort', completeness: 'unknown' });
   } finally {
     await f.close();

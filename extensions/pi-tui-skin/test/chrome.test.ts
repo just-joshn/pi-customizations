@@ -5,10 +5,12 @@ import type { ThinkingLevel } from '@earendil-works/pi-agent-core';
 import type { ExtensionContext, ReadonlyFooterDataProvider } from '@earendil-works/pi-coding-agent';
 import { Theme } from '@earendil-works/pi-coding-agent';
 import { stripTerminalSequences, visibleWidth } from '@earendil-works/pi-tui';
-import { describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createPresentationStore } from '../src/state/presentation-store.ts';
 import { createFooter } from '../src/ui/footer.ts';
 import { createHeader, TIPS } from '../src/ui/header.ts';
+
+afterEach(() => vi.unstubAllEnvs());
 
 const FG_ROLES = [
   'accent',

@@ -7,13 +7,18 @@ import { fileURLToPath } from 'node:url';
 
 import { AgentSession, createAgentSession, DefaultResourceLoader, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { Check } from 'typebox/value';
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { publishTask } from '../src/task-discovery.ts';
 import { TaskRecordSchema, taskEntryType } from '../src/worker-records.ts';
 import { registerWorkers, restoreTaskRecords, taskSummary } from '../src/workers.ts';
 import { workerFixture } from './worker-fixture.ts';
 import { releasePendingWork } from './worker-gates.ts';
 import { workerTiming } from './worker-timing.ts';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 const progressFixturePath = fileURLToPath(new URL('./fixtures/task-progress-sentinel.txt', import.meta.url));
 const progressSentinel = 'CHILD_READ_FIXTURE_SENTINEL_CONTENT';
@@ -83,6 +88,7 @@ function workerTest(name: string, scenario: (fixture: Awaited<ReturnType<typeof 
     try {
       await scenario(fixture);
     } finally {
+      vi.restoreAllMocks();
       await fixture.close();
     }
   });
@@ -528,8 +534,8 @@ workerTest('TaskList bounds previews while retaining complete structured records
   const listing = await call('TaskList', {});
   expect(listing.content[0]).toMatchObject({ type: 'text', text: expect.stringContaining('[Truncated.') });
   const preview = listing.content[0];
-  expect(preview.type).toBe('text');
-  if (preview.type !== 'text') throw new Error('TaskList preview must be text');
+  expect(preview?.type).toBe('text');
+  if (preview?.type !== 'text') throw new Error('TaskList preview must be text');
   expect(Buffer.byteLength(preview.text)).toBeLessThanOrEqual(51200);
   expect(listing.structuredContent).toMatchObject({ tasks: Array.from({ length: 5 }, (_, index) => ({ id: `large-${index}`, output: 'a'.repeat(15000) })) });
 });

@@ -101,7 +101,7 @@ test('a failed resume persists the interrupted record and reports the reason', a
   expect(appended).toEqual([expect.objectContaining({ id: 'c', status: 'interrupted', abort: expect.objectContaining({ reason: 'superseded' }) })]);
   expect(sent).toHaveLength(1);
   expect(sent[0]?.details).toMatchObject({ task_id: 'c', status: 'stopped', reason: 'worker_restart' });
-  expect(sent[0]?.details?.summary).toBe(`Background agent "job c" from the previous session couldn't be restarted: transcript corrupt`);
+  expect(sent[0]?.details?.['summary']).toBe(`Background agent "job c" from the previous session couldn't be restarted: transcript corrupt`);
 });
 
 test('an orphan with no transcript on disk settles as failed and is persisted without its abort state', async () => {
@@ -148,7 +148,7 @@ test('more orphans than the scan limit produce one aggregate failure notice', as
   expect([...reconciled.records.values()].every((task) => task.status === 'failed')).toBe(true);
   expect(appended).toHaveLength(21);
   expect(sent).toHaveLength(1);
-  expect(sent[0]?.details?.task_ids).toHaveLength(21);
-  expect(sent[0]?.details?.task_ids).toContain('__orphan_summary__:agent');
+  expect(sent[0]?.details?.['task_ids']).toHaveLength(21);
+  expect(sent[0]?.details?.['task_ids']).toContain('__orphan_summary__:agent');
   expect(sent[0]?.content).toContain('First 20 task ids');
 });

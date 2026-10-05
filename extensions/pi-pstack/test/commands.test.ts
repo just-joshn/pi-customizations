@@ -197,7 +197,7 @@ test('registered command handles other skills and expands them', async () => {
   } as unknown as ExtensionAPI;
   registerCommands(pi, skills, createState(pi));
   const ctx = { mode: 'tui', hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
-  await handlers.how?.('explore auth', ctx);
+  await handlers['how']?.('explore auth', ctx);
   expect(sent.length).toBe(1);
   expect(sent[0]?.text).toMatch(/How body/);
   expect(sent[0]?.text).toMatch(/explore auth/);
@@ -324,12 +324,12 @@ test('pstack index entry point wires extension hooks and registers all tools', a
     ui: { setStatus() {}, setWidget() {} },
   } as unknown as ExtensionContext;
 
-  for (const fn of listeners.session_start ?? []) await fn({}, ctx);
-  for (const fn of listeners.session_tree ?? []) await fn({}, ctx);
+  for (const fn of listeners['session_start'] ?? []) await fn({}, ctx);
+  for (const fn of listeners['session_tree'] ?? []) await fn({}, ctx);
 
   const event1 = { systemPromptOptions: { sections: {} as Record<string, string> } };
-  for (const fn of listeners.before_agent_start ?? []) await fn(event1, ctx);
-  expect(event1.systemPromptOptions.sections.pstack_host).toContain('pstack pi host contract');
+  for (const fn of listeners['before_agent_start'] ?? []) await fn(event1, ctx);
+  expect(event1.systemPromptOptions.sections['pstack_host']).toContain('pstack pi host contract');
   expect(event1.systemPromptOptions.sections).not.toHaveProperty('pstack_mode');
   expect(event1.systemPromptOptions.sections).not.toHaveProperty('pstack_todos');
 });

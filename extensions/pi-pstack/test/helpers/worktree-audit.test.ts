@@ -1,11 +1,18 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import './leak-preload.ts';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { chmod, mkdir, mkdtemp, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { expectDefined } from '../support/expect-defined.ts';
+
 const script = new URL('../../skills/poteto-mode/scripts/worktree-audit.sh', import.meta.url).pathname;
-const bash = Bun.which('bash') ?? '/bin/bash';
+const which = (name: string): string | undefined => {
+  const result = spawnSync('which', [name], { encoding: 'utf8' });
+  return result.status === 0 ? result.stdout.trim() : undefined;
+};
+const bash = which('bash') ?? '/bin/bash';
 
 type Row = { size: string; age: string; merged: string; dirty: string; remote: string; pr: string; lastChat: string; bucket: string; path: string };
 
@@ -20,7 +27,17 @@ function parse(stdout: string): Row[] {
     .slice(1)
     .map((line) => {
       const [size, age, merged, dirty, remote, pr, lastChat, bucket, path] = line.split('\t');
-      return { size, age, merged, dirty, remote, pr, lastChat, bucket, path };
+      return {
+        size: expectDefined(size),
+        age: expectDefined(age),
+        merged: expectDefined(merged),
+        dirty: expectDefined(dirty),
+        remote: expectDefined(remote),
+        pr: expectDefined(pr),
+        lastChat: expectDefined(lastChat),
+        bucket: expectDefined(bucket),
+        path: expectDefined(path),
+      };
     });
 }
 
@@ -38,7 +55,7 @@ function audit(args: string[], options: { directory: string; path?: string; cwd?
     encoding: 'utf8',
     env: {
       ...process.env,
-      PATH: options.path ?? process.env.PATH,
+      PATH: options.path ?? process.env['PATH'],
       HOME: options.directory,
       PI_CODING_AGENT_DIR: join(options.directory, 'agent'),
       PI_CODING_AGENT_SESSION_DIR: '',
@@ -65,7 +82,7 @@ async function commitOn(worktree: string, file: string, text: string): Promise<v
   git(worktree, 'commit', '-q', '-m', file);
 }
 
-beforeAll(async () => {
+beforeEach(async () => {
   directory = await realpath(await mkdtemp(join(tmpdir(), 'wt-audit-')));
   main = join(directory, 'main');
   origin = join(directory, 'origin.git');
@@ -74,7 +91,7 @@ beforeAll(async () => {
   await writeFile(join(main, '.gitignore'), '*.log\n');
   git(main, 'add', '.gitignore');
   git(main, 'commit', '-q', '-m', 'init');
-  git(directory, 'init', '-q', '--bare', origin);
+  git(directory, 'init', '-q', '--bare', '--initial-branch=main', origin);
   git(main, 'remote', 'add', 'origin', origin);
   git(main, 'push', '-q', 'origin', 'main');
   const add = (name: string, dir = name) => git(main, 'worktree', 'add', '-q', '-b', name, join(directory, dir));
@@ -103,18 +120,18 @@ beforeAll(async () => {
   ghFail = await fakeGh(directory, 'gh-fail', 'exit 1');
 });
 
-afterAll(async () => {
+afterEach(async () => {
   await rm(directory, { recursive: true, force: true });
 });
 
 function withGh(bin: string): string {
-  return `${bin}:${process.env.PATH}`;
+  return `${bin}:${process.env['PATH']}`;
 }
 
 describe('worktree-audit.sh columns and buckets', () => {
   let rows = new Map<string, Row>();
   let ordered: Row[] = [];
-  beforeAll(() => {
+  beforeEach(() => {
     const result = audit([main], { directory, path: withGh(ghOk) });
     expect(result.status).toBe(0);
     ordered = parse(result.stdout);
@@ -244,7 +261,7 @@ describe('worktree-audit.sh missing tools', () => {
     await mkdir(bin, { recursive: true });
     const needed = ['awk', 'sed', 'grep', 'sort', 'xargs', 'du', 'date', 'mktemp', 'head', 'rm', 'cat', 'tr', 'dirname', 'basename', 'git', 'jq', 'rg', 'perl', 'gh', 'env', 'wc', 'cut'];
     for (const name of needed.filter((entry) => entry !== tool)) {
-      const found = name === 'gh' ? join(ghOk, 'gh') : Bun.which(name);
+      const found = name === 'gh' ? join(ghOk, 'gh') : which(name);
       if (found) await symlink(found, join(bin, name)).catch(() => undefined);
     }
     const result = audit([main], { directory, path: bin });

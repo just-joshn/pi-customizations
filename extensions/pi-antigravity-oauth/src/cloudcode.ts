@@ -5,7 +5,7 @@ import { headersToRecord } from './pi-ai/headers.ts';
 
 export const PROVIDER_ID = 'google-antigravity';
 
-export const CLOUD_CODE_ENDPOINTS: readonly string[] = ['https://daily-cloudcode-pa.googleapis.com', 'https://daily-cloudcode-pa.sandbox.googleapis.com', 'https://cloudcode-pa.googleapis.com'];
+export const CLOUD_CODE_ENDPOINTS: readonly [string, ...string[]] = ['https://daily-cloudcode-pa.googleapis.com', 'https://daily-cloudcode-pa.sandbox.googleapis.com', 'https://cloudcode-pa.googleapis.com'];
 
 const GO_OS: Partial<Record<NodeJS.Platform, string>> = { win32: 'windows' };
 const GO_ARCH: Partial<Record<NodeJS.Architecture, string>> = { x64: 'amd64', ia32: '386' };
@@ -72,7 +72,7 @@ export async function postCloudCode(endpoints: readonly string[], method: string
         method: 'POST',
         headers: cloudCodeHeaders(token),
         body: JSON.stringify(body),
-        signal,
+        ...(signal !== undefined && { signal }),
       });
       const text = await response.text();
       if (response.ok) return JSON.parse(text) as unknown;

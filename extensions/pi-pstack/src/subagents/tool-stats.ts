@@ -40,8 +40,8 @@ function lineCount(value: unknown): number {
 }
 
 function requestedLines(name: string, input: Record<string, unknown>): { linesAdded: number; linesRemoved: number } {
-  if (name === 'write') return { linesAdded: lineCount(input.content), linesRemoved: 0 };
-  const edits = Array.isArray(input.edits) ? input.edits : [input];
+  if (name === 'write') return { linesAdded: lineCount(input['content']), linesRemoved: 0 };
+  const edits = Array.isArray(input['edits']) ? input['edits'] : [input];
   return edits.reduce(
     (counts, edit: unknown) => {
       if (typeof edit !== 'object' || edit === null) return counts;

@@ -45,8 +45,11 @@ export type WorkflowDeclaration<TArguments = unknown, TResult = unknown> = Reado
 export type ExecutionContext = Readonly<{ ctx: ExtensionContext; token: Readonly<{ runId: string; epoch: number }>; journal: Journal; agent: AgentSink }>;
 
 export class WorkflowPause extends Error {
-  constructor(readonly key: string) {
+  readonly key: string;
+
+  constructor(key: string) {
     super(`Workflow paused at ${key}.`);
+    this.key = key;
   }
 }
 

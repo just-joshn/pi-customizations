@@ -2,10 +2,15 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { AgentSession, DefaultResourceLoader, SessionManager } from '@earendil-works/pi-coding-agent';
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { workerFixture } from './worker-fixture.ts';
 import { releasePendingWork } from './worker-gates.ts';
 import { workerTiming } from './worker-timing.ts';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 test('native child depth blocks a nested Agent at the configured cap', async () => {
   vi.stubEnv('PI_MAX_SUBAGENT_SPAWN_DEPTH', '1');
@@ -104,6 +109,7 @@ test('stopping a completed task does not abort the disposed session again', asyn
     expect(stopped.details).toMatchObject(completed.details as Record<string, unknown>);
     expect(stopped.details).toMatchObject({ message: `Task ${record.id} already finished with status settled`, task_id: record.id, task_type: 'local_agent' });
   } finally {
+    vi.restoreAllMocks();
     await f.close();
   }
 });
@@ -129,6 +135,7 @@ test('abort rejection is observed and the child is disposed before stop returns'
     expect(JSON.stringify(stopped.content)).toMatch(/interrupted|failed/);
     expect((await f.call('TaskOutput', { task_id: record.id })).usage).toBeUndefined();
   } finally {
+    vi.restoreAllMocks();
     await f.close();
   }
 });
@@ -154,6 +161,7 @@ test('rejected aborts still drain grandchildren without delayed writes', async (
     expect(releasePendingWork()).toEqual([]);
     expect(await readFile(join(f.dir, 'audit.txt'), 'utf8')).toBe(afterStop);
   } finally {
+    vi.restoreAllMocks();
     await f.close();
   }
 });
@@ -259,6 +267,7 @@ test('missing durable paths and SDK construction failures never publish a task',
     construction.mockRestore();
     expect(f.session.sessionManager.getBranch().filter((entry) => entry.type === 'custom' && entry.customType === 'pstack-task').length).toBe(0);
   } finally {
+    vi.restoreAllMocks();
     await f.close();
   }
 });
@@ -283,6 +292,7 @@ test('invalid workspace and resource loading errors do not publish a running tas
     reload.mockRestore();
     expect(f.session.sessionManager.getBranch().filter((entry) => entry.type === 'custom' && entry.customType === 'pstack-task').length).toBe(0);
   } finally {
+    vi.restoreAllMocks();
     await f.close();
   }
 });

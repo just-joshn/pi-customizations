@@ -42,11 +42,14 @@ function parseDecorations(stdout: string, log: (message: string) => void): Recor
 }
 
 export class StatusLinePoller {
+  private readonly sources: StatusLineSources;
   private readonly samples = new Map<string, number[]>();
   private readonly timers: ReturnType<typeof setTimeout>[] = [];
   private busy = false;
 
-  constructor(private readonly sources: StatusLineSources) {}
+  constructor(sources: StatusLineSources) {
+    this.sources = sources;
+  }
 
   start(): void {
     this.stop();

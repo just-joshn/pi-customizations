@@ -8,7 +8,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 const BG_SHELL_LIST = 'Background' + 'ShellList';
 const BG_SHELL_STOP = 'Background' + 'ShellStop';
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const progressFixture = process.env.PSTACK_PROGRESS_FIXTURE ?? join(packageRoot, 'test', 'fixtures', 'task-progress-sentinel.txt');
+const progressFixture = process.env['PSTACK_PROGRESS_FIXTURE'] ?? join(packageRoot, 'test', 'fixtures', 'task-progress-sentinel.txt');
 
 type CallArguments = ToolCall['arguments'];
 type PlannedCall = { name: string; arguments: CallArguments };
@@ -282,7 +282,7 @@ function lastUserText(context: Context): string {
 }
 
 function scriptedReply(model: Model<string>, context: Context, _signal: AbortSignal | undefined) {
-  const logDirectory = process.env.PSTACK_JOURNEY_LOG;
+  const logDirectory = process.env['PSTACK_JOURNEY_LOG'];
   if (logDirectory)
     appendFileSync(
       join(logDirectory, `requests-${process.pid}.jsonl`),
@@ -312,7 +312,7 @@ function scriptedReply(model: Model<string>, context: Context, _signal: AbortSig
     stopReason: content[0]?.type === 'toolCall' ? 'toolUse' : 'stop',
     timestamp: Date.now(),
     usage:
-      process.env.PSTACK_JOURNEY_NONZERO_USAGE === '1'
+      process.env['PSTACK_JOURNEY_NONZERO_USAGE'] === '1'
         ? { input: 7, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 10, cost: { input: 0.07, output: 0.03, cacheRead: 0, cacheWrite: 0, total: 0.1 } }
         : { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: requested.includes('JOURNEY:costly') ? 0.02 : 0 } },
   };
@@ -332,13 +332,13 @@ export default function journeyProvider(pi: ExtensionAPI): void {
     isChild = ctx.sessionManager.getBranch().some((entry) => entry.type === 'custom' && entry.customType === 'pstack-agent-identity');
   });
   pi.events.on('pstack:subagent-stats', (stats) => {
-    const logDirectory = process.env.PSTACK_JOURNEY_LOG;
+    const logDirectory = process.env['PSTACK_JOURNEY_LOG'];
     if (logDirectory && !isChild) appendFileSync(join(logDirectory, `root-stats-${process.pid}.jsonl`), `${JSON.stringify(stats)}\n`);
   });
   pi.registerCommand('journey-simple-off', {
     description: 'Clear the fixture simple-mode environment switch.',
     handler: async () => {
-      process.env.CLAUDE_CODE_SIMPLE = '';
+      process.env['CLAUDE_CODE_SIMPLE'] = '';
     },
   });
   pi.registerProvider('journey-test', {

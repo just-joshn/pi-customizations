@@ -1,8 +1,10 @@
-import { afterEach, describe, expect, test } from 'bun:test';
-import { spawn, spawnSync } from 'node:child_process';
+import './leak-preload.ts';
+import { execFile, spawnSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
 
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { type OpenStoreOptions, openStore, type Store } from '../../skills/poteto-mode/scripts/orch/store.ts';
 import { cleanDirectories, makeDirectory } from './orch-fixtures.ts';
 
@@ -25,10 +27,16 @@ async function initialized(options?: OpenStoreOptions): Promise<{ directory: str
 afterEach(async () => {
   for (const store of handles.splice(0)) await store.close();
   await cleanDirectories();
+  vi.restoreAllMocks();
 });
 
 describe('orch lock holders', () => {
-  test.skipIf(process.getuid?.() === 0)('a holder pid that raises EPERM counts as a live holder', async () => {
+  test('a holder pid that raises EPERM counts as a live holder', async () => {
+    const kill = process.kill.bind(process);
+    vi.spyOn(process, 'kill').mockImplementation((pid, signal) => {
+      if (pid === 1 && signal === 0) throw Object.assign(new Error('permission denied'), { code: 'EPERM' });
+      return kill(pid, signal);
+    });
     const { directory, store } = await initialized();
     await writeFile(lockOf(directory), '1\n');
     await expect(store.units.add({ id: 'u', track: 't' })).rejects.toThrow('store lock held by pid 1');
@@ -86,13 +94,9 @@ describe('orch lock recovery', () => {
   });
 });
 
-function runScript(path: string): Promise<string> {
-  return new Promise((resolve) => {
-    let out = '';
-    const child = spawn(process.execPath, [path]);
-    child.stdout.on('data', (chunk) => (out += chunk));
-    child.on('close', () => resolve(out.trim()));
-  });
+async function runScript(path: string): Promise<string> {
+  const { stdout } = await promisify(execFile)('bun', [path], { timeout: 15_000 });
+  return stdout.trim();
 }
 
 test('a reader never observes a half-written units file while another process rewrites it', async () => {
@@ -108,16 +112,22 @@ await store.close();
   );
   const done = runScript(writer);
   let finished = false;
-  void done.then(() => (finished = true));
+  void done.then(
+    () => (finished = true),
+    () => (finished = true),
+  );
   let reads = 0;
   let last = 0;
-  while (!finished) {
-    const rows = await store.units.list();
-    expect(rows.length).toBeGreaterThanOrEqual(last);
-    last = rows.length;
-    reads += 1;
+  try {
+    while (!finished) {
+      const rows = await store.units.list();
+      expect(rows.length).toBeGreaterThanOrEqual(last);
+      last = rows.length;
+      reads += 1;
+    }
+  } finally {
+    await done;
   }
-  await done;
   expect(reads).toBeGreaterThan(1);
   expect((await store.units.list()).length).toBe(150);
 }, 60_000);

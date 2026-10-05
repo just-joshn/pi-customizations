@@ -1,5 +1,7 @@
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { type FinalizeInput, finalizeReport, modelFacingReport } from '../src/subagents/finalize.ts';
+
+afterEach(() => vi.unstubAllEnvs());
 
 const input = (overrides: Partial<FinalizeInput> = {}): FinalizeInput => ({ output: 'body', agentType: 'explore', sender: 'a1', ...overrides });
 const frameHeader = '[Subagent hand-back]';

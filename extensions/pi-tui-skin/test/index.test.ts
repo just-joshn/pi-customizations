@@ -56,15 +56,21 @@ describe('tui-skin extension entry point', () => {
     expect([...handlers.keys()].sort()).toEqual(['agent_settled', 'agent_start', 'model_select', 'session_shutdown', 'session_start', 'thinking_level_select', 'tool_execution_end', 'tool_execution_start']);
   });
 
-  test('a print-mode session installs no chrome, and a TUI session installs the header', () => {
+  test('a print-mode session leaves presentation unchanged', () => {
     const { pi, handlers } = fakePi();
     tuiSkin(pi);
-
     const printed = sessionContext('print');
-    handlers.get('session_start')?.({}, printed.ctx);
-    expect(printed.ui.setHeader).not.toHaveBeenCalled();
-    expect(printed.ui.setWidget).not.toHaveBeenCalled();
 
+    handlers.get('session_start')?.({}, printed.ctx);
+
+    expect(printed.ui.setHeader.mock.calls).toEqual([]);
+    expect(printed.ui.setWidget.mock.calls).toEqual([]);
+    expect([...handlers.keys()]).toContain('session_start');
+  });
+
+  test('a TUI session installs the header', () => {
+    const { pi, handlers } = fakePi();
+    tuiSkin(pi);
     const tui = sessionContext('tui');
     handlers.get('session_start')?.({}, tui.ctx);
     const headerFactory = tui.ui.setHeader.mock.calls[0]?.[0] as ((tui: unknown, theme: unknown) => { render(width: number): string[] }) | undefined;
@@ -105,27 +111,6 @@ describe('tui-skin extension chrome lifecycle', () => {
     expect(ui.setHiddenThinkingLabel).toHaveBeenLastCalledWith();
   });
 
-  test('a failing restore throws and still clears activity', () => {
-    const consoleError = vi.spyOn(console, 'error');
-    const { pi, handlers } = fakePi();
-    tuiSkin(pi);
-    const { ctx, ui } = sessionContext('tui');
-    handlers.get('session_start')?.({}, ctx);
-    const widgetFactory = ui.setWidget.mock.calls[0]?.[1] as ((tui: unknown, theme: unknown) => { render(width: number): string[] }) | undefined;
-    if (widgetFactory === undefined) throw new Error('no activity widget was installed');
-    const widget = widgetFactory({ requestRender: () => {} }, themeStub);
-    handlers.get('tool_execution_start')?.({ toolCallId: 'a', toolName: 'read', args: { path: '/tmp/a.ts' } }, ctx);
-    expect(widget.render(80)).toHaveLength(1);
-
-    ui.setFooter.mockImplementation(() => {
-      throw new Error('footer boom');
-    });
-    expect(() => handlers.get('session_shutdown')?.({}, ctx)).toThrow('footer boom');
-
-    expect(widget.render(80)).toEqual([]);
-    expect(consoleError.mock.calls).toEqual([]);
-  });
-
   test('a second session_start keeps the installed chrome working', () => {
     const { pi, handlers } = fakePi();
     tuiSkin(pi);
@@ -140,6 +125,28 @@ describe('tui-skin extension chrome lifecycle', () => {
     const lines = footerFactory({ requestRender: () => {} }, themeStub, footerDataStub).render(80);
     expect(stripTerminalSequences(lines[1] ?? '').trimEnd()).toBe('  /tmp/workspace · main');
   });
+});
+
+test('tui-skin clears activity when chrome restoration fails', ({ onTestFinished }) => {
+  const consoleError = vi.spyOn(console, 'error');
+  onTestFinished(() => consoleError.mockRestore());
+  const { pi, handlers } = fakePi();
+  tuiSkin(pi);
+  const { ctx, ui } = sessionContext('tui');
+  handlers.get('session_start')?.({}, ctx);
+  const widgetFactory = ui.setWidget.mock.calls[0]?.[1] as ((tui: unknown, theme: unknown) => { render(width: number): string[] }) | undefined;
+  if (widgetFactory === undefined) throw new Error('no activity widget was installed');
+  const widget = widgetFactory({ requestRender: () => {} }, themeStub);
+  handlers.get('tool_execution_start')?.({ toolCallId: 'a', toolName: 'read', args: { path: '/tmp/a.ts' } }, ctx);
+  expect(widget.render(80)).toHaveLength(1);
+
+  ui.setFooter.mockImplementation(() => {
+    throw new Error('footer boom');
+  });
+  expect(() => handlers.get('session_shutdown')?.({}, ctx)).toThrow('footer boom');
+
+  expect(widget.render(80)).toEqual([]);
+  expect(consoleError.mock.calls).toEqual([]);
 });
 
 describe('tui-skin extension footer rows', () => {

@@ -1,8 +1,11 @@
-import { afterEach, describe, expect, test } from 'bun:test';
+import './leak-preload.ts';
 import { spawnSync } from 'node:child_process';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
+import { afterEach, describe, expect, test } from 'vitest';
+import { expectDefined } from '../support/expect-defined.ts';
 
 const script = new URL('../../skills/show-me-your-work/scripts/log.sh', import.meta.url).pathname;
 const header = ['ts', 'phase', 'decision', 'why', 'evidence', 'result'].join('\t');
@@ -81,7 +84,7 @@ test('spreadsheet text qualifiers cannot expose a formula initiator in attacker-
   const neutralized = `'${input}`;
   const parsed = parseQualifiedTsv(emitted);
   expect(parsed[1]?.[4]).toBe(neutralized);
-  expect(emitted.split('\n')[1].split('\t')[4]).toBe(neutralized);
+  expect(expectDefined(emitted.split('\n')[1]).split('\t')[4]).toBe(neutralized);
 });
 
 describe('log.sh formula guard', () => {

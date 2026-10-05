@@ -39,7 +39,10 @@ async function verify() {
     await cp(join(root, 'upstream/skills/poteto-mode/scripts'), workspace, { recursive: true });
     await mkdir(join(workspace, 'supplemental'));
     const tests = (await readdir(join(root, 'test/upstream'))).filter((name) => name.endsWith('.test.mjs'));
-    for (const name of tests) await cp(join(root, 'test/upstream', name), join(workspace, 'supplemental', name));
+    for (const name of tests) {
+      const source = await readFile(join(root, 'test/upstream', name), 'utf8');
+      await writeFile(join(workspace, 'supplemental', name), source.replaceAll("from 'vitest'", "from 'bun:test'").replaceAll('../../upstream/skills/poteto-mode/scripts/', '../'));
+    }
     await writeFile(join(workspace, 'bunfig.toml'), '[test]\ncoverage = true\ncoverageReporter = ["text", "lcov"]\n');
     run(['install', '--frozen-lockfile'], workspace);
     run(['test', 'orch', 'watch-pr', 'supplemental', '--coverage'], workspace);

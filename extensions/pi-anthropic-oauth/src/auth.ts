@@ -7,7 +7,7 @@ function tokenAuth(value: string, source: string, env?: ProviderEnv): AuthResult
   if (!value) return undefined;
   const token = value.trim();
   if (!OAUTH_ACCESS_TOKEN.test(token)) throw new Error(`${source} must contain a Claude OAuth access token, not an API key.`);
-  return { auth: { apiKey: token }, env, source };
+  return { auth: { apiKey: token }, ...(env === undefined ? {} : { env }), source };
 }
 
 const subscriptionToken: ApiKeyAuth = {

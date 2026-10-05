@@ -46,7 +46,7 @@ test('user-perspective: loaded skills and prompt templates expose descriptions',
       expect(Boolean(skill.description && skill.description.trim().length > 0)).toBe(true);
       const skillFile = await readFile(skill.filePath, 'utf8');
       const { frontmatter } = parseFrontmatter<Record<string, unknown>>(skillFile);
-      expect(Boolean(frontmatter.description)).toBe(true);
+      expect(Boolean(frontmatter['description'])).toBe(true);
     }
   } finally {
     await f.close();
@@ -293,7 +293,7 @@ function runCli(args: string[], options: { cwd: string; agentDir: string }): Pro
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [cliPath, ...args], {
       cwd: options.cwd,
-      env: { PATH: process.env.PATH, HOME: options.cwd, PI_CODING_AGENT_DIR: options.agentDir, PI_OFFLINE: '1' },
+      env: { PATH: process.env['PATH'], HOME: options.cwd, PI_CODING_AGENT_DIR: options.agentDir, PI_OFFLINE: '1' },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let stdout = '';

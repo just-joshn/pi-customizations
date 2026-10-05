@@ -17,7 +17,7 @@ test('an empty /goal prints usage and arms no goal', async () => {
   try {
     const { session, manager } = await f.open();
     const notices: { message: string; level?: string }[] = [];
-    await session.bindExtensions({ uiContext: { notify: (message: string, level?: string) => notices.push({ message, level }), setStatus() {}, setWidget() {} } as never });
+    await session.bindExtensions({ uiContext: { notify: (message: string, level?: string) => notices.push(level === undefined ? { message } : { message, level }), setStatus() {}, setWidget() {} } as never });
     await prompt(session, '/goal   ', { startsRun: false });
     expect(notices).toEqual([{ message: 'Usage: /goal <objective>. Use /goal clear to drop the active goal. A leading time limit is unsupported. Use /loop for recurring work.\nNo goal.', level: 'info' }]);
     expect(manager.getBranch().filter((entry) => entry.type === 'custom' && entry.customType === 'pstack-goal')).toEqual([]);

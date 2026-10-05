@@ -1,8 +1,13 @@
 import { join } from 'node:path';
 
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import * as executors from '../src/remote-executors.ts';
 import { openRemoteRpc, remoteCall } from '../src/remote-worker-transport.ts';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 const executor: executors.RemoteExecutor = {
   id: 'fixture',

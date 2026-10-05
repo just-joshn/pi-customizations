@@ -10,15 +10,20 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 
 async function generatedFixture() {
   const directory = await mkdtemp(join(tmpdir(), 'pstack-dependency-mappings-'));
-  await mkdir(join(directory, 'docs'));
-  await mkdir(join(directory, 'scripts'));
-  for (const path of ['upstream', 'upstream-team-kit', 'skills', 'prompts', 'host/adapters', 'package.json', 'scripts', 'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json']) {
-    await cp(join(root, path), join(directory, path), {
-      recursive: true,
-      filter: (source) => !source.split('/').includes('node_modules'),
-    });
+  try {
+    await mkdir(join(directory, 'docs'));
+    await mkdir(join(directory, 'scripts'));
+    for (const path of ['upstream', 'upstream-team-kit', 'skills', 'prompts', 'host/adapters', 'package.json', 'scripts', 'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json']) {
+      await cp(join(root, path), join(directory, path), {
+        recursive: true,
+        filter: (source) => !source.split('/').includes('node_modules'),
+      });
+    }
+    execFileSync(process.execPath, [join(directory, 'scripts/resources.mjs'), '--policy-root', fileURLToPath(new URL('../../../', import.meta.url)), '--write'], { stdio: 'pipe' });
+  } catch (error) {
+    await rm(directory, { recursive: true, force: true });
+    throw error;
   }
-  execFileSync(process.execPath, [join(directory, 'scripts/resources.mjs'), '--write'], { stdio: 'pipe' });
   return {
     directory,
     read: (path: string) => readFile(join(directory, path), 'utf8'),

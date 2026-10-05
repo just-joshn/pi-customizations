@@ -5,9 +5,12 @@ import { join } from 'node:path';
 // An unpersisted session has no session directory, so its stores live in the temp directory.
 // They belong to that session and are removed when it shuts down.
 export class EphemeralDirs {
+  private readonly prefix: string;
   private readonly owned = new WeakMap<object, Set<string>>();
 
-  constructor(private readonly prefix: string) {}
+  constructor(prefix: string) {
+    this.prefix = prefix;
+  }
 
   async create(owner: object): Promise<string> {
     const dir = await mkdtemp(join(tmpdir(), this.prefix));

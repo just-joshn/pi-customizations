@@ -69,13 +69,9 @@ test('ambient auth preserves cancellation during environment access', async ({ p
   await expect(resolve({ ctx: { env, fileExists: noFile }, signal: controller.signal })).rejects.toBe(controller.signal.reason);
 });
 
-test('refresh cancellation keeps its abort reason', async ({ provider, onTestFinished }) => {
+test('refresh cancellation keeps its abort reason', async ({ provider }) => {
   const oauth = provider.auth.oauth;
   if (!oauth) throw new Error('No OAuth');
-  const previous = globalThis.fetch;
-  onTestFinished(() => {
-    vi.stubGlobal('fetch', previous);
-  });
   const controller = new AbortController();
   const reason = new DOMException('Cancelled', 'AbortError');
   vi.stubGlobal(
@@ -119,11 +115,7 @@ test('a state mismatch never exchanges the authorization code', async ({ provide
   expect(tokenEndpoint.requests).toStrictEqual([]);
 });
 
-test('failed refresh keeps account ownership', async ({ provider, credentials, onTestFinished }) => {
-  const previous = globalThis.fetch;
-  onTestFinished(() => {
-    vi.stubGlobal('fetch', previous);
-  });
+test('failed refresh keeps account ownership', async ({ provider, credentials }) => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ refresh_token: 'sensitive-server-value' }, { status: 400 })));
   const credential = oauthCredential({ expires: 0 });
   await credentials.modify(provider.id, async () => credential);

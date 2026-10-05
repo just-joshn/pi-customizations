@@ -8,9 +8,12 @@ export type Selected = Readonly<{ definition: AgentDefinition; prompt: string }>
 
 /** The custom agent that runs as the main agent of the session, if any. */
 export class AgentSelection {
+  private readonly events: EventLog;
   private current: Selected | undefined;
 
-  constructor(private readonly events: EventLog) {}
+  constructor(events: EventLog) {
+    this.events = events;
+  }
 
   getCurrent(): Selected | undefined {
     return this.current;

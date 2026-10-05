@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 // Enforces the extensions/AGENTS.md vitest rules that a static scan can decide.
 import { readdir, readFile } from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = fileURLToPath(new URL('..', import.meta.url));
-const ts = createRequire(join(root, 'pi-pstack/package.json'))('typescript');
+import * as ts from 'typescript/unstable/ast';
+import { closeTypeScriptSources, withTypeScriptSource } from '../../scripts/typescript-source.mjs';
 
-const skipDirectories = new Set(['node_modules', 'coverage', 'dist', 'upstream', '.git']);
+const root = fileURLToPath(new URL('..', import.meta.url));
+
+const skipDirectories = new Set(['node_modules', 'coverage', 'dist', '.git']);
 const weakMatchers = new Set(['toBeDefined', 'toBeTruthy', 'toBeFalsy', 'toBeUndefined', 'toBeNaN']);
 const chainLinks = new Set(['resolves', 'rejects', 'not', 'soft', 'poll', 'each', 'for', 'skip', 'only', 'concurrent', 'sequential']);
 
@@ -70,7 +71,7 @@ function assertionsIn(callback) {
         found.push({ call: node, matcher, negated: names.includes('not') });
       }
     }
-    ts.forEachChild(node, visit);
+    node.forEachChild(visit);
   };
   visit(callback);
   return found;
@@ -84,7 +85,7 @@ function descendants(node) {
       const isPropertyName = ts.isPropertyAccessExpression(parent) && parent.name === current;
       if (!isPropertyName) names.add(current.text);
     }
-    ts.forEachChild(current, visit);
+    current.forEachChild(visit);
   };
   visit(node);
   return names;
@@ -122,7 +123,7 @@ function collectTests(source, report) {
       }
       if (/^[a-z]+\.concurrent/.test(dotted(node))) report('review', 'concurrent-test', node, 'concurrent tests need every resource independently isolated');
     }
-    ts.forEachChild(node, (child) => walk(child, depth));
+    node.forEachChild((child) => walk(child, depth));
   };
   walk(source, 0);
   return testCalls;
@@ -133,13 +134,13 @@ function collectHelpers(source, testCallNodes) {
   const helperCalls = new Map();
   const wrapperParameters = new Set();
   const collect = (node) => {
-    if (ts.isFunctionLike(node)) {
+    if (ts.isFunctionLikeDeclaration(node)) {
       let wrapsTest = false;
       const scan = (child) => {
         if (testCallNodes.has(child)) wrapsTest = true;
-        else if (!wrapsTest) ts.forEachChild(child, scan);
+        else if (!wrapsTest) child.forEachChild(scan);
       };
-      ts.forEachChild(node, scan);
+      node.forEachChild(scan);
       if (wrapsTest) for (const parameter of node.parameters) for (const name of descendants(parameter.name)) wrapperParameters.add(name);
       const body = node.body;
       if (body && ts.isFunctionDeclaration(node) && node.name) {
@@ -151,7 +152,7 @@ function collectHelpers(source, testCallNodes) {
       helperCalls.set(node.name.text, descendants(node.initializer));
       if (assertionsIn(node.initializer).length) assertingHelpers.add(node.name.text);
     }
-    ts.forEachChild(node, collect);
+    node.forEachChild(collect);
   };
   collect(source);
   for (let pass = 0; pass < helperCalls.size; pass++) {
@@ -171,7 +172,7 @@ function collectAwaitedNames(source) {
     if (ts.isCallExpression(node) && /^Promise\.(all|allSettled|race|any)$/.test(dotted(node))) {
       for (const argument of node.arguments) for (const name of descendants(argument)) awaitedNames.add(name);
     }
-    ts.forEachChild(node, collect);
+    node.forEachChild(collect);
   };
   collect(source);
   return awaitedNames;
@@ -213,7 +214,7 @@ function checkModuleMock(name, node, report) {
   if (name !== 'vi.mock' && name !== 'vi.unmock' && name !== 'vi.hoisted') return;
   let scope = node.parent;
   while (scope && !ts.isSourceFile(scope)) {
-    if (ts.isFunctionLike(scope) || ts.isBlock(scope) || ts.isIfStatement(scope) || ts.isTryStatement(scope)) {
+    if (ts.isFunctionLikeDeclaration(scope) || ts.isBlock(scope) || ts.isIfStatement(scope) || ts.isTryStatement(scope)) {
       report('violation', 'nested-hoisted-mock', node, `${name} must stay at the top level because it is hoisted`);
       return;
     }
@@ -275,13 +276,16 @@ function reportStatements(source, report) {
     if (ts.isPropertyAccessExpression(node)) checkAsyncExpectation(node, awaitedNames, report);
     if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken) checkMutation(node.left, report);
     if (ts.isDeleteExpression(node)) checkMutation(node.expression, report, true);
-    ts.forEachChild(node, visit);
+    node.forEachChild(visit);
   };
   visit(source);
 }
 
 export function analyzeSource(text, path) {
-  const source = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true);
+  return withTypeScriptSource(text, path, (source) => analyzeNativeSource(source, path));
+}
+
+function analyzeNativeSource(source, path) {
   const { found, report } = createReporter(source, path);
   const testCalls = collectTests(source, report);
   reportTestAssertions(source, testCalls, report);
@@ -289,15 +293,18 @@ export function analyzeSource(text, path) {
   return found;
 }
 
-async function collectTestFiles(directory) {
+async function collectTestFiles(directory, base) {
+  const preserved = ['pi-pstack/upstream/', 'pi-pstack/upstream-team-kit/', 'pi-pstack/skills/'];
+  const local = `${relative(base, directory).replaceAll('\\', '/')}/`;
+  if (preserved.some((prefix) => local.startsWith(prefix))) return [];
   const files = [];
   for (const child of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, child.name);
     if (child.isDirectory()) {
-      if (!skipDirectories.has(child.name)) files.push(...(await collectTestFiles(path)));
-    } else if (child.name.endsWith('.test.ts')) {
+      if (!skipDirectories.has(child.name)) files.push(...(await collectTestFiles(path, base)));
+    } else if (/\.(test|spec)\.[cm]?[jt]sx?$/.test(child.name)) {
       const text = await readFile(path, 'utf8');
-      if (/from\s+['"]vitest['"]/.test(text)) files.push({ path, text });
+      files.push({ path, text });
     }
   }
   return files;
@@ -306,7 +313,7 @@ async function collectTestFiles(directory) {
 export async function testFiles(base = root) {
   const entries = await readdir(base, { withFileTypes: true });
   const directories = entries.filter((entry) => entry.isDirectory() && !skipDirectories.has(entry.name));
-  const files = (await Promise.all(directories.map((entry) => collectTestFiles(join(base, entry.name))))).flat();
+  const files = (await Promise.all(directories.map((entry) => collectTestFiles(join(base, entry.name), base)))).flat();
   return files.sort((left, right) => left.path.localeCompare(right.path));
 }
 
@@ -370,7 +377,13 @@ async function main() {
   for (const item of violations) counts.set(item.rule, (counts.get(item.rule) ?? 0) + 1);
   process.stdout.write(`\n${files.length} vitest files scanned. ${violations.length} violations, ${results.length - violations.length} review items.\n`);
   for (const [rule, count] of [...counts].sort((left, right) => right[1] - left[1])) process.stdout.write(`  ${rule}: ${count}\n`);
-  process.exit(violations.length ? 1 : 0);
+  process.exitCode = violations.length ? 1 : 0;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    await main();
+  } finally {
+    closeTypeScriptSources();
+  }
+}

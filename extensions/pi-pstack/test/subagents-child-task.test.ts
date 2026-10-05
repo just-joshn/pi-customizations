@@ -16,8 +16,8 @@ childTest.for(['', 'prior answer'])('handled prompts settle without returning pr
   expect(record).toMatchObject({ status: 'settled', output: '', toolUseCount: 0 });
   expect(host.settlements).toHaveLength(1);
   expect(task.alive).toBe(false);
-  expect((await loggedCommands(workspace)).map((command) => command.type)).not.toContain('get_last_assistant_text');
-  expect((await loggedCommands(workspace)).map((command) => command.type)).not.toContain('get_session_stats');
+  expect((await loggedCommands(workspace)).map((command) => command['type'])).not.toContain('get_last_assistant_text');
+  expect((await loggedCommands(workspace)).map((command) => command['type'])).not.toContain('get_session_stats');
 });
 
 childTest.for(['started', 'queued'])('$0 prompts wait for agent_settled, not acceptance or agent_end', async (disposition, { workspace }) => {
@@ -27,7 +27,7 @@ childTest.for(['started', 'queued'])('$0 prompts wait for agent_settled, not acc
   await task.steer('agent_end', 'steer');
 
   expect(host.settlements).toHaveLength(0);
-  expect((await loggedCommands(workspace)).map((command) => command.type)).not.toContain('get_last_assistant_text');
+  expect((await loggedCommands(workspace)).map((command) => command['type'])).not.toContain('get_last_assistant_text');
   await task.steer('settle', 'steer');
 
   expect(await completion).toMatchObject({ status: 'settled', output: 'fresh answer' });
@@ -45,7 +45,7 @@ childTest('prompt rejection settles the failed record and closes the child befor
   expect(task.alive).toBe(false);
   await expect(task.done).rejects.toThrow('preflight rejected');
   expect(await task.stop()).toMatchObject({ status: 'failed', output: 'preflight rejected' });
-  expect((await loggedCommands(workspace)).map((command) => command.type)).not.toContain('get_last_assistant_text');
+  expect((await loggedCommands(workspace)).map((command) => command['type'])).not.toContain('get_last_assistant_text');
 });
 
 childTest('an unobserved prompt rejection still settles and closes the child', async ({ workspace }) => {

@@ -1,6 +1,7 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { expect, test } from 'vitest';
+import { expect } from 'vitest';
 import extension from '../src/index.ts';
+import { test } from './network-guard.ts';
 import { captureProvider } from './support/load-extension.ts';
 
 const sample = captureProvider(extension);

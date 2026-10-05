@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 export const orchDirectory = new URL('../../skills/poteto-mode/scripts/orch/', import.meta.url).pathname;
 export const script = join(orchDirectory, 'orch.ts');
+const bun = execFileSync('which', ['bun'], { encoding: 'utf8' }).trim();
 const directories: string[] = [];
 
 export type Run = { code: number; stdout: string; stderr: string };
@@ -26,8 +27,10 @@ export function baseEnv(extra: Record<string, string | undefined> = {}): Record<
 }
 
 export function runCli(args: readonly string[], options: { env?: Record<string, string | undefined>; cwd?: string } = {}): Run {
-  const result = spawnSync(process.execPath, [script, ...args], { env: options.env ?? baseEnv(), cwd: options.cwd, encoding: 'utf8' });
-  return { code: result.status ?? -1, stdout: result.stdout, stderr: result.stderr };
+  const result = spawnSync(bun, [script, ...args], { env: options.env ?? baseEnv(), cwd: options.cwd, encoding: 'utf8' });
+  if (result.error) throw result.error;
+  if (result.status === null) throw new Error(`orch terminated by signal ${result.signal}`);
+  return { code: result.status, stdout: result.stdout, stderr: result.stderr };
 }
 
 export function git(repo: string, ...args: string[]): string {

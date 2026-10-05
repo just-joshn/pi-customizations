@@ -1,6 +1,7 @@
-import { expect, test, vi } from 'vitest';
+import { expect, vi } from 'vitest';
 import { errorText, extractRetryDelay, parseApiKey, postCloudCode } from '../src/cloudcode.ts';
 import { fakeServer, json } from './fake-server.ts';
+import { test } from './network-guard.ts';
 
 test('postCloudCode parses a successful JSON body', async () => {
   const server = await fakeServer((_, res) => json(res, 200, { cloudaicompanionProject: 'p1' }));

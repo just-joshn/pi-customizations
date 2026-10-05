@@ -9,6 +9,9 @@ A single Pi theme, `one-dark-pro-flat`, mapped from
 `themes/OneDark-Pro-flat.json`. All 56 color roles and the 3 HTML export colors are assigned.
 Every value is derived from the pinned file under `upstream/` by `parity/theme.ts`, and
 `bun run check:parity` fails when the committed theme drifts from a fresh build.
+`upstream/provenance.json` retains the authentic original bytes in its `originalSource` string.
+The checker verifies the unchanged original SHA-256 and requires the actual upstream artifact
+to equal the shared root Biome transform of those bytes. See `upstream/SOURCE.md` for replay instructions.
 
 ## Install
 
@@ -45,7 +48,8 @@ system appearance.
 bun run build:theme    # rewrite themes/one-dark-pro-flat.json from upstream/
 bun run check:parity   # pinned hash, schema coverage, committed theme, value shapes
 bun run typecheck
-bun run test:coverage  # 80% thresholds on parity/*.ts
+bun run test:coverage  # configured src/**/*.ts denominator is empty for this theme-only package
+bun run test --coverage --coverage.include='parity/**/*.ts' --coverage.thresholds.lines=80 --coverage.thresholds.functions=80 --coverage.thresholds.branches=80 --coverage.thresholds.statements=80
 bun run check:smoke    # launch pi in tmux and assert the theme's escapes reach the screen
 ```
 

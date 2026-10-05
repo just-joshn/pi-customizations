@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto';
 
 import { createModels, type RefreshModelsContext } from '@earendil-works/pi-ai';
-import { expect, test } from 'vitest';
+import { expect } from 'vitest';
 import { createGrokBuildProvider } from '../src/index.ts';
+import { test } from './network-guard.ts';
 import { builtinXai } from './support/builtin-xai.ts';
 import { liveBody, liveEntry } from './support/catalog-body.ts';
 import { stubCatalogEndpoint } from './support/catalog-endpoint.ts';
@@ -17,17 +18,27 @@ async function refreshed(reply: () => Response) {
   return { credential, endpoint, models, error: result.errors.get('grok-build') };
 }
 
-test('the refresh sends the bearer token, then lists a live-only model', async () => {
-  const body = { ...liveBody(), data: [...liveBody().data, liveEntry('grok-4.8')] };
-  const { credential, endpoint, models, error } = await refreshed(() => Response.json(body));
+test('the refresh sends the bearer token to the catalog endpoint', async () => {
+  const { credential, endpoint, error } = await refreshed(() => Response.json(liveBody()));
   expect(error).toBeUndefined();
   expect(endpoint.requests).toStrictEqual([{ url: 'https://cli-chat-proxy.grok.com/v1/models', authorization: `Bearer ${credential.access}` }]);
+});
+
+test('the refresh lists a live-only model', async () => {
+  const body = { ...liveBody(), data: [...liveBody().data, liveEntry('grok-4.8')] };
+  const { models, error } = await refreshed(() => Response.json(body));
+  expect(error).toBeUndefined();
   expect(
     models
       .getModels('grok-build')
       .map((model) => model.id)
       .sort(),
   ).toStrictEqual(['grok-4.5', 'grok-4.6', 'grok-4.7', 'grok-4.7-build-fast', 'grok-4.8']);
+});
+
+test('the catalog stub still blocks unrelated external requests', async () => {
+  await refreshed(() => Response.json(liveBody()));
+  await expect(fetch('https://example.invalid/blocked')).rejects.toThrow('Blocked external network request');
 });
 
 test('HTTP 401 asks the user to log in again', async () => {
