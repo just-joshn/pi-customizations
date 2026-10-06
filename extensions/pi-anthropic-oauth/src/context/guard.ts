@@ -34,8 +34,8 @@ export interface GuardContext {
   compact(options?: CompactOptions): void;
 }
 
-/** The extension API methods the guard needs, straight from Pi's own type. */
-export type ContextGuardHost = Pick<ExtensionAPI, 'registerProvider' | 'on' | 'getAllTools' | 'getActiveTools' | 'getSettings'>;
+/** The extension API methods the guard reads, straight from Pi's own type. */
+export type ContextGuardHost = Pick<ExtensionAPI, 'on' | 'getAllTools' | 'getActiveTools' | 'getSettings'>;
 
 export interface GuardOptions {
   readonly providerId: string;
@@ -105,8 +105,8 @@ function isBenignCompactionFailure(message: string): boolean {
 
 /**
  * The bias one observation produces: the measured payload-to-usage ratio
- * clamped to [1, 2]. Each successful response resets the bias to this value,
- * so the 1.2 seed applies only until the session's first measurement. Returns
+ * clamped to [1, 2]. A usable observation resets the bias to this value, so
+ * the 1.2 seed applies only until the session's first measurement. Returns
  * undefined when the observation is not usable.
  */
 export function calibratedBias(payload: unknown, usageTokens: number, fallback: BytesPerToken | undefined): number | undefined {
@@ -183,19 +183,15 @@ export function installContextGuard(pi: ContextGuardHost, options: GuardOptions)
         report(options, TRIMMED_NOTICE);
       }
       return fitted;
-    } catch {
+    } catch (error) {
+      report(options, `Claude context guard: request fit failed, sending the request unfitted: ${error instanceof Error ? error.message : String(error)}`);
       return payload;
     }
   };
 
   const observe = (payload: unknown, usageTokens: number): void => {
-    try {
-      const next = calibratedBias(payload, usageTokens, lastBytesPerToken);
-      if (next !== undefined) bias = next;
-    } catch {
-      // Observation must never break a run.
-      return;
-    }
+    const next = calibratedBias(payload, usageTokens, lastBytesPerToken);
+    if (next !== undefined) bias = next;
   };
 
   pi.on('session_start', reset);

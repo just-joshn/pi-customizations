@@ -129,10 +129,18 @@ test('summary messages count their summary text', () => {
   expect(agentMessageBlocks({ role: 'compactionSummary', summary: 'compacted' })).toStrictEqual([{ kind: 'text', text: 'compacted' }]);
 });
 
-test('a system message contributes no layer B tokens', () => {
-  const message: SystemMessage = { role: 'system', content: 'You are helpful.', timestamp: 1 };
-  expect(agentMessageBlocks(message)).toStrictEqual([]);
-  expect(countBlocks(agentMessageBlocks(message), 3)).toBe(0);
+test('a system message counts its content and its section text', () => {
+  const message: SystemMessage = { role: 'system', content: 'You are helpful.', sections: { rules: 'Be brief.', removed: null }, timestamp: 1 };
+  expect(agentMessageBlocks(message)).toStrictEqual([
+    { kind: 'text', text: 'You are helpful.' },
+    { kind: 'text', text: 'Be brief.' },
+  ]);
+});
+
+test('the projection estimate skips the leading system message and counts later ones', () => {
+  const leading: SystemMessage = { role: 'system', content: 'You are helpful.', timestamp: 1 };
+  const later: SystemMessage = { role: 'system', content: 'Extra rule.', timestamp: 2 };
+  expect(estimateMessages([leading, later], 3)).toBe(countBlocks(agentMessageBlocks(later), 3));
 });
 
 test('the projection estimate sums every message', () => {

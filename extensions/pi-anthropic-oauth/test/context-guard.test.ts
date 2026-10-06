@@ -42,7 +42,6 @@ function createRig(compactionEnabled = true): Rig {
   const notices: string[] = [];
   const handlers = new Map<string, unknown>();
   const api: ContextGuardHost = {
-    registerProvider: () => undefined,
     on: (...args: unknown[]): (() => void) => {
       const [event, handler] = args;
       if (typeof event === 'string' && typeof handler === 'function') handlers.set(event, handler);

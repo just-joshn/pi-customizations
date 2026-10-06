@@ -154,7 +154,6 @@ function gatewayReply(res: ServerResponse, request: RecordedRequest): void {
   const body = request.body;
   const wire = wireTokens(body);
   const wireModel = isRecord(body) && typeof body['model'] === 'string' ? body['model'] : '<none>';
-  // Only the subscription model is capped. The foreign seeding phase is not.
   const capped = wireModel === MODEL;
   const summarization = systemTexts(body).some((text) => text.includes(SUMMARIZATION_SYSTEM));
   const compactionSummary = JSON.stringify(body).includes(COMPACTION_MARKER);

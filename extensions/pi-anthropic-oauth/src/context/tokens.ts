@@ -1,6 +1,6 @@
 // Claude Code's token accounting, extracted from the installed 2.1.291 bundle.
 // One definition of "how this provider counts tokens" for the whole extension.
-import type { Api, AssistantMessage, ImageContent, Message, Model, TextContent, ThinkingContent, ToolCall } from '@earendil-works/pi-ai';
+import type { Api, AssistantMessage, ImageContent, Message, Model, SystemMessage, TextContent, ThinkingContent, ToolCall } from '@earendil-works/pi-ai';
 
 export type BytesPerToken = 3 | 4;
 
@@ -76,9 +76,9 @@ export function bytesPerToken(modelId: string): BytesPerToken {
 }
 
 /**
- * Claude Code's auto-compact and blocking thresholds. The auto window resolves
- * to the context window for every model in Pi's catalog, so
- * `min(contextWindow, autoWindow)` collapses to `contextWindow`.
+ * Claude Code's auto-compact and blocking thresholds. Claude Code clamps its
+ * auto-compact window to the model's context window, so this uses
+ * `contextWindow` directly, which matches the catalog models served here.
  */
 export function contextBudget(model: Pick<Model<Api>, 'id' | 'contextWindow' | 'maxTokens'>): ContextBudget {
   const reserve = Math.min(model.maxTokens, 20000);
@@ -134,6 +134,17 @@ function contentBlocks(content: string | readonly (TextContent | ImageContent)[]
   return content.map((block) => (block.type === 'image' ? { kind: 'image' } : { kind: 'text', text: block.text }));
 }
 
+function systemBlocks(message: SystemMessage): readonly CountedBlock[] {
+  const blocks = [...contentBlocks(message.content)];
+  if (message.sections !== undefined) {
+    for (const section of Object.values(message.sections)) {
+      if (section !== null) blocks.push({ kind: 'text', text: section });
+    }
+  }
+  if (message.toolsAdded !== undefined) blocks.push({ kind: 'json', json: serialized(message.toolsAdded) });
+  return blocks;
+}
+
 function assistantBlocks(message: AssistantMessage): readonly CountedBlock[] {
   return message.content.map((block: TextContent | ThinkingContent | ToolCall) => {
     if (block.type === 'text') return { kind: 'text', text: block.text };
@@ -164,9 +175,7 @@ export function agentMessageBlocks(message: AgentMessage): readonly CountedBlock
     case 'toolResult':
       return toolResultBlocks(message.content);
     case 'system':
-      // The caller passes the rendered system prompt separately, so counting
-      // this would double-count it.
-      return [];
+      return systemBlocks(message);
     case 'custom':
       return contentBlocks(message.content);
     case 'bashExecution':
@@ -247,15 +256,21 @@ export function wireMessageBlocks(message: unknown): readonly CountedBlock[] {
   return wireContentBlocks(message['content']);
 }
 
-/** The Layer B estimate over Pi's projected, pre-conversion messages. */
+/** The estimate over Pi's projected, pre-conversion messages. */
 export function estimateMessages(messages: readonly AgentMessage[], bpt: BytesPerToken): number {
   let total = 0;
-  for (const message of messages) total += countBlocks(agentMessageBlocks(message), bpt);
+  for (const [index, message] of messages.entries()) {
+    // The leading system message is the request's rendered prompt, which the
+    // caller passes separately. Later system messages carry instruction,
+    // section, and tool additions that do reach the wire.
+    if (index === 0 && message.role === 'system') continue;
+    total += countBlocks(agentMessageBlocks(message), bpt);
+  }
   return total;
 }
 
 /**
- * The Layer C estimate over the exact outgoing payload: every system block,
+ * The estimate over the exact outgoing payload: every system block,
  * every tool declaration, and every message, including mid-conversation
  * system blocks that carry tool additions or removals.
  */
