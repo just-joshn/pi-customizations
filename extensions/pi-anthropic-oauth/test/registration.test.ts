@@ -40,7 +40,7 @@ test('Pi loads the manifest extensions with one provider', async ({ onTestFinish
   const declared = declaredExtensions(JSON.parse(await readFile(join(packageDir, 'package.json'), 'utf8')));
   expect(extensions.map((loaded) => loaded.path)).toStrictEqual(declared.map((entry) => resolve(packageDir, entry)));
   expect(extensions).toHaveLength(1);
-  expect(extensions.map((loaded) => [...loaded.handlers.keys()])).toStrictEqual([[]]);
+  expect(extensions.map((loaded) => [...loaded.handlers.keys()])).toStrictEqual([['session_start', 'session_shutdown', 'before_agent_start']]);
   const registrations = runtime.pendingNativeProviderRegistrations;
   expect(registrations).toHaveLength(1);
   const models = registrations.flatMap(({ provider }) => provider.getModels().map((model) => ({ provider: provider.id, owner: model.provider })));

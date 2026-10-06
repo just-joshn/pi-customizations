@@ -25,7 +25,8 @@ This reference compares the integration with locally installed Claude Code `2.1.
 | Compaction and virtual routes | VERIFIED | `scripts/prove-request-paths.ts` reaches the same physical provider adapter on Pi `1.0.0` and installed Pi `1.0.1`. |
 | Fork, reload, and session replacement | VERIFIED | `scripts/prove-native.ts` checks fresh request-local fingerprints and successful native tool execution after runtime changes. |
 | Tool-name collisions | KNOWN LIMITATION | Native OAuth renaming folds names such as `Task` and `task`. The existing compatibility adapter keeps the first declaration. The second tool remains unavailable on that request. `test/tool-name-collision.test.ts` records the behavior. |
-| Prompt, thinking, output limits, tool results, and compaction policy | NATIVE DIFFERENCE | Pi owns these. The captured Claude SDK preamble, omitted-thinking display, and output limit are not imposed on Pi. Bash uses Pi's native output policy, including 40,000-character inline output in the CLI probe. |
+| Context-window accounting and compaction timing | VERIFIED | `src/context/tokens.ts` mirrors Claude Code's per-block accounting and thresholds, `src/context/guard.ts` compacts at `before_agent_start` when the calibrated estimate reaches Claude Code's compact threshold, and `src/context/fit.ts` fits every outgoing request under the blocking threshold. `scripts/prove-context-guard.ts` reproduces the over-limit wedge on the parent commit and verifies the fix on Pi `1.0.2` and installed Pi `1.0.3`. The synthetic endpoint does not establish live acceptance. |
+| Prompt shape, thinking display, output limits, and tool results | NATIVE DIFFERENCE | Pi owns these. The captured Claude SDK preamble, omitted-thinking display, and output limit are not imposed on Pi. Bash uses Pi's native output policy, including 40,000-character inline output in the CLI probe. |
 | Optional Claude beta flags and account metadata | NATIVE DIFFERENCE | Pi sends features it implements. Claude-specific safeguards, plugin protocols, account/device telemetry, previous-request IDs, and private workload flags are not copied or fabricated. |
 | Model catalog and entitlement filtering | NATIVE DIFFERENCE | The provider uses Pi's bundled Anthropic catalog at registration. It does not copy Claude aliases or maintain a second live model catalog. |
 | Claude Code credential-file and Keychain sharing | NATIVE DIFFERENCE | Pi's credential store is authoritative. The extension does not read, import, mutate, or synchronize Claude Code credentials. |
@@ -44,6 +45,30 @@ This identity is captured Claude Code attribution, not native Pi attribution. Th
 The version, public salt, and sample indices are pinned reverse-engineered facts. A Claude Code or gateway update can invalidate them. Recapture and verify the identity before updating these constants. The request-path probe deliberately pins a literal expected fingerprint for its fixed prompt, so changing that prompt also requires an independently verified vector.
 
 The billing block is first and uncached. Existing attribution blocks are replaced rather than duplicated. The caller's `onPayload` runs afterward and retains Pi's replacement semantics, including the ability to replace the whole payload. Such a replacement is caller-owned and can remove the attribution block.
+
+## Context accounting and the request cap
+
+A session built on another provider can be over Anthropic's limit before its first subscription request. Pi's `estimateContextTokens` anchors on the last assistant `usage`, whatever provider produced it, and estimates appended content at `chars/4`. A real session switched from a provider that counted the same content at roughly 4.5 characters per token to `claude-subscription`, so Pi estimated well under the window while Anthropic counted `1,036,487 tokens > 1,000,000`. The endpoint rejected the prompt, and the one-shot overflow-recovery summarization request was itself over the limit, so no compaction entry landed and the session stayed wedged.
+
+Three modules address it.
+
+- `src/context/tokens.ts` owns Claude Code's accounting: `Math.round(utf8Bytes / bytesPerToken)` per content block, 4 bytes for the 14 legacy and family model names and 3 for every other name, `compactAt = contextWindow - min(maxTokens, 20000) - 13000`, and `blockAt = ... - 3000`. Claude Code's auto-compact window resolves to the context window for every model in Pi's catalog, so `min(contextWindow, autoWindow)` collapses.
+- `src/context/guard.ts` registers a `before_agent_start` handler. When the projected context, rendered system prompt, active tool declarations, and pending prompt reach `compactAt`, it calls `ctx.compact()` once and awaits the completion or error callback. A `Nothing to compact (session too small)` or `Already compacted` failure is informational and resolves quietly; other failures are reported once per session. An empirical probe on Pi `1.0.2` and `1.0.3` established that this is the only safe point: compaction from `turn_start` aborts the running turn and deadlocks when awaited. Pi still owns summarization, the session store, and persistence.
+- `src/context/fit.ts` fits the exact outgoing payload under `blockAt`. For a full conversation it drops the smallest prefix that ends before a kept, text-only user message, prepends a one-line marker as a plain text block, and preserves every existing block and its `cache_control`. For Pi's summarization requests, identified by their system prompt and including the trailing output-config system message, it shrinks the serialized conversation head-and-tail so the summarization request itself fits. The fit is request-local: the session history is never modified, and the next successful compaction realigns it.
+
+Deliberate deviations from the parity source:
+
+- The estimator measures UTF-8 bytes rather than Claude Code's UTF-16 `.length`. That is conservative for CJK and base64 content, never optimistic.
+- The seed bias of `1.2` covers the measured 1.14 undercount before a session has a measurement. After each successful subscription response, `payloadTokens(payload) / (input + cacheRead + cacheWrite)` recalibrates it within `[1, 2]`. Summarization payloads do not recalibrate it, so their prose density cannot re-tune the conversation, and `session_start` resets it.
+- The marker is request-local and carries no counts, so a retried request cannot drift.
+
+Boundaries:
+
+- The guard runs at the prompt boundary. Mid-run growth, extension-injected messages, and virtual-router sessions rely on the payload fit only.
+- A single message larger than the model window cannot be fixed without discarding the user's prompt. The fit returns the payload unchanged and the endpoint's rejection surfaces as it does today.
+- Compaction has no wall-clock timeout on purpose. A timeout would release the handler while Pi still holds the compaction controller. If Pi ever failed to settle a compaction, the prompt would wait.
+- Content denser than about 2.1 bytes per token can exceed the window before the session's first usable measurement. After a measurement the bias follows the endpoint's own payload-to-usage ratio.
+- The probe's endpoint is a synthetic tokenizer. It proves the mechanism and the payload invariants, not live service acceptance. Live login, billing attribution, and endpoint acceptance remain INCONCLUSIVE.
 
 ## Native API gaps
 
