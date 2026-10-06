@@ -10,9 +10,13 @@
 // long`, the overflow-recovery summarization request is itself over the window
 // (it serializes the whole foreign-grown session), and no compaction entry
 // lands, so a second prompt wedges the same way.
+// GREEN (with the guard): the guard compacts before the request, each
+// summarization piece fits, no request exceeds the window, and the run carries
+// the compaction summary.
 //
 // Usage:
 //   node --experimental-strip-types scripts/prove-context-guard.ts --expect red
+//   PI_OAUTH_CLI_PATH=<install>/dist/bundle/cli.js node --experimental-strip-types scripts/prove-context-guard.ts --expect green
 import { execFile } from 'node:child_process';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import type { ServerResponse } from 'node:http';
@@ -49,6 +53,8 @@ const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 const extension = fileURLToPath(new URL('../src/index.ts', import.meta.url));
 const cliPath = process.env['PI_OAUTH_CLI_PATH'] ?? join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 
+type Expectation = 'red' | 'green';
+
 interface Attempt {
   readonly index: number;
   readonly wireModel: string;
@@ -62,11 +68,12 @@ interface Attempt {
   readonly messages: readonly string[];
 }
 
-function expectRed(): void {
+function expectation(): Expectation {
   const args = process.argv.slice(2);
   const index = args.indexOf('--expect');
   const value = index < 0 ? undefined : args[index + 1];
-  if (value !== 'red') throw new Error('Usage: prove-context-guard.ts --expect red');
+  if (value !== 'red' && value !== 'green') throw new Error('Usage: prove-context-guard.ts --expect red|green');
+  return value;
 }
 
 function filler(label: string, bytes: number): string {
@@ -187,6 +194,14 @@ function assistantErrors(events: readonly { readonly type: string; readonly mess
   });
 }
 
+function assistantStops(events: readonly { readonly type: string; readonly message?: unknown }[]): readonly string[] {
+  return events.flatMap((event) => {
+    if (event.type !== 'message_end' || !isRecord(event.message)) return [];
+    const message = event.message;
+    return message['role'] === 'assistant' && typeof message['stopReason'] === 'string' ? [message['stopReason']] : [];
+  });
+}
+
 async function prompt(client: RpcClient, message: string): Promise<PromptRun> {
   try {
     return { error: null, events: await client.promptAndWait(message, undefined, PROMPT_TIMEOUT_MS) };
@@ -216,7 +231,7 @@ function report(): void {
   }
 }
 
-expectRed();
+const expected = expectation();
 
 const root = await mkdtemp(join(tmpdir(), 'pi-oauth-context-guard-'));
 const server = await startMessagesServer(gatewayReply);
@@ -268,26 +283,38 @@ try {
 
   report();
   process.stdout.write(`\n=== PROMPTS ===\n${JSON.stringify({ first: { error: first.error, assistantErrors: assistantErrors(first.events) }, second: { error: second.error, assistantErrors: assistantErrors(second.events) } })}\n`);
-  process.stdout.write(`\n=== VERDICT (red, cli ${cliVersion.trim()}) ===\n`);
+  process.stdout.write(`\n=== VERDICT (${expected}, cli ${cliVersion.trim()}) ===\n`);
 
   const failures: string[] = [];
   const claudeAttempts = attempts.filter((attempt) => attempt.capped);
   const rejections = attempts.flatMap((attempt) => (attempt.rejection?.startsWith('prompt is too long:') === true ? [attempt.rejection] : []));
   if (attempts.some((attempt) => attempt.violations.length > 0)) failures.push('the endpoint saw an invalid Anthropic payload');
   if (attempts.filter((attempt) => !attempt.capped && attempt.status === 200).length < 2) failures.push('the foreign seeding prompts were not both accepted');
-  if (claudeAttempts.every((attempt) => attempt.wireTokens <= CONTEXT_WINDOW)) failures.push(`RED expected a subscription request over ${CONTEXT_WINDOW} tokens`);
-  if (rejections.length === 0) failures.push('RED expected a "prompt is too long" rejection');
-  if (rejections.some((rejection) => !/^prompt is too long: \d+ tokens > \d+ maximum$/.test(rejection))) failures.push('RED saw a rejection that is not the recorded error shape');
-  if (!attempts.some((attempt) => attempt.summarization && attempt.rejection !== null)) failures.push('RED expected the overflow summarization request to be rejected');
-  if (attempts.some((attempt) => attempt.compactionSummary)) failures.push('RED expected no compaction summary before the guard');
-  if (!assistantErrors(first.events).some((message) => message.includes('prompt is too long'))) failures.push('RED expected the first subscription prompt to surface the "prompt is too long" error');
-  if (!assistantErrors(second.events).some((message) => message.includes('prompt is too long'))) failures.push('RED expected the second subscription prompt to fail the same way');
+  if (expected === 'red') {
+    if (claudeAttempts.every((attempt) => attempt.wireTokens <= CONTEXT_WINDOW)) failures.push(`RED expected a subscription request over ${CONTEXT_WINDOW} tokens`);
+    if (rejections.length === 0) failures.push('RED expected a "prompt is too long" rejection');
+    if (rejections.some((rejection) => !/^prompt is too long: \d+ tokens > \d+ maximum$/.test(rejection))) failures.push('RED saw a rejection that is not the recorded error shape');
+    if (!attempts.some((attempt) => attempt.summarization && attempt.rejection !== null)) failures.push('RED expected the overflow summarization request to be rejected');
+    if (attempts.some((attempt) => attempt.compactionSummary)) failures.push('RED expected no compaction summary before the guard');
+    if (!assistantErrors(first.events).some((message) => message.includes('prompt is too long'))) failures.push('RED expected the first subscription prompt to surface the "prompt is too long" error');
+    if (!assistantErrors(second.events).some((message) => message.includes('prompt is too long'))) failures.push('RED expected the second subscription prompt to fail the same way');
+  } else {
+    if (claudeAttempts.some((attempt) => attempt.wireTokens > CONTEXT_WINDOW)) failures.push('GREEN expected no subscription request over the window');
+    if (rejections.length > 0) failures.push('GREEN expected no endpoint rejection');
+    if (!attempts.some((attempt) => attempt.summarization && attempt.rejection === null)) failures.push('GREEN expected an accepted summarization request');
+    if (!attempts.some((attempt) => attempt.capped && !attempt.summarization && attempt.compactionSummary)) failures.push('GREEN expected the run to carry the compaction summary');
+    if (!assistantStops(first.events).includes('stop')) failures.push('GREEN expected the first prompt to settle with a stop');
+    if (!assistantStops(second.events).includes('stop')) failures.push('GREEN expected the second prompt to settle with a stop');
+    if (assistantErrors(first.events).length + assistantErrors(second.events).length > 0) failures.push('GREEN expected the run to settle without an error');
+  }
 
   if (failures.length > 0) {
     for (const failure of failures) process.stdout.write(`FAIL ${failure}\n`);
     process.exitCode = 1;
-  } else {
+  } else if (expected === 'red') {
     process.stdout.write('PASS the endpoint rejected the subscription prompts and the overflow summarization, and no compaction landed\n');
+  } else {
+    process.stdout.write('PASS the guard compacted before the run, every subscription request stayed under the window, and the run carried the summary\n');
   }
 } finally {
   await server.close();

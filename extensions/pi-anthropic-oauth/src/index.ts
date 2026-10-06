@@ -1,7 +1,8 @@
-import { type Api, createProvider, getDeclaredTools, type Model, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
+import { type Api, type AssistantMessage, type AssistantMessageEventStream, createProvider, getDeclaredTools, type Model, type StopReason, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { subscriptionAuth } from './auth.ts';
+import { type ContextGuard, GUARD_ENTRY_TYPE, installContextGuard } from './context/guard.ts';
 import { billingBlock, CLAUDE_USER_AGENT } from './identity.ts';
 
 export const PROVIDER_ID = 'claude-subscription';
@@ -72,7 +73,7 @@ function modelForCaseCollisions(model: Model<Api>, context: TranscriptContext): 
   return { ...model, compat: { ...model.compat, supportsMidConvoToolChanges: false } };
 }
 
-function requestOverrides(model: Model<Api>, context: TranscriptContext, options: StreamOptions | undefined): Pick<StreamOptions, 'onPayload' | 'cacheRetention' | 'headers'> {
+function requestOverrides(model: Model<Api>, context: TranscriptContext, options: StreamOptions | undefined, guard: ContextGuard, capture: (payload: unknown) => void): Pick<StreamOptions, 'onPayload' | 'cacheRetention' | 'headers'> {
   const block = billingBlock(context);
   const configuredHeaders = new Set([model.headers, options?.headers].flatMap((headers) => Object.keys(headers ?? {}).map((name) => name.toLowerCase())));
   const defaults = { 'user-agent': CLAUDE_USER_AGENT, ...(options?.sessionId ? { 'x-claude-code-session-id': options.sessionId } : {}) };
@@ -80,17 +81,82 @@ function requestOverrides(model: Model<Api>, context: TranscriptContext, options
   return {
     headers: { ...headers, ...options?.headers },
     cacheRetention: options?.cacheRetention === 'none' ? 'none' : 'long',
-    onPayload: async (payload, model) => {
-      const billed = withBillingBlock(withUniqueToolNames(payload), block);
-      return (await options?.onPayload?.(billed, model)) ?? billed;
+    onPayload: async (payload, delegatedModel) => {
+      capture(undefined);
+      const fitted = guard.fit(withUniqueToolNames(payload), model);
+      const billed = withBillingBlock(fitted, block);
+      const sent = (await options?.onPayload?.(billed, delegatedModel)) ?? billed;
+      capture(sent);
+      return sent;
     },
   };
 }
 
-export default function (pi: Pick<ExtensionAPI, 'registerProvider'>) {
+// Only a successful terminal response carries a usable context measurement.
+// Error and aborted attempts must not feed the bias, and a deferred handle is
+// not terminal yet.
+const SUCCESSFUL_STOP_REASONS: ReadonlySet<StopReason> = new Set(['stop', 'toolUse', 'length']);
+
+/** The context tokens the endpoint counted for a request, or undefined. */
+function observedContextTokens(message: AssistantMessage): number | undefined {
+  if (!SUCCESSFUL_STOP_REASONS.has(message.stopReason)) return undefined;
+  const usage = message.usage;
+  // The context is the input side. `totalTokens` also counts the output and is
+  // only used when an adapter reports no input breakdown.
+  const input = usage.input + usage.cacheRead + usage.cacheWrite;
+  const tokens = input > 0 ? input : usage.totalTokens;
+  return tokens > 0 ? tokens : undefined;
+}
+
+// Observes the final assistant usage against the exact payload that produced
+// it. `result()` is an independent promise, so the caller still reads every
+// event from the same stream and this never blocks the synchronous return.
+function guardedStream<TOptions extends StreamOptions>(
+  streamFn: (model: Model<Api>, context: TranscriptContext, options?: TOptions) => AssistantMessageEventStream,
+  model: Model<Api>,
+  context: TranscriptContext,
+  options: TOptions | undefined,
+  guard: ContextGuard,
+): AssistantMessageEventStream {
+  let observed: unknown;
+  const streamed = streamFn(
+    modelForCaseCollisions(model, context),
+    context,
+    Object.assign(
+      {},
+      options,
+      requestOverrides(model, context, options, guard, (payload) => {
+        observed = payload;
+      }),
+    ),
+  );
+  void streamed.result().then(
+    (message) => {
+      try {
+        const tokens = observedContextTokens(message);
+        if (tokens === undefined) return;
+        guard.observe(observed, tokens);
+      } catch {
+        // Usage observation must not surface as an unhandled rejection.
+        return;
+      }
+    },
+    () => undefined,
+  );
+  return streamed;
+}
+
+/** The extension API methods this package uses, straight from Pi's own type. */
+export type ExtensionHost = Pick<ExtensionAPI, 'registerProvider' | 'on' | 'appendEntry' | 'getAllTools' | 'getActiveTools' | 'getSettings'>;
+
+export default function (pi: ExtensionHost) {
   const anthropic = builtinProviders().find((provider) => provider.id === 'anthropic');
   const oauth = anthropic?.auth.oauth;
   if (!anthropic || !oauth) throw new Error("Pi's built-in anthropic provider with Claude Pro/Max OAuth is not available.");
+  const guard = installContextGuard(pi, {
+    providerId: PROVIDER_ID,
+    notify: (message) => pi.appendEntry(GUARD_ENTRY_TYPE, { message }),
+  });
   pi.registerProvider(
     createProvider({
       id: PROVIDER_ID,
@@ -99,8 +165,8 @@ export default function (pi: Pick<ExtensionAPI, 'registerProvider'>) {
       auth: subscriptionAuth(oauth),
       models: anthropic.getModels().map((model) => ({ ...model, provider: PROVIDER_ID, promptCache: PROMPT_CACHE })),
       api: {
-        stream: (model, context, options) => anthropic.stream(modelForCaseCollisions(model, context), context, { ...options, ...requestOverrides(model, context, options) }),
-        streamSimple: (model, context, options) => anthropic.streamSimple(modelForCaseCollisions(model, context), context, { ...options, ...requestOverrides(model, context, options) }),
+        stream: (model, context, options) => guardedStream(anthropic.stream, model, context, options, guard),
+        streamSimple: (model, context, options) => guardedStream(anthropic.streamSimple, model, context, options, guard),
       },
     }),
   );

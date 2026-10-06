@@ -48,6 +48,8 @@ The default identity matches the locally captured Claude Code `2.1.288` SDK requ
 
 Pi still controls thinking, output limits, tool execution, retries, compaction, model selection, and usage accounting. The package does not replace Pi's prompt or Bash-output policy.
 
+The package reads Pi's projected context and the exact outgoing payload to keep subscription requests under the endpoint's model limit. It compacts at the prompt boundary when Claude Code's accounting says the request would reach Claude Code's compact threshold, and it fits a request that would otherwise exceed the blocking threshold without changing the session history. Pi still owns summarization, persistence, and the session store.
+
 Read the [parity matrix](docs/claude-oauth-parity.md) for verified behavior, deliberate differences, native API gaps, and live-authentication limitations. This package does not claim complete Claude Code feature parity.
 
 ## Tool-name limits
@@ -72,10 +74,11 @@ bun run typecheck
 bun run test:coverage
 bunx vitest run --sequence.shuffle
 node --experimental-strip-types scripts/prove-request-paths.ts
+node --experimental-strip-types scripts/prove-context-guard.ts --expect green
 node --experimental-strip-types scripts/prove-native.ts
 ```
 
-The tests use native Pi providers, authentication, and streams against local HTTP peers. `prove-request-paths.ts` verifies normal prompts, compaction, virtual routing, and `models.json` header overrides. `prove-native.ts` verifies print, JSON, RPC, ambient authentication, session correlation, fork, reload, session replacement, tool execution, native Bash output, and cancellation.
+The tests use native Pi providers, authentication, and streams against local HTTP peers. `prove-request-paths.ts` verifies normal prompts, compaction, virtual routing, and `models.json` header overrides. `prove-context-guard.ts` reproduces the cross-provider context-limit wedge with `--expect red` on the parent commit and verifies that the guard keeps every request under the window with `--expect green`. `prove-native.ts` verifies print, JSON, RPC, ambient authentication, session correlation, fork, reload, session replacement, tool execution, native Bash output, and cancellation.
 
 These probes use disposable Pi directories and synthetic tokens. They do not contact Anthropic for inference or inspect your credentials. Set `PI_OAUTH_CLI_PATH` to an installed Pi's `dist/bundle/cli.js` to repeat them against that host. They otherwise use the package's pinned Pi `1.0.2` test dependency. Both probes also cover the earlier Pi `1.0.0` host.
 
