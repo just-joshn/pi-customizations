@@ -78,8 +78,8 @@ try {
     await client.promptAndWait(reference['prompt'], undefined, timeout);
     assert.equal(systemTexts(server.requests.at(-1)?.body)[0], reference['billing']);
 
-    server.respond((res) => {
-      sseReply(toolUseMessage('toolu_read_probe', 'Read', ['{"path":"probe.txt"}']))(res);
+    server.respond((res, request) => {
+      sseReply(toolUseMessage('toolu_read_probe', 'Read', ['{"path":"probe.txt"}']))(res, request);
       server.respond(sseReply(textMessage('LOCAL_OK')));
     });
     await client.promptAndWait('Read probe.txt.', undefined, timeout);
@@ -87,8 +87,8 @@ try {
     assert.ok(read && read.role === 'toolResult' && !read.isError);
     assert.ok(read.content.some((block) => block.type === 'text' && block.text.includes('LOCAL_FILE')));
 
-    server.respond((res) => {
-      sseReply(toolUseMessage('toolu_bash_probe', 'Bash', [JSON.stringify({ command: 'node -e \'process.stdout.write("x".repeat(40000))\'' })]))(res);
+    server.respond((res, request) => {
+      sseReply(toolUseMessage('toolu_bash_probe', 'Bash', [JSON.stringify({ command: 'node -e \'process.stdout.write("x".repeat(40000))\'' })]))(res, request);
       server.respond(sseReply(textMessage('LOCAL_OK')));
     });
     await client.promptAndWait('Run the bounded local output probe.', undefined, timeout);

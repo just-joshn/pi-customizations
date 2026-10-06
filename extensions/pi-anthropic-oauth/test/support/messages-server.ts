@@ -2,7 +2,7 @@ import { createServer, type IncomingHttpHeaders, type ServerResponse } from 'nod
 
 import { type AnthropicEvent, frames } from './sse.ts';
 
-export type Reply = (res: ServerResponse) => void;
+export type Reply = (res: ServerResponse, request: RecordedRequest) => void;
 
 export interface RecordedRequest {
   readonly headers: IncomingHttpHeaders;
@@ -64,8 +64,9 @@ export async function startMessagesServer(initial: Reply): Promise<MessagesServe
   const server = createServer((req, res) => {
     readBody(req).then(
       (body) => {
-        requests.push({ headers: req.headers, body });
-        state.reply(res);
+        const request = { headers: req.headers, body };
+        requests.push(request);
+        state.reply(res, request);
       },
       () => {
         res.writeHead(400).end();
