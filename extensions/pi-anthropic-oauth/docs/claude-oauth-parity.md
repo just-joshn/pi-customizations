@@ -66,6 +66,8 @@ Boundaries:
 
 - The guard runs at the prompt boundary. Mid-run growth, extension-injected messages, and virtual-router sessions rely on the payload fit only.
 - A single message larger than the model window cannot be fixed without discarding the user's prompt. The fit returns the payload unchanged and the endpoint's rejection surfaces as it does today.
+- Compaction has no wall-clock timeout on purpose. A timeout would release the handler while Pi still holds the compaction controller. If Pi ever failed to settle a compaction, the prompt would wait.
+- Content denser than about 2.1 bytes per token can exceed the window before the session's first usable measurement. After a measurement the bias follows the endpoint's own payload-to-usage ratio.
 - The probe's endpoint is a synthetic tokenizer. It proves the mechanism and the payload invariants, not live service acceptance. Live login, billing attribution, and endpoint acceptance remain INCONCLUSIVE.
 
 ## Native API gaps
