@@ -9,9 +9,12 @@
  * receipt to read `failed`. Widening those receipts to the whole row is what
  * this probe pins; before that closure the target stays `verified`.
  *
- * The checkout is a `git archive` of HEAD with the mutant applied and committed,
- * so `head_sha` is the tree the drive actually ran. Every run writes receipts
- * only inside the throwaway checkout, never into this repository's artifacts.
+ * The checkout is a `git archive` of `--ref` (HEAD by default) with the mutant
+ * applied and committed, so `head_sha` is the tree the drive actually ran. The
+ * probe prints the resolved pi binary and its version, and accepts `--ref=<rev>`
+ * so the same control can be replayed against the pre-fix commit. Every run
+ * writes receipts only inside the throwaway checkout, never into this
+ * repository's artifacts.
  */
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -56,10 +59,10 @@ const CASES = [
   { case: 'no-embedded-working-band', scenario: 'pi-tui-skin-chrome', surfaceId: 'TS-UI-4', apply: compositeMutation('no-embedded-working-band').apply },
 ];
 
-function extractArchive(dest) {
+function extractArchive(dest, ref) {
   const archivePath = join(dirname(dest), `${basename(dest)}.tar`);
   try {
-    execFileSync('git', ['-C', REPO_ROOT, 'archive', '-o', archivePath, '--format=tar', 'HEAD', SKILL_ROOT, PACKAGE_ROOT], { stdio: 'pipe' });
+    execFileSync('git', ['-C', REPO_ROOT, 'archive', '-o', archivePath, '--format=tar', ref, SKILL_ROOT, PACKAGE_ROOT], { stdio: 'pipe' });
     execFileSync('tar', ['-xf', archivePath, '-C', dest], { stdio: 'pipe' });
   } finally {
     rmSync(archivePath, { force: true });
@@ -79,9 +82,9 @@ function linkDependencies(dest) {
   symlinkSync(join(REPO_ROOT, PACKAGE_ROOT, 'node_modules'), join(dest, PACKAGE_ROOT, 'node_modules'), 'dir');
 }
 
-function prepareCheckout(entry) {
+function prepareCheckout(entry, ref) {
   const dest = mkdtempSync(join(tmpdir(), `legacy-oracle-${entry.case}-`));
-  extractArchive(dest);
+  extractArchive(dest, ref);
   entry.apply(join(dest, PACKAGE_ROOT, 'src'));
   commitCheckout(dest, `legacy oracle mutant: ${entry.case}`);
   linkDependencies(dest);
@@ -106,16 +109,27 @@ function driveAndRead(dest, entry) {
   return { receipt, driveStatus: result.status };
 }
 
-const requested = process.argv
-  .slice(2)
-  .find((arg) => arg.startsWith('--case='))
-  ?.slice('--case='.length);
-const selected = requested === undefined ? CASES : CASES.filter((entry) => entry.case === requested);
-assert.ok(selected.length > 0, `no regression case matches ${JSON.stringify(requested)}`);
+function parseArguments(argv) {
+  const options = { ref: 'HEAD', case: undefined };
+  for (const arg of argv) {
+    if (arg.startsWith('--case=')) options.case = arg.slice('--case='.length);
+    else if (arg.startsWith('--ref=')) options.ref = arg.slice('--ref='.length);
+    else throw new Error(`unknown argument ${JSON.stringify(arg)}`);
+  }
+  return options;
+}
+
+const options = parseArguments(process.argv.slice(2));
+const binary = piBinary();
+const archivedRevision = execFileSync('git', ['-C', REPO_ROOT, 'rev-parse', options.ref], { encoding: 'utf8' }).trim();
+process.stdout.write(`pi ${binary} -> ${execFileSync(binary, ['--version'], { encoding: 'utf8' }).trim()}\n`);
+process.stdout.write(`archived ${options.ref} -> ${archivedRevision}\n`);
+const selected = options.case === undefined ? CASES : CASES.filter((entry) => entry.case === options.case);
+assert.ok(selected.length > 0, `no regression case matches ${JSON.stringify(options.case)}`);
 
 const failures = [];
 for (const entry of selected) {
-  const dest = prepareCheckout(entry);
+  const dest = prepareCheckout(entry, archivedRevision);
   try {
     const headSha = execFileSync('git', ['-C', dest, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
     const { receipt, driveStatus } = driveAndRead(dest, entry);
