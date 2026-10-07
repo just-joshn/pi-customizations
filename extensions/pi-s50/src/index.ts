@@ -101,6 +101,10 @@ function bounded(stdout: string): string {
   return cut.truncated ? `${cut.content}\n[truncated ${cut.outputLines} of ${cut.totalLines} lines; run s50 explain or read .s50/ for the full record]\n` : stdout;
 }
 
+export function stateQueueKey(cwd: string): Promise<string> {
+  return Promise.resolve(join(cwd, S50_DIR));
+}
+
 function run(pi: Pi, cwd: string, argv: readonly string[], signal: AbortSignal | undefined): Promise<CliResult> {
   return withFileMutationQueue(join(cwd, S50_DIR), () => runCli(argv, defaultContext(cwd, signal, piHost(pi))));
 }

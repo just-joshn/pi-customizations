@@ -1,4 +1,4 @@
-import { cp, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, rm, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { discoverAndLoadExtensions } from '@earendil-works/pi-coding-agent';
 import { afterEach, expect, test } from 'vitest';
 import { runCli } from '../../src/cli/commands.ts';
-import { hostOverride, humanOnlyKind, joinArgs, splitArgs } from '../../src/index.ts';
+import { hostOverride, humanOnlyKind, joinArgs, splitArgs, stateQueueKey } from '../../src/index.ts';
 import { testContext } from '../support/context.ts';
 import { commandContext, eventContext, fakeUi, loadFakePi, toolContext } from '../support/fake-pi.ts';
 import { INSTALLED } from '../unit/support.ts';
@@ -168,6 +168,33 @@ test('a confirmed force-push is recorded as an exact grant', async () => {
   expect(decisions.map((line) => JSON.parse(line).summary)).toStrictEqual(['authorization requested: force_push git push --force origin main', 'authorization granted: force_push git push --force origin main']);
 });
 
+async function toolCall(handlers: ReturnType<typeof loadFakePi>['handlers'], cwd: string, toolName: string, input: Readonly<Record<string, unknown>>) {
+  const [handler] = handlers.get('tool_call') ?? [];
+  if (handler === undefined) throw new Error('no tool_call handler');
+  return handler({ type: 'tool_call', toolCallId: 't2', toolName, input }, eventContext(cwd, null));
+}
+
+const S50_ONLY = 'S50 state changes only through the s50 tool, which asks the user for their decisions; call the s50 tool instead';
+
+test.fails.for([`node extensions/pi-s50/src/cli/main.ts apply '{"kind":"confirm_understanding"}'`, `s50 apply '{"kind":"confirm_seams","ids":["seam-cli"]}'`, `echo '{}' > .s50/run.json`, 'sed -i "" s/blocked/active/ .s50/run.json'])(
+  'the model cannot bypass the tool through bash: %s',
+  async (command) => {
+    const { handlers } = loadFakePi();
+    expect(await bashCall(handlers, repo(), command, null)).toStrictEqual({ block: true, reason: S50_ONLY });
+  },
+);
+
+test('the model may read .s50 through bash', async () => {
+  const { handlers } = loadFakePi();
+  expect(await bashCall(handlers, repo(), 'cat .s50/run.json | jq .phase', null)).toStrictEqual(undefined);
+});
+
+test.fails.for(['write', 'edit'])('the model cannot %s files under .s50', async (toolName) => {
+  const { handlers } = loadFakePi();
+  const cwd = repo();
+  expect(await toolCall(handlers, cwd, toolName, { path: join(cwd, '.s50/run.json'), content: '{}' })).toStrictEqual({ block: true, reason: S50_ONLY });
+});
+
 test('gated commands outside an S50 run pass through', async () => {
   const { handlers } = loadFakePi();
   expect(await bashCall(handlers, repo(), 'git push --force origin main', null)).toStrictEqual(undefined);
@@ -204,4 +231,11 @@ test.for([
 
 test.for([[SELF_DECLARED], [CONFIRM_SEAMS], [['apply', `{"kind":"record_finding","finding":{"trigger":"it's broken","consequence":"a \\ b"}}`]], [['status']]] as const)('joinArgs round-trips through splitArgs: %j', ([argv]) => {
   expect(splitArgs(joinArgs(argv))).toStrictEqual(argv);
+});
+
+test.fails('a symlinked cwd and its target share one state queue before .s50 exists', async () => {
+  const cwd = repo();
+  const link = join(await tempDir('s50-link-'), 'app');
+  await symlink(cwd, link);
+  expect(await stateQueueKey(link)).toBe(await stateQueueKey(cwd));
 });

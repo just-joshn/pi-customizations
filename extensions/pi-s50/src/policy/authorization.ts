@@ -19,3 +19,8 @@ const GATED_COMMANDS: readonly (readonly [AuthorizationAction, RegExp])[] = [
 export function gatedAction(command: string): AuthorizationAction | null {
   return GATED_COMMANDS.find(([, pattern]) => pattern.test(command))?.[0] ?? null;
 }
+
+export function gatedActions(command: string, _cwd: string): readonly AuthorizationAction[] {
+  const action = gatedAction(command);
+  return action === null ? [] : [action];
+}
