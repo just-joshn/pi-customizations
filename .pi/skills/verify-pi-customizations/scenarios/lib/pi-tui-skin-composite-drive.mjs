@@ -153,6 +153,7 @@ export function runCompositeDrive({ repoRoot, layout, providerPath, wrapperPath,
     frames.quit = waitForCapture(probe.capture, 'pi exit', (text) => text.includes('PI-EXITED-'));
     captures.quit = save(rawDir, '08-quit', probe, frames.quit);
     observer = readObserver(recordPath);
+    writeFileSync(join(rawDir, 'observer.jsonl'), observer.map((entry) => JSON.stringify(entry)).join('\n'));
   } finally {
     cleanupProbes();
   }
