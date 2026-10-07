@@ -1,4 +1,4 @@
-import { type Api, type AssistantMessage, type Context, isContextOverflow, isRetryableAssistantError, type Model, normalizeContext, type SimpleStreamOptions } from '@earendil-works/pi-ai';
+import { type Api, type AssistantMessage, type Context, isContextOverflow, isRetryableAssistantError, type Model, normalizeContext, type SimpleStreamOptions, Type } from '@earendil-works/pi-ai';
 import { expect } from 'vitest';
 import { userAgent } from '../src/cloudcode.ts';
 import { createAntigravityProvider } from '../src/index.ts';
@@ -206,6 +206,47 @@ test('a Gemini tool call round trip declares OpenAPI parameters and returns the 
     role: 'model',
     parts: [{ functionResponse: { name: 'read', response: { output: 'hello' }, id: 'call_1' } }],
   });
+});
+
+test('Cloud Code receives OpenAPI literal alternatives without unsupported uniqueness keywords', async () => {
+  const constrainedTool = {
+    name: 'launch',
+    description: 'Launch a task',
+    parameters: Type.Object({
+      environment: Type.Union([Type.Literal('local'), Type.Literal('cloud')]),
+      agent_ids: Type.Array(Type.String(), { uniqueItems: true }),
+      const: Type.String(),
+      uniqueItems: Type.String(),
+    }),
+  };
+  const original = structuredClone(constrainedTool.parameters);
+  const { server } = await run((_, res) => stream(res, textAndThinking), { context: { tools: [constrainedTool], messages: [{ role: 'user', content: 'launch', timestamp: 1 }] } });
+  expect(body(server.requests[0]).request.tools).toEqual([
+    {
+      functionDeclarations: [
+        {
+          name: 'launch',
+          description: 'Launch a task',
+          parameters: {
+            type: 'OBJECT',
+            properties: {
+              environment: {
+                anyOf: [
+                  { type: 'STRING', enum: ['local'] },
+                  { type: 'STRING', enum: ['cloud'] },
+                ],
+              },
+              agent_ids: { type: 'ARRAY', items: { type: 'STRING' } },
+              const: { type: 'STRING' },
+              uniqueItems: { type: 'STRING' },
+            },
+            required: ['environment', 'agent_ids', 'const', 'uniqueItems'],
+          },
+        },
+      ],
+    },
+  ]);
+  expect(constrainedTool.parameters).toEqual(original);
 });
 
 test('a Claude tool call round trip keeps the tool call id and returns the result in a user turn', async () => {
