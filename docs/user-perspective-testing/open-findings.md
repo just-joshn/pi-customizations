@@ -229,7 +229,9 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 
 ## F-021: a worker transcript keeps reading `running` after shutdown
 
-**Status.** open
+**Status.** fixed
+
+**Closure evidence.** The failing unit test and real-Pi transcript reproduction land first in `2d97297`. Shutdown/finalization now explicitly persists each drained local worker's terminal record; branch restoration does not request that persistence. The generation barrier still suppresses stale completion delivery. All 29 worker tests and typecheck pass. `scenarios/pstack-worker-shutdown.mjs` observes `running` before closing real Pi and `interrupted` in the saved transcript immediately afterward, without another startup. Red/green logs are under `artifacts/user-perspective/f021-shutdown/`, and the complete transcript and behavioural receipt are under `artifacts/user-perspective/pstack-worker-shutdown/`. The older hooks scenario now asserts this state instead of treating the defect as not-drivable.
 
 **Found by** `PS-EVT-44`. A local worker is in-process, so after shutdown the transcript still records the task as `running` plus a cleanup-usage entry, and only the next session start rewrites it to `interrupted`. Between the two, a user reading their own session sees a task that has already stopped.
 

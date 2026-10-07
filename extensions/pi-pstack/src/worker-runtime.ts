@@ -138,7 +138,7 @@ export class WorkerRuntime {
       this.pi.registerCommand('pstack-worker-finalize', {
         handler: async () => {
           try {
-            await this.stopAll();
+            await this.stopAll(true);
           } catch (error) {
             this.pi.appendEntry(taskCleanupErrorType, { error: String(error) });
           }
@@ -157,7 +157,7 @@ export class WorkerRuntime {
     this.pi.on('session_shutdown', async (_event, ctx) => {
       detachControl();
       try {
-        await this.stopAll();
+        await this.stopAll(true);
       } finally {
         await workerDirs.removeAll(ctx.sessionManager);
       }
@@ -175,7 +175,7 @@ export class WorkerRuntime {
     return usage;
   }
 
-  private stopAll(): Promise<void> {
+  private stopAll(persistTerminal = false): Promise<void> {
     this.generation++;
     this.completions.clear();
     if (this.lifecycle.kind === 'stopping') return this.lifecycle.completion;
@@ -197,7 +197,7 @@ export class WorkerRuntime {
               if (outcome) throw outcome.error;
             }),
           ),
-          ...current.map((worker) => this.shutdownWorker(worker)),
+          ...current.map((worker) => this.shutdownWorker(worker, persistTerminal)),
         ]);
         const failures = outcomes.filter((outcome) => outcome.status === 'rejected');
         if (failures.length)
@@ -219,12 +219,13 @@ export class WorkerRuntime {
     if (usage) this.pi.appendEntry(taskCleanupUsageType, { taskId: record.id, usage });
   }
 
-  private async shutdownWorker(worker: Worker): Promise<void> {
+  private async shutdownWorker(worker: Worker, persistTerminal: boolean): Promise<void> {
     const outcome = await settleWithin(worker.completion, overdueAfterMs);
     if (!outcome.settled) {
       worker.groups.killAll();
       throw new Error(stillStoppingMessage(worker.id));
     }
+    if (persistTerminal) this.commitRecord(outcome.value);
     this.claimCleanupUsage(outcome.value);
     const failures = await worker.drain();
     try {

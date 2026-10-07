@@ -205,12 +205,11 @@ export default async function pstackHooksTasks(context) {
       : [];
     const evidence = join(context.rawDir, 'hk-long-task-session.jsonl');
     writeFileSync(evidence, `${recorded.join('\n')}\n`);
-    writeSurface(context, {
+    assertSurface(context, {
       surfaceId: 'PS-EVT-44',
       observed: `after shutdown the transcript lines for ${longTask.id} were ${recorded.map((line) => line.slice(0, 60)).join(' | ')} (terminal status ${JSON.stringify(interrupted ? 'interrupted' : 'absent')})`,
       evidence,
-      verdict: 'not-drivable',
-      reason: `a local Task worker is an in-process session, so stopping it produces no user-visible artifact distinct from the parent process exiting: after shutdown the transcript still records ${longTask.id} as running (with a pstack-worker-cleanup-usage entry) and only the next session start rewrites it to interrupted; a detached worker that would show a real stop needs a configured remote executor, which this environment lacks`,
+      check: () => assert.ok(interrupted, 'shutdown did not persist the interrupted task before a subsequent startup'),
     });
 
     writeSurface(context, {
