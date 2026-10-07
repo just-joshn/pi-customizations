@@ -31,6 +31,7 @@ function statisticsCalls(text: string): ToolCall[] {
 }
 
 function directCalls(text: string): ToolCall[] {
+  if (text.includes('READ_EXCLUDED')) return [{ type: 'toolCall', id: 'read-excluded', name: 'read', arguments: { path: '.env' } }];
   if (text.includes('SPAWN_TASK')) return [{ type: 'toolCall', id: 'nested-task-call', name: 'task', arguments: { agent_type: 'general-purpose', name: 'grandchild', description: 'nested', prompt: 'nested leaf', mode: 'sync' } }];
   if (text.includes('TOOL_ONCE')) return [{ type: 'toolCall', id: 'tool-once', name: 'bash', arguments: { command: 'true' } }];
   if (text.includes('NAMED_AGENT_CONTRACT'))

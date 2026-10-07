@@ -145,13 +145,25 @@ export default async function pstackHooksPolicy(context) {
       await excluded.session.prompt('HK_TASK_SUBAGENT_LOCAL_ENV');
       const envResult = lastToolResult(excluded.session, 'task')?.details;
       const transcript = childTranscriptText(envResult?.agent_id);
+      const readSecret = transcript.includes('HK_SECRET=present');
+      const blockedByPolicy = transcript.includes('blocked by the content exclusion policy');
       writeSurface(context, {
         surfaceId: 'PS-EVT-32',
-        observed: `with contentExclusions configured, the child transcript ${transcript.includes('HK_SECRET=present') ? 'contains the excluded file content' : 'does not contain the file content'}; blockedByPolicy=${transcript.includes('blocked by the content exclusion policy')}`,
+        observed: `with contentExclusions configured, the child transcript ${readSecret ? 'contains the excluded file content' : 'does not contain the file content'}; blockedByPolicy=${blockedByPolicy}`,
         evidence: excluded.capture,
-        verdict: 'not-drivable',
-        reason:
-          'the production wiring passes the raw settings object to parsePatterns, which accepts only an array of strings, so the exclusion extension is never registered; a child read .env successfully despite contentExclusions configured at the top level and under subagents',
+        // The wiring was fixed after this row was first found dead, so the row is drivable now. A hardcoded verdict here
+        // would contradict the observed value on either side of that fix.
+        ...(readSecret
+          ? {
+              verdict: 'failed',
+              reason: `the child read the excluded file despite contentExclusions being configured; blockedByPolicy=${blockedByPolicy}`,
+            }
+          : blockedByPolicy
+            ? { verdict: 'verified' }
+            : {
+                verdict: 'inconclusive',
+                reason: 'the child did not read the excluded file but the transcript records no policy block, so the exclusion was not shown to be the cause',
+              }),
       });
     } finally {
       await excluded.session.close();

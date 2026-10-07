@@ -17,8 +17,32 @@ export function globToRegExp(pattern: string): RegExp {
   return new RegExp(`(?:^|/)${escaped}$`, 'i');
 }
 
-export function parsePatterns(raw: unknown): readonly string[] {
-  return Check(Patterns, raw) ? raw : [];
+export type ContentExclusionParse = Readonly<{ patterns: readonly string[]; problems: readonly string[] }>;
+
+function settingsOf(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) ? Object.fromEntries(Object.entries(value)) : {};
+}
+
+/**
+ * Reads the exclusions a user can set at the top level of settings or under `subagents`. A present but malformed list is
+ * reported instead of treated as empty, because an empty list would silently read the files the user meant to protect.
+ */
+export function parseContentExclusions(settings: unknown): ContentExclusionParse {
+  const source = settingsOf(settings);
+  const nested = settingsOf(source['subagents']);
+  const patterns: string[] = [];
+  const problems: string[] = [];
+  const add = (owner: string, value: unknown) => {
+    if (value === undefined) return;
+    if (!Check(Patterns, value)) {
+      problems.push(`${owner} must be an array of non-empty strings`);
+      return;
+    }
+    for (const pattern of value) if (!patterns.includes(pattern)) patterns.push(pattern);
+  };
+  add('contentExclusions', source['contentExclusions']);
+  add('subagents.contentExclusions', nested['contentExclusions']);
+  return { patterns, problems };
 }
 
 export function isExcluded(patterns: readonly string[], path: string): boolean {

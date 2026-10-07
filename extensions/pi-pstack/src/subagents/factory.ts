@@ -6,7 +6,7 @@ import type { AgentDefinition } from './agent-definition.ts';
 import type { AgentNode } from './agent-node.ts';
 import { type AgentGates, offeredAgents, type RegistryInputs, resolveAgentType } from './agent-registry.ts';
 import type { ChildContextEntry } from './child-session.ts';
-import { parsePatterns } from './content-exclusion.ts';
+import { parseContentExclusions } from './content-exclusion.ts';
 import { buildChildPlan, type ChildLimits, type ChildPlan } from './context-builder.ts';
 import { DiscoveryCache } from './custom-discovery.ts';
 import { gatherEnvironment, systemProbe } from './environment-facts.ts';
@@ -140,6 +140,8 @@ export class SubagentFactory {
   async create(call: TaskCall, toolCallId: string, signal: AbortSignal | undefined, ctx: ExtensionContext, extras: CreateExtras = {}): Promise<Created> {
     if (this.deps.scheduler.blocksStart()) throw new Error(rewindingStartMessage);
     const { settings, raw } = this.deps.settings.read();
+    const exclusions = parseContentExclusions(raw);
+    if (exclusions.problems.length > 0) throw new Error(`Invalid content exclusions in settings: ${exclusions.problems.join('; ')}`);
     const host = this.host(ctx, settings);
     for (const action of ['checkStartAllowed', 'prepareTools']) this.effect(host, action);
     const inputs = this.registryInputs(ctx, settings);
@@ -164,7 +166,7 @@ export class SubagentFactory {
         rootSessionId: scope?.rootSessionId ?? ctx.sessionManager.getSessionId(),
         extras,
       });
-      const launched = await this.launch(plan, { call, ctx, signal, toolCallId, depth, scope, settings, raw, extras, inheritedServers, lease });
+      const launched = await this.launch(plan, { call, ctx, signal, toolCallId, depth, scope, settings, exclusionPatterns: exclusions.patterns, extras, inheritedServers, lease });
       return { launched, node: this.deps.scheduler.get(launched.id) };
     } catch (error) {
       lease.release();
@@ -182,7 +184,7 @@ export class SubagentFactory {
       depth: number;
       scope: { agentId?: string; registryId?: string } | undefined;
       settings: ReferenceSettings;
-      raw: unknown;
+      exclusionPatterns: readonly string[];
       extras: CreateExtras;
       inheritedServers: readonly ParentServer[];
       lease: { release: () => void };
@@ -202,7 +204,7 @@ export class SubagentFactory {
       release: input.lease.release,
       ...(input.extras.workflowRunId !== undefined ? { workflowRunId: input.extras.workflowRunId } : {}),
       inheritedServers: input.inheritedServers,
-      exclusionPatterns: parsePatterns(input.raw),
+      exclusionPatterns: input.exclusionPatterns,
       aggressiveTools: featureEnabled(this.deps.env, 'copilot_cli_task_subagent_aggressive_tool_deferral'),
     });
     return launched;

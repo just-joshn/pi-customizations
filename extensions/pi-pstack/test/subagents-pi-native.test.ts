@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { McpServerConfig } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
 import { forwardedUi } from '../src/subagents/child-session.ts';
-import { contentExclusionExtension, excludedPath, globToRegExp, isExcluded, parsePatterns } from '../src/subagents/content-exclusion.ts';
+import { contentExclusionExtension, excludedPath, globToRegExp, isExcluded, parseContentExclusions } from '../src/subagents/content-exclusion.ts';
 import { fileTrackingGate } from '../src/subagents/file-tracking.ts';
 import { gatherParentServers, inheritedMcpExtension, serversForChild } from '../src/subagents/mcp-inheritance.ts';
 import { toolPolicyExtension } from '../src/subagents/tool-policy.ts';
@@ -80,7 +80,7 @@ test.for([
 });
 
 test('gated tools refuse excluded paths and other tools do not', () => {
-  const patterns = parsePatterns(['secret.env']);
+  const patterns = parseContentExclusions({ contentExclusions: ['secret.env'] }).patterns;
   expect(excludedPath(patterns, 'read', { path: 'config/secret.env' })).toBe('config/secret.env');
   expect(excludedPath(patterns, 'bash', { command: 'cat secret.env' })).toBe(undefined);
   expect(excludedPath([], 'read', { path: 'config/secret.env' })).toBe(undefined);
