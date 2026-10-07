@@ -284,7 +284,7 @@ extension also yields to the `caveman wrap pi` / `caveman enable pi` runtime whe
 ## pi-s50
 
 Summary: 2 commands (extension command + terminal bin) + 1 tool + 1 event hook + 1 skill + 2
-notifications + 1 project-state dir + 1 install side effect. The tool is the only writer of `.s50/`
+notifications + 1 project-state dir + 2 install side effects. The tool is the only writer of `.s50/`
 state.
 
 | Surface ID | Kind | Exact name/identifier | User trigger | Observable result | Source file:line | Notes |
@@ -297,7 +297,8 @@ state.
 | S50-UI-1 | ui-notification | "s50 exited <code>" | `/s50` nonzero exit | Info/error/warning notice by code | extensions/pi-s50/src/index.ts:223 | |
 | S50-UI-2 | ui-notification | "S50: authorize <action>?" | Bash command touching a gated action while a run exists | Confirm dialog with the exact command | extensions/pi-s50/src/index.ts:198 | Requires UI; refuses without one |
 | S50-CFG-1 | config-file | `<cwd>/.s50/` (run.json, graph.json, evidence.jsonl, findings.jsonl, decisions.jsonl, registry.lock.json, .gitignore) | Any /s50 or s50 command | Durable run state | extensions/pi-s50/src/orchestrator/persistence.ts:12,23-30 | [FS] project state; self-ignoring |
-| S50-INSTALL-1 | install-side-effect | package.json `pi` field and `bin` | `pi install ./extensions/pi-s50` | Loads extension, 1 skill; installs the `s50` binary name | extensions/pi-s50/package.json:13-22 | [FS][CLI] |
+| S50-INSTALL-1 | install-side-effect | package.json `pi` field | `pi install ./extensions/pi-s50` | Loads the declared extension and discovers exactly one skill | extensions/pi-s50/package.json:13-22 | [FS][CLI] |
+| S50-INSTALL-2 | install-side-effect | package.json `bin` field | Run the declared bin through a symlink into the checkout | The declared `s50` bin target exists and runs; the README states that a `node_modules` copy cannot run it and gives the checkout invocation | extensions/pi-s50/package.json:23-25, README.md:15-21 | [FS][CLI] |
 
 ---
 

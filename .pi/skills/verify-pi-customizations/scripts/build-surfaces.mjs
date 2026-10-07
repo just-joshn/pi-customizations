@@ -6,7 +6,11 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const DEFAULT_MATRIX = join(ROOT, 'docs/user-perspective-testing/surface-matrix.md');
 const DEFAULT_OUT = join(ROOT, 'docs/user-perspective-testing/surfaces.tsv');
-const PROGRAM_SURFACES = 432;
+// Reconnaissance counted 432. The pi-s50 install row conflated "the extension and its skill load"
+// with "the declared bin is a shell command", which behave differently, so it was split into
+// S50-INSTALL-1 and S50-INSTALL-2 during the sweep. Raising this number is a scope decision, so it is
+// deliberately explicit rather than derived from the inventory it is meant to check.
+const PROGRAM_SURFACES = 433;
 
 const COLUMNS = ['surface_id', 'package', 'kind', 'name', 'trigger', 'expected', 'source', 'tier', 'veto'];
 const PACKAGE_HEADER = ['Surface ID', 'Kind', 'Exact name/identifier', 'User trigger', 'Observable result', 'Source file:line', 'Notes'];
