@@ -125,3 +125,15 @@ describe('serialization across calls', () => {
     });
   });
 });
+
+describe('scheduling around running nodes', () => {
+  const oneRunning: Graph = { schemaVersion: 1, nodes: [graphNode('a', 'running'), graphNode('b', 'pending')] };
+
+  test.fails('a serial host waits for the running node', () => {
+    expect(schedule(oneRunning, NO_CAPS)).toEqual({ concurrent: false, nodes: [], serializedBecause: ['b: waits for running node a'] });
+  });
+
+  test.fails('a parallel host gives the next node its own worktree', () => {
+    expect(schedule(oneRunning, PARALLEL_CAPS)).toEqual({ concurrent: true, nodes: [{ id: 'b', workspace: '.s50/worktrees/b' }], serializedBecause: [] });
+  });
+});
