@@ -16,6 +16,12 @@ const option = (name, fallback) => {
 };
 const model = option('--model', undefined);
 const runs = Number(option('--runs', '1'));
+if (!Number.isInteger(runs) || runs < 1) {
+  process.stderr.write('--runs takes a positive integer\n');
+  process.exit(2);
+}
+const CONCURRENCY = 4;
+const TIMEOUT_MS = 180_000;
 
 const CASES = [
   {
@@ -72,14 +78,31 @@ function ask(mode, prompt) {
   return new Promise((done) => {
     const child = spawn('pi', args, { cwd: work, env: { ...process.env, CAVEMAN_DEFAULT_MODE: mode }, stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '';
+    const timer = setTimeout(() => child.kill('SIGKILL'), TIMEOUT_MS);
+    const finish = (code) => {
+      clearTimeout(timer);
+      rmSync(work, { recursive: true, force: true });
+      done({ code, reply: stdout.trim() });
+    };
     child.stdout.on('data', (chunk) => {
       stdout += chunk;
     });
-    child.on('exit', (code) => {
-      rmSync(work, { recursive: true, force: true });
-      done({ code, reply: stdout.trim() });
-    });
+    child.on('error', () => finish(-1));
+    child.on('close', (code) => finish(code));
   });
+}
+
+async function runAll(jobs) {
+  const results = [];
+  let next = 0;
+  const worker = async () => {
+    while (next < jobs.length) {
+      const job = jobs[next++];
+      results.push({ ...job, ...(await ask(job.mode, job.testCase.prompt)) });
+    }
+  };
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+  return results;
 }
 
 let failures = 0;
@@ -89,7 +112,8 @@ for (const mode of ['caveman', 'ultracave', 'megacave']) {
     for (let run = 0; run < runs; run++) jobs.push({ mode, testCase });
   }
 }
-const results = await Promise.all(jobs.map(async (job) => ({ ...job, ...(await ask(job.mode, job.testCase.prompt)) })));
+const results = await runAll(jobs);
+if (results.length !== jobs.length || results.length === 0) failures++;
 for (const { mode, testCase, code, reply } of results) {
   const haystack = testCase.ignoreCase ? reply.toLowerCase() : reply;
   const missing = testCase.exact.filter((payload) => !haystack.includes(testCase.ignoreCase ? payload.toLowerCase() : payload));

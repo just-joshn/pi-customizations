@@ -27,7 +27,9 @@ for (const [name, version] of Object.entries(ledger.host?.packages ?? {})) {
   const installed = existsSync(manifest) ? JSON.parse(readFileSync(manifest, 'utf8')).version : 'missing';
   if (installed !== version) fail(`ledger host pins ${name} ${version}, installed ${installed}`);
 }
-if (!ledger.host?.pi) fail('ledger has no host Pi pin');
+if (!Object.keys(ledger.host?.packages ?? {}).length) fail('ledger has no host package pins');
+const hostAgent = join(root, 'node_modules/@earendil-works/pi-coding-agent/package.json');
+if (!existsSync(hostAgent) || JSON.parse(readFileSync(hostAgent, 'utf8')).version !== ledger.host?.pi) fail(`ledger host.pi ${ledger.host?.pi} differs from the installed pi-coding-agent`);
 
 const head = execFileSync('git', ['-C', checkout, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 if (head !== ledger.upstream.commit) fail(`checkout ${checkout} is at ${head}, ledger pins ${ledger.upstream.commit}`);
@@ -138,7 +140,7 @@ function checkResources() {
 
 function checkSourcePrivacy() {
   const sources = readdirSync(join(root, 'src'), { recursive: true }).filter((name) => /\.ts$/.test(name));
-  const network = sources.filter((name) => /\bfetch\(|from 'node:(?:http|https|net|dgram)'/.test(readFileSync(join(root, 'src', name), 'utf8')));
+  const network = sources.filter((name) => /\bfetch\(|['"](?:node:)?(?:http|https|http2|net|dgram|tls)['"]|['"]undici['"]|\bWebSocket\b/.test(readFileSync(join(root, 'src', name), 'utf8')));
   if (!network.length) pass('the package source opens no network connection of its own');
   else fail(`package source opens network connections: ${network.join(', ')}`);
 }

@@ -68,10 +68,9 @@ describe.each(oracle.scenarios)('upstream hooks with CAVEMAN_DEFAULT_MODE=$defau
       const { section, message } = pi.turn;
       if (upstream === '') {
         if (section !== undefined || message.includes('CAVEMAN MODE ACTIVE')) mismatches.push(`${step.prompt}: upstream injects nothing, Pi injects ${JSON.stringify({ section, message })}`);
-        owedRuleset = undefined;
         continue;
       }
-      if (owedRuleset !== undefined && section !== owedRuleset) mismatches.push(`${step.prompt}: ruleset differs`);
+      if (owedRuleset === undefined || section !== owedRuleset) mismatches.push(`${step.prompt}: ruleset differs or upstream sent none before injecting context`);
       const reminder = switched ? switched.reminder : upstream;
       if (!message.includes(reminder)) mismatches.push(`${step.prompt}: reinforcement ${JSON.stringify(message)} lacks ${JSON.stringify(reminder)}`);
     }
