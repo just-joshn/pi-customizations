@@ -244,21 +244,37 @@ test('successful compression writes the backup beside the target', async () => {
     path,
     backupPath,
     originalBytes: 56,
-    compressedBytes: 24,
+    compressedBytes: 25,
   });
   expect(fake.prompts).toEqual([buildCompressPrompt(original)]);
-  expect(readFileSync(path, 'utf8')).toBe('# Heading\n\nFox jump dog.');
+  expect(readFileSync(path, 'utf8')).toBe('# Heading\n\nFox jump dog.\n');
   expect(readFileSync(backupPath, 'utf8')).toBe(original);
   expect(listDir(dir)).toBe('task.md');
   expect(listDir(dirname(backupPath))).toBe('task.original.md');
   expect(listDir(join(dataHome, 'caveman-compress', 'locks'))).toBe('');
 });
 
+test('compressed file keeps the trailing newline the source had', async () => {
+  const original = '# Heading\n\nThe quick brown fox jumps over the lazy dog.\n';
+  const path = fileWith(original);
+  const result = await compressFile({ path, complete: fakeComplete('# Heading\n\nFox jump dog.\n').complete });
+  expect(result.kind).toBe('compressed');
+  expect(readFileSync(path, 'utf8')).toBe('# Heading\n\nFox jump dog.\n');
+});
+
+test('compressed file does not gain a trailing newline the source lacked', async () => {
+  const original = '# Heading\n\nThe quick brown fox jumps over the lazy dog.';
+  const path = fileWith(original);
+  const result = await compressFile({ path, complete: fakeComplete('# Heading\n\nFox jump dog.\n').complete });
+  expect(result.kind).toBe('compressed');
+  expect(readFileSync(path, 'utf8')).toBe('# Heading\n\nFox jump dog.');
+});
+
 test('model wrapper fence is stripped', async () => {
   const path = fileWith('# Heading\n\nThe quick brown fox jumps over the lazy dog.\n');
   const result = await compressFile({ path, complete: fakeComplete('```markdown\n# Heading\n\nFox jump dog.\n```\n').complete });
   expect(result.kind).toBe('compressed');
-  expect(readFileSync(path, 'utf8')).toBe('# Heading\n\nFox jump dog.');
+  expect(readFileSync(path, 'utf8')).toBe('# Heading\n\nFox jump dog.\n');
 });
 
 test('fix attempt that validates is written', async () => {
@@ -268,21 +284,21 @@ test('fix attempt that validates is written', async () => {
   const result = await compressFile({ path, complete: fake.complete });
   expect(result.kind).toBe('compressed');
   expect(fake.prompts.length).toBe(2);
-  expect(readFileSync(path, 'utf8')).toBe('# Heading\n\n## Sub\n\nFox jump dog.');
+  expect(readFileSync(path, 'utf8')).toBe('# Heading\n\n## Sub\n\nFox jump dog.\n');
 });
 
 test('UTF-8 round trip', async () => {
   const original = '# Heading\n\nCafé, 中文, and an arrow → here.\n';
   const path = fileWith(original);
   await compressFile({ path, complete: fakeComplete('# Heading\n\nCafé 中文 arrow → here.\n').complete });
-  expect(readFileSync(path, 'utf8')).toBe('# Heading\n\nCafé 中文 arrow → here.');
+  expect(readFileSync(path, 'utf8')).toBe('# Heading\n\nCafé 中文 arrow → here.\n');
   expect(readFileSync(backupPathFor(path), 'utf8')).toBe(original);
 });
 
 test('leading BOM is kept', async () => {
   const path = fileWith('\ufeff# Heading\n\nThe quick brown fox jumps over the lazy dog.\n');
   await compressFile({ path, complete: fakeComplete('\ufeff# Heading\n\nFox jump dog.').complete });
-  expect(readFileSync(path, 'utf8')).toBe('\ufeff# Heading\n\nFox jump dog.');
+  expect(readFileSync(path, 'utf8')).toBe('\ufeff# Heading\n\nFox jump dog.\n');
 });
 
 test('frontmatter is preserved verbatim', async () => {
@@ -291,7 +307,7 @@ test('frontmatter is preserved verbatim', async () => {
   const fake = fakeComplete('# Heading\n\nFox jump dog.');
   await compressFile({ path, complete: fake.complete });
   expect(fake.prompts).toEqual([buildCompressPrompt('# Heading\n\nThe quick brown fox jumps over the lazy dog.\n')]);
-  expect(readFileSync(path, 'utf8')).toBe(`${fm}# Heading\n\nFox jump dog.`);
+  expect(readFileSync(path, 'utf8')).toBe(`${fm}# Heading\n\nFox jump dog.\n`);
 });
 
 test.skipIf(process.platform === 'win32')('permission bits preserved', async () => {
@@ -306,7 +322,7 @@ test('CRLF line endings survive the round trip', async () => {
   const raw = Buffer.from('# Title\r\n\r\nSome long prose body to compress here.\r\n');
   const path = fileWith(raw);
   await compressFile({ path, complete: fakeComplete('# Title\n\nShort body.\n').complete });
-  expect(readFileSync(path, 'utf8')).toBe('# Title\r\n\r\nShort body.');
+  expect(readFileSync(path, 'utf8')).toBe('# Title\r\n\r\nShort body.\r\n');
   expect(readFileSync(backupPathFor(path)).equals(raw)).toBe(true);
 });
 
@@ -314,7 +330,7 @@ test('one CRLF line does not convert an LF document', async () => {
   const raw = Buffer.from('# Title\nline one\r\nline two\nlong prose body to compress.\n');
   const path = fileWith(raw);
   await compressFile({ path, complete: fakeComplete('# Title\n\nShort body.\n').complete });
-  expect(readFileSync(path, 'utf8')).toBe('# Title\n\nShort body.');
+  expect(readFileSync(path, 'utf8')).toBe('# Title\n\nShort body.\n');
   expect(readFileSync(backupPathFor(path)).equals(raw)).toBe(true);
 });
 

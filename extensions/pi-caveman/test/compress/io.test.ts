@@ -34,7 +34,17 @@ test('readSource reports a CRLF-majority file as CRLF', async () => {
   const path = join(dir, 'a.md');
   writeFileSync(path, 'a\r\nb\r\n');
   const source = await readSource(path);
-  expect([source.text, source.newline]).toEqual(['a\nb\n', '\r\n']);
+  expect([source.text, source.newline, source.finalNewline]).toEqual(['a\nb\n', '\r\n', true]);
+});
+test('readSource reports a missing final newline', async () => {
+  const path = join(dir, 'a.md');
+  writeFileSync(path, 'a\nb');
+  expect((await readSource(path)).finalNewline).toBe(false);
+});
+test('readSource treats a lone final CR as a newline', async () => {
+  const path = join(dir, 'a.md');
+  writeFileSync(path, 'a\r');
+  expect((await readSource(path)).finalNewline).toBe(true);
 });
 test('readSource converts lone CR to LF', async () => {
   const path = join(dir, 'a.md');
@@ -53,14 +63,23 @@ test('readSource rejects invalid UTF-8 with the offending byte', async () => {
   await expect(readSource(path)).rejects.toThrow(`Refusing to compress ${path}: not valid UTF-8 (byte 0xff at offset 1).`);
 });
 
-test('renderText keeps LF text unchanged', () => {
-  expect(renderText('a\nb', '\n').toString('utf8')).toBe('a\nb');
+test('renderText keeps LF text and its final newline', () => {
+  expect(renderText('a\nb\n', '\n', true).toString('utf8')).toBe('a\nb\n');
 });
 test('renderText converts mixed endings to CRLF', () => {
-  expect(renderText('a\r\nb\nc', '\r\n').toString('utf8')).toBe('a\r\nb\r\nc');
+  expect(renderText('a\r\nb\nc', '\r\n', false).toString('utf8')).toBe('a\r\nb\r\nc');
 });
-test('renderText renders the empty string to zero bytes', () => {
-  expect(renderText('', '\r\n').length).toBe(0);
+test('renderText restores the final newline the source had', () => {
+  expect(renderText('a\nb', '\n', true).toString('utf8')).toBe('a\nb\n');
+});
+test('renderText drops a final newline the source lacked', () => {
+  expect(renderText('a\nb\n\n', '\n', false).toString('utf8')).toBe('a\nb');
+});
+test('renderText restores a CRLF final newline', () => {
+  expect(renderText('a\nb', '\r\n', true).toString('utf8')).toBe('a\r\nb\r\n');
+});
+test('renderText renders the empty string to zero bytes when the source had no final newline', () => {
+  expect(renderText('', '\r\n', false).length).toBe(0);
 });
 
 test('writeBytesAtomic creates a new file without temp leftovers', async () => {

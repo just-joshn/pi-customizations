@@ -53,7 +53,7 @@ describe('caveman_compress tool', () => {
 
   test('compresses a path relative to the session cwd', async () => {
     await compressNotes();
-    expect(readFileSync(join(dir, 'notes.md'), 'utf8')).toBe('# Notes\n\nRun tests before push.');
+    expect(readFileSync(join(dir, 'notes.md'), 'utf8')).toBe('# Notes\n\nRun tests before push.\n');
   });
 
   test('reports the nested model usage', async () => {

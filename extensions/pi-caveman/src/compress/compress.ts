@@ -50,6 +50,7 @@ interface Prepared {
   readonly filepath: string;
   readonly originalText: string;
   readonly newline: '\n' | '\r\n';
+  readonly finalNewline: boolean;
   readonly raw: Buffer;
   readonly backupPath: string;
   readonly frontmatter: string;
@@ -69,7 +70,7 @@ async function prepare(filepath: string): Promise<Prepared | CompressOutcome> {
   }
   const { frontmatter, body } = splitFrontmatter(source.text);
   if (pyStrip(body) === '') return { kind: 'skipped', reason: 'Refusing to compress: body is empty after frontmatter removal.' };
-  return { filepath, originalText: source.text, newline: source.newline, raw: source.raw, backupPath, frontmatter, body };
+  return { filepath, originalText: source.text, newline: source.newline, finalNewline: source.finalNewline, raw: source.raw, backupPath, frontmatter, body };
 }
 
 async function draft(prepared: Prepared, complete: Complete, signal: AbortSignal | undefined): Promise<string | CompressOutcome> {
@@ -98,14 +99,14 @@ async function writeVerifiedBackup(backupPath: string, raw: Buffer): Promise<boo
 }
 
 async function validateAndCommit(prepared: Prepared, first: string, complete: Complete, signal: AbortSignal | undefined): Promise<CompressOutcome> {
-  const { filepath, raw, backupPath, originalText, body, newline } = prepared;
+  const { filepath, raw, backupPath, originalText, body, newline, finalNewline } = prepared;
   // Upstream decodes the backup with universal newlines for validation.
   const backupText = raw.toString('utf8');
   const anchor = firstNonblankLine(originalText);
   let compressed = first;
   let lastErrors: readonly string[] = [];
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    const rendered = renderText(compressed, newline);
+    const rendered = renderText(compressed, newline, finalNewline);
     const result = validate(backupText, rendered.toString('utf8'));
     if (result.isValid) {
       await writeBytesAtomic(filepath, rendered).catch((error: unknown) => {

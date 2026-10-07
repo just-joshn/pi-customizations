@@ -82,7 +82,7 @@ export function firstInvalidUtf8Offset(bytes: Uint8Array): number {
   return -1;
 }
 
-export type SourceText = { text: string; newline: '\n' | '\r\n'; raw: Buffer };
+export type SourceText = { text: string; newline: '\n' | '\r\n'; finalNewline: boolean; raw: Buffer };
 
 /**
  * Strict UTF-8 decode (any undecodable byte would be destroyed by the round
@@ -100,7 +100,8 @@ export async function readSource(filepath: string): Promise<SourceText> {
   const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(raw);
   const crlf = countOccurrences(text, '\r\n');
   const newline = crlf * 2 > countOccurrences(text, '\n') ? '\r\n' : '\n';
-  return { text: text.replaceAll('\r\n', '\n').replaceAll('\r', '\n'), newline, raw };
+  const normalized = text.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+  return { text: normalized, newline, finalNewline: normalized.endsWith('\n'), raw };
 }
 
 async function writeTempFile(tmpPath: string, data: Uint8Array): Promise<void> {
@@ -127,8 +128,19 @@ export async function writeBytesAtomic(path: string, data: Uint8Array): Promise<
   }
 }
 
-export function renderText(text: string, newline: '\n' | '\r\n'): Buffer {
+export function renderText(text: string, newline: '\n' | '\r\n', finalNewline: boolean): Buffer {
   // Normalise first: model output may already carry CRLF.
-  const rendered = newline === '\n' ? text : text.replaceAll('\r\n', '\n').replaceAll('\n', newline);
+  const converted = newline === '\n' ? text : text.replaceAll('\r\n', '\n').replaceAll('\n', newline);
+  const rendered = finalNewline ? ensureFinalNewline(converted, newline) : stripTrailingNewlines(converted);
   return Buffer.from(rendered, 'utf8');
+}
+
+function ensureFinalNewline(text: string, newline: '\n' | '\r\n'): string {
+  return text.endsWith('\n') ? text : `${text}${newline}`;
+}
+
+function stripTrailingNewlines(text: string): string {
+  let end = text.length;
+  while (end > 0 && (text[end - 1] === '\n' || text[end - 1] === '\r')) end--;
+  return text.slice(0, end);
 }
