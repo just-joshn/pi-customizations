@@ -88,7 +88,7 @@ With no possible loop, `declare_inconclusive` sets the run INCONCLUSIVE with wha
 
 ## Graph
 
-**S50.** `build_graph` rejects nodes whose objective is a layer name (`database`, `backend`, `frontend`, `tests`, `api`, `ui`, `schema`, `migration`), duplicate ids, unknown dependencies, cycles, empty write sets, and nodes without an owner or expected behavior. Concurrency rules are in [architecture.md](architecture.md#concurrency).
+**S50.** `build_graph` rejects node ids that are not plain path segments (they name worktree directories and Git branches), nodes whose objective is a layer name (`database`, `backend`, `frontend`, `tests`, `api`, `ui`, `schema`, `migration`), duplicate ids, unknown dependencies, cycles, empty write sets, and nodes without an owner or expected behavior. Concurrency rules are in [architecture.md](architecture.md#concurrency).
 
 ## Integrate
 

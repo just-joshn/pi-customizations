@@ -20,6 +20,9 @@ import { type CheckKind, failureOwner } from './routes.ts';
 
 const HORIZONTAL_LAYERS = ['database', 'backend', 'frontend', 'tests', 'api', 'ui', 'schema', 'migration'];
 
+// Node ids name Git branches and worktree directories, so they stay plain path segments.
+const NODE_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+
 const TDD_CLAIM = 'tdd:';
 
 export function invokeSkill(state: RunState, skill: string, clock: Clock): Outcome {
@@ -265,6 +268,7 @@ export function validateGraph(nodes: readonly GraphNodeInput[]): string | null {
   if (nodes.length === 0) return 'graph needs at least one node';
   const ids = new Set<string>();
   for (const node of nodes) {
+    if (!NODE_ID.test(node.id) || node.id.includes('..')) return `node id ${JSON.stringify(node.id)} must be letters, digits, dots, dashes, or underscores`;
     if (ids.has(node.id)) return `duplicate node id ${node.id}`;
     ids.add(node.id);
     if (HORIZONTAL_LAYERS.includes(node.objective.trim().toLowerCase())) return `node ${node.id} objective "${node.objective}" is a horizontal layer; slice vertically`;

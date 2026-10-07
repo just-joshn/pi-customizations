@@ -148,6 +148,14 @@ describe('integration ownership', () => {
 });
 
 describe('graph declarations', () => {
+  test.for(['../escape', 'a b', 'a/b'])('node id %j is refused', (id) => {
+    expect(apply(inPhase('BUILD_GRAPH'), { kind: 'build_graph', nodes: [node(id)] }, fixedClock())).toEqual({
+      kind: 'rejected',
+      reason: `node id ${JSON.stringify(id)} must be letters, digits, dots, dashes, or underscores`,
+      gate: null,
+    });
+  });
+
   test.for([
     [{ owner: ' ' }, 'node a has no owner'],
     [{ expectedBehavior: '' }, 'node a has no expected behavior'],
