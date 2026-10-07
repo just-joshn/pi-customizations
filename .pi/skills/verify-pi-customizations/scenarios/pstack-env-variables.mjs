@@ -303,13 +303,15 @@ async function specializedExecution(context) {
     env: { COPILOT_CLI_ENABLED_FEATURE_FLAGS: 'copilot_cli_execution_subagent,copilot_cli_execution_subagent_model', EXECUTION_SUBAGENT_MODEL: 'missing/none' },
   });
   let rejected;
+  let rejectedStarted;
   try {
     await bad.session.prompt('ENV_EXEC_MODEL');
     rejected = toolResult(bad.session, 'execution_subagent');
+    rejectedStarted = await startedEvent(bad.session);
   } finally {
     await bad.session.close();
   }
-  return { overridden, inherited, limited, rejected: { isError: rejected.isError, text: rejected.text.slice(0, 200) } };
+  return { overridden, inherited, limited, rejected: { isError: rejected.isError, text: rejected.text.slice(0, 200), started: rejectedStarted } };
 }
 
 async function specializedScenario(context) {
@@ -327,7 +329,7 @@ async function specializedScenario(context) {
       assert.match(execution.limited, /stopped at its 1-turn limit/);
       assert.equal(execution.rejected.isError, true, 'an unknown execution subagent model silently ran on another model');
       assert.match(execution.rejected.text, /Unavailable model 'missing\/none'/, 'the rejection did not identify the unavailable model');
-      assert.match(execution.rejected.text, /scripted fixture reply/, 'the fallback did not use the parent model');
+      assert.equal(execution.rejected.started, undefined, 'an unavailable model must not launch a child on a fallback model');
     },
   });
 }
