@@ -150,3 +150,41 @@ No drive exercises those effects. What the drives observed is registration and d
 Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls back to the inherited model, and the drive records the fallback rather than a rejection. `resolveModel` throws for an unknown model elsewhere, at `extensions/pi-pstack/src/models.ts:82` against `src/subagents/specialized-tools.ts:58`.
 
 **Why it is parked.** Two paths disagree about whether an unknown model is an error. That is a product decision about which behaviour is wanted, and the drive correctly recorded what the interface does rather than what a reader might expect.
+
+---
+
+## F-020: a subagent reads files the user excluded, because the exclusion never wires up
+
+**Found by** `PS-EVT-32` while driving the pi-pstack policy hooks. **Highest severity in this run.**
+
+**What a user sees.** They configure `contentExclusions` so a subagent cannot read sensitive files. The child reads `.env` anyway. Nothing tells them.
+
+**What the unit observed.** The drive set the exclusion both at the top level of the settings and under the `subagents` key, and the child read the excluded file in both cases. The exclusion extension never registers.
+
+**Hypothesis under test.** `extensions/pi-pstack/src/subagents/factory.ts:205` passes the raw settings object to `parsePatterns`, while `extensions/pi-pstack/src/subagents/content-exclusion.ts:20` expects `Array<string>`. A separate fix unit is confirming or refuting this and fixing the root cause, with a test that fails before and a real-artifact proof after. This entry records the finding as it stood and will be superseded by the fix.
+
+**Why it is not merely parked.** This is the one finding in the run where a user is told something is protected when it is not, so it gets a fix rather than an entry. Everything else here is cosmetic, annoying, or dead code.
+
+---
+
+## F-021: a worker transcript keeps reading `running` after shutdown
+
+**Found by** `PS-EVT-44`. A local worker is in-process, so after shutdown the transcript still records the task as `running` plus a cleanup-usage entry, and only the next session start rewrites it to `interrupted`. Between the two, a user reading their own session sees a task that has already stopped.
+
+**Why it is parked.** The rewrite does happen, so the state converges; the window is the defect. Fixing it means deciding whether shutdown should write the terminal state or the read path should derive it.
+
+---
+
+## F-022: navigating away from a task re-appends its settled record
+
+**Found by** the same unit while driving `PS-EVT-43`. On a session-tree navigation, the worker-restore path re-appends an already-settled task record onto the newly navigated branch, so a task the user has navigated away from stays listed.
+
+**Why it is parked.** It is branch-state duplication rather than data loss, and the fix belongs with whoever owns the session-tree restore path.
+
+---
+
+## F-023: two defensive guards are unreachable from a real session
+
+**Found by** `PS-EVT-30` and `PS-EVT-31`. Pi rejects a call to a deactivated tool with `Tool <name> not found` before any `tool_call` hook runs, so the policy guard for that case cannot execute. An agent with a named tool list never receives the other tools, and a child whose parent lacks `write` and `edit` has them dropped from its plan, so the second guard is unreachable for the same reason.
+
+**Why it matters.** Unreachable guards read as protection and provide none, and they cost a reader time. Either they should be deleted, or the comment should say which host behaviour makes them dead. The verification consequence is recorded in the receipt as `not-drivable` rather than `verified`, because the row cannot be exercised.
