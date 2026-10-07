@@ -211,16 +211,21 @@ async function applyCommand(context: CliContext, raw: string | undefined): Promi
   });
 }
 
-async function resume(context: CliContext): Promise<CliResult> {
+// Every reader sees the run at git HEAD, so a commit after the last command cannot leave stale evidence looking current.
+async function withSyncedState(context: CliContext, body: (state: RunState, dir: string) => Promise<CliResult>): Promise<CliResult> {
   return withState(context, async (state, dir) => {
     const synced = await syncHead(context, state);
     await saveState(dir, state, synced.state, synced.decisions);
-    return ok(`${renderStatus(synced.state)}${JSON.stringify(nextAction(synced.state))}\n`);
+    return body(synced.state, dir);
   });
 }
 
+async function resume(context: CliContext): Promise<CliResult> {
+  return withSyncedState(context, async (state) => ok(`${renderStatus(state)}${JSON.stringify(nextAction(state))}\n`));
+}
+
 async function verify(context: CliContext): Promise<CliResult> {
-  return withState(context, async (state) => {
+  return withSyncedState(context, async (state) => {
     const route = routeConsumer(state.run.consumer.kind, state.run.capabilities);
     const lines = requiredEvidence(state).map((required) => `${required.satisfied ? 'MEASURED' : 'MISSING'} ${required.criterion}`);
     const blockers = prReadyBlockers(state);
@@ -230,7 +235,7 @@ async function verify(context: CliContext): Promise<CliResult> {
 }
 
 async function explain(context: CliContext): Promise<CliResult> {
-  return withState(context, async (state, dir) => {
+  return withSyncedState(context, async (state, dir) => {
     const decisions = await readDecisions(dir);
     if (decisions.kind === 'invalid') return error(`${decisions.reason}\n`);
     const log = decisions.value.slice(-20).map((decision) => `${decision.at} ${decision.phase} ${decision.command}: ${decision.summary}`);
@@ -313,7 +318,7 @@ export async function runCli(argv: readonly string[], context: CliContext): Prom
   if (mode !== undefined) return start(context, mode, rest);
   switch (name) {
     case 'status':
-      return withState(context, async (state) => ok(renderStatus(state)));
+      return withSyncedState(context, async (state) => ok(renderStatus(state)));
     case 'verify':
       return verify(context);
     case 'resume':

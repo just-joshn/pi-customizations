@@ -20,7 +20,7 @@ export async function remoteUrl(shell: Shell): Promise<string | null> {
 }
 
 export async function changedPaths(shell: Shell, from: string, to: string): Promise<readonly string[]> {
-  const out = await git(shell, ['diff', '--name-only', '--no-renames', from, to]);
+  const out = await git(shell, ['diff', '--name-only', '--no-renames', '--relative', from, to]);
   return out === '' ? [] : out.split('\n');
 }
 

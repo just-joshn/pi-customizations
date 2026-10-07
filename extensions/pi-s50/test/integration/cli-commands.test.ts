@@ -173,7 +173,7 @@ describe('run commands', () => {
 
   const EVIDENCE = { claim: 'csv', criterion: 'csv lists invoices', state: 'MEASURED', dependencies: ['src/export/**'], method: 'cli', expected: 'rows', observed: 'rows', artifact: 'a.log' };
 
-  test.fails('a run in a subdirectory stales evidence on its own paths', async () => {
+  test('a run in a subdirectory stales evidence on its own paths', async () => {
     const root = repo();
     const cwd = join(root, 'pkg');
     writeAndCommit(root, { 'pkg/src/export/csv.ts': 'export const csv = 1;\n' }, 'pkg');
@@ -185,14 +185,14 @@ describe('run commands', () => {
     expect((await runCli(['resume'], context(cwd))).stdout).toContain('stale evidence: 1');
   });
 
-  test.fails('status follows a commit made after the last command', async () => {
+  test('status follows a commit made after the last command', async () => {
     const cwd = await started();
     await runCli(['apply', JSON.stringify({ kind: 'record_evidence', evidence: EVIDENCE })], context(cwd));
     writeAndCommit(cwd, { 'src/export/csv.ts': 'export const csv = 2;\n' }, 'edit');
     expect((await runCli(['status'], context(cwd))).stdout).toContain('stale evidence: 1');
   });
 
-  test.fails('verify follows a commit made after the last command', async () => {
+  test('verify follows a commit made after the last command', async () => {
     const cwd = await started();
     await runCli(['apply', JSON.stringify({ kind: 'record_evidence', evidence: EVIDENCE })], context(cwd));
     writeAndCommit(cwd, { 'src/export/csv.ts': 'export const csv = 2;\n' }, 'edit');
