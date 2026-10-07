@@ -232,6 +232,7 @@ async function executorsScenario(context) {
 
 async function detachedScenario(context) {
   const log = join(context.rawDir, 'env-16-rem.log');
+  writeFileSync(log, '');
   const recorder = writeExecutable(join(context.scratchDir, 'pi-recorder'), `#!/bin/sh\n{ echo "args=$*"; echo "detached=\${COPILOT_DETACHED_SESSION-unset}"; } >> ${JSON.stringify(log)}\n`);
   const runSession = async (name, extraEnv) => {
     const { session } = await startEnv(context, name, { env: { COPILOT_SUBCONSCIOUS: '1', PSTACK_PI_COMMAND: recorder, ...extraEnv } });

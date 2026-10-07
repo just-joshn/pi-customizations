@@ -264,6 +264,7 @@ process.stdin.on('end', () => {
 
 async function statusLineScenario(context) {
   const commandLog = join(context.rawDir, 'cfg-12-status-line.log');
+  writeFileSync(commandLog, '');
   const script = statusLineScript(context, commandLog);
   const { session } = await startEnv(context, 'cfg-status-line', {
     settings: { subagentStatusLine: { type: 'command', command: `node ${script}` } },
