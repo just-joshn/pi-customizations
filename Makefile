@@ -1,6 +1,6 @@
-.PHONY: verify sweep-tui-skin verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-parity-audit verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
+.PHONY: verify verify-s50 verify-s50-harness sweep-tui-skin verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-parity-audit verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
 
-verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-install verify-python
+verify: verify-s50 verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-install verify-python
 
 verify-lint:
 	bun run ci
@@ -39,6 +39,15 @@ verify-oauth:
 	bun run --filter pi-antigravity-oauth test:coverage
 	bun run --filter pi-xai-oauth typecheck
 	bun run --filter pi-xai-oauth test:coverage
+
+verify-s50:
+	bun run --filter pi-s50 typecheck
+	bun run --filter pi-s50 test:coverage
+
+# Needs a real pi binary, a configured model, and network access, so it stays out of `verify`.
+# Installs pi-s50 into a throwaway project and runs one bounded feature simulation through Pi.
+verify-s50-harness:
+	node extensions/pi-s50/scripts/verify-pi-harness.mjs
 
 verify-tui-skin:
 	bun run --filter pi-tui-skin check:skin

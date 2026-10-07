@@ -1,0 +1,370 @@
+{
+  "fetchedAt": "2026-10-07T09:14:55Z",
+  "source": "https://skills.sh/",
+  "view": "all-time",
+  "rankingBasis": "install_telemetry",
+  "rankingEvidence": "https://skills.sh/docs/faq: The skills leaderboard is powered by anonymous telemetry data from the skills CLI ... only tracks aggregate skill installation counts",
+  "entries": [
+    {
+      "rank": 1,
+      "source": "vercel-labs/skills",
+      "skillId": "find-skills",
+      "installs": 3727722
+    },
+    {
+      "rank": 2,
+      "source": "mattpocock/skills",
+      "skillId": "grill-me",
+      "installs": 1298039
+    },
+    {
+      "rank": 3,
+      "source": "mattpocock/skills",
+      "skillId": "grill-with-docs",
+      "installs": 1111185
+    },
+    {
+      "rank": 4,
+      "source": "mattpocock/skills",
+      "skillId": "improve-codebase-architecture",
+      "installs": 1059496
+    },
+    {
+      "rank": 5,
+      "source": "vercel-labs/agent-browser",
+      "skillId": "agent-browser",
+      "installs": 1048474
+    },
+    {
+      "rank": 6,
+      "source": "mattpocock/skills",
+      "skillId": "tdd",
+      "installs": 1030912
+    },
+    {
+      "rank": 7,
+      "source": "anthropics/skills",
+      "skillId": "frontend-design",
+      "installs": 958540
+    },
+    {
+      "rank": 8,
+      "source": "mattpocock/skills",
+      "skillId": "setup-matt-pocock-skills",
+      "installs": 952086
+    },
+    {
+      "rank": 9,
+      "source": "mattpocock/skills",
+      "skillId": "handoff",
+      "installs": 930879
+    },
+    {
+      "rank": 10,
+      "source": "mattpocock/skills",
+      "skillId": "triage",
+      "installs": 898670
+    },
+    {
+      "rank": 11,
+      "source": "mattpocock/skills",
+      "skillId": "prototype",
+      "installs": 894819
+    },
+    {
+      "rank": 12,
+      "source": "mattpocock/skills",
+      "skillId": "grilling",
+      "installs": 850171
+    },
+    {
+      "rank": 13,
+      "source": "heygen-com/hyperframes",
+      "skillId": "hyperframes-cli",
+      "installs": 836358
+    },
+    {
+      "rank": 14,
+      "source": "flowkit-labs/skills",
+      "skillId": "reddit-automation",
+      "installs": 821379
+    },
+    {
+      "rank": 15,
+      "source": "heygen-com/hyperframes",
+      "skillId": "hyperframes",
+      "installs": 803020
+    },
+    {
+      "rank": 16,
+      "source": "vercel-labs/agent-skills",
+      "skillId": "vercel-react-best-practices",
+      "installs": 775487
+    },
+    {
+      "rank": 17,
+      "source": "mattpocock/skills",
+      "skillId": "domain-modeling",
+      "installs": 769504
+    },
+    {
+      "rank": 18,
+      "source": "mattpocock/skills",
+      "skillId": "teach",
+      "installs": 764505
+    },
+    {
+      "rank": 19,
+      "source": "mattpocock/skills",
+      "skillId": "codebase-design",
+      "installs": 746467
+    },
+    {
+      "rank": 20,
+      "source": "open.feishu.cn",
+      "skillId": "lark-doc",
+      "installs": 746439
+    },
+    {
+      "rank": 21,
+      "source": "open.feishu.cn",
+      "skillId": "lark-base",
+      "installs": 746046
+    },
+    {
+      "rank": 22,
+      "source": "open.feishu.cn",
+      "skillId": "lark-drive",
+      "installs": 745996
+    },
+    {
+      "rank": 23,
+      "source": "open.feishu.cn",
+      "skillId": "lark-shared",
+      "installs": 745630
+    },
+    {
+      "rank": 24,
+      "source": "open.feishu.cn",
+      "skillId": "lark-im",
+      "installs": 745285
+    },
+    {
+      "rank": 25,
+      "source": "open.feishu.cn",
+      "skillId": "lark-calendar",
+      "installs": 744987
+    },
+    {
+      "rank": 26,
+      "source": "open.feishu.cn",
+      "skillId": "lark-approval",
+      "installs": 744970
+    },
+    {
+      "rank": 27,
+      "source": "open.feishu.cn",
+      "skillId": "lark-sheets",
+      "installs": 744837
+    },
+    {
+      "rank": 28,
+      "source": "open.feishu.cn",
+      "skillId": "lark-wiki",
+      "installs": 744617
+    },
+    {
+      "rank": 29,
+      "source": "open.feishu.cn",
+      "skillId": "lark-contact",
+      "installs": 744192
+    },
+    {
+      "rank": 30,
+      "source": "open.feishu.cn",
+      "skillId": "lark-task",
+      "installs": 743933
+    },
+    {
+      "rank": 31,
+      "source": "open.feishu.cn",
+      "skillId": "lark-slides",
+      "installs": 743929
+    },
+    {
+      "rank": 32,
+      "source": "open.feishu.cn",
+      "skillId": "lark-mail",
+      "installs": 743887
+    },
+    {
+      "rank": 33,
+      "source": "open.feishu.cn",
+      "skillId": "lark-whiteboard",
+      "installs": 743790
+    },
+    {
+      "rank": 34,
+      "source": "open.feishu.cn",
+      "skillId": "lark-event",
+      "installs": 743739
+    },
+    {
+      "rank": 35,
+      "source": "open.feishu.cn",
+      "skillId": "lark-openapi-explorer",
+      "installs": 743528
+    },
+    {
+      "rank": 36,
+      "source": "open.feishu.cn",
+      "skillId": "lark-attendance",
+      "installs": 743504
+    },
+    {
+      "rank": 37,
+      "source": "open.feishu.cn",
+      "skillId": "lark-minutes",
+      "installs": 743446
+    },
+    {
+      "rank": 38,
+      "source": "open.feishu.cn",
+      "skillId": "lark-skill-maker",
+      "installs": 743130
+    },
+    {
+      "rank": 39,
+      "source": "open.feishu.cn",
+      "skillId": "lark-workflow-meeting-summary",
+      "installs": 742996
+    },
+    {
+      "rank": 40,
+      "source": "open.feishu.cn",
+      "skillId": "lark-workflow-standup-report",
+      "installs": 742781
+    },
+    {
+      "rank": 41,
+      "source": "open.feishu.cn",
+      "skillId": "lark-vc",
+      "installs": 742758
+    },
+    {
+      "rank": 42,
+      "source": "open.feishu.cn",
+      "skillId": "lark-okr",
+      "installs": 724350
+    },
+    {
+      "rank": 43,
+      "source": "heygen-com/hyperframes",
+      "skillId": "hyperframes-registry",
+      "installs": 722917
+    },
+    {
+      "rank": 44,
+      "source": "open.feishu.cn",
+      "skillId": "lark-markdown",
+      "installs": 710062
+    },
+    {
+      "rank": 45,
+      "source": "heygen-com/hyperframes",
+      "skillId": "media-use",
+      "installs": 709433
+    },
+    {
+      "rank": 46,
+      "source": "vercel-labs/agent-skills",
+      "skillId": "web-design-guidelines",
+      "installs": 706188
+    },
+    {
+      "rank": 47,
+      "source": "heygen-com/hyperframes",
+      "skillId": "hyperframes-animation",
+      "installs": 690771
+    },
+    {
+      "rank": 48,
+      "source": "101-skills/superpowers",
+      "skillId": "ai-video-generation",
+      "installs": 688386
+    },
+    {
+      "rank": 49,
+      "source": "heygen-com/hyperframes",
+      "skillId": "hyperframes-core",
+      "installs": 687864
+    },
+    {
+      "rank": 50,
+      "source": "101-skills/superpowers",
+      "skillId": "ai-image-generation",
+      "installs": 687799
+    },
+    {
+      "rank": 51,
+      "source": "mattpocock/skills",
+      "skillId": "diagnosing-bugs",
+      "installs": 730107
+    },
+    {
+      "rank": 52,
+      "source": "101-skills/superpowers",
+      "skillId": "twitter-automation",
+      "installs": 687730
+    },
+    {
+      "rank": 53,
+      "source": "101-skills/superpowers",
+      "skillId": "ai-avatar-video",
+      "installs": 687446
+    },
+    {
+      "rank": 54,
+      "source": "open.feishu.cn",
+      "skillId": "lark-vc-agent",
+      "installs": 687405
+    },
+    {
+      "rank": 55,
+      "source": "mattpocock/skills",
+      "skillId": "code-review",
+      "installs": 680349
+    },
+    {
+      "rank": 56,
+      "source": "mattpocock/skills",
+      "skillId": "ask-matt",
+      "installs": 673250
+    },
+    {
+      "rank": 57,
+      "source": "mattpocock/skills",
+      "skillId": "implement",
+      "installs": 672636
+    },
+    {
+      "rank": 58,
+      "source": "designed-by-ai/skills",
+      "skillId": "design-mobile-apps",
+      "installs": 658190
+    },
+    {
+      "rank": 59,
+      "source": "heygen-com/hyperframes",
+      "skillId": "hyperframes-creative",
+      "installs": 655205
+    },
+    {
+      "rank": 60,
+      "source": "open.feishu.cn",
+      "skillId": "lark-apps",
+      "installs": 654891
+    }
+  ],
+  "note": "Derived test fixture: diagnosing-bugs moved to rank 51 to model a skill leaving the top 50."
+}

@@ -1,0 +1,128 @@
+{
+  "find-skills": {
+    "repository": "vercel-labs/skills",
+    "commit": "48dc9e8eb8aa19040e91cb90ba0b642c9cbad57e",
+    "path": "skills/find-skills/SKILL.md",
+    "contentHash": "sha256:c00eeea0e13e74fe4a9d84ba0a8542205a1b736d65f13134fe1a6647eb14976f",
+    "invocationPolicy": "model"
+  },
+  "grill-me": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/productivity/grill-me/SKILL.md",
+    "contentHash": "sha256:caaf8b8de1684f96e26b28f3c29189db5c89cce4b73e1c93d86164f66ef88637",
+    "invocationPolicy": "user"
+  },
+  "grill-with-docs": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/engineering/grill-with-docs/SKILL.md",
+    "contentHash": "sha256:7de372c13488f1ee96cc11cd8907b56b6809cc93eef776eeddd37de6b6cbe3fe",
+    "invocationPolicy": "user"
+  },
+  "improve-codebase-architecture": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/engineering/improve-codebase-architecture/SKILL.md",
+    "contentHash": "sha256:552240a5ab5cec6b67c15dd1ad6e9f6962b1bca6ce870059a8c2713760c20392",
+    "invocationPolicy": "user"
+  },
+  "agent-browser": {
+    "repository": "vercel-labs/agent-browser",
+    "commit": "f7c8b071343dda29477a56cb336ea76144c05496",
+    "path": "skills/agent-browser/SKILL.md",
+    "contentHash": "sha256:3a7520e64de2dfaa516b6721c001e84e06e3c06a187b82af029ae721540ebfac",
+    "invocationPolicy": "model"
+  },
+  "tdd": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/engineering/tdd/SKILL.md",
+    "contentHash": "sha256:93ea419b76e9caaf26153b828e984f7c3fb136f4caa67b14af95f32ea965a1cc",
+    "invocationPolicy": "model"
+  },
+  "frontend-design": {
+    "repository": "anthropics/skills",
+    "commit": "683bc88e56f3e09ba94f7055977f3d3aa499f202",
+    "path": "skills/frontend-design/SKILL.md",
+    "contentHash": "sha256:d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+    "invocationPolicy": "model"
+  },
+  "setup-matt-pocock-skills": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
+    "contentHash": "sha256:9a0c21694be19fa3eefc39343355d3af7414716ba364882c7432c2f821eac3e9",
+    "invocationPolicy": "user"
+  },
+  "handoff": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/productivity/handoff/SKILL.md",
+    "contentHash": "sha256:4cbb043950dad2ffd3662ff1a5a0b51ae676004b5cae10e3787e8ee7a4ee69d3",
+    "invocationPolicy": "user"
+  },
+  "triage": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/engineering/triage/SKILL.md",
+    "contentHash": "sha256:917b0baf74be583e74f110857ed45df2766617f75c00baf61fd136d7af515edf",
+    "invocationPolicy": "user"
+  },
+  "prototype": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/engineering/prototype/SKILL.md",
+    "contentHash": "sha256:714de632d116bb73f65cdb5a882db15b9369a6713b9a47c0fad827848f0bfbe3",
+    "invocationPolicy": "model"
+  },
+  "grilling": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/productivity/grilling/SKILL.md",
+    "contentHash": "sha256:10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2",
+    "invocationPolicy": "model"
+  },
+  "vercel-react-best-practices": {
+    "repository": "vercel-labs/agent-skills",
+    "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+    "path": "skills/react-best-practices/SKILL.md",
+    "contentHash": "sha256:71ed7794962fa6e803ee83030517b5b93a9f70fbfeb431ec4535c5480a8d8355",
+    "invocationPolicy": "model"
+  },
+  "domain-modeling": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/engineering/domain-modeling/SKILL.md",
+    "contentHash": "sha256:7b925d7b1e341a2eeae33ad68a8a8c0ab889a38ddd22a7598e4c240e5a7556a3",
+    "invocationPolicy": "model"
+  },
+  "teach": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/productivity/teach/SKILL.md",
+    "contentHash": "sha256:a32df9dcdfc0c4fdc1c98e1ed3940c5f56b84c1aa90ff60346f32b8b53915b43",
+    "invocationPolicy": "user"
+  },
+  "codebase-design": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/engineering/codebase-design/SKILL.md",
+    "contentHash": "sha256:2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2",
+    "invocationPolicy": "model"
+  },
+  "diagnosing-bugs": {
+    "repository": "mattpocock/skills",
+    "commit": "dd400c3ad65e57c06f05e832e0aac92c7992f34d",
+    "path": "skills/engineering/diagnosing-bugs/SKILL.md",
+    "contentHash": "sha256:9168404abda0967a5d32977e3498cd95fda6807018852f3de736a78357c82b40",
+    "invocationPolicy": "model"
+  },
+  "web-design-guidelines": {
+    "repository": "vercel-labs/agent-skills",
+    "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+    "path": "skills/web-design-guidelines/SKILL.md",
+    "contentHash": "sha256:f4647ca866a3accf763777f83e7682954f0187cd6bea7eea0399796652414e8f",
+    "invocationPolicy": "model"
+  }
+}
