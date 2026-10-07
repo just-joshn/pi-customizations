@@ -30,7 +30,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node -e 'require(\"node:fs\").chmodSync(\"dist/cli/main.js\", 0o755)'",
     "prepack": "bun run build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

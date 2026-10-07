@@ -58,7 +58,8 @@ function assertSymlinkContract(context, receipts, packageDir, manifest) {
   const executable = existsSync(target) && (statSync(target).mode & 0o111) !== 0;
   const direct = spawnSync(linkedBin, ['bogus'], { encoding: 'utf8' });
   const readme = readFileSync(join(packageDir, 'README.md'), 'utf8');
-  const limitation = 'Node does not strip TypeScript types under `node_modules`, so a copy installed there cannot run the bin.';
+  const packaging = 'The compiled bin runs under `node_modules`.';
+  const packed = spawnSync(process.execPath, ['--test', join(context.repoRoot, '.pi/skills/verify-pi-customizations/scripts/probe-s50-packaged-cli.mjs')], { cwd: context.repoRoot, encoding: 'utf8', timeout: 120000 });
   const invocation = 'node extensions/pi-s50/src/cli/main.ts status';
   const raw = writeRaw(context, 's50-symlink.json', {
     link,
@@ -67,15 +68,16 @@ function assertSymlinkContract(context, receipts, packageDir, manifest) {
     executable,
     direct: { status: direct.status, stdout: direct.stdout, stderr: direct.stderr, error: direct.error?.message ?? null },
     readmeLines15to21: readme.split('\n').slice(14, 21).join('\n'),
-    readmeLimitation: readme.includes(limitation),
+    packed: { status: packed.status, stdout: packed.stdout, stderr: packed.stderr, error: packed.error?.message ?? null },
+    readmePackaging: readme.includes(packaging),
     readmeInvocation: readme.includes(invocation),
   });
   const text = direct.stdout + direct.stderr;
   receipts.assertVerdict({
     surfaceId: 'S50-INSTALL-2',
     package: S50_PACKAGE,
-    expected: 'the declared s50 bin target exists and runs when reached through a symlink into the checkout, and the README states that a node_modules copy cannot run it and gives the checkout invocation',
-    observed: `target=${manifest.bin.s50} executable=${executable}; ${linkedBin} bogus exited ${direct.status} printing ${JSON.stringify(text.trim().split('\n')[0])}; README limitation=${readme.includes(limitation)} checkout invocation=${readme.includes(invocation)}`,
+    expected: 'the declared compiled s50 bin runs from a packed package copied under node_modules and through a checkout symlink, with the checkout invocation documented',
+    observed: `target=${manifest.bin.s50} executable=${executable}; ${linkedBin} bogus exited ${direct.status} printing ${JSON.stringify(text.trim().split('\n')[0])}; packed node_modules CLI test exited ${packed.status}; README packaging=${readme.includes(packaging)} checkout invocation=${readme.includes(invocation)}`,
     evidence: raw,
     check: () => {
       assert.ok(existsSync(target), `bin.s50 target ${manifest.bin.s50} does not exist`);
@@ -83,7 +85,9 @@ function assertSymlinkContract(context, receipts, packageDir, manifest) {
       assert.equal(direct.status, 1, `symlinked bin exited ${direct.status}: ${text}`);
       assert.match(text, /usage: s50 <command>/);
       assert.match(text, /unknown command: bogus/);
-      assert.ok(readme.includes(limitation), 'README does not state the node_modules limitation');
+      assert.equal(packed.error, undefined, 'packed CLI probe did not finish');
+      assert.equal(packed.status, 0, `packed CLI failed under node_modules: ${packed.stdout}\n${packed.stderr}`);
+      assert.ok(readme.includes(packaging), 'README does not state the compiled package behaviour');
       assert.ok(readme.includes(invocation), 'README does not give the checkout invocation');
     },
   });

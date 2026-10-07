@@ -50,6 +50,7 @@ verify-oauth:
 	bun run --filter pi-xai-oauth test:coverage
 
 verify-s50:
+	bun run --filter pi-s50 build
 	bun run --filter pi-s50 typecheck
 	bun run --filter pi-s50 test:coverage
 
