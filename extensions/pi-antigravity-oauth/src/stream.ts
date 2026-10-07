@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 
 import {
@@ -14,6 +14,7 @@ import {
   getSystemMessageText,
   type JsonObject,
   type Model,
+  type ModelThinkingLevel,
   type ProviderHeaders,
   type ProviderStreams,
   type SimpleStreamOptions,
@@ -25,13 +26,13 @@ import {
   type Usage,
 } from '@earendil-works/pi-ai';
 import { cloudCodeHeaders, openStream, parseApiKey } from './cloudcode.ts';
-import { FAMILY, familyOf } from './models.ts';
-import { convertMessages, convertTools, isThinkingPart, mapStopReasonString, mapToolChoice, resolveGoogleThinkingLevel, retainThoughtSignature, toGoogleThinkingLevel } from './pi-ai/google-shared.ts';
+import { parseVariant, type Variant } from './models.ts';
+import { convertMessages, convertTools, isThinkingPart, mapStopReasonString, mapToolChoice, retainThoughtSignature } from './pi-ai/google-shared.ts';
 import { sanitizeSurrogates } from './pi-ai/sanitize-unicode.ts';
-import { adjustMaxTokensForThinking, buildBaseOptions } from './pi-ai/simple-options.ts';
+import { buildBaseOptions } from './pi-ai/simple-options.ts';
 
 // google-shared is typed for the Gemini and Vertex APIs. It reads only the id,
-// provider, api, input, and thinkingLevelMap fields, which Cloud Code models share.
+// provider, api, and input fields, which Cloud Code models share.
 function asGoogleModel(model: Model<Api>): Model<'google-generative-ai'> {
   return model as unknown as Model<'google-generative-ai'>;
 }
@@ -42,90 +43,101 @@ const EMPTY_STREAM_BASE_DELAY_MS = 500;
 type Content = ReturnType<typeof convertMessages>[number];
 
 export interface ThinkingConfig {
-  includeThoughts?: boolean;
+  includeThoughts: true;
+  thinkingBudget: number;
   thinkingLevel?: string;
-  thinkingBudget?: number;
 }
 
 export interface GeminiRequest {
   contents: Content[];
   systemInstruction?: { role: 'user'; parts: { text: string }[] };
-  generationConfig?: { temperature?: number; maxOutputTokens?: number; thinkingConfig?: ThinkingConfig };
   tools?: ReturnType<typeof convertTools>;
   toolConfig?: { functionCallingConfig: { mode: string } };
+  generationConfig: { temperature?: number; maxOutputTokens?: number; thinkingConfig?: ThinkingConfig };
   sessionId?: string;
 }
 
 export interface CloudCodeRequest {
   project: string;
-  model: string;
-  request: GeminiRequest;
-  requestType: 'agent';
-  userAgent: 'antigravity';
   requestId: string;
+  request: GeminiRequest;
+  model: string;
+  userAgent: 'antigravity';
+  requestType: 'agent';
 }
 
 export interface RequestOptions {
+  variant: Variant;
   temperature?: number;
   maxTokens?: number;
-  thinkingConfig?: ThinkingConfig;
   toolChoice?: ToolChoice;
   sessionId?: string;
 }
 
-export function resolveThinking(model: Model<Api>, options: SimpleStreamOptions | undefined, maxTokens: number): { maxTokens: number; thinkingConfig?: ThinkingConfig } {
-  const { thinking } = FAMILY[familyOf(model.id)];
-  if (!model.reasoning || thinking === 'none') return { maxTokens };
-  const level = options?.reasoning ? clampThinkingLevel(model, options.reasoning) : 'off';
-  if (thinking === 'level') {
-    const thinkingLevel = toGoogleThinkingLevel(resolveGoogleThinkingLevel(asGoogleModel(model), level === 'off' ? 'minimal' : level));
-    return { maxTokens, thinkingConfig: level === 'off' ? { thinkingLevel } : { includeThoughts: true, thinkingLevel } };
-  }
-  if (level === 'off') return { maxTokens, thinkingConfig: { thinkingBudget: 0 } };
-  const adjusted = adjustMaxTokensForThinking(maxTokens, model.maxTokens, level, options?.thinkingBudgets);
-  return {
-    maxTokens: adjusted.maxTokens,
-    thinkingConfig: { includeThoughts: true, thinkingBudget: adjusted.thinkingBudget },
-  };
+/** Picks the Cloud Code model id for Pi's thinking level, as `agy --model <id> --effort <level>` does. */
+export function resolveVariant(model: Model<Api>, reasoning: SimpleStreamOptions['reasoning']): { level: ModelThinkingLevel; variant: Variant } {
+  const level = clampThinkingLevel(model, reasoning ?? 'off');
+  const variant = parseVariant(model.thinkingLevelMap?.[level]);
+  if (!variant) throw new Error(`${model.id} has no Antigravity model for thinking level ${level}`);
+  return { level, variant };
 }
 
-export function buildRequest(model: Model<Api>, context: TranscriptContext, projectId: string, options: RequestOptions = {}): CloudCodeRequest {
-  const family = FAMILY[familyOf(model.id)];
+// The CLI declares tool parameters as an OpenAPI schema with Google's upper-case type names.
+function upperCaseTypes(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(upperCaseTypes);
+  if (typeof schema !== 'object' || schema === null) return schema;
+  return Object.fromEntries(Object.entries(schema).map(([key, value]) => [key, key === 'type' && typeof value === 'string' ? value.toUpperCase() : upperCaseTypes(value)]));
+}
+
+// The CLI sends a Gemini model's tool results in a model turn and every other model's in a user turn.
+function toolResultRole(model: Model<Api>, contents: Content[]): Content[] {
+  if (!model.id.startsWith('gemini-')) return contents;
+  return contents.map((content) => (content.parts?.every((part) => part.functionResponse) ? { ...content, role: 'model' } : content));
+}
+
+// The CLI names a request agent/<conversation>/<turn start ms>/<turn id>/<step>, where a turn
+// starts at the user's message and each tool round trip adds two steps.
+function requestId(messages: TranscriptContext['messages'], conversation: string): string {
+  const turn = messages.findLastIndex((message) => message.role === 'user');
+  const started = messages[turn]?.timestamp ?? Date.now();
+  const steps = messages.slice(turn + 1).filter((message) => message.role === 'assistant').length;
+  const hex = createHash('sha256').update(`${conversation}:${started}`).digest('hex');
+  const turnId = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+  return `agent/${conversation}/${started}/${turnId}/${1 + 2 * steps}`;
+}
+
+export function buildRequest(model: Model<Api>, context: TranscriptContext, projectId: string, options: RequestOptions): CloudCodeRequest {
   const transcript = collapseSystemMessages(context);
   const system = getInitialSystemMessage(transcript.messages);
   const systemText = system ? getSystemMessageText(system) : '';
   const tools = getCurrentTools(transcript.messages);
-  const generationConfig = {
-    ...(options.temperature !== undefined && { temperature: options.temperature }),
-    ...(options.maxTokens !== undefined && { maxOutputTokens: options.maxTokens }),
-    ...(options.thinkingConfig && { thinkingConfig: options.thinkingConfig }),
-  };
+  const { variant } = options;
   const request: GeminiRequest = {
-    contents: convertMessages(asGoogleModel(model), transcript),
+    contents: toolResultRole(model, convertMessages(asGoogleModel(model), transcript)),
     ...(systemText && { systemInstruction: { role: 'user', parts: [{ text: sanitizeSurrogates(systemText) }] } }),
-    ...(Object.keys(generationConfig).length > 0 && { generationConfig }),
-    ...(tools.length > 0 && { tools: convertTools(tools, family.toolParameters, false) }),
+    ...(tools.length > 0 && { tools: upperCaseTypes(convertTools(tools, true, false)) as ReturnType<typeof convertTools> }),
     ...(tools.length > 0 && options.toolChoice && { toolConfig: { functionCallingConfig: { mode: mapToolChoice(options.toolChoice) } } }),
+    generationConfig: {
+      ...(options.temperature !== undefined && { temperature: options.temperature }),
+      ...(options.maxTokens !== undefined && { maxOutputTokens: options.maxTokens }),
+      ...(variant.thinkingBudget !== undefined && {
+        thinkingConfig: { includeThoughts: true, thinkingBudget: variant.thinkingBudget, ...(variant.thinkingLevel && { thinkingLevel: variant.thinkingLevel }) },
+      }),
+    },
     ...(options.sessionId && { sessionId: options.sessionId }),
   };
   return {
     project: projectId,
-    model: model.id,
+    requestId: requestId(transcript.messages, options.sessionId ?? randomUUID()),
     request,
-    requestType: 'agent',
+    model: variant.model,
     userAgent: 'antigravity',
-    requestId: `agent-${randomUUID()}`,
+    requestType: 'agent',
   };
 }
 
 function requestHeaders(model: Model<Api>, token: string, overrides: ProviderHeaders | undefined): Headers {
-  const { extraHeaders } = FAMILY[familyOf(model.id)];
-  const headers = new Headers({
-    ...cloudCodeHeaders(token),
-    Accept: 'text/event-stream',
-    ...(model.reasoning && extraHeaders),
-    ...model.headers,
-  });
+  const headers = new Headers({ ...cloudCodeHeaders(token), ...model.headers });
   for (const [name, value] of Object.entries(overrides ?? {})) {
     if (value === null) headers.delete(name);
     else headers.set(name, value);
@@ -301,14 +313,13 @@ function emptyUsage(): Usage {
   };
 }
 
-async function buildRequestInit(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined): Promise<RequestInit> {
+async function buildRequestInit(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined, variant: Variant): Promise<RequestInit> {
   const { token, projectId } = parseApiKey(options?.apiKey);
   const base = buildBaseOptions(model, context, options);
-  const thinking = resolveThinking(model, options, base.maxTokens ?? model.maxTokens);
   const request = buildRequest(model, context, projectId, {
+    variant,
     ...(base.temperature !== undefined && { temperature: base.temperature }),
-    maxTokens: thinking.maxTokens,
-    ...(thinking.thinkingConfig !== undefined && { thinkingConfig: thinking.thinkingConfig }),
+    maxTokens: base.maxTokens ?? model.maxTokens,
     ...(options?.toolChoice !== undefined && { toolChoice: options.toolChoice }),
     ...(options?.sessionId !== undefined && { sessionId: options.sessionId }),
   });
@@ -321,23 +332,23 @@ async function buildRequestInit(model: Model<Api>, context: TranscriptContext, o
   };
 }
 
-async function run(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined, endpoints: readonly string[], stream: AssistantMessageEventStream): Promise<void> {
-  const thinkingLevel = options?.reasoning ? clampThinkingLevel(model, options.reasoning) : undefined;
+async function run(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined, endpoint: string, stream: AssistantMessageEventStream): Promise<void> {
   const output: AssistantMessage = {
     role: 'assistant',
     content: [],
     api: model.api,
     provider: model.provider,
     model: model.id,
-    ...(thinkingLevel && { thinkingLevel }),
     usage: emptyUsage(),
     stopReason: 'pending',
     timestamp: Date.now(),
   };
   try {
-    const init = await buildRequestInit(model, context, options);
+    const { level, variant } = resolveVariant(model, options?.reasoning);
+    output.thinkingLevel = level;
+    const init = await buildRequestInit(model, context, options, variant);
     for (let empty = 0; ; empty++) {
-      const response = await openStream(endpoints, init, model, options);
+      const response = await openStream(endpoint, init, model, options);
       const reducer = createReducer(output, stream);
       await readChunks(response, async (chunk) => {
         await options?.onProviderStreamEvent?.(chunk, model);
@@ -363,14 +374,10 @@ async function run(model: Model<Api>, context: TranscriptContext, options: Simpl
   stream.end();
 }
 
-function endpointsFor(model: Model<Api>, configured: readonly string[]): readonly string[] {
-  return model.baseUrl && !configured.includes(model.baseUrl) ? [model.baseUrl] : configured;
-}
-
-export function createCloudCodeStream(endpoints: readonly string[]): ProviderStreams {
+export function createCloudCodeStream(endpoint: string): ProviderStreams {
   const streamSimple = (model: Model<Api>, context: TranscriptContext, options?: SimpleStreamOptions) => {
     const stream = createAssistantMessageEventStream();
-    void run(model, context, options, endpointsFor(model, endpoints), stream);
+    void run(model, context, options, model.baseUrl || endpoint, stream);
     return stream;
   };
   return { stream: streamSimple, streamSimple };

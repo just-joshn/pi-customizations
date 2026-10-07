@@ -5,7 +5,8 @@ import { headersToRecord } from './pi-ai/headers.ts';
 
 export const PROVIDER_ID = 'google-antigravity';
 
-export const CLOUD_CODE_ENDPOINTS: readonly [string, ...string[]] = ['https://daily-cloudcode-pa.googleapis.com', 'https://daily-cloudcode-pa.sandbox.googleapis.com', 'https://cloudcode-pa.googleapis.com'];
+// The Antigravity CLI calls one Cloud Code server and lets CLOUD_CODE_URL replace it.
+export const CLOUD_CODE_URL = process.env['CLOUD_CODE_URL'] || 'https://daily-cloudcode-pa.googleapis.com';
 
 const GO_OS: Partial<Record<NodeJS.Platform, string>> = { win32: 'windows' };
 const GO_ARCH: Partial<Record<NodeJS.Architecture, string>> = { x64: 'amd64', ia32: '386' };
@@ -13,7 +14,7 @@ const GO_ARCH: Partial<Record<NodeJS.Architecture, string>> = { x64: 'amd64', ia
 export function userAgent(platform = process.platform, arch = process.arch): string {
   const os = GO_OS[platform] ?? platform;
   const goArch = GO_ARCH[arch] ?? arch;
-  return `antigravity/cli/1.1.23 (aidev_client; os_type=${os}; arch=${goArch}; cl=974125021; auth_method=consumer)`;
+  return `antigravity/cli/1.3.1 (aidev_client; os_type=${os}; arch=${goArch}; cl=994719654; auth_method=consumer)`;
 }
 
 export const USER_AGENT = userAgent();
@@ -45,9 +46,9 @@ export function parseApiKey(raw: string | undefined): AntigravityApiKey {
 
 export function cloudCodeHeaders(token: string): Record<string, string> {
   return {
+    'User-Agent': USER_AGENT,
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
-    'User-Agent': USER_AGENT,
   };
 }
 
@@ -62,28 +63,19 @@ export function errorText(body: string): string {
   return typeof message === 'string' ? message : body;
 }
 
-const BASE_DELAY_MS = 1000;
-
-export async function postCloudCode(endpoints: readonly string[], method: string, token: string, body: unknown, signal?: AbortSignal): Promise<unknown> {
-  let lastError = new Error(`${method} has no endpoint to call`);
-  for (const endpoint of endpoints) {
-    try {
-      const response = await fetch(`${endpoint}/v1internal:${method}`, {
-        method: 'POST',
-        headers: cloudCodeHeaders(token),
-        body: JSON.stringify(body),
-        ...(signal !== undefined && { signal }),
-      });
-      const text = await response.text();
-      if (response.ok) return JSON.parse(text) as unknown;
-      lastError = new Error(`${method} failed (${response.status}): ${errorText(text)}`);
-    } catch (error) {
-      if (signal?.aborted) throw error;
-      lastError = error instanceof Error ? error : new Error(String(error));
-    }
-  }
-  throw lastError;
+export async function postCloudCode(endpoint: string, method: string, token: string, body: unknown, signal?: AbortSignal): Promise<unknown> {
+  const response = await fetch(`${endpoint}/v1internal:${method}`, {
+    method: 'POST',
+    headers: cloudCodeHeaders(token),
+    body: JSON.stringify(body),
+    ...(signal !== undefined && { signal }),
+  });
+  const text = await response.text();
+  if (!response.ok) throw new Error(`${method} failed (${response.status}): ${errorText(text)}`);
+  return JSON.parse(text) as unknown;
 }
+
+const BASE_DELAY_MS = 1000;
 
 export function extractRetryDelay(body: string, headers: Headers): number | undefined {
   const padded = (ms: number) => (ms > 0 ? Math.ceil(ms + 1000) : undefined);
@@ -112,28 +104,22 @@ function isRetryable(status: number, body: string): boolean {
   return [429, 500, 502, 503, 504].includes(status) || /resource.?exhausted|rate.?limit|overloaded|service.?unavailable|other.?side.?closed/i.test(body);
 }
 
-export async function openStream(endpoints: readonly string[], init: RequestInit, model: Model<Api>, options: SimpleStreamOptions | undefined): Promise<Response> {
+export async function openStream(endpoint: string, init: RequestInit, model: Model<Api>, options: SimpleStreamOptions | undefined): Promise<Response> {
   const signal = options?.signal;
   const request = options?.fetch ?? fetch;
   const retries = options?.maxRetries ?? 0;
-  let endpoint = 0;
-  let attempt = 0;
-  while (true) {
+  for (let attempt = 0; ; attempt++) {
     let response: Response;
     try {
-      response = await request(`${endpoints[endpoint]}/v1internal:streamGenerateContent?alt=sse`, init);
+      response = await request(`${endpoint}/v1internal:streamGenerateContent?alt=sse`, init);
     } catch (error) {
       if (signal?.aborted || attempt >= retries) throw error;
-      await delay(BASE_DELAY_MS * 2 ** attempt++, undefined, { signal });
+      await delay(BASE_DELAY_MS * 2 ** attempt, undefined, { signal });
       continue;
     }
     await options?.onResponse?.({ status: response.status, headers: headersToRecord(response.headers) }, model);
     if (response.ok) return response;
     const body = await response.text();
-    if ((response.status === 403 || response.status === 404) && endpoint < endpoints.length - 1) {
-      endpoint++;
-      continue;
-    }
     if (attempt >= retries || !isRetryable(response.status, body)) {
       throw new Error(`Cloud Code Assist API error (${response.status}): ${errorText(body)}`);
     }
@@ -142,8 +128,6 @@ export async function openStream(endpoints: readonly string[], init: RequestInit
     if (serverDelay && maxDelay > 0 && serverDelay > maxDelay) {
       throw new Error(`Server requested ${Math.ceil(serverDelay / 1000)}s retry delay (max: ${Math.ceil(maxDelay / 1000)}s). ${errorText(body)}`);
     }
-    if (endpoint < endpoints.length - 1) endpoint++;
     await delay(serverDelay ?? BASE_DELAY_MS * 2 ** attempt, undefined, { signal });
-    attempt++;
   }
 }

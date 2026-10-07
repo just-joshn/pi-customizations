@@ -7,7 +7,7 @@ test('postCloudCode parses a successful JSON body', async () => {
   const server = await fakeServer((_, res) => json(res, 200, { cloudaicompanionProject: 'p1' }));
   try {
     const body = { metadata: { ideType: 'ANTIGRAVITY' } };
-    const data = await postCloudCode([server.url], 'loadCodeAssist', 'ya29.t', body);
+    const data = await postCloudCode(server.url, 'loadCodeAssist', 'ya29.t', body);
     expect(data).toEqual({ cloudaicompanionProject: 'p1' });
     expect(server.requests[0]?.path).toBe('/v1internal:loadCodeAssist');
     expect(server.requests[0]?.headers.authorization).toBe('Bearer ya29.t');
@@ -23,7 +23,7 @@ test('a non-JSON success body rejects with the parse failure', async () => {
     res.end('not json');
   });
   try {
-    await expect(postCloudCode([server.url], 'loadCodeAssist', 't', {})).rejects.toBeInstanceOf(SyntaxError);
+    await expect(postCloudCode(server.url, 'loadCodeAssist', 't', {})).rejects.toBeInstanceOf(SyntaxError);
   } finally {
     server.close();
   }
@@ -35,39 +35,21 @@ test('a non-JSON error body is surfaced verbatim', async () => {
     res.end('upstream down');
   });
   try {
-    await expect(postCloudCode([server.url], 'loadCodeAssist', 't', {})).rejects.toThrow('loadCodeAssist failed (503): upstream down');
+    await expect(postCloudCode(server.url, 'loadCodeAssist', 't', {})).rejects.toThrow('loadCodeAssist failed (503): upstream down');
   } finally {
     server.close();
   }
-});
-
-test('postCloudCode tries the next endpoint after a failure', async () => {
-  const server = await fakeServer((request, res) => {
-    if (request.path.startsWith('/down/')) return json(res, 500, { error: { message: 'boom' } });
-    return json(res, 200, { ok: true });
-  });
-  try {
-    const data = await postCloudCode([`${server.url}/down`, server.url], 'loadCodeAssist', 't', {});
-    expect(data).toEqual({ ok: true });
-    expect(server.requests.map((request) => request.path)).toEqual(['/down/v1internal:loadCodeAssist', '/v1internal:loadCodeAssist']);
-  } finally {
-    server.close();
-  }
-});
-
-test('an empty endpoint list fails without a request', async () => {
-  await expect(postCloudCode([], 'loadCodeAssist', 't', {})).rejects.toThrow('loadCodeAssist has no endpoint to call');
 });
 
 test('an aborted signal rethrows the fetch failure', async () => {
   const failure = new Error('socket closed');
   vi.stubGlobal('fetch', () => Promise.reject(failure));
-  await expect(postCloudCode(['http://cloud.example'], 'loadCodeAssist', 't', {}, AbortSignal.abort())).rejects.toThrow('socket closed');
+  await expect(postCloudCode('http://cloud.example', 'loadCodeAssist', 't', {}, AbortSignal.abort())).rejects.toThrow('socket closed');
 });
 
 test('a non-Error fetch failure is wrapped', async () => {
   vi.stubGlobal('fetch', () => Promise.reject('offline'));
-  await expect(postCloudCode(['http://cloud.example'], 'loadCodeAssist', 't', {})).rejects.toThrow('offline');
+  await expect(postCloudCode('http://cloud.example', 'loadCodeAssist', 't', {})).rejects.toThrow('offline');
 });
 
 test('a null JSON document asks for a new login', () => {

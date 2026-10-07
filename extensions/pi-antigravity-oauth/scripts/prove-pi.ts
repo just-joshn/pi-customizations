@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const extension = resolve(dirname(fileURLToPath(import.meta.url)), '../src/index.ts');
-const model = 'google-antigravity/gemini-3.1-pro-low';
+const model = 'google-antigravity/gemini-3.1-pro';
 
 async function pi(args: string[], env = process.env): Promise<{ code: number; stdout: string; stderr: string }> {
   const child = spawn('pi', ['--no-extensions', '-e', extension, ...args], { stdio: ['ignore', 'pipe', 'pipe'], env });
@@ -38,7 +38,7 @@ const listedIds = listed.stdout
   .split('\n')
   .filter((line) => line.startsWith('google-antigravity'))
   .map((line) => line.split(/\s+/)[1]);
-if (listed.code !== 0 || !listedIds.includes('gemini-3.1-pro-low') || !listedIds.includes('claude-sonnet-4-6')) {
+if (listed.code !== 0 || !listedIds.includes('gemini-3.1-pro') || !listedIds.includes('claude-sonnet-5-5')) {
   throw new Error(`pi --list-models did not list google-antigravity models.\nexit=${listed.code}\n${listed.stdout}\n${listed.stderr}`);
 }
 process.stdout.write(`pi --list-models lists ${listedIds.length} google-antigravity models: ${listedIds.join(', ')}\n`);
