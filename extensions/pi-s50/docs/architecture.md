@@ -34,7 +34,7 @@ The coordinator is a set of modules in `src/orchestrator/`:
 
 `apply(state, command, clock)` decodes the command again after redacting its free text, so no caller can store a secret there or skip validation. It returns `{ kind: 'ok', state, decisions }` or `{ kind: 'rejected', reason, gate }`. After every change it recomputes `run.blockers` from the PR_READY predicate and moves a `PR_READY` run back to `REVERIFY_STALE` when a blocker reappears.
 
-Every phase change goes through `advance`, which checks the edge table and then the target phase's guard in the `GUARDS` table. A failed check uses `route_failure`, which moves the run along a legal edge to the phase that owns that check (`FAILURE_OWNERS` in `routes.ts`), so a failure never restarts the run.
+Every command re-derives the stored blockers and the PR_READY status after loading, so a migrated or older run cannot keep a stale PR_READY. Every phase change goes through `advance`, which checks the edge table and then the target phase's guard in the `GUARDS` table. A failed check uses `route_failure`, which moves the run along a legal edge to the phase that owns that check (`FAILURE_OWNERS` in `routes.ts`), so a failure never restarts the run.
 
 Re-applying a command whose effect already holds returns `ok` with the same state and no decision. `invoke_skill` records each routed skill once per phase visit, so `nextAction` moves on to the phase's work after the skill is loaded, and leaving the phase clears the record.
 

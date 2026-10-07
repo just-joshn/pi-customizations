@@ -8,7 +8,7 @@ import { verifySnapshot } from '../registry/validate.ts';
 import { reviewAssurance, reviewDimensions } from '../review/reviewer.ts';
 import { schedule } from '../scheduler/ownership.ts';
 import type { Clock } from './clock.ts';
-import { type Command, type NextAction, type Outcome, reject, type StartInput, same, understood, withRun } from './command.ts';
+import { type Command, type DecisionLog, type NextAction, type Outcome, reject, type StartInput, same, understood, withRun } from './command.ts';
 import { decode } from './decode.ts';
 import { MODEL_CHANGE_ID, modelChange, pendingUncertainty, reviewSurface, routeFacts, UNCERTAINTY_ID } from './facts.ts';
 import {
@@ -200,6 +200,12 @@ const UNREDACTED_KEYS: ReadonlySet<string> = new Set([
 const NOTHING_KEPT: ReadonlySet<string> = new Set();
 
 // Routed skills are invoked once per phase visit, so leaving a phase forgets which skills it loaded.
+// Stored blockers and PR_READY are derived; a migration or a rule change can make them wrong, so every load re-derives them.
+export function reconcile(state: RunState, clock: Clock): { readonly state: RunState; readonly decisions: readonly DecisionLog[] } {
+  const held = holdReady({ kind: 'ok', state, decisions: [] }, clock);
+  return held.kind === 'ok' ? { state: withBlockers(held.state), decisions: held.decisions } : { state, decisions: [] };
+}
+
 function settle(before: RunState, after: RunState): RunState {
   const moved = after.run.phase !== before.run.phase && after.run.invokedSkills.length > 0 ? withRun(after, { invokedSkills: [] }) : after;
   return withBlockers(moved);

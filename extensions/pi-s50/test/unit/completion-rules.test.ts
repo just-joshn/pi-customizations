@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { RunState } from '../../src/domain/run.ts';
 import type { Command } from '../../src/orchestrator/command.ts';
-import { apply } from '../../src/orchestrator/coordinator.ts';
+import { apply, reconcile } from '../../src/orchestrator/coordinator.ts';
 import { currentReview, prReadyBlockers } from '../../src/policy/completion.ts';
 import { REVIEW_DIMENSIONS } from '../../src/review/reviewer.ts';
 import { fixedClock } from '../support/clock.ts';
@@ -103,8 +103,7 @@ describe('reserved decision ids', () => {
 });
 
 describe('loaded state is re-derived', () => {
-  test.fails('a stored PR_READY run that no longer qualifies goes back to REVERIFY_STALE', async () => {
-    const { reconcile } = await import('../../src/orchestrator/coordinator.ts');
+  test('a stored PR_READY run that no longer qualifies leaves PR_READY', () => {
     const ready = expectOk(apply(satisfied(), { kind: 'advance', to: 'PR_READY' }, fixedClock()));
     const loaded = { ...ready, evidence: ready.evidence.filter((record) => record.claim !== 'review') };
     const { state } = reconcile(loaded, fixedClock());

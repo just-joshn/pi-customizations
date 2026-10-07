@@ -14,7 +14,7 @@ import type { Mode } from '../domain/state.ts';
 import { routeConsumer } from '../evidence/verification.ts';
 import { type Clock, systemClock } from '../orchestrator/clock.ts';
 import type { Command, DecisionLog, Outcome } from '../orchestrator/command.ts';
-import { apply, applyPreflight, nextAction, startRun } from '../orchestrator/coordinator.ts';
+import { apply, applyPreflight, nextAction, reconcile, startRun } from '../orchestrator/coordinator.ts';
 import { decode, parseJson } from '../orchestrator/decode.ts';
 import { loadState, readDecisions, readLock, S50_DIR, saveState, writeLock } from '../orchestrator/persistence.ts';
 import { classify } from '../orchestrator/routes.ts';
@@ -173,10 +173,11 @@ async function withState(context: CliContext, body: (state: RunState, dir: strin
 // Git HEAD is the revision truth on every call, so a caller cannot keep evidence current by naming a revision or an empty path list.
 async function syncHead(context: CliContext, state: RunState): Promise<{ readonly head: string; readonly state: RunState; readonly decisions: readonly DecisionLog[] }> {
   const head = await revision(context.shell);
-  if (head === state.run.currentRevision) return { head, state, decisions: [] };
+  const derived = reconcile(state, context.clock);
+  if (head === state.run.currentRevision) return { head, ...derived };
   const paths = await changedPaths(context.shell, state.run.currentRevision, head);
-  const outcome = apply(state, { kind: 'revision_changed', revision: head, changedPaths: paths }, context.clock);
-  return outcome.kind === 'ok' ? { head, state: outcome.state, decisions: outcome.decisions } : { head, state, decisions: [] };
+  const outcome = apply(derived.state, { kind: 'revision_changed', revision: head, changedPaths: paths }, context.clock);
+  return outcome.kind === 'ok' ? { head, state: outcome.state, decisions: [...derived.decisions, ...outcome.decisions] } : { head, ...derived };
 }
 
 async function workspacesFor(context: CliContext, state: RunState): Promise<readonly string[]> {
