@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync } from 'node:fs';
+import { lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
 export const APPROVAL_SCHEMA_VERSION = 1;
@@ -13,17 +13,34 @@ const APPROVAL_FIELDS = new Set(['schema_version', 'sha256']);
 const APPROVAL_SHA256 = /^[0-9a-f]{64}$/;
 const SKILL_ROOT = '.pi/skills/verify-pi-customizations';
 
+function rejectRootSymlinks(dir, repoRoot) {
+  let current = repoRoot;
+  for (const segment of relative(repoRoot, dir).split(sep)) {
+    current = join(current, segment);
+    try {
+      if (lstatSync(current).isSymbolicLink()) throw new Error(`verification contract source is a symlink: ${relative(repoRoot, current)}`);
+    } catch (error) {
+      if (error.code === 'ENOENT') return;
+      throw error;
+    }
+  }
+}
+
 // A receipt is only evidence for the harness that produced it, so the digest spans the skill and
 // every extension's test and script helpers, not only the scenario files.
 function rootsFor(repoRoot) {
   const roots = [join(repoRoot, SKILL_ROOT)];
   const extensions = join(repoRoot, 'extensions');
+  rejectRootSymlinks(extensions, repoRoot);
   let entries;
   try {
     entries = readdirSync(extensions, { withFileTypes: true });
   } catch (error) {
     if (error.code === 'ENOENT') return roots;
     throw error;
+  }
+  for (const entry of entries) {
+    if (!EXCLUDED_DIRS.has(entry.name) && entry.isSymbolicLink()) throw new Error(`verification contract source is a symlink: extensions/${entry.name}`);
   }
   const names = entries
     .filter((entry) => entry.isDirectory())
@@ -36,6 +53,7 @@ function rootsFor(repoRoot) {
 }
 
 function walk(dir, repoRoot, paths) {
+  rejectRootSymlinks(dir, repoRoot);
   let entries;
   try {
     entries = readdirSync(dir, { withFileTypes: true });
@@ -46,10 +64,9 @@ function walk(dir, repoRoot, paths) {
   for (const entry of entries) {
     const absolute = join(dir, entry.name);
     const repoRelative = relative(repoRoot, absolute).split(sep).join('/');
-    // Checked before the directory branch so a symlinked directory is rejected too.
+    if (EXCLUDED_DIRS.has(entry.name)) continue;
     if (entry.isSymbolicLink()) throw new Error(`verification contract source is a symlink: ${repoRelative}`);
     if (entry.isDirectory()) {
-      if (EXCLUDED_DIRS.has(entry.name)) continue;
       walk(absolute, repoRoot, paths);
       continue;
     }
@@ -64,11 +81,8 @@ function contractPaths(repoRoot) {
   return paths.sort();
 }
 
-function isContractSource(repoRoot, path) {
-  const underRoot = rootsFor(repoRoot).some((root) => {
-    const prefix = relative(repoRoot, root).split(sep).join('/');
-    return path.startsWith(`${prefix}/`);
-  });
+function isContractSource(path) {
+  const underRoot = path.startsWith(`${SKILL_ROOT}/`) || /^extensions\/[^/]+\/(test|scripts)\//.test(path);
   if (!underRoot) return false;
   return !path.split('/').some((segment) => EXCLUDED_DIRS.has(segment));
 }
@@ -76,10 +90,12 @@ function isContractSource(repoRoot, path) {
 export function contractDigest({ repoRoot }) {
   const hash = createHash('sha256');
   for (const relativePath of contractPaths(repoRoot)) {
-    hash.update(relativePath);
-    hash.update('\0');
-    hash.update(readFileSync(join(repoRoot, relativePath)));
-    hash.update('\0');
+    for (const bytes of [Buffer.from(relativePath, 'utf8'), readFileSync(join(repoRoot, relativePath))]) {
+      const length = Buffer.alloc(8);
+      length.writeBigUInt64BE(BigInt(bytes.length));
+      hash.update(length);
+      hash.update(bytes);
+    }
   }
   return hash.digest('hex');
 }
@@ -111,7 +127,7 @@ export function contractUnchangedSince({ repoRoot, commit }) {
       const match = /^(\d+) blob ([0-9a-f]+)\t(.+)$/.exec(line);
       if (!match) continue;
       const [, mode, sha, path] = match;
-      if (!CONTRACT_MODES.has(mode) || !isContractSource(repoRoot, path)) continue;
+      if (!CONTRACT_MODES.has(mode) || !isContractSource(path)) continue;
       committed.set(path, sha);
     }
     if (current.size !== committed.size) return false;
