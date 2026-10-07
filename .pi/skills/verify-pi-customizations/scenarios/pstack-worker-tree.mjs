@@ -26,7 +26,7 @@ try {
   await session.prompt('HK_TASK_BG');
   const task = lastToolResult(session, 'Task')?.details;
   assert.ok(task?.id);
-  await waitFor(() => customEntries(session, 'pstack-task').find((entry) => entry.data?.id === task.id && entry.data?.status === 'settled'), { description: 'the original task settles' });
+  const settledEntry = await waitFor(() => customEntries(session, 'pstack-task').find((entry) => entry.data?.id === task.id && entry.data?.status === 'settled'), { description: 'the original task settles' });
   const target = (await session.send({ type: 'get_fork_messages' })).messages.find((entry) => entry.text === 'HK_TASK_BG')?.entryId;
   assert.ok(target);
   await session.prompt(`/hk-nav ${target}`);
@@ -40,6 +40,13 @@ try {
     false,
     'navigation must not re-append a previous branch task to the destination',
   );
+  await session.prompt(`/hk-nav ${settledEntry.id}`);
+  await session.prompt('HK_TASK_LIST');
+  const restored = lastToolResult(session, 'TaskList')?.details?.tasks;
+  assert.ok(
+    restored?.some((record) => record.id === task.id),
+    'the original branch must retain its completed task',
+  );
   const receipts = createReceipts({ scenario: 'pstack-worker-tree', repoRoot, artifactsRoot: join(repoRoot, 'artifacts/user-perspective') });
   receipts.write({
     surfaceId: 'PS-EVT-43',
@@ -48,7 +55,7 @@ try {
     observed: `After navigating before task ${task.id} was created, TaskList excludes it and reports ${destination.length} destination-branch tasks.`,
     evidence,
   });
-  console.log(JSON.stringify({ previousTask: task.id, destinationTasks: destination.length }));
+  console.log(JSON.stringify({ previousTask: task.id, destinationTasks: destination.length, originalBranchRetainsTask: true }));
 } finally {
   await session?.close();
   rmSync(scratchDir, { recursive: true, force: true });

@@ -138,7 +138,7 @@ export class WorkerRuntime {
       this.pi.registerCommand('pstack-worker-finalize', {
         handler: async () => {
           try {
-            await this.stopAll(true);
+            await this.stopAll('shutdown');
           } catch (error) {
             this.pi.appendEntry(taskCleanupErrorType, { error: String(error) });
           }
@@ -157,7 +157,7 @@ export class WorkerRuntime {
     this.pi.on('session_shutdown', async (_event, ctx) => {
       detachControl();
       try {
-        await this.stopAll(true);
+        await this.stopAll('shutdown');
       } finally {
         await workerDirs.removeAll(ctx.sessionManager);
       }
@@ -175,7 +175,7 @@ export class WorkerRuntime {
     return usage;
   }
 
-  private stopAll(persistTerminal = false): Promise<void> {
+  private stopAll(reason: 'shutdown' | 'restore'): Promise<void> {
     this.generation++;
     this.completions.clear();
     if (this.lifecycle.kind === 'stopping') return this.lifecycle.completion;
@@ -191,13 +191,15 @@ export class WorkerRuntime {
         }
         const outcomes = await Promise.allSettled([
           this.remote.shutdown(),
-          ...this.cloud.shutdown(this.owned, (record) => this.claimCleanupUsage(record)),
+          ...this.cloud.shutdown(this.owned, (record) => {
+            if (reason === 'shutdown') this.claimCleanupUsage(record);
+          }),
           ...starting.map((operation) =>
             operation.then((outcome) => {
               if (outcome) throw outcome.error;
             }),
           ),
-          ...current.map((worker) => this.shutdownWorker(worker, persistTerminal)),
+          ...current.map((worker) => this.shutdownWorker(worker, reason)),
         ]);
         const failures = outcomes.filter((outcome) => outcome.status === 'rejected');
         if (failures.length)
@@ -219,14 +221,16 @@ export class WorkerRuntime {
     if (usage) this.pi.appendEntry(taskCleanupUsageType, { taskId: record.id, usage });
   }
 
-  private async shutdownWorker(worker: Worker, persistTerminal: boolean): Promise<void> {
+  private async shutdownWorker(worker: Worker, reason: 'shutdown' | 'restore'): Promise<void> {
     const outcome = await settleWithin(worker.completion, overdueAfterMs);
     if (!outcome.settled) {
       worker.groups.killAll();
       throw new Error(stillStoppingMessage(worker.id));
     }
-    if (persistTerminal) this.commitRecord(outcome.value);
-    this.claimCleanupUsage(outcome.value);
+    if (reason === 'shutdown') {
+      this.commitRecord(outcome.value);
+      this.claimCleanupUsage(outcome.value);
+    }
     const failures = await worker.drain();
     try {
       await closeRuntime(worker.runtime);
@@ -237,7 +241,7 @@ export class WorkerRuntime {
   }
 
   private async restore(ctx: ExtensionContext, reconcile = false): Promise<void> {
-    const completion = this.stopAll();
+    const completion = this.stopAll('restore');
     const owner = this.generation;
     try {
       await completion;

@@ -241,7 +241,9 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 
 ## F-022: navigating away from a task re-appends its settled record
 
-**Status.** open
+**Status.** fixed
+
+**Closure evidence.** The failing unit test and real-Pi navigation drive land first in `14094d1`. Worker cleanup now distinguishes shutdown from branch restoration. Shutdown persists terminal records and claims cleanup usage; restoration drains the old workers without appending those old records or usage claims to the newly selected branch. The original branch retains its completed record and uncollected usage. All 30 worker tests and typecheck pass. The real-Pi drive `scenarios/pstack-worker-tree.mjs` reports zero tasks after navigating before creation, then confirms the completed task remains when navigating back. The shutdown drive also still reports an immediately persisted interrupted record. Red/green outputs are under `artifacts/user-perspective/f022-navigation/`, and captures and the new behavioural receipt are under `artifacts/user-perspective/pstack-worker-tree/`. The older hooks scenario now rejects the duplication it previously expected.
 
 **Found by** the same unit while driving `PS-EVT-43`. On a session-tree navigation, the worker-restore path re-appends an already-settled task record onto the newly navigated branch, so a task the user has navigated away from stays listed.
 

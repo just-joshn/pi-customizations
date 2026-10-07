@@ -141,19 +141,23 @@ export default async function pstackHooksTasks(context) {
     await session.prompt('HK_TASK_LIST');
     const tasksOnBranch = lastToolResult(session, 'TaskList')?.details?.tasks ?? [];
     const taskEntriesAfter = customEntries(session, 'pstack-task').filter((entry) => entry.data?.id === taskId);
-    assert.ok(taskEntriesAfter.length > taskEntriesBefore, 'the tree change did not rebuild the task record');
-    assert.ok(
+    assert.equal(taskEntriesAfter.length, taskEntriesBefore, 'navigation re-appended a task from the previous branch');
+    assert.equal(
       tasksOnBranch.some((task) => task.id === taskId),
-      'TaskList lost the restored task',
+      false,
+      'TaskList leaked a task created after the destination entry',
     );
     assertSurface(context, {
       surfaceId: 'PS-EVT-43',
-      observed: `the branch before navigation listed ${tasksBeforeIdleNav} task(s); after navigating to ${JSON.stringify(branchEntry)} TaskList listed ${tasksOnBranch.length} and the record for ${taskId} was re-appended (${taskEntriesBefore} -> ${taskEntriesAfter.length} entries, latest ${taskEntriesAfter.at(-1)?.id})`,
+      observed: `the branch before navigation listed ${tasksBeforeIdleNav} task(s); after navigating to ${JSON.stringify(branchEntry)} TaskList listed ${tasksOnBranch.length} and the record for ${taskId} was not re-appended (${taskEntriesBefore} -> ${taskEntriesAfter.length} entries, latest ${taskEntriesAfter.at(-1)?.id})`,
       evidence: capture,
       check: () => {
         assert.ok(tasksBeforeIdleNav > 0);
-        assert.ok(taskEntriesAfter.length > taskEntriesBefore);
-        assert.ok(tasksOnBranch.some((task) => task.id === taskId));
+        assert.equal(taskEntriesAfter.length, taskEntriesBefore);
+        assert.equal(
+          tasksOnBranch.some((task) => task.id === taskId),
+          false,
+        );
       },
     });
 
