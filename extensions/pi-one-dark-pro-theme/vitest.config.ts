@@ -14,9 +14,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
 
-      include: ['src/**/*.ts'],
+      include: ['parity/**/*.ts'],
 
-      exclude: ['src/**/*.d.ts', 'src/**/*.{test,spec}.ts', 'src/**/__tests__/**'],
+      exclude: ['parity/**/*.d.ts', 'parity/**/*.{test,spec}.ts', 'parity/**/__tests__/**'],
     },
   },
 });
