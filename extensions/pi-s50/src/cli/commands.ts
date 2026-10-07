@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { changedPaths, revision } from '../adapters/git.ts';
 import { repoFacts } from '../adapters/repo.ts';
@@ -27,9 +28,10 @@ const USAGE = `usage: s50 <command>
   feature|bug|frontend <text> [--consumer kind:path] [--criteria a;b] [--capabilities json] [--installed a,b]
   status | verify | resume | explain
   apply '<command json>'
-  registry refresh [--from <leaderboard.json>] --sources <sources.json> | registry show | registry verify
-  init-registry --from <leaderboard.json> --sources <sources.json>
+  registry refresh [--from <leaderboard.json>] [--sources <sources.json>] | registry show | registry verify
 `;
+
+const SHIPPED_SOURCES = fileURLToPath(new URL('../../registry/skill-sources.json', import.meta.url));
 
 const ok = (stdout: string): CliResult => ({ code: 0, stdout });
 const blocked = (stdout: string): CliResult => ({ code: 2, stdout });
@@ -189,8 +191,7 @@ async function registry(context: CliContext, args: readonly string[]): Promise<C
   if (sub !== 'refresh') return error(USAGE);
   const { named } = flags(rest);
   const sourcesPath = named.get('sources');
-  if (sourcesPath === undefined) return error('--sources <file> is required\n');
-  const sourcesJson = await readJson(join(context.cwd, sourcesPath));
+  const sourcesJson = await readJson(sourcesPath === undefined ? SHIPPED_SOURCES : resolve(context.cwd, sourcesPath));
   if (sourcesJson.kind === 'invalid') return error(`${sourcesJson.reason}\n`);
   const sources = parseSources(sourcesJson.value);
   if (sources.kind === 'invalid') return error(`sources ${sources.reason}\n`);
@@ -200,7 +201,7 @@ async function registry(context: CliContext, args: readonly string[]): Promise<C
   let source = 'https://skills.sh/';
   if (from === undefined) leaderboard = await fetchLeaderboard(context.fetchText);
   else {
-    const file = await readJson(join(context.cwd, from));
+    const file = await readJson(resolve(context.cwd, from));
     if (file.kind === 'invalid') return error(`${file.reason}\n`);
     const parsed = parseLeaderboardFile(file.value);
     if (parsed.kind === 'invalid') return error(`leaderboard ${parsed.reason}\n`);
@@ -235,8 +236,6 @@ export async function runCli(argv: readonly string[], context: CliContext): Prom
       return applyCommand(context, rest[0]);
     case 'registry':
       return registry(context, rest);
-    case 'init-registry':
-      return registry(context, ['refresh', ...rest]);
     default:
       return error(USAGE);
   }

@@ -24,6 +24,7 @@
   "files": [
     "src",
     "skills",
+    "registry",
     "README.md"
   ],
   "scripts": {

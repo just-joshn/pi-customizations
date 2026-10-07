@@ -51,7 +51,7 @@ function phaseLine(cwd: string): string {
 function setup(): string {
   const cwd = tempRepo();
   dirs.push(cwd);
-  expect(s50(cwd, 'init-registry', '--from', 'leaderboard.2026-10-07.json', '--sources', 'skill-sources.2026-10-07.json')).toEqual({
+  expect(s50(cwd, 'registry', 'refresh', '--from', 'leaderboard.2026-10-07.json', '--sources', 'skill-sources.2026-10-07.json')).toEqual({
     code: 0,
     stdout: 'locked 18 skills at 2026-10-07T09:14:55Z\n',
   });
