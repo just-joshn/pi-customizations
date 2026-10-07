@@ -100,10 +100,40 @@ function timestamp(entry) {
   return Number.isNaN(value) ? 0 : value;
 }
 
+// A later receipt must never mask an earlier, stronger one. A discovery drive that only saw a
+// command registered used to overwrite a behavioural drive that saw it fail, because the pick was
+// by timestamp alone. Failures dominate, then a real positive observation, then the states that
+// observed nothing. Timestamp only breaks ties within the same verdict.
+const VERDICT_PRECEDENCE = ['failed', 'verified', 'inconclusive', 'env-limited', 'not-drivable'];
+
+function rank(entry) {
+  const index = VERDICT_PRECEDENCE.indexOf(entry.receipt.verdict);
+  return index === -1 ? VERDICT_PRECEDENCE.length : index;
+}
+
 function pickReceipt(entries) {
   const valid = entries.filter((entry) => !entry.problem);
   if (valid.length === 0) return entries[0];
-  return valid.reduce((best, entry) => (timestamp(entry) >= timestamp(best) ? entry : best));
+  return valid.reduce((best, entry) => {
+    const byRank = rank(entry) - rank(best);
+    if (byRank !== 0) return byRank < 0 ? entry : best;
+    return timestamp(entry) >= timestamp(best) ? entry : best;
+  });
+}
+
+function reportConflicts(receipts) {
+  let conflicts = 0;
+  for (const [surfaceId, entries] of receipts) {
+    const verdicts = [...new Set(entries.filter((entry) => !entry.problem).map((entry) => entry.receipt.verdict))];
+    if (verdicts.length < 2) continue;
+    conflicts += 1;
+    const detail = entries
+      .filter((entry) => !entry.problem)
+      .map((entry) => `${entry.receipt.verdict} from ${entry.receipt.scenario ?? 'unnamed'}`)
+      .join(', ');
+    console.log(`conflict: ${surfaceId} has ${verdicts.length} verdicts across drives (${detail}); reporting the strongest`);
+  }
+  return conflicts;
 }
 
 function stringValue(value) {
@@ -195,6 +225,8 @@ try {
   const warnings = [];
   const rows = buildRows(surfaces, receipts, head, warnings);
   for (const warning of warnings) console.log(`warning: ${warning}`);
+  const conflicts = reportConflicts(receipts);
+  if (conflicts > 0) console.log(`warning: ${conflicts} surfaces have conflicting receipts; the strongest verdict is reported`);
   writeVerdicts(options.out, rows);
   printTable(rows);
   const display = displayPath(options.out);
