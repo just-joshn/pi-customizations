@@ -29,7 +29,7 @@ Preflight turns these into risks: a dirty tree, an INCONCLUSIVE consumer route, 
 | `issue` | `external_issue` | `EXPLICIT_TRIAGE` |
 | `survey` | `architecture_survey` | `EXPLICIT_ARCH_REVIEW` |
 
-`EXPLICIT_TRIAGE` and `EXPLICIT_ARCH_REVIEW` enter blocked on a `user_workflow` gate (`/skill:triage`, `/skill:improve-codebase-architecture`). The run resumes after the user applies `complete_user_workflow`.
+`EXPLICIT_TRIAGE` and `EXPLICIT_ARCH_REVIEW` enter blocked on a `user_workflow` gate (`/skill:triage`, `/skill:improve-codebase-architecture`). The run resumes after the user applies `complete_user_workflow`, then moves to `CLARIFY`; after triage it may move to `DIAGNOSE` instead when the issue is a bug.
 
 ## Invocation policy
 

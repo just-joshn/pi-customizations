@@ -44,7 +44,7 @@ Route a failed check to the phase that owns it:
 {"kind":"route_failure","check":"consumer","detail":"exit 1 on an empty invoice list"}
 ```
 
-Owners: `typecheck`, `unit_test`, `integration_test`, `consumer`, `review` go to IMPLEMENT; `design` to DESIGN; `architecture` to ARCHITECT; `seam` to CONFIRM_TDD_SEAMS; `stale_evidence` to REVERIFY_STALE. The move must be a legal edge from the current phase.
+Owners: `typecheck`, `unit_test`, `integration_test`, `consumer`, `review` go to IMPLEMENT; `design` to DESIGN; `architecture` to ARCHITECT; `seam` to CONFIRM_TDD_SEAMS; `stale_evidence` to REVERIFY_STALE. The move must be a legal edge from the current phase that passes the target's guard, so a `design` failure routes only in a web UI run.
 
 ## Authorization
 
