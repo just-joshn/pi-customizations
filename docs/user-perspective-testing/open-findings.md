@@ -54,11 +54,23 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 
 ---
 
-## F-012: the rubber-duck agent type cannot start
+## F-012: the rubber-duck agent type cannot start on the Cloud Code Assist provider
 
-**Found by** the caveman fix unit, which tried to use it twice for plan review. Both attempts failed with provider 400s, on the inherited model and on an explicit one. The unit reports that the agent type's tool declarations use `const`, `any_of` and `uniqueItems`, which the backing API rejects. The unit self-reviewed instead.
+**Found by** the caveman fix unit, which tried to use it twice for plan review and self-reviewed instead. **Now measured directly** by the coordinator, because the run's own rigor rules say an unseen cause is a guess.
 
-**Why it is parked.** It blocks the cross-model review step that `show-me-your-work` requires at the close of a run, so it has a direct effect on this program's own rigor. Reproducing and fixing it belongs in its own unit against `extensions/pi-pstack`.
+**What happens.** Spawning a `rubber-duck` subagent fails before the model is reached. The provider rejects the request payload:
+
+```
+Cloud Code Assist API error (400): Invalid JSON payload received.
+Unknown name "const" at 'request.tools[0].function_declarations[9].parameters.properties[4].value.any_of[0]'
+Unknown name "uniqueItems" at 'request.tools[0].function_declarations[32].parameters.properties[2].value'
+```
+
+**What it means for a user.** `/rubber-duck` and the `rubber-duck` agent type do not work for anyone whose task goes through the Cloud Code Assist provider, which in this repository is `google-antigravity`. The failure is a 400 at request time, not a graceful degradation.
+
+**Cause.** The tool declarations carried into the child use JSON Schema keywords the provider's function-declaration parser does not accept, including `const`, `any_of` and `uniqueItems`. Whether the offending schemas come from the agent type's own tool list or from a tool the child inherits is not established.
+
+**Why it is parked.** It needs a fix in whichever layer builds the child's tool declarations, with a test that reproduces the 400 or asserts the schema shape, and that is a unit of its own. It is the clearest example of why the 172 discovery-scope verifications in `F-016` are worth reading carefully: this surface would have looked registered and healthy from a listing.
 
 ---
 
