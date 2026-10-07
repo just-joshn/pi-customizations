@@ -21,18 +21,19 @@ export function resourceRows(repoRoot) {
 }
 
 /**
- * Pi 1.0.4 strips frontmatter with `normalized.slice(endIndex + 4).trim()` and uses that exact
- * string as the skill body and as the prompt template content. This is an independent port so the
- * comparison does not call the production parser it is checking.
+ * Pi 1.0.4's parseFrontmatter body, ported: a document with frontmatter gets
+ * `normalized.slice(endIndex + 4).trim()`, and one without is returned normalized and untrimmed.
+ * Skill expansion trims the result again; prompt template content uses it as-is. This is an
+ * independent port so the comparison does not call the production parser it is checking.
  */
 export function stripFrontmatter(content) {
   const normalized = content
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n')
     .replace(/^\uFEFF/, '');
-  if (!normalized.startsWith('---')) return normalized.trim();
+  if (!normalized.startsWith('---')) return normalized;
   const endIndex = normalized.indexOf('\n---', 3);
-  if (endIndex === -1) return normalized.trim();
+  if (endIndex === -1) return normalized;
   return normalized.slice(endIndex + 4).trim();
 }
 

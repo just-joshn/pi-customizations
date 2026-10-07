@@ -1,4 +1,4 @@
-import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -62,7 +62,7 @@ function writeResourceReceipt(context, row, { observed, evidence, transport }) {
     evidence,
     verdict,
     scope: 'behaviour',
-    reason: verdict === 'failed' ? transport.diff : reason,
+    reason: verdict === 'failed' ? transport.diff || 'transport check reported a failure without a diff' : reason,
   });
 }
 
@@ -89,7 +89,7 @@ async function driveSkill(context, state, session, commands, row) {
     return;
   }
   const location = command.sourceInfo.path;
-  const body = stripFrontmatter(readFileSync(location, 'utf8'));
+  const body = stripFrontmatter(readFileSync(location, 'utf8')).trim();
   const sentinel = `SENTINEL-${row.surface_id}`;
   await session.prompt(`/skill:${name} ${sentinel}`);
   const records = newRecords(state);
@@ -97,17 +97,21 @@ async function driveSkill(context, state, session, commands, row) {
 
   if (row.surface_id === 'PS-SKILL-54') {
     const injected = texts.some((text) => text.includes('<skill name='));
-    const transport = { ok: !injected && body.length > 0, diff: injected ? 'a skill block was injected even though the row records an intercepted setup flow' : '' };
+    const ranSetup = records.length >= 1 || existsSync(join(state.agentDir, 'pstack', 'models.mdc'));
+    const diff = injected ? 'a skill block was injected even though the row records an intercepted setup flow' : ranSetup ? '' : 'no model call or model rule was produced, so the intercept cannot be confirmed to have run';
     writeResourceReceipt(context, row, {
-      observed: `no <skill name="..."> block in ${records.length} recorded model call(s) for /skill:setup-pstack; the command ran the setup flow and injected no body (source body ${body.length} bytes)`,
+      observed: `no <skill name="..."> block in ${records.length} recorded model call(s) for /skill:setup-pstack; setup evidence ${ranSetup}; source body ${body.length} bytes`,
       evidence: state.evidence,
-      transport,
+      transport: { ok: !injected && ranSetup && body.length > 0, diff: diff || (body.length === 0 ? `${location} stripped to an empty body` : '') },
     });
     return;
   }
 
   const transport = compareSkillInjection({ userTexts: texts, name, location, body, args: sentinel });
-  if (body.length === 0) transport.ok = false;
+  if (body.length === 0) {
+    transport.ok = false;
+    transport.diff = `${location} stripped to an empty body`;
+  }
   writeResourceReceipt(context, row, {
     observed: `injected block name=${name} location=${location} body=${body.length} bytes sentinel=${sentinel}; recorded ${texts.length} new user message(s) in ${records.length} model call(s)`,
     evidence: state.evidence,
@@ -142,7 +146,7 @@ async function drivePrompt(context, state, session, commands, row) {
   if (contradicted) {
     if (!skillCommand) diffs.push(`skill:${name} is not registered, so the one-shot rewrite cannot be checked`);
     else {
-      const skillBody = stripFrontmatter(readFileSync(skillCommand.sourceInfo.path, 'utf8'));
+      const skillBody = stripFrontmatter(readFileSync(skillCommand.sourceInfo.path, 'utf8')).trim();
       const rewrite = compareSkillInjection({ userTexts: texts, name, location: skillCommand.sourceInfo.path, body: skillBody, args: PROMPT_ARGS });
       if (!rewrite.ok) diffs.push(`one-shot skill rewrite: ${rewrite.diff}`);
     }

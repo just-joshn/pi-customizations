@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -45,8 +45,9 @@ async function driveSkill({ agentDir, recorderPath, inputLogPath, mutationLogPat
   }
 }
 
-function writeReport(payload) {
+function writeReport(payload, captures) {
   mkdirSync(dirname(REPORT), { recursive: true });
+  for (const [name, source] of Object.entries(captures)) copyFileSync(source, join(dirname(REPORT), `${name}.jsonl`));
   writeFileSync(REPORT, `${JSON.stringify(payload, null, 2)}\n`);
   return REPORT;
 }
@@ -75,25 +76,29 @@ async function main() {
       corruptedBodyRejected: corruptedBody.ok === false,
       wrongLocationRejected: wrongLocation.ok === false,
     };
-    const report = writeReport({
-      skill: SKILL,
-      sentinel: SENTINEL,
-      sourcePath: normal.command.sourceInfo.path,
-      bodyBytes: normal.body.length,
-      normalUserText: normal.record?.userTexts,
-      mutatedUserText: mutated.record?.userTexts,
-      normalComparison: normal.comparison,
-      mutatedComparison: mutated.comparison,
-      corruptedBodyComparison: corruptedBody,
-      wrongLocationComparison: wrongLocation,
-      mutationCount: mutations.length,
-      checks,
-      captures: { normal: normal.capture, mutated: mutated.capture },
-    });
+    const report = writeReport(
+      {
+        skill: SKILL,
+        sentinel: SENTINEL,
+        sourcePath: normal.command.sourceInfo.path,
+        bodyBytes: normal.body.length,
+        normalUserText: normal.record?.userTexts,
+        mutatedUserText: mutated.record?.userTexts,
+        normalComparison: normal.comparison,
+        mutatedComparison: mutated.comparison,
+        corruptedBodyComparison: corruptedBody,
+        wrongLocationComparison: wrongLocation,
+        mutationCount: mutations.length,
+        checks,
+        captures: { 'probe-normal-capture': normal.capture, 'probe-mutated-capture': mutated.capture },
+      },
+      { 'probe-normal-capture': normal.capture, 'probe-mutated-capture': mutated.capture },
+    );
     for (const [name, ok] of Object.entries(checks)) process.stdout.write(`${ok ? '✓' : '✗'} ${name}\n`);
     process.stdout.write(`report ${report}\n`);
     assert.equal(checks.normalMatched, true, 'the unmutated drive must match the real skill body');
     assert.equal(checks.mutatedRejected, true, 'the mutated drive must be rejected');
+    assert.equal(checks.mutatedNamesMissingPayload, true, 'the mutated drive must be rejected because the skill block is missing');
     assert.equal(checks.mutationExecuted, true, 'the mutation input transform never ran');
     assert.equal(checks.corruptedBodyRejected, true, 'the comparator accepted a corrupted body');
     assert.equal(checks.wrongLocationRejected, true, 'the comparator accepted a wrong location');
