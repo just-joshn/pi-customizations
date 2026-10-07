@@ -92,6 +92,15 @@ describe('routing after clarification', () => {
     expect([nextAction(state), apply(state, { kind: 'advance', to: 'CONFIRM_TDD_SEAMS' }, fixedClock()).kind]).toEqual([{ kind: 'advance', to: 'PROTOTYPE' }, 'rejected']);
   });
 
+  test.fails('a run without web UI cannot enter DESIGN', () => {
+    const base = satisfiedAt('ARCHITECT', 'DESIGN');
+    expect(apply(base, { kind: 'advance', to: 'DESIGN' }, fixedClock())).toEqual({
+      kind: 'rejected',
+      reason: 'cannot advance ARCHITECT -> DESIGN: DESIGN is only for web UI runs (frontend mode or a browser or Electron consumer)',
+      gate: null,
+    });
+  });
+
   test('a web UI run routes ARCHITECT to DESIGN', () => {
     const base = satisfiedAt('ARCHITECT', 'DESIGN');
     expect(nextAction({ ...base, run: { ...base.run, mode: 'frontend' } })).toEqual({ kind: 'advance', to: 'DESIGN' });
