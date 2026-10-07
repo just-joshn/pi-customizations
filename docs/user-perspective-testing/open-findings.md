@@ -86,3 +86,13 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 **Why it is parked rather than fixed.** Each of these rows needs either a stricter check or a split, and splitting them all is an inventory change that should be decided with the whole table in view rather than patched one row at a time. The rule the table already states is that a row whose veto cannot be written in one line is not a testable unit and must be split. These six are the rows that predate that rule being enforced.
 
 **What to do about it.** Read a `verified` verdict for one of these rows as evidence for the clauses in the middle column, not for the whole of the left column. The receipts carry the `observed` value, so the boundary is visible from the artifact.
+
+---
+
+## F-015: the tui-skin spec still claims the skin sets the terminal title
+
+**Found by** the title fix, which reported it rather than editing outside its scope.
+
+`extensions/pi-tui-skin/docs/PI_TUI_SKIN_IMPLEMENTATION_SPEC.md` states in five places that the skin sets the terminal title: lines 144, 178, 241, 586 and 1315. The behaviour was removed in `30706da`, because Pi owns the title and re-asserts it after the extension's `session_start` handler runs, so the call never survived.
+
+**Why it is parked.** The code and the tests are corrected; the spec text is not, and a reader following the spec would reintroduce the dead call. Five edits in one document is a small task, but it is documentation scope that belongs with whoever owns the spec's shape rather than with the verification run.
