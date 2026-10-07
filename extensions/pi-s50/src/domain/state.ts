@@ -37,21 +37,8 @@ export type Gate =
   | { readonly kind: 'seam_confirmation'; readonly seams: readonly string[] }
   | { readonly kind: 'authorization'; readonly action: AuthorizationAction; readonly scope: string };
 
-export const AUTHORIZATION_ACTIONS = [
-  'force_push',
-  'merge',
-  'deploy',
-  'destructive_data_deletion',
-  'public_message',
-  'customer_communication',
-  'sensitive_data_disclosure',
-  'irreversible_action',
-] as const;
+export const AUTHORIZATION_ACTIONS = ['force_push', 'merge', 'deploy', 'destructive_data_deletion', 'public_message', 'customer_communication', 'sensitive_data_disclosure', 'irreversible_action'] as const;
 
 export type AuthorizationAction = (typeof AUTHORIZATION_ACTIONS)[number];
 
-export type RunStatus =
-  | { readonly kind: 'active' }
-  | { readonly kind: 'blocked'; readonly gate: Gate }
-  | { readonly kind: 'inconclusive'; readonly missing: string }
-  | { readonly kind: 'pr_ready'; readonly revision: string };
+export type RunStatus = { readonly kind: 'active' } | { readonly kind: 'blocked'; readonly gate: Gate } | { readonly kind: 'inconclusive'; readonly missing: string } | { readonly kind: 'pr_ready'; readonly revision: string };

@@ -102,6 +102,12 @@ describe('skills.sh HTML parsing', () => {
     });
   });
 
+  test('captured skills.sh page parses to the committed leaderboard', () => {
+    const html = readFileSync(fixturePath('skills-sh.2026-10-07.excerpt.html'), 'utf8');
+    const parsed = parseLeaderboardHtml(html);
+    expect(parsed.kind === 'ok' ? parsed.value.slice(0, 60) : parsed).toEqual(loadLeaderboard());
+  });
+
   test('missing payload is invalid', () => {
     expect(parseLeaderboardHtml('<html></html>')).toEqual({ kind: 'invalid', reason: 'initialSkills payload not found' });
   });

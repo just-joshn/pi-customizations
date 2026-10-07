@@ -1,5 +1,5 @@
-import type { Finding } from './findings.ts';
 import type { EvidenceRecord } from './evidence.ts';
+import type { Finding } from './findings.ts';
 import type { Graph } from './graph.ts';
 import type { RegistrySnapshot } from './registry.ts';
 import type { Mode, Phase, RunStatus } from './state.ts';

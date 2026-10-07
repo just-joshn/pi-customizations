@@ -2,9 +2,7 @@ export type InvocationPolicy = 'model' | 'user';
 
 export type LeaderboardEntry = { readonly rank: number; readonly source: string; readonly skillId: string; readonly installs: number };
 
-export type SourceLock =
-  | { readonly kind: 'git_commit'; readonly repository: string; readonly commit: string; readonly path: string; readonly contentHash: string }
-  | { readonly kind: 'content_hash'; readonly contentHash: string };
+export type SourceLock = { readonly kind: 'git_commit'; readonly repository: string; readonly commit: string; readonly path: string; readonly contentHash: string } | { readonly kind: 'content_hash'; readonly contentHash: string };
 
 export type LockedSkill = {
   readonly name: string;

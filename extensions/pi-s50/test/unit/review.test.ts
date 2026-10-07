@@ -62,8 +62,16 @@ describe('review assurance', () => {
     expect(reviewAssurance(piHostCapabilities())).toEqual({ kind: 'reduced', reason: 'same-agent read-only review; no independent agents' });
   });
 
-  test('web UI review adds four dimensions', () => {
-    expect([REVIEW_DIMENSIONS.length, reviewDimensions(true).length]).toEqual([12, 16]);
+  test('non-web review covers the twelve required dimensions', () => {
+    expect(reviewDimensions({ kind: 'non_web' })).toEqual(REVIEW_DIMENSIONS);
+  });
+
+  test('react web UI review adds react best practices', () => {
+    expect(reviewDimensions({ kind: 'web_ui', react: true }).slice(12)).toEqual(['frontend_design_contract', 'web_design_guidelines', 'agent_browser_verification', 'vercel_react_best_practices']);
+  });
+
+  test('non-react web UI review omits react rules', () => {
+    expect(reviewDimensions({ kind: 'web_ui', react: false }).slice(12)).toEqual(['frontend_design_contract', 'web_design_guidelines', 'agent_browser_verification']);
   });
 });
 
