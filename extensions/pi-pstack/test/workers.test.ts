@@ -366,6 +366,15 @@ workerTest('terminal children and explicit stops drain every grandchild', async 
   expect(await readFile(join(dir, 'audit.txt'), 'utf8')).toBe(afterStop);
 });
 
+workerTest('shutdown persists interrupted worker status before another session starts', async ({ session, call }) => {
+  const result = await call('Task', { prompt: 'WAIT', model: 'worker-test/deterministic' });
+  const id = result.details?.id;
+  expect(id).toBeDefined();
+  await session.extensionRunner.emit({ type: 'session_shutdown', reason: 'quit' });
+  const records = session.sessionManager.getEntries().filter((entry) => entry.type === 'custom' && entry.customType === taskEntryType);
+  expect(records.at(-1)).toMatchObject({ data: { id, status: 'interrupted' } });
+});
+
 workerTest('overlapping shutdown drains workers before restoring another branch', async ({ session, call }) => {
   await call('Task', { prompt: 'WAIT', model: 'worker-test/deterministic' });
   const abort = AgentSession.prototype.abort;
