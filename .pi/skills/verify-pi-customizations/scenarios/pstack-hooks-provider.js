@@ -5,6 +5,9 @@ const fs = process.getBuiltinModule('node:fs');
 const path = process.getBuiltinModule('node:path');
 const CAPTURE = process.env.PSTACK_HOOKS_CAPTURE;
 const WRITE_PATH = process.env.PSTACK_HOOKS_WRITE_PATH;
+const READ_PATH = process.env.PSTACK_HOOKS_READ_PATH;
+const BARRIER = process.env.PSTACK_HOOKS_BARRIER;
+const MCP_TOOL = 'mcp__hkmcp__hk_echo';
 
 function textOf(message) {
   const content = message?.content;
@@ -28,6 +31,74 @@ function lastText(context) {
 function clip(value, limit = 2000) {
   if (typeof value === 'string') return value.length > limit ? `${value.slice(0, limit)}…` : value;
   return value;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function markBarrier(suffix) {
+  if (BARRIER) fs.writeFileSync(`${BARRIER}.${suffix}`, `${Date.now()}\n`);
+}
+
+function waitForBarrier(suffix, timeoutMs = 120000) {
+  const path = `${BARRIER}.${suffix}`;
+  const deadline = Date.now() + timeoutMs;
+  return new Promise((resolve, reject) => {
+    const tick = () => {
+      if (fs.existsSync(path)) return resolve();
+      if (Date.now() > deadline) return reject(new Error(`hk fixture barrier timed out waiting for ${path}`));
+      setTimeout(tick, 25);
+    };
+    tick();
+  });
+}
+
+function declaredToolNames(context) {
+  const names = new Set();
+  for (const message of context.messages) {
+    if (message.role !== 'system') continue;
+    for (const tool of message.toolsAdded ?? []) names.add(tool.name);
+    for (const tool of message.toolsRemoved ?? []) names.delete(tool.name);
+  }
+  return [...names];
+}
+
+function assistantCalled(context, name) {
+  return context.messages.some((message) => message.role === 'assistant' && (message.content ?? []).some((block) => block.type === 'toolCall' && block.name === name));
+}
+
+function lastToolResultText(context) {
+  return textOf(context.messages.findLast((message) => message.role === 'toolResult') ?? {});
+}
+
+function gateResponse(context, text) {
+  if (/HK_CHILD_GATE_WRITE/.test(text)) {
+    if (assistantCalled(context, 'write')) return { text: `hk write gate reply HK_GATE_DONE :: ${lastToolResultText(context)}` };
+    return {
+      call: tool('write', { path: WRITE_PATH ?? 'hk-gate-write.txt', content: 'gate write\n' }),
+      await: () => {
+        markBarrier('child-ready');
+        return waitForBarrier('go');
+      },
+    };
+  }
+  if (/HK_CHILD_GATE_POLICY/.test(text)) {
+    if (assistantCalled(context, MCP_TOOL)) return { text: `hk policy gate reply HK_GATE_DONE :: ${lastToolResultText(context)}` };
+    if (context.messages.some((message) => message.role === 'toolResult' && message.toolName === 'read')) {
+      return declaredToolNames(context).includes(MCP_TOOL) ? { call: tool(MCP_TOOL, {}) } : { fail: 'HK_MCP_TOOL_NOT_DECLARED' };
+    }
+    return {
+      call: tool('read', { path: READ_PATH ?? 'policy-read.txt' }),
+      await: () => {
+        markBarrier('child-ready');
+        return waitForBarrier('release')
+          .then(() => waitForBarrier('mcp-connected'))
+          .then(() => sleep(500));
+      },
+    };
+  }
+  return undefined;
 }
 
 function sectionsOf(messages) {
@@ -55,7 +126,7 @@ function capture(model, context, payload, headers, options) {
       texts: context.messages.map((message) => clip(textOf(message), 600)),
       roles: context.messages.map((message) => message.role),
       customTypes: context.messages.map((message) => message.customType).filter(Boolean),
-      toolNames: (context.messages.find((message) => message.role === 'system')?.tools ?? []).map((tool) => tool.name),
+      toolNames: declaredToolNames(context),
     };
     fs.mkdirSync(path.dirname(CAPTURE), { recursive: true });
     fs.appendFileSync(CAPTURE, `${JSON.stringify(record)}\n`);
@@ -186,6 +257,14 @@ const probes = [
   { pattern: /HK_READ_ENV/, call: () => tool('read', { path: '.env' }) },
   { pattern: /HK_WORKFLOW_RUN/, call: () => tool('run_dynamic_workflow', { name: 'hk-workflow' }) },
   { pattern: /HK_ROUTINE/, call: () => tool('RoutinePrepare', { name: 'hk-routine', prompt: 'hk routine prompt', fields: ['action'], port: 0 }) },
+  {
+    pattern: /HK_TASK_SUBAGENT_GATE_WRITE/,
+    call: () => tool('task', { agent_type: 'hk-writer', name: 'hk-gate-writer', description: 'write gate drive', prompt: 'HK_CHILD_GATE_WRITE', mode: 'background', model: 'pstack-hooks/scripted' }),
+  },
+  {
+    pattern: /HK_TASK_SUBAGENT_GATE_POLICY/,
+    call: () => tool('task', { agent_type: 'hk-policy', name: 'hk-policy-child', description: 'tool policy drive', prompt: 'HK_CHILD_GATE_POLICY', mode: 'background', model: 'pstack-hooks/scripted' }),
+  },
   { pattern: /HK_WRITE/, call: () => tool('write', { path: WRITE_PATH ?? 'hk-write.txt', content: 'hook probe\n' }) },
   { pattern: /HK_CHILD_WRITE/, call: () => tool('write', { path: WRITE_PATH ?? 'hk-child-write.txt', content: 'child write\n' }) },
   { pattern: /HK_CHILD_BASH/, call: () => tool('bash', { command: 'echo HK_CHILD_BASH' }) },
@@ -206,6 +285,8 @@ function pick(model, context, options) {
 function respond(_model, context, _options) {
   const last = context.messages.at(-1);
   const text = lastText(context);
+  const gate = gateResponse(context, text);
+  if (gate) return gate;
   if (last?.role === 'toolResult') {
     if (last.toolName === 'RoutinePrepare') {
       const content = textOf(last);
@@ -240,8 +321,9 @@ function respond(_model, context, _options) {
 function start(model, context, options, scripted) {
   const stream = createAssistantMessageEventStream();
   pick(model, context, options)
-    .then(({ transformed, headers }) => {
+    .then(async ({ transformed, headers }) => {
       capture(model, context, transformed, headers, options);
+      if (scripted.await) await scripted.await();
       if (scripted.fail) {
         const message = assistant(model, [{ type: 'text', text: 'failed by fixture' }], 'error');
         message.errorMessage = scripted.fail;

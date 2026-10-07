@@ -45,12 +45,12 @@ export function prepareHooksAgentDir(context, name, settings = {}) {
 }
 
 export async function startHooks(context, name, options = {}) {
-  const { env = {}, extraExtensions = [], provider = 'pstack-hooks', modelId = 'scripted', ...rest } = options;
+  const { env = {}, extraExtensions = [], provider = 'pstack-hooks', modelId = 'scripted', packagePath = PACKAGE_PATH(context), ...rest } = options;
   const capture = join(context.rawDir, `provider-${name}.jsonl`);
   mkdirSync(context.rawDir, { recursive: true });
   writeFileSync(capture, '');
   const session = context.startSession({
-    packagePath: PACKAGE_PATH(context),
+    packagePath,
     extraExtensions: [PROVIDER, ...extraExtensions],
     env: { PSTACK_HOOKS_CAPTURE: capture, ...env },
     ...rest,
