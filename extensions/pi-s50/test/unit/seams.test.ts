@@ -111,3 +111,17 @@ describe('diagnosis without a feedback loop', () => {
     });
   });
 });
+
+describe('frontend design brief', () => {
+  test('DESIGN cannot hand off with an incomplete brief', () => {
+    const base = freshRun({ mode: 'frontend' });
+    const decisions = [{ id: 'design.subject', question: 'subject?', answer: 'invoice table', decidedBy: 'user' as const }];
+    const state = { ...base, run: { ...base.run, phase: 'DESIGN' as const, domain: { ...base.run.domain, decisions } } };
+    expect(apply(state, { kind: 'advance', to: 'CONFIRM_TDD_SEAMS' }, fixedClock())).toEqual({
+      kind: 'rejected',
+      reason:
+        'cannot advance DESIGN -> CONFIRM_TDD_SEAMS: design brief incomplete: audience, primary_job, visual_direction, information_hierarchy, layout, typography, interaction_model, responsive_behavior, loading_state, empty_state, error_state, accessibility',
+      gate: null,
+    });
+  });
+});

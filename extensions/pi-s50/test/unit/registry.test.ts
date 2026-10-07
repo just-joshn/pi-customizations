@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, test } from 'vitest';
 import { fixedClock } from '../../src/orchestrator/clock.ts';
-import type { Command } from '../../src/orchestrator/coordinator.ts';
+import type { Command } from '../../src/orchestrator/command.ts';
 import { apply } from '../../src/orchestrator/coordinator.ts';
 import { parseLeaderboardHtml } from '../../src/registry/fetch.ts';
 import { buildSnapshot, S50_DEPENDENCIES } from '../../src/registry/lock.ts';

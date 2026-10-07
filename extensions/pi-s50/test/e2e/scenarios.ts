@@ -1,5 +1,5 @@
 import type { SkillResult } from '../../src/adapters/skills.ts';
-import type { Command, EvidenceInput, GraphNodeInput } from '../../src/orchestrator/coordinator.ts';
+import type { Command, EvidenceInput, GraphNodeInput } from '../../src/orchestrator/command.ts';
 import { REVIEW_DIMENSIONS } from '../../src/review/reviewer.ts';
 import { node } from '../unit/support.ts';
 

@@ -77,7 +77,12 @@ test('the model cannot confirm seams without a UI', async ({ onTestFinished }) =
 test('a declined confirmation blocks the human-only command', async ({ onTestFinished }) => {
   const tool = await loadTool(onTestFinished);
   const prompts: string[] = [];
-  const ui = { confirm: async (title: string) => (prompts.push(title), false) };
+  const ui = {
+    confirm: async (title: string) => {
+      prompts.push(title);
+      return false;
+    },
+  };
   const ctx = { cwd: tmpdir(), hasUI: true, ui };
   await expect(tool.execute('call-3', { argv: CONFIRM_SEAMS }, undefined, undefined, ctx as unknown as ExtensionToolContext)).rejects.toThrow('user declined confirm_seams');
   expect(prompts).toStrictEqual(['S50: confirm_seams']);

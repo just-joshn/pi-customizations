@@ -14,13 +14,13 @@ The `s50` skill (`skills/s50/SKILL.md`) is thin. It tells the agent to read stat
 
 ## The coordinator
 
-`src/orchestrator/coordinator.ts` exposes three pure functions:
+The coordinator is four modules in `src/orchestrator/`. `command.ts` holds the `Command`, `Outcome`, and `NextAction` types and the small state helpers. `phases.ts` holds the guard table and `advance`. `handlers.ts` holds one pure handler per command. `coordinator.ts` maps each command kind to its handler and exposes three pure functions:
 
 - `startRun(input, registry, clock)` builds a `RunState`.
 - `apply(state, command, clock)` returns `{ kind: 'ok', state, decisions }` or `{ kind: 'rejected', reason, gate }`.
 - `nextAction(state)` returns the next automatic action or the human gate.
 
-`Command` is a discriminated union of 28 kinds. Every phase change goes through `advance`, which checks the edge table in `src/orchestrator/transitions.ts` and then a guard per target phase. Failures route back along table edges to the owning phase (for example `REVIEW -> IMPLEMENT`, `VERIFY -> DESIGN`, `REVERIFY_STALE -> IMPLEMENT`), so a failed check never restarts the run.
+`Command` is a discriminated union of 29 kinds. Every phase change goes through `advance`, which checks the edge table in `src/orchestrator/transitions.ts` and then the target phase's entry in the `GUARDS` table. Failures route back along table edges to the owning phase (for example `REVIEW -> IMPLEMENT`, `VERIFY -> DESIGN`, `REVERIFY_STALE -> IMPLEMENT`), so a failed check never restarts the run.
 
 Re-applying a command whose effect already holds returns `ok` with the same state and no decision. Two commands log on every call and change no state: an allowed `invoke_skill` and `record_test`. They are records of an event, not state.
 

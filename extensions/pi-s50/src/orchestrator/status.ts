@@ -3,7 +3,8 @@ import type { Gate } from '../domain/state.ts';
 import { latestByClaim } from '../evidence/invalidation.ts';
 import { prReadyBlockers } from '../policy/completion.ts';
 import { readyFrontier } from '../scheduler/frontier.ts';
-import { type NextAction, nextAction } from './coordinator.ts';
+import type { NextAction } from './command.ts';
+import { nextAction } from './coordinator.ts';
 
 export function describeGate(gate: Gate): string {
   switch (gate.kind) {

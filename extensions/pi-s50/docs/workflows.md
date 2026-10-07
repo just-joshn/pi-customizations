@@ -61,7 +61,7 @@ Preflight records one decision line with the revision, dirty state, package mana
 
 ## Design (frontend)
 
-**Upstream (`frontend-design`).** Intentional visual direction for web UI. **S50** routes it only for `frontend` runs, adds `vercel-react-best-practices` only when a run constraint names React or Next.js, and requires the checklist in `skills/s50/references/frontend.md` before implementation.
+**Upstream (`frontend-design`).** Intentional visual direction for web UI. **S50** routes it only for `frontend` runs, adds `vercel-react-best-practices` only when a run constraint names React or Next.js, and refuses `DESIGN -> CONFIRM_TDD_SEAMS` until a `design.<item>` decision exists for each of subject, audience, primary job, visual direction, information hierarchy, layout, typography, interaction model, responsive behavior, loading state, empty state, error state, and accessibility.
 
 ## TDD seams
 

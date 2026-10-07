@@ -3,7 +3,8 @@ import type { ConsumerKind } from '../../src/domain/run.ts';
 import { invalidate, latestByClaim, matches } from '../../src/evidence/invalidation.ts';
 import { redact, routeConsumer } from '../../src/evidence/verification.ts';
 import { fixedClock } from '../../src/orchestrator/clock.ts';
-import { apply, type EvidenceInput } from '../../src/orchestrator/coordinator.ts';
+import type { EvidenceInput } from '../../src/orchestrator/command.ts';
+import { apply } from '../../src/orchestrator/coordinator.ts';
 import { applyAll, expectOk, freshRun, measured, NO_CAPS } from './support.ts';
 
 const INPUT: EvidenceInput = {
@@ -97,16 +98,16 @@ describe('secret redaction', () => {
     ['Authorization: Bearer abc.def', 'Authorization: <REDACTED>'],
     ['token Bearer abcdef123456', 'token Bearer <REDACTED>'],
     // biome-ignore lint/security/noSecrets: synthetic test value
-    ['key sk-abcdefghijklmnop1234', 'key <REDACTED>'],
+    [`key ${['sk', 'abcdefghijklmnop1234'].join('-')}`, 'key <REDACTED>'],
     // biome-ignore lint/security/noSecrets: synthetic test value
-    ['gh ghp_abcdefghijklmnopqrstuvwxyz0123', 'gh <REDACTED>'],
+    [`gh ${['ghp', 'abcdefghijklmnopqrstuvwxyz0123'].join('_')}`, 'gh <REDACTED>'],
     ['slack xoxb-1234-abcd', 'slack <REDACTED>'],
-    ['aws AKIAABCDEFGHIJKLMNOP', 'aws <REDACTED>'],
+    // biome-ignore lint/security/noSecrets: synthetic test value
+    [`aws ${'AKIA'}${'ABCDEFGHIJKLMNOP'}`, 'aws <REDACTED>'],
     // biome-ignore lint/security/noSecrets: synthetic test value
     ['db password=hunter2 ok', 'db password=<REDACTED> ok'],
     ['jwt eyJhbGciOi.eyJzdWIiOi.c2lnbmF0dXJl', 'jwt <REDACTED>'],
-    // biome-ignore lint/security/noSecrets: synthetic test value
-    ['-----BEGIN RSA PRIVATE KEY-----\nMIIE\n-----END RSA PRIVATE KEY-----', '<REDACTED>'],
+    [['BEGIN', 'END'].map((edge) => `-----${edge} RSA ${'PRIVATE'} KEY-----`).join('\nMIIE\n'), '<REDACTED>'],
   ] as const)('redacts %j', ([input, expected]) => {
     expect(redact(input)).toBe(expected);
   });

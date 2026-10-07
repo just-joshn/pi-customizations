@@ -3,7 +3,7 @@ import { rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, test } from 'vitest';
-import type { Command } from '../../src/orchestrator/coordinator.ts';
+import type { Command } from '../../src/orchestrator/command.ts';
 import { tempRepo, writeAndCommit } from '../integration/repo.ts';
 import { ALL_SKILLS } from '../unit/support.ts';
 import { BUG_EVIDENCE, BUG_NODES, FEATURE_EVIDENCE, FEATURE_NODES, FEATURE_SCRIPT, REVIEW, REVIEW_FINDING, SEAM } from './scenarios.ts';

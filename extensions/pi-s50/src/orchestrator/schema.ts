@@ -4,7 +4,7 @@ import type { Graph, GraphNode, VerificationMethod } from '../domain/graph.ts';
 import { CONSUMER_KINDS, type Consumer, type Decision, type DesignCandidate, type DiagnosticLoop, type HostCapabilities, type Prototype, RUN_SCHEMA_VERSION, type Run, type Seam } from '../domain/run.ts';
 import { AUTHORIZATION_ACTIONS, type Gate, MODES, PHASES, type Question, type RunStatus } from '../domain/state.ts';
 import { registrySnapshot } from '../registry/validate.ts';
-import type { Command, DecisionLog, EvidenceInput, GraphNodeInput } from './coordinator.ts';
+import type { Command, DecisionLog, EvidenceInput, GraphNodeInput } from './command.ts';
 import { array, bool, type Decoder, nonEmptyStr, nullable, object, oneOf, str, tagged } from './decode.ts';
 
 const strings = array(str);

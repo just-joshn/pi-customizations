@@ -4,7 +4,8 @@ import type { RunState } from '../../src/domain/run.ts';
 import type { Mode } from '../../src/domain/state.ts';
 import { latestByClaim } from '../../src/evidence/invalidation.ts';
 import { fixedClock } from '../../src/orchestrator/clock.ts';
-import { apply, type Command, nextAction, startRun } from '../../src/orchestrator/coordinator.ts';
+import type { Command } from '../../src/orchestrator/command.ts';
+import { apply, nextAction, startRun } from '../../src/orchestrator/coordinator.ts';
 import { prReadyBlockers } from '../../src/policy/completion.ts';
 import { REVIEW_DIMENSIONS } from '../../src/review/reviewer.ts';
 import { ALL_SKILLS, NO_CAPS, registry } from '../unit/support.ts';
@@ -81,6 +82,10 @@ async function featureToReady(h: Harness): Promise<void> {
   expect(h.phase()).toBe('CONFIRM_TDD_SEAMS/blocked');
   expect(nextAction(h.state)).toEqual({ kind: 'human_gate', gate: { kind: 'seam_confirmation', seams: ['seam-cli'] } });
   h.steps([{ kind: 'confirm_seams', ids: ['seam-cli'] }, { kind: 'record_test', seam: 'seam-cli', test: 'tdd' }, advance('BUILD_GRAPH')]);
+  await buildAndReview(h);
+}
+
+async function buildAndReview(h: Harness): Promise<void> {
   h.steps([{ kind: 'build_graph', nodes: FEATURE_NODES }, advance('IMPLEMENT')]);
   expect(nextAction(h.state)).toEqual({ kind: 'start_nodes', ids: ['list-invoices'] });
   h.steps([

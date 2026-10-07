@@ -5,7 +5,7 @@ import type { RegistrySnapshot } from '../domain/registry.ts';
 import { RUN_SCHEMA_VERSION, type RunState } from '../domain/run.ts';
 import { appendJsonl, latestById, readJsonl } from '../evidence/store.ts';
 import { parseSnapshot } from '../registry/validate.ts';
-import type { DecisionLog } from './coordinator.ts';
+import type { DecisionLog } from './command.ts';
 import { type Decoded, decode, isRecord, parseJson } from './decode.ts';
 import { decisionLog, evidenceRecord, finding, graph, run } from './schema.ts';
 

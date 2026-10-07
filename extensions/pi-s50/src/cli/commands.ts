@@ -2,6 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { piHostCapabilities } from '../adapters/agents.ts';
+import { agentBrowserAvailable } from '../adapters/browser.ts';
 import { changedPaths, revision } from '../adapters/git.ts';
 import { repoFacts } from '../adapters/repo.ts';
 import type { RunState } from '../domain/run.ts';
@@ -9,7 +11,8 @@ import { CONSUMER_KINDS, type Consumer, type HostCapabilities } from '../domain/
 import type { Mode } from '../domain/state.ts';
 import { routeConsumer } from '../evidence/verification.ts';
 import { type Clock, systemClock } from '../orchestrator/clock.ts';
-import { apply, applyPreflight, type Command, type DecisionLog, nextAction, type Outcome, startRun } from '../orchestrator/coordinator.ts';
+import type { Command, DecisionLog, Outcome } from '../orchestrator/command.ts';
+import { apply, applyPreflight, nextAction, startRun } from '../orchestrator/coordinator.ts';
 import { decode, parseJson } from '../orchestrator/decode.ts';
 import { loadState, readDecisions, readLock, S50_DIR, saveState, writeLock } from '../orchestrator/persistence.ts';
 import { classify } from '../orchestrator/routes.ts';
@@ -62,10 +65,10 @@ function parseConsumer(text: string | undefined): Consumer | string {
   return { kind, userPath: split === -1 ? '' : text.slice(split + 1) };
 }
 
-function parseCapabilities(named: ReadonlyMap<string, string>): HostCapabilities | string {
-  const installed = (named.get('installed') ?? '').split(',').filter((skill) => skill !== '');
+function parseCapabilities(named: ReadonlyMap<string, string>, browserDriver: boolean): HostCapabilities | string {
+  const installedSkills = (named.get('installed') ?? '').split(',').filter((skill) => skill !== '');
   const raw = named.get('capabilities');
-  const base: HostCapabilities = { independentAgents: false, isolatedWorktrees: false, browserDriver: false, nativeAutomation: false, installedSkills: installed };
+  const base = piHostCapabilities({ installedSkills, browserDriver });
   if (raw === undefined) return base;
   const json = parseJson(raw);
   if (json.kind === 'invalid') return `--capabilities: ${json.reason}`;
@@ -91,7 +94,7 @@ async function start(context: CliContext, mode: Mode, args: readonly string[]): 
   if (lock.kind === 'invalid') return error(`invalid registry lock: ${lock.reason}\n`);
   const consumer = parseConsumer(named.get('consumer'));
   if (typeof consumer === 'string') return error(`${consumer}\n`);
-  const capabilities = parseCapabilities(named);
+  const capabilities = parseCapabilities(named, await agentBrowserAvailable(context.cwd));
   if (typeof capabilities === 'string') return error(`${capabilities}\n`);
   const criteria = (named.get('criteria') ?? objective)
     .split(';')

@@ -18,7 +18,3 @@ export async function changedPaths(cwd: string, from: string, to: string): Promi
 export async function isDirty(cwd: string): Promise<boolean> {
   return (await git(cwd, ['status', '--porcelain'])) !== '';
 }
-
-export async function createBranch(cwd: string, name: string): Promise<void> {
-  await git(cwd, ['branch', name]);
-}

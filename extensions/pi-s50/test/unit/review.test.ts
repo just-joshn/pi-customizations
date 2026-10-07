@@ -137,6 +137,8 @@ describe('review phase', () => {
 
   test('web guideline hash binds to every later finding', () => {
     const { state } = applyAll(inReview('browser'), [fullReview('abc'), { kind: 'record_finding', finding: FINDING }]);
-    expect(state.findings.map((finding) => [finding.revision, finding.guidelines])).toEqual([['r1', { contentHash: ABC_SHA256, skillLock: 'web-design-guidelines@063bee94c3f4df8453406c830b0a7df0f2860278' }]]);
+    // biome-ignore lint/security/noSecrets: a public git commit SHA
+    const skillLock = `web-design-guidelines@${'063bee94c3f4df8453406c830b0a7df0f2860278'}`;
+    expect(state.findings.map((finding) => [finding.revision, finding.guidelines])).toEqual([['r1', { contentHash: ABC_SHA256, skillLock }]]);
   });
 });

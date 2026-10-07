@@ -7,7 +7,9 @@ import type { LeaderboardEntry, RegistrySnapshot } from '../../src/domain/regist
 import type { HostCapabilities, RunState } from '../../src/domain/run.ts';
 import type { Mode, Phase } from '../../src/domain/state.ts';
 import { fixedClock } from '../../src/orchestrator/clock.ts';
-import { apply, type Command, type GraphNodeInput, type Outcome, SHARED_UNDERSTANDING_ID, startRun } from '../../src/orchestrator/coordinator.ts';
+import { type Command, type GraphNodeInput, type Outcome, SHARED_UNDERSTANDING_ID } from '../../src/orchestrator/command.ts';
+import { apply, startRun } from '../../src/orchestrator/coordinator.ts';
+import { DESIGN_BRIEF } from '../../src/orchestrator/phases.ts';
 import { buildSnapshot, S50_DEPENDENCIES } from '../../src/registry/lock.ts';
 import { parseLeaderboardFile, parseSources, type SourceEntry } from '../../src/registry/validate.ts';
 
@@ -114,7 +116,11 @@ export function satisfiedAt(from: Phase, to: Phase): RunState {
       ...base.run,
       phase: from,
       frozenRevision: 'r1',
-      domain: { ...base.run.domain, terms: ['invoice'], decisions: [{ id: SHARED_UNDERSTANDING_ID, question: 'ok?', answer: 'confirmed', decidedBy: 'user' }] },
+      domain: {
+        ...base.run.domain,
+        terms: ['invoice'],
+        decisions: [{ id: SHARED_UNDERSTANDING_ID, question: 'ok?', answer: 'confirmed', decidedBy: 'user' }, ...DESIGN_BRIEF.map((item) => ({ id: `design.${item}`, question: item, answer: 'settled', decidedBy: 'user' as const }))],
+      },
       architecture: {
         candidates: [
           { id: 'a', summary: 'stream', tradeoffs: 'memory' },

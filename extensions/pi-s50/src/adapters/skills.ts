@@ -1,4 +1,4 @@
-import type { Command } from '../orchestrator/coordinator.ts';
+import type { Command } from '../orchestrator/command.ts';
 
 export type SkillInput = { readonly phase: string; readonly objective: string };
 
