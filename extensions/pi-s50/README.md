@@ -94,6 +94,7 @@ Not exercised, so INCONCLUSIVE here:
 ## Known limitations
 
 - S50 records what the agent reports through commands. It cannot see inside files, so it trusts the agent's report that temporary instrumentation is gone or that a measurement ran.
+- Some spec steps are agent work that S50 records but cannot check: grounding callers before designing, comparing designs across the ten architecture dimensions, structurally different design candidates, keeping prototype code out of production, deleting replaced paths and running affected checks at integration, and keeping implementation detail out of the glossary and ADRs to the `domain-modeling` rule.
 - Bash authorization covers the command patterns in `src/policy/authorization.ts`. Customer communication and sensitive-data disclosure have no reliable command pattern and rely on the agent stopping.
 - The `.s50/` write queue serializes calls inside one Pi process. Two shell processes that write the same `.s50/` at once can still race.
 - `registry refresh` parses the leaderboard embedded in the skills.sh page. If skills.sh changes that format, the refresh fails and writes nothing.
