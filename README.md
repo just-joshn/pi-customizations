@@ -11,6 +11,7 @@ Extensions, themes, and skills for [Pi](https://pi.dev), the coding agent by Ear
 | [`extensions/pi-antigravity-oauth`](extensions/pi-antigravity-oauth/README.md) | Restores the `google-antigravity` provider. Signs in with Google OAuth and talks to the Cloud Code Assist API. |
 | [`extensions/pi-xai-oauth`](extensions/pi-xai-oauth/README.md) | Lets a SuperGrok or X Premium subscription answer in Pi through the `grok-build` provider. |
 | [`extensions/pi-tui-skin`](extensions/pi-tui-skin/README.md) | A presentation-only skin that makes the Pi TUI look like the reference-agent TUI. Ships captured reference frames and comparison tooling. |
+| [`extensions/pi-caveman`](extensions/pi-caveman/README.md) | Ports the agent-side [Caveman](https://github.com/JuliusBrussee/caveman) plugin to Pi: terse voice modes, mode tracking, a footer badge, `/caveman-stats`, the `caveman_compress` tool, and `cavecrew` subagents. |
 | [`extensions/pi-one-dark-pro-theme`](extensions/pi-one-dark-pro-theme/README.md) | One Dark Pro Flat theme for Pi, computed from the pinned VS Code theme file. |
 | [`skills/`](skills/) | Five standalone skills: `doctor`, `run`, `simplify`, `reverse-engineer-cli`, `implement-cli-from-contract`. |
 

@@ -42,6 +42,24 @@
         "@earendil-works/pi-coding-agent": "*",
       },
     },
+    "extensions/pi-caveman": {
+      "name": "pi-caveman",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@earendil-works/pi-ai": "1.0.2",
+        "@earendil-works/pi-coding-agent": "1.0.2",
+        "@types/node": "^22.19.0",
+        "@vitest/coverage-v8": "^5.0.2",
+        "typebox": "1.3.27",
+        "typescript": "^7.0.2",
+        "vitest": "^5.0.2",
+      },
+      "peerDependencies": {
+        "@earendil-works/pi-ai": "*",
+        "@earendil-works/pi-coding-agent": "*",
+        "typebox": "*",
+      },
+    },
     "extensions/pi-one-dark-pro-theme": {
       "name": "pi-one-dark-pro-theme",
       "version": "0.1.0",
@@ -546,6 +564,8 @@
     "pi-anthropic-oauth": ["pi-anthropic-oauth@workspace:extensions/pi-anthropic-oauth"],
 
     "pi-antigravity-oauth": ["pi-antigravity-oauth@workspace:extensions/pi-antigravity-oauth"],
+
+    "pi-caveman": ["pi-caveman@workspace:extensions/pi-caveman"],
 
     "pi-one-dark-pro-theme": ["pi-one-dark-pro-theme@workspace:extensions/pi-one-dark-pro-theme"],
 

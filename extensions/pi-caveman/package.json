@@ -1,0 +1,53 @@
+{
+  "name": "pi-caveman",
+  "version": "0.1.0",
+  "description": "Pi-native Caveman: terse caveman voice modes, mode tracking, status badge, stats, compress, and cavecrew subagents.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "keywords": [
+    "pi-package"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  },
+  "files": [
+    "src",
+    "skills",
+    "prompts",
+    "agents",
+    "NOTICE",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p .",
+    "sync:upstream": "node scripts/sync-upstream.mjs"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "1.0.2",
+    "@earendil-works/pi-coding-agent": "1.0.2",
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "^5.0.2",
+    "typebox": "1.3.27",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}
