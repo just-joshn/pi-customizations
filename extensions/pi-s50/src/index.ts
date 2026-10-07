@@ -77,6 +77,20 @@ export function humanOnlyKind(argv: readonly string[]): string | null {
   return userDecision ? kind : null;
 }
 
+// Host facts come from Pi itself; an override names facts the host never reported, so it is the user's call too.
+const HOST_OVERRIDES = ['--capabilities', '--installed'];
+
+export function hostOverride(argv: readonly string[]): string | null {
+  return HOST_OVERRIDES.find((flag) => argv.includes(flag)) ?? null;
+}
+
+function confirmationReason(argv: readonly string[]): { readonly label: string; readonly reason: string } | null {
+  const human = humanOnlyKind(argv);
+  if (human !== null) return { label: human, reason: `${human} records a user decision` };
+  const override = hostOverride(argv);
+  return override === null ? null : { label: override, reason: `${override} overrides what the host reports` };
+}
+
 function bounded(stdout: string): string {
   const cut = truncateHead(stdout);
   return cut.truncated ? `${cut.content}\n[truncated ${cut.outputLines} of ${cut.totalLines} lines; run s50 explain or read .s50/ for the full record]\n` : stdout;
@@ -147,10 +161,10 @@ export default function s50(pi: Pi) {
     // The tool writes .s50/, runs git, creates worktrees, and registry refresh fetches skills.sh and GitHub.
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     execute: async (_toolCallId, params, signal, _onUpdate, ctx) => {
-      const human = humanOnlyKind(params.argv);
-      if (human !== null) {
-        if (!ctx.hasUI) throw new Error(`${human} records a user decision; ask the user to run /s50 ${params.argv.join(' ')}`);
-        if (!(await ctx.ui.confirm(`S50: ${human}`, params.argv[1] ?? ''))) throw new Error(`user declined ${human}`);
+      const needs = confirmationReason(params.argv);
+      if (needs !== null) {
+        if (!ctx.hasUI) throw new Error(`${needs.reason}; ask the user to run /s50 ${params.argv.join(' ')}`);
+        if (!(await ctx.ui.confirm(`S50: ${needs.label}`, params.argv.slice(1).join(' ')))) throw new Error(`user declined ${needs.label}`);
       }
       const result = await run(pi, ctx.cwd, params.argv, signal);
       if (result.code === 1) throw new Error(bounded(result.stdout));

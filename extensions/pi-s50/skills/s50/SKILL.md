@@ -32,7 +32,9 @@ The `s50` tool, the `/s50` command, and the `s50` shell command take the same ar
 - `seam_confirmation`: ask the user to confirm the seams, then apply `confirm_seams`.
 - `authorization`: stop. Only the user grants force-push, merge, deploy, destructive deletion, publishing, public or customer messages, and sensitive disclosure.
 
-Commands that record a user decision open a confirmation dialog when the tool applies them. Without a UI the tool refuses, and the user types `/s50 apply ...` instead.
+Commands that record a user decision, and the `--capabilities` and `--installed` overrides, open a confirmation dialog when the tool applies them. Without a UI the tool refuses, and the user types the `/s50` command instead.
+
+`["verify"]` lists the evidence for each criterion with every blocker, and `["explain"]` shows the recent decisions.
 
 ## References
 

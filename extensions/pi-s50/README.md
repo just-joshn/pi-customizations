@@ -37,7 +37,7 @@ s50 registry show | registry verify
 
 Exit codes: 0 done, 1 error, 2 refused or a failing check, 3 accepted with the run now waiting on a human gate.
 
-`--capabilities '<json>'` and `--installed a,b` override what the host reports. Inside Pi, the extension asks Pi which skills a session has loaded and whether a subagent tool (`subagent` or `Task`) is available. The shell asks Pi's resource loader which skills a session in that directory would load, and reports no independent agents.
+`--capabilities '<json>'` and `--installed a,b` override what the host reports. When the model passes either flag through the tool, Pi asks the user first. Inside Pi, the extension asks Pi which skills a session has loaded and whether a subagent tool (`subagent` or `Task`) is available. The shell asks Pi's resource loader which skills a session in that directory would load, and reports no independent agents.
 
 Run state lives in `.s50/`. S50 creates `.s50/.gitignore` with `*` when it creates the directory, so run data stays out of Git. Delete that file to commit an audit trail; S50 does not recreate it.
 

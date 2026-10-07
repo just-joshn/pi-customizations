@@ -14,7 +14,7 @@ All three call `runCli(argv, context)` in `src/cli/commands.ts`. The context is 
 - Pi asks its session (`pi.getCommands()`) which skills are loaded, hashes each SKILL.md, and reports independent agents when a `subagent` or `Task` tool is registered.
 - The tool passes the turn's abort signal to every Git call and fetch.
 
-The model surface adds two guards on top. Before it applies a command that records a user decision, it asks the user through `ctx.ui.confirm`; without a UI it refuses. A `tool_call` handler stops gated bash commands during a run in the same way.
+The model surface adds guards on top. Before it applies a command that records a user decision, or a start command that overrides host facts with `--capabilities` or `--installed`, it asks the user through `ctx.ui.confirm`; without a UI it refuses. A `tool_call` handler stops gated bash commands during a run in the same way.
 
 The `s50` skill (`skills/s50/SKILL.md`) is thin. It tells the agent to read state through the tool, act on `nextAction`, load an installed eligible skill when the coordinator says so, and stop at gates. Workflow detail lives in `skills/s50/references/`, and a test decodes every command example in those references.
 

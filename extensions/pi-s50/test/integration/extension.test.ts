@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { discoverAndLoadExtensions } from '@earendil-works/pi-coding-agent';
 import { afterEach, expect, test } from 'vitest';
 import { runCli } from '../../src/cli/commands.ts';
-import { humanOnlyKind, splitArgs } from '../../src/index.ts';
+import { hostOverride, humanOnlyKind, splitArgs } from '../../src/index.ts';
 import { testContext } from '../support/context.ts';
 import { commandContext, eventContext, fakeUi, loadFakePi, toolContext } from '../support/fake-pi.ts';
 import { INSTALLED } from '../unit/support.ts';
@@ -173,9 +173,27 @@ test('gated commands outside an S50 run pass through', async () => {
 
 const SELF_DECLARED = ['feature', 'export invoices', '--capabilities', '{"independentAgents":true,"isolatedWorktrees":true}'];
 
-test.fails('the model cannot declare host capabilities without the user', async () => {
+test('the model cannot declare host capabilities without the user', async () => {
   const { tool } = loadFakePi();
   const cwd = repo();
   await runCli(['registry', 'refresh', '--from', 'leaderboard.2026-10-07.json', '--sources', 'skill-sources.2026-10-07.json'], testContext(cwd));
   await expect(tool.execute('call-7', { argv: SELF_DECLARED }, undefined, undefined, toolContext(cwd, null))).rejects.toThrow(`--capabilities overrides what the host reports; ask the user to run /s50 ${SELF_DECLARED.join(' ')}`);
+});
+
+test('a confirmed capability override reaches the run', async () => {
+  const { tool } = loadFakePi();
+  const cwd = repo();
+  const ui = fakeUi(true);
+  await runCli(['registry', 'refresh', '--from', 'leaderboard.2026-10-07.json', '--sources', 'skill-sources.2026-10-07.json'], testContext(cwd));
+  await tool.execute('call-8', { argv: SELF_DECLARED }, undefined, undefined, toolContext(cwd, ui));
+  const run = JSON.parse(await readFile(join(cwd, '.s50/run.json'), 'utf8'));
+  expect([ui.confirms, run.capabilities.independentAgents]).toStrictEqual([[`S50: --capabilities: ${SELF_DECLARED.slice(1).join(' ')}`], true]);
+});
+
+test.for([
+  [['feature', 'x', '--installed', 'tdd'], '--installed'],
+  [['feature', 'x', '--criteria', 'a'], null],
+  [['status'], null],
+] as const)('%j host override is %s', ([argv, expected]) => {
+  expect(hostOverride(argv)).toBe(expected);
 });
