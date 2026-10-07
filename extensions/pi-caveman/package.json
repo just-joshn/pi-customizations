@@ -37,7 +37,7 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -p . && tsc -p tsconfig.vendor.json",
+    "typecheck": "tsc -p . && tsc -p vendor/caveman/packages/pi-extension/tsconfig.json",
     "sync:upstream": "node scripts/sync-upstream.mjs",
     "vendor": "node scripts/vendor-runtime.mjs",
     "check:vendor": "node scripts/vendor-runtime.mjs --check",
@@ -62,6 +62,9 @@
     "vitest": "^5.0.2"
   },
   "imports": {
-    "#caveman-runtime": "./vendor/caveman/packages/pi-extension/src/index.ts"
+    "#caveman-runtime": {
+      "types": "./src/caveman-runtime.d.ts",
+      "default": "./vendor/caveman/packages/pi-extension/src/index.ts"
+    }
   }
 }

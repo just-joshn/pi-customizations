@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { BeforeAgentStartEvent, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { getDefaultMode } from './config.ts';
 import { badgeFor, isProseMode, type Mode } from './modes.ts';
 import { parseModeChange } from './parse.ts';
@@ -23,6 +23,14 @@ interface PendingTurn {
 function pendingFor(note: PromptNote): PendingTurn | null {
   if (note?.kind === 'status') return { context: `Report this status verbatim without changing mode: ${note.report}`, reinforce: false };
   return note ? { context: note.text, reinforce: true } : null;
+}
+
+// A runtime copy loaded by `caveman wrap pi` or `caveman enable pi` can run first and replace the
+// whole prompt, which drops sections, so the ruleset then rides the replacement.
+function placeRuleset(section: string, options: BeforeAgentStartEvent['systemPromptOptions']): string | undefined {
+  options.sections['caveman'] = section;
+  const forced = options.forceSystemPrompt;
+  return forced !== undefined && !forced.includes(section) ? `${forced}\n\n${section}` : undefined;
 }
 
 export function registerModeTracking(pi: ExtensionAPI): ModeController {
@@ -71,12 +79,7 @@ export function registerModeTracking(pi: ExtensionAPI): ModeController {
   pi.on('before_agent_start', (event, ctx) => {
     const mode = activeMode(state);
     const prose = mode !== null && isProseMode(mode) && getDefaultMode(ctx.cwd) !== 'off' ? mode : null;
-    const section = prose ? rulesetSection(prose) : null;
-    if (section) event.systemPromptOptions.sections['caveman'] = section;
-    // A runtime copy loaded by `caveman wrap pi` or `caveman enable pi` can run first and replace the
-    // whole prompt, which drops sections, so the ruleset then rides the replacement.
-    const forced = event.systemPromptOptions.forceSystemPrompt;
-    const systemPrompt = section && forced !== undefined && !forced.includes(section) ? `${forced}\n\n${section}` : undefined;
+    const systemPrompt = prose ? placeRuleset(rulesetSection(prose), event.systemPromptOptions) : undefined;
     // Upstream answers a status request without the per-turn reminder.
     const reminder = prose && pending?.reinforce !== false ? reinforcement(prose) : null;
     const context = [pending?.context ?? null, reminder].filter((line) => line !== null).join('\n\n');

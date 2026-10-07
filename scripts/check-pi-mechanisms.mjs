@@ -37,7 +37,12 @@ async function checkImports(manifestPath, manifest, entry) {
     seen.add(file);
     for (const specifier of specifiers(await readFile(file, 'utf8'))) {
       if (specifier.startsWith('.')) pending.push(resolve(dirname(file), specifier));
-      else if (specifier.startsWith('node:') || builtinModules.includes(specifier)) continue;
+      else if (specifier.startsWith('#')) {
+        const target = manifest.imports?.[specifier];
+        const path = typeof target === 'string' ? target : target?.default;
+        if (path) pending.push(resolve(dirname(manifestPath), path));
+        else report(file, `subpath import ${specifier} has no default target in the package imports map`);
+      } else if (specifier.startsWith('node:') || builtinModules.includes(specifier)) continue;
       else if (supplied.has(specifier)) {
         const name = packageName(specifier);
         if (manifest.peerDependencies?.[name] !== '*') report(file, `declare ${name} in peerDependencies with "*" (packages.md)`);

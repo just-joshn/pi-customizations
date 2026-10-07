@@ -16,11 +16,11 @@ export type RuntimeOwner = 'package' | 'caveman-wrap' | 'caveman-enable';
 export function runtimeOwner(env: NodeJS.ProcessEnv, home: string): RuntimeOwner {
   if (env['CAVEMAN_PI_HOOK_CMD']) return 'caveman-wrap';
   try {
-    if (readFileSync(enabledExtension(home), 'utf8').includes(ENABLE_MARKER)) return 'caveman-enable';
+    return readFileSync(enabledExtension(home), 'utf8').includes(ENABLE_MARKER) ? 'caveman-enable' : 'package';
   } catch {
-    // No CLI-generated extension exists, so the package owns the runtime.
+    // An unreadable or absent CLI extension cannot load, so the package owns the runtime.
+    return 'package';
   }
-  return 'package';
 }
 
 export function registerRuntime(pi: ExtensionAPI): RuntimeOwner {

@@ -12,5 +12,5 @@
     "allowImportingTsExtensions": true,
     "isolatedModules": true
   },
-  "files": ["vendor/caveman/packages/pi-extension/src/index.ts", "vendor/caveman/packages/pi-extension/src/testable.ts"]
+  "include": ["src"]
 }

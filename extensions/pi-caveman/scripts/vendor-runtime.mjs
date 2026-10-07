@@ -14,7 +14,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const target = join(root, 'vendor', 'caveman');
 const pin = JSON.parse(readFileSync(join(root, 'UPSTREAM.json'), 'utf8')).commit;
 const ROOTS = ['packages/pi-extension/src', 'packages/pi-extension/tests', 'packages/cli/src/provider-routing.ts', 'packages/cli/src/portable-command.ts', 'packages/cli/tests/harness/stub-agent.mjs'];
-const EXTRA = ['packages/pi-extension/NOTICE', 'packages/pi-extension/LICENSE', 'packages/pi-extension/README.md'];
+const EXTRA = ['packages/pi-extension/tsconfig.json', 'packages/pi-extension/NOTICE', 'packages/pi-extension/LICENSE', 'packages/pi-extension/README.md'];
 
 function banner(path) {
   return `// Vendored from JuliusBrussee/caveman ${pin} ${path} (Apache-2.0) by scripts/vendor-runtime.mjs. Do not edit.\n`;

@@ -195,8 +195,8 @@ try {
   if (proxy && proxy.exitCode === null && proxy.signalCode === null) proxy.kill('SIGKILL');
   try {
     process.kill(JSON.parse(readFileSync(join(cavemanHome, 'run', `${proxyPort}.json`), 'utf8')).pid, 'SIGKILL');
-  } catch {
-    // No revived proxy is left to stop.
+  } catch (error) {
+    if (error.code !== 'ENOENT' && error.code !== 'ESRCH') throw error;
   }
   provider.close();
   rmSync(work, { recursive: true, force: true });
