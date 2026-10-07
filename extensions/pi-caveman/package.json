@@ -42,7 +42,8 @@
     "sync:upstream": "node scripts/sync-upstream.mjs",
     "vendor": "node scripts/vendor-runtime.mjs",
     "check:vendor": "node scripts/vendor-runtime.mjs --check",
-    "test:runtime": "node scripts/test-runtime.mjs"
+    "test:runtime": "node scripts/test-runtime.mjs",
+    "e2e:real": "node scripts/e2e-real.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
