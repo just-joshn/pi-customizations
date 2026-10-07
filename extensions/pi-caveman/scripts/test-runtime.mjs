@@ -3,7 +3,8 @@
 // building dist/ the way upstream's scripts/bundle.mjs does and linking this
 // package's pinned Pi install where the suite expects node_modules.
 import { spawnSync } from 'node:child_process';
-import { existsSync, rmSync, symlinkSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -13,6 +14,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = join(root, 'vendor', 'caveman', 'packages', 'pi-extension');
 const common = { bundle: true, format: 'esm', platform: 'node', target: 'node22', external: ['@earendil-works/*', 'typebox'], logLevel: 'error' };
 
+const generated = admitHostSdk();
 await build({ entryPoints: [join(pkg, 'src', 'index.ts')], outfile: join(pkg, 'dist', 'index.mjs'), ...common });
 await build({ entryPoints: [join(pkg, 'src', 'testable.ts')], outfile: join(pkg, 'dist', 'testable.mjs'), ...common });
 
@@ -23,4 +25,56 @@ const suites = ['protocol', 'provider', 'provider-compat', 'recovery', 'portable
 const run = spawnSync(process.execPath, ['--test', '--test-force-exit', ...suites], { cwd: pkg, stdio: 'inherit' });
 rmSync(join(pkg, 'dist'), { recursive: true, force: true });
 rmSync(link, { force: true });
+for (const [file, original] of generated) writeFileSync(file, original);
 process.exit(run.status ?? 1);
+
+// Upstream's compat suite asserts the exact pi-ai version it reviewed. A newer host
+// SDK is admitted only when its dist differs from that pin in exactly the files
+// recorded in sdk-review.json and every routed provider keeps its catalog hosts.
+function admitHostSdk() {
+  const compat = join(pkg, 'tests', 'provider-compat.runtime.mjs');
+  const source = readFileSync(compat, 'utf8');
+  const pinned = /\.version, "([^"]+)", "Review compat detection/.exec(source)?.[1];
+  const hostDir = join(root, 'node_modules', '@earendil-works', 'pi-ai');
+  const host = JSON.parse(readFileSync(join(hostDir, 'package.json'), 'utf8')).version;
+  if (!pinned) throw new Error('upstream compat suite no longer names its reviewed pi-ai version');
+  if (host === pinned) return [];
+  const review = JSON.parse(readFileSync(join(root, 'scripts', 'sdk-review.json'), 'utf8'));
+  if (review.upstreamPin !== pinned || review.host !== host) {
+    throw new Error(`pi-ai ${host} differs from upstream's reviewed ${pinned}; review it and update scripts/sdk-review.json`);
+  }
+  const scratch = mkdtempSync(join(tmpdir(), 'caveman-sdk-'));
+  try {
+    const pack = spawnSync('npm', ['pack', `@earendil-works/pi-ai@${pinned}`, '--pack-destination', scratch], { encoding: 'utf8' });
+    if (pack.status !== 0) throw new Error(`npm pack pi-ai@${pinned} failed: ${pack.stderr}`);
+    spawnSync('tar', ['xzf', join(scratch, pack.stdout.trim().split('\n').pop()), '-C', scratch]);
+    const pinnedDist = join(scratch, 'package', 'dist');
+    const hostDist = join(hostDir, 'dist');
+    const changed = [...new Set([...listFiles(pinnedDist), ...listFiles(hostDist)])]
+      .filter((file) => !file.endsWith('.map'))
+      .filter((file) => !existsSync(join(pinnedDist, file)) || !existsSync(join(hostDist, file)) || !readFileSync(join(pinnedDist, file)).equals(readFileSync(join(hostDist, file))))
+      .sort();
+    const expected = [...review.changedFiles].sort();
+    if (JSON.stringify(changed) !== JSON.stringify(expected)) {
+      throw new Error(`pi-ai ${pinned} -> ${host} changed files differ from the review:\n${changed.join('\n')}`);
+    }
+    for (const provider of ['anthropic', 'openai', 'google', 'opencode-go']) {
+      const hosts = (dist) => {
+        const file = join(dist, 'providers', 'data', `${provider}.json`);
+        return existsSync(file) ? [...new Set([...readFileSync(file, 'utf8').matchAll(/"baseUrl":"([^"]+)"/g)].map((m) => new URL(m[1]).host))].sort().join() : '';
+      };
+      if (hosts(pinnedDist) !== hosts(hostDist)) throw new Error(`pi-ai ${host} moved ${provider} to another host`);
+    }
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
+  writeFileSync(compat, source.replace(`.version, "${pinned}", "Review compat detection`, `.version, "${host}", "Review compat detection`));
+  return [[compat, source]];
+}
+
+function listFiles(dir, prefix = '') {
+  return readdirSync(dir).flatMap((name) => {
+    const rel = prefix ? `${prefix}/${name}` : name;
+    return statSync(join(dir, name)).isDirectory() ? listFiles(join(dir, name), rel) : [rel];
+  });
+}

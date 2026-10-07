@@ -22,6 +22,13 @@ const OWNERS = new Set(['extension', 'skill', 'prompt', 'pi-session', 'external-
 const BEHAVIOR_KEYS = ['preconditions', 'inputs', 'observableOutputs', 'sideEffects', 'persistence', 'failureBehavior', 'safetyBehavior'];
 const VERIFICATION_KEYS = ['positiveCases', 'negativeCases', 'edgeCases'];
 
+for (const [name, version] of Object.entries(ledger.host?.packages ?? {})) {
+  const manifest = join(root, 'node_modules', name, 'package.json');
+  const installed = existsSync(manifest) ? JSON.parse(readFileSync(manifest, 'utf8')).version : 'missing';
+  if (installed !== version) fail(`ledger host pins ${name} ${version}, installed ${installed}`);
+}
+if (!ledger.host?.pi) fail('ledger has no host Pi pin');
+
 const head = execFileSync('git', ['-C', checkout, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 if (head !== ledger.upstream.commit) fail(`checkout ${checkout} is at ${head}, ledger pins ${ledger.upstream.commit}`);
 

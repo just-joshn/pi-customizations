@@ -1313,7 +1313,8 @@
           "vendor/caveman/packages/pi-extension/tests/recovery.runtime.mjs::invalid or failed verification proofs keep original output",
           "vendor/caveman/packages/pi-extension/tests/integration.runtime.mjs::fresh tool-output handles recover exactly; caveman_retrieve output is never shrunk",
           "scripts/e2e-real.mjs::recovered bytes equal the unshrunk direct tool output",
-          "scripts/e2e-real.mjs::caveman_retrieve output is the original and is not re-shrunk"
+          "scripts/e2e-real.mjs::caveman_retrieve output is the original and is not re-shrunk",
+          "scripts/e2e-real.mjs::caveman_retrieve returns the MCP tool output byte for byte"
         ],
         "oracle": "Byte compare against the same tool output taken directly.",
         "positiveCases": ["fresh handle"],
@@ -1339,7 +1340,12 @@
         "sideEffects": [],
         "persistence": [],
         "failureBehavior": [],
-        "safetyBehavior": ["only text blocks replaced; images kept", "over-cap output skipped, never truncated", "replacement only after handle verifies"]
+        "safetyBehavior": [
+          "only text blocks replaced; images kept",
+          "over-cap output skipped, never truncated",
+          "replacement only after handle verifies",
+          "Pi drops a structuredContent the handler did not replace, so a shrunk result never carries the original structured payload"
+        ]
       },
       "piMapping": {
         "mechanisms": ["pi.on('tool_result')"],
@@ -1350,12 +1356,15 @@
         "tests": [
           "vendor/caveman/packages/pi-extension/tests/recovery.runtime.mjs::unavailable recovery and thrown failures leave tool results untouched",
           "scripts/e2e-real.mjs::large bash output reaches the model shrunk behind a ccr handle",
-          "scripts/e2e-real.mjs::a mismatched proxy identity leaves tool output untouched"
+          "scripts/e2e-real.mjs::a mismatched proxy identity leaves tool output untouched",
+          "scripts/e2e-real.mjs::parallel tool calls each shrink behind their own ccr handle",
+          "scripts/e2e-real.mjs::a shrunk bash result keeps no structuredContent that contradicts its text",
+          "scripts/e2e-real.mjs::an MCP tool result shrinks behind a ccr handle like a built-in tool"
         ],
         "oracle": "Real engine decision plus verification.",
-        "positiveCases": ["log output"],
+        "positiveCases": ["log output", "parallel bash calls", "Pi MCP server tool"],
         "negativeCases": ["proxy identity mismatch"],
-        "edgeCases": ["image blocks"]
+        "edgeCases": ["image blocks", "structuredContent dropped with replaced content (Pi runner contract)"]
       },
       "status": "verified",
       "residualRisk": "The pinned engine panics on a bare `seq` listing (engine/filewrap.go:35); that is an upstream defect outside the Pi package."
@@ -1806,7 +1815,7 @@
       "piMapping": {
         "mechanisms": [],
         "owner": "extension",
-        "rationale": "Pi shrinks through tool_result instead of an MCP proxy."
+        "rationale": "Pi shrinks through tool_result instead of an MCP proxy. Verified: a Pi MCP server tool result shrinks and recovers byte for byte through tool_result (e2e-real)."
       },
       "verification": {
         "tests": [],
@@ -1851,5 +1860,16 @@
       },
       "status": "verified"
     }
-  ]
+  ],
+  "host": {
+    "pi": "1.0.4",
+    "packages": {
+      "@earendil-works/pi-coding-agent": "1.0.4",
+      "@earendil-works/pi-ai": "1.0.4",
+      "@earendil-works/pi-tui": "1.0.4"
+    },
+    "upstreamRuntimeSdkPin": "pi-ai 1.0.2 (admitted at 1.0.4 via scripts/sdk-review.json)",
+    "node": "v24.21.0",
+    "platform": "darwin-arm64"
+  }
 }

@@ -6,7 +6,7 @@
 //   npm i --prefix /tmp/cavecli @caveman-ai/cli
 //   HOME=/tmp/cavehome/home CAVEMAN_HOME=/tmp/cavehome/caveman /tmp/cavecli/node_modules/.bin/caveman setup --install
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -44,6 +44,19 @@ const checkout = arg('--checkout') ?? '/tmp/caveman';
 const verbs = JSON.parse(readFileSync(join(checkout, 'agents/reserved-verbs.json'), 'utf8')).verbs.filter((verb) => !verb.startsWith('-'));
 // Upstream mounts some reserved verbs only under `caveman tools`, so a verb counts when either form runs.
 const VERB_PROBE = `probe() { perl -e 'alarm 20; exec @ARGV' caveman "$@" --help 2>&1 | grep -q 'unknown command'; }; for v in ${verbs.join(' ')}; do if probe "$v" && probe tools "$v"; then echo "MISSING $v"; else echo "REACHED $v"; fi; done`;
+const MCP_OUTPUT = Array.from({ length: 300 }, (_, i) => `shard ${i + 1}: sync GET /api/items status=200 latency_ms=${i + 1}`).join('\n');
+const MCP_FIXTURE = `import { createInterface } from 'node:readline';
+const output = ${JSON.stringify(MCP_OUTPUT)};
+const send = (message) => process.stdout.write(JSON.stringify({ jsonrpc: '2.0', ...message }) + '\\n');
+createInterface({ input: process.stdin }).on('line', (line) => {
+  const { id, method, params } = JSON.parse(line);
+  if (id === undefined) return;
+  if (method === 'initialize') send({ id, result: { protocolVersion: params.protocolVersion, capabilities: { tools: {} }, serverInfo: { name: 'fixture', version: '1.0.0' } } });
+  else if (method === 'tools/list') send({ id, result: { tools: [{ name: 'noisy', description: 'Print sync logs.', inputSchema: { type: 'object', properties: {} } }] } });
+  else if (method === 'tools/call') send({ id, result: { content: [{ type: 'text', text: output }] } });
+  else send({ id, result: {} });
+});
+`;
 const hits = [];
 const sse = (res, delta, finish) => {
   const chunk = (d, f, usage) => ({ id: 's', object: 'chat.completion.chunk', model: 'm', choices: [{ index: 0, delta: d, finish_reason: f }], ...usage });
@@ -51,10 +64,12 @@ const sse = (res, delta, finish) => {
   res.write(`data: ${JSON.stringify(chunk({}, finish, { usage: { prompt_tokens: 10, completion_tokens: 2, total_tokens: 12 } }))}\n\n`);
   res.end('data: [DONE]\n\n');
 };
-const toolCall = (name, args) => ({
+const toolCalls = (...calls) => ({
   role: 'assistant',
-  tool_calls: [{ index: 0, id: `call_${name}_${hits.length}`, type: 'function', function: { name, arguments: JSON.stringify(args) } }],
+  tool_calls: calls.map(([name, args], index) => ({ index, id: `call_${name}_${hits.length}_${index}`, type: 'function', function: { name, arguments: JSON.stringify(args) } })),
 });
+const toolCall = (name, args) => toolCalls([name, args]);
+const PARALLEL_COMMAND = TOOL_COMMAND.replace('worker', 'replica');
 const textOf = (message) => (typeof message?.content === 'string' ? message.content : JSON.stringify(message?.content ?? ''));
 
 function reply(messages, res) {
@@ -65,6 +80,8 @@ function reply(messages, res) {
     .join(' ');
   if (last?.role === 'user' && asked.includes('RUN_VERBS')) return sse(res, toolCall('bash', { command: VERB_PROBE }), 'tool_calls');
   if (last?.role === 'user' && asked.includes('RUN_TOOL')) return sse(res, toolCall('bash', { command: TOOL_COMMAND }), 'tool_calls');
+  if (last?.role === 'user' && asked.includes('RUN_PARALLEL')) return sse(res, toolCalls(['bash', { command: TOOL_COMMAND }], ['bash', { command: PARALLEL_COMMAND }]), 'tool_calls');
+  if (last?.role === 'user' && asked.includes('RUN_MCP')) return sse(res, toolCall('mcp__fixture__noisy', {}), 'tool_calls');
   const handle = last?.role === 'tool' ? /ccr_[A-Za-z0-9_]+/.exec(textOf(last))?.[0] : undefined;
   const retrieved = messages.some((m) => JSON.stringify(m.tool_calls ?? '').includes('caveman_retrieve'));
   if (handle && !retrieved) return sse(res, toolCall('caveman_retrieve', { recovery_handle: handle }), 'tool_calls');
@@ -140,9 +157,11 @@ const stopProxy = (signal) =>
     proxy.kill(signal);
   });
 
-function runPi(prompt, runEnv = env, discovered = false) {
-  const loaded = discovered ? [] : ['--extension', packageDir, '--no-extensions'];
-  const args = [piCli, '--extension', join(work, 'provider.mjs'), ...loaded, '--no-session', '--no-context-files'];
+// Pi 1.0.4 serves MCP from a built-in extension that --no-extensions also disables.
+function runPi(prompt, runEnv = env, discovered = false, sessionDir = undefined, mcp = false) {
+  const loaded = discovered ? [] : ['--extension', packageDir, ...(mcp ? [] : ['--no-extensions'])];
+  const session = sessionDir ? ['--session-dir', sessionDir] : ['--no-session'];
+  const args = [piCli, '--extension', join(work, 'provider.mjs'), ...loaded, ...session, '--no-context-files'];
   args.push('--provider', 'stub-relay', '--model', 'relay-model', '-p', prompt);
   return new Promise((done) => {
     const child = spawn(process.execPath, args, { cwd: work, env: runEnv, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -195,6 +214,37 @@ try {
   check(toolRun.stdout.includes('STUB_OK'), 'tool turn completes', `${toolRun.stderr}\n${proxyLog.slice(0, 600)}`);
   check(/full: ccr:\/\/ccr_[a-z0-9_]+/.test(shrunk) && shrunk.length < 1000, 'large bash output reaches the model shrunk behind a ccr handle', shrunk.slice(0, 200));
   check(!/ccr:\/\//.test(recovered) && recovered.length > 5000 && !recovered.includes('Showing lines'), 'caveman_retrieve output is the original and is not re-shrunk', recovered.slice(0, 200));
+
+  const sessionDir = join(work, 'sessions');
+  const parallel = await runPi('RUN_PARALLEL please', env, false, sessionDir);
+  const parallelShrunk = toolTexts(fresh()[1] ?? { messages: [] });
+  const parallelHandles = parallelShrunk.map((text) => /ccr_[a-z0-9_]+/.exec(text)?.[0]);
+  check(
+    parallel.code === 0 && parallelShrunk.length === 2 && parallelHandles.every(Boolean) && parallelHandles[0] !== parallelHandles[1],
+    'parallel tool calls each shrink behind their own ccr handle',
+    JSON.stringify(parallelShrunk.map((t) => t.slice(0, 120))),
+  );
+  const persisted = readdirSync(sessionDir)
+    .flatMap((name) => readFileSync(join(sessionDir, name), 'utf8').trim().split('\n'))
+    .map((line) => JSON.parse(line));
+  const results = persisted.filter((entry) => entry.message?.role === 'toolResult' && entry.message.toolName === 'bash');
+  check(
+    results.length >= 2 && results.slice(0, 2).every((entry) => entry.message.structuredContent === undefined && /ccr:\/\//.test(JSON.stringify(entry.message.content))),
+    'a shrunk bash result keeps no structuredContent that contradicts its text',
+    JSON.stringify(results.map((entry) => Object.keys(entry.message))),
+  );
+
+  const mcpConfig = join(home, '.pi', 'agent', 'mcp.json');
+  mkdirSync(dirname(mcpConfig), { recursive: true });
+  writeFileSync(join(work, 'mcp-fixture.mjs'), MCP_FIXTURE);
+  writeFileSync(mcpConfig, JSON.stringify({ mcpServers: { fixture: { command: process.execPath, args: [join(work, 'mcp-fixture.mjs')], exposure: 'direct' } } }));
+  const mcpRun = await runPi('RUN_MCP please', env, false, undefined, true);
+  const mcpTurns = fresh();
+  const mcpShrunk = toolTexts(mcpTurns[1] ?? { messages: [] })[0] ?? '';
+  const mcpRecovered = toolTexts(mcpTurns[2] ?? { messages: [] })[1] ?? '';
+  rmSync(mcpConfig);
+  check(mcpRun.code === 0 && /ccr:\/\/ccr_[a-z0-9_]+/.test(mcpShrunk) && mcpShrunk.length < 1000, 'an MCP tool result shrinks behind a ccr handle like a built-in tool', `${mcpShrunk.slice(0, 200)}\n${mcpRun.stderr.slice(-400)}`);
+  check(mcpRecovered === MCP_OUTPUT, 'caveman_retrieve returns the MCP tool output byte for byte', mcpRecovered.slice(0, 200));
 
   await stopProxy('SIGTERM');
   const direct = await runPi('RUN_TOOL please', withoutBinaries);
