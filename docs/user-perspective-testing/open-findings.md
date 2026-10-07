@@ -201,4 +201,6 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 
 **What was not.** The skinned render, where tui-skin's header, footer and chrome are drawn around pi-pstack's widgets in a real terminal, is the interaction a user would actually notice, and no scenario exercises it. It needs the tmux harness starting two packages at once, which none does. Every terminal drive loads one package plus its fixture, and every RPC drive loads one package plus its fixture.
 
+**How to rerun it.** `.pi/skills/verify-pi-customizations/scripts/probe-cross-extension.mjs` loads both pairs and writes `artifacts/baseline/cross-extension.txt`. Its output: the three subscription providers expose 31 models together without conflict, and pi-pstack with pi-tui-skin yields 150 commands with all ten of pstack's extension commands intact.
+
 **Why it is parked.** It is a harness capability rather than a package defect, and building it is a unit of its own rather than a late addition to this run.
