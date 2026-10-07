@@ -327,18 +327,19 @@ const JSON_SCHEMA_META_DECLARATIONS = new Set([
   'definitions', // pre-draft-2019-09 equivalent of $defs
 ]);
 
-/**
- * Strip meta-declarations from a schema obj
- */
+// Cloud Code's Schema rejects const and uniqueItems. Literals use enum on the wire;
+// uniqueness remains enforced by the original tool schema when Pi executes arguments.
 function sanitizeForOpenApi(schema: unknown): unknown {
-  if (typeof schema !== 'object' || schema === null || Array.isArray(schema)) {
-    return schema;
-  }
+  if (Array.isArray(schema)) return schema.map(sanitizeForOpenApi);
+  if (typeof schema !== 'object' || schema === null) return schema;
 
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(schema)) {
-    if (JSON_SCHEMA_META_DECLARATIONS.has(key)) continue;
-    result[key] = sanitizeForOpenApi(value);
+    if (JSON_SCHEMA_META_DECLARATIONS.has(key) || key === 'uniqueItems') continue;
+    if (key === 'const') result['enum'] = [value];
+    else if (key === 'properties' && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      result['properties'] = Object.fromEntries(Object.entries(value).map(([name, property]) => [name, sanitizeForOpenApi(property)]));
+    } else result[key] = sanitizeForOpenApi(value);
   }
   return result;
 }

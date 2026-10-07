@@ -72,7 +72,11 @@ Claim two, that Node will not strip types under `node_modules`, holds. A copy un
 
 ## F-012: the rubber-duck agent type cannot start on the Cloud Code Assist provider
 
-**Status.** open
+**Status.** fixed
+
+**Closure evidence.** The request-body regression lands before the fix in `169cbe6`. `extensions/pi-antigravity-oauth/src/pi-ai/google-shared.ts` now recurses through schema arrays, translates literal `const` constraints into `enum`, and omits `uniqueItems` from the provider's OpenAPI schema. The original tool schema is not changed, so Pi retains argument validation. Property names such as `const` and `uniqueItems` are preserved. All 303 package tests and typecheck pass.
+
+The real-Pi drive `scenarios/antigravity-tool-schema.mjs --baseline` loads the pre-fix converter in an isolated package and receives a local provider 400 on `const`, `const`, and `uniqueItems`. The same drive without the flag loads the fixed package and receives a successful response in one request. Both request payloads, RPC captures, and red/green logs are under `artifacts/user-perspective/f012-schema/`. This verifies the repository's provider adapter with a local endpoint enforcing the keywords rejected by the measured Cloud Code response. It does not claim a second live subscription-service request was made.
 
 **Found by** the caveman fix unit, which tried to use it twice for plan review and self-reviewed instead. **Now measured directly** by the coordinator, because the run's own rigor rules say an unseen cause is a guess.
 
@@ -86,7 +90,7 @@ Unknown name "uniqueItems" at 'request.tools[0].function_declarations[32].parame
 
 **What it means for a user.** `/rubber-duck` and the `rubber-duck` agent type do not work for anyone whose task goes through the Cloud Code Assist provider, which in this repository is `google-antigravity`. The failure is a 400 at request time, not a graceful degradation.
 
-**Cause.** The tool declarations carried into the child use JSON Schema keywords the provider's function-declaration parser does not accept, including `const`, `any_of` and `uniqueItems`. Whether the offending schemas come from the agent type's own tool list or from a tool the child inherits is not established.
+**Cause.** The provider adapter selected the legacy OpenAPI parameters field but its sanitizer returned arrays unchanged. Literal `const` constraints inside `anyOf` therefore survived. It also forwarded `uniqueItems`. The measured API error rejects those two keywords; `any_of` is a path in the error, not itself a reported unsupported keyword. The reproduction confirms this defect independently of the particular tool names in the original child.
 
 **Why it is parked.** It needs a fix in whichever layer builds the child's tool declarations, with a test that reproduces the 400 or asserts the schema shape, and that is a unit of its own. It is the clearest example of why the 172 discovery-scope verifications in `F-016` are worth reading carefully: this surface would have looked registered and healthy from a listing.
 
