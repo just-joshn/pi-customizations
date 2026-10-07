@@ -47,6 +47,20 @@ function bounded(stdout: string): string {
   return `${stdout.slice(0, MAX_OUTPUT)}\n[truncated at ${MAX_OUTPUT} chars; run \`s50 explain\` for the decision log]\n`;
 }
 
+// The CLI and /s50 are typed by the human; the tool is called by the model, so human-only commands need a live confirmation.
+const HUMAN_ONLY = new Set(['confirm_understanding', 'confirm_seams', 'grant_authorization', 'complete_user_workflow']);
+
+function humanOnlyKind(argv: readonly string[]): string | null {
+  if (argv[0] !== 'apply') return null;
+  try {
+    const parsed: unknown = JSON.parse(argv[1] ?? '');
+    const kind = typeof parsed === 'object' && parsed !== null && 'kind' in parsed ? parsed.kind : null;
+    return typeof kind === 'string' && HUMAN_ONLY.has(kind) ? kind : null;
+  } catch {
+    return null;
+  }
+}
+
 const NOTIFY_LEVEL = { 0: 'info', 1: 'error', 2: 'warning' } as const;
 
 export default function s50(pi: Host) {
@@ -70,6 +84,12 @@ export default function s50(pi: Host) {
     // registry refresh fetches skills.sh, so the tool reaches the open web.
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     execute: async (_toolCallId, params, _signal, _onUpdate, ctx) => {
+      const human = humanOnlyKind(params.argv);
+      if (human !== null) {
+        if (!ctx.hasUI) throw new Error(`${human} needs the user; ask them to run /s50 ${params.argv.join(' ')}`);
+        const confirmed = await ctx.ui.confirm(`S50: ${human}`, params.argv[1] ?? '');
+        if (!confirmed) throw new Error(`user declined ${human}`);
+      }
       const result = await runCli(withInstalled(pi, params.argv), defaultContext(ctx.cwd));
       if (result.code === 1) throw new Error(result.stdout);
       return { content: [{ type: 'text', text: bounded(result.stdout) }], details: { code: result.code } };

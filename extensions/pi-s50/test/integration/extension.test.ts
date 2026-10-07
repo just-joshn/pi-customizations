@@ -57,3 +57,28 @@ test('the s50 skill frontmatter names s50 with a Use when trigger', async () => 
   expect(/^description: (.+)$/m.exec(frontmatter)?.[1]).toContain('Use when');
   expect(body.split('\n').length).toBeLessThanOrEqual(80);
 });
+
+const CONFIRM_SEAMS = ['apply', '{"kind":"confirm_seams","ids":["csv"]}'];
+
+async function loadTool(onTestFinished: (fn: () => Promise<void>) => void) {
+  const { extensions } = await loadPackage(onTestFinished);
+  const tool = extensions[0]?.tools.get('s50')?.definition;
+  if (tool === undefined) throw new Error('s50 tool not registered');
+  return tool;
+}
+
+test('the model cannot confirm seams without a UI', async ({ onTestFinished }) => {
+  const tool = await loadTool(onTestFinished);
+  const ctx = { cwd: tmpdir(), hasUI: false } satisfies Pick<ExtensionToolContext, 'cwd' | 'hasUI'>;
+  // The guard runs before any context field other than cwd, hasUI, and ui is read.
+  await expect(tool.execute('call-2', { argv: CONFIRM_SEAMS }, undefined, undefined, ctx as ExtensionToolContext)).rejects.toThrow(`confirm_seams needs the user; ask them to run /s50 ${CONFIRM_SEAMS.join(' ')}`);
+});
+
+test('a declined confirmation blocks the human-only command', async ({ onTestFinished }) => {
+  const tool = await loadTool(onTestFinished);
+  const prompts: string[] = [];
+  const ui = { confirm: async (title: string) => (prompts.push(title), false) };
+  const ctx = { cwd: tmpdir(), hasUI: true, ui };
+  await expect(tool.execute('call-3', { argv: CONFIRM_SEAMS }, undefined, undefined, ctx as unknown as ExtensionToolContext)).rejects.toThrow('user declined confirm_seams');
+  expect(prompts).toStrictEqual(['S50: confirm_seams']);
+});

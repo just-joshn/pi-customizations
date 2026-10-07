@@ -18,7 +18,7 @@ The `s50` tool (and `/s50` command) is the only writer of `.s50/` state. Same ar
    - `human_gate`: see Gates. `done`: report PR-ready revision and stop.
 4. Repeat from step 2.
 
-Never edit `.s50/` files by hand. Never invent state the coordinator rejected: exit code 2 means rejected or blocked; read the reason.
+Human-only commands (`confirm_understanding`, `confirm_seams`, `grant_authorization`, `complete_user_workflow`) open a confirmation dialog when the tool applies them; without a UI the tool refuses and the user must type `/s50 apply ...`. Never edit `.s50/` files by hand. Never invent state the coordinator rejected: exit code 2 means rejected or blocked; read the reason.
 
 ## Gates
 
