@@ -5,4 +5,4 @@
 - `s50 registry show`: prints the snapshot time, then each locked skill with rank, source, invocation policy, and commit.
 - `s50 registry verify`: checks every locked skill ranks 50 or better and matches its leaderboard entry.
 
-When a required skill is missing from the top 50 or its source does not match the leaderboard, the refresh writes a rejected lock and exits 2, and no new run starts until a refresh succeeds. An optional skill that drops out is left out of the new lock. An active run keeps the snapshot it started with.
+When a required skill has no top-50 entry from its pinned source, the refresh writes a rejected lock and exits 2, and no new run starts until a refresh succeeds. An optional skill that drops out or fails to resolve is left out of the new lock. An active run keeps the snapshot it started with.

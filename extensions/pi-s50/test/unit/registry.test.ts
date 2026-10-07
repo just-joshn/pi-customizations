@@ -152,13 +152,13 @@ describe('skills.sh HTML parsing', () => {
 });
 
 describe('frontmatter follows YAML', () => {
-  test.fails.for(['disable-model-invocation: True', 'disable-model-invocation: true # user only', 'disable-model-invocation : true'])('%s marks the skill user-only', (line) => {
+  test.for(['disable-model-invocation: True', 'disable-model-invocation: true # user only', 'disable-model-invocation : true'])('%s marks the skill user-only', (line) => {
     expect(parseFrontmatter(`---\nname: triage\n${line}\n---\nbody\n`)).toEqual({ kind: 'ok', value: { name: 'triage', invocationPolicy: 'user' } });
   });
 });
 
 describe('eligibility matches the skill with its source', () => {
-  test.fails('a fork with the same skill id ranked higher does not reject the lock', () => {
+  test('a fork with the same skill id ranked higher does not reject the lock', () => {
     const fork = { rank: 1, source: 'someone/fork', skillId: 'tdd', installs: 9_999_999 };
     const leaderboard = [fork, ...loadLeaderboard().map((entry) => (entry.rank === 50 ? { ...entry, rank: 51 } : entry))];
     const { lock } = buildLock({ leaderboard, sources: loadSources(), snapshotTime: 't', source: 's' });
@@ -167,7 +167,7 @@ describe('eligibility matches the skill with its source', () => {
 });
 
 describe('the lock source is redacted', () => {
-  test.fails('a credential in the leaderboard source never reaches the lock', () => {
+  test('a credential in the leaderboard source never reaches the lock', () => {
     const secret = ['https://user', 'hunter2@skills.sh/'].join(':');
     const { lock } = buildLock({ leaderboard: loadLeaderboard(), sources: loadSources(), snapshotTime: 't', source: secret });
     expect(JSON.stringify(lock)).not.toContain('hunter2');

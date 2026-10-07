@@ -1,4 +1,5 @@
 import type { InvocationPolicy, LeaderboardEntry, LockedSkill, RegistryLock } from '../domain/registry.ts';
+import { redact } from '../evidence/verification.ts';
 import type { PinnedSource } from './validate.ts';
 
 export const REQUIRED_SKILLS = [
@@ -55,19 +56,19 @@ function locked(name: string, entry: LeaderboardEntry, pin: PinnedSource): Locke
 export function buildLock(input: LockInput): LockResult {
   const top = input.leaderboard.filter((entry) => entry.rank <= CUTOFF).toSorted((a, b) => a.rank - b.rank);
   const eligible = (name: string): LockedSkill | null => {
-    const entry = top.find((candidate) => candidate.skillId === name);
     const pin = input.sources[name];
-    return entry === undefined || pin === undefined || pin.repository !== entry.source ? null : locked(name, entry, pin);
+    const entry = top.find((candidate) => candidate.skillId === name && candidate.source === pin?.repository);
+    return entry === undefined || pin === undefined ? null : locked(name, entry, pin);
   };
   const ineligible = REQUIRED_SKILLS.filter((name) => eligible(name) === null);
-  if (top.length < CUTOFF) return { lock: { kind: 'rejected', checkedAt: input.snapshotTime, source: input.source, ineligible: [`leaderboard has ${top.length} entries, fewer than ${CUTOFF}`] }, dropped: [] };
-  if (ineligible.length > 0) return { lock: { kind: 'rejected', checkedAt: input.snapshotTime, source: input.source, ineligible }, dropped: [] };
+  if (top.length < CUTOFF) return { lock: { kind: 'rejected', checkedAt: input.snapshotTime, source: redact(input.source), ineligible: [`leaderboard has ${top.length} entries, fewer than ${CUTOFF}`] }, dropped: [] };
+  if (ineligible.length > 0) return { lock: { kind: 'rejected', checkedAt: input.snapshotTime, source: redact(input.source), ineligible }, dropped: [] };
   const skills = S50_SKILLS.map(eligible).filter((skill) => skill !== null);
   const dropped = OPTIONAL_SKILLS.filter((name) => eligible(name) === null);
   return {
     lock: {
       kind: 'approved',
-      snapshot: { schemaVersion: 1, snapshotTime: input.snapshotTime, source: input.source, view: 'all-time', rankingBasis: 'install_telemetry', cutoff: CUTOFF, leaderboard: top, skills },
+      snapshot: { schemaVersion: 1, snapshotTime: input.snapshotTime, source: redact(input.source), view: 'all-time', rankingBasis: 'install_telemetry', cutoff: CUTOFF, leaderboard: top, skills },
     },
     dropped,
   };

@@ -16,14 +16,14 @@ A live refresh does four things in order:
 
 1. It reads `https://skills.sh/docs/faq` and fails unless the page still says the leaderboard comes from anonymous telemetry of installation counts.
 2. It parses the all-time leaderboard embedded in `https://skills.sh/`.
-3. For each skill, it reads the repository's current `HEAD` with `git ls-remote`, fetches `SKILL.md` at that commit, checks that its `name` matches, takes the invocation policy from `disable-model-invocation`, and records the sha256 of the file.
+3. For each skill, it reads the repository's current `HEAD` with `git ls-remote`, fetches `SKILL.md` at that commit, checks that its `name` matches, takes the invocation policy from `disable-model-invocation` read as a YAML boolean (`true`, `True`, or `TRUE`, with spacing and a trailing comment allowed), and records the sha256 of the file.
 4. It writes the lock with the timestamp, the source URL, and the top 50 entries with rank and install count.
 
 ## Required and optional skills
 
 S50 requires the 13 skills it routes to or gates on: `grilling`, `domain-modeling`, `codebase-design`, `prototype`, `tdd`, `diagnosing-bugs`, `frontend-design`, `vercel-react-best-practices`, `web-design-guidelines`, `agent-browser`, `triage`, `improve-codebase-architecture`, and `setup-matt-pocock-skills`. It also locks 5 optional skills it knows about but never routes to: `find-skills`, `grill-me`, `grill-with-docs`, `handoff`, and `teach`.
 
-A refresh fails closed. When a required skill is outside the top 50, has no pinned source, or its pinned repository differs from the leaderboard's source, or when the leaderboard has fewer than 50 entries, it writes a rejected lock, exits 2, and no new run starts until a refresh succeeds. An optional skill outside the top 50 is left out of the new lock. A network or parse failure writes nothing and exits 1.
+A refresh fails closed. When a required skill has no top-50 entry from its pinned repository (a same-named skill from another source does not count), or has no pinned source, or when the leaderboard has fewer than 50 entries, it writes a rejected lock, exits 2, and no new run starts until a refresh succeeds. An optional skill outside the top 50, or one whose `SKILL.md` fails to resolve, is left out of the new lock. A network or parse failure on the leaderboard or a required skill writes nothing and exits 1. The leaderboard source is redacted before it is stored.
 
 ## Snapshots and runs
 

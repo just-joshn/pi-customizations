@@ -22,7 +22,7 @@ import { capabilities as capabilitiesDecoder, command as commandDecoder } from '
 import { describeAction, renderStatus } from '../orchestrator/status.ts';
 import { prReadyBlockers, requiredEvidence } from '../policy/completion.ts';
 import { confirmRankingBasis, fetchLeaderboard, resolveSource, SKILLS_SH_URL } from '../registry/fetch.ts';
-import { buildLock, S50_SKILLS } from '../registry/lock.ts';
+import { buildLock, OPTIONAL_SKILLS, S50_SKILLS } from '../registry/lock.ts';
 import { type PinnedSource, parseLeaderboardFile, parseSources, verifySnapshot } from '../registry/validate.ts';
 import { canRunConcurrently } from '../scheduler/ownership.ts';
 
@@ -252,6 +252,9 @@ function describeLock(lock: RegistryLock): string {
   return `snapshot ${lock.snapshot.snapshotTime} from ${lock.snapshot.source}\n${rows.join('\n')}\n`;
 }
 
+// An optional skill that fails to resolve is dropped like one that left the top 50; only a required skill aborts the refresh.
+const OPTIONAL: ReadonlySet<string> = new Set(OPTIONAL_SKILLS);
+
 async function liveSources(context: CliContext, pins: Readonly<Record<string, PinnedSource>>): Promise<Readonly<Record<string, PinnedSource>> | string> {
   const heads = new Map<string, Promise<string>>();
   const head = (repository: string): Promise<string> => {
@@ -263,9 +266,9 @@ async function liveSources(context: CliContext, pins: Readonly<Record<string, Pi
   for (const name of S50_SKILLS) {
     const pin = pins[name];
     if (pin === undefined) continue;
-    const source = await resolveSource(name, pin, { fetchText: context.fetchText, head });
-    if (source.kind === 'invalid') return source.reason;
-    resolved[name] = source.value;
+    const source = await resolveSource(name, pin, { fetchText: context.fetchText, head }).catch((cause: unknown) => ({ kind: 'invalid' as const, reason: `${name}: ${String(cause)}` }));
+    if (source.kind === 'ok') resolved[name] = source.value;
+    else if (!OPTIONAL.has(name)) return source.reason;
   }
   return resolved;
 }

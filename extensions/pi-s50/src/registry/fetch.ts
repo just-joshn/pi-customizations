@@ -60,12 +60,16 @@ export async function confirmRankingBasis(fetchText: FetchText): Promise<Decoded
 
 export type Frontmatter = { readonly name: string; readonly invocationPolicy: InvocationPolicy };
 
+// YAML 1.2 core booleans, as Pi's frontmatter parser reads them.
+const YAML_TRUE: ReadonlySet<string> = new Set(['true', 'True', 'TRUE']);
+
 export function parseFrontmatter(body: string): Decoded<Frontmatter> {
   const block = /^---\r?\n([\s\S]*?)\r?\n---/.exec(body)?.[1];
   if (block === undefined) return { kind: 'invalid', reason: 'SKILL.md has no frontmatter' };
   const name = /^name:\s*["']?([^"'\r\n]+?)["']?\s*$/m.exec(block)?.[1];
   if (name === undefined) return { kind: 'invalid', reason: 'SKILL.md frontmatter has no name' };
-  return { kind: 'ok', value: { name, invocationPolicy: /^disable-model-invocation:\s*true\s*$/m.test(block) ? 'user' : 'model' } };
+  const flag = /^disable-model-invocation\s*:\s*([^#\r\n]*)/m.exec(block)?.[1]?.trim();
+  return { kind: 'ok', value: { name, invocationPolicy: flag !== undefined && YAML_TRUE.has(flag) ? 'user' : 'model' } };
 }
 
 export type Locator = { readonly repository: string; readonly path: string };
