@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import { captureFrame, capturePane, cleanup, pause, piBinary, requireTmux, runAction, startSession } from '../../../../extensions/pi-tui-skin/scripts/lib/tmux-driver.mjs';
+import { runCompositeClosure } from './lib/pi-tui-skin-composite-closure.mjs';
 import { saveCapture, waitForCapture } from './lib/tui-probe.mjs';
 
 const ESC = '\u001b';
@@ -160,12 +161,13 @@ function writeHeaderReceipt(receipts, captures) {
   });
 }
 
-function writeFooterReceipt(receipts, captures, rawDir) {
+function writeFooterReceipt(receipts, captures, rawDir, composite) {
+  const full = composite.result('TS-UI-3');
   receipts.assertVerdict({
     surfaceId: 'TS-UI-3',
     package: 'extensions/pi-tui-skin',
-    expected: 'the footer renders a thinking-level row, a model row, and a location row',
-    observed: `idle model row ${JSON.stringify(findRow(captures.idle, /^ {2}Reference UI Scripted/))}; idle location row ${JSON.stringify(findRow(captures.idle, /^ {2}(\/|~)/))}; cycled mode row ${JSON.stringify(lines(captures.thinking).find((line) => line.includes('shift+tab to cycle')))}; non-git location row ${JSON.stringify(findRow(captures.nonGit, /^ {2}(\/|~)/))}`,
+    expected: 'Thinking-level row, model + context percentage row, location row',
+    observed: `idle model row ${JSON.stringify(findRow(captures.idle, /^ {2}Reference UI Scripted/))}; idle location row ${JSON.stringify(findRow(captures.idle, /^ {2}(\/|~)/))}; cycled mode row ${JSON.stringify(lines(captures.thinking).find((line) => line.includes('shift+tab to cycle')))}; non-git location row ${JSON.stringify(findRow(captures.nonGit, /^ {2}(\/|~)/))}; whole-row composite observation: ${full.detail}`,
     evidence: rawDir,
     check: () => {
       assert.equal(findRow(captures.idle, /^ {2}Reference UI Scripted/), `  ${FOOTER_MODEL}`);
@@ -174,17 +176,19 @@ function writeFooterReceipt(receipts, captures, rawDir) {
       const nonGit = findRow(captures.nonGit, /^ {2}(\/|~)/);
       assert.ok(!nonGit.includes('smoke-main'), `non-git location row kept a branch: ${JSON.stringify(nonGit)}`);
       assert.match(nonGit, /pi-tui-skin-ws-/, `non-git location row lost the workspace: ${JSON.stringify(nonGit)}`);
+      assert.ok(full.ok, full.detail);
     },
   });
 }
 
-function writeComposerReceipt(receipts, captures, rawDir) {
+function writeComposerReceipt(receipts, captures, rawDir, composite) {
+  const full = composite.result('TS-UI-4');
   const idle = lines(captures.idle);
   receipts.assertVerdict({
     surfaceId: 'TS-UI-4',
     package: 'extensions/pi-tui-skin',
-    expected: 'the composer renders as a filled band that keeps the prompt glyph and the typed text',
-    observed: `idle placeholder row ${JSON.stringify(idle.find((line) => line.includes(PLACEHOLDER)))}; typed row ${JSON.stringify(lines(captures.typed).find((line) => line.includes('hello world')))}; 24x8 row ${JSON.stringify(lines(captures.tiny).find((line) => line.includes('→ Plan')))}; 200x60 row ${JSON.stringify(lines(captures.wide).find((line) => line.includes(PLACEHOLDER)))}; NO_COLOR keeps ${JSON.stringify(lines(captures.noColor).find((line) => line.includes(PLACEHOLDER)))}`,
+    expected: 'Custom prompt editor with a working-animation band',
+    observed: `idle placeholder row ${JSON.stringify(idle.find((line) => line.includes(PLACEHOLDER)))}; typed row ${JSON.stringify(lines(captures.typed).find((line) => line.includes('hello world')))}; 24x8 row ${JSON.stringify(lines(captures.tiny).find((line) => line.includes('→ Plan')))}; 200x60 row ${JSON.stringify(lines(captures.wide).find((line) => line.includes(PLACEHOLDER)))}; NO_COLOR keeps ${JSON.stringify(lines(captures.noColor).find((line) => line.includes(PLACEHOLDER)))}; whole-row composite observation: ${full.detail}`,
     evidence: rawDir,
     check: () => {
       assert.ok(idle.some((line) => line.includes(PLACEHOLDER)));
@@ -206,6 +210,7 @@ function writeComposerReceipt(receipts, captures, rawDir) {
       );
       const noColor = readFileSync(captures.noColor, 'utf8');
       assert.ok(noColor.includes(PLACEHOLDER), 'NO_COLOR dropped the placeholder');
+      assert.ok(full.ok, full.detail);
     },
   });
 }
@@ -251,7 +256,7 @@ function writeInstallReceipts(receipts, captures, rawDir) {
 }
 
 export default async function piTuiSkinChrome(context) {
-  const { rawDir, receipts, log } = context;
+  const { rawDir, receipts, log, repoRoot } = context;
   requireTmux();
   piBinary();
   const captures = {};
@@ -263,10 +268,11 @@ export default async function piTuiSkinChrome(context) {
   } finally {
     cleanup();
   }
+  const composite = runCompositeClosure({ repoRoot, rawDir });
   writeThemeReceipt(receipts, captures, rawDir);
   writeHeaderReceipt(receipts, captures);
-  writeFooterReceipt(receipts, captures, rawDir);
-  writeComposerReceipt(receipts, captures, rawDir);
+  writeFooterReceipt(receipts, captures, rawDir, composite);
+  writeComposerReceipt(receipts, captures, rawDir, composite);
   writeInstallReceipts(receipts, captures, rawDir);
   log(`✓ ${receipts.receipts().length} chrome receipts written`);
 }

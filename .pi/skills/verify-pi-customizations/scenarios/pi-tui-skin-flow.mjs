@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import { captureFrame, capturePane, cleanup, piBinary, requireTmux, runAction, startSession } from '../../../../extensions/pi-tui-skin/scripts/lib/tmux-driver.mjs';
+import { runCompositeClosure } from './lib/pi-tui-skin-composite-closure.mjs';
 import { saveCapture, waitForCapture } from './lib/tui-probe.mjs';
 
 const PACKAGE = 'extensions/pi-tui-skin';
@@ -165,23 +166,25 @@ function writeWorkingIndicatorReceipt(receipts, captures) {
   });
 }
 
-function writeAgentLifecycleReceipts(receipts, captures) {
+function writeAgentLifecycleReceipts(receipts, captures, composite, rawDir) {
+  const full = composite.result('TS-EVT-3');
   receipts.assertVerdict({
     surfaceId: 'TS-EVT-3',
     package: PACKAGE,
-    expected: 'agent_start marks the agent running so the frame shows a live turn',
+    expected: 'Marks agent running for the activity widget',
     observed: `streaming frame has ${JSON.stringify(
       read(captures.streaming)
         .split('\n')
         .find((line) => line.includes('esc to stop'))
         .trim(),
-    )} and band ${JSON.stringify(bandRow(captures.streaming).trim())}`,
-    evidence: captures.streaming,
+    )} and band ${JSON.stringify(bandRow(captures.streaming).trim())}; whole-row composite observation: ${full.detail}`,
+    evidence: rawDir,
     check: () => {
       const streaming = read(captures.streaming);
       assert.ok(streaming.includes('esc to stop'), 'streaming frame has no interrupt hint');
       assert.ok(streaming.includes('SLOW '), 'streaming frame has no partial reply');
       assert.match(bandRow(captures.streaming), /Working/, 'streaming frame does not show the running state');
+      assert.ok(full.ok, full.detail);
     },
   });
   receipts.assertVerdict({
@@ -230,29 +233,32 @@ function writeToolHookReceipts(receipts, captures) {
   });
 }
 
-function writeShutdownReceipts(receipts, captures) {
+function writeShutdownReceipts(receipts, captures, composite, rawDir) {
+  const full = composite.result('TS-EVT-7');
   receipts.assertVerdict({
     surfaceId: 'TS-EVT-7',
     package: PACKAGE,
-    expected: 'a thinking-level change repaints the footer with the mode row',
+    expected: 'Repaints footer',
     observed: `pre-change frame has mode row: ${read(captures.idle).includes('(shift+tab to cycle)')}; cycled row ${JSON.stringify(
       read(captures.thinking)
         .split('\n')
         .find((line) => line.includes('(shift+tab to cycle)'))
         .trim(),
-    )}`,
-    evidence: captures.thinking,
+    )}; whole-row composite observation: ${full.detail}`,
+    evidence: rawDir,
     check: () => {
       assert.ok(!read(captures.idle).includes('(shift+tab to cycle)'), 'mode row was already visible before the change');
       const cycled = read(captures.thinking);
       assert.match(cycled.split('\n').find((line) => line.includes('(shift+tab to cycle)')) ?? '', /^ {2}\S.* \(shift\+tab to cycle\)$/);
       assert.ok(cycled.includes(FOOTER_MODEL), 'footer model row disappeared after the change');
+      assert.ok(full.ok, full.detail);
     },
   });
+  const fullCleanup = composite.result('TS-EVT-2');
   receipts.assertVerdict({
     surfaceId: 'TS-EVT-2',
     package: PACKAGE,
-    expected: 'session_shutdown uninstalls every surface idempotently with a clean exit',
+    expected: 'Uninstalls every surface idempotently',
     observed: `reload header count ${
       read(captures.reloaded)
         .split('\n')
@@ -261,8 +267,8 @@ function writeShutdownReceipts(receipts, captures) {
       read(captures.quit)
         .split('\n')
         .filter((line) => line.includes('PI-EXITED-')),
-    )}`,
-    evidence: captures.quit,
+    )}; whole-row composite observation: ${fullCleanup.detail}`,
+    evidence: rawDir,
     check: () => {
       const reloaded = read(captures.reloaded);
       assert.equal(reloaded.split('\n').filter((line) => line.includes('Pi Coding Agent')).length, 1, 'reload left a duplicate header');
@@ -271,12 +277,13 @@ function writeShutdownReceipts(receipts, captures) {
       for (const marker of ['presentation cleanup failed', 'TypeError', 'ReferenceError', 'Unhandled', '    at ']) {
         assert.ok(!quit.includes(marker), `quit output contains ${JSON.stringify(marker)}`);
       }
+      assert.ok(fullCleanup.ok, fullCleanup.detail);
     },
   });
 }
 
 export default async function piTuiSkinFlow(context) {
-  const { rawDir, receipts, log } = context;
+  const { rawDir, receipts, log, repoRoot } = context;
   requireTmux();
   piBinary();
   const captures = {};
@@ -293,12 +300,13 @@ export default async function piTuiSkinFlow(context) {
   } finally {
     cleanup();
   }
+  const composite = runCompositeClosure({ repoRoot, rawDir });
   writeReadReceipt(receipts, captures);
   writeEditReceipt(receipts, captures);
   writeSimpleRowReceipts(receipts, captures, rawDir);
   writeWorkingIndicatorReceipt(receipts, captures);
-  writeAgentLifecycleReceipts(receipts, captures);
+  writeAgentLifecycleReceipts(receipts, captures, composite, rawDir);
   writeToolHookReceipts(receipts, captures);
-  writeShutdownReceipts(receipts, captures);
+  writeShutdownReceipts(receipts, captures, composite, rawDir);
   log(`✓ ${receipts.receipts().length} flow receipts written`);
 }
