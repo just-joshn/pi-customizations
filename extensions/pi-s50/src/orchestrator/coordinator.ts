@@ -170,6 +170,7 @@ function holdReady(outcome: Outcome, clock: Clock): Outcome {
 }
 
 // Identifiers link one command to the next, so redacting them could merge two ids or break a lookup.
+// Criteria stay redacted on both sides because startRun redacts the run's acceptance criteria the same way.
 // The fetched guideline text is hashed and never stored, so redacting it would only corrupt the digest.
 const UNREDACTED_KEYS: ReadonlySet<string> = new Set([
   'guidelinesContent',
@@ -181,7 +182,6 @@ const UNREDACTED_KEYS: ReadonlySet<string> = new Set([
   'dependsOn',
   'dependencies',
   'claim',
-  'criterion',
   'name',
   'owner',
   'reviewer',

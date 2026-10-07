@@ -32,7 +32,7 @@ The coordinator is a set of modules in `src/orchestrator/`:
 - `persistence.ts` reads and writes `.s50/`.
 - `status.ts` renders status, and `routes.ts` holds the classification and failure-owner tables.
 
-`apply(state, command, clock)` decodes the command again after redacting every string in it, so no caller can store a secret or skip validation. It returns `{ kind: 'ok', state, decisions }` or `{ kind: 'rejected', reason, gate }`. After every change it recomputes `run.blockers` from the PR_READY predicate and moves a `PR_READY` run back to `REVERIFY_STALE` when a blocker reappears.
+`apply(state, command, clock)` decodes the command again after redacting its free text, so no caller can store a secret there or skip validation. It returns `{ kind: 'ok', state, decisions }` or `{ kind: 'rejected', reason, gate }`. After every change it recomputes `run.blockers` from the PR_READY predicate and moves a `PR_READY` run back to `REVERIFY_STALE` when a blocker reappears.
 
 Every phase change goes through `advance`, which checks the edge table and then the target phase's guard in the `GUARDS` table. A failed check uses `route_failure`, which moves the run along a legal edge to the phase that owns that check (`FAILURE_OWNERS` in `routes.ts`), so a failure never restarts the run.
 
