@@ -2,7 +2,7 @@
 
 Start with `s50 feature "<objective>" [--consumer kind:path] [--criteria a;b] [--constraints a;b] [--non-goals a;b]`. The start walks `START -> PREFLIGHT -> CLASSIFY -> CLARIFY`, or stops blocked in `PREFLIGHT` when a required skill is missing.
 
-Phase edges come from `src/orchestrator/transitions.ts`:
+The forward edges after classification come from `src/orchestrator/transitions.ts`:
 
 ```
 CLARIFY -> DOMAIN -> ARCHITECT -> PROTOTYPE | DESIGN | CONFIRM_TDD_SEAMS
@@ -10,6 +10,17 @@ PROTOTYPE -> ARCHITECT | DESIGN | CONFIRM_TDD_SEAMS
 DESIGN -> PROTOTYPE | CONFIRM_TDD_SEAMS
 CONFIRM_TDD_SEAMS -> BUILD_GRAPH -> IMPLEMENT -> INTEGRATE -> REVIEW -> VERIFY
 VERIFY -> FREEZE_REVISION -> REVERIFY_STALE -> PR_READY
+```
+
+The failure edges send work back to its owner, as `route_failure` uses them:
+
+```
+IMPLEMENT -> ARCHITECT
+INTEGRATE -> IMPLEMENT
+REVIEW -> IMPLEMENT | ARCHITECT | DESIGN | CONFIRM_TDD_SEAMS
+VERIFY -> IMPLEMENT | DESIGN
+REVERIFY_STALE -> IMPLEMENT
+PR_READY -> REVERIFY_STALE
 ```
 
 Route skills: CLARIFY `grilling`, DOMAIN `domain-modeling` (only when the model changes), ARCHITECT `codebase-design`, PROTOTYPE `prototype`, CONFIRM_TDD_SEAMS `tdd`.
