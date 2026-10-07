@@ -336,8 +336,14 @@ export async function runCli(argv: readonly string[], context: CliContext): Prom
       return applyCommand(context, rest[0]);
     case 'registry':
       return registry(context, rest);
-    default:
+    case 'help':
+    case '--help':
+    case '-h':
+      return ok(USAGE);
+    case undefined:
       return error(USAGE);
+    default:
+      return error(`unknown command: ${name}\n${USAGE}`);
   }
 }
 

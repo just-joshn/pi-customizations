@@ -165,10 +165,6 @@ describe('run commands', () => {
     expect((await runCli(['apply', '{'], context(await started()))).stdout).toMatch(/^invalid JSON: /);
   });
 
-  test('an unknown subcommand prints usage', async () => {
-    expect((await runCli(['launch'], context(repo()))).stdout.split('\n')[0]).toBe('usage: s50 <command>');
-  });
-
   test('a revision other than HEAD is refused', async () => {
     const cwd = await started();
     const command = JSON.stringify({ kind: 'revision_changed', revision: 'f'.repeat(40), changedPaths: [] });
@@ -218,12 +214,12 @@ describe('run commands', () => {
 });
 
 describe('help', () => {
-  test.fails.for(['help', '--help', '-h'])('%s prints usage and exits 0', async (flag) => {
+  test.for(['help', '--help', '-h'])('%s prints usage and exits 0', async (flag) => {
     const result = await runCli([flag], context(repo()));
     expect([result.code, result.stdout.split('\n')[0]]).toEqual([0, 'usage: s50 <command>']);
   });
 
-  test.fails('an unknown command is named before the usage', async () => {
+  test('an unknown command is named before the usage', async () => {
     const result = await runCli(['bogus'], context(repo()));
     expect([result.code, result.stdout.split('\n')[0]]).toEqual([1, 'unknown command: bogus']);
   });
