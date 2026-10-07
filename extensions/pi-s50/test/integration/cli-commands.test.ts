@@ -64,6 +64,12 @@ describe('registry commands', () => {
     expect([result, live.urls.slice(0, 2), live.urls.length]).toEqual([{ code: 0, stdout: 'locked 18 skills at 2026-10-07T00:00:00.000Z\n' }, ['https://skills.sh/docs/faq', 'https://skills.sh/'], 20]);
   });
 
+  test.fails('live refresh drops an optional skill that fails to resolve', async () => {
+    const live = liveContext(repo());
+    const fetchText: CliContext['fetchText'] = (url) => (url.endsWith('/teach/SKILL.md') ? Promise.reject(new Error(`404 ${url}`)) : live.fetchText(url));
+    expect(await runCli(['registry', 'refresh'], { ...live, fetchText })).toEqual({ code: 0, stdout: 'locked 17 skills at 2026-10-07T00:00:00.000Z; dropped optional teach\n' });
+  });
+
   test('live refresh records the resolved commit with its policy', async () => {
     const live = liveContext(repo());
     await runCli(['registry', 'refresh'], live);
