@@ -112,7 +112,7 @@ describe('loaded state is re-derived', () => {
 });
 
 describe('work hints name the command to run', () => {
-  test.fails.for([
+  test.for([
     ['CONFIRM_TDD_SEAMS', 'propose_seams at public interfaces, each with what it catches and misses; the user confirms them'],
     ['BUILD_GRAPH', 'build_graph with vertical-slice nodes, each with an owner, a write set, and expected behavior'],
   ] as const)('%s with nothing recorded says %s', ([phase, task]) => {

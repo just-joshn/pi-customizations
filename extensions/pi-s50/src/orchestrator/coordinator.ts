@@ -310,6 +310,8 @@ function phaseWork(state: RunState, target: Phase | null): string {
     return `propose at least two structurally different designs, choose one with a reason; record ${UNCERTAINTY_ID} when a question needs observation`;
   }
   if (run.phase === 'PROTOTYPE') return `record_prototype answering: ${pendingUncertainty(run) ?? 'the open question'}`;
+  if (run.phase === 'CONFIRM_TDD_SEAMS' && run.testContract.confirmedSeams.length === 0) return 'propose_seams at public interfaces, each with what it catches and misses; the user confirms them';
+  if (run.phase === 'BUILD_GRAPH' && state.graph.nodes.length === 0) return 'build_graph with vertical-slice nodes, each with an owner, a write set, and expected behavior';
   return target === null ? `choose next phase from ${run.phase}` : (guard(state, target) ?? `advance to ${target}`);
 }
 
