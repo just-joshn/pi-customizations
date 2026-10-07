@@ -246,7 +246,7 @@ try {
   try {
     process.kill(JSON.parse(readFileSync(join(cavemanHome, 'run', `${proxyPort}.json`), 'utf8')).pid, 'SIGKILL');
   } catch (error) {
-    if (error.code !== 'ENOENT' && error.code !== 'ESRCH') throw error;
+    if (error.code !== 'ENOENT' && error.code !== 'ESRCH') process.stderr.write(`could not stop a revived proxy: ${error.message}\n`);
   }
   provider.close();
   rmSync(work, { recursive: true, force: true });

@@ -32,7 +32,8 @@
     "vendor/caveman/packages/cli/src/provider-routing.ts",
     "NOTICE",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "parity"
   ],
   "scripts": {
     "test": "vitest run",
@@ -42,7 +43,9 @@
     "vendor": "node scripts/vendor-runtime.mjs",
     "check:vendor": "node scripts/vendor-runtime.mjs --check",
     "test:runtime": "node scripts/test-runtime.mjs",
-    "e2e:real": "node scripts/e2e-real.mjs"
+    "e2e:real": "node scripts/e2e-real.mjs",
+    "check:parity": "node scripts/check-parity.mjs",
+    "check:parity:final": "node scripts/check-parity.mjs --final"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",

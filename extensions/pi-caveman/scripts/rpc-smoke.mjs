@@ -157,6 +157,21 @@ try {
   check(crewCall !== undefined && !crewCall.isError && crewText.includes('parse.ts'), 'cavecrew investigator returns a path:line answer', crewText);
   process.stdout.write(`     cavecrew: ${JSON.stringify(crewText).slice(0, 300)}\n`);
 
+  const crewResult = (events, agent) => {
+    const call = events.find((e) => e.type === 'tool_execution_end' && e.toolName === 'cavecrew');
+    return { ok: call !== undefined && !call.isError, text: call?.result?.content?.[0]?.text ?? '', agent };
+  };
+  writeFileSync(join(work, 'calc.py'), 'def div(a, b):\n    return a / b\n');
+  const reviewCrew = crewResult(await pi.prompt('Call the cavecrew tool once with agent "reviewer" and task "Review calc.py". Use no other tool. Then relay its answer.'), 'reviewer');
+  check(reviewCrew.ok && reviewCrew.text.includes('calc.py:'), 'cavecrew reviewer returns one line per finding', reviewCrew.text);
+  writeFileSync(join(work, 'greeting.py'), 'greeting = "foo"\n');
+  const buildCrew = crewResult(await pi.prompt('Call the cavecrew tool once with agent "builder" and task "In greeting.py change the string foo to bar. Edit only that file." Use no other tool.'), 'builder');
+  check(buildCrew.ok && readFileSync(join(work, 'greeting.py'), 'utf8') === 'greeting = "bar"\n', 'cavecrew builder edits the file', buildCrew.text);
+
+  const init = await pi.prompt('/caveman-init --dry-run');
+  const initRun = init.find((e) => e.type === 'tool_execution_start' && e.toolName === 'bash' && /caveman-init\.js/.test(e.args?.command ?? '') && /\bnode\b/.test(e.args?.command ?? ''));
+  check(initRun !== undefined, "/caveman-init runs upstream's caveman-init.js", JSON.stringify(init.filter((e) => e.type === 'tool_execution_start').map((e) => e.args)).slice(0, 400));
+
   await pi.prompt('/megacave');
   check(pi.lastStatus() === '[MEGACAVE]', '/megacave switches the badge', pi.lastStatus());
   await pi.prompt('/ultracave');

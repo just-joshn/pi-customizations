@@ -1,5 +1,9 @@
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, MessageRenderer, ToolDefinition } from '@earendil-works/pi-coding-agent';
+import { vi } from 'vitest';
 import caveman from '../../src/index.ts';
+
+// The vendored runtime spawns the caveman CLI on session_start; package-runtime.test.ts covers it through real Pi.
+vi.mock(import('#caveman-runtime'), () => ({ default: () => undefined }));
 
 type Handler = (event: Record<string, unknown>, ctx: ExtensionContext) => unknown;
 type Command = { handler: (args: string, ctx: ExtensionCommandContext) => Promise<void>; getArgumentCompletions?: (prefix: string) => unknown };

@@ -6,7 +6,9 @@ import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, write
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+// check-parity.mjs regenerates into a scratch directory to detect drift.
+const root = resolve(process.env['PI_CAVEMAN_SYNC_TARGET'] ?? packageRoot);
 const upstream = resolve(process.argv[2] ?? '');
 if (!process.argv[2] || !existsSync(join(upstream, 'skills', 'caveman', 'SKILL.md'))) {
   process.stderr.write('usage: sync-upstream.mjs <caveman checkout>\n');
@@ -50,7 +52,7 @@ rmSync(join(root, 'skills'), { recursive: true, force: true });
 rmSync(join(root, 'agents'), { recursive: true, force: true });
 for (const name of SKILLS) copySkill(name);
 
-const overrides = join(root, 'overrides', 'skills');
+const overrides = join(packageRoot, 'overrides', 'skills');
 for (const name of existsSync(overrides) ? readdirSync(overrides) : []) {
   cpSync(join(overrides, name), join(root, 'skills', name), { recursive: true });
 }

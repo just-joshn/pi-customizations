@@ -136,7 +136,7 @@ describe('registration', () => {
     expect(harness().commandNames()).toStrictEqual(['caveman', 'caveman-help', 'caveman-stats', 'megacave', 'ultracave']);
   });
 
-  test('every tool is registered', () => {
-    expect(harness().toolNames()).toStrictEqual(['cavecrew', 'caveman_compress', 'caveman_retrieve']);
+  test('both package tools are registered', () => {
+    expect(harness().toolNames()).toStrictEqual(['cavecrew', 'caveman_compress']);
   });
 });
