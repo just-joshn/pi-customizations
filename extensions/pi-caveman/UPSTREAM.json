@@ -1,0 +1,28 @@
+{
+  "repository": "https://github.com/JuliusBrussee/caveman",
+  "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+  "skills": [
+    "cavecrew",
+    "caveman",
+    "caveman-commit",
+    "caveman-compress",
+    "caveman-discover",
+    "caveman-evidence-review",
+    "caveman-explore",
+    "caveman-help",
+    "caveman-learn",
+    "caveman-manage",
+    "caveman-optimize",
+    "caveman-review",
+    "caveman-setup",
+    "caveman-stats",
+    "investigate-first",
+    "lean-build",
+    "megacave",
+    "migration",
+    "safe-refactor",
+    "surgical-patch",
+    "ultracave",
+    "verify-and-stop"
+  ]
+}
