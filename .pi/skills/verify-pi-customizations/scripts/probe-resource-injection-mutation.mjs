@@ -36,9 +36,9 @@ async function driveSkill({ agentDir, recorderPath, inputLogPath, mutationLogPat
     await session.prompt(`/skill:${SKILL} ${SENTINEL}`);
     const produced = readJsonl(recorderPath)
       .slice(before)
-      .filter((record) => typeof record.userText === 'string');
+      .filter((record) => Array.isArray(record.userTexts));
     const record = produced.at(-1);
-    const comparison = compareSkillInjection({ userText: record?.userText, name: SKILL, location: command.sourceInfo.path, body, args: SENTINEL });
+    const comparison = compareSkillInjection({ userTexts: record?.userTexts, name: SKILL, location: command.sourceInfo.path, body, args: SENTINEL });
     return { command, body, record, comparison, capture: session.capturePath };
   } finally {
     await session.close();
@@ -64,24 +64,24 @@ async function main() {
     const mutated = await driveSkill({ ...mutatedDir, mutationLogPath, mutate: true });
     const mutations = readJsonl(mutationLogPath);
     // The comparator itself must separate a real injected block from a corrupted one.
-    const corruptedBody = compareSkillInjection({ userText: normal.record.userText, name: SKILL, location: normal.command.sourceInfo.path, body: `${normal.body}\nMUTATED`, args: SENTINEL });
-    const wrongLocation = compareSkillInjection({ userText: normal.record.userText, name: SKILL, location: '/tmp/not-the-skill.md', body: normal.body, args: SENTINEL });
+    const corruptedBody = compareSkillInjection({ userTexts: normal.record.userTexts, name: SKILL, location: normal.command.sourceInfo.path, body: `${normal.body}\nMUTATED`, args: SENTINEL });
+    const wrongLocation = compareSkillInjection({ userTexts: normal.record.userTexts, name: SKILL, location: '/tmp/not-the-skill.md', body: normal.body, args: SENTINEL });
 
     const checks = {
-      normalMatched: normal.comparison.matched,
-      mutatedRejected: mutated.comparison.matched === false,
+      normalMatched: normal.comparison.ok,
+      mutatedRejected: mutated.comparison.ok === false,
       mutatedNamesMissingPayload: mutated.comparison.diff.includes('no <skill name='),
       mutationExecuted: mutations.length >= 1,
-      corruptedBodyRejected: corruptedBody.matched === false,
-      wrongLocationRejected: wrongLocation.matched === false,
+      corruptedBodyRejected: corruptedBody.ok === false,
+      wrongLocationRejected: wrongLocation.ok === false,
     };
     const report = writeReport({
       skill: SKILL,
       sentinel: SENTINEL,
       sourcePath: normal.command.sourceInfo.path,
       bodyBytes: normal.body.length,
-      normalUserText: normal.record?.userText,
-      mutatedUserText: mutated.record?.userText,
+      normalUserText: normal.record?.userTexts,
+      mutatedUserText: mutated.record?.userTexts,
       normalComparison: normal.comparison,
       mutatedComparison: mutated.comparison,
       corruptedBodyComparison: corruptedBody,

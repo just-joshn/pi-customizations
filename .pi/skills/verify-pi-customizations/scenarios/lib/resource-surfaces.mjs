@@ -102,9 +102,13 @@ function firstDivergence(actual, expected) {
   return actual.length === expected.length ? 'none' : `length ${actual.length} vs ${expected.length}`;
 }
 
-export function compareSkillInjection({ userText, name, location, body, args }) {
-  const block = parseInjectedSkill(userText);
-  if (!block) return { matched: false, diff: `no <skill name="..."> block in recorded user text ${JSON.stringify(snippet(userText))}` };
+export function compareSkillInjection({ userTexts, name, location, body, args }) {
+  const blocks = (userTexts ?? [])
+    .map(parseInjectedSkill)
+    .filter(Boolean)
+    .filter((block) => block.name === name);
+  const block = blocks.at(-1);
+  if (!block) return { ok: false, diff: `no <skill name="${name}"> block in recorded user messages ${JSON.stringify((userTexts ?? []).map((text) => snippet(text)))}` };
   // Pi and pstack both emit `References are relative to <baseDir>.` between the tag and the body.
   const expectedContent = `References are relative to ${dirname(location)}.\n\n${body}`;
   const diffs = [];
@@ -116,13 +120,14 @@ export function compareSkillInjection({ userText, name, location, body, args }) 
   } else if (block.userMessage !== undefined) {
     diffs.push(`unexpected trailing args ${JSON.stringify(block.userMessage)}`);
   }
-  return { matched: diffs.length === 0, diff: diffs.join('; ') };
+  return { ok: diffs.length === 0, diff: diffs.join('; ') };
 }
 
-export function comparePromptExpansion({ userText, content, args }) {
+export function comparePromptExpansion({ userTexts, content, args }) {
   const expected = substituteArguments(content, parseCommandArgs(args));
-  if (userText === expected) return { matched: true, expected, diff: '' };
-  return { matched: false, expected, diff: `expanded text differs at ${firstDivergence(userText ?? '', expected)}` };
+  const texts = userTexts ?? [];
+  if (texts.includes(expected)) return { ok: true, expected, diff: '' };
+  return { ok: false, expected, diff: `no recorded user message equals the expanded template; recorded ${JSON.stringify(texts.map((text) => snippet(text)))}` };
 }
 
 export function readJsonl(path) {
@@ -168,5 +173,11 @@ export function literalSegments(source) {
 
 export function templateLiteral(source, exportName) {
   const match = source.match(new RegExp(`export const ${exportName} = \`([\\s\\S]*?)\`;`));
+  return match ? match[1] : null;
+}
+
+/** A plain single-quoted module const, such as personas.ts's `shell` and `explore` strings. */
+export function singleQuotedConst(source, name) {
+  const match = source.match(new RegExp(`const ${name} =\\s*'([^']*)';`));
   return match ? match[1] : null;
 }
