@@ -14,7 +14,7 @@ import type { Mode } from '../domain/state.ts';
 import { routeConsumer } from '../evidence/verification.ts';
 import { type Clock, systemClock } from '../orchestrator/clock.ts';
 import type { Command, DecisionLog, Outcome } from '../orchestrator/command.ts';
-import { apply, applyPreflight, nextAction, reconcile, startRun } from '../orchestrator/coordinator.ts';
+import { apply, applyPreflight, hostSkills, nextAction, reconcile, startRun } from '../orchestrator/coordinator.ts';
 import { decode, parseJson } from '../orchestrator/decode.ts';
 import { loadState, readDecisions, readLock, S50_DIR, saveState, writeLock } from '../orchestrator/persistence.ts';
 import { classify } from '../orchestrator/routes.ts';
@@ -173,7 +173,10 @@ async function withState(context: CliContext, body: (state: RunState, dir: strin
 // Git HEAD is the revision truth on every call, so a caller cannot keep evidence current by naming a revision or an empty path list.
 async function syncHead(context: CliContext, state: RunState): Promise<{ readonly head: string; readonly state: RunState; readonly decisions: readonly DecisionLog[] }> {
   const head = await revision(context.shell);
-  const derived = reconcile(state, context.clock);
+  const blockedOnSkill = state.run.status.kind === 'blocked' && state.run.status.gate.kind === 'missing_skill';
+  const hosted = blockedOnSkill ? hostSkills(state, await context.host.installedSkills(), context.clock) : { state, decisions: [] };
+  const reconciled = reconcile(hosted.state, context.clock);
+  const derived = { state: reconciled.state, decisions: [...hosted.decisions, ...reconciled.decisions] };
   if (head === state.run.currentRevision) return { head, ...derived };
   const paths = await changedPaths(context.shell, state.run.currentRevision, head);
   const outcome = apply(derived.state, { kind: 'revision_changed', revision: head, changedPaths: paths }, context.clock);

@@ -115,7 +115,7 @@ describe('run commands', () => {
     return cwd;
   }
 
-  test.fails('installing the missing skill clears its gate on the next command', async () => {
+  test('installing the missing skill clears its gate on the next command', async () => {
     const cwd = repo();
     const installed: { name: string; contentHash: string | null }[] = [];
     const host: CliContext['host'] = { installedSkills: async () => installed, capabilities: () => ({}) };
@@ -123,7 +123,7 @@ describe('run commands', () => {
     await runCli(OFFLINE_REFRESH, withHost);
     expect((await runCli(['feature', 'export invoices', '--criteria', 'csv lists invoices'], withHost)).code).toBe(3);
     installed.push(...['grilling', 'domain-modeling', 'codebase-design', 'tdd'].map((name) => ({ name, contentHash: null })));
-    expect((await runCli(['resume'], withHost)).stdout.trim().split('\n').at(-1)).toBe('{"kind":"invoke_skill","skill":"grilling"}');
+    expect((await runCli(['resume'], withHost)).stdout.trim().split('\n').at(-1)).toBe('{"kind":"advance","to":"CLASSIFY"}');
   });
 
   test('verify lists missing evidence with blockers', async () => {

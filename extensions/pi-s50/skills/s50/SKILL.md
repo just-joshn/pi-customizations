@@ -26,7 +26,7 @@ The `s50` tool, the `/s50` command, and the `s50` shell command take the same ar
 ## Gates
 
 - `user_workflow`: tell the user the exact action, for example `/skill:triage`, and stop. Never imitate a user-only skill. After the user finishes, the user applies `{"kind":"complete_user_workflow","skill":"<name>"}`.
-- `missing_skill`: show the install command and stop.
+- `missing_skill`: show the install command and stop. After the user installs it, call `["resume"]`.
 - `decisions`: put the round to the user in the grilling format and record the answers with `answer_decisions`.
 - `shared_understanding`: ask the user to confirm, then apply `confirm_understanding`.
 - `seam_confirmation`: ask the user to confirm the seams, then apply `confirm_seams`.

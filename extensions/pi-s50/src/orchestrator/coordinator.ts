@@ -1,5 +1,5 @@
 import type { RegistrySnapshot } from '../domain/registry.ts';
-import { type Preflight, RUN_SCHEMA_VERSION, type Run, type RunState } from '../domain/run.ts';
+import { type InstalledSkill, type Preflight, RUN_SCHEMA_VERSION, type Run, type RunState } from '../domain/run.ts';
 import type { Gate, Mode, Phase, RunStatus } from '../domain/state.ts';
 import { redact, redactValue, routeConsumer } from '../evidence/verification.ts';
 import { currentReview, prReadyBlockers, requiredEvidence } from '../policy/completion.ts';
@@ -240,6 +240,20 @@ export function preflight(state: RunState, facts: Preflight): Extract<Gate, { ki
     if (check.kind === 'not_installed') return { kind: 'missing_skill', skill, install: check.install };
   }
   return null;
+}
+
+// Installing a missing skill happens outside S50, so the host is asked again while that gate is open; the next missing skill, if any, takes its place.
+export function hostSkills(state: RunState, installed: readonly InstalledSkill[], clock: Clock): { readonly state: RunState; readonly decisions: readonly DecisionLog[] } {
+  const { run } = state;
+  if (run.status.kind !== 'blocked' || run.status.gate.kind !== 'missing_skill' || run.preflight === null) return { state, decisions: [] };
+  const added = installed.filter((skill) => !run.capabilities.installedSkills.some((known) => known.name === skill.name));
+  if (added.length === 0) return { state, decisions: [] };
+  const capabilities = { ...run.capabilities, installedSkills: [...run.capabilities.installedSkills, ...added] };
+  const next = withRun(state, { capabilities });
+  const gate = preflight(next, run.preflight);
+  const status: RunStatus = gate === null ? { kind: 'active' } : { kind: 'blocked', gate };
+  const summary = `host reports ${added.map((skill) => skill.name).join(',')} installed${gate === null ? '' : `; still blocked on ${gate.kind} ${gate.skill}`}`;
+  return { state: withBlockers(withRun(next, { status })), decisions: [{ at: clock.now(), phase: run.phase, command: 'preflight', summary }] };
 }
 
 function preflightRisks(run: Run, facts: Preflight): readonly string[] {

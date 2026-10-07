@@ -16,7 +16,7 @@ Each rule is tagged with where it comes from:
 
 Preflight turns these into risks: a dirty tree, an INCONCLUSIVE consumer route, no test command, and an installed skill whose content hash differs from the lock. It blocks only on a real dependency:
 
-- **S50.** A skill the route needs that Pi cannot find becomes a `missing_skill` gate with the `npx skills add <source> --skill <name>` action. S50 does not substitute a weaker process.
+- **S50.** A skill the route needs that Pi cannot find becomes a `missing_skill` gate with the `npx skills add <source> --skill <name>` action. S50 does not substitute a weaker process. While that gate is open, every command asks the host again, so after the user installs the skill the next `resume` clears the gate or moves it to the next missing skill.
 - **Upstream.** `triage` reads `docs/agents/issue-tracker.md`, which `setup-matt-pocock-skills` writes. Only an `issue` run without that file blocks on `/skill:setup-matt-pocock-skills`. No other route requires it.
 
 ## Classify
