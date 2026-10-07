@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { discoverAndLoadExtensions } from '@earendil-works/pi-coding-agent';
 import { afterEach, expect, test } from 'vitest';
 import { runCli } from '../../src/cli/commands.ts';
-import { hostOverride, humanOnlyKind, splitArgs } from '../../src/index.ts';
+import { hostOverride, humanOnlyKind, joinArgs, splitArgs } from '../../src/index.ts';
 import { testContext } from '../support/context.ts';
 import { commandContext, eventContext, fakeUi, loadFakePi, toolContext } from '../support/fake-pi.ts';
 import { INSTALLED } from '../unit/support.ts';
@@ -102,7 +102,9 @@ const CONFIRM_SEAMS = ['apply', '{"kind":"confirm_seams","ids":["csv"]}'];
 
 test('the model cannot confirm seams without a UI', async () => {
   const { tool } = loadFakePi();
-  await expect(tool.execute('call-5', { argv: CONFIRM_SEAMS }, undefined, undefined, toolContext(tmpdir(), null))).rejects.toThrow(`confirm_seams records a user decision; ask the user to run /s50 ${CONFIRM_SEAMS.join(' ')}`);
+  await expect(tool.execute('call-5', { argv: CONFIRM_SEAMS }, undefined, undefined, toolContext(tmpdir(), null))).rejects.toThrow(
+    `confirm_seams records a user decision; ask the user to run /s50 apply '{"kind":"confirm_seams","ids":["csv"]}'`,
+  );
 });
 
 test('a declined confirmation blocks the human-only command', async () => {
@@ -177,7 +179,9 @@ test('the model cannot declare host capabilities without the user', async () => 
   const { tool } = loadFakePi();
   const cwd = repo();
   await runCli(['registry', 'refresh', '--from', 'leaderboard.2026-10-07.json', '--sources', 'skill-sources.2026-10-07.json'], testContext(cwd));
-  await expect(tool.execute('call-7', { argv: SELF_DECLARED }, undefined, undefined, toolContext(cwd, null))).rejects.toThrow(`--capabilities overrides what the host reports; ask the user to run /s50 ${SELF_DECLARED.join(' ')}`);
+  await expect(tool.execute('call-7', { argv: SELF_DECLARED }, undefined, undefined, toolContext(cwd, null))).rejects.toThrow(
+    `--capabilities overrides what the host reports; ask the user to run /s50 feature 'export invoices' --capabilities '{"independentAgents":true,"isolatedWorktrees":true}'`,
+  );
 });
 
 test('a confirmed capability override reaches the run', async () => {
@@ -196,4 +200,8 @@ test.for([
   [['status'], null],
 ] as const)('%j host override is %s', ([argv, expected]) => {
   expect(hostOverride(argv)).toBe(expected);
+});
+
+test.for([[SELF_DECLARED], [CONFIRM_SEAMS], [['apply', `{"kind":"record_finding","finding":{"trigger":"it's broken","consequence":"a \\ b"}}`]], [['status']]] as const)('joinArgs round-trips through splitArgs: %j', ([argv]) => {
+  expect(splitArgs(joinArgs(argv))).toStrictEqual(argv);
 });

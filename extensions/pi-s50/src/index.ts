@@ -46,6 +46,11 @@ export function splitArgs(text: string): string[] {
   return args;
 }
 
+// The inverse of splitArgs, so a refusal can show the user a /s50 command that parses back to the same argv.
+export function joinArgs(argv: readonly string[]): string {
+  return argv.map((arg) => (/^[A-Za-z0-9_./:@%+=,-]+$/.test(arg) ? arg : arg.includes("'") ? `"${arg.replace(/(["\\])/g, '\\$1')}"` : `'${arg}'`)).join(' ');
+}
+
 function piHost(pi: Pi): Host {
   return {
     installedSkills: () =>
@@ -163,7 +168,7 @@ export default function s50(pi: Pi) {
     execute: async (_toolCallId, params, signal, _onUpdate, ctx) => {
       const needs = confirmationReason(params.argv);
       if (needs !== null) {
-        if (!ctx.hasUI) throw new Error(`${needs.reason}; ask the user to run /s50 ${params.argv.join(' ')}`);
+        if (!ctx.hasUI) throw new Error(`${needs.reason}; ask the user to run /s50 ${joinArgs(params.argv)}`);
         if (!(await ctx.ui.confirm(`S50: ${needs.label}`, params.argv.slice(1).join(' ')))) throw new Error(`user declined ${needs.label}`);
       }
       const result = await run(pi, ctx.cwd, params.argv, signal);
