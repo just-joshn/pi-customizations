@@ -84,6 +84,9 @@ describe('authorization', () => {
     ['git push --force origin main', 'force_push'],
     ['git push -f origin feature', 'force_push'],
     ['git push origin +main', 'force_push'],
+    ['git push -fu origin feature', 'force_push'],
+    ['git push origin :old-branch', 'destructive_data_deletion'],
+    ['git push -d origin old-branch', 'destructive_data_deletion'],
     ['gh pr merge 64 --squash', 'merge'],
     ['vercel deploy --prod', 'deploy'],
     ['terraform apply -auto-approve', 'deploy'],
@@ -96,9 +99,12 @@ describe('authorization', () => {
     expect(gatedAction(command)).toBe(action);
   });
 
-  test.for(['git push origin feature', 'git status', 'rm -rf dist', 'bun run test', 'gh pr view 64'])('%s needs no authorization', (command) => {
-    expect(gatedAction(command)).toBeNull();
-  });
+  test.for(['git push origin feature', 'git push -u origin feature', 'git push --follow-tags', 'git push --dry-run origin main', 'git status', 'rm -rf dist', 'bun run test', 'gh pr view 64', 'terraform plan'])(
+    '%s needs no authorization',
+    (command) => {
+      expect(gatedAction(command)).toBeNull();
+    },
+  );
 
   test('only the exact action with scope clears the gate', () => {
     const clock = fixedClock();
