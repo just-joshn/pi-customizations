@@ -90,6 +90,17 @@ test('/rubber-duck refuses while the agent is off', async () => {
   }
 });
 
+test('/subagents disabling rubber-duck takes effect without restarting the session', async () => {
+  const fixture = await workerFixture({ settings: { builtInAgents: { rubberDuck: true } } });
+  try {
+    await fixture.command('subagents', '');
+    await fixture.command('subagents', 'rubber-duck off');
+    expect(await fixture.command('rubber-duck', 'check the plan')).toEqual([{ message: 'The rubber-duck agent is not available. Turn it on with /subagents rubber-duck on.', level: 'warning' }]);
+  } finally {
+    await fixture.close();
+  }
+});
+
 test('/fleet without a goal prints its usage', async () => {
   const fixture = await workerFixture();
   try {
