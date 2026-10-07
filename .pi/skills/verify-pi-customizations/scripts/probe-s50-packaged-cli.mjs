@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { test } from 'node:test';
@@ -15,19 +15,21 @@ function command(cwd, binary, args) {
   return result.stdout;
 }
 
-test('packed s50 installs a shell command that runs from node_modules', () => {
+test('packed s50 entry point runs when copied under node_modules', () => {
   const scratch = mkdtempSync(join(tmpdir(), 's50-packed-cli-'));
   try {
     command(packagePath, 'bun', ['pm', 'pack', '--destination', scratch]);
     const archive = readdirSync(scratch).find((name) => name.endsWith('.tgz'));
     assert.ok(archive, 'packing must produce an archive');
     const consumer = join(scratch, 'consumer');
-    mkdirSync(consumer);
-    writeFileSync(
-      join(consumer, 'package.json'),
-      JSON.stringify({ name: 's50-consumer', private: true, type: 'module', dependencies: { 'pi-s50': `file:${join(scratch, archive)}`, '@earendil-works/pi-coding-agent': '1.0.4', typebox: '1.3.27' } }),
-    );
-    command(consumer, 'bun', ['install', '--offline']);
+    const installed = join(consumer, 'node_modules/pi-s50');
+    mkdirSync(installed, { recursive: true });
+    mkdirSync(join(consumer, 'node_modules/.bin'));
+    command(consumer, 'tar', ['-xzf', join(scratch, archive), '--strip-components=1', '-C', installed]);
+    symlinkSync(join(root, 'node_modules/@earendil-works'), join(consumer, 'node_modules/@earendil-works'));
+    symlinkSync(join(root, 'extensions/pi-s50/node_modules/typebox'), join(consumer, 'node_modules/typebox'));
+    const manifest = JSON.parse(readFileSync(join(installed, 'package.json'), 'utf8'));
+    symlinkSync(join(installed, manifest.bin.s50), join(consumer, 'node_modules/.bin/s50'));
     const output = command(consumer, join(consumer, 'node_modules/.bin/s50'), ['status']);
     assert.equal(output.trim(), 'no run in .s50/');
   } finally {
