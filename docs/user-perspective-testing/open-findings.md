@@ -8,25 +8,15 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 
 ## F-008: the advertised `s50` command does not exist after the advertised install
 
-**Status.** open
+**Status.** out-of-reach
 
-**Found by** `S50-INSTALL-1` / `S50-INSTALL-2` and `artifacts/user-perspective/s50-install/`.
+**Repository-owned defect fixed.** The original bin pointed at TypeScript. A packed package copied under `node_modules` failed with `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`. The regression in `scripts/probe-s50-packaged-cli.mjs` retains that failing baseline. `8d01dc4` compiles the source to JavaScript, includes it in the package archive, and points the bin at `dist/cli/main.js`. `bc60b2b` makes the build set its executable permission and adds the build to the root gate. The packed-copy regression now passes both successful help with exit 0 and missing-run status with exit 1. The source extension still uses Pi's TypeScript loader.
 
-**What the finding claimed.** That `extensions/pi-s50/package.json` declares `bin.s50`, that `extensions/pi-s50/README.md:8` advertises `pi install ./extensions/pi-s50`, and that typing `s50` after that install fails.
+**Remaining host constraint.** The installed Pi 1.0.4 `PackageManager.install()` handles a local source by resolving the path, checking that it exists, and returning. `installAndPersist()` then adds that source to settings. Neither method runs package code, a build hook, or a bin-link hook. The observed branch is recorded in `artifacts/user-perspective/f008-cli/host-local-install.txt`. Because this install path does not execute the repository's code, this package cannot make that command create a shell link or alter the caller's PATH. A host change or a separate shell-install action is required. Shipping a compiled bin fixes execution from an installed copy, but does not change this local-install branch.
 
-**What the coordinator verified, and what it refuted.** The README never promised `s50` would be on `PATH`. It gave the working invocation `node extensions/pi-s50/src/cli/main.ts status` and stated the constraint. Both of the constraint's claims were then tested directly rather than taken on faith.
+**Real-artifact verification.** The new `s50-install` drive exits 0. Local Pi installation registers the command and skill but creates no bin in nine searched locations and leaves `which s50` empty. The npm-shaped Pi install does create `.pi/npm/node_modules/.bin/s50`, targeting the compiled JavaScript, and that bin runs the CLI. These observations are recorded in `artifacts/user-perspective/s50-install/raw/s50-install.json`. `S50-INSTALL-2` now asserts the compiled packed-copy behaviour, not the former inability to run it.
 
-Claim one, that the bin runs through a symlink into the checkout, holds. A symlink at a temporary `bin/s50` pointed at `extensions/pi-s50/src/cli/main.ts` and `s50 status` ran, from the repository and from an unrelated working directory, exiting 0 and printing `no run in .s50/`.
-
-Claim two, that Node will not strip types under `node_modules`, holds. A copy under a temporary `node_modules/pi-s50` failed with `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING` at `node:internal/modules/typescript:189`, on Node v24.21.0.
-
-**What was actually wrong, and is now fixed.** The manifest's `bin` field sets an expectation that the documented install cannot meet, and the explanation sat in the next section rather than beside the command that creates the expectation. The install section now states plainly that `pi install` registers the extension and skill but does not put `s50` on `PATH`, with the reason, and the shell section names both invocations that work.
-
-**What is not a defect.** Pi's local install performing no bin linking is host behaviour, and a TypeScript entry point cannot run from a `node_modules` copy on any install shape. Neither is fixable from this package, and neither was a promise the README made.
-
-**Residual gap.** A user who wants `s50` on `PATH` still has to create the symlink themselves. Shipping a compiled entry point would remove that, at the cost of a build step this package deliberately does not have.
-
-**Reproduction.** `artifacts/user-perspective/s50-install/raw/s50-install.json` records the nine searched locations, the `PATH` scan, and `which s50`.
+**Evidence.** `artifacts/user-perspective/f008-cli/pack-baseline.log`, `pack-fixed.log`, `unit-gate.log`, and `install-fixed.log` contain the failing-before test, passing-after test, passing typecheck and 849-test coverage run, and the passing real-Pi installation drive. Documentation alone was not used to close the finding.
 
 ---
 
