@@ -23,8 +23,20 @@ export function runtimeOwner(env: NodeJS.ProcessEnv, home: string): RuntimeOwner
   }
 }
 
+const RECOVERY_TOOL = 'caveman_retrieve';
+
 export function registerRuntime(pi: ExtensionAPI): RuntimeOwner {
   const owner = runtimeOwner(process.env, homedir());
-  if (owner === 'package') upstreamRuntime(pi);
+  if (owner === 'package') {
+    upstreamRuntime(pi);
+    return owner;
+  }
+  // Yielding is only safe if the CLI's copy actually loaded; `pi --no-extensions` skips caveman-native.js.
+  pi.on('session_start', (_event, ctx) => {
+    if (pi.getAllTools().some((tool) => tool.name === RECOVERY_TOOL)) return;
+    const message = `Caveman: direct mode, no compression this session (the ${owner} runtime extension did not load)`;
+    if (ctx.hasUI) ctx.ui.notify(message, 'warning');
+    else process.stderr.write(`${message}\n`);
+  });
   return owner;
 }

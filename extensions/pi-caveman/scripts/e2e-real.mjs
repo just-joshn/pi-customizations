@@ -5,7 +5,7 @@
 // Install both into a throwaway prefix with:
 //   npm i --prefix /tmp/cavecli @caveman-ai/cli
 //   HOME=/tmp/cavehome/home CAVEMAN_HOME=/tmp/cavehome/caveman /tmp/cavecli/node_modules/.bin/caveman setup --install
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
@@ -78,7 +78,13 @@ const provider = createServer((req, res) => {
     } catch {
       messages = [];
     }
-    hits.push({ path: req.url, headers: req.headers, messages });
+    let tools = [];
+    try {
+      tools = (JSON.parse(body).tools ?? []).map((tool) => tool.function?.name);
+    } catch {
+      tools = [];
+    }
+    hits.push({ path: req.url, headers: req.headers, messages, tools });
     res.writeHead(200, { 'content-type': 'text/event-stream' });
     reply(messages, res);
   });
@@ -129,8 +135,9 @@ const stopProxy = (signal) =>
     proxy.kill(signal);
   });
 
-function runPi(prompt, runEnv = env) {
-  const args = [piCli, '--extension', join(work, 'provider.mjs'), '--extension', packageDir, '--no-session', '--no-context-files', '--no-extensions'];
+function runPi(prompt, runEnv = env, discovered = false) {
+  const loaded = discovered ? [] : ['--extension', packageDir, '--no-extensions'];
+  const args = [piCli, '--extension', join(work, 'provider.mjs'), ...loaded, '--no-session', '--no-context-files'];
   args.push('--provider', 'stub-relay', '--model', 'relay-model', '-p', prompt);
   return new Promise((done) => {
     const child = spawn(process.execPath, args, { cwd: work, env: runEnv, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -191,6 +198,25 @@ try {
   check(hits[0]?.headers['x-stainless-lang'] === 'js', 'the direct request comes from the SDK itself');
   fresh();
   check(stale.stdout.includes('STUB_OK') && notices(stale) === 1, 'a stale run-state file stays direct with one notice', stale.stderr);
+
+  // A user who installs the package and also runs `caveman enable pi` gets one runtime, not a startup conflict.
+  const piBin = join(packageDir, 'node_modules/.bin');
+  const installed = { ...env, PATH: `${piBin}:${env.PATH}` };
+  execFileSync(join(piBin, 'pi'), ['install', packageDir], { env: installed, stdio: 'ignore' });
+  execFileSync(join(cliDir, 'caveman'), ['enable', 'pi'], { env: installed, stdio: 'ignore' });
+  await startProxy();
+  const both = await runPi('RUN_TOOL please', installed, true);
+  const bothTurns = fresh();
+  const tools = (hit) => (hit?.tools ?? []).filter((name) => name === 'caveman_retrieve').length;
+  check(both.code === 0 && both.stdout.includes('STUB_OK'), 'package plus caveman enable pi starts without a tool conflict', both.stderr);
+  check(tools(bothTurns[0]) === 1, 'package plus caveman enable pi exposes one caveman_retrieve');
+  check(system(bothTurns[0]).split('CAVEMAN MODE ACTIVE — mode: caveman').length === 2, 'package plus caveman enable pi sends the ruleset once');
+  check(/full: ccr:\/\//.test(toolTexts(bothTurns[1] ?? { messages: [] })[0] ?? ''), 'package plus caveman enable pi still shrinks tool output');
+  const skipped = await runPi('say hi', installed);
+  fresh();
+  check(/the caveman-enable runtime extension did not load/.test(skipped.stderr), 'a skipped caveman enable pi extension is reported, not silent', skipped.stderr);
+  execFileSync(join(cliDir, 'caveman'), ['disable', 'pi'], { env: installed, stdio: 'ignore' });
+  await stopProxy('SIGTERM');
 } finally {
   if (proxy && proxy.exitCode === null && proxy.signalCode === null) proxy.kill('SIGKILL');
   try {
