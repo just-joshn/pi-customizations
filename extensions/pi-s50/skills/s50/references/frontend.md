@@ -1,6 +1,6 @@
 # Frontend runs
 
-Start with `s50 frontend "<objective>"`. Without `--consumer`, the consumer is a browser. Any run with a browser or Electron consumer is web UI too.
+Start with `s50 frontend "<objective>"`. Without `--consumer`, the consumer is a browser. Any run with a browser or Electron consumer is web UI too. Only web UI runs may enter DESIGN.
 
 Route skills: DESIGN `frontend-design`, plus `vercel-react-best-practices` when a `--constraints` entry names React or Next.js or the repository depends on `react` or `next`; REVIEW `web-design-guidelines`; VERIFY `agent-browser` for browser and Electron consumers.
 

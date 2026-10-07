@@ -3,7 +3,7 @@ import type { Phase, RunStatus } from '../domain/state.ts';
 import { currentReview, prReadyBlockers, requiredEvidence } from '../policy/completion.ts';
 import type { Clock } from './clock.ts';
 import { blockedGate, done, noop, type Outcome, reject, understood, withRun } from './command.ts';
-import { MODEL_CHANGE_ID, modelChange, pendingUncertainty } from './facts.ts';
+import { MODEL_CHANGE_ID, modelChange, pendingUncertainty, routeFacts } from './facts.ts';
 import { classify } from './routes.ts';
 import { isLegalTransition } from './transitions.ts';
 
@@ -64,7 +64,7 @@ const GUARDS: { readonly [P in Phase]: Guard } = {
     return from === 'DIAGNOSE' && run.rootCause === null ? 'root cause not recorded' : null;
   },
   PROTOTYPE: ({ run }, from) => (from === 'ARCHITECT' && run.architecture.candidates.length < 2 ? 'at least two design candidates required' : null),
-  DESIGN: designReady,
+  DESIGN: (state, from) => (routeFacts(state.run).webUi ? designReady(state, from) : 'DESIGN is only for web UI runs (frontend mode or a browser or Electron consumer)'),
   CONFIRM_TDD_SEAMS: designReady,
   BUILD_GRAPH: ({ run }) => (run.testContract.confirmedSeams.length === 0 ? 'no confirmed test seams' : null),
   IMPLEMENT: ({ graph }, from) => (from === 'BUILD_GRAPH' && graph.nodes.length === 0 ? 'graph has no nodes' : null),

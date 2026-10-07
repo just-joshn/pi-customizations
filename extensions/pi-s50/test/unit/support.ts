@@ -124,6 +124,7 @@ function modeFor(from: Phase, to: Phase): Mode {
   if (from === 'CLASSIFY' && to === 'DIAGNOSE') return 'bug';
   if (to === 'EXPLICIT_TRIAGE') return 'external_issue';
   if (to === 'EXPLICIT_ARCH_REVIEW') return 'architecture_survey';
+  if (to === 'DESIGN') return 'frontend';
   return 'feature';
 }
 

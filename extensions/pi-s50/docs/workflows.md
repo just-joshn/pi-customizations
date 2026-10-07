@@ -10,7 +10,7 @@ Each rule is tagged with where it comes from:
 
 ## Start
 
-`s50 feature|bug|frontend|issue|survey <text>` creates the run and walks `START -> PREFLIGHT -> CLASSIFY` into the first working phase.
+`s50 feature|bug|frontend|issue|survey <text>` creates the run and walks `START -> PREFLIGHT -> CLASSIFY` into the first working phase, or stops blocked in `PREFLIGHT` when a dependency is missing.
 
 **S50.** Start refuses when the registry lock is missing, was rejected by its last refresh, or does not verify. Preflight then records one decision line and stores the same facts in `run.preflight`: repository root and `origin` remote, revision, dirty state, languages, package manager, test and build commands, instruction files (`AGENTS.md`, `AGENTS.override.md`, `CLAUDE.md`), glossary files (`GLOSSARY.md`, `GLOSSARY-MAP.md`), the ADR count under `docs/adr/`, React detection, installed skills, the registry snapshot time, and the consumer route.
 
@@ -65,7 +65,7 @@ Preflight turns these into risks: a dirty tree, an INCONCLUSIVE consumer route, 
 
 **Upstream (`frontend-design`).** Intentional visual direction for web UI.
 
-**S50.** A run is web UI when its mode is `frontend` or its consumer is a browser or Electron app. ARCHITECT then routes to DESIGN, which invokes `frontend-design`, and `vercel-react-best-practices` only when a constraint names React or Next.js or the repository depends on `react` or `next`. `DESIGN -> CONFIRM_TDD_SEAMS` is refused until a `design.<item>` decision exists for each of subject, audience, primary job, visual direction, information hierarchy, layout, typography, interaction model, responsive behavior, loading state, empty state, error state, and accessibility.
+**S50.** A run is web UI when its mode is `frontend` or its consumer is a browser or Electron app. Only a web UI run may enter DESIGN. ARCHITECT then routes to DESIGN, which invokes `frontend-design`, and `vercel-react-best-practices` only when a constraint names React or Next.js or the repository depends on `react` or `next`. `DESIGN -> CONFIRM_TDD_SEAMS` is refused until a `design.<item>` decision exists for each of subject, audience, primary job, visual direction, information hierarchy, layout, typography, interaction model, responsive behavior, loading state, empty state, error state, and accessibility.
 
 ## TDD seams
 

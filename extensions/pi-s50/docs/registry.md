@@ -23,7 +23,7 @@ A live refresh does four things in order:
 
 S50 requires the 13 skills it routes to or gates on: `grilling`, `domain-modeling`, `codebase-design`, `prototype`, `tdd`, `diagnosing-bugs`, `frontend-design`, `vercel-react-best-practices`, `web-design-guidelines`, `agent-browser`, `triage`, `improve-codebase-architecture`, and `setup-matt-pocock-skills`. It also locks 5 optional skills it knows about but never routes to: `find-skills`, `grill-me`, `grill-with-docs`, `handoff`, and `teach`.
 
-A refresh fails closed. When a required skill is outside the top 50 or the leaderboard has fewer than 50 entries, it writes a rejected lock, exits 2, and no new run starts until a refresh succeeds. An optional skill outside the top 50 is left out of the new lock. A network or parse failure writes nothing and exits 1.
+A refresh fails closed. When a required skill is outside the top 50, has no pinned source, or its pinned repository differs from the leaderboard's source, or when the leaderboard has fewer than 50 entries, it writes a rejected lock, exits 2, and no new run starts until a refresh succeeds. An optional skill outside the top 50 is left out of the new lock. A network or parse failure writes nothing and exits 1.
 
 ## Snapshots and runs
 
