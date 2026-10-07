@@ -170,3 +170,12 @@ test('gated commands outside an S50 run pass through', async () => {
   const { handlers } = loadFakePi();
   expect(await bashCall(handlers, repo(), 'git push --force origin main', null)).toStrictEqual(undefined);
 });
+
+const SELF_DECLARED = ['feature', 'export invoices', '--capabilities', '{"independentAgents":true,"isolatedWorktrees":true}'];
+
+test.fails('the model cannot declare host capabilities without the user', async () => {
+  const { tool } = loadFakePi();
+  const cwd = repo();
+  await runCli(['registry', 'refresh', '--from', 'leaderboard.2026-10-07.json', '--sources', 'skill-sources.2026-10-07.json'], testContext(cwd));
+  await expect(tool.execute('call-7', { argv: SELF_DECLARED }, undefined, undefined, toolContext(cwd, null))).rejects.toThrow(`--capabilities overrides what the host reports; ask the user to run /s50 ${SELF_DECLARED.join(' ')}`);
+});
