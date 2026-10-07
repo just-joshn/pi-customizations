@@ -184,6 +184,16 @@ test.for([`node extensions/pi-s50/src/cli/main.ts apply '{"kind":"confirm_unders
   },
 );
 
+test.fails.for(["find . -maxdepth 3 -not -path './.s50/*' | head -50", 'git status --short .s50', 'du -sh .s50'])('a read-only command that names .s50 runs: %s', async (command) => {
+  const { handlers } = loadFakePi();
+  expect(await bashCall(handlers, repo(), command, null)).toStrictEqual(undefined);
+});
+
+test.for(['find .s50 -name "*.json" -delete', 'find .s50 -exec rm {} +', 'git checkout -- .s50/run.json'])('a writing command on .s50 is blocked: %s', async (command) => {
+  const { handlers } = loadFakePi();
+  expect(await bashCall(handlers, repo(), command, null)).toStrictEqual({ block: true, reason: S50_ONLY });
+});
+
 test('the model may read .s50 through bash', async () => {
   const { handlers } = loadFakePi();
   expect(await bashCall(handlers, repo(), 'cat .s50/run.json | jq .phase', null)).toStrictEqual(undefined);
