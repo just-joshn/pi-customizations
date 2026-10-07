@@ -18,7 +18,7 @@ async function ensureDir(dir: string): Promise<void> {
   if (created !== undefined) await writeFile(join(dir, '.gitignore'), '*\n', 'utf8');
 }
 
-export const FILES = {
+const FILES = {
   registry: 'registry.lock.json',
   run: 'run.json',
   graph: 'graph.json',

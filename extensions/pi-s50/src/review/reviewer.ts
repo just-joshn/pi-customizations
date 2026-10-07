@@ -15,7 +15,7 @@ export const REVIEW_DIMENSIONS = [
   'dead_or_replaced_code',
 ] as const;
 
-export const WEB_UI_REVIEW_DIMENSIONS = ['frontend_design_contract', 'web_design_guidelines', 'agent_browser_verification', 'vercel_react_best_practices'] as const;
+const WEB_UI_REVIEW_DIMENSIONS = ['frontend_design_contract', 'web_design_guidelines', 'agent_browser_verification', 'vercel_react_best_practices'] as const;
 
 export type ReviewAssurance = { readonly kind: 'independent' } | { readonly kind: 'reduced'; readonly reason: string };
 

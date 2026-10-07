@@ -22,10 +22,6 @@ export async function discoverInstalledSkills(cwd: string): Promise<readonly Ins
   return hashInstalled(loader.getSkills().skills.map((skill) => ({ name: skill.name, path: skill.filePath })));
 }
 
-export function formatInstalled(skills: readonly InstalledSkill[]): string {
-  return skills.map((skill) => (skill.contentHash === null ? skill.name : `${skill.name}=${skill.contentHash}`)).join(',');
-}
-
 export function parseInstalled(text: string): readonly InstalledSkill[] {
   return text
     .split(',')

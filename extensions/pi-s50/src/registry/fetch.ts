@@ -49,7 +49,7 @@ export async function fetchLeaderboard(fetchText: FetchText): Promise<Decoded<re
   return parseLeaderboardHtml(await fetchText(SKILLS_SH_URL));
 }
 
-export const SKILLS_SH_FAQ_URL = 'https://skills.sh/docs/faq';
+const SKILLS_SH_FAQ_URL = 'https://skills.sh/docs/faq';
 
 // Rank is an eligibility rule only while skills.sh ranks by install telemetry; a different basis needs a human look first.
 export async function confirmRankingBasis(fetchText: FetchText): Promise<Decoded<'install_telemetry'>> {

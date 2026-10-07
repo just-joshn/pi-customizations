@@ -103,7 +103,7 @@ export function guard(state: RunState, to: Phase): string | null {
   return to === expected ? null : `mode ${run.mode} routes to ${expected}`;
 }
 
-export function statusOnEntry(state: RunState, to: Phase): RunStatus {
+function statusOnEntry(state: RunState, to: Phase): RunStatus {
   switch (to) {
     case 'PR_READY':
       return { kind: 'pr_ready', revision: state.run.currentRevision };

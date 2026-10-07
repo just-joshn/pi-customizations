@@ -5,7 +5,7 @@ import { readyFrontier } from '../scheduler/frontier.ts';
 import type { NextAction } from './command.ts';
 import { nextAction } from './coordinator.ts';
 
-export function describeGate(gate: Gate): string {
+function describeGate(gate: Gate): string {
   switch (gate.kind) {
     case 'user_workflow':
       return `user must run ${gate.action}`;

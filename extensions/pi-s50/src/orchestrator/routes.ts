@@ -22,7 +22,7 @@ export const CHECK_KINDS = ['typecheck', 'unit_test', 'integration_test', 'consu
 
 export type CheckKind = (typeof CHECK_KINDS)[number];
 
-export const FAILURE_OWNERS: { readonly [K in CheckKind]: Phase } = {
+const FAILURE_OWNERS: { readonly [K in CheckKind]: Phase } = {
   typecheck: 'IMPLEMENT',
   unit_test: 'IMPLEMENT',
   integration_test: 'IMPLEMENT',

@@ -3,7 +3,7 @@ import { appendFile, readFile } from 'node:fs/promises';
 import { type Decoded, type Decoder, decode, isRecord, parseJson } from '../orchestrator/decode.ts';
 
 // Every line carries its own version so one append-only file can outlive a shape change; lines written before versioning are version 1.
-export const JSONL_SCHEMA_VERSION = 1;
+const JSONL_SCHEMA_VERSION = 1;
 
 export async function readJsonl<T>(path: string, decoder: Decoder<T>): Promise<Decoded<readonly T[]>> {
   let text: string;

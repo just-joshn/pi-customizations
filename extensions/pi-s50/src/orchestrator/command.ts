@@ -90,7 +90,7 @@ export type StartInput = {
 
 export const SHARED_UNDERSTANDING_ID = 'shared-understanding';
 
-export function canonical(value: unknown): unknown {
+function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical);
   if (typeof value === 'object' && value !== null) {
     return Object.fromEntries(

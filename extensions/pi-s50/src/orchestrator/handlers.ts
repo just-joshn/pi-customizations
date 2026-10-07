@@ -92,7 +92,7 @@ export function confirmUnderstanding(state: RunState, clock: Clock): Outcome {
   return done(withRun(state, { domain: { ...state.run.domain, decisions: [...state.run.domain.decisions, decision] }, status: { kind: 'active' } }), 'confirm_understanding', 'shared understanding confirmed', clock);
 }
 
-export function evidenceFrom(state: RunState, input: EvidenceInput, clock: Clock): { readonly record: EvidenceRecord; readonly duplicate: boolean } {
+function evidenceFrom(state: RunState, input: EvidenceInput, clock: Clock): { readonly record: EvidenceRecord; readonly duplicate: boolean } {
   const previous = latestByClaim(state.evidence).find((record) => record.claim === input.claim);
   const record: EvidenceRecord = { ...input, id: '', recordedAt: '', revision: state.run.currentRevision, supersedes: previous?.id ?? null };
   const duplicate = previous !== undefined && same({ ...previous, id: '', recordedAt: '', supersedes: null }, { ...record, supersedes: null });

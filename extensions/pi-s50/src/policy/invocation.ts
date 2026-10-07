@@ -24,7 +24,7 @@ export type RouteCondition = 'always' | 'model_change' | 'react_stack' | 'web_ui
 
 export type RouteSkill = { readonly skill: string; readonly when: RouteCondition; readonly policy: 'model' | 'user' };
 
-export const ROUTE_SKILLS: { readonly [P in Phase]: readonly RouteSkill[] } = {
+const ROUTE_SKILLS: { readonly [P in Phase]: readonly RouteSkill[] } = {
   START: [],
   PREFLIGHT: [],
   CLASSIFY: [],
