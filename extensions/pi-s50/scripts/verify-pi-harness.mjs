@@ -33,7 +33,7 @@ const check = (ok, label) => results.push(`${ok ? 'PASS' : 'FAIL'} ${label}`);
 const work = mkdtempSync(join(tmpdir(), 's50-harness-'));
 const project = join(work, 'project');
 mkdirSync(join(project, 'bin'), { recursive: true });
-writeFileSync(join(project, 'bin/hello.mjs'), '#!/usr/bin/env node\nprocess.stdout.write("hello\\n");\n');
+writeFileSync(join(project, 'bin/hello.mjs'), ['#!/usr/bin/env node', "console.info('hello');", ''].join('\n'));
 writeFileSync(join(project, 'package.json'), '{"name":"hello","scripts":{"test":"node bin/hello.mjs"}}\n');
 writeFileSync(join(project, '.gitignore'), '.agents/\n.pi/\nrun.jsonl\n');
 run('git', ['init', '-q', '-b', 'main'], project);
