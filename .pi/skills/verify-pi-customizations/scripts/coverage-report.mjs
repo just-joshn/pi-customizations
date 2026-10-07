@@ -5,18 +5,20 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { scenarioDigest, scenarioFileFor } from '../lib/receipts.mjs';
+import { contractDigest, contractUnchangedSince, loadApproval } from '../lib/verification-contract.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const DEFAULT_SURFACES = join(ROOT, 'docs/user-perspective-testing/surfaces.tsv');
 const DEFAULT_ARTIFACTS = join(ROOT, 'artifacts/user-perspective');
 const DEFAULT_OUT = join(ROOT, 'docs/user-perspective-testing/verdicts.tsv');
 const DEFAULT_FINDINGS = join(ROOT, 'docs/user-perspective-testing/open-findings.md');
+const DEFAULT_APPROVAL = join(ROOT, 'docs/user-perspective-testing/approved-verification-contract.json');
 
 const FINDING_STATUSES = new Set(['open', 'fixed', 'out-of-reach']);
 const CLOSED_STATUSES = new Set(['fixed', 'out-of-reach']);
 
 const SURFACE_COLUMNS = ['surface_id', 'package', 'kind', 'name', 'trigger', 'expected', 'source', 'tier', 'veto'];
-const VERDICT_COLUMNS = ['surface_id', 'package', 'tier', 'scope', 'verdict', 'reason', 'observed', 'evidence', 'binding', 'head_sha', 'checked_at'];
+const VERDICT_COLUMNS = ['surface_id', 'package', 'tier', 'scope', 'verdict', 'reason', 'observed', 'evidence', 'binding', 'head_sha', 'checked_at', 'contract_binding'];
 const VERDICTS = new Set(['verified', 'failed', 'inconclusive', 'env-limited', 'not-drivable']);
 const SCOPES = new Set(['discovery', 'behaviour']);
 const VERDICT_ORDER = ['verified', 'failed', 'partial', 'inconclusive', 'env-limited', 'not-drivable', 'uncovered'];
@@ -229,7 +231,7 @@ function bindingFor(receipt, cache) {
   return unchangedSince(receipt.head_sha, scenario, cache) ? 'scenario-unchanged' : 'unbound';
 }
 
-function rowFromReceipt(base, picked, head, warnings, cache) {
+function rowFromReceipt(base, picked, head, warnings, cache, contract) {
   staleWarning(base.surface_id, picked, head, warnings);
   const { receipt } = picked;
   return {
@@ -242,15 +244,28 @@ function rowFromReceipt(base, picked, head, warnings, cache) {
     binding: bindingFor(receipt, cache),
     head_sha: stringValue(receipt.head_sha),
     checked_at: stringValue(receipt.checked_at),
+    contract_binding: contractBindingFor(receipt, contract, cache),
   };
 }
 
-function buildRows(surfaces, receipts, head, warnings, cache) {
+// A receipt carries the contract digest it was produced under, so a later edit to any harness
+// source makes every earlier receipt stale even after the source is restored.
+function contractBindingFor(receipt, contract, cache) {
+  if (!receipt) return '';
+  const recorded = stringValue(receipt.contract_sha256);
+  if (recorded) return recorded === contract.current ? 'contract-unchanged' : 'contract-stale';
+  const head = stringValue(receipt.head_sha);
+  if (!head) return 'contract-unbound';
+  if (!cache.contractProved.has(head)) cache.contractProved.set(head, contractUnchangedSince({ repoRoot: ROOT, commit: head }));
+  return cache.contractProved.get(head) ? 'contract-unchanged' : 'contract-unbound';
+}
+
+function buildRows(surfaces, receipts, head, warnings, cache, contract) {
   return surfaces.map((surface) => {
     const entries = receipts.get(surface.surface_id);
     const base = { surface_id: surface.surface_id, package: surface.package, tier: surface.tier };
     if (!entries || entries.length === 0) {
-      return { ...base, scope: '', verdict: 'uncovered', reason: 'no receipt was produced for this surface', observed: '', evidence: '', binding: '', head_sha: '', checked_at: '' };
+      return { ...base, scope: '', verdict: 'uncovered', reason: 'no receipt was produced for this surface', observed: '', evidence: '', binding: '', head_sha: '', checked_at: '', contract_binding: '' };
     }
     // A scenario authors its own expected text, which is the freedom that lets a claim move away
     // from the row without anyone noticing. They are allowed to narrow; the divergence is not
@@ -272,13 +287,14 @@ function buildRows(surfaces, receipts, head, warnings, cache) {
         binding: bindingFor(picked.receipt, cache),
         head_sha: stringValue(picked.receipt.head_sha),
         checked_at: stringValue(picked.receipt.checked_at),
+        contract_binding: contractBindingFor(picked.receipt, contract, cache),
       };
     }
     const failed = valid.find((entry) => entry.receipt.verdict === 'failed');
     const satisfying = valid.filter((entry) => satisfiesTier(surface.tier, entry));
     if (!failed && satisfying.length === 0) {
       const only = pickReceipt(valid);
-      if (only.receipt.verdict !== 'verified') return rowFromReceipt(base, only, head, warnings, cache);
+      if (only.receipt.verdict !== 'verified') return rowFromReceipt(base, only, head, warnings, cache, contract);
       staleWarning(surface.surface_id, only, head, warnings);
       return {
         ...base,
@@ -289,9 +305,10 @@ function buildRows(surfaces, receipts, head, warnings, cache) {
         binding: bindingFor(only.receipt, cache),
         head_sha: stringValue(only.receipt.head_sha),
         checked_at: stringValue(only.receipt.checked_at),
+        contract_binding: contractBindingFor(only.receipt, contract, cache),
       };
     }
-    return rowFromReceipt(base, failed ?? pickReceipt(satisfying), head, warnings, cache);
+    return rowFromReceipt(base, failed ?? pickReceipt(satisfying), head, warnings, cache, contract);
   });
 }
 
@@ -340,13 +357,32 @@ try {
   const orphans = [...receipts.keys()].filter((surfaceId) => !known.has(surfaceId));
   for (const surfaceId of orphans) console.log(`orphan receipt ignored: ${surfaceId}`);
   const warnings = [];
-  const cache = { current: new Map(), git: new Map() };
-  const rows = buildRows(surfaces, receipts, head, warnings, cache);
+  const cache = { current: new Map(), git: new Map(), contractProved: new Map() };
+  const contractCurrent = contractDigest({ repoRoot: ROOT });
+  let contractApproval = null;
+  let contractProblem = null;
+  try {
+    contractApproval = loadApproval({ path: DEFAULT_APPROVAL });
+    if (contractApproval === null) contractProblem = `no approval record at ${displayPath(DEFAULT_APPROVAL)}`;
+  } catch (error) {
+    contractProblem = error.message;
+  }
+  const contract = { current: contractCurrent, approval: contractApproval, problem: contractProblem, approved: contractApproval !== null && contractApproval.sha256 === contractCurrent };
+  const rows = buildRows(surfaces, receipts, head, warnings, cache, contract);
   for (const warning of warnings) console.log(`warning: ${warning}`);
   const stale = rows.filter((row) => row.binding === 'scenario-changed');
   const unbound = rows.filter((row) => row.binding === 'unbound');
   const bound = rows.filter((row) => row.binding === 'scenario-unchanged');
   console.log(`scenario binding: ${bound.length} bound to the scenario text that produced them, ${stale.length} changed since the receipt, ${unbound.length} unbound`);
+  const contractUnchanged = rows.filter((row) => row.contract_binding === 'contract-unchanged');
+  const contractStale = rows.filter((row) => row.contract_binding === 'contract-stale');
+  const contractUnbound = rows.filter((row) => row.contract_binding === 'contract-unbound');
+  console.log(`contract binding: ${contractUnchanged.length} unchanged, ${contractStale.length} stale, ${contractUnbound.length} unbound (contract ${contract.current.slice(0, 12)}…)`);
+  console.log(
+    contract.approved
+      ? `contract approval: approved (${contract.approval.sha256.slice(0, 12)}…)`
+      : `contract approval: unapproved (${contract.problem ?? `approved ${contract.approval.sha256.slice(0, 12)}… does not match the current contract ${contract.current.slice(0, 12)}…`})`,
+  );
   for (const row of stale) console.log(`  ${row.surface_id}: its scenario changed after the receipt was written, so the receipt is no longer evidence for it (${row.evidence})`);
   for (const row of rows) {
     if (row.verdict === 'partial') console.log(`partial: ${row.surface_id}: ${PARTIAL_REASON}`);
@@ -386,7 +422,19 @@ try {
       console.log(`INCOMPLETE: ${unresolved.length} findings are neither fixed nor proven out of reach`);
       for (const finding of unresolved) console.log(`${finding.id}: ${finding.title}`);
     }
-    if (uncovered.length > 0 || unresolved.length > 0 || stale.length > 0 || unbound.length > 0) {
+    if (contractStale.length > 0) {
+      console.log(`INCOMPLETE: ${contractStale.length} receipts were produced under different verification contract sources`);
+      for (const row of contractStale) console.log(row.surface_id);
+    }
+    if (contractUnbound.length > 0) {
+      console.log(`INCOMPLETE: ${contractUnbound.length} receipts cannot be tied to the verification contract sources that produced them`);
+      for (const row of contractUnbound.slice(0, 20)) console.log(row.surface_id);
+      if (contractUnbound.length > 20) console.log(`  and ${contractUnbound.length - 20} more`);
+    }
+    if (!contract.approved) {
+      console.log(`INCOMPLETE: the verification contract is not approved (${contract.problem ?? `approved digest ${contract.approval.sha256.slice(0, 12)}… does not match the current contract ${contract.current.slice(0, 12)}…`})`);
+    }
+    if (uncovered.length > 0 || unresolved.length > 0 || stale.length > 0 || unbound.length > 0 || contractStale.length > 0 || contractUnbound.length > 0 || !contract.approved) {
       process.exitCode = 1;
     } else {
       console.log('complete: every surface has a receipt, every receipt is bound to its scenario, and every finding is fixed or proven out of reach');

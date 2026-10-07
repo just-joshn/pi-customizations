@@ -4,6 +4,8 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { contractDigest } from './verification-contract.mjs';
+
 export const VERDICTS = ['verified', 'failed', 'inconclusive', 'env-limited', 'not-drivable'];
 export const SCOPES = ['discovery', 'behaviour'];
 
@@ -37,6 +39,7 @@ export function validateReceipt(receipt) {
   requiredString(receipt.head_sha, 'head_sha');
   requiredString(receipt.pi_version, 'pi_version');
   requiredString(receipt.checked_at, 'checked_at');
+  requiredString(receipt.contract_sha256, 'contract_sha256');
   if (!VERDICTS.includes(receipt.verdict)) throw new Error(`Receipt ${receipt.surface_id} has unknown verdict '${receipt.verdict}'`);
   requiredScope(receipt.scope);
   if (receipt.verdict !== 'verified' && (typeof receipt.reason !== 'string' || receipt.reason.trim().length === 0)) {
@@ -52,6 +55,7 @@ export function createReceipts({ scenario, artifactsRoot, receiptDir = artifacts
   const piVersion = execFileSync(piBin, ['--version'], { encoding: 'utf8' }).trim();
   if (!receiptDir) throw new Error('createReceipts requires receiptDir or artifactsRoot');
   const scenarioSha256 = scenarioDigest(scenarioFileFor(scenario));
+  const contractSha256 = contractDigest({ repoRoot });
   const written = [];
 
   function evidencePath(path) {
@@ -75,6 +79,7 @@ export function createReceipts({ scenario, artifactsRoot, receiptDir = artifacts
       pi_version: piVersion,
       checked_at: checkedAt,
       scenario_sha256: scenarioSha256,
+      contract_sha256: contractSha256,
       reason: verdict === 'verified' ? null : reason,
     };
     validateReceipt(receipt);
