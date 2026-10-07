@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // End-to-end check of the package against the real Caveman binaries: caveman-proxy,
 // caveman-mcp, and the caveman CLI's native-hook, with a scripted local provider.
-// Usage: node scripts/e2e-real.mjs --cli <dir holding caveman> --bin <dir holding caveman-proxy>
+// Usage: node scripts/e2e-real.mjs --cli <dir holding caveman> --bin <dir holding caveman-proxy> [--checkout <dir>]
 // Install both into a throwaway prefix with:
 //   npm i --prefix /tmp/cavecli @caveman-ai/cli
 //   HOME=/tmp/cavehome/home CAVEMAN_HOME=/tmp/cavehome/caveman /tmp/cavecli/node_modules/.bin/caveman setup --install
@@ -21,7 +21,7 @@ const arg = (name) => {
 const cliDir = arg('--cli');
 const binDir = arg('--bin');
 if (!cliDir || !binDir || !existsSync(join(cliDir, 'caveman')) || !existsSync(join(binDir, 'caveman-proxy'))) {
-  process.stderr.write('usage: e2e-real.mjs --cli <dir with caveman> --bin <dir with caveman-proxy and caveman-mcp>\n');
+  process.stderr.write('usage: e2e-real.mjs --cli <dir with caveman> --bin <dir with caveman-proxy and caveman-mcp> [--checkout <caveman checkout>]\n');
   process.exit(2);
 }
 
@@ -40,6 +40,10 @@ const check = (ok, label, detail = '') => {
 // A bare `seq` listing panics the pinned engine (engine/filewrap.go:35, all-whitespace body after
 // listing unwrap), so the tool output is log-shaped text.
 const TOOL_COMMAND = 'for i in $(seq 1 300); do echo "worker $i: GET /api/items status=200 latency_ms=$i"; done';
+const checkout = arg('--checkout') ?? '/tmp/caveman';
+const verbs = JSON.parse(readFileSync(join(checkout, 'agents/reserved-verbs.json'), 'utf8')).verbs.filter((verb) => !verb.startsWith('-'));
+// Upstream mounts some reserved verbs only under `caveman tools`, so a verb counts when either form runs.
+const VERB_PROBE = `probe() { perl -e 'alarm 20; exec @ARGV' caveman "$@" --help 2>&1 | grep -q 'unknown command'; }; for v in ${verbs.join(' ')}; do if probe "$v" && probe tools "$v"; then echo "MISSING $v"; else echo "REACHED $v"; fi; done`;
 const hits = [];
 const sse = (res, delta, finish) => {
   const chunk = (d, f, usage) => ({ id: 's', object: 'chat.completion.chunk', model: 'm', choices: [{ index: 0, delta: d, finish_reason: f }], ...usage });
@@ -59,6 +63,7 @@ function reply(messages, res) {
     .filter((m) => m.role === 'user')
     .map(textOf)
     .join(' ');
+  if (last?.role === 'user' && asked.includes('RUN_VERBS')) return sse(res, toolCall('bash', { command: VERB_PROBE }), 'tool_calls');
   if (last?.role === 'user' && asked.includes('RUN_TOOL')) return sse(res, toolCall('bash', { command: TOOL_COMMAND }), 'tool_calls');
   const handle = last?.role === 'tool' ? /ccr_[A-Za-z0-9_]+/.exec(textOf(last))?.[0] : undefined;
   const retrieved = messages.some((m) => JSON.stringify(m.tool_calls ?? '').includes('caveman_retrieve'));
@@ -169,6 +174,20 @@ try {
   check(/Run smallest sufficient proof/.test(system(first)), 'native Core from caveman native-hook rides the system prompt');
   check(notices(run) === 0, 'an open gate gives no direct-mode notice', run.stderr);
 
+  const classified = {
+    'surgical-patch': 'fix the crash in parser.ts',
+    'investigate-first': 'investigate why the cache misses',
+    migration: 'migrate the schema with a backfill',
+    'safe-refactor': 'refactor and cleanup the utils module',
+    'verify-and-stop': 'verify that the login flow works',
+    'lean-build': 'implement a new export feature',
+  };
+  for (const [skill, prompt] of Object.entries(classified)) {
+    await runPi(prompt);
+    const [hit] = fresh();
+    check(system(hit).includes(`Active skill ${skill}:`), `the native runtime activates ${skill} for a matching task`);
+  }
+
   const toolRun = await runPi('RUN_TOOL please');
   const turns = fresh();
   const shrunk = toolTexts(turns[1] ?? { messages: [] })[0] ?? '';
@@ -184,6 +203,11 @@ try {
   check(direct.stdout.includes('STUB_OK'), 'with the proxy stopped the session stays usable', direct.stderr);
   check(original === recovered, 'recovered bytes equal the unshrunk direct tool output', JSON.stringify([original.slice(-200), recovered.slice(-200)]));
   check(notices(direct) === 1, 'a stopped proxy gives exactly one direct-mode notice', direct.stderr);
+
+  const verbRun = await runPi('RUN_VERBS', withoutBinaries);
+  const verbOutput = toolTexts(fresh()[1] ?? { messages: [] })[0] ?? '';
+  const reached = verbs.filter((verb) => verbOutput.split('\n').includes(`REACHED ${verb}`));
+  check(verbRun.code === 0 && reached.length === verbs.length, `all ${verbs.length} caveman CLI verbs run from Pi's bash tool`, JSON.stringify(verbs.filter((verb) => !reached.includes(verb))) + verbOutput.slice(-300));
 
   await startProxy();
   writeFileSync(runFile, readFileSync(runFile, 'utf8').replace(/"instance_token":"[0-9a-f]+"/, '"instance_token":"0000"'));
