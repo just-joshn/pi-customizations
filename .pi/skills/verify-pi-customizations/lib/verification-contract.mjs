@@ -111,7 +111,7 @@ export function contractUnchangedSince({ repoRoot, commit }) {
   try {
     const current = new Map();
     if (paths.length > 0) {
-      const output = execFileSync('git', ['-C', repoRoot, 'hash-object', '--stdin-paths'], { input: `${paths.join('\n')}\n`, encoding: 'utf8' });
+      const output = execFileSync('git', ['-C', repoRoot, 'hash-object', '--no-filters', '--stdin-paths'], { input: `${paths.join('\n')}\n`, encoding: 'utf8' });
       const blobs = output
         .split('\n')
         .map((line) => line.trim())
