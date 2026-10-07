@@ -35,10 +35,11 @@
           "test/commands.test.ts::an unknown argument is reported without echo",
           "test/parse.test.ts::bare /caveman activates caveman under the manual policy",
           "scripts/rpc-smoke.mjs::fresh session starts in caveman with [CAVEMAN] badge",
-          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn",
+          "scripts/response-contract.mjs::keeps its payload"
         ],
         "oracle": "Upstream mode-activation-cases.json corpus and literal badge/entry assertions; live Pi RPC run. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
-        "positiveCases": ["/caveman", "/caveman ultra"],
+        "positiveCases": ["/caveman", "/caveman ultra", "live model keeps commands, paths, error text, code, numbers with units, negations, and quoted German text verbatim"],
         "negativeCases": ["/caveman bogus"],
         "edgeCases": ["repeat of active mode", "legacy lite/full aliases"]
       },
@@ -73,10 +74,11 @@
           "test/commands.test.ts::/ultracave reports the new mode",
           "test/commands.test.ts::/ultracave switches the injected ruleset",
           "scripts/rpc-smoke.mjs::switched ruleset reaches the model",
-          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn",
+          "scripts/response-contract.mjs::keeps its payload"
         ],
         "oracle": "Literal badge and system-prompt section; live model run. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
-        "positiveCases": ["/ultracave"],
+        "positiveCases": ["/ultracave", "live model keeps commands, paths, error text, code, numbers with units, negations, and quoted German text verbatim"],
         "negativeCases": ["/ultracave bogus"],
         "edgeCases": ["/ultracave while already ultracave"]
       },
@@ -107,9 +109,14 @@
         "rationale": "Same as ultracave."
       },
       "verification": {
-        "tests": ["test/commands.test.ts::/megacave off turns caveman off", "scripts/rpc-smoke.mjs::/megacave switches the badge", "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"],
+        "tests": [
+          "test/commands.test.ts::/megacave off turns caveman off",
+          "scripts/rpc-smoke.mjs::/megacave switches the badge",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn",
+          "scripts/response-contract.mjs::keeps its payload"
+        ],
         "oracle": "Literal badge assertions; live RPC. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
-        "positiveCases": ["/megacave"],
+        "positiveCases": ["/megacave", "live model keeps commands, paths, error text, code, numbers with units, negations, and quoted German text verbatim"],
         "negativeCases": ["/megacave off"],
         "edgeCases": ["wenyan alias"]
       },
@@ -380,10 +387,16 @@
           "test/ruleset.test.ts::the section carries the upstream auto-clarity and exactness rules",
           "test/ruleset.test.ts::the reminder names the mode",
           "scripts/rpc-smoke.mjs::ruleset injected as a system prompt section",
-          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn",
+          "scripts/response-contract.mjs::keeps its payload",
+          "scripts/response-contract.mjs::and its warning"
         ],
         "oracle": "Byte-equal delivery of the upstream rule text to the model. Model compliance is model-dependent in every host and is not asserted. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
-        "positiveCases": ["security warning prompt"],
+        "positiveCases": [
+          "security warning prompt",
+          "live model keeps commands, paths, error text, code, numbers with units, negations, and quoted German text verbatim",
+          "security warning and irreversible action keep a clear warning in every prose mode"
+        ],
         "negativeCases": [],
         "edgeCases": ["megacave keeps technical terms verbatim"]
       },
