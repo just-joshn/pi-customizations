@@ -77,3 +77,15 @@ for (const change of ['clean', 'edit', 'add', 'delete', 'bogus', 'nonrepo']) {
     assert.equal(contractUnchangedSince({ repoRoot: root, commit: change === 'bogus' ? 'not-a-commit' : sha }), change === 'clean');
   });
 }
+
+test('legacy proof rejects changed working bytes even when Git normalizes them', (t) => {
+  const root = fixture(t);
+  const source = join(root, SKILL, 'normalized.mjs');
+  writeFileSync(join(root, '.gitattributes'), '*.mjs text eol=lf\n');
+  writeFileSync(source, 'export const value = 1;\n');
+  const sha = commit(root);
+  assert.equal(contractUnchangedSince({ repoRoot: root, commit: sha }), true);
+  writeFileSync(source, 'export const value = 1;\r\n');
+  assert.equal(execFileSync('git', ['-C', root, 'diff', '--exit-code'], { encoding: 'utf8', stdio: 'pipe' }), '');
+  assert.equal(contractUnchangedSince({ repoRoot: root, commit: sha }), false);
+});
