@@ -94,7 +94,9 @@ Unknown name "uniqueItems" at 'request.tools[0].function_declarations[32].parame
 
 ## F-013: `AN-EVT-2` cannot be falsified as specified
 
-**Status.** open
+**Status.** fixed
+
+**Closure evidence.** `scenarios/anthropic-shutdown.mjs` now runs the exported production guard inside real Pi, primes trim-notice deduplication on startup, and observes a second trim notice inside shutdown itself. No subsequent startup runs. Removing only the shutdown registration in an isolated copy leaves the count at one; the intact implementation produces two. The lifecycle captures and the independent unit-test mutant output are under `artifacts/user-perspective/f013-shutdown/`. The shutdown-only unit test fails with that same mutation and all 18 context-guard tests pass on the intact implementation. This fixes the verification blind spot, not a demonstrated product reset defect. The earlier inconclusive receipt remains historical evidence; the new behavioural receipt is under `artifacts/user-perspective/anthropic-shutdown/`.
 
 **Found by** the OAuth unit. `session_shutdown` and `session_start` register the same reset closure at `extensions/pi-anthropic-oauth/src/guard.ts:169` and `:197-198`. Pi fires them back to back with no guard-observable request between them, so deleting either handler leaves every observation unchanged. The row's receipt is `inconclusive`, which is the correct verdict for a surface this harness cannot distinguish.
 
