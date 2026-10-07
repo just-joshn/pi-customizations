@@ -58,7 +58,15 @@ const PATTERNS: readonly (readonly [RegExp, string])[] = [
   [/\bxox[bp]-[A-Za-z0-9-]+/g, REDACTED],
   [/\bAKIA[0-9A-Z]{16}\b/g, REDACTED],
   [/(password\s*[=:]\s*)[^\s&"']+/gi, `$1${REDACTED}`],
+  [/\bgithub_pat_[A-Za-z0-9_]{20,}/g, REDACTED],
+  [/\bglpat-[A-Za-z0-9_-]{20,}/g, REDACTED],
+  [/\bnpm_[A-Za-z0-9]{20,}/g, REDACTED],
+  [/\bpypi-[A-Za-z0-9_-]{16,}/g, REDACTED],
+  [/(https:\/\/hooks\.slack\.com\/services\/)[^\s'"]+/gi, `$1${REDACTED}`],
+  [/(--(?:token|password|api-key|secret|auth-token)(?:=|\s+))[^\s'"]+/gi, `$1${REDACTED}`],
+  [/\b([A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|API_KEY)[A-Z0-9_]*=)[^\s'"]+/g, `$1${REDACTED}`],
   [/(\b[a-z][a-z0-9+.-]*:\/\/)[^\s/:@]+:[^\s/@]+@/gi, `$1${REDACTED}@`],
+  [/(\b[a-z][a-z0-9+.-]*:\/\/)(?!git@)(?!<REDACTED>@)[^\s/:@]+@/gi, `$1${REDACTED}@`],
 ];
 
 export function redact(text: string): string {

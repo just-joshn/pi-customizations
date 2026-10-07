@@ -3,7 +3,7 @@ import { redact } from '../../src/evidence/verification.ts';
 
 const token = (prefix: string): string => `${prefix}${'a1B2c3D4e5'.repeat(4)}`;
 
-test.fails.for([
+test.for([
   ['token-only URL userinfo', `https://${token('github_pat_')}@github.com/acme/app.git`, 'https://<REDACTED>@github.com/acme/app.git'],
   ['GitLab token userinfo', `https://${token('glpat-')}@gitlab.com/acme/app.git`, 'https://<REDACTED>@gitlab.com/acme/app.git'],
   ['Slack webhook', `curl -X POST ${['https://hooks.slack.com', 'services', 'T000', 'B000', 'XXXXsecret'].join('/')}`, 'curl -X POST https://hooks.slack.com/services/<REDACTED>'],
