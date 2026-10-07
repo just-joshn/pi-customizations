@@ -66,7 +66,7 @@ function driveInstallRegistration(repoRoot, layout, rawDir, receipts) {
     package: PACKAGE,
     expected: 'pi install of the package registers its theme through the pi.themes glob',
     observed: `install: ${JSON.stringify(installed)}; list: ${JSON.stringify(listed.trim())}; picker row: ${JSON.stringify(pickerLine)}`,
-    evidence: pickerPath,
+    evidence: rawDir,
     check: () => {
       assert.match(installOut, /^Installed /m, 'pi install did not report an Installed line');
       assert.ok(listOut.includes(PACKAGE), 'pi list does not show the package');
@@ -100,7 +100,7 @@ function driveAppliedTheme(repoRoot, layout, rawDir, receipts) {
     package: PACKAGE,
     expected: 'the one-dark-pro-flat theme applies its One Dark Pro Flat dark palette in a real session',
     observed: `accent ${ACCENT} present; dim ${DIM} present; user box ${USER_MESSAGE_BG} present: ${themed.includes(USER_MESSAGE_BG)}; tool surface ${TOOL_SUCCESS_BG} present: ${themed.includes(TOOL_SUCCESS_BG)}; built-in dark accent present: ${themed.includes(BUILT_IN_DARK_ACCENT)}; picker row: ${JSON.stringify(pickerLine)}`,
-    evidence: themedPath,
+    evidence: rawDir,
     check: () => {
       assert.ok(themed.includes(ACCENT), 'the one-dark-pro-flat accent never reached the terminal');
       assert.ok(themed.includes(DIM), 'the one-dark-pro-flat dim tier never reached the terminal');

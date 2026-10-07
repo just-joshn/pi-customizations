@@ -124,7 +124,7 @@ function driveNoColorSession(rawDir, captures) {
   }
 }
 
-function writeThemeReceipt(receipts, captures) {
+function writeThemeReceipt(receipts, captures, rawDir) {
   const header = headerPaint(captures.idle);
   const idleBand = ansiLines(captures.idle).find((line) => line.includes('▄')) ?? '';
   const picker = readFileSync(captures.picker, 'utf8');
@@ -133,7 +133,7 @@ function writeThemeReceipt(receipts, captures) {
     package: 'extensions/pi-tui-skin',
     expected: 'session start installs the tui-skin theme, and the theme is selectable as an active entry in the theme list',
     observed: `exact header bytes ${JSON.stringify(header.span)}; composer band carries ${JSON.stringify(FILL_SGR)}: ${idleBand.includes(FILL_SGR)}; picker line: ${JSON.stringify(picker.split('\n').find((line) => line.includes('tui-skin')))}`,
-    evidence: captures.idle,
+    evidence: rawDir,
     check: () => {
       assert.ok(header.present, `${HEADER_TEXT} not found in the ANSI capture`);
       assert.equal(header.prefix, `  ${TEXT_SGR}`, `header prefix is not two spaces plus the skin text-role escape: ${JSON.stringify(header.prefix)}`);
@@ -160,13 +160,13 @@ function writeHeaderReceipt(receipts, captures) {
   });
 }
 
-function writeFooterReceipt(receipts, captures) {
+function writeFooterReceipt(receipts, captures, rawDir) {
   receipts.assertVerdict({
     surfaceId: 'TS-UI-3',
     package: 'extensions/pi-tui-skin',
     expected: 'the footer renders a thinking-level row, a model row, and a location row',
     observed: `idle model row ${JSON.stringify(findRow(captures.idle, /^ {2}Reference UI Scripted/))}; idle location row ${JSON.stringify(findRow(captures.idle, /^ {2}(\/|~)/))}; cycled mode row ${JSON.stringify(lines(captures.thinking).find((line) => line.includes('shift+tab to cycle')))}; non-git location row ${JSON.stringify(findRow(captures.nonGit, /^ {2}(\/|~)/))}`,
-    evidence: captures.idle,
+    evidence: rawDir,
     check: () => {
       assert.equal(findRow(captures.idle, /^ {2}Reference UI Scripted/), `  ${FOOTER_MODEL}`);
       assert.match(findRow(captures.idle, /^ {2}(\/|~)/), / · smoke-main$/);
@@ -178,14 +178,14 @@ function writeFooterReceipt(receipts, captures) {
   });
 }
 
-function writeComposerReceipt(receipts, captures) {
+function writeComposerReceipt(receipts, captures, rawDir) {
   const idle = lines(captures.idle);
   receipts.assertVerdict({
     surfaceId: 'TS-UI-4',
     package: 'extensions/pi-tui-skin',
     expected: 'the composer renders as a filled band that keeps the prompt glyph and the typed text',
     observed: `idle placeholder row ${JSON.stringify(idle.find((line) => line.includes(PLACEHOLDER)))}; typed row ${JSON.stringify(lines(captures.typed).find((line) => line.includes('hello world')))}; 24x8 row ${JSON.stringify(lines(captures.tiny).find((line) => line.includes('→ Plan')))}; 200x60 row ${JSON.stringify(lines(captures.wide).find((line) => line.includes(PLACEHOLDER)))}; NO_COLOR keeps ${JSON.stringify(lines(captures.noColor).find((line) => line.includes(PLACEHOLDER)))}`,
-    evidence: captures.typed,
+    evidence: rawDir,
     check: () => {
       assert.ok(idle.some((line) => line.includes(PLACEHOLDER)));
       assert.ok(idle.filter((line) => /^ *[▄]{4,} *$/.test(line)).length >= 1, 'no top composer band');
@@ -210,7 +210,7 @@ function writeComposerReceipt(receipts, captures) {
   });
 }
 
-function writeInstallReceipts(receipts, captures) {
+function writeInstallReceipts(receipts, captures, rawDir) {
   const idle = readFileSync(captures.idle, 'utf8');
   receipts.assertVerdict({
     surfaceId: 'TS-EVT-1',
@@ -238,7 +238,7 @@ function writeInstallReceipts(receipts, captures) {
         .split('\n')
         .find((line) => line.includes('tui-skin')),
     )}`,
-    evidence: captures.packageIdle,
+    evidence: rawDir,
     check: () => {
       const header = headerPaint(captures.packageIdle);
       assert.ok(header.present, `${HEADER_TEXT} not found in the package-load capture`);
@@ -263,10 +263,10 @@ export default async function piTuiSkinChrome(context) {
   } finally {
     cleanup();
   }
-  writeThemeReceipt(receipts, captures);
+  writeThemeReceipt(receipts, captures, rawDir);
   writeHeaderReceipt(receipts, captures);
-  writeFooterReceipt(receipts, captures);
-  writeComposerReceipt(receipts, captures);
-  writeInstallReceipts(receipts, captures);
+  writeFooterReceipt(receipts, captures, rawDir);
+  writeComposerReceipt(receipts, captures, rawDir);
+  writeInstallReceipts(receipts, captures, rawDir);
   log(`✓ ${receipts.receipts().length} chrome receipts written`);
 }

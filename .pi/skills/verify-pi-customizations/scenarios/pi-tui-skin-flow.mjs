@@ -130,7 +130,7 @@ function writeEditReceipt(receipts, captures) {
   });
 }
 
-function writeSimpleRowReceipts(receipts, captures) {
+function writeSimpleRowReceipts(receipts, captures, rawDir) {
   const allRows = JSON.stringify(
     read(captures.done)
       .split('\n')
@@ -144,7 +144,7 @@ function writeSimpleRowReceipts(receipts, captures) {
       package: PACKAGE,
       expected,
       observed: `row ${JSON.stringify(row)}${surfaceId === 'TS-RENDER-6' ? `; all custom rows ${allRows}` : ''}`,
-      evidence: captures[key],
+      evidence: surfaceId === 'TS-RENDER-6' ? rawDir : captures[key],
       check: () => assert.match(row, pattern, `${literal} row is not the custom row`),
     });
   }
@@ -295,7 +295,7 @@ export default async function piTuiSkinFlow(context) {
   }
   writeReadReceipt(receipts, captures);
   writeEditReceipt(receipts, captures);
-  writeSimpleRowReceipts(receipts, captures);
+  writeSimpleRowReceipts(receipts, captures, rawDir);
   writeWorkingIndicatorReceipt(receipts, captures);
   writeAgentLifecycleReceipts(receipts, captures);
   writeToolHookReceipts(receipts, captures);
