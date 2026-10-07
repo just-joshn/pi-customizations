@@ -38,3 +38,5 @@ export const CrewMessageEnd = Type.Object({
 });
 
 export const TextPart = Type.Object({ type: Type.Literal('text'), text: Type.String() });
+
+export const AgentFrontmatter = Type.Object({ model: Type.Optional(Type.String()) });

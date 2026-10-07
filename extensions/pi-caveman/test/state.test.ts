@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { DefaultMode } from '../src/modes.ts';
 import { parseModeChange } from '../src/parse.ts';
-import { applyPrompt, initialState, MODE_ENTRY, type ModeState, OFF, stateFromEntries, transitionsFromEntries } from '../src/state.ts';
+import { applyPrompt, initialState, MODE_ENTRY, type ModeState, OFF, parseModeState, sameState, stateFromEntries, transitionsFromEntries } from '../src/state.ts';
 
 function run(prompts: readonly string[], start: ModeState = OFF, defaultMode: DefaultMode = 'caveman'): ModeState {
   return prompts.reduce((state, prompt) => {
@@ -91,5 +91,23 @@ describe('session entries', () => {
       { ts: Date.parse('2026-01-01T00:02:00Z'), mode: 'caveman', prev: 'commit' },
       { ts: Date.parse('2026-01-01T00:04:00Z'), mode: null, prev: 'caveman' },
     ]);
+  });
+});
+
+describe('parseModeState', () => {
+  test.for([
+    { data: { mode: 'full', returnTo: 'ultra' }, expected: { mode: 'caveman', returnTo: 'ultracave' } },
+    { data: { mode: 'commit' }, expected: { mode: 'commit', returnTo: null } },
+    { data: { mode: 'loud' }, expected: null },
+    { data: { mode: 3 }, expected: null },
+    { data: null, expected: null },
+  ])('$data', ({ data, expected }) => {
+    expect(parseModeState(data)).toStrictEqual(expected);
+  });
+});
+
+describe('sameState', () => {
+  test('compares the return target too', () => {
+    expect(sameState({ mode: 'commit', returnTo: 'caveman' }, { mode: 'commit', returnTo: 'off' })).toBe(false);
   });
 });

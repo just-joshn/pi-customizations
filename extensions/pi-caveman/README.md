@@ -46,12 +46,12 @@ The first source that sets a valid `defaultMode` wins:
 | Upstream (Claude Code) | Pi |
 |---|---|
 | Mode flag files under `~/.claude/.caveman-sessions/` | `caveman-mode` session entries written with `pi.appendEntry()`. The mode follows the active branch and survives `/reload`, `--continue`, `/fork`, and compaction. An explicit off is never undone. |
-| `SessionStart` hook injecting the skill | A `caveman` system prompt section set in `before_agent_start`. Pi re-sends it on every request, so compaction cannot drop it. |
+| `SessionStart` hook injecting the skill, and the tracker re-injecting it on a mode switch | A `caveman` system prompt section set in `before_agent_start`. Pi sends the system prompt with every request, so the ruleset is always present rather than only after start, compaction, and switches. Compaction cannot drop it. |
 | `UserPromptSubmit` mode tracker and per-turn reminder | The `input` handler parses mode changes. A hidden `caveman-context` message carries the reminder and any notice for that turn. |
 | `caveman-statusline.sh` badge | `ctx.ui.setStatus('caveman', …)`. The badge shows `[CAVEMAN]`, `[ULTRACAVE]`, `[MEGACAVE]`, or `[CAVEMAN:COMMIT]`, and nothing when off. |
 | `caveman-stats.js` reading Claude transcripts | `/caveman-stats` reads Pi's recorded usage on the active branch. Lifetime history goes to `~/.pi/agent/caveman/history.jsonl`. |
 | `caveman-compress` Python scripts calling the `claude` CLI | The `caveman_compress` tool. It is a TypeScript port of `detect.py`, `validate.py`, and `compress.py`, and it calls the current model through `ctx.modelRegistry`. |
-| `cavecrew-*` Claude subagents | The `cavecrew` tool. It runs `investigator`, `builder`, or `reviewer` in an isolated `pi --mode json` process with the upstream agent prompt. `CAVECREW_<ROLE>_MODEL` picks the model. Otherwise the subagent uses the session model. |
+| `cavecrew-*` Claude subagents | The `cavecrew` tool. It runs `investigator`, `builder`, or `reviewer` in an isolated `pi --mode json` process with the upstream agent prompt. The model comes from `CAVECREW_<ROLE>_MODEL` first. Next comes the agent's upstream `model: haiku` hint when Pi has a model whose id contains `haiku`. Otherwise the subagent uses the session model. |
 | Skills | All 22 upstream skills ship under `skills/`. `cavecrew`, `caveman-compress`, `caveman-help`, and `caveman-stats` come from `overrides/` because their upstream text names Claude Code mechanics. |
 
 ## Divergence from upstream
@@ -79,7 +79,7 @@ bun run typecheck
 node scripts/rpc-smoke.mjs
 ```
 
-`rpc-smoke.mjs` drives a real Pi over RPC with the default model. It checks skill discovery, prompt injection, every mode command, one-shot restore, `/caveman-stats`, `caveman_compress`, `cavecrew`, and that an explicit off survives a restart.
+`rpc-smoke.mjs` drives a real Pi over RPC with the default model. It checks skill discovery, prompt injection, `/caveman status`, `/ultracave`, `/megacave`, one-shot restore, `/caveman-stats`, `caveman_compress`, `cavecrew`, the mode across manual compaction, an explicit off across a restart with `--continue`, and the mode stored on a forked branch.
 
 ## License
 

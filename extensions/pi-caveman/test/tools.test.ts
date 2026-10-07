@@ -36,7 +36,7 @@ const reply = (text: string, stopReason: AssistantMessage['stopReason'] = 'stop'
 
 function ctxWith(replies: readonly AssistantMessage[]): ExtensionContext {
   let index = 0;
-  const modelRegistry = { streamSimple: () => ({ result: async () => replies[Math.min(index++, replies.length - 1)] }) };
+  const modelRegistry = { streamSimple: () => ({ result: async () => replies[Math.min(index++, replies.length - 1)] }), getAvailable: () => [{ provider: 'p', id: 'm' }] };
   return { cwd: dir, model: { provider: 'p', id: 'm' }, modelRegistry } as unknown as ExtensionContext;
 }
 

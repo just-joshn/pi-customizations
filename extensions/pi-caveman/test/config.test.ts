@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { type ConfigEnvironment, getDefaultMode, userConfigPath } from '../src/config.ts';
+import { type ConfigEnvironment, findRepoConfigPath, getDefaultMode, userConfigPath } from '../src/config.ts';
 
 let root: string;
 beforeEach(() => {
@@ -61,5 +61,18 @@ describe('getDefaultMode', () => {
 describe('userConfigPath', () => {
   test('uses APPDATA on Windows', () => {
     expect(userConfigPath({ env: { APPDATA: 'C:/Users/me/AppData/Roaming' }, platform: 'win32', home: 'C:/Users/me' })).toBe(join('C:/Users/me/AppData/Roaming', 'caveman', 'config.json'));
+  });
+});
+
+describe('findRepoConfigPath', () => {
+  test('prefers .caveman/config.json over .caveman.json', () => {
+    writeJson(join(root, '.caveman', 'config.json'), {});
+    writeJson(join(root, '.caveman.json'), {});
+    expect(findRepoConfigPath(root)).toBe(join(root, '.caveman', 'config.json'));
+  });
+
+  test('returns null when no ancestor has a config', () => {
+    mkdirSync(join(root, 'a'));
+    expect(findRepoConfigPath(join(root, 'a'))).toBe(null);
   });
 });

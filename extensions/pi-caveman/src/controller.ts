@@ -8,14 +8,26 @@ import { activeMode, applyPrompt, initialState, MODE_ENTRY, type ModeState, OFF,
 const STATUS_KEY = 'caveman';
 const ONE_SHOT_SKILL = /^\/(?:caveman:)?(caveman-(?:commit|review|compress))(?=\s|$)/i;
 
+export type PromptNote = { readonly kind: 'status'; readonly report: string } | { readonly kind: 'notice'; readonly text: string } | null;
+
 export interface ModeController {
   readonly active: () => Mode | null;
-  readonly handlePrompt: (text: string, ctx: ExtensionContext) => string | null;
+  readonly handlePrompt: (text: string, ctx: ExtensionContext) => PromptNote;
+}
+
+interface PendingTurn {
+  readonly context: string;
+  readonly reinforce: boolean;
+}
+
+function pendingFor(note: PromptNote): PendingTurn | null {
+  if (note?.kind === 'status') return { context: `Report this status verbatim without changing mode: ${note.report}`, reinforce: false };
+  return note ? { context: note.text, reinforce: true } : null;
 }
 
 export function registerModeTracking(pi: ExtensionAPI): ModeController {
   let state: ModeState = OFF;
-  let pendingNotice: string | null = null;
+  let pending: PendingTurn | null = null;
 
   const render = (ctx: ExtensionContext): void => {
     const mode = activeMode(state);
@@ -23,7 +35,7 @@ export function registerModeTracking(pi: ExtensionAPI): ModeController {
   };
 
   const restore = (ctx: ExtensionContext): void => {
-    pendingNotice = null;
+    pending = null;
     const stored = stateFromEntries(ctx.sessionManager.getBranch());
     if (stored) {
       state = stored;
@@ -34,13 +46,13 @@ export function registerModeTracking(pi: ExtensionAPI): ModeController {
     render(ctx);
   };
 
-  const handlePrompt = (text: string, ctx: ExtensionContext): string | null => {
+  const handlePrompt = (text: string, ctx: ExtensionContext): PromptNote => {
     const outcome = applyPrompt(state, parseModeChange(text, { getDefaultMode: () => getDefaultMode(ctx.cwd) }));
-    if (outcome.kind === 'status') return outcome.report;
+    if (outcome.kind === 'status') return { kind: 'status', report: outcome.report };
     if (!sameState(outcome.next, state)) pi.appendEntry(MODE_ENTRY, outcome.next);
     state = outcome.next;
     render(ctx);
-    return outcome.notice;
+    return outcome.notice === null ? null : { kind: 'notice', text: outcome.notice };
   };
 
   pi.on('session_start', (_event, ctx) => restore(ctx));
@@ -48,9 +60,9 @@ export function registerModeTracking(pi: ExtensionAPI): ModeController {
 
   pi.on('input', (event, ctx) => {
     if (/<scheduled-task\b/i.test(event.text)) return { action: 'continue' };
-    const notice = handlePrompt(event.text, ctx);
+    const note = handlePrompt(event.text, ctx);
     // Queued steer and follow-up text never reaches before_agent_start, so its notice has no turn to ride.
-    if (event.streamingBehavior === undefined) pendingNotice = notice;
+    if (event.streamingBehavior === undefined) pending = pendingFor(note);
     const oneShot = ONE_SHOT_SKILL.exec(event.text);
     if (!oneShot?.[1]) return { action: 'continue' };
     return { action: 'transform', text: `/skill:${oneShot[1].toLowerCase()}${event.text.slice(oneShot[0].length)}` };
@@ -60,8 +72,10 @@ export function registerModeTracking(pi: ExtensionAPI): ModeController {
     const mode = activeMode(state);
     const prose = mode !== null && isProseMode(mode) && getDefaultMode(ctx.cwd) !== 'off' ? mode : null;
     if (prose) event.systemPromptOptions.sections['caveman'] = rulesetSection(prose);
-    const context = [pendingNotice, prose ? reinforcement(prose) : null].filter((line) => line !== null).join('\n\n');
-    pendingNotice = null;
+    // Upstream answers a status request without the per-turn reminder.
+    const reminder = prose && pending?.reinforce !== false ? reinforcement(prose) : null;
+    const context = [pending?.context ?? null, reminder].filter((line) => line !== null).join('\n\n');
+    pending = null;
     return context ? { message: { customType: 'caveman-context', content: context, display: false } } : undefined;
   });
 

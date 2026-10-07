@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { CREW, crewModel, runCrew } from './cavecrew.ts';
+import { agentModelHint, CREW, crewModel, runCrew } from './cavecrew.ts';
 
 const parameters = Type.Object({
   agent: Type.Union(
@@ -27,7 +27,13 @@ export function registerCavecrew(pi: ExtensionAPI): void {
     outputSchema,
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
     async execute(_toolCallId, params, signal, onUpdate, ctx) {
-      const model = crewModel(params.agent, process.env, ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : null);
+      const model = crewModel({
+        role: params.agent,
+        env: process.env,
+        parentModel: ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : null,
+        hint: agentModelHint(params.agent),
+        available: ctx.modelRegistry.getAvailable(),
+      });
       onUpdate?.({ content: [{ type: 'text', text: `cavecrew-${params.agent} running…` }], details: undefined });
       const run = await runCrew({ role: params.agent, task: params.task, cwd: params.cwd ? resolve(ctx.cwd, params.cwd) : ctx.cwd, model, signal });
       if (run.exitCode !== 0 || !run.output) {

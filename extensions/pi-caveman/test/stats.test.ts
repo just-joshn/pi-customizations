@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { aggregateHistory, appendHistory, attributeByMode, findCompressedPairs, formatShare, formatStats, parseDuration, sessionUsage } from '../src/stats.ts';
+import { aggregateHistory, appendHistory, attributeByMode, findCompressedPairs, formatHistory, formatShare, formatStats, parseDuration, sessionUsage, totalCounts } from '../src/stats.ts';
 
 const assistant = (timestamp: number, output: unknown, cacheRead: unknown) => ({
   type: 'message',
@@ -115,5 +115,32 @@ describe('findCompressedPairs', () => {
     writeFileSync(join(dir, 'grew.original.md'), 'x');
     writeFileSync(join(dir, 'grew.md'), 'xx');
     expect(findCompressedPairs([dir, dir])).toStrictEqual({ count: 1, totalOriginal: 100, totalCompressed: 40, bytesReduced: 60 });
+  });
+});
+
+describe('totalCounts', () => {
+  test.for([
+    { name: 'all complete', counts: [{ value: 1 }, { value: 2 }], expected: { value: 3, availability: 'complete' } },
+    { name: 'one partial', counts: [{ value: 1, availability: 'partial' }], expected: { value: 1, availability: 'partial' } },
+    { name: 'one unknown', counts: [{ value: 1 }, { value: null }], expected: { value: 1, availability: 'partial' } },
+    { name: 'none known', counts: [{ value: -1 }, { value: 1.5 }], expected: { value: null, availability: 'unknown' } },
+    { name: 'empty', counts: [], expected: { value: null, availability: 'unknown' } },
+    { name: 'overflow', counts: [{ value: Number.MAX_SAFE_INTEGER }, { value: 1 }], expected: { value: null, availability: 'unknown' } },
+  ])('$name', ({ counts, expected }) => {
+    expect(totalCounts(counts)).toStrictEqual(expected);
+  });
+});
+
+describe('formatHistory', () => {
+  test('an empty history tells the user how to start', () => {
+    expect(formatHistory({ sessions: 0, output: { value: null, availability: 'unknown' }, since: null })).toBe(
+      '\nCaveman Stats — Lifetime\n──────────────────────────────────\nNo sessions logged yet — run /caveman-stats inside any session to start tracking.\n──────────────────────────────────\n',
+    );
+  });
+
+  test('a windowed history names the window', () => {
+    expect(formatHistory({ sessions: 2, output: { value: 1234, availability: 'complete' }, since: '7d' })).toBe(
+      '\nCaveman Stats — Lifetime (last 7d)\n──────────────────────────────────\nSessions:   2\n──────────────────────────────────\nOutput tokens:         1,234\nSavings: unknown — historical estimates are not verified measurements.\n──────────────────────────────────\n',
+    );
   });
 });

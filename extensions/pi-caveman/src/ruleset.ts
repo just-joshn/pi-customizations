@@ -18,6 +18,7 @@ export function loadRuleset(mode: ProseMode, skillsDir: string = SKILLS_DIR): st
   try {
     return readFileSync(`${skillsDir}/${mode}/SKILL.md`, 'utf8').replace(/^---[\s\S]*?---\s*/, '');
   } catch {
+    // A missing skills directory degrades to the built-in thesis, as upstream's fallback ruleset does.
     return null;
   }
 }

@@ -17,9 +17,10 @@ This audit checks every file that branch `feat/pi-caveman` adds against the root
 | Input validation with a schema | Fixed | TypeBox is the repository's schema library. Tool parameters are TypeBox schemas with `minLength`. Config files, session entries, history rows, assistant usage, and cavecrew JSON events are parsed with `Check` against `src/schemas.ts`. These replaced hand-written reflective guards. |
 | Functions under 50 lines | Fixed | `caveman()`, `runCrew`, `compressFileLocked`, `extractIndentedCodeBlocks`, `startPi`, and one test `describe` callback were split. `check:agents` reports 0 `function-length` findings. |
 | Nesting at most 4 levels | Fixed | `extractIndentedCodeBlocks` was flattened. `check:agents` reports 0 `nesting-depth` findings. |
+| No `as` casts or `any` in source | Fixed | `modes.ts` narrowed with `(X as readonly string[]).includes`. It now uses `ReadonlySet` lookups. No `as` cast or `any` remains under `src/`. |
 | No `console.log` | Compliant | No `console.*` calls. The scripts write through `process.stdout`. |
 | No hardcoded values | Compliant | Limits and constants are named (`MAX_OUTPUT_CHARS`, `KILL_GRACE_MS`, `MAX_RETRIES`, `LOCK_WAIT_SECONDS`). Paths come from Pi or XDG resolution. |
-| 80% coverage | Compliant | `vitest --coverage` measures statements 95.9%, branches 87.5%, functions 98.2%, and lines 96.9%. |
+| 80% coverage | Compliant | `vitest --coverage` measures statements 95.7%, branches 88.3%, functions 97.5%, and lines 96.4% over 437 tests. |
 | Test-driven workflow | Compliant | Every fix in this audit landed with a regression test, for example the backup cleanup on a thrown fix call, the steer notice drop, the pre-aborted cavecrew run, and the dot-directory refusal. |
 | Edge cases: null, empty, invalid types, boundaries, errors | Fixed | Added `modes.test.ts` (null, undefined, number, prototype key), `ruleset.test.ts` (missing skills directory), the `MAX_FILE_SIZE` boundary, empty and whitespace input, invalid UTF-8, malformed history and JSON lines, and missing binaries. |
 | Test quality: independent, behavior names, mocks only at boundaries | Fixed | Tests named with "and" were split. Developer-filesystem paths now use temporary directories. The only module mock is `runCrew`, the process boundary of the `cavecrew` tool. `collect` itself is tested against real Node child processes. |
@@ -59,6 +60,25 @@ This audit checks every file that branch `feat/pi-caveman` adds against the root
 | Hard bans: no second agent loop, transcript mutation, unconditional continuation, or bundled host packages | Compliant | `cavecrew` runs a separate Pi process through Pi's JSON mode. It does not run a loop inside this session. No continuation is requested. |
 | Maintainability: delete custom code when Pi adds a native path | Compliant | Each native-gap row names its deletion condition. |
 | MCP, providers, virtual models, codemode | Not applicable | The package registers none of these. |
+
+## Parity with upstream
+
+These checks compare the port against the upstream sources at `99aafe1`. They were run against a local upstream checkout and are not committed.
+
+| Behavior | Check | Result |
+|---|---|---|
+| Mode parsing | `parseModeChange` against upstream `caveman-parse.js` on 80,000 random prompts under four default modes | 0 mismatches |
+| Mode state | The state machine against the real upstream `caveman-mode-tracker.js` hook over 1,250 prompt steps | 0 mismatches |
+| Stats | `attributeByMode`, `formatStats`, `formatShare`, and `formatHistory` against `caveman-stats.js` | 0 mismatches |
+| Compress validation | `validate` against upstream `validate.py` on 600 mutated fixture pairs | 0 mismatches |
+| File detection | `detectFileType`, `shouldCompress`, and `isSensitivePath` against `detect.py` and `compress.py` on 133 path and content cases | 0 mismatches |
+| Compress flow | `compressFile` against `compress_file` with the same model replies on the 5 upstream fixtures, passing and failing | 0 mismatches in outcome, written bytes, and model call count |
+
+An independent review found three more gaps. All three are now resolved:
+
+- **Typed status requests.** A status request that reaches the `input` handler now tells the model to relay `Caveman mode: <mode>` verbatim and skips the reminder for that turn, as the upstream tracker does.
+- **Cavecrew `model: haiku`.** The agent's `model:` hint is now honored when Pi has a matching model, after `CAVECREW_<ROLE>_MODEL` and before the session model.
+- **Ruleset timing.** Upstream sends the ruleset at session start and on a mode switch. Pi carries it in the system prompt on every request. This is Pi's structured prompt mechanism, and the README records the difference.
 
 ## Native-gap gate answers
 

@@ -27,9 +27,13 @@ export function registerModeCommands(pi: ExtensionAPI, controller: ModeControlle
       },
       handler: async (args, ctx) => {
         const before = controller.active();
-        const message = controller.handlePrompt(`/${command.name}${args.trim() ? ` ${args.trim()}` : ''}`, ctx);
-        if (message) {
-          ctx.ui.notify(message.replace(/^Tell the user /, ''), message.startsWith('Caveman mode:') ? 'info' : 'warning');
+        const note = controller.handlePrompt(`/${command.name}${args.trim() ? ` ${args.trim()}` : ''}`, ctx);
+        if (note?.kind === 'status') {
+          ctx.ui.notify(note.report, 'info');
+          return;
+        }
+        if (note) {
+          ctx.ui.notify(note.text.replace(/^Tell the user /, ''), 'warning');
           return;
         }
         const after = controller.active();

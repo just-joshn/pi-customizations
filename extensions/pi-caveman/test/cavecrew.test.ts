@@ -1,22 +1,43 @@
 import { describe, expect, test } from 'vitest';
-import { accumulate, agentPrompt, crewArgs, crewModel, runCrew } from '../src/cavecrew.ts';
+import { accumulate, agentModelHint, agentPrompt, crewArgs, crewModel, runCrew } from '../src/cavecrew.ts';
 
 const line = (text: string, output: number) =>
   JSON.stringify({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text }], usage: { input: 10, output, cacheRead: 1, cacheWrite: 0, totalTokens: 10 + output, cost: { total: 0.5 } } } });
 
 const freshRun = () => ({ usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } }, turns: 0, output: '' });
 
+const haiku = { provider: 'anthropic', id: 'claude-haiku-4-5' };
+const pick = (overrides: Partial<Parameters<typeof crewModel>[0]>) => crewModel({ role: 'reviewer', env: {}, parentModel: 'openai/gpt-5', hint: 'haiku', available: [{ provider: 'openai', id: 'gpt-5' }, haiku], ...overrides });
+
 describe('crewModel', () => {
-  test('an env override beats the parent model', () => {
-    expect(crewModel('reviewer', { CAVECREW_REVIEWER_MODEL: ' anthropic/claude-haiku-4-5 ' }, 'openai/gpt-5')).toBe('anthropic/claude-haiku-4-5');
+  test('an env override beats every other source', () => {
+    expect(pick({ env: { CAVECREW_REVIEWER_MODEL: ' x/custom ' } })).toBe('x/custom');
   });
 
   test('a control character in the override is rejected', () => {
-    expect(crewModel('builder', { CAVECREW_BUILDER_MODEL: 'bad\nmodel' }, 'openai/gpt-5')).toBe('openai/gpt-5');
+    expect(pick({ role: 'builder', hint: null, env: { CAVECREW_BUILDER_MODEL: 'bad\nmodel' } })).toBe('openai/gpt-5');
   });
 
-  test('without a parent model or override Pi chooses', () => {
-    expect(crewModel('investigator', {}, null)).toBe(null);
+  test('the upstream haiku hint picks a matching Pi model', () => {
+    expect(pick({})).toBe('anthropic/claude-haiku-4-5');
+  });
+
+  test('an unmatched hint falls back to the parent model', () => {
+    expect(pick({ available: [{ provider: 'openai', id: 'gpt-5' }] })).toBe('openai/gpt-5');
+  });
+
+  test('without a parent model or a match Pi chooses', () => {
+    expect(pick({ parentModel: null, available: [] })).toBe(null);
+  });
+});
+
+describe('agentModelHint', () => {
+  test.for([
+    { role: 'investigator', expected: 'haiku' },
+    { role: 'reviewer', expected: 'haiku' },
+    { role: 'builder', expected: null },
+  ] as const)('$role → $expected', ({ role, expected }) => {
+    expect(agentModelHint(role)).toBe(expected);
   });
 });
 

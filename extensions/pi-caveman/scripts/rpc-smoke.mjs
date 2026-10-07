@@ -2,7 +2,7 @@
 // Live end-to-end check of pi-caveman through Pi's RPC mode with a real model.
 // Usage: node scripts/rpc-smoke.mjs [--model provider/id]
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -13,6 +13,8 @@ const modelIndex = process.argv.indexOf('--model');
 const model = modelIndex === -1 ? null : process.argv[modelIndex + 1];
 const work = mkdtempSync(join(tmpdir(), 'caveman-smoke-'));
 const sessionDir = join(work, 'sessions');
+mkdirSync(join(work, '.pi'), { recursive: true });
+writeFileSync(join(work, '.pi', 'settings.json'), JSON.stringify({ compaction: { keepRecentTokens: 1 } }));
 const env = { ...process.env, XDG_CONFIG_HOME: join(work, 'xdg'), XDG_DATA_HOME: join(work, 'data') };
 delete env.CAVEMAN_DEFAULT_MODE;
 
@@ -57,7 +59,7 @@ function eventPump(stream) {
 }
 
 function startPi(extraArgs) {
-  const args = ['--mode', 'rpc', '--session-dir', sessionDir, '-e', packageDir, ...(model ? ['--model', model] : []), ...extraArgs];
+  const args = ['--mode', 'rpc', '--approve', '--session-dir', sessionDir, '-e', packageDir, ...(model ? ['--model', model] : []), ...extraArgs];
   const child = spawn('pi', args, { cwd: work, env, stdio: ['pipe', 'pipe', 'inherit'] });
   const { events, waitFor } = eventPump(child.stdout);
   let nextId = 0;
@@ -155,8 +157,19 @@ try {
   check(crewCall !== undefined && !crewCall.isError && crewText.includes('parse.ts'), 'cavecrew investigator returns a path:line answer', crewText);
   process.stdout.write(`     cavecrew: ${JSON.stringify(crewText).slice(0, 300)}\n`);
 
+  await pi.prompt('/megacave');
+  check(pi.lastStatus() === '[MEGACAVE]', '/megacave switches the badge', pi.lastStatus());
+  await pi.prompt('/ultracave');
+
+  const { response: compacted } = await pi.request({ type: 'compact' });
+  check(compacted.success === true, 'manual compaction succeeds', JSON.stringify(compacted));
+  await pi.prompt('Name one data structure.');
+  const afterCompaction = readFileSync(sessionFile(), 'utf8').split('"type":"compaction"').at(-1) ?? '';
+  check(pi.lastStatus() === '[ULTRACAVE]' && afterCompaction.includes('"customType":"caveman-context"'), 'mode and reminder survive compaction', pi.lastStatus());
+
   await pi.prompt('stop caveman');
   check(pi.lastStatus() === undefined, 'natural-language "stop caveman" clears the badge', pi.lastStatus());
+
   await pi.stop();
 
   const resumed = startPi(['--continue']);
@@ -164,6 +177,11 @@ try {
   check(resumed.lastStatus() === undefined, 'explicit off survives a restart with --continue', resumed.lastStatus());
   await resumed.prompt('talk like caveman');
   check(resumed.lastStatus() === '[CAVEMAN]', 'natural-language "talk like caveman" re-activates', resumed.lastStatus());
+  const { response: forks } = await resumed.request({ type: 'get_fork_messages' });
+  const firstQuestion = forks.data.messages.find((m) => m.text.startsWith('Why does React'));
+  await resumed.request({ type: 'fork', entryId: firstQuestion.entryId });
+  await new Promise((r) => setTimeout(r, 300));
+  check(resumed.lastStatus() === '[CAVEMAN]', 'a fork restores the mode stored on its branch', resumed.lastStatus());
   await resumed.stop();
 } catch (error) {
   failures++;

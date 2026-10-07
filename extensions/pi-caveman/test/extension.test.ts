@@ -123,6 +123,14 @@ describe('notices', () => {
   });
 });
 
+describe('status typed as text', () => {
+  test('asks the model to relay the status without a reminder', () => {
+    const h = started();
+    h.emit('input', { text: '/caveman:caveman status', source: 'interactive' });
+    expect(h.turn('x').result).toStrictEqual({ message: { customType: 'caveman-context', content: 'Report this status verbatim without changing mode: Caveman mode: caveman', display: false } });
+  });
+});
+
 describe('registration', () => {
   test('every upstream command is registered', () => {
     expect(harness().commandNames()).toStrictEqual(['caveman', 'caveman-help', 'caveman-stats', 'megacave', 'ultracave']);

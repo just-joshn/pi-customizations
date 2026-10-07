@@ -4,9 +4,10 @@ import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { parseFrontmatter, stripFrontmatter } from '@earendil-works/pi-coding-agent';
 import type { Static } from 'typebox';
 import { Check } from 'typebox/value';
-import { CrewMessageEnd, TextPart } from './schemas.ts';
+import { AgentFrontmatter, CrewMessageEnd, TextPart } from './schemas.ts';
 
 export const CREW = ['investigator', 'builder', 'reviewer'] as const;
 export type CrewRole = (typeof CREW)[number];
@@ -46,13 +47,32 @@ export interface CrewRun {
   readonly usage: CrewUsage;
 }
 
-export function agentPrompt(role: CrewRole, agentsDir: string = AGENTS_DIR): string {
-  return readFileSync(join(agentsDir, `cavecrew-${role}.md`), 'utf8').replace(/^---[\s\S]*?---\s*/, '');
+function agentFile(role: CrewRole, agentsDir: string): string {
+  return readFileSync(join(agentsDir, `cavecrew-${role}.md`), 'utf8');
 }
 
-export function crewModel(role: CrewRole, env: NodeJS.ProcessEnv, parentModel: string | null): string | null {
-  const override = env[MODEL_ENV[role]]?.trim();
-  return override && !/\p{Cc}/u.test(override) ? override : parentModel;
+export function agentPrompt(role: CrewRole, agentsDir: string = AGENTS_DIR): string {
+  return stripFrontmatter(agentFile(role, agentsDir));
+}
+
+/** The upstream `model:` hint, such as `haiku`, or null when the agent definition names none. */
+export function agentModelHint(role: CrewRole, agentsDir: string = AGENTS_DIR): string | null {
+  const { frontmatter } = parseFrontmatter(agentFile(role, agentsDir));
+  return Check(AgentFrontmatter, frontmatter) && frontmatter.model ? frontmatter.model : null;
+}
+
+export interface ModelCandidate {
+  readonly provider: string;
+  readonly id: string;
+}
+
+/** Upstream precedence: CAVECREW_<ROLE>_MODEL, then the agent's model hint when Pi has a matching model, then the parent model. */
+export function crewModel(args: { role: CrewRole; env: NodeJS.ProcessEnv; parentModel: string | null; hint: string | null; available: readonly ModelCandidate[] }): string | null {
+  const override = args.env[MODEL_ENV[args.role]]?.trim();
+  if (override && !/\p{Cc}/u.test(override)) return override;
+  const hint = args.hint?.toLowerCase();
+  const match = hint ? args.available.find((model) => model.id.toLowerCase().includes(hint)) : undefined;
+  return match ? `${match.provider}/${match.id}` : args.parentModel;
 }
 
 export function crewArgs(args: { role: CrewRole; model: string | null; promptFile: string; task: string }): string[] {

@@ -7,7 +7,7 @@ export type Mode = ProseMode | IndependentMode;
 export type StoredMode = Mode | 'off';
 export type DefaultMode = StoredMode | 'manual';
 
-const STORED_MODES: readonly StoredMode[] = ['off', ...PROSE_MODES, ...INDEPENDENT_MODES];
+const STORED_SET: ReadonlySet<string> = new Set<StoredMode>(['off', ...PROSE_MODES, ...INDEPENDENT_MODES]);
 
 const LEGACY_MODES: Readonly<Record<string, ProseMode>> = {
   lite: 'caveman',
@@ -19,16 +19,19 @@ const LEGACY_MODES: Readonly<Record<string, ProseMode>> = {
   'wenyan-ultra': 'megacave',
 };
 
+const PROSE_SET: ReadonlySet<string> = new Set(PROSE_MODES);
+const INDEPENDENT_SET: ReadonlySet<string> = new Set(INDEPENDENT_MODES);
+
 export function isProseMode(value: string): value is ProseMode {
-  return (PROSE_MODES as readonly string[]).includes(value);
+  return PROSE_SET.has(value);
 }
 
 export function isIndependentMode(value: string): value is IndependentMode {
-  return (INDEPENDENT_MODES as readonly string[]).includes(value);
+  return INDEPENDENT_SET.has(value);
 }
 
 function isStoredMode(value: string): value is StoredMode {
-  return (STORED_MODES as readonly string[]).includes(value);
+  return STORED_SET.has(value);
 }
 
 export function canonicalMode(raw: unknown): StoredMode | null {
