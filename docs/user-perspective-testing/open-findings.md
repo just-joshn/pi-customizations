@@ -161,9 +161,11 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 
 **What the unit observed.** The drive set the exclusion both at the top level of the settings and under the `subagents` key, and the child read the excluded file in both cases. The exclusion extension never registers.
 
-**Hypothesis under test.** `extensions/pi-pstack/src/subagents/factory.ts:205` passes the raw settings object to `parsePatterns`, while `extensions/pi-pstack/src/subagents/content-exclusion.ts:20` expects `Array<string>`. A separate fix unit is confirming or refuting this and fixing the root cause, with a test that fails before and a real-artifact proof after. This entry records the finding as it stood and will be superseded by the fix.
+**Confirmed, fixed and verified.** The wiring passed the whole settings object to `parsePatterns`, which accepts only `Array<string>`, so the exclusion extension never registered. `parseContentExclusions` replaces it: it reads both placements, merges and deduplicates them, and returns its problems instead of swallowing them. `factory.create` now throws on a malformed setting rather than proceeding, because an empty pattern list is the failure that reads the files the user meant to protect.
 
-**Why it is not merely parked.** This is the one finding in the run where a user is told something is protected when it is not, so it gets a fix rather than an entry. Everything else here is cosmetic, annoying, or dead code.
+**Proof.** The policy drive reported the child read `.env` before the fix and reports that the transcript does not contain the file content with `blockedByPolicy=true` after it. Nine tests fail on the pre-fix source and pass after. `PS-EVT-32` moved from `not-drivable` to `verified`, and its scenario now derives the verdict from the observation, so a regression writes `failed` rather than the stale reason that contradicted its own `observed` value.
+
+**Severity.** High for a security setting, moderate in practice. It requires a user to have configured exclusions and a subagent to read a path matching them. It is silent, which is what makes it bad, and it fails open, which is the wrong direction for a protection setting.
 
 ---
 
