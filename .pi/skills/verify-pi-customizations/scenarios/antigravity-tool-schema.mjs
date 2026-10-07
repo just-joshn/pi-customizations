@@ -54,6 +54,8 @@ try {
     symlinkSync(join(root, 'extensions/pi-antigravity-oauth/node_modules'), join(packagePath, 'node_modules'));
     const source = execFileSync('git', ['show', '169cbe6:extensions/pi-antigravity-oauth/src/pi-ai/google-shared.ts'], { cwd: root });
     writeFileSync(join(packagePath, 'src/pi-ai/google-shared.ts'), source);
+    const streamSource = execFileSync('git', ['show', '169cbe6:extensions/pi-antigravity-oauth/src/stream.ts'], { cwd: root });
+    writeFileSync(join(packagePath, 'src/stream.ts'), streamSource);
   }
   session = createRpcSession({ packagePath, extraExtensions: [fixture], agentDir, cwd: scratch, capturePath: join(rawDir, `${variant}-real-pi-schema.jsonl`) });
   await session.send({ type: 'set_model', provider: 'google-antigravity', modelId: 'gemini-3.1-pro' });

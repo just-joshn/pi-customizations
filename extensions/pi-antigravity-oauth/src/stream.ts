@@ -82,11 +82,21 @@ export function resolveVariant(model: Model<Api>, reasoning: SimpleStreamOptions
   return { level, variant };
 }
 
-// The CLI declares tool parameters as an OpenAPI schema with Google's upper-case type names.
-function upperCaseTypes(schema: unknown): unknown {
-  if (Array.isArray(schema)) return schema.map(upperCaseTypes);
+// Cloud Code requires uppercase OpenAPI types and rejects const and uniqueItems.
+// Uniqueness is still enforced by the original tool schema when Pi executes arguments.
+function cloudCodeSchema(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(cloudCodeSchema);
   if (typeof schema !== 'object' || schema === null) return schema;
-  return Object.fromEntries(Object.entries(schema).map(([key, value]) => [key, key === 'type' && typeof value === 'string' ? value.toUpperCase() : upperCaseTypes(value)]));
+  return Object.fromEntries(
+    Object.entries(schema).flatMap(([key, value]) => {
+      if (key === 'uniqueItems') return [];
+      if (key === 'const') return [['enum', [value]]];
+      if (key === 'properties' && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        return [[key, Object.fromEntries(Object.entries(value).map(([name, property]) => [name, cloudCodeSchema(property)]))]];
+      }
+      return [[key, key === 'type' && typeof value === 'string' ? value.toUpperCase() : cloudCodeSchema(value)]];
+    }),
+  );
 }
 
 // The CLI sends a Gemini model's tool results in a model turn and every other model's in a user turn.
@@ -115,7 +125,7 @@ export function buildRequest(model: Model<Api>, context: TranscriptContext, proj
   const request: GeminiRequest = {
     contents: toolResultRole(model, convertMessages(asGoogleModel(model), transcript)),
     ...(systemText && { systemInstruction: { role: 'user', parts: [{ text: sanitizeSurrogates(systemText) }] } }),
-    ...(tools.length > 0 && { tools: upperCaseTypes(convertTools(tools, true, false)) as ReturnType<typeof convertTools> }),
+    ...(tools.length > 0 && { tools: cloudCodeSchema(convertTools(tools, true, false)) as ReturnType<typeof convertTools> }),
     ...(tools.length > 0 && options.toolChoice && { toolConfig: { functionCallingConfig: { mode: mapToolChoice(options.toolChoice) } } }),
     generationConfig: {
       ...(options.temperature !== undefined && { temperature: options.temperature }),
