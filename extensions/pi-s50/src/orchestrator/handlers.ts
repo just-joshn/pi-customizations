@@ -3,7 +3,8 @@ import type { Finding } from '../domain/findings.ts';
 import type { GraphNode } from '../domain/graph.ts';
 import type { Decision, DesignCandidate, DiagnosticLoop, Run, RunState, Seam } from '../domain/run.ts';
 import type { AuthorizationAction, Phase, Question, RunStatus } from '../domain/state.ts';
-import { invalidate, latestByClaim, staleMatching } from '../evidence/invalidation.ts';
+import { invalidate, latestByClaim, staleMatching, staleWhere } from '../evidence/invalidation.ts';
+import { consumerMethod } from '../evidence/verification.ts';
 import { grantMatches } from '../policy/authorization.ts';
 import { currentReview, REVIEW_CLAIM } from '../policy/completion.ts';
 import { canModelInvoke } from '../policy/invocation.ts';
@@ -72,6 +73,7 @@ export function askDecisions(state: RunState, questions: readonly Question[], cl
     return done(withRun(state, { status: { kind: 'blocked', gate: { kind: 'shared_understanding' } } }), 'ask_decisions', 'frontier empty; asked for shared-understanding confirmation', clock);
   }
   const ids = questions.map((question) => question.id);
+  if (ids.includes(SHARED_UNDERSTANDING_ID)) return reject(`question id ${SHARED_UNDERSTANDING_ID} is reserved for confirm_understanding`);
   if (new Set(ids).size !== ids.length) return reject('decision round needs distinct question ids');
   const settled = ids.find((id) => decided(state.run, id));
   if (settled !== undefined) return reject(`question ${settled} is already decided`);
@@ -168,10 +170,10 @@ export function confirmSeams(state: RunState, ids: readonly string[], clock: Clo
 
 export function recordTest(state: RunState, command: Extract<Command, { kind: 'record_test' }>, clock: Clock): Outcome {
   if (!isConfirmed(state.run, command.seam)) return reject(`seam ${command.seam} is not confirmed; TDD tests need a confirmed seam`, { kind: 'seam_confirmation', seams: [command.seam] });
-  const claim = `${TDD_CLAIM}${command.name}`;
+  const claim = `${TDD_CLAIM}${command.seam}/${command.name}`;
   const previous = latestByClaim(state.evidence).find((record) => record.claim === claim);
   const provedRed = state.evidence.some((record) => record.claim === claim && record.state === 'FAILED');
-  if (command.result === 'green' && !provedRed) return reject(`test ${command.name} has no RED record; prove it fails before recording GREEN`);
+  if (command.result === 'green' && !provedRed) return reject(`test ${command.name} has no RED record at seam ${command.seam}; prove it fails before recording GREEN`);
   if (command.result === 'red' && previous?.state === 'MEASURED' && previous.revision === state.run.currentRevision) {
     return reject(`test ${command.name} is GREEN at this revision; write a new failing behavior test`);
   }
@@ -197,7 +199,8 @@ export function recordDiagnostic(state: RunState, loop: DiagnosticLoop, clock: C
   if (existing === undefined && loop.promotedTo !== null) return reject('a new diagnostic loop is not promoted yet');
   if (existing !== undefined && same(existing, loop)) return noop(state);
   const diagnostics = existing === undefined ? [...state.run.diagnostics, loop] : state.run.diagnostics.map((candidate) => (candidate.id === loop.id ? loop : candidate));
-  return done(resumed(withRun(state, { diagnostics })), 'record_diagnostic', `diagnostic ${loop.id} (${loop.kind}) is ${loop.status}`, clock);
+  const next = withRun(state, { diagnostics });
+  return done(loop.status === 'red' && state.run.phase === 'DIAGNOSE' ? resumed(next) : next, 'record_diagnostic', `diagnostic ${loop.id} (${loop.kind}) is ${loop.status}`, clock);
 }
 
 export function recordRootCause(state: RunState, cause: string, clock: Clock): Outcome {
@@ -227,11 +230,8 @@ function currentGuidelines(state: RunState): Finding['guidelines'] {
   return { contentHash: review.artifact, skillLock: guidelinesLock(state.run) };
 }
 
-// A review covers the code the graph wrote; with no write sets it cannot bound itself, so any change stales it.
-function reviewedPaths(state: RunState): readonly string[] {
-  const paths = [...new Set(state.graph.nodes.flatMap((node) => node.writeSet))];
-  return paths.length === 0 ? ['**'] : paths;
-}
+// A review covers the whole revision it read, so any later change stales it, even outside the declared write sets.
+const REVIEWED_PATHS = ['**'];
 
 export function recordReview(state: RunState, command: Extract<Command, { kind: 'record_review' }>, clock: Clock): Outcome {
   if (state.run.phase !== 'REVIEW' && state.run.phase !== 'REVERIFY_STALE') return reject(`reviews are recorded in REVIEW or REVERIFY_STALE, not ${state.run.phase}`);
@@ -247,7 +247,7 @@ export function recordReview(state: RunState, command: Extract<Command, { kind: 
     claim: REVIEW_CLAIM,
     criterion: REVIEW_CLAIM,
     state: 'MEASURED',
-    dependencies: reviewedPaths(state),
+    dependencies: REVIEWED_PATHS,
     method: 'review',
     expected: reviewDimensions(surface).join(','),
     observed: `${command.reviewer} (${label})${guidelines === null ? '' : ` guidelines ${guidelines.skillLock}`}`,
@@ -269,7 +269,7 @@ export function declareInconclusive(state: RunState, missing: string, clock: Clo
   return done(withRun(state, { status: { kind: 'inconclusive', missing } }), 'declare_inconclusive', `INCONCLUSIVE: missing ${missing}`, clock);
 }
 
-// New feedback (a loop or a measurement) means the missing access was obtained, so the run resumes.
+// Only the missing feedback itself (a red-capable loop, or a measurement through the consumer's path) shows the access was obtained.
 function resumed(state: RunState): RunState {
   return state.run.status.kind === 'inconclusive' ? withRun(state, { status: { kind: 'active' } }) : state;
 }
@@ -404,7 +404,8 @@ export function recordEvidence(state: RunState, input: EvidenceInput, clock: Clo
   }
   const next = appendEvidence(state, input, clock);
   if (next.record === null) return noop(state);
-  return done(next.record.state === 'MEASURED' ? resumed(next.state) : next.state, 'record_evidence', `${next.record.state} ${next.record.claim} at ${next.record.revision}`, clock);
+  const consumerMeasurement = next.record.state === 'MEASURED' && next.record.method === consumerMethod(state.run.consumer.kind) && state.run.acceptanceCriteria.includes(next.record.criterion);
+  return done(consumerMeasurement ? resumed(next.state) : next.state, 'record_evidence', `${next.record.state} ${next.record.claim} at ${next.record.revision}`, clock);
 }
 
 export function recordFinding(state: RunState, input: FindingInput, clock: Clock): Outcome {
@@ -437,11 +438,24 @@ export function grantAuthorization(state: RunState, action: AuthorizationAction,
   return done(withRun(state, { status: { kind: 'active' } }), 'grant_authorization', `authorization granted: ${action} ${scope}`, clock);
 }
 
+const TEST_CHECKS: readonly CheckKind[] = ['typecheck', 'unit_test', 'integration_test'];
+
+const REVIEW_CHECKS: readonly CheckKind[] = ['review', 'design', 'architecture', 'seam'];
+
+// A reported failure contradicts the records that claimed the opposite, so they go STALE and must be measured again.
+function contradicted(run: Run, check: CheckKind): (record: EvidenceRecord) => boolean {
+  if (check === 'consumer') return (record) => record.state === 'MEASURED' && record.method === consumerMethod(run.consumer.kind);
+  if (REVIEW_CHECKS.includes(check)) return (record) => record.claim === REVIEW_CLAIM;
+  if (TEST_CHECKS.includes(check)) return (record) => record.method === 'test';
+  return () => false;
+}
+
 export function routeFailure(state: RunState, check: CheckKind, detail: string, clock: Clock): Outcome {
   const owner = failureOwner(check);
   const moved = advance(state, owner, clock);
   if (moved.kind === 'rejected') return reject(`${check} failure belongs to ${owner}: ${moved.reason}`, moved.gate);
-  return done(moved.state, 'route_failure', `${check} failed in ${state.run.phase}; routed to ${owner}: ${detail}`, clock);
+  const evidence = staleWhere(moved.state.evidence, contradicted(state.run, check), `${check} failed: ${detail}`, clock);
+  return done({ ...moved.state, evidence }, 'route_failure', `${check} failed in ${state.run.phase}; routed to ${owner}: ${detail}`, clock);
 }
 
 export function recordDomain(state: RunState, command: Extract<Command, { kind: 'record_domain' }>, clock: Clock): Outcome {

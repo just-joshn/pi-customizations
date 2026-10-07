@@ -44,7 +44,7 @@ Route a failed check to the phase that owns it:
 {"kind":"route_failure","check":"consumer","detail":"exit 1 on an empty invoice list"}
 ```
 
-Owners: `typecheck`, `unit_test`, `integration_test`, `consumer`, `review` go to IMPLEMENT; `design` to DESIGN; `architecture` to ARCHITECT; `seam` to CONFIRM_TDD_SEAMS; `stale_evidence` to REVERIFY_STALE. The move must be a legal edge from the current phase that passes the target's guard, so a `design` failure routes only in a web UI run.
+Owners: `typecheck`, `unit_test`, `integration_test`, `consumer`, `review` go to IMPLEMENT; `design` to DESIGN; `architecture` to ARCHITECT; `seam` to CONFIRM_TDD_SEAMS; `stale_evidence` to REVERIFY_STALE. The records the failure contradicts go STALE (consumer measurements, the review, or test records). The move must be a legal edge from the current phase that passes the target's guard, so a `design` failure routes only in a web UI run.
 
 ## Authorization
 
@@ -56,4 +56,4 @@ Only the user grants it, with the exact action and scope. During a run, a bash c
 
 ## PR_READY
 
-PR_READY needs: no open gate, not INCONCLUSIVE, the frozen revision equal to the current one, every criterion proven, a review at the current revision, no open finding, every node integrated, and for bugs a green promoted reproducer with no instrumentation left. PR_READY stays live: any change that reopens a blocker moves the run back to REVERIFY_STALE.
+PR_READY needs: at least one acceptance criterion, no open gate, no claim whose last measurement is FAILED, not INCONCLUSIVE, the frozen revision equal to the current one, every criterion proven, a review at the current revision, no open finding, every node integrated, and for any run with a diagnostic loop a green promoted reproducer with no instrumentation left. PR_READY stays live: any change that reopens a blocker moves the run back to REVERIFY_STALE.

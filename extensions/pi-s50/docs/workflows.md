@@ -71,7 +71,7 @@ Preflight turns these into risks: a dirty tree, an INCONCLUSIVE consumer route, 
 
 **Upstream (`tdd`).** Tests live only at seams confirmed with the user. One failing test, then only enough code to pass it. Refactoring is not part of the loop; it belongs to review.
 
-**S50.** `propose_seams` needs each seam's description, what it catches, and what it misses, and blocks on `seam_confirmation`. A confirmed seam cannot be rewritten under the same id. `record_test` at an unconfirmed seam is rejected. A test's GREEN record is refused until the same test has a RED record, and a test that is GREEN at the current revision cannot be recorded RED. `CONFIRM_TDD_SEAMS -> BUILD_GRAPH` needs at least one confirmed seam.
+**S50.** `propose_seams` needs each seam's description, what it catches, and what it misses, and blocks on `seam_confirmation`. A confirmed seam cannot be rewritten under the same id. `record_test` at an unconfirmed seam is rejected. A test's GREEN record is refused until the same test at the same seam has a RED record, and a test that is GREEN at the current revision cannot be recorded RED. `CONFIRM_TDD_SEAMS -> BUILD_GRAPH` needs at least one confirmed seam.
 
 ## The diagnostic-test exception (bug)
 
@@ -82,9 +82,9 @@ Preflight turns these into risks: a dirty tree, an INCONCLUSIVE consumer route, 
 1. `record_root_cause` needs a red loop.
 2. After `CONFIRM_TDD_SEAMS` confirms the permanent seam, `promote_diagnostic` moves the loop there. Promotion to an unconfirmed seam is refused with a `seam_confirmation` gate.
 3. The loop lists the temporary instrumentation added for it. After the fix, the agent records the original reproducer green with the instrumentation cleared.
-4. PR_READY needs a root cause, a promoted loop, every loop green, and no instrumentation left.
+4. PR_READY needs a root cause, a promoted loop, every loop green, and no instrumentation left. This holds for any run that recorded a loop, not only bug runs.
 
-With no possible loop, `declare_inconclusive` sets the run INCONCLUSIVE with what is missing. The run cannot advance until a diagnostic loop or a `MEASURED` measurement is recorded.
+With no possible loop, `declare_inconclusive` sets the run INCONCLUSIVE with what is missing. The run cannot advance until a red diagnostic loop is recorded in DIAGNOSE, or a `MEASURED` acceptance measurement through the consumer's method.
 
 ## Graph
 

@@ -86,7 +86,7 @@ async function featureToReady(h: Harness): Promise<void> {
   expect(h.phase()).toBe('CONFIRM_TDD_SEAMS/blocked');
   expect(nextAction(h.state)).toEqual({ kind: 'human_gate', gate: { kind: 'seam_confirmation', seams: ['seam-cli'] } });
   h.steps([{ kind: 'confirm_seams', ids: ['seam-cli'] }, tddTest('red'), tddTest('green'), advance('BUILD_GRAPH')]);
-  expect(h.latest()).toEqual([['tdd:export prints a header row', 'MEASURED', 'r1']]);
+  expect(h.latest()).toEqual([['tdd:seam-cli/export prints a header row', 'MEASURED', 'r1']]);
   await buildAndReview(h);
 }
 
@@ -98,7 +98,7 @@ async function buildAndReview(h: Harness): Promise<void> {
     { kind: 'complete_node', id: 'list-invoices', passed: true },
     { kind: 'integrate_node', id: 'list-invoices', revision: 'r2', changedPaths: ['src/list/index.ts'], integrator: INTEGRATOR },
   ]);
-  expect([h.state.run.integrationOwner, h.latest()]).toEqual([INTEGRATOR, [['tdd:export prints a header row', 'MEASURED', 'r2']]]);
+  expect([h.state.run.integrationOwner, h.latest()]).toEqual([INTEGRATOR, [['tdd:seam-cli/export prints a header row', 'MEASURED', 'r2']]]);
   expect(nextAction(h.state)).toEqual({ kind: 'start_nodes', ids: ['export-csv'], workspaces: ['.'] });
   h.steps([
     { kind: 'start_nodes', ids: ['export-csv'] },
@@ -122,7 +122,7 @@ async function buildAndReview(h: Harness): Promise<void> {
   expect(nextAction(h.state)).toEqual({ kind: 'verify', route: { kind: 'drive_executable' }, criteria: [...FEATURE_CRITERIA] });
   h.steps(FEATURE_EVIDENCE.map((evidence): Command => ({ kind: 'record_evidence', evidence })));
   expect(h.latest()).toEqual([
-    ['tdd:export prints a header row', 'STALE', 'r2'],
+    ['tdd:seam-cli/export prints a header row', 'STALE', 'r2'],
     ['review', 'MEASURED', 'r3'],
     ['csv-output', 'MEASURED', 'r3'],
     ['readme-export', 'MEASURED', 'r3'],
@@ -223,7 +223,7 @@ describe('e2e scenarios', () => {
     h.step({ kind: 'revision_changed', revision: 'r4', changedPaths: ['src/export/csv.ts'] });
     expect([h.phase(), h.state.run.currentRevision]).toEqual(['REVERIFY_STALE/active', 'r4']);
     expect(h.latest()).toEqual([
-      ['tdd:export prints a header row', 'STALE', 'r2'],
+      ['tdd:seam-cli/export prints a header row', 'STALE', 'r2'],
       ['review', 'STALE', 'r3'],
       ['csv-output', 'STALE', 'r3'],
       ['readme-export', 'MEASURED', 'r4'],
@@ -236,7 +236,7 @@ describe('e2e scenarios', () => {
     h.steps([REVIEW, { kind: 'freeze_revision' }, advance('PR_READY')]);
     expect(h.state.run.status).toEqual({ kind: 'pr_ready', revision: 'r4' });
     expect(h.latest()).toEqual([
-      ['tdd:export prints a header row', 'STALE', 'r2'],
+      ['tdd:seam-cli/export prints a header row', 'STALE', 'r2'],
       ['review', 'MEASURED', 'r4'],
       ['csv-output', 'MEASURED', 'r4'],
       ['readme-export', 'MEASURED', 'r4'],

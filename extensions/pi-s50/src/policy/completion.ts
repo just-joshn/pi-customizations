@@ -28,11 +28,19 @@ export function requiredEvidence(state: RunState): readonly RequiredEvidence[] {
   });
 }
 
+// A FAILED measurement stays a blocker until a later MEASURED record replaces it; a STALE copy made by a commit does not clear it.
+function lastMeasuredFailed(state: RunState): readonly string[] {
+  const last = new Map<string, EvidenceRecord>();
+  for (const record of state.evidence) if (record.state !== 'STALE') last.set(record.claim, record);
+  return [...last.values()].filter((record) => record.state === 'FAILED' && !state.run.acceptanceCriteria.includes(record.criterion)).map((record) => record.claim);
+}
+
 export function prReadyBlockers(state: RunState): readonly string[] {
   const { run, graph, findings } = state;
   const blockers: string[] = [];
   if (run.status.kind === 'blocked') blockers.push(`blocked on ${run.status.gate.kind} gate`);
   if (run.status.kind === 'inconclusive') blockers.push(`INCONCLUSIVE: missing ${run.status.missing}`);
+  if (run.acceptanceCriteria.length === 0) blockers.push('run has no acceptance criteria');
   if (run.frozenRevision === null) blockers.push('revision not frozen');
   else if (run.frozenRevision !== run.currentRevision) blockers.push(`frozen revision ${run.frozenRevision} differs from current ${run.currentRevision}`);
   for (const required of requiredEvidence(state)) {
@@ -41,6 +49,7 @@ export function prReadyBlockers(state: RunState): readonly string[] {
     blockers.push(`criterion "${required.criterion}" lacks MEASURED ${consumerMethod(run.consumer.kind)} evidence at ${run.currentRevision}${states === '' ? '' : ` (${states})`}`);
   }
   if (currentReview(state) === null) blockers.push(`no review at ${run.currentRevision}`);
+  for (const claim of lastMeasuredFailed(state)) blockers.push(`claim "${claim}" was last measured FAILED`);
   for (const finding of findings) if (finding.status === 'open') blockers.push(`open ${finding.severity} finding ${finding.id}`);
   if (graph.nodes.length === 0) blockers.push('graph has no nodes');
   for (const node of graph.nodes) if (node.status !== 'integrated') blockers.push(`node ${node.id} is ${node.status}`);
@@ -48,9 +57,9 @@ export function prReadyBlockers(state: RunState): readonly string[] {
     if (loop.status === 'red') blockers.push(`diagnostic ${loop.id} still red`);
     if (loop.instrumentation.length > 0) blockers.push(`diagnostic ${loop.id} still has temporary instrumentation: ${loop.instrumentation.join(', ')}`);
   }
-  if (run.mode === 'bug') {
-    if (run.rootCause === null) blockers.push('bug run lacks root cause');
-    if (!run.diagnostics.some((loop) => loop.promotedTo !== null)) blockers.push('bug run lacks a diagnostic promoted to a confirmed seam');
+  if (run.mode === 'bug' || run.diagnostics.length > 0) {
+    if (run.rootCause === null) blockers.push('diagnosed run lacks a root cause');
+    if (!run.diagnostics.some((loop) => loop.promotedTo !== null)) blockers.push('diagnosed run lacks a diagnostic promoted to a confirmed seam');
   }
   return blockers;
 }

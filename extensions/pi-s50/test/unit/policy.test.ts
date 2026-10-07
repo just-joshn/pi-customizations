@@ -155,8 +155,8 @@ describe('completion', () => {
       'graph has no nodes',
       'diagnostic l still red',
       'diagnostic l still has temporary instrumentation: console.log in parse()',
-      'bug run lacks root cause',
-      'bug run lacks a diagnostic promoted to a confirmed seam',
+      'diagnosed run lacks a root cause',
+      'diagnosed run lacks a diagnostic promoted to a confirmed seam',
     ]);
   });
 

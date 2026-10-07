@@ -21,7 +21,7 @@ If no red-capable loop can be built, do not guess the cause. Record what is miss
 {"kind":"declare_inconclusive","missing":"access to the production queue"}
 ```
 
-The run cannot advance while INCONCLUSIVE. Recording a diagnostic loop or a `MEASURED` measurement resumes it.
+The run cannot advance while INCONCLUSIVE. Recording a red diagnostic loop in DIAGNOSE, or a `MEASURED` acceptance measurement through the consumer's method, resumes it.
 
 ## Promotion and the green reproducer
 

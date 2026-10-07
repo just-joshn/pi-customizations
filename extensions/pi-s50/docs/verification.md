@@ -57,7 +57,7 @@ Old records are never deleted. `evidence.jsonl` keeps the full history, and each
 
 A web UI run adds the `frontend-design` contract review, `web-design-guidelines`, and `agent-browser` verification. It adds `vercel-react-best-practices` only on a React or Next.js run.
 
-The review record depends on the union of the graph's write sets, so editing reviewed code stales it, and `PR_READY` needs a review at the current revision. Findings carry severity, trigger, consequence, evidence, revision, owner, and reviewer. The coordinator sets the revision, so a finding always names the revision that was reviewed. Reviewers record findings and do not patch; a patch is a new revision, which stales the review.
+The review record depends on every path, so any later change stales it, and `PR_READY` needs a review at the current revision. Findings carry severity, trigger, consequence, evidence, revision, owner, and reviewer. The coordinator sets the revision, so a finding always names the revision that was reviewed. Reviewers record findings and do not patch; a patch is a new revision, which stales the review.
 
 ### What "independent review" means
 

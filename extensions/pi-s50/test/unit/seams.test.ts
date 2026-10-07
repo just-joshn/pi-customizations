@@ -103,14 +103,14 @@ describe('TDD red then green', () => {
   }
 
   test('GREEN without a RED record is rejected', () => {
-    expect(apply(confirmed(), tddTest('green'), fixedClock())).toEqual({ kind: 'rejected', reason: 'test empty line parses has no RED record; prove it fails before recording GREEN', gate: null });
+    expect(apply(confirmed(), tddTest('green'), fixedClock())).toEqual({ kind: 'rejected', reason: 'test empty line parses has no RED record at seam seam-parser; prove it fails before recording GREEN', gate: null });
   });
 
   test('RED then GREEN records failing then measured evidence', () => {
     const { state } = applyAll(confirmed(), [tddTest('red'), tddTest('green')]);
     expect(state.evidence.map((record) => [record.claim, record.criterion, record.state, record.observed])).toEqual([
-      ['tdd:empty line parses', 'tdd:seam-parser', 'FAILED', 'TypeError'],
-      ['tdd:empty line parses', 'tdd:seam-parser', 'MEASURED', '1 passed'],
+      ['tdd:seam-parser/empty line parses', 'tdd:seam-parser', 'FAILED', 'TypeError'],
+      ['tdd:seam-parser/empty line parses', 'tdd:seam-parser', 'MEASURED', '1 passed'],
     ]);
   });
 
@@ -130,7 +130,7 @@ describe('TDD red then green', () => {
   });
 
   test('TDD evidence cannot be forged through record_evidence', () => {
-    const forged = { claim: 'tdd:empty line parses', criterion: 'tdd:seam-parser', state: 'MEASURED', dependencies: [], method: 'test', expected: '', observed: '', artifact: '' } as const;
+    const forged = { claim: 'tdd:seam-parser/empty line parses', criterion: 'tdd:seam-parser', state: 'MEASURED', dependencies: [], method: 'test', expected: '', observed: '', artifact: '' } as const;
     expect(apply(confirmed(), { kind: 'record_evidence', evidence: forged }, fixedClock())).toEqual({
       kind: 'rejected',
       reason: 'review, prototype, and TDD evidence come only from record_review, record_prototype, and record_test',
