@@ -27,7 +27,7 @@ s50 bug <symptom> [same flags]
 s50 frontend <objective> [same flags]
 s50 issue <issue reference> [same flags]  starts behind /skill:triage
 s50 survey <area> [same flags]            starts behind /skill:improve-codebase-architecture
-s50 status                                objective, phase, revision, blockers, findings, nodes, stale count, next action, next gate
+s50 status                                objective, phase, revision, blockers, risks, findings, nodes, stale count, next action, next gate
 s50 resume                                read state, follow a new HEAD, print the next action
 s50 verify                                evidence per acceptance criterion, the consumer route, every blocker
 s50 explain                               the last 20 decisions and the next action

@@ -132,7 +132,7 @@ describe('run commands', () => {
     expect(result.stdout.split('\n').slice(0, 2)).toEqual(['consumer route: drive_executable', 'MISSING csv lists invoices']);
   });
 
-  test.fails('status lists the preflight risks', async () => {
+  test('status lists the preflight risks', async () => {
     const cwd = await started();
     const run = JSON.parse(readFileSync(join(cwd, '.s50/run.json'), 'utf8'));
     run.risks = ['a dirty tree at preflight', 'no test command found'];

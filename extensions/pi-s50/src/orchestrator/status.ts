@@ -64,6 +64,7 @@ export function renderStatus(state: RunState): string {
     `revision: ${run.currentRevision}${run.frozenRevision === null ? '' : ` frozen ${run.frozenRevision}`}`,
     `blockers: ${run.blockers.length === 0 ? 'none' : run.blockers.join('; ')}`,
     `open findings: ${open.length === 0 ? 'none' : open.map((finding) => `${finding.id} ${finding.severity}`).join(', ')}`,
+    `risks: ${run.risks.length === 0 ? 'none' : run.risks.join('; ')}`,
     `ready nodes: ${
       readyFrontier(graph)
         .map((node) => node.id)
