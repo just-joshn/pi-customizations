@@ -132,6 +132,7 @@ async function start(context: CliContext, mode: Mode, args: readonly string[]): 
   const capabilities = await parseCapabilities(context, named);
   if (typeof capabilities === 'string') return error(`${capabilities}\n`);
   const criteria = named.has('criteria') ? list(named.get('criteria')) : [objective];
+  if (criteria.length === 0) return refused('--criteria needs at least one criterion\n');
   const input = {
     mode,
     objective,

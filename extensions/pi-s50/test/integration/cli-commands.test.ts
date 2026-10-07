@@ -137,7 +137,7 @@ describe('run commands', () => {
     expect(lines.at(-1)).toBe('next: invoke skill grilling');
   });
 
-  test.fails.for([[['--criteria', '']], [['--criteria', ';']], [['--criteria']]])('a start with empty %j is refused', async ([flags]) => {
+  test.for([['--criteria', ''], ['--criteria', ';'], ['--criteria']])('a start with empty %j is refused', async (flags) => {
     const cwd = repo();
     await runCli(OFFLINE_REFRESH, context(cwd));
     expect(await runCli(['feature', 'x', ...flags], context(cwd))).toEqual({ code: 2, stdout: '--criteria needs at least one criterion\n' });
