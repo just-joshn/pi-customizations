@@ -110,12 +110,15 @@ function createContext({ scenario, artifactDir, rawDir, scratchDir, receipts }) 
       sessionCount += 1;
       const session = createRpcSession({
         packagePath: options.packagePath ?? REPO_ROOT,
-        agentDir: scratchDir,
+        agentDir: options.agentDir ?? scratchDir,
         cwd: options.cwd ?? scratchDir,
         capturePath: options.capturePath ?? join(rawDir, options.captureName ?? `rpc-${sessionCount}.jsonl`),
         persistSession: options.persistSession ?? false,
         sessionId: options.sessionId,
         answers: options.answers,
+        env: options.env,
+        allowGlobalExtensions: options.allowGlobalExtensions,
+        extraExtensions: options.extraExtensions,
         requestTimeoutMs: options.requestTimeoutMs,
         idleTimeoutMs: options.idleTimeoutMs,
         piBin: piBin(),

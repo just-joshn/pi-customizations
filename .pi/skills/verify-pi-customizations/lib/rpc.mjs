@@ -25,7 +25,7 @@ function responseFor(request, value) {
 }
 
 export function createRpcSession(options = {}) {
-  const { packagePath, agentDir, capturePath = null, persistSession = false, answers = {}, env = {} } = options;
+  const { packagePath, agentDir, capturePath = null, persistSession = false, answers = {}, env = {}, allowGlobalExtensions = false, extraExtensions = [] } = options;
   if (!packagePath) throw new Error('createRpcSession requires packagePath');
   if (!agentDir) throw new Error('createRpcSession requires agentDir');
   const cwd = options.cwd ?? agentDir;
@@ -50,7 +50,10 @@ export function createRpcSession(options = {}) {
   let closed = false;
 
   function spawnArgs() {
-    const args = ['--mode', 'rpc', '-e', packagePath];
+    const args = ['--mode', 'rpc'];
+    if (!allowGlobalExtensions) args.push('--no-extensions');
+    args.push('-e', packagePath);
+    for (const extensionPath of extraExtensions) args.push('-e', extensionPath);
     if (sessionId) args.push('--session-id', sessionId);
     if (!persistSession) args.push('--no-session');
     return args;
