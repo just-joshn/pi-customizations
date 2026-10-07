@@ -89,4 +89,4 @@ Slice by behavior. Layer-named objectives, unknown dependencies, cycles, empty w
 {"kind":"integrate_node","id":"export-csv","revision":"0123456789abcdef0123456789abcdef01234567","changedPaths":["src/export/csv.ts"],"integrator":"integrator"}
 ```
 
-The revision must be the current `HEAD`, and S50 reads the changed paths from Git itself. One integrator owns integration, and it may not own a node. Several nodes start together only when the host has independent agents and isolated worktrees and the nodes do not conflict; each then gets `.s50/worktrees/<node>`. Then see [verification.md](verification.md).
+The revision must be the current `HEAD`, and S50 reads the changed paths from Git itself. One integrator owns integration, and it may not own a node. Several nodes start together only when the host has independent agents and isolated worktrees and the nodes do not conflict. On such a host every node gets `.s50/worktrees/<node>`; a serial host runs one node at a time. Then see [verification.md](verification.md).

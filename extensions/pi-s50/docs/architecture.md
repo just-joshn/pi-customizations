@@ -60,7 +60,7 @@ The data shape lives in `src/domain/`:
 | `findings.jsonl` | one `Finding` per status change, each with `schemaVersion` | append-only |
 | `decisions.jsonl` | one `DecisionLog` per line, each with `schemaVersion` | append-only |
 | `.gitignore` | `*` | written once, when S50 creates `.s50/` |
-| `worktrees/<node>/` | a Git worktree per concurrent node | created by `start_nodes` |
+| `worktrees/<node>/` | a Git worktree per node on a parallel host | created by `start_nodes` |
 
 `loadState` validates `run.json`, `graph.json`, `evidence.jsonl`, and `findings.jsonl`, and migrates a version 1 run, which kept the phase in `status`, to version 2 through the `MIGRATIONS` table. `readLock` and `readDecisions` validate the lock and the decision log. Every JSONL line must carry `schemaVersion` 1, and a lock file must carry `schemaVersion` 1; anything else is refused.
 
@@ -82,6 +82,6 @@ A second rejected shape put the workflow in skill prose. Prose cannot enforce a 
 
 ## Concurrency
 
-`src/scheduler/` decides what may run at once. `readyFrontier` lists pending or failed nodes whose dependencies all passed or integrated. `conflict(a, b)` returns why two nodes cannot run together: overlapping write sets, a shared schema, a shared migration, one defining an interface the other consumes, or shared runtime ownership. `start_nodes` checks the nodes it starts against each other and against nodes still running. It allows more than one running node only when the host reports both `independentAgents` and `isolatedWorktrees`. Each concurrent node then gets a Git worktree at `.s50/worktrees/<node>` on branch `s50/<run>/<node>`.
+`src/scheduler/` decides what may run at once. `readyFrontier` lists pending or failed nodes whose dependencies all passed or integrated. `conflict(a, b)` returns why two nodes cannot run together: overlapping write sets, a shared schema, a shared migration, one defining an interface the other consumes, or shared runtime ownership. `start_nodes` checks the nodes it starts against each other and against nodes still running. It allows more than one running node only when the host reports both `independentAgents` and `isolatedWorktrees`. On such a host every node gets a Git worktree at `.s50/worktrees/<node>` on branch `s50/<run>/<node>` from its first start, so a later node never shares a running node's checkout. A serial host proposes no new node while one runs. Stale worktree entries are pruned first, and a worktree on another branch is refused, not reused.
 
 Inside Pi, `independentAgents` follows the registered tools, and `isolatedWorktrees` comes only from `--capabilities`. A Pi session with no declared worktree isolation therefore runs nodes one at a time.

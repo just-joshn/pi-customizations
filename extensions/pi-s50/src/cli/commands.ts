@@ -181,7 +181,7 @@ async function syncHead(context: CliContext, state: RunState): Promise<{ readonl
 
 async function workspacesFor(context: CliContext, state: RunState): Promise<readonly string[]> {
   const running = state.graph.nodes.filter((node) => node.status === 'running');
-  if (running.length < 2 || !canRunConcurrently(state.run.capabilities)) return [];
+  if (!canRunConcurrently(state.run.capabilities)) return [];
   const paths = running.map((node) => `${S50_DIR}/worktrees/${node.id}`);
   for (const [index, node] of running.entries()) await ensureWorktree(context.shell, paths[index] ?? '', `s50/${state.run.id}/${node.id}`);
   return paths;

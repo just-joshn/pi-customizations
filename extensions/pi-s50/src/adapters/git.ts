@@ -28,10 +28,19 @@ export async function isDirty(shell: Shell): Promise<boolean> {
   return (await git(shell, ['status', '--porcelain'])) !== '';
 }
 
+// Pruning first drops entries whose directory is gone; the exact absolute path keeps a sibling package's `.s50` from matching.
 export async function ensureWorktree(shell: Shell, path: string, branch: string): Promise<void> {
-  const listed = await git(shell, ['worktree', 'list', '--porcelain']);
-  if (listed.split('\n').some((line) => line.startsWith('worktree ') && line.endsWith(`/${path}`))) return;
-  await git(shell, ['worktree', 'add', '-B', branch, path]);
+  await git(shell, ['worktree', 'prune']);
+  const top = await git(shell, ['rev-parse', '--show-toplevel']);
+  const prefix = await git(shell, ['rev-parse', '--show-prefix']);
+  const target = `${top}/${prefix}${path}`;
+  const blocks = (await git(shell, ['worktree', 'list', '--porcelain'])).split('\n\n');
+  const existing = blocks.find((block) => block.split('\n')[0] === `worktree ${target}`);
+  if (existing === undefined) {
+    await git(shell, ['worktree', 'add', '-B', branch, path]);
+    return;
+  }
+  if (!existing.split('\n').includes(`branch refs/heads/${branch}`)) throw new Error(`worktree ${path} is checked out on another branch; remove it with git worktree remove ${path}`);
 }
 
 export async function remoteHead(shell: Shell, repository: string): Promise<string> {
