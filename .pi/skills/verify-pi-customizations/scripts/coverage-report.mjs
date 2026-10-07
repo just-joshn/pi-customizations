@@ -309,7 +309,7 @@ try {
   console.log(`wrote ${display}`);
   if (findings.length > 0) {
     const open = findings.filter((finding) => !CLOSED_STATUSES.has(finding.status ?? ''));
-    console.log(`findings: ${findings.length} recorded, ${open.length - findings.filter((finding) => !FINDING_STATUSES.has(finding.status ?? '')).length} fixed or out-of-reach, ${open.length} still open`);
+    console.log(`findings: ${findings.length} recorded, ${findings.length - open.length} fixed or out-of-reach, ${open.length} still open`);
     for (const finding of open) {
       const reason = finding.status === null ? 'no status line' : FINDING_STATUSES.has(finding.status) ? finding.status : `unrecognised status '${finding.status}'`;
       console.log(`  ${finding.id}: ${reason}: ${finding.title}`);
