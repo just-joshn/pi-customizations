@@ -60,15 +60,17 @@ Claim two, that Node will not strip types under `node_modules`, holds. A copy un
 
 ## F-011: the packages typecheck against a different Pi than users run
 
-**Status.** open
+**Status.** fixed
+
+**Closure evidence.** `e2ec7bb` makes the version regression require Pi 1.0.4 in all eight packages and fails for all eight before the fix. `ce58533` aligns every Pi development pin and regenerates `bun.lock` from the local cache. `b5f35ea` regenerates Antigravity's copied SDK helper provenance from 1.0.4 rather than bypassing its vendor check. The version regression passes for all eight packages. Full `make verify` exits 0 with the aligned dependencies. A real-Pi schema drive also reaches the local Cloud Code endpoint in one request with no rejected keywords. Evidence is in `artifacts/user-perspective/f011-version/`, including `baseline.log`, `install.log`, `antigravity-regenerate.log`, `full-verify-after-vendor.log`, and `schema-direct-drive.log`. The development target is documented in `docs/pi-1.0.4-migration.md`.
 
 **Found by** the baseline capture. Seven of eight packages pin `@earendil-works/pi-*` at 1.0.2 for typechecking and tests. The installed Pi that every user-perspective drive ran against is 1.0.4. `docs/pi-1.0.2-migration.md` describes the 1.0.2 migration as current.
 
 **Consequence.** A type change between 1.0.2 and 1.0.4 can pass every gate and still break a user. No drive in this run found such a break, which is evidence that the gap is currently benign, not evidence that it is absent.
 
-**Why it is parked.** Migrating the pins is a deliberate version move with its own migration doc and audit, not a side effect of a verification run.
+**Alignment.** Development dependencies now match the installed 1.0.4 runtime. Wildcard host peers remain unchanged. The earlier 1.0.2 migration report is historical.
 
-**The sharp version of this, from the cross-model review.** The run resolved the pin split by bringing `pi-caveman` down to 1.0.2 rather than bringing the other seven up to 1.0.4. That restored a green gate with one package changed instead of seven, and it is the direction the repository had already chosen, but it also chose to keep the type surface one minor behind the runtime users actually run. Aligning up would have made the typecheck see 1.0.4 and would have been the larger change. A reviewer should know that the smaller change was taken deliberately and that the direction is still open.
+**Earlier incorrect direction.** The original run moved caveman down to 1.0.2 to match the other packages. That left the development types behind the runtime. The upward alignment replaces that choice.
 
 ---
 

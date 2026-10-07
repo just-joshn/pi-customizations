@@ -8,4 +8,4 @@ All eight extension packages pin their Pi development dependencies to `1.0.4`. T
 
 The [Pi 1.0.2 migration report](pi-1.0.2-migration.md) records the earlier migration. Vendored source hashes and source provenance retain their original version labels. Those labels describe the copied source, not the current development target.
 
-The current audit captures are under `artifacts/user-perspective/f011-version/`. The full `make verify` result remains required before F-011 can close.
+The current audit captures are under `artifacts/user-perspective/f011-version/`. `full-verify-after-vendor.log` records the passing full repository gate. `schema-direct-drive.log` records the real Pi request to the local provider endpoint with no rejected schema keywords.
