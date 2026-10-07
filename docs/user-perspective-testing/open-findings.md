@@ -8,7 +8,7 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 
 ## F-008: the advertised `s50` command does not exist after the advertised install
 
-**Status.** fixed
+**Status.** open
 
 **Found by** `S50-INSTALL-1` / `S50-INSTALL-2` and `artifacts/user-perspective/s50-install/`.
 
