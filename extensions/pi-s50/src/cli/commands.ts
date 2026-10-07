@@ -26,7 +26,8 @@ import { buildLock, S50_SKILLS } from '../registry/lock.ts';
 import { type PinnedSource, parseLeaderboardFile, parseSources, verifySnapshot } from '../registry/validate.ts';
 import { canRunConcurrently } from '../scheduler/ownership.ts';
 
-export type CliResult = { readonly code: 0 | 1 | 2; readonly stdout: string };
+// 0 done, 1 error, 2 refused or a failing check, 3 accepted but the run now waits on a human gate.
+export type CliResult = { readonly code: 0 | 1 | 2 | 3; readonly stdout: string };
 
 export type Host = {
   readonly installedSkills: () => Promise<readonly InstalledSkill[]>;
@@ -51,7 +52,8 @@ const SHIPPED_SOURCES = fileURLToPath(new URL('../../registry/skill-sources.json
 const MODE_COMMANDS: Readonly<Record<string, Mode>> = { feature: 'feature', bug: 'bug', frontend: 'frontend', issue: 'external_issue', survey: 'architecture_survey' };
 
 const ok = (stdout: string): CliResult => ({ code: 0, stdout });
-const blocked = (stdout: string): CliResult => ({ code: 2, stdout });
+const refused = (stdout: string): CliResult => ({ code: 2, stdout });
+const gated = (state: RunState): 0 | 3 => (state.run.status.kind === 'blocked' ? 3 : 0);
 const error = (stdout: string): CliResult => ({ code: 1, stdout });
 
 function flags(args: readonly string[]): { readonly positional: readonly string[]; readonly named: ReadonlyMap<string, string> } {
@@ -109,11 +111,11 @@ type Approved = { readonly kind: 'approved'; readonly snapshot: RegistrySnapshot
 
 async function approvedLock(dir: string): Promise<Approved> {
   const lock = await readLock(dir);
-  if (lock === null) return { kind: 'stop', result: blocked('no .s50/registry.lock.json; run s50 registry refresh first\n') };
+  if (lock === null) return { kind: 'stop', result: refused('no .s50/registry.lock.json; run s50 registry refresh first\n') };
   if (lock.kind === 'invalid') return { kind: 'stop', result: error(`invalid registry lock: ${lock.reason}\n`) };
-  if (lock.value.kind === 'rejected') return { kind: 'stop', result: blocked(`${describeLock(lock.value).trim()}; strict mode starts no new run\n`) };
+  if (lock.value.kind === 'rejected') return { kind: 'stop', result: refused(`${describeLock(lock.value).trim()}; strict mode starts no new run\n`) };
   const problems = verifySnapshot(lock.value.snapshot);
-  if (problems.length > 0) return { kind: 'stop', result: blocked(`registry lock does not verify: ${problems.join('; ')}\n`) };
+  if (problems.length > 0) return { kind: 'stop', result: refused(`registry lock does not verify: ${problems.join('; ')}\n`) };
   return { kind: 'approved', snapshot: lock.value.snapshot };
 }
 
@@ -122,7 +124,7 @@ async function start(context: CliContext, mode: Mode, args: readonly string[]): 
   const { positional, named } = flags(args);
   const objective = positional.join(' ').trim();
   if (objective === '') return error(USAGE);
-  if ((await loadState(dir)).kind !== 'missing') return blocked('a run already exists in .s50/; use s50 resume\n');
+  if ((await loadState(dir)).kind !== 'missing') return refused('a run already exists in .s50/; use s50 resume\n');
   const approved = await approvedLock(dir);
   if (approved.kind === 'stop') return approved.result;
   const consumer = parseConsumer(named.get('consumer'), mode);
@@ -157,7 +159,7 @@ async function start(context: CliContext, mode: Mode, args: readonly string[]): 
     decisions.push(...outcome.decisions);
   }
   await saveState(dir, null, state, decisions);
-  return { code: state.run.status.kind === 'blocked' ? 2 : 0, stdout: renderStatus(state) };
+  return { code: gated(state), stdout: renderStatus(state) };
 }
 
 async function withState(context: CliContext, body: (state: RunState, dir: string) => Promise<CliResult>): Promise<CliResult> {
@@ -196,16 +198,16 @@ async function applyCommand(context: CliContext, raw: string | undefined): Promi
     const synced = await syncHead(context, state);
     if ((parsed.kind === 'integrate_node' || parsed.kind === 'revision_changed') && parsed.revision !== synced.head) {
       await saveState(dir, state, synced.state, synced.decisions);
-      return blocked(`${JSON.stringify({ kind: 'rejected', reason: `${parsed.kind} names ${parsed.revision}, but HEAD is ${synced.head}`, gate: null })}\n`);
+      return refused(`${JSON.stringify({ kind: 'rejected', reason: `${parsed.kind} names ${parsed.revision}, but HEAD is ${synced.head}`, gate: null })}\n`);
     }
     const outcome = apply(synced.state, parsed, context.clock);
     if (outcome.kind === 'rejected') {
       await saveState(dir, state, synced.state, synced.decisions);
-      return blocked(outcomeJson(outcome));
+      return refused(outcomeJson(outcome));
     }
     await saveState(dir, state, outcome.state, [...synced.decisions, ...outcome.decisions]);
     const workspaces = parsed.kind === 'start_nodes' ? await workspacesFor(context, outcome.state) : [];
-    return { code: outcome.state.run.status.kind === 'blocked' ? 2 : 0, stdout: outcomeJson(outcome, workspaces) };
+    return { code: gated(outcome.state), stdout: outcomeJson(outcome, workspaces) };
   });
 }
 
@@ -286,7 +288,7 @@ async function refresh(context: CliContext, dir: string, named: ReadonlyMap<stri
     built = buildLock({ leaderboard: parsed.value.entries, sources: pins.value, snapshotTime: parsed.value.fetchedAt, source: parsed.value.source });
   }
   await writeLock(dir, built.lock);
-  if (built.lock.kind === 'rejected') return blocked(`ineligible required skills outside the top 50: ${built.lock.ineligible.join(', ')}; strict mode starts no new run\n`);
+  if (built.lock.kind === 'rejected') return refused(`ineligible required skills outside the top 50: ${built.lock.ineligible.join(', ')}; strict mode starts no new run\n`);
   const dropped = built.dropped.length === 0 ? '' : `; dropped optional ${built.dropped.join(', ')}`;
   return ok(`locked ${built.lock.snapshot.skills.length} skills at ${built.lock.snapshot.snapshotTime}${dropped}\n`);
 }
@@ -297,12 +299,12 @@ async function registry(context: CliContext, args: readonly string[]): Promise<C
   if (sub === 'refresh') return refresh(context, dir, flags(rest).named);
   if (sub !== 'show' && sub !== 'verify') return error(USAGE);
   const lock = await readLock(dir);
-  if (lock === null) return blocked('no registry lock\n');
+  if (lock === null) return refused('no registry lock\n');
   if (lock.kind === 'invalid') return error(`invalid registry lock: ${lock.reason}\n`);
-  if (lock.value.kind === 'rejected') return blocked(describeLock(lock.value));
+  if (lock.value.kind === 'rejected') return refused(describeLock(lock.value));
   if (sub === 'show') return ok(describeLock(lock.value));
   const problems = verifySnapshot(lock.value.snapshot);
-  return problems.length === 0 ? ok('registry lock verified\n') : blocked(`${problems.join('\n')}\n`);
+  return problems.length === 0 ? ok('registry lock verified\n') : refused(`${problems.join('\n')}\n`);
 }
 
 export async function runCli(argv: readonly string[], context: CliContext): Promise<CliResult> {

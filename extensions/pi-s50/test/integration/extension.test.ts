@@ -86,7 +86,7 @@ test('Pi skill discovery feeds the run its installed skills', async () => {
   await runCli(['registry', 'refresh', '--from', 'leaderboard.2026-10-07.json', '--sources', 'skill-sources.2026-10-07.json'], testContext(fresh));
   const result = await tool.execute('call-3', { argv: ['feature', 'export invoices'] }, undefined, undefined, toolContext(fresh, null));
   const run = JSON.parse(await readFile(join(fresh, '.s50/run.json'), 'utf8'));
-  expect([result.details, run.capabilities.installedSkills]).toStrictEqual([{ code: 2 }, [{ name: 'tdd', contentHash: null }]]);
+  expect([result.isError, result.details, run.capabilities.installedSkills]).toStrictEqual([undefined, { code: 3 }, [{ name: 'tdd', contentHash: null }]]);
 });
 
 test('a subagent tool marks the host as having independent agents', async () => {

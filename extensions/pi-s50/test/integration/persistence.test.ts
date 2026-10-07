@@ -189,7 +189,7 @@ describe('CLI over .s50', () => {
     const cwd = repo();
     await runCli(REFRESH, context(cwd));
     const started = await runCli(['bug', 'crash on empty line'], context(cwd));
-    expect(started.code).toBe(2);
+    expect(started.code).toBe(3);
     expect(started.stdout.split('\n')[1]).toBe('phase: PREFLIGHT (blocked)');
     expect(started.stdout).toContain('next human gate: install diagnosing-bugs: npx skills add mattpocock/skills --skill diagnosing-bugs');
   });

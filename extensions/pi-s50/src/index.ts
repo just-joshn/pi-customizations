@@ -111,7 +111,7 @@ async function authorizeBash(pi: Pi, command: string, ctx: ExtensionContext): Pr
   return undefined;
 }
 
-const NOTIFY_LEVEL = { 0: 'info', 1: 'error', 2: 'warning' } as const;
+const NOTIFY_LEVEL = { 0: 'info', 1: 'error', 2: 'warning', 3: 'warning' } as const;
 
 export default function s50(pi: Pi) {
   pi.registerCommand('s50', {
@@ -134,7 +134,8 @@ export default function s50(pi: Pi) {
   pi.registerTool({
     name: 's50',
     label: 'S50',
-    description: 'Run the S50 coordinator with CLI argv, for example ["status"], ["resume"], ["apply", "<command json>"], or ["feature", "<objective>"]. Exit code 2 means the run is blocked or the command was refused.',
+    description:
+      'Run the S50 coordinator with CLI argv, for example ["status"], ["resume"], ["apply", "<command json>"], or ["feature", "<objective>"]. An error result means the command was refused or a check failed; details.code 3 means the run now waits on a human gate.',
     promptSnippet: 'Drive S50 engineering runs; the only writer of .s50/ state',
     promptGuidelines: [
       'Change S50 state only through the s50 tool; never edit files under .s50/.',

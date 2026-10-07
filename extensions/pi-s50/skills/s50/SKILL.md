@@ -21,7 +21,7 @@ The `s50` tool, the `/s50` command, and the `s50` shell command take the same ar
    - `freeze_revision`: apply `{"kind":"freeze_revision"}`.
    - `human_gate`: see Gates.
    - `done`: report the PR_READY revision and stop.
-4. Repeat from step 2. Exit code 2 means the run is blocked or the command was refused; read the reason and never work around it.
+4. Repeat from step 2. Exit code 2 (an error result from the tool) means the command was refused or a check failed; read the reason and never work around it. Exit code 3 means the command was accepted and the run now waits on a human gate.
 
 ## Gates
 
