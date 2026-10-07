@@ -216,3 +216,15 @@ describe('run commands', () => {
     expect((await runCli(['verify'], context(cwd))).stdout.split('\n')[1]).toBe('MISSING csv lists invoices');
   });
 });
+
+describe('help', () => {
+  test.fails.for(['help', '--help', '-h'])('%s prints usage and exits 0', async (flag) => {
+    const result = await runCli([flag], context(repo()));
+    expect([result.code, result.stdout.split('\n')[0]]).toEqual([0, 'usage: s50 <command>']);
+  });
+
+  test.fails('an unknown command is named before the usage', async () => {
+    const result = await runCli(['bogus'], context(repo()));
+    expect([result.code, result.stdout.split('\n')[0]]).toEqual([1, 'unknown command: bogus']);
+  });
+});
