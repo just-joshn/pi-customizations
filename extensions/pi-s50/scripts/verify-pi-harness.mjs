@@ -26,7 +26,9 @@ const REQUIRED = [
 const PROMPT =
   "Use the s50 skill to start an S50 feature run in this repository. Objective: print a greeting with the user's name. Consumer: cli:node bin/hello.mjs. Criteria: hello prints Hello, NAME. If no registry lock exists, refresh the registry first. Then follow the s50 loop for at most 8 more s50 tool calls and stop at the first human gate. Do not edit any files yourself.";
 
-const run = (cmd, args, cwd, timeout = 120_000) => execFileSync(cmd, args, { cwd, encoding: 'utf8', timeout, stdio: ['ignore', 'pipe', 'pipe'] });
+// Pi's JSON transcript repeats the whole system prompt, which is over 1 MB with a loaded agent directory, so the buffer must hold it.
+const run = (cmd, args, cwd, timeout = 120_000) =>
+  execFileSync(cmd, args, { cwd, encoding: 'utf8', timeout, maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
 const results = [];
 const check = (ok, label) => results.push(`${ok ? 'PASS' : 'FAIL'} ${label}`);
 
