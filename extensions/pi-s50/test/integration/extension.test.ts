@@ -184,7 +184,7 @@ test.for([`node extensions/pi-s50/src/cli/main.ts apply '{"kind":"confirm_unders
   },
 );
 
-test.fails.for(["find . -maxdepth 3 -not -path './.s50/*' | head -50", 'git status --short .s50', 'du -sh .s50'])('a read-only command that names .s50 runs: %s', async (command) => {
+test.for(["find . -maxdepth 3 -not -path './.s50/*' | head -50", 'git status --short .s50', 'du -sh .s50'])('a read-only command that names .s50 runs: %s', async (command) => {
   const { handlers } = loadFakePi();
   expect(await bashCall(handlers, repo(), command, null)).toStrictEqual(undefined);
 });

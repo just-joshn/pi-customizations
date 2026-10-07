@@ -126,15 +126,57 @@ type Block = { readonly block: true; readonly reason: string };
 
 const S50_ONLY: Block = { block: true, reason: 'S50 state changes only through the s50 tool, which asks the user for their decisions; call the s50 tool instead' };
 
-const READ_ONLY = new Set(['cat', 'less', 'more', 'head', 'tail', 'ls', 'grep', 'rg', 'jq', 'wc', 'stat', 'diff', 'tree', 'bat', 'file', 'sha256sum', 'shasum', 'test', '[']);
+const READ_ONLY = new Set([
+  'cat',
+  'less',
+  'more',
+  'head',
+  'tail',
+  'ls',
+  'grep',
+  'rg',
+  'jq',
+  'wc',
+  'stat',
+  'diff',
+  'tree',
+  'bat',
+  'file',
+  'sha256sum',
+  'shasum',
+  'md5sum',
+  'test',
+  '[',
+  'du',
+  'fd',
+  'realpath',
+  'basename',
+  'dirname',
+  'nl',
+  'sort',
+  'uniq',
+  'xxd',
+  'od',
+  'hexdump',
+]);
+
+const FIND_WRITES = new Set(['-delete', '-exec', '-execdir', '-ok', '-okdir', '-fprint', '-fprint0', '-fprintf', '-fls']);
+
+const GIT_READS = new Set(['status', 'diff', 'log', 'show', 'ls-files', 'check-ignore', 'grep', 'blame', 'rev-parse']);
+
+function readsOnly(words: readonly string[]): boolean {
+  const [program = '', ...args] = words;
+  if (program === 'find') return !args.some((word) => FIND_WRITES.has(word));
+  if (program === 'git') return GIT_READS.has(args.find((word) => !word.startsWith('-')) ?? '');
+  return READ_ONLY.has(program);
+}
 
 const STATE_PATH = /(^|[/=])\.s50(\/|$)/;
 
 // The tool's confirmation dialog is the only proof a user made a decision, so the model may not reach the CLI or .s50 any other way.
 function bypassesTool(command: string): boolean {
   return commandsOf(command).some(
-    ({ words, redirects }) =>
-      words[0] === 's50' || words.some((word) => /(^|\/)cli\/main\.ts$/.test(word)) || redirects.some((target) => STATE_PATH.test(target)) || (!READ_ONLY.has(words[0] ?? '') && words.some((word) => STATE_PATH.test(word))),
+    ({ words, redirects }) => words[0] === 's50' || words.some((word) => /(^|\/)cli\/main\.ts$/.test(word)) || redirects.some((target) => STATE_PATH.test(target)) || (!readsOnly(words) && words.some((word) => STATE_PATH.test(word))),
   );
 }
 
