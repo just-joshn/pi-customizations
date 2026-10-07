@@ -193,7 +193,9 @@ No drive exercises those effects. What the drives observed is registration and d
 
 ## F-019: an unknown subagent model falls back silently where an unknown model elsewhere throws
 
-**Status.** open
+**Status.** fixed
+
+**Closure evidence.** The failing test and real-Pi reproduction land first in `72366f4`. Specialized execution and search tools now validate an enabled explicit model variable with the existing `resolveModel` boundary before creating a child. Valid models preserve their selection policy; a disabled model flag still ignores the variable. All 11 specialized-tool tests pass, and typecheck passes. `scenarios/pstack-execution-model.mjs` now gets `isError=true` and an error naming `missing/none` plus the available models on real Pi. Red and green outputs and the raw capture are under `artifacts/user-perspective/f019-model/`. The older environment scenario asserted the bug as expected behaviour; its invalid-model assertion now requires rejection.
 
 **Found by** the same unit while driving `PS-ENV-20`.
 

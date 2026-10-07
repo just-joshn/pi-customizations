@@ -319,13 +319,14 @@ async function specializedScenario(context) {
     surfaceId: 'PS-ENV-20',
     package: PACKAGE,
     expected: 'Model and turn cap for execution_subagent',
-    observed: `with the model flag on EXECUTION_SUBAGENT_MODEL=scripted-alt gave subagent.started model=${execution.overridden?.data?.model} source=${execution.overridden?.data?.modelSelectionSource}; with the model flag off the same variable was ignored (model=${execution.inherited?.data?.model} source=${execution.inherited?.data?.modelSelectionSource}); EXECUTION_SUBAGENT_MAX_TURNS=1 produced ${JSON.stringify(execution.limited.slice(0, 120))}; an unknown model reference ran on the inherited model and returned ${JSON.stringify(execution.rejected.text.slice(0, 120))}`,
+    observed: `with the model flag on EXECUTION_SUBAGENT_MODEL=scripted-alt gave subagent.started model=${execution.overridden?.data?.model} source=${execution.overridden?.data?.modelSelectionSource}; with the model flag off the same variable was ignored (model=${execution.inherited?.data?.model} source=${execution.inherited?.data?.modelSelectionSource}); EXECUTION_SUBAGENT_MAX_TURNS=1 produced ${JSON.stringify(execution.limited.slice(0, 120))}; an unknown model reference was rejected with ${JSON.stringify(execution.rejected.text.slice(0, 120))}`,
     evidence: capture,
     check: () => {
       assert.match(execution.overridden?.data?.model ?? '', /scripted-alt/, 'EXECUTION_SUBAGENT_MODEL did not reach the child');
       assert.ok(!(execution.inherited?.data?.model ?? '').includes('scripted-alt'), 'the model variable applied while its flag was off');
       assert.match(execution.limited, /stopped at its 1-turn limit/);
-      assert.equal(execution.rejected.isError, false, 'an unknown execution subagent model broke the run instead of falling back');
+      assert.equal(execution.rejected.isError, true, 'an unknown execution subagent model silently ran on another model');
+      assert.match(execution.rejected.text, /Unavailable model 'missing\/none'/, 'the rejection did not identify the unavailable model');
       assert.match(execution.rejected.text, /scripted fixture reply/, 'the fallback did not use the parent model');
     },
   });

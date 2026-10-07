@@ -1,5 +1,6 @@
 import type { AgentToolResult, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
+import { resolveModel } from '../models.ts';
 import type { ChildLimits } from './context-builder.ts';
 import { subagentNamespace } from './delegation-guidance.ts';
 import type { SubagentFactory } from './factory.ts';
@@ -56,6 +57,7 @@ export function specializedTool(spec: Specialized, factory: SubagentFactory, env
     annotations: { openWorldHint: true },
     execute: async (id, params, signal, _update, ctx): Promise<AgentToolResult<Static<typeof Details>>> => {
       const model = featureEnabled(env, spec.modelFlag) ? env[spec.modelVariable]?.trim() : undefined;
+      if (model) resolveModel(model, ctx);
       const limits: ChildLimits = { maxAgentTurns: specializedTurns(env, spec) };
       const call = { agent_type: spec.agentType, name: spec.tool, description: params.description, prompt: params.prompt, mode: 'sync' as const, ...(model ? { model } : {}) };
       const { launched, node } = await factory.create(call, id, signal, ctx, { limits });
