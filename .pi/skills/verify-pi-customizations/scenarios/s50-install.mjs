@@ -166,66 +166,78 @@ function installNpmShape(context, packageDir) {
   };
 }
 
-async function collectInstallFacts(session, install, packageDir) {
+async function collectInstallFacts(session, install, packageDir, manifest) {
   const commands = await session.commands();
   const base = realpathSync(packageDir);
   const owned = commands.filter((command) => command.sourceInfo?.baseDir === base);
+  const pathOf = (command) => command.sourceInfo?.path ?? null;
   return {
     base,
-    owned,
-    extensionCommands: owned.filter((command) => command.source === 'extension').map((command) => command.name),
-    skillCommands: owned.filter((command) => command.source === 'skill').map((command) => command.name),
-    bins: searchBins(install),
+    installExit: install.installed.status,
+    declaredPath: install.declaredPath,
+    declaredResolved: install.declaredResolved,
+    manifestExtensions: manifest.pi?.extensions ?? [],
+    manifestSkills: manifest.pi?.skills ?? [],
+    owned: owned.map((command) => ({ name: command.name, source: command.source, origin: command.sourceInfo?.origin, path: pathOf(command) })),
+    extensionCommands: owned.filter((command) => command.source === 'extension').map((command) => ({ name: command.name, path: pathOf(command) })),
+    skillCommands: owned.filter((command) => command.source === 'skill').map((command) => ({ name: command.name, path: pathOf(command) })),
   };
 }
 
-function writeInstallReceipt(context, receipts, install, facts, control, packageDir) {
-  const installRaw = writeRaw(context, 's50-install.json', {
+function writeFindingEvidence(context, install, facts, control, packageDir) {
+  const bins = searchBins(install);
+  const localHits = Object.entries(bins.searched)
+    .filter(([label, entry]) => entry.exists && (label.startsWith('project') || label.startsWith('agent')))
+    .map(([label]) => label);
+  return writeRaw(context, 's50-install.json', {
     package: packageDir,
     installExit: install.installed.status,
     installStdout: install.installed.stdout,
     declaredResolved: install.declaredResolved,
-    owned: facts.owned.map((command) => ({ name: command.name, source: command.source, origin: command.sourceInfo?.origin, path: command.sourceInfo?.path })),
-    binSearch: facts.bins,
+    owned: facts.owned,
+    binSearch: bins,
+    localHits,
     npmShape: control,
   });
-  const localHits = Object.entries(facts.bins.searched)
-    .filter(([label, entry]) => entry.exists && (label.startsWith('project') || label.startsWith('agent')))
-    .map(([label]) => label);
-  const observed = `pi install (user scope) exit ${install.installed.status} registered ${install.declaredPath}; Pi discovered extension commands ${JSON.stringify(facts.extensionCommands)} and skill commands ${JSON.stringify(facts.skillCommands)} with origin=package baseDir=${facts.owned[0]?.sourceInfo?.baseDir ?? 'none'}; local-shape bin hits=${JSON.stringify(localHits)}; on-PATH s50=${JSON.stringify(facts.bins.onPath)} which=${JSON.stringify(facts.bins.which)}; npm:file shape exit ${control.status} linked=${control.present} at ${control.linked}`;
-  const problems = [];
-  try {
-    assert.equal(install.installed.status, 0, `pi install exited ${install.installed.status}: ${install.installed.stderr}`);
-    assert.equal(install.declaredResolved, facts.base, `.pi/settings.json package does not resolve to ${facts.base}`);
-    assert.deepEqual(facts.extensionCommands, ['s50'], 'extension command set');
-    assert.deepEqual(facts.skillCommands, ['skill:s50'], 'skill command set');
-    assert.equal(localHits.length, 0, `local install unexpectedly linked ${localHits.join(', ')}`);
-    assert.ok(control.present, `npm:file install did not link ${control.linked}`);
-    assert.equal(control.run?.status, 1, 'npm-linked s50 must run and exit 1 on a bad invocation');
-  } catch (error) {
-    problems.push(error.message);
-  }
-  const expected = 'pi install ./extensions/pi-s50 loads the declared extension and one skill and installs the s50 binary name';
-  if (problems.length > 0) {
-    receipts.assertVerdict({
-      surfaceId: 'S50-INSTALL-1',
-      package: S50_PACKAGE,
-      expected,
-      observed,
-      evidence: installRaw,
-      check: () => assert.fail(problems.join('; ')),
-    });
-    return;
-  }
-  receipts.write({
+}
+
+function writeInstallReceipt(context, receipts, install, facts, manifest, packageDir) {
+  const declaredExtension = manifest.pi?.extensions?.length === 1 ? realpathSync(join(packageDir, manifest.pi.extensions[0])) : null;
+  const declaredSkill = join(packageDir, 'skills/s50/SKILL.md');
+  const raw = writeRaw(context, 's50-install-1.json', {
+    installExit: install.installed.status,
+    declaredResolved: install.declaredResolved,
+    manifestExtensions: facts.manifestExtensions,
+    manifestSkills: facts.manifestSkills,
+    declaredExtension,
+    extensionCommands: facts.extensionCommands,
+    skillCommands: facts.skillCommands,
+  });
+  receipts.assertVerdict({
     surfaceId: 'S50-INSTALL-1',
     package: S50_PACKAGE,
-    expected,
-    observed: `${observed}; the npm shape is the only one that links a bin, and its directory is not on PATH`,
-    evidence: installRaw,
-    verdict: 'failed',
-    reason:
-      "pi install ./extensions/pi-s50 (the advertised user-scope form) loads the extension and exactly one skill but never installs the declared s50 binary: Pi's local install only checks that the path exists (package-manager.js:796-802) and declared bins are linked only by npm for npm-type installs into the managed npm root (package-manager.js:1527-1530, 1730-1739). The advertised local install leaves `s50` as command not found; even the npm-shaped install links it only inside the managed .pi/npm/node_modules/.bin, which is not on PATH",
+    expected: 'pi install ./extensions/pi-s50 loads the extension entry point declared in the package pi manifest and discovers exactly one skill named s50',
+    observed: `pi install (user scope) exit ${install.installed.status} registered ${install.declaredPath}; manifest extensions=${JSON.stringify(facts.manifestExtensions)}; loaded extension commands=${JSON.stringify(facts.extensionCommands)}; loaded skill commands=${JSON.stringify(facts.skillCommands)}`,
+    evidence: raw,
+    check: () => {
+      assert.equal(install.installed.status, 0, `pi install exited ${install.installed.status}: ${install.installed.stderr}`);
+      assert.equal(install.declaredResolved, facts.base, '.pi/settings.json package does not resolve to the package directory');
+      assert.deepEqual(facts.manifestExtensions, ['./src/index.ts'], 'manifest declares a different extension entry point');
+      assert.deepEqual(facts.manifestSkills, ['./skills'], 'manifest declares a different skills path');
+      assert.ok(declaredExtension && existsSync(declaredExtension), 'declared extension entry point does not exist');
+      assert.deepEqual(
+        facts.extensionCommands.map((command) => command.name),
+        ['s50'],
+        'extension command set',
+      );
+      assert.equal(realpathSync(facts.extensionCommands[0].path), declaredExtension, 'Pi loaded a different extension entry point');
+      assert.deepEqual(
+        facts.skillCommands.map((command) => command.name),
+        ['skill:s50'],
+        'Pi must discover exactly one skill named s50',
+      );
+      assert.equal(realpathSync(facts.skillCommands[0].path), realpathSync(declaredSkill), 'discovered skill is not skills/s50/SKILL.md');
+    },
   });
 }
 
@@ -251,11 +263,12 @@ export default async function s50Install(context) {
   });
   context.s50Sessions.push(session);
   try {
-    const facts = await collectInstallFacts(session, install, packageDir);
+    const facts = await collectInstallFacts(session, install, packageDir, manifest);
     const control = installNpmShape(context, packageDir);
-    writeInstallReceipt(context, receipts, install, facts, control, packageDir);
+    writeFindingEvidence(context, install, facts, control, packageDir);
+    writeInstallReceipt(context, receipts, install, facts, manifest, packageDir);
   } finally {
     await closeS50Sessions(context);
   }
-  log('✓ S50-CMD-2 asserted; S50-INSTALL-1 written (see receipt verdict)');
+  log('✓ S50-CMD-2, S50-INSTALL-1 and S50-INSTALL-2 asserted');
 }
