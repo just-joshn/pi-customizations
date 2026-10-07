@@ -59,7 +59,7 @@ function eventPump(stream) {
 }
 
 function startPi(extraArgs) {
-  const args = ['--mode', 'rpc', '--approve', '--session-dir', sessionDir, '-e', packageDir, ...(model ? ['--model', model] : []), ...extraArgs];
+  const args = ['--mode', 'rpc', '--approve', '--session-dir', sessionDir, '--no-extensions', '-e', packageDir, ...(model ? ['--model', model] : []), ...extraArgs];
   const child = spawn('pi', args, { cwd: work, env, stdio: ['pipe', 'pipe', 'inherit'] });
   const { events, waitFor } = eventPump(child.stdout);
   let nextId = 0;

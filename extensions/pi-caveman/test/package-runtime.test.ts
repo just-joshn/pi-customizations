@@ -1,9 +1,10 @@
 import { spawn } from 'node:child_process';
-import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach, expect, test } from 'vitest';
@@ -157,6 +158,7 @@ test('an open gate routes the first request through /w/pi', async () => {
   expect(first?.body).toContain('CORE_MARKER_XYZ');
   expect(first?.body).toContain('DYNAMIC_MARKER_ABC');
   expect(first?.body).toContain('CAVEMAN MODE ACTIVE — mode: caveman');
+  expect(first?.body).toContain('"content":[{"type":"text","text":"say hi"}]');
 });
 
 test('a closed gate keeps requests direct', async () => {
@@ -198,3 +200,55 @@ test('under caveman wrap pi the package yields the runtime and keeps its ruleset
   expect(first?.body).toContain('CORE_MARKER_XYZ');
   expect(first?.body).toContain('CAVEMAN MODE ACTIVE — mode: caveman');
 });
+
+type RpcEvent = { type?: string; id?: string; success?: boolean; error?: string };
+
+function rpcPi(env: NodeJS.ProcessEnv) {
+  const args = [piCli, '--mode', 'rpc', '--approve', '--session-dir', join(env['ROOT'] ?? '', 'sessions'), '--extension', stubProviders];
+  args.push('--extension', packageRoot, '--no-context-files', '--no-themes', '--no-extensions', '--provider', 'openai', '--model', 'stub-model');
+  const child = spawn(process.execPath, args, { env, cwd: env['ROOT'], stdio: ['pipe', 'pipe', 'ignore'] });
+  cleanups.push(() => child.kill('SIGKILL'));
+  const events: RpcEvent[] = [];
+  const waiters: { match: (event: RpcEvent) => boolean; resolve: (event: RpcEvent) => void }[] = [];
+  createInterface({ input: child.stdout }).on('line', (line) => {
+    const event: RpcEvent = JSON.parse(line);
+    events.push(event);
+    for (const waiter of waiters.filter((w) => w.match(event))) waiter.resolve(event);
+  });
+  const waitFor = (match: (event: RpcEvent) => boolean, from: number) =>
+    new Promise<RpcEvent>((resolve) => {
+      const found = events.slice(from).find(match);
+      if (found) resolve(found);
+      else waiters.push({ match, resolve });
+    });
+  let next = 0;
+  const send = async (command: Record<string, unknown>, settle: boolean) => {
+    const id = `r${next++}`;
+    const mark = events.length;
+    child.stdin.write(`${JSON.stringify({ id, ...command })}\n`);
+    const response = await waitFor((event) => event.type === 'response' && event.id === id, mark);
+    if (settle) await waitFor((event) => event.type === 'agent_settled', mark);
+    return response;
+  };
+  return { send };
+}
+
+test('Core and the ruleset survive a compaction, which reaches the runtime hooks', async () => {
+  const stub = await startStub();
+  const env = fixture({ port: stub.port, runState: true, hook: true });
+  mkdirSync(join(env['ROOT'] ?? '', '.pi'));
+  writeFileSync(join(env['ROOT'] ?? '', '.pi/settings.json'), JSON.stringify({ compaction: { keepRecentTokens: 1 } }));
+  const pi = rpcPi(env);
+
+  for (const word of ['first', 'more', 'again']) await pi.send({ type: 'prompt', message: `${word} ${'filler '.repeat(400)}` }, true);
+  const compacted = await pi.send({ type: 'compact' }, false);
+  await pi.send({ type: 'prompt', message: 'second' }, true);
+
+  expect(compacted.error).toBe(undefined);
+  expect(compacted).toMatchObject({ success: true });
+  expect(readFileSync(env['HOOK_LOG'] ?? '', 'utf8').split('\n')).toEqual(expect.arrayContaining(['PreCompact', 'PostCompact']));
+  const last = posts(stub).at(-1);
+  expect(last?.body).toContain('"text":"second"');
+  expect(last?.body).toContain('CORE_MARKER_XYZ');
+  expect(last?.body).toContain('CAVEMAN MODE ACTIVE — mode: caveman');
+}, 60_000);
