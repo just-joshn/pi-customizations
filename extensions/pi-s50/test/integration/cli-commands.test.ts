@@ -7,7 +7,7 @@ import { type CliContext, runCli } from '../../src/cli/commands.ts';
 import { fixedClock } from '../support/clock.ts';
 import { NO_HOST, testContext } from '../support/context.ts';
 import { fixturePath, loadSources } from '../unit/support.ts';
-import { git, tempRepo } from './repo.ts';
+import { git, tempRepo, writeAndCommit } from './repo.ts';
 
 const dirs: string[] = [];
 
@@ -169,5 +169,33 @@ describe('run commands', () => {
     git(cwd, 'mv', 'src/export/csv.ts', 'src/export/table.ts');
     git(cwd, 'commit', '-qm', 'rename');
     expect((await runCli(['resume'], context(cwd))).stdout).toContain('stale evidence: 1');
+  });
+
+  const EVIDENCE = { claim: 'csv', criterion: 'csv lists invoices', state: 'MEASURED', dependencies: ['src/export/**'], method: 'cli', expected: 'rows', observed: 'rows', artifact: 'a.log' };
+
+  test.fails('a run in a subdirectory stales evidence on its own paths', async () => {
+    const root = repo();
+    const cwd = join(root, 'pkg');
+    writeAndCommit(root, { 'pkg/src/export/csv.ts': 'export const csv = 1;\n' }, 'pkg');
+    for (const name of ['leaderboard.2026-10-07.json', 'skill-sources.2026-10-07.json']) writeFileSync(join(cwd, name), readFileSync(join(root, name)));
+    await runCli(OFFLINE_REFRESH, context(cwd));
+    await runCli(['feature', 'export invoices', '--criteria', 'csv lists invoices', '--installed', 'grilling,codebase-design,tdd'], context(cwd));
+    await runCli(['apply', JSON.stringify({ kind: 'record_evidence', evidence: EVIDENCE })], context(cwd));
+    writeAndCommit(root, { 'pkg/src/export/csv.ts': 'export const csv = 2;\n' }, 'edit');
+    expect((await runCli(['resume'], context(cwd))).stdout).toContain('stale evidence: 1');
+  });
+
+  test.fails('status follows a commit made after the last command', async () => {
+    const cwd = await started();
+    await runCli(['apply', JSON.stringify({ kind: 'record_evidence', evidence: EVIDENCE })], context(cwd));
+    writeAndCommit(cwd, { 'src/export/csv.ts': 'export const csv = 2;\n' }, 'edit');
+    expect((await runCli(['status'], context(cwd))).stdout).toContain('stale evidence: 1');
+  });
+
+  test.fails('verify follows a commit made after the last command', async () => {
+    const cwd = await started();
+    await runCli(['apply', JSON.stringify({ kind: 'record_evidence', evidence: EVIDENCE })], context(cwd));
+    writeAndCommit(cwd, { 'src/export/csv.ts': 'export const csv = 2;\n' }, 'edit');
+    expect((await runCli(['verify'], context(cwd))).stdout.split('\n')[1]).toBe('MISSING csv lists invoices');
   });
 });
