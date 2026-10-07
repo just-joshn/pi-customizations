@@ -11,7 +11,7 @@
     "node": ">=22.19.0"
   },
   "bin": {
-    "s50": "./src/cli/main.ts"
+    "s50": "./dist/cli/main.js"
   },
   "pi": {
     "extensions": [
@@ -23,12 +23,15 @@
   },
   "files": [
     "src",
+    "dist",
     "skills",
     "registry",
     "docs",
     "README.md"
   ],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "bun run build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p ."

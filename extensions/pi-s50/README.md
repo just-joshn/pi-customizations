@@ -8,7 +8,7 @@ S50 takes a feature, bug, frontend change, external issue, or architecture surve
 pi install ./extensions/pi-s50
 ```
 
-This registers the extension and the skill inside Pi. It does not put `s50` on your `PATH`, because Pi's local install performs no bin linking, and a copy installed under `node_modules` cannot run a TypeScript entry point at all. The shell section below gives the two invocations that do work.
+This registers the extension and the skill inside Pi. Pi's local install does not link package bins or put `s50` on your `PATH`. Packed packages include a compiled JavaScript CLI that can run under `node_modules`.
 
 The package ships one extension (`src/index.ts`), one skill (`skills/s50`), and the inspected skill sources (`registry/skill-sources.json`). The external skills that S50 calls are installed separately. When a run needs one that Pi cannot find, the run stops with a `missing_skill` gate that names the skills.sh install command for that skill.
 
@@ -20,7 +20,7 @@ The same argv works on three surfaces: the model's `s50` tool, the `/s50` comman
 node extensions/pi-s50/src/cli/main.ts status
 ```
 
-The `s50` bin in `package.json` runs when it is reached through a symlink into this checkout, which is what a plain `npm link` or a manual `ln -s` gives you. Node does not strip TypeScript types under `node_modules`, so a copy installed there cannot run the bin. That is a Node restriction rather than a packaging choice, and it is why `pi install` does not expose `s50` as a shell command.
+The `s50` bin in `package.json` points to `dist/cli/main.js`. `bun run build` in this package compiles the CLI, and the prepack hook builds it before creating a package archive. The compiled bin runs under `node_modules`. A package manager's bin link must be on your `PATH` to call bare `s50`. Pi resource installation and shell bin linking are separate operations.
 
 ```text
 s50 registry refresh                      lock the current top 50 into .s50/registry.lock.json
