@@ -3,12 +3,10 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, test } from 'vitest';
-import { extractCodeBlocks, extractInlineCodes, newFindings, toResult, validate, validateInlineCodes } from '../../src/compress/validate.ts';
+import { extractCodeBlocks, extractInlineCodes, toResult, validate, validateBullets, validateInlineCodes, validatePaths } from '../../src/compress/validate.ts';
 
 function inline(orig: string, comp: string) {
-  const findings = newFindings();
-  validateInlineCodes(orig, comp, findings);
-  return toResult(findings);
+  return toResult(validateInlineCodes(orig, comp));
 }
 
 describe('indented fence (#820)', () => {
@@ -77,7 +75,7 @@ describe('mid-line fence run', () => {
 });
 
 describe('error rendering', () => {
-  test('long span truncated and newlines escaped', () => {
+  test('long lost span is truncated with escaped newlines', () => {
     const result = inline(`a \`${'x'.repeat(500)}\nmore\` b`, 'a b');
     expect(result.errors).toEqual([`Inline code lost: {'${'x'.repeat(60)}…'}`]);
   });
@@ -151,16 +149,44 @@ describe('preservation promises are errors', () => {
       warnings: [],
     });
   });
-  test('heading count, level, URL and bullet rules', () => {
+  test('heading count change fails', () => {
     expect(validate('# A\n## B\n', '# A\n').errors).toEqual(['Heading count mismatch: 2 vs 1']);
+  });
+  test('heading level change warns', () => {
     expect(validate('# A\n', '## A\n')).toEqual({ isValid: true, errors: [], warnings: ['Heading levels changed'] });
+  });
+  test('lost URL fails', () => {
     expect(validate('see https://a.example/x and more', 'see more').errors).toEqual(["URL mismatch: lost={'https://a.example/x'}, added=set()", "File paths lost: ['//a.example/x']"]);
+  });
+  test('large bullet drop warns', () => {
     expect(validate('- a\n- b\n- c\n', '- a\n').warnings).toEqual(['Bullet count changed too much: 3 -> 1']);
-    expect(validate('pros/cons apply', 'it applies')).toEqual({
-      isValid: true,
-      errors: [],
-      warnings: ["Path mismatch: lost=['pros/cons'], added=[]"],
-    });
+  });
+  test('ambiguous prose path loss only warns', () => {
+    expect(validate('pros/cons apply', 'it applies')).toEqual({ isValid: true, errors: [], warnings: ["Path mismatch: lost=['pros/cons'], added=[]"] });
+  });
+});
+
+describe('edge inputs', () => {
+  test('two empty documents are valid', () => {
+    expect(validate('', '')).toEqual({ isValid: true, errors: [], warnings: [] });
+  });
+  test('whitespace-only documents are valid', () => {
+    expect(validate(' \n\t', '\n')).toEqual({ isValid: true, errors: [], warnings: [] });
+  });
+  test('CRLF document equals its LF form', () => {
+    expect(validate('# A\r\n\n- x\r\n', '# A\n\n- x\n')).toEqual({ isValid: true, errors: [], warnings: [] });
+  });
+  test('bullet drop of exactly 15% does not warn', () => {
+    expect(validateBullets('- x\n'.repeat(20), '- x\n'.repeat(17))).toEqual({ errors: [], warnings: [] });
+  });
+  test('bullet drop just over 15% warns', () => {
+    expect(validateBullets('- x\n'.repeat(20), '- x\n'.repeat(16)).warnings).toEqual(['Bullet count changed too much: 20 -> 16']);
+  });
+  test('no original bullets never warns', () => {
+    expect(validateBullets('prose', '- a\n- b\n')).toEqual({ errors: [], warnings: [] });
+  });
+  test('added path only warns', () => {
+    expect(validatePaths('prose', 'see ./a.md')).toEqual({ errors: [], warnings: ["Path mismatch: lost=[], added=['./a.md']"] });
   });
 });
 

@@ -71,20 +71,31 @@ describe('detectFileType', () => {
     expect(detectFileType(p)).toBe('natural_language');
     expect(shouldCompress(p)).toBe(true);
   });
+});
 
-  test('extension classes and content heuristics', () => {
-    expect(detectFileType('/x/a.json', '')).toBe('config');
-    expect(detectFileType('/x/a.ts', '')).toBe('code');
-    expect(detectFileType('/x/a.weird', 'prose')).toBe('unknown');
-    expect(detectFileType('/x/.env', 'A=1')).toBe('natural_language');
-    expect(detectFileType('/x/data', '{"a": 1}')).toBe('config');
-    expect(detectFileType('/x/conf', 'name: x\nversion: 2\n')).toBe('config');
-    expect(detectFileType('/x/script', 'import os\nconst x = 1\nprose here\n')).toBe('code');
-  });
+test.for([
+  { path: '/x/a.json', text: '', type: 'config' },
+  { path: '/x/a.ts', text: '', type: 'code' },
+  { path: '/x/a.weird', text: 'prose', type: 'unknown' },
+  { path: '/x/.env', text: 'A=1', type: 'natural_language' },
+  { path: '/x/data', text: '{"a": 1}', type: 'config' },
+  { path: '/x/conf', text: 'name: x\nversion: 2\n', type: 'config' },
+  { path: '/x/script', text: 'import os\nconst x = 1\nprose here\n', type: 'code' },
+  { path: '/x/empty', text: '', type: 'natural_language' },
+  { path: '/x/blank', text: '  \n\n', type: 'natural_language' },
+])('$path with given text is $type', ({ path, text, type }) => {
+  expect(detectFileType(path, text)).toBe(type);
+});
 
-  test('backup files and missing files are not compressed', () => {
-    expect(shouldCompress(write('task.original.md', PROSE_BODY))).toBe(false);
-    expect(shouldCompress(join(dir, 'missing.md'))).toBe(false);
-    expect(shouldCompress(dir)).toBe(false);
-  });
+test('unreadable extensionless path is unknown', () => {
+  expect(detectFileType(join(dir, 'missing'))).toBe('unknown');
+});
+test('backup file is not compressed', () => {
+  expect(shouldCompress(write('task.original.md', PROSE_BODY))).toBe(false);
+});
+test('missing file is not compressed', () => {
+  expect(shouldCompress(join(dir, 'missing.md'))).toBe(false);
+});
+test('directory is not compressed', () => {
+  expect(shouldCompress(dir)).toBe(false);
 });

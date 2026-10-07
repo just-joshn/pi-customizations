@@ -1,7 +1,10 @@
 import { appendFileSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
+import type { Static } from 'typebox';
+import { Check } from 'typebox/value';
 import type { Mode } from './modes.ts';
+import { AssistantEntry, HistoryRow } from './schemas.ts';
 import type { ModeTransition } from './state.ts';
 
 export type Availability = 'complete' | 'partial' | 'unknown';
@@ -59,31 +62,14 @@ export function totalCounts(counts: readonly { value: unknown; availability?: un
   return known === 0 ? { value: null, availability: 'unknown' } : { value: total, availability: complete ? 'complete' : 'partial' };
 }
 
-function field(value: unknown, key: string): unknown {
-  if (typeof value !== 'object' || value === null) return undefined;
-  const found: unknown = Reflect.get(value, key);
-  return found;
-}
-
 export function sessionUsage(entries: readonly unknown[]): SessionUsage {
-  const responses: ResponseUsage[] = [];
-  let model: string | null = null;
-  for (const entry of entries) {
-    if (field(entry, 'type') !== 'message') continue;
-    const message = field(entry, 'message');
-    if (field(message, 'role') !== 'assistant') continue;
-    const messageModel = field(message, 'model');
-    if (!model && typeof messageModel === 'string') model = messageModel;
-    const usage = field(message, 'usage');
-    const output = field(usage, 'output');
-    const cacheRead = field(usage, 'cacheRead');
-    const timestamp = field(message, 'timestamp');
-    responses.push({
-      ts: typeof timestamp === 'number' && Number.isFinite(timestamp) ? timestamp : null,
-      outputTokens: isTokenCount(output) ? output : null,
-      cacheReadTokens: isTokenCount(cacheRead) ? cacheRead : null,
-    });
-  }
+  const messages = entries.flatMap((entry) => (Check(AssistantEntry, entry) ? [entry.message] : []));
+  const model = messages.find((message) => message.model)?.model ?? null;
+  const responses: ResponseUsage[] = messages.map((message) => ({
+    ts: message.timestamp !== undefined && Number.isFinite(message.timestamp) ? message.timestamp : null,
+    outputTokens: isTokenCount(message.usage?.output) ? message.usage.output : null,
+    cacheReadTokens: isTokenCount(message.usage?.cacheRead) ? message.usage.cacheRead : null,
+  }));
   return {
     output: totalCounts(responses.map((r) => ({ value: r.outputTokens }))),
     cacheRead: totalCounts(responses.map((r) => ({ value: r.cacheReadTokens }))),
@@ -186,29 +172,33 @@ function readLines(path: string): string[] {
       .split('\n')
       .filter((line) => line.trim());
   } catch {
+    // No history file yet means no sessions logged, as upstream reports.
     return [];
+  }
+}
+
+function parseRow(line: string): Static<typeof HistoryRow> | null {
+  try {
+    const row: unknown = JSON.parse(line);
+    return Check(HistoryRow, row) ? row : null;
+  } catch {
+    // A torn or corrupt line is skipped, matching upstream's reader.
+    return null;
   }
 }
 
 export function aggregateHistory(args: { path: string; sinceMs: number | null; now: number }): HistoryAggregate {
   const cutoff = args.sinceMs === null ? null : args.now - args.sinceMs;
-  const latest = new Map<string, { ts: number; output: unknown; availability: unknown }>();
-  for (const line of readLines(args.path)) {
-    let entry: unknown;
-    try {
-      entry = JSON.parse(line);
-    } catch {
-      continue;
-    }
-    const tsRaw = field(entry, 'ts');
-    const ts = typeof tsRaw === 'number' ? tsRaw : 0;
-    if (cutoff !== null && ts < cutoff) continue;
-    const idRaw = field(entry, 'session_id');
-    const id = typeof idRaw === 'string' && idRaw ? idRaw : '_';
-    const previous = latest.get(id);
-    if (!previous || ts >= previous.ts) latest.set(id, { ts, output: field(entry, 'output_tokens'), availability: field(entry, 'output_tokens_availability') });
+  const rows = readLines(args.path).flatMap((line) => {
+    const row = parseRow(line);
+    return row && (cutoff === null || (row.ts ?? 0) >= cutoff) ? [row] : [];
+  });
+  const latest = new Map<string, Static<typeof HistoryRow>>();
+  for (const row of rows) {
+    const id = row.session_id || '_';
+    if ((row.ts ?? 0) >= (latest.get(id)?.ts ?? Number.NEGATIVE_INFINITY)) latest.set(id, row);
   }
-  return { sessions: latest.size, output: totalCounts([...latest.values()].map((e) => ({ value: e.output, availability: e.availability }))) };
+  return { sessions: latest.size, output: totalCounts([...latest.values()].map((row) => ({ value: row.output_tokens, availability: row.output_tokens_availability }))) };
 }
 
 export function appendHistory(path: string, record: Record<string, unknown>): void {
@@ -221,25 +211,30 @@ function fileSize(path: string): number | null {
     const stat = statSync(path);
     return stat.isFile() ? stat.size : null;
   } catch {
+    // A backup without its compressed sibling is not a pair, as upstream skips it.
     return null;
   }
 }
 
-export function findCompressedPairs(dirs: readonly string[]): CompressedSummary | null {
-  const pairs: { original: number; compressed: number }[] = [];
-  for (const dir of new Set(dirs)) {
-    let names: string[];
-    try {
-      names = readdirSync(dir);
-    } catch {
-      continue;
-    }
-    for (const name of names.filter((n) => n.endsWith('.original.md'))) {
-      const original = fileSize(join(dir, name));
-      const compressed = fileSize(join(dir, `${name.slice(0, -'.original.md'.length)}.md`));
-      if (original !== null && compressed !== null && original > compressed) pairs.push({ original, compressed });
-    }
+function listDir(dir: string): string[] {
+  try {
+    return readdirSync(dir);
+  } catch {
+    // An unreadable or missing scan directory contributes no pairs.
+    return [];
   }
+}
+
+export function findCompressedPairs(dirs: readonly string[]): CompressedSummary | null {
+  const pairs = [...new Set(dirs)].flatMap((dir) =>
+    listDir(dir)
+      .filter((name) => name.endsWith('.original.md'))
+      .flatMap((name) => {
+        const original = fileSize(join(dir, name));
+        const compressed = fileSize(join(dir, `${name.slice(0, -'.original.md'.length)}.md`));
+        return original !== null && compressed !== null && original > compressed ? [{ original, compressed }] : [];
+      }),
+  );
   if (pairs.length === 0) return null;
   const totalOriginal = pairs.reduce((sum, p) => sum + p.original, 0);
   const totalCompressed = pairs.reduce((sum, p) => sum + p.compressed, 0);

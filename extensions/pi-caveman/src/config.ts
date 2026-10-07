@@ -2,7 +2,9 @@ import { lstatSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
+import { Check } from 'typebox/value';
 import { canonicalDefaultMode, type DefaultMode } from './modes.ts';
+import { ConfigFile } from './schemas.ts';
 
 const REPO_CONFIG_CANDIDATES = ['.caveman/config.json', '.caveman.json'];
 const MAX_WALK_DEPTH = 64;
@@ -28,6 +30,7 @@ function isRegularFile(path: string): boolean {
     const stat = lstatSync(path);
     return stat.isFile() && !stat.isSymbolicLink();
   } catch {
+    // An absent candidate is the common case while walking up the tree.
     return false;
   }
 }
@@ -44,14 +47,18 @@ export function findRepoConfigPath(start: string): string | null {
   return null;
 }
 
-function readDefaultMode(path: string): DefaultMode | null {
+function readJson(path: string): unknown {
   try {
-    const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'));
-    if (typeof parsed !== 'object' || parsed === null || !('defaultMode' in parsed)) return null;
-    return canonicalDefaultMode(String(parsed.defaultMode));
+    return JSON.parse(readFileSync(path, 'utf8'));
   } catch {
+    // A missing, unreadable, or malformed config falls through to the next source, as upstream does.
     return null;
   }
+}
+
+function readDefaultMode(path: string): DefaultMode | null {
+  const parsed = readJson(path);
+  return Check(ConfigFile, parsed) ? canonicalDefaultMode(parsed.defaultMode) : null;
 }
 
 export function getDefaultMode(cwd: string, environment: ConfigEnvironment = processEnvironment()): DefaultMode {

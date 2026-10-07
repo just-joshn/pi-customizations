@@ -1,5 +1,7 @@
+import { Check } from 'typebox/value';
 import { canonicalMode, type DefaultMode, isIndependentMode, type Mode, type StoredMode } from './modes.ts';
 import type { ModeChange } from './parse.ts';
+import { StoredModeData } from './schemas.ts';
 
 export const MODE_ENTRY = 'caveman-mode';
 
@@ -30,11 +32,9 @@ export function activeMode(state: ModeState): Mode | null {
 }
 
 export function parseModeState(data: unknown): ModeState | null {
-  if (typeof data !== 'object' || data === null || !('mode' in data)) return null;
+  if (!Check(StoredModeData, data)) return null;
   const mode = canonicalMode(data.mode);
-  if (!mode) return null;
-  const returnTo = 'returnTo' in data ? canonicalMode(data.returnTo) : null;
-  return { mode, returnTo };
+  return mode ? { mode, returnTo: canonicalMode(data.returnTo) } : null;
 }
 
 export function stateFromEntries(entries: readonly ModeEntry[]): ModeState | null {

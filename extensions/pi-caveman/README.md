@@ -54,6 +54,10 @@ The first source that sets a valid `defaultMode` wins:
 | `cavecrew-*` Claude subagents | The `cavecrew` tool. It runs `investigator`, `builder`, or `reviewer` in an isolated `pi --mode json` process with the upstream agent prompt. `CAVECREW_<ROLE>_MODEL` picks the model. Otherwise the subagent uses the session model. |
 | Skills | All 22 upstream skills ship under `skills/`. `cavecrew`, `caveman-compress`, `caveman-help`, and `caveman-stats` come from `overrides/` because their upstream text names Claude Code mechanics. |
 
+## Divergence from upstream
+
+Upstream's sensitive-path check never matches `.ssh`, `.aws`, `.gnupg`, `.kube`, or `.docker`, because it compares dot-stripped names against dotted ones. `caveman_compress` refuses files under those directories. This is stricter than upstream and fixes a security gap. `docs/agents-audit.md` records the full rule-by-rule audit.
+
 ## Out of scope
 
 The Caveman proxy, engine, `caveman browse`, MCP server, cloud SDKs, and browser extension are separate native programs. The `caveman-setup`, `caveman-learn`, and other proxy skills ship unchanged and drive the `caveman` CLI when it is installed. For proxy routing inside Pi, use upstream's own `@caveman-ai/pi` package.

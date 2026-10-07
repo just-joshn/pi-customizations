@@ -1,8 +1,8 @@
 import { pyLen, pyListRepr, pyRepr, pySetRepr, pySorted, pyStrip, replaceFirst, S } from './py.ts';
 
 export interface Findings {
-  readonly errors: string[];
-  readonly warnings: string[];
+  readonly errors: readonly string[];
+  readonly warnings: readonly string[];
 }
 
 export interface ValidationResult extends Findings {
@@ -203,64 +203,66 @@ function sameSet(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
   return a.size === b.size && [...a].every((x) => b.has(x));
 }
 
-export function validateHeadings(orig: string, comp: string, result: Findings): void {
+const NO_FINDINGS: Findings = { errors: [], warnings: [] };
+
+function findings(errors: readonly string[], warnings: readonly string[] = []): Findings {
+  return { errors, warnings };
+}
+
+export function validateHeadings(orig: string, comp: string): Findings {
   const h1 = extractHeadings(orig);
   const h2 = extractHeadings(comp);
   // Renamed heading text breaks anchor links, so it is an error; a level-only
   // change keeps slugs intact and is a warning.
-  if (h1.length !== h2.length) {
-    addError(result, `Heading count mismatch: ${h1.length} vs ${h2.length}`);
-    return;
-  }
+  if (h1.length !== h2.length) return findings([`Heading count mismatch: ${h1.length} vs ${h2.length}`]);
   const t1 = h1.map((h) => h.title);
   const t2 = h2.map((h) => h.title);
   if (t1.some((t, k) => t !== t2[k])) {
     const lost = t1.filter((t) => !t2.includes(t));
     const added = t2.filter((t) => !t1.includes(t));
-    addError(result, `Heading text/order changed: lost=${pyListRepr(lost)}, added=${pyListRepr(added)}`);
-  } else if (h1.some((h, k) => h.level !== h2[k]?.level)) {
-    result.warnings.push('Heading levels changed');
+    return findings([`Heading text/order changed: lost=${pyListRepr(lost)}, added=${pyListRepr(added)}`]);
   }
+  if (h1.some((h, k) => h.level !== h2[k]?.level)) return findings([], ['Heading levels changed']);
+  return NO_FINDINGS;
 }
 
-export function validateCodeBlocks(orig: string, comp: string, result: Findings): void {
+export function validateCodeBlocks(orig: string, comp: string): Findings {
   const c1 = extractCodeBlocks(orig);
   const c2 = extractCodeBlocks(comp);
-  if (c1.length !== c2.length || c1.some((c, k) => c !== c2[k])) addError(result, 'Code blocks not preserved exactly');
+  if (c1.length !== c2.length || c1.some((c, k) => c !== c2[k])) return findings(['Code blocks not preserved exactly']);
+  return NO_FINDINGS;
 }
 
-export function validateUrls(orig: string, comp: string, result: Findings): void {
+export function validateUrls(orig: string, comp: string): Findings {
   const u1 = extractUrls(orig);
   const u2 = extractUrls(comp);
-  if (!sameSet(u1, u2)) {
-    addError(result, `URL mismatch: lost=${pySetRepr(difference(u1, u2))}, added=${pySetRepr(difference(u2, u1))}`);
-  }
+  if (sameSet(u1, u2)) return NO_FINDINGS;
+  return findings([`URL mismatch: lost=${pySetRepr(difference(u1, u2))}, added=${pySetRepr(difference(u2, u1))}`]);
 }
 
-export function validatePaths(orig: string, comp: string, result: Findings): void {
+export function validatePaths(orig: string, comp: string): Findings {
   const p1 = extractPaths(orig);
   const p2 = extractPaths(comp);
   const lost = difference(p1, p2);
   const added = difference(p2, p1);
   const definite = new Set([...lost].filter((p) => DEFINITE_PATH_REGEX.test(p)));
-  if (definite.size > 0) addError(result, `File paths lost: ${pyListRepr(pySorted(definite))}`);
-  if (difference(lost, definite).size > 0 || added.size > 0) {
-    result.warnings.push(`Path mismatch: lost=${pyListRepr(pySorted(lost))}, added=${pyListRepr(pySorted(added))}`);
-  }
+  const errors = definite.size > 0 ? [`File paths lost: ${pyListRepr(pySorted(definite))}`] : [];
+  const ambiguous = difference(lost, definite).size > 0 || added.size > 0;
+  const warnings = ambiguous ? [`Path mismatch: lost=${pyListRepr(pySorted(lost))}, added=${pyListRepr(pySorted(added))}`] : [];
+  return findings(errors, warnings);
 }
 
-export function validateBullets(orig: string, comp: string, result: Findings): void {
+export function validateBullets(orig: string, comp: string): Findings {
   const b1 = countBullets(orig);
   const b2 = countBullets(comp);
-  if (b1 === 0) return;
-  if (Math.abs(b1 - b2) / b1 > 0.15) result.warnings.push(`Bullet count changed too much: ${b1} -> ${b2}`);
+  if (b1 === 0 || Math.abs(b1 - b2) / b1 <= 0.15) return NO_FINDINGS;
+  return findings([], [`Bullet count changed too much: ${b1} -> ${b2}`]);
 }
 
 function renderSpans(spans: Iterable<string>): string {
   const out = pySorted(spans).map((span) => {
-    let flat = span.replaceAll('\n', '\\n');
-    if (pyLen(flat) > MAX_REPORTED_SPAN) flat = `${Array.from(flat).slice(0, MAX_REPORTED_SPAN).join('')}…`;
-    return pyRepr(flat);
+    const flat = span.replaceAll('\n', '\\n');
+    return pyRepr(pyLen(flat) > MAX_REPORTED_SPAN ? `${Array.from(flat).slice(0, MAX_REPORTED_SPAN).join('')}…` : flat);
   });
   return `{${out.join(', ')}}`;
 }
@@ -271,23 +273,20 @@ function counter(values: readonly string[]): Map<string, number> {
   return counts;
 }
 
-export function validateInlineCodes(orig: string, comp: string, result: Findings): void {
+export function validateInlineCodes(orig: string, comp: string): Findings {
   const c1 = counter(extractInlineCodes(orig));
   const c2 = counter(extractInlineCodes(comp));
   const equal = c1.size === c2.size && [...c1].every(([k, v]) => c2.get(k) === v);
-  if (equal) return;
-  const lost = difference(new Set(c1.keys()), new Set(c2.keys()));
-  const added = difference(new Set(c2.keys()), new Set(c1.keys()));
-  for (const [code, count] of c1) {
+  if (equal) return NO_FINDINGS;
+  const partial = [...c1].flatMap(([code, count]) => {
     const other = c2.get(code);
-    if (other !== undefined && other < count) lost.add(`${code} (lost ${count - other} of ${count} occurrences)`);
-  }
-  if (lost.size > 0) addError(result, `Inline code lost: ${renderSpans(lost)}`);
-  if (added.size > 0) result.warnings.push(`Inline code added: ${renderSpans(added)}`);
-}
-
-function addError(result: Findings, message: string): void {
-  result.errors.push(message);
+    return other !== undefined && other < count ? [`${code} (lost ${count - other} of ${count} occurrences)`] : [];
+  });
+  const lost = new Set([...difference(new Set(c1.keys()), new Set(c2.keys())), ...partial]);
+  const added = difference(new Set(c2.keys()), new Set(c1.keys()));
+  const errors = lost.size > 0 ? [`Inline code lost: ${renderSpans(lost)}`] : [];
+  const warnings = added.size > 0 ? [`Inline code added: ${renderSpans(added)}`] : [];
+  return findings(errors, warnings);
 }
 
 /** Universal-newline normalisation, matching Python's read_text(). */
@@ -295,23 +294,20 @@ function normalizeNewlines(text: string): string {
   return text.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 }
 
-export function newFindings(): Findings {
-  return { errors: [], warnings: [] };
+export function toResult(result: Findings): ValidationResult {
+  return { isValid: result.errors.length === 0, errors: result.errors, warnings: result.warnings };
 }
 
-export function toResult(findings: Findings): ValidationResult {
-  return { isValid: findings.errors.length === 0, errors: findings.errors, warnings: findings.warnings };
-}
+const VALIDATORS: ReadonlyArray<(orig: string, comp: string) => Findings> = [validateHeadings, validateCodeBlocks, validateUrls, validatePaths, validateBullets, validateInlineCodes];
 
 export function validate(original: string, compressed: string): ValidationResult {
-  const result = newFindings();
   const orig = normalizeNewlines(original);
   const comp = normalizeNewlines(compressed);
-  validateHeadings(orig, comp, result);
-  validateCodeBlocks(orig, comp, result);
-  validateUrls(orig, comp, result);
-  validatePaths(orig, comp, result);
-  validateBullets(orig, comp, result);
-  validateInlineCodes(orig, comp, result);
-  return toResult(result);
+  const all = VALIDATORS.map((check) => check(orig, comp));
+  return toResult(
+    findings(
+      all.flatMap((f) => f.errors),
+      all.flatMap((f) => f.warnings),
+    ),
+  );
 }

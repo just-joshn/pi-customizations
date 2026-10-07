@@ -91,6 +91,7 @@ function isJsonContent(text: string): boolean {
     JSON.parse(text);
     return true;
   } catch {
+    // A parse failure is the expected answer for non-JSON text.
     return false;
   }
 }
@@ -112,6 +113,7 @@ function readTextLossy(path: string): string | undefined {
   try {
     return new TextDecoder('utf-8', { ignoreBOM: true }).decode(readFileSync(path)).replaceAll('\ufffd', '');
   } catch {
+    // Unreadable files classify as `unknown`, matching upstream.
     return undefined;
   }
 }
@@ -148,6 +150,7 @@ export function shouldCompress(path: string): boolean {
   try {
     if (!statSync(path).isFile()) return false;
   } catch {
+    // A missing or unstattable path is never compressible.
     return false;
   }
   if (basename(path).endsWith('.original.md')) return false;

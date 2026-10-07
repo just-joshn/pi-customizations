@@ -4,6 +4,10 @@ import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import type { Static } from 'typebox';
+import { Check } from 'typebox/value';
+import { CrewMessageEnd, TextPart } from './schemas.ts';
+
 export const CREW = ['investigator', 'builder', 'reviewer'] as const;
 export type CrewRole = (typeof CREW)[number];
 
@@ -58,7 +62,7 @@ export function crewArgs(args: { role: CrewRole; model: string | null; promptFil
   return argv;
 }
 
-function piInvocation(args: string[]): { command: string; args: string[] } {
+export function piInvocation(args: string[]): { command: string; args: string[] } {
   const script = process.argv[1];
   if (script && !script.startsWith('/$bunfs/') && existsSync(script)) return { command: process.execPath, args: [script, ...args] };
   return /^(node|bun)(\.exe)?$/i.test(basename(process.execPath)) ? { command: 'pi', args } : { command: process.execPath, args };
@@ -66,24 +70,7 @@ function piInvocation(args: string[]): { command: string; args: string[] } {
 
 const emptyUsage = (): CrewUsage => ({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } });
 
-function num(value: unknown): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
-}
-
-function get(value: unknown, key: string): unknown {
-  if (typeof value !== 'object' || value === null) return undefined;
-  const found: unknown = Reflect.get(value, key);
-  return found;
-}
-
-function assistantText(message: unknown): string {
-  const content = get(message, 'content');
-  if (!Array.isArray(content)) return '';
-  return content
-    .filter((part: unknown) => get(part, 'type') === 'text')
-    .map((part: unknown) => String(get(part, 'text') ?? ''))
-    .join('');
-}
+type CrewUsageInput = NonNullable<Static<typeof CrewMessageEnd>['message']['usage']>;
 
 export interface CrewProgress {
   readonly usage: CrewUsage;
@@ -91,35 +78,42 @@ export interface CrewProgress {
   readonly output: string;
 }
 
-function addUsage(total: CrewUsage, usage: unknown): CrewUsage {
-  const cost = get(usage, 'cost');
+function assistantText(content: readonly unknown[] | undefined): string {
+  return (content ?? []).flatMap((part) => (Check(TextPart, part) ? [part.text] : [])).join('');
+}
+
+function addUsage(total: CrewUsage, usage: CrewUsageInput | undefined): CrewUsage {
+  const cost = usage?.cost;
   return {
-    input: total.input + num(get(usage, 'input')),
-    output: total.output + num(get(usage, 'output')),
-    cacheRead: total.cacheRead + num(get(usage, 'cacheRead')),
-    cacheWrite: total.cacheWrite + num(get(usage, 'cacheWrite')),
-    totalTokens: total.totalTokens + num(get(usage, 'totalTokens')),
+    input: total.input + (usage?.input ?? 0),
+    output: total.output + (usage?.output ?? 0),
+    cacheRead: total.cacheRead + (usage?.cacheRead ?? 0),
+    cacheWrite: total.cacheWrite + (usage?.cacheWrite ?? 0),
+    totalTokens: total.totalTokens + (usage?.totalTokens ?? 0),
     cost: {
-      input: total.cost.input + num(get(cost, 'input')),
-      output: total.cost.output + num(get(cost, 'output')),
-      cacheRead: total.cost.cacheRead + num(get(cost, 'cacheRead')),
-      cacheWrite: total.cost.cacheWrite + num(get(cost, 'cacheWrite')),
-      total: total.cost.total + num(get(cost, 'total')),
+      input: total.cost.input + (cost?.input ?? 0),
+      output: total.cost.output + (cost?.output ?? 0),
+      cacheRead: total.cost.cacheRead + (cost?.cacheRead ?? 0),
+      cacheWrite: total.cost.cacheWrite + (cost?.cacheWrite ?? 0),
+      total: total.cost.total + (cost?.total ?? 0),
     },
   };
 }
 
-export function accumulate(run: CrewProgress, line: string): CrewProgress {
-  let event: unknown;
+function parseLine(line: string): unknown {
   try {
-    event = JSON.parse(line);
+    return JSON.parse(line);
   } catch {
-    return run;
+    // Non-JSON stdout from the child carries no assistant message.
+    return null;
   }
-  const message = get(event, 'message');
-  if (get(event, 'type') !== 'message_end' || get(message, 'role') !== 'assistant') return run;
-  const text = assistantText(message);
-  return { usage: addUsage(run.usage, get(message, 'usage')), turns: run.turns + 1, output: text || run.output };
+}
+
+export function accumulate(run: CrewProgress, line: string): CrewProgress {
+  const event = parseLine(line);
+  if (!Check(CrewMessageEnd, event)) return run;
+  const text = assistantText(event.message.content);
+  return { usage: addUsage(run.usage, event.message.usage), turns: run.turns + 1, output: text || run.output };
 }
 
 function killTree(child: ChildProcess, signal: NodeJS.Signals): void {
@@ -127,11 +121,12 @@ function killTree(child: ChildProcess, signal: NodeJS.Signals): void {
     if (child.pid !== undefined && process.platform !== 'win32') process.kill(-child.pid, signal);
     else child.kill(signal);
   } catch {
+    // The process group is already gone or unsupported; fall back to the direct child.
     child.kill(signal);
   }
 }
 
-function collect(args: { command: string; argv: string[]; cwd: string; signal: AbortSignal | undefined }): Promise<{ exitCode: number; run: CrewProgress; stderr: string }> {
+export function collect(args: { command: string; argv: string[]; cwd: string; signal: AbortSignal | undefined }): Promise<{ exitCode: number; run: CrewProgress; stderr: string }> {
   return new Promise((resolve, reject) => {
     const child = spawn(args.command, args.argv, {
       cwd: args.cwd,
@@ -163,7 +158,7 @@ function collect(args: { command: string; argv: string[]; cwd: string; signal: A
     child.on('close', (code) => {
       args.signal?.removeEventListener('abort', abort);
       clearTimeout(killTimer);
-      resolve({ exitCode: code ?? 0, run: buffer.trim() ? accumulate(run, buffer) : run, stderr });
+      resolve({ exitCode: code ?? 1, run: buffer.trim() ? accumulate(run, buffer) : run, stderr });
     });
   });
 }

@@ -3,6 +3,7 @@ import { registerCavecrew } from './cavecrew-tool.ts';
 import { registerHelp, registerModeCommands, registerStats } from './commands.ts';
 import { registerCompress } from './compress-tool.ts';
 import { registerModeTracking } from './controller.ts';
+import { registerRenderers } from './renderers.ts';
 
 export default function caveman(pi: ExtensionAPI): void {
   const controller = registerModeTracking(pi);
@@ -11,4 +12,5 @@ export default function caveman(pi: ExtensionAPI): void {
   registerStats(pi, controller);
   registerCavecrew(pi);
   registerCompress(pi);
+  registerRenderers(pi);
 }

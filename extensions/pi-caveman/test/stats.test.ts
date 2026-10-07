@@ -20,7 +20,11 @@ afterEach(() => {
 });
 
 describe('sessionUsage', () => {
-  test('sums assistant usage and ignores other entries', () => {
+  test('ignores entries that are not assistant messages', () => {
+    expect(sessionUsage([{ type: 'message', message: { role: 'user' } }, { type: 'custom' }, null, 'x']).turns).toBe(0);
+  });
+
+  test('sums assistant usage', () => {
     const usage = sessionUsage([assistant(1, 10, 3), { type: 'message', message: { role: 'user' } }, assistant(2, 5, 0), { type: 'custom' }]);
     expect(usage).toStrictEqual({
       output: { value: 15, availability: 'complete' },
@@ -76,7 +80,7 @@ describe('formatting', () => {
     );
   });
 
-  test('share line counts turns and output tokens', () => {
+  test('share line counts turns with output tokens', () => {
     expect(formatShare(sessionUsage([assistant(1, 42, 0)]))).toBe('🪨 1 turn, 42 output tokens this session; savings unknown — caveman.sh');
   });
 
