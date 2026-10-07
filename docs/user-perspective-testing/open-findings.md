@@ -267,7 +267,7 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 
 **Status.** fixed
 
-**Closure evidence.** `f1a63b3` adds `scenarios/pstack-skin-interaction.mjs`, reusing the existing isolated tmux probe with real Pi and both packages explicitly loaded. A deterministic local provider calls the real TodoWrite tool. The drive observes pstack's in-progress widget alongside exactly one skin header and the skin model footer. The widget survives resize and reload without duplication, and Pi exits 0. The control invocation with `--without-pstack` fails the widget assertion. Plain and ANSI frames for startup, tool completion, resize, reload, and exit, plus the result JSON and control failure log, are under `artifacts/user-perspective/pstack-skin-interaction/`. No model service or external network was used.
+**Closure evidence.** `f1a63b3` adds `scripts/probe-pstack-skin-interaction.mjs`, reusing the existing isolated tmux probe with real Pi and both packages explicitly loaded. A deterministic local provider calls the real TodoWrite tool. The drive observes pstack's in-progress widget alongside exactly one skin header and the skin model footer. The widget survives resize and reload without duplication, and Pi exits 0. The control invocation with `--without-pstack` fails the widget assertion. Plain and ANSI frames for startup, tool completion, resize, reload, and exit, plus the result JSON and control failure log, are under `artifacts/user-perspective/pstack-skin-interaction/`. No model service or external network was used.
 
 **Found by** the close-out audit against the requirement that coverage include cross-extension interaction.
 
@@ -277,4 +277,4 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 
 **How to rerun it.** `.pi/skills/verify-pi-customizations/scripts/probe-cross-extension.mjs` loads both pairs and writes `artifacts/baseline/cross-extension.txt`. Its output: the three subscription providers expose 31 models together without conflict, and pi-pstack with pi-tui-skin yields 150 commands with all ten of pstack's extension commands intact.
 
-**Rerun the terminal drive.** `node .pi/skills/verify-pi-customizations/scenarios/pstack-skin-interaction.mjs`. Add `--without-pstack` to reproduce the failing control.
+**Rerun the terminal drive.** `node .pi/skills/verify-pi-customizations/scripts/probe-pstack-skin-interaction.mjs`. Add `--without-pstack` to reproduce the failing control.

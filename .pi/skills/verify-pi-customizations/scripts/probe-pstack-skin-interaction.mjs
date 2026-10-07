@@ -4,7 +4,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { PROVIDER_SOURCE } from '../../../../extensions/pi-tui-skin/scripts/lib/scripted-provider.mjs';
-import { cleanupProbes, makeLayout, saveCapture, startProbe, waitForCapture } from './lib/tui-probe.mjs';
+import { cleanupProbes, makeLayout, saveCapture, startProbe, waitForCapture } from '../scenarios/lib/tui-probe.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const control = process.argv.includes('--without-pstack');
