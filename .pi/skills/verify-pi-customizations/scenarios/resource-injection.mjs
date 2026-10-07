@@ -108,12 +108,17 @@ async function driveSkill(context, state, session, commands, row) {
   }
 
   const transport = compareSkillInjection({ userTexts: texts, name, location, body, args: sentinel });
+  // `/skill:poteto-mode` is intercepted by registerNativeInput: it toggles sticky mode on and then
+  // injects the block. The row only claims the injection, so the toggle is recorded alongside it.
+  const toggledOn = row.surface_id === 'PS-SKILL-24' && session.entries.some((entry) => entry.type === 'custom' && entry.customType === 'pstack-state' && entry.data?.enabled === true);
+  if (row.surface_id === 'PS-SKILL-24' && !toggledOn) transport.diff = `${transport.diff ? `${transport.diff}; ` : ''}no pstack-state entry with enabled true was appended`;
+  if (row.surface_id === 'PS-SKILL-24') transport.ok = transport.ok && toggledOn;
   if (body.length === 0) {
     transport.ok = false;
     transport.diff = `${location} stripped to an empty body`;
   }
   writeResourceReceipt(context, row, {
-    observed: `injected block name=${name} location=${location} body=${body.length} bytes sentinel=${sentinel}; recorded ${texts.length} new user message(s) in ${records.length} model call(s)`,
+    observed: `injected block name=${name} location=${location} body=${body.length} bytes sentinel=${sentinel}; recorded ${texts.length} new user message(s) in ${records.length} model call(s)${row.surface_id === 'PS-SKILL-24' ? `; sticky mode toggled on: ${toggledOn}` : ''}`,
     evidence: state.evidence,
     transport,
   });
