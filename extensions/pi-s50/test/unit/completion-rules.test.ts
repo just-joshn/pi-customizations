@@ -101,3 +101,13 @@ describe('reserved decision ids', () => {
     });
   });
 });
+
+describe('loaded state is re-derived', () => {
+  test.fails('a stored PR_READY run that no longer qualifies goes back to REVERIFY_STALE', async () => {
+    const { reconcile } = await import('../../src/orchestrator/coordinator.ts');
+    const ready = expectOk(apply(satisfied(), { kind: 'advance', to: 'PR_READY' }, fixedClock()));
+    const loaded = { ...ready, evidence: ready.evidence.filter((record) => record.claim !== 'review') };
+    const { state } = reconcile(loaded, fixedClock());
+    expect([state.run.phase, state.run.status.kind, state.run.blockers]).toEqual(['REVERIFY_STALE', 'active', ['no review at r1']]);
+  });
+});
