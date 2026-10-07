@@ -177,7 +177,9 @@ No drive exercises those effects. What the drives observed is registration and d
 
 ## F-018: disabling a subagent does not take effect in the current session
 
-**Status.** open
+**Status.** fixed
+
+**Closure evidence.** The failing test and real-Pi reproduction land first in `057b2de`. After saving and adopting any subagent preference, `subagent-commands.ts` now invalidates the factory's offered-agent cache. All 20 command tests pass. The real-Pi drive `scenarios/pstack-subagents-disable.mjs` primes the cache, disables rubber-duck, and gets the disabled-agent warning immediately in the same session. Failing and passing outputs are under `artifacts/user-perspective/f018-settings/`; the raw RPC capture and new behavioural receipt are under `artifacts/user-perspective/pstack-subagents-disable/`.
 
 **Found by** the same unit while driving `PS-CMD-9`.
 

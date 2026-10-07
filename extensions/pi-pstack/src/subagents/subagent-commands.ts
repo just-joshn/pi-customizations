@@ -49,6 +49,7 @@ async function subagents(parts: Parts, args: string, ctx: ExtensionCommandContex
     const file = join(getAgentDir(), 'settings.json');
     try {
       parts.settings.adopt(await withFileMutationQueue(file, async () => persistPreference(file, parsed)));
+      parts.factory.invalidateToolConfig();
       ctx.ui.notify('Saved. The change applies to the next subagent.', 'info');
     } catch (error) {
       ctx.ui.notify(`Could not save the preference: ${error instanceof Error ? error.message : String(error)}`, 'error');
