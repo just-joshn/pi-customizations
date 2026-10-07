@@ -25,7 +25,7 @@ export interface Harness {
   readonly record: (entry: unknown) => void;
 }
 
-export function harness(cwd: string = process.cwd()): Harness {
+export function harness(cwd: string = process.cwd(), { hasUI = true }: { readonly hasUI?: boolean } = {}): Harness {
   const handlers = new Map<string, Handler[]>();
   const commands = new Map<string, Command>();
   const tools = new Map<string, ToolDefinition>();
@@ -46,6 +46,7 @@ export function harness(cwd: string = process.cwd()): Harness {
   };
   const ctx = {
     cwd,
+    hasUI,
     ui: { setStatus: (_key: string, text: string | undefined) => statuses.push(text), notify: (text: string) => notices.push(text), theme: { fg: (_c: string, text: string) => text } },
     sessionManager: { getBranch: () => entries, getSessionId: () => 'sid', getSessionFile: () => undefined },
   };

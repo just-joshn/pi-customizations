@@ -124,3 +124,36 @@ describe('/caveman-stats', () => {
     expect(h.notices.at(-1)).toBe('caveman-stats: --since takes Nh or Nd (e.g. 7d, 24h), got: 3w');
   });
 });
+
+describe('without a UI (print and JSON modes)', () => {
+  const headless = () => {
+    const stderr = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
+    const h = harness(agentDir, { hasUI: false });
+    h.emit('session_start', { reason: 'startup' });
+    return { h, written: () => stderr.mock.calls.map(([chunk]) => String(chunk)).join('') };
+  };
+
+  test('/caveman status prints the mode on stderr', async () => {
+    const { h, written } = headless();
+    await h.command('caveman', 'status');
+    expect(written()).toBe('Caveman mode: caveman\n');
+  });
+
+  test('a mode switch prints its confirmation on stderr', async () => {
+    const { h, written } = headless();
+    await h.command('megacave');
+    expect(written()).toBe('Caveman mode: megacave\n');
+  });
+
+  test('/caveman-help prints the card on stderr', async () => {
+    const { h, written } = headless();
+    await h.command('caveman-help');
+    expect(written().split('\n')[0]).toBe('# Caveman Help');
+  });
+
+  test('/caveman-stats prints the report on stderr', async () => {
+    const { h, written } = headless();
+    await h.command('caveman-stats');
+    expect(written()).toContain('No conversation yet — stats available after first response.');
+  });
+});

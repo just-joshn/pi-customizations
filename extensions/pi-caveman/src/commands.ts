@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { type ExtensionAPI, getAgentDir } from '@earendil-works/pi-coding-agent';
 import type { ModeController } from './controller.ts';
 import { PROSE_MODES } from './modes.ts';
+import { notify, show } from './report.ts';
 import { SKILLS_DIR } from './ruleset.ts';
 import { transitionsFromEntries } from './state.ts';
 import { aggregateHistory, appendHistory, attributeByMode, findCompressedPairs, formatHistory, formatShare, formatStats, parseDuration, sessionUsage } from './stats.ts';
@@ -29,15 +30,15 @@ export function registerModeCommands(pi: ExtensionAPI, controller: ModeControlle
         const before = controller.active();
         const note = controller.handlePrompt(`/${command.name}${args.trim() ? ` ${args.trim()}` : ''}`, ctx);
         if (note?.kind === 'status') {
-          ctx.ui.notify(note.report, 'info');
+          notify(ctx, note.report, 'info');
           return;
         }
         if (note) {
-          ctx.ui.notify(note.text.replace(/^Tell the user /, ''), 'warning');
+          notify(ctx, note.text.replace(/^Tell the user /, ''), 'warning');
           return;
         }
         const after = controller.active();
-        ctx.ui.notify(`Caveman mode: ${after ?? 'off'}${after === before ? ' (unchanged)' : ''}`, 'info');
+        notify(ctx, `Caveman mode: ${after ?? 'off'}${after === before ? ' (unchanged)' : ''}`, 'info');
       },
     });
   }
@@ -46,9 +47,9 @@ export function registerModeCommands(pi: ExtensionAPI, controller: ModeControlle
 export function registerHelp(pi: ExtensionAPI): void {
   pi.registerCommand('caveman-help', {
     description: 'Caveman quick-reference card: modes, commands, triggers',
-    handler: async () => {
+    handler: async (_args, ctx) => {
       const card = readFileSync(join(SKILLS_DIR, 'caveman-help', 'SKILL.md'), 'utf8').replace(/^---[\s\S]*?---\s*/, '');
-      await pi.sendMessage({ customType: 'caveman-help', content: card.trim(), display: true });
+      await show(pi, ctx, 'caveman-help', card.trim());
     },
   });
 }
@@ -70,10 +71,10 @@ export function registerStats(pi: ExtensionAPI, controller: ModeController): voi
       if (tail.includes('--all') || since !== null) {
         const report = historyReport(historyPath, since);
         if (report === null) {
-          ctx.ui.notify(`caveman-stats: --since takes Nh or Nd (e.g. 7d, 24h), got: ${since}`, 'error');
+          notify(ctx, `caveman-stats: --since takes Nh or Nd (e.g. 7d, 24h), got: ${since}`, 'error');
           return;
         }
-        await pi.sendMessage({ customType: 'caveman-stats', content: `\`\`\`\n${report.trim()}\n\`\`\``, display: true });
+        await show(pi, ctx, 'caveman-stats', `\`\`\`\n${report.trim()}\n\`\`\``);
         return;
       }
       const branch = ctx.sessionManager.getBranch();
@@ -97,7 +98,7 @@ export function registerStats(pi: ExtensionAPI, controller: ModeController): voi
         });
       }
       const report = tail.includes('--share') ? formatShare(usage) : formatStats({ usage, mode, sessionPath: ctx.sessionManager.getSessionFile() ?? null, compressed: findCompressedPairs([getAgentDir(), ctx.cwd]), attribution });
-      await pi.sendMessage({ customType: 'caveman-stats', content: `\`\`\`\n${report.trim()}\n\`\`\``, display: true });
+      await show(pi, ctx, 'caveman-stats', `\`\`\`\n${report.trim()}\n\`\`\``);
     },
   });
 }

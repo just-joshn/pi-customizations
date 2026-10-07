@@ -75,7 +75,8 @@
           "test/commands.test.ts::/ultracave switches the injected ruleset",
           "scripts/rpc-smoke.mjs::switched ruleset reaches the model",
           "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn",
-          "scripts/response-contract.mjs::keeps its payload"
+          "scripts/response-contract.mjs::keeps its payload",
+          "test/commands.test.ts::a mode switch prints its confirmation on stderr"
         ],
         "oracle": "Literal badge and system-prompt section; live model run. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["/ultracave", "live model keeps commands, paths, error text, code, numbers with units, negations, and quoted German text verbatim"],
@@ -135,7 +136,7 @@
       "behavior": {
         "preconditions": [],
         "inputs": [],
-        "observableOutputs": ["current mode reported"],
+        "observableOutputs": ["current mode reported", "without a UI (print, JSON) the report goes to stderr, keeping stdout for the reply or event stream"],
         "sideEffects": ["none: no entry written, mode unchanged"],
         "persistence": [],
         "failureBehavior": [],
@@ -152,7 +153,9 @@
           "test/commands.test.ts::/caveman status reports the mode",
           "test/state.test.ts::status reports without changing state",
           "scripts/rpc-smoke.mjs::/caveman status reports the mode",
-          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn",
+          "test/commands.test.ts::/caveman status prints the mode on stderr",
+          "scripts/e2e-real.mjs::print-mode /caveman status reports the mode without a model call"
         ],
         "oracle": "Entry count unchanged and literal report. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["status while caveman"],
@@ -641,7 +644,7 @@
       "behavior": {
         "preconditions": [],
         "inputs": [],
-        "observableOutputs": ["output and cache-read tokens per mode", "Savings: unknown without a measured comparison"],
+        "observableOutputs": ["output and cache-read tokens per mode", "Savings: unknown without a measured comparison", "without a UI (print, JSON) the report goes to stderr, keeping stdout for the reply or event stream"],
         "sideEffects": [],
         "persistence": ["~/.pi/agent/caveman/history.jsonl"],
         "failureBehavior": [],
@@ -657,7 +660,8 @@
           "test/stats.test.ts::splits output at each mode transition",
           "test/stats.test.ts::counts only pairs where the original is larger",
           "test/commands.test.ts::a malformed --since is rejected",
-          "scripts/rpc-smoke.mjs::/caveman-stats reports turns and per-mode attribution"
+          "scripts/rpc-smoke.mjs::/caveman-stats reports turns and per-mode attribution",
+          "test/commands.test.ts::/caveman-stats prints the report on stderr"
         ],
         "oracle": "Literal stats output from fixture sessions; live run reports 'Savings: unknown'.",
         "positiveCases": ["--all"],
@@ -679,7 +683,7 @@
       "behavior": {
         "preconditions": [],
         "inputs": [],
-        "observableOutputs": ["help card"],
+        "observableOutputs": ["help card", "without a UI (print, JSON) the report goes to stderr, keeping stdout for the reply or event stream"],
         "sideEffects": [],
         "persistence": [],
         "failureBehavior": [],
@@ -691,7 +695,7 @@
         "rationale": "Deterministic card display."
       },
       "verification": {
-        "tests": ["test/commands.test.ts::posts the help card without frontmatter"],
+        "tests": ["test/commands.test.ts::posts the help card without frontmatter", "test/commands.test.ts::/caveman-help prints the card on stderr", "scripts/e2e-real.mjs::print-mode /caveman-help prints the card without a model call"],
         "oracle": "Card equals skill body.",
         "positiveCases": ["/caveman-help"],
         "negativeCases": [],

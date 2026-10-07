@@ -207,6 +207,11 @@ try {
   check(/Run smallest sufficient proof/.test(system(first)), 'native Core from caveman native-hook rides the system prompt');
   check(notices(run) === 0, 'an open gate gives no direct-mode notice', run.stderr);
 
+  const headlessStatus = await runPi('/caveman status');
+  check(headlessStatus.code === 0 && headlessStatus.stderr.includes('Caveman mode: caveman') && fresh().length === 0, 'print-mode /caveman status reports the mode without a model call', headlessStatus.stderr);
+  const headlessHelp = await runPi('/caveman-help');
+  check(headlessHelp.stderr.includes('# Caveman Help') && fresh().length === 0, 'print-mode /caveman-help prints the card without a model call', headlessHelp.stderr.slice(0, 200));
+
   const classified = {
     'surgical-patch': 'fix the crash in parser.ts',
     'investigate-first': 'investigate why the cache misses',
