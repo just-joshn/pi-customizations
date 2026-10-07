@@ -190,3 +190,15 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 **Found by** `PS-EVT-30` and `PS-EVT-31`. Pi rejects a call to a deactivated tool with `Tool <name> not found` before any `tool_call` hook runs, so the policy guard for that case cannot execute. An agent with a named tool list never receives the other tools, and a child whose parent lacks `write` and `edit` has them dropped from its plan, so the second guard is unreachable for the same reason.
 
 **Why it matters.** Unreachable guards read as protection and provide none, and they cost a reader time. Either they should be deleted, or the comment should say which host behaviour makes them dead. The verification consequence is recorded in the receipt as `not-drivable` rather than `verified`, because the row cannot be exercised.
+
+---
+
+## F-024: two packages were never driven together in a real terminal
+
+**Found by** the close-out audit against the requirement that coverage include cross-extension interaction.
+
+**What was checked.** Two pairs, both in RPC mode. All three subscription providers were loaded into one session with `-e` for each, and they register without conflict, exposing 31 models: 16 for `claude-subscription`, 7 for `google-antigravity`, 8 for `grok-build`. `pi-pstack` and `pi-tui-skin` were loaded together and pi-pstack's ten extension commands are all present, so no collision.
+
+**What was not.** The skinned render, where tui-skin's header, footer and chrome are drawn around pi-pstack's widgets in a real terminal, is the interaction a user would actually notice, and no scenario exercises it. It needs the tmux harness starting two packages at once, which none does. Every terminal drive loads one package plus its fixture, and every RPC drive loads one package plus its fixture.
+
+**Why it is parked.** It is a harness capability rather than a package defect, and building it is a unit of its own rather than a late addition to this run.
