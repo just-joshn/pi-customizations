@@ -318,7 +318,7 @@ side effect. Presentation only: all handlers are read-only and install only in T
 | TS-RENDER-6 | ui-widget | tool renderer for `grep` | Any grep call | Custom match rows | extensions/pi-tui-skin/src/tools/register-tool-renderers.ts:14,22 | |
 | TS-RENDER-7 | ui-widget | tool renderer for `find` | Any find call | Custom path rows | extensions/pi-tui-skin/src/tools/register-tool-renderers.ts:15,22 | |
 | TS-RENDER-8 | ui-widget | tool renderer for `ls` | Any ls call | Custom listing rows | extensions/pi-tui-skin/src/tools/register-tool-renderers.ts:16,22 | |
-| TS-EVT-1 | event-hook | `session_start` | TUI session start | Installs theme, header, footer, editor, working indicator, activity widget, title | extensions/pi-tui-skin/src/lifecycle/register-lifecycle.ts:13 | No-op outside `mode === 'tui'` |
+| TS-EVT-1 | event-hook | `session_start` | TUI session start | Installs theme, header, footer, editor, working indicator, activity widget | extensions/pi-tui-skin/src/lifecycle/register-lifecycle.ts:13 | No-op outside `mode === 'tui'`; the title is TS-UI-1 |
 | TS-EVT-2 | event-hook | `session_shutdown` | Session end | Uninstalls every surface idempotently | extensions/pi-tui-skin/src/lifecycle/register-lifecycle.ts:17 | Aggregates cleanup failures |
 | TS-EVT-3 | event-hook | `agent_start` | Turn starts | Marks agent running for the activity widget | extensions/pi-tui-skin/src/lifecycle/register-lifecycle.ts:21 | |
 | TS-EVT-4 | event-hook | `agent_settled` | Agent settles | Marks idle | extensions/pi-tui-skin/src/lifecycle/register-lifecycle.ts:25 | |

@@ -65,3 +65,24 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 **Found by** the OAuth unit. `session_shutdown` and `session_start` register the same reset closure at `extensions/pi-anthropic-oauth/src/guard.ts:169` and `:197-198`. Pi fires them back to back with no guard-observable request between them, so deleting either handler leaves every observation unchanged. The row's receipt is `inconclusive`, which is the correct verdict for a surface this harness cannot distinguish.
 
 **What would settle it.** A guard-observable effect that can only happen between the two events, or a direct inspection of which handler is registered for which event.
+
+---
+
+## F-014: composite rows whose evidence is narrower than the row
+
+**Found by** the pi-tui-skin unit auditing its own work, and disclosed rather than left silent. Several rows in the inventory bundle clauses that behave independently. The drive asserts some of them and says so. The row therefore reads wider than its receipt, and a reader taking the row's text at face value would over-trust it.
+
+| Row | Row claims | Receipt asserts | Not asserted |
+| --- | --- | --- | --- |
+| `TS-EVT-2` | Uninstalls every surface idempotently | `/reload` leaves one header, quit exits cleanly, no cleanup error | Each surface's individual uninstall, and more than one reload cycle |
+| `TS-EVT-3` | Marks agent running for the activity widget | The running band and the interrupt hint | The activity widget line itself, which is `TS-UI-6` |
+| `TS-EVT-7` | Repaints the footer on `model_select` and `thinking_level_select` | Shift+Tab thinking level | Model selection |
+| `TS-UI-3` | Footer thinking-level row, model + context percentage row, location row | Model row by exact equality at zero usage, location row, thinking-level row | The context percentage, which is omitted at zero usage |
+| `TS-UI-4` | Custom prompt editor with a working-animation band | The band | The animation, which is `TS-UI-5` |
+| `TS-UI-5` | Animated glyph frames and the label "Working" | Both | Nothing |
+
+`TS-EVT-1` was on this list and is resolved rather than parked: it duplicated the title clause that `TS-UI-1` owns, which is a subtraction, and the row now states the six surfaces it installs.
+
+**Why it is parked rather than fixed.** Each of these rows needs either a stricter check or a split, and splitting them all is an inventory change that should be decided with the whole table in view rather than patched one row at a time. The rule the table already states is that a row whose veto cannot be written in one line is not a testable unit and must be split. These six are the rows that predate that rule being enforced.
+
+**What to do about it.** Read a `verified` verdict for one of these rows as evidence for the clauses in the middle column, not for the whole of the left column. The receipts carry the `observed` value, so the boundary is visible from the artifact.
