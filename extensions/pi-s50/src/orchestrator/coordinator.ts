@@ -639,7 +639,19 @@ export function apply(state: RunState, command: Command, clock: Clock): Outcome 
   }
 }
 
-export type RepoFacts = { readonly issueTrackerDoc: boolean };
+export type RepoFacts = {
+  readonly issueTrackerDoc: boolean;
+  readonly dirty: boolean;
+  readonly packageManager: string;
+  readonly instructions: readonly string[];
+  readonly glossary: readonly string[];
+  readonly adrs: number;
+};
+
+function describeFacts(run: Run, facts: RepoFacts): string {
+  const list = (items: readonly string[]): string => (items.length === 0 ? 'none' : items.join(','));
+  return `preflight rev=${run.currentRevision} dirty=${facts.dirty} pm=${facts.packageManager} instructions=${list(facts.instructions)} glossary=${list(facts.glossary)} adrs=${facts.adrs} installed=${list(run.capabilities.installedSkills)} registry=${run.skillRegistry.snapshotTime}`;
+}
 
 export function preflight(state: RunState, facts: RepoFacts): Extract<Gate, { kind: 'user_workflow' | 'missing_skill' }> | null {
   const { run } = state;
@@ -655,9 +667,11 @@ export function preflight(state: RunState, facts: RepoFacts): Extract<Gate, { ki
 export function applyPreflight(state: RunState, facts: RepoFacts, clock: Clock): Outcome {
   if (state.run.phase !== 'PREFLIGHT') return reject(`preflight runs in PREFLIGHT, not ${state.run.phase}`);
   const gate = preflight(state, facts);
-  if (gate === null || same(state.run.status, { kind: 'blocked', gate })) return noop(state);
-  const next = withRun(state, { status: { kind: 'blocked', gate } });
-  return { kind: 'ok', state: next, decisions: [{ at: clock.now(), phase: 'PREFLIGHT', command: 'preflight', summary: `preflight blocked on ${gate.kind} gate` }] };
+  const risk = 'working tree dirty at preflight';
+  const risks = facts.dirty && !state.run.risks.includes(risk) ? [...state.run.risks, risk] : state.run.risks;
+  const status: RunStatus = gate === null ? state.run.status : { kind: 'blocked', gate };
+  const summary = gate === null ? describeFacts(state.run, facts) : `${describeFacts(state.run, facts)}; blocked on ${gate.kind} gate`;
+  return { kind: 'ok', state: withRun(state, { status, risks }), decisions: [{ at: clock.now(), phase: 'PREFLIGHT', command: 'preflight', summary }] };
 }
 
 function routeFacts(run: Run): Parameters<typeof routeSkills>[1] {

@@ -7,6 +7,8 @@ import { prReadyBlockers, requiredEvidence } from '../../src/policy/completion.t
 import { canModelInvoke, routeSkills } from '../../src/policy/invocation.ts';
 import { freshRun, measured, NO_CAPS, registry, satisfiedAt } from './support.ts';
 
+const CLEAN_REPO = { issueTrackerDoc: true, dirty: false, packageManager: 'bun', instructions: [], glossary: [], adrs: 0 };
+
 const CRITERION = 'csv export lists every invoice';
 
 describe('invocation policy', () => {
@@ -58,7 +60,7 @@ describe('user-only gate', () => {
   });
 
   test('external issue without tracker doc needs setup workflow', () => {
-    expect(preflight(freshRun({ mode: 'external_issue' }), { issueTrackerDoc: false })).toEqual({
+    expect(preflight(freshRun({ mode: 'external_issue' }), { ...CLEAN_REPO, issueTrackerDoc: false })).toEqual({
       kind: 'user_workflow',
       skill: 'setup-matt-pocock-skills',
       action: '/skill:setup-matt-pocock-skills',
@@ -66,7 +68,7 @@ describe('user-only gate', () => {
   });
 
   test('preflight reports the first missing model skill', () => {
-    expect(preflight(freshRun({ capabilities: NO_CAPS }), { issueTrackerDoc: true })).toEqual({
+    expect(preflight(freshRun({ capabilities: NO_CAPS }), CLEAN_REPO)).toEqual({
       kind: 'missing_skill',
       skill: 'grilling',
       install: 'npx skills add mattpocock/skills --skill grilling',

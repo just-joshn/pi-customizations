@@ -90,6 +90,23 @@ describe('CLI over .s50', () => {
     expect(started.stdout.split('\n').slice(0, 2)).toEqual(['objective: export invoices', 'phase: CLARIFY (active)']);
   });
 
+  test('start records preflight facts in decisions.jsonl', async () => {
+    const cwd = repo();
+    await runCli(REFRESH, context(cwd));
+    await runCli(START, context(cwd));
+    const first =
+      readFileSync(join(cwd, '.s50/decisions.jsonl'), 'utf8')
+        .split('\n')
+        .find((line) => line.includes('"preflight"')) ?? '';
+    expect(JSON.parse(first).summary).toMatch(/^preflight rev=[0-9a-f]{40} dirty=false pm=unknown instructions=none glossary=none adrs=0 installed=find-skills,/);
+  });
+
+  test('run data stays out of git through a self-ignoring .gitignore', async () => {
+    const cwd = repo();
+    await runCli(REFRESH, context(cwd));
+    expect(readFileSync(join(cwd, '.s50/.gitignore'), 'utf8')).toBe('*\n');
+  });
+
   test('refresh with a demoted skill keeps lock plus run snapshot', async () => {
     const cwd = repo();
     await runCli(REFRESH, context(cwd));

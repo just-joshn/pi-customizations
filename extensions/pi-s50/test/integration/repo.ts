@@ -25,8 +25,8 @@ export function tempRepo(): string {
   git(cwd, 'config', 'user.email', 's50@example.test');
   git(cwd, 'config', 'user.name', 's50 test');
   git(cwd, 'config', 'commit.gpgsign', 'false');
-  writeFileSync(join(cwd, '.gitignore'), '.s50/\n');
   for (const name of ['leaderboard.2026-10-07.json', 'skill-sources.2026-10-07.json', 'leaderboard.diagnosing-bugs-rank-51.json']) copyFileSync(fixturePath(name), join(cwd, name));
+  git(cwd, 'add', '-A');
   writeAndCommit(cwd, { 'src/export/csv.ts': 'export const csv = 1;\n', 'docs/readme.md': '# app\n' }, 'init');
   return cwd;
 }

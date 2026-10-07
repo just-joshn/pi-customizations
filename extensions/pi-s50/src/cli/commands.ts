@@ -1,7 +1,8 @@
-import { access, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { changedPaths, revision } from '../adapters/git.ts';
+import { repoFacts } from '../adapters/repo.ts';
 import type { RunState } from '../domain/run.ts';
 import { CONSUMER_KINDS, type Consumer, type HostCapabilities } from '../domain/run.ts';
 import type { Mode } from '../domain/state.ts';
@@ -45,15 +46,6 @@ function flags(args: readonly string[]): { readonly positional: readonly string[
     } else positional.push(arg);
   }
   return { positional, named };
-}
-
-async function exists(path: string): Promise<boolean> {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 async function readJson(path: string) {
@@ -106,10 +98,10 @@ async function start(context: CliContext, mode: Mode, args: readonly string[]): 
   const head = await revision(context.cwd);
   let state: RunState = startRun({ mode, objective, repository: context.cwd, revision: head, consumer, acceptanceCriteria: criteria, constraints: [], nonGoals: [], capabilities }, lock.value, context.clock);
   const decisions: DecisionLog[] = [];
-  const issueTrackerDoc = await exists(join(context.cwd, 'docs/agents/issue-tracker.md'));
+  const facts = await repoFacts(context.cwd);
   const steps: ((current: RunState) => Outcome)[] = [
     (current) => apply(current, { kind: 'advance', to: 'PREFLIGHT' }, context.clock),
-    (current) => applyPreflight(current, { issueTrackerDoc }, context.clock),
+    (current) => applyPreflight(current, facts, context.clock),
     (current) => apply(current, { kind: 'advance', to: 'CLASSIFY' }, context.clock),
     (current) => apply(current, { kind: 'advance', to: classify(mode) }, context.clock),
   ];

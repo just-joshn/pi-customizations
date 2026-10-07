@@ -11,6 +11,14 @@ import { decisionLog, evidenceRecord, finding, graph, run } from './schema.ts';
 
 export const S50_DIR = '.s50';
 
+// A self-ignoring .gitignore keeps run data local without editing the project's own ignore rules.
+async function ensureDir(dir: string): Promise<void> {
+  await mkdir(dir, { recursive: true });
+  await writeFile(join(dir, '.gitignore'), '*\n', { flag: 'wx' }).catch((error: unknown) => {
+    if (!(error instanceof Error && 'code' in error && error.code === 'EEXIST')) throw error;
+  });
+}
+
 export const FILES = {
   registry: 'registry.lock.json',
   run: 'run.json',
@@ -72,7 +80,7 @@ export async function loadState(dir: string): Promise<Loaded> {
 }
 
 export async function saveState(dir: string, before: RunState | null, after: RunState, decisions: readonly DecisionLog[]): Promise<void> {
-  await mkdir(dir, { recursive: true });
+  await ensureDir(dir);
   const known = new Set(before?.evidence.map((record) => record.id) ?? []);
   await appendJsonl(
     join(dir, FILES.evidence),
@@ -99,6 +107,6 @@ export async function readLock(dir: string): Promise<Decoded<RegistrySnapshot> |
 }
 
 export async function writeLock(dir: string, snapshot: RegistrySnapshot): Promise<void> {
-  await mkdir(dir, { recursive: true });
+  await ensureDir(dir);
   await writeJsonAtomic(join(dir, FILES.registry), snapshot);
 }
