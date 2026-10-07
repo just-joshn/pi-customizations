@@ -141,7 +141,6 @@ Do not use third-party Pi extension examples as API authority.
 | Main editor replacement | `ctx.ui.setEditorComponent()` |
 | Preserve editor/app keybindings | subclass `CustomEditor`; delegate unhandled input to `super.handleInput(data)` |
 | Embed working status in editor | `CustomEditor` with `{ embedWorkingStatus: true }` |
-| Terminal title | `ctx.ui.setTitle()` |
 | Theme selection | `ctx.ui.setTheme()` |
 | Persistent near-editor content | `ctx.ui.setWidget()` |
 | Working message | `ctx.ui.setWorkingMessage()` |
@@ -175,7 +174,6 @@ Pi explicitly says not to create a second terminal renderer inside an extension.
 - editor rendering,
 - editor borders,
 - editor placeholder text,
-- terminal title,
 - working-indicator appearance,
 - working-message text,
 - presentation-only activity widgets,
@@ -238,7 +236,7 @@ Those APIs are documented, but they change behavior or session data. This projec
 |---|---|---:|---|
 | macOS traffic-light buttons | none | Not possible | Leave to terminal/window manager. |
 | Rounded window frame | none | Not possible | Leave to terminal/window manager. |
-| Window/tab title `agent` | `ctx.ui.setTitle("agent")` | Exact within terminal support | Set title in TUI sessions. |
+| Window/tab title `agent` | none, Pi owns it | Not controllable | Do not call `ctx.ui.setTitle()`. Pi re-asserts its own title after the extension's `session_start` handler returns, so a call there never takes effect. |
 | Font family, font size, font smoothing | none | Not possible | Do not attempt to control terminal font. |
 | Near-black terminal canvas | theme plus terminal background | Approximate | Theme Pi-owned cells; document that blank terminal background remains terminal-owned. |
 
@@ -583,8 +581,6 @@ export function installUi(
   ctx: ExtensionContext,
   store: PresentationStore,
 ): void {
-  ctx.ui.setTitle("agent");
-
   const themeResult = ctx.ui.setTheme("tui-skin");
   // Handle a failed theme lookup as a presentation error only.
   // Do not stop Pi or alter agent behavior.
@@ -1312,9 +1308,8 @@ Implement in this order.
 2. Add TUI-mode guard.
 3. Implement header.
 4. Implement footer.
-5. Implement terminal title.
-6. Implement custom editor.
-7. Implement working indicator.
+5. Implement custom editor.
+6. Implement working indicator.
 
 Verify stock Pi behavior before adding tool renderers.
 

@@ -121,13 +121,15 @@ Unknown name "uniqueItems" at 'request.tools[0].function_declarations[32].parame
 
 ## F-015: the tui-skin spec still claims the skin sets the terminal title
 
-**Status.** open
+**Status.** fixed
 
 **Found by** the title fix, which reported it rather than editing outside its scope.
 
-`extensions/pi-tui-skin/docs/PI_TUI_SKIN_IMPLEMENTATION_SPEC.md` states in five places that the skin sets the terminal title: lines 144, 178, 241, 586 and 1315. The behaviour was removed in `30706da`, because Pi owns the title and re-asserts it after the extension's `session_start` handler runs, so the call never survived.
+`extensions/pi-tui-skin/docs/PI_TUI_SKIN_IMPLEMENTATION_SPEC.md` stated in five places that the skin sets the terminal title, at lines 144, 178, 241, 586 and 1315. The behaviour was removed in `30706da`, because Pi owns the title and re-asserts it after the extension's `session_start` handler runs, so the call never survived in a real terminal.
 
-**Why it is parked.** The code and the tests are corrected; the spec text is not, and a reader following the spec would reintroduce the dead call. Five edits in one document is a small task, but it is documentation scope that belongs with whoever owns the spec's shape rather than with the verification run.
+**Fixed.** All five claims are corrected. The mechanism table no longer lists `ctx.ui.setTitle()` as selected, the ownership list no longer claims the title, the visible-element table now reads that Pi owns the title and that a call there never takes effect, the sample `installUi` no longer calls it, and the phase plan no longer tells an implementer to build it.
+
+**Why this could not be left as documentation drift.** A reader following the spec would have reintroduced a call that is dead in production. Two tests already pin its absence, `test/index.test.ts:94` and `test/install-ui.test.ts:151`, so the correction cannot silently regress.
 
 ---
 
