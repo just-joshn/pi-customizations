@@ -1,5 +1,5 @@
-import { access } from 'node:fs/promises';
-import { join } from 'node:path';
+import { access, realpath } from 'node:fs/promises';
+import { join, resolve, sep } from 'node:path';
 
 import { type ExtensionAPI, type ExtensionContext, isToolCallEventType, truncateHead, withFileMutationQueue } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
@@ -7,7 +7,8 @@ import { hashInstalled } from './adapters/skills.ts';
 import { type CliResult, defaultContext, type Host, runCli, SUBCOMMANDS, USAGE } from './cli/commands.ts';
 import { isRecord, parseJson } from './orchestrator/decode.ts';
 import { S50_DIR } from './orchestrator/persistence.ts';
-import { gatedAction } from './policy/authorization.ts';
+import { gatedActions } from './policy/authorization.ts';
+import { commandsOf } from './policy/shell-words.ts';
 
 type Pi = Pick<ExtensionAPI, 'registerCommand' | 'registerTool' | 'getCommands' | 'getAllTools' | 'sendMessage' | 'on'>;
 
@@ -101,12 +102,13 @@ function bounded(stdout: string): string {
   return cut.truncated ? `${cut.content}\n[truncated ${cut.outputLines} of ${cut.totalLines} lines; run s50 explain or read .s50/ for the full record]\n` : stdout;
 }
 
-export function stateQueueKey(cwd: string): Promise<string> {
-  return Promise.resolve(join(cwd, S50_DIR));
+// Pi resolves the key with realpath only once it exists, so a symlinked cwd would queue under two keys around the first write.
+export async function stateQueueKey(cwd: string): Promise<string> {
+  return join(await realpath(cwd).catch(() => cwd), S50_DIR);
 }
 
 function run(pi: Pi, cwd: string, argv: readonly string[], signal: AbortSignal | undefined): Promise<CliResult> {
-  return withFileMutationQueue(join(cwd, S50_DIR), () => runCli(argv, defaultContext(cwd, signal, piHost(pi))));
+  return stateQueueKey(cwd).then((key) => withFileMutationQueue(key, () => runCli(argv, defaultContext(cwd, signal, piHost(pi)))));
 }
 
 async function hasRun(cwd: string): Promise<boolean> {
@@ -120,16 +122,40 @@ function kindOf({ kind }: Readonly<Record<string, unknown>>): unknown {
   return kind;
 }
 
-async function authorizeBash(pi: Pi, command: string, ctx: ExtensionContext): Promise<{ readonly block: true; readonly reason: string } | undefined> {
-  const action = gatedAction(command);
-  if (action === null || !(await hasRun(ctx.cwd))) return undefined;
-  if (!ctx.hasUI) return { block: true, reason: `S50 stops for ${action}: ask the user to authorize this exact command` };
-  if (!(await ctx.ui.confirm(`S50: authorize ${action}?`, command))) return { block: true, reason: `user declined ${action}` };
-  for (const step of ['request_authorization', 'grant_authorization']) {
-    const recorded = await run(pi, ctx.cwd, ['apply', JSON.stringify({ kind: step, action, scope: command })], ctx.signal);
-    const outcome = parseJson(recorded.stdout);
-    const applied = outcome.kind === 'ok' && isRecord(outcome.value) && kindOf(outcome.value) === 'ok';
-    if (!applied) return { block: true, reason: `S50 could not record the ${action} authorization: ${recorded.stdout.trim()}` };
+type Block = { readonly block: true; readonly reason: string };
+
+const S50_ONLY: Block = { block: true, reason: 'S50 state changes only through the s50 tool, which asks the user for their decisions; call the s50 tool instead' };
+
+const READ_ONLY = new Set(['cat', 'less', 'more', 'head', 'tail', 'ls', 'grep', 'rg', 'jq', 'wc', 'stat', 'diff', 'tree', 'bat', 'file', 'sha256sum', 'shasum', 'test', '[']);
+
+const STATE_PATH = /(^|[/=])\.s50(\/|$)/;
+
+// The tool's confirmation dialog is the only proof a user made a decision, so the model may not reach the CLI or .s50 any other way.
+function bypassesTool(command: string): boolean {
+  return commandsOf(command).some(
+    ({ words, redirects }) =>
+      words[0] === 's50' || words.some((word) => /(^|\/)cli\/main\.ts$/.test(word)) || redirects.some((target) => STATE_PATH.test(target)) || (!READ_ONLY.has(words[0] ?? '') && words.some((word) => STATE_PATH.test(word))),
+  );
+}
+
+function insideState(cwd: string, path: string): boolean {
+  return resolve(cwd, path).split(sep).includes(S50_DIR);
+}
+
+async function authorizeBash(pi: Pi, command: string, ctx: ExtensionContext): Promise<Block | undefined> {
+  if (bypassesTool(command)) return S50_ONLY;
+  const actions = gatedActions(command, ctx.cwd);
+  if (actions.length === 0 || !(await hasRun(ctx.cwd))) return undefined;
+  const label = actions.join(', ');
+  if (!ctx.hasUI) return { block: true, reason: `S50 stops for ${label}: ask the user to authorize this exact command` };
+  if (!(await ctx.ui.confirm(`S50: authorize ${label}?`, command))) return { block: true, reason: `user declined ${label}` };
+  for (const action of actions) {
+    for (const step of ['request_authorization', 'grant_authorization']) {
+      const recorded = await run(pi, ctx.cwd, ['apply', JSON.stringify({ kind: step, action, scope: command })], ctx.signal);
+      const outcome = parseJson(recorded.stdout);
+      const applied = outcome.kind === 'ok' && isRecord(outcome.value) && kindOf(outcome.value) === 'ok';
+      if (!applied) return { block: true, reason: `S50 could not record the ${action} authorization: ${recorded.stdout.trim()}` };
+    }
   }
   return undefined;
 }
@@ -181,5 +207,9 @@ export default function s50(pi: Pi) {
     },
   });
 
-  pi.on('tool_call', async (event, ctx) => (isToolCallEventType('bash', event) ? authorizeBash(pi, event.input.command, ctx) : undefined));
+  pi.on('tool_call', async (event, ctx) => {
+    if (isToolCallEventType('bash', event)) return authorizeBash(pi, event.input.command, ctx);
+    if (isToolCallEventType('write', event) || isToolCallEventType('edit', event)) return insideState(ctx.cwd, event.input.path) ? S50_ONLY : undefined;
+    return undefined;
+  });
 }

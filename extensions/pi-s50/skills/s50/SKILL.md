@@ -5,7 +5,7 @@ description: Drive an S50 engineering run (feature, bug, frontend, external issu
 
 # S50
 
-The `s50` tool, the `/s50` command, and the `s50` shell command take the same argv and are the only writers of `.s50/`. Never edit `.s50/` by hand.
+The `s50` tool, the `/s50` command, and the `s50` shell command take the same argv and are the only writers of `.s50/`. Inside Pi, call the `s50` tool. Pi blocks the shell command, its source entry point, and any write to `.s50/` from bash, `write`, or `edit`.
 
 ## Loop
 

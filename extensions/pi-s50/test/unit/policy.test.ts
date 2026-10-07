@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { EvidenceState } from '../../src/domain/evidence.ts';
 import { apply, preflight } from '../../src/orchestrator/coordinator.ts';
-import { gatedAction, grantMatches } from '../../src/policy/authorization.ts';
+import { gatedActions, grantMatches } from '../../src/policy/authorization.ts';
 import { prReadyBlockers, requiredEvidence } from '../../src/policy/completion.ts';
 import { canModelInvoke, routeSkills } from '../../src/policy/invocation.ts';
 import { fixedClock } from '../support/clock.ts';
@@ -96,13 +96,13 @@ describe('authorization', () => {
     ['gh pr create --title x', 'public_message'],
     ['bun publish', 'irreversible_action'],
   ] as const)('%s needs %s authorization', ([command, action]) => {
-    expect(gatedAction(command)).toBe(action);
+    expect(gatedActions(command, '/work/app')).toEqual([action]);
   });
 
   test.for(['git push origin feature', 'git push -u origin feature', 'git push --follow-tags', 'git push --dry-run origin main', 'git status', 'rm -rf dist', 'bun run test', 'gh pr view 64', 'terraform plan'])(
     '%s needs no authorization',
     (command) => {
-      expect(gatedAction(command)).toBeNull();
+      expect(gatedActions(command, '/work/app')).toEqual([]);
     },
   );
 

@@ -13,7 +13,7 @@ describe('gated shell commands', () => {
     expect(gatedActions(command, CWD)).toEqual(actions);
   });
 
-  test.fails.for([
+  test.for([
     ['git -C repo push --force', ['force_push']],
     ['git push origin main \\\n  --force', ['force_push']],
     ['kubectl -n prod apply -f deploy.yaml', ['deploy']],
@@ -36,7 +36,7 @@ describe('gated shell commands', () => {
     expect(gatedActions(command, CWD)).toEqual(actions);
   });
 
-  test.fails.for([
+  test.for([
     'rm -rf /work/app/dist',
     'rm -rf /tmp/build',
     'git branch -d merged',

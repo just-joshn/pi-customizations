@@ -176,7 +176,7 @@ async function toolCall(handlers: ReturnType<typeof loadFakePi>['handlers'], cwd
 
 const S50_ONLY = 'S50 state changes only through the s50 tool, which asks the user for their decisions; call the s50 tool instead';
 
-test.fails.for([`node extensions/pi-s50/src/cli/main.ts apply '{"kind":"confirm_understanding"}'`, `s50 apply '{"kind":"confirm_seams","ids":["seam-cli"]}'`, `echo '{}' > .s50/run.json`, 'sed -i "" s/blocked/active/ .s50/run.json'])(
+test.for([`node extensions/pi-s50/src/cli/main.ts apply '{"kind":"confirm_understanding"}'`, `s50 apply '{"kind":"confirm_seams","ids":["seam-cli"]}'`, `echo '{}' > .s50/run.json`, 'sed -i "" s/blocked/active/ .s50/run.json'])(
   'the model cannot bypass the tool through bash: %s',
   async (command) => {
     const { handlers } = loadFakePi();
@@ -189,7 +189,7 @@ test('the model may read .s50 through bash', async () => {
   expect(await bashCall(handlers, repo(), 'cat .s50/run.json | jq .phase', null)).toStrictEqual(undefined);
 });
 
-test.fails.for(['write', 'edit'])('the model cannot %s files under .s50', async (toolName) => {
+test.for(['write', 'edit'])('the model cannot %s files under .s50', async (toolName) => {
   const { handlers } = loadFakePi();
   const cwd = repo();
   expect(await toolCall(handlers, cwd, toolName, { path: join(cwd, '.s50/run.json'), content: '{}' })).toStrictEqual({ block: true, reason: S50_ONLY });
@@ -233,7 +233,7 @@ test.for([[SELF_DECLARED], [CONFIRM_SEAMS], [['apply', `{"kind":"record_finding"
   expect(splitArgs(joinArgs(argv))).toStrictEqual(argv);
 });
 
-test.fails('a symlinked cwd and its target share one state queue before .s50 exists', async () => {
+test('a symlinked cwd and its target share one state queue before .s50 exists', async () => {
   const cwd = repo();
   const link = join(await tempDir('s50-link-'), 'app');
   await symlink(cwd, link);
