@@ -366,6 +366,25 @@ workerTest('terminal children and explicit stops drain every grandchild', async 
   expect(await readFile(join(dir, 'audit.txt'), 'utf8')).toBe(afterStop);
 });
 
+test('tree navigation does not append a settled task from the previous branch', async () => {
+  vi.stubEnv('PI_PSTACK_WORKER_OWNER', '1');
+  const fixture = await workerFixture();
+  try {
+    await fixture.call('Task', { prompt: 'hello', model: 'worker-test/deterministic', run_in_background: true });
+    await vi.waitFor(() => {
+      const records = fixture.session.sessionManager.getBranch().filter((entry) => entry.type === 'custom' && entry.customType === taskEntryType);
+      expect(records.at(-1)).toMatchObject({ data: { status: 'settled' } });
+    });
+    const oldLeafId = fixture.session.sessionManager.getLeafId();
+    fixture.session.sessionManager.resetLeaf();
+    await fixture.session.extensionRunner.emit({ type: 'session_tree', oldLeafId, newLeafId: null });
+    const destination = fixture.session.sessionManager.getBranch().filter((entry) => entry.type === 'custom' && entry.customType === taskEntryType);
+    expect(destination).toEqual([]);
+  } finally {
+    await fixture.close();
+  }
+});
+
 workerTest('shutdown persists interrupted worker status before another session starts', async ({ session, call }) => {
   const result = await call('Task', { prompt: 'WAIT', model: 'worker-test/deterministic' });
   const details = result.details;
