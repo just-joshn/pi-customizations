@@ -4,6 +4,8 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { scenarioDigest, scenarioFileFor } from '../lib/receipts.mjs';
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const DEFAULT_SURFACES = join(ROOT, 'docs/user-perspective-testing/surfaces.tsv');
 const DEFAULT_ARTIFACTS = join(ROOT, 'artifacts/user-perspective');
@@ -14,7 +16,7 @@ const FINDING_STATUSES = new Set(['open', 'fixed', 'out-of-reach']);
 const CLOSED_STATUSES = new Set(['fixed', 'out-of-reach']);
 
 const SURFACE_COLUMNS = ['surface_id', 'package', 'kind', 'name', 'trigger', 'expected', 'source', 'tier', 'veto'];
-const VERDICT_COLUMNS = ['surface_id', 'package', 'tier', 'scope', 'verdict', 'reason', 'observed', 'evidence', 'head_sha', 'checked_at'];
+const VERDICT_COLUMNS = ['surface_id', 'package', 'tier', 'scope', 'verdict', 'reason', 'observed', 'evidence', 'binding', 'head_sha', 'checked_at'];
 const VERDICTS = new Set(['verified', 'failed', 'inconclusive', 'env-limited', 'not-drivable']);
 const SCOPES = new Set(['discovery', 'behaviour']);
 const VERDICT_ORDER = ['verified', 'failed', 'partial', 'inconclusive', 'env-limited', 'not-drivable', 'uncovered'];
@@ -187,7 +189,47 @@ function staleWarning(surfaceId, picked, head, warnings) {
   }
 }
 
-function rowFromReceipt(base, picked, head, warnings) {
+// A receipt is only evidence for the scenario text that produced it. A scenario can be edited after
+// the fact to move an expectation onto what was observed, which is how one receipt was made to lie.
+// A receipt written before the digest existed is bound instead by proving the scenario file is
+// byte-identical to its version at the receipt's own commit.
+function unchangedSince(headSha, scenario, cache) {
+  const sha = stringValue(headSha);
+  if (!sha || !scenario) return false;
+  const key = `${sha}\u0000${scenario}`;
+  const cached = cache.git.get(key);
+  if (cached !== undefined) return cached;
+  let unchanged = false;
+  try {
+    execFileSync('git', ['diff', '--quiet', sha, '--', scenarioFileFor(scenario)], { cwd: ROOT, stdio: 'ignore' });
+    unchanged = true;
+  } catch {
+    unchanged = false;
+  }
+  cache.git.set(key, unchanged);
+  return unchanged;
+}
+
+function bindingFor(receipt, cache) {
+  if (!receipt) return '';
+  const scenario = stringValue(receipt.scenario);
+  if (!scenario) return 'unbound';
+  let current = cache.current.get(scenario);
+  if (current === undefined) {
+    try {
+      current = scenarioDigest(scenarioFileFor(scenario));
+    } catch {
+      current = null;
+    }
+    cache.current.set(scenario, current);
+  }
+  if (current === null) return 'unbound';
+  const recorded = stringValue(receipt.scenario_sha256);
+  if (recorded) return recorded === current ? 'scenario-unchanged' : 'scenario-changed';
+  return unchangedSince(receipt.head_sha, scenario, cache) ? 'scenario-unchanged' : 'unbound';
+}
+
+function rowFromReceipt(base, picked, head, warnings, cache) {
   staleWarning(base.surface_id, picked, head, warnings);
   const { receipt } = picked;
   return {
@@ -197,17 +239,18 @@ function rowFromReceipt(base, picked, head, warnings) {
     reason: stringValue(receipt.reason),
     observed: receipt.observed,
     evidence: stringValue(receipt.evidence),
+    binding: bindingFor(receipt, cache),
     head_sha: stringValue(receipt.head_sha),
     checked_at: stringValue(receipt.checked_at),
   };
 }
 
-function buildRows(surfaces, receipts, head, warnings) {
+function buildRows(surfaces, receipts, head, warnings, cache) {
   return surfaces.map((surface) => {
     const entries = receipts.get(surface.surface_id);
     const base = { surface_id: surface.surface_id, package: surface.package, tier: surface.tier };
     if (!entries || entries.length === 0) {
-      return { ...base, scope: '', verdict: 'uncovered', reason: 'no receipt was produced for this surface', observed: '', evidence: '', head_sha: '', checked_at: '' };
+      return { ...base, scope: '', verdict: 'uncovered', reason: 'no receipt was produced for this surface', observed: '', evidence: '', binding: '', head_sha: '', checked_at: '' };
     }
     // A scenario authors its own expected text, which is the freedom that lets a claim move away
     // from the row without anyone noticing. They are allowed to narrow; the divergence is not
@@ -226,6 +269,7 @@ function buildRows(surfaces, receipts, head, warnings) {
         verdict: 'inconclusive',
         observed: picked.problem,
         evidence: displayPath(picked.path),
+        binding: bindingFor(picked.receipt, cache),
         head_sha: stringValue(picked.receipt.head_sha),
         checked_at: stringValue(picked.receipt.checked_at),
       };
@@ -234,7 +278,7 @@ function buildRows(surfaces, receipts, head, warnings) {
     const satisfying = valid.filter((entry) => satisfiesTier(surface.tier, entry));
     if (!failed && satisfying.length === 0) {
       const only = pickReceipt(valid);
-      if (only.receipt.verdict !== 'verified') return rowFromReceipt(base, only, head, warnings);
+      if (only.receipt.verdict !== 'verified') return rowFromReceipt(base, only, head, warnings, cache);
       staleWarning(surface.surface_id, only, head, warnings);
       return {
         ...base,
@@ -242,11 +286,12 @@ function buildRows(surfaces, receipts, head, warnings) {
         reason: PARTIAL_REASON,
         observed: PARTIAL_REASON,
         evidence: stringValue(only.receipt.evidence),
+        binding: bindingFor(only.receipt, cache),
         head_sha: stringValue(only.receipt.head_sha),
         checked_at: stringValue(only.receipt.checked_at),
       };
     }
-    return rowFromReceipt(base, failed ?? pickReceipt(satisfying), head, warnings);
+    return rowFromReceipt(base, failed ?? pickReceipt(satisfying), head, warnings, cache);
   });
 }
 
@@ -295,8 +340,14 @@ try {
   const orphans = [...receipts.keys()].filter((surfaceId) => !known.has(surfaceId));
   for (const surfaceId of orphans) console.log(`orphan receipt ignored: ${surfaceId}`);
   const warnings = [];
-  const rows = buildRows(surfaces, receipts, head, warnings);
+  const cache = { current: new Map(), git: new Map() };
+  const rows = buildRows(surfaces, receipts, head, warnings, cache);
   for (const warning of warnings) console.log(`warning: ${warning}`);
+  const stale = rows.filter((row) => row.binding === 'scenario-changed');
+  const unbound = rows.filter((row) => row.binding === 'unbound');
+  const bound = rows.filter((row) => row.binding === 'scenario-unchanged');
+  console.log(`scenario binding: ${bound.length} bound to the scenario text that produced them, ${stale.length} changed since the receipt, ${unbound.length} unbound`);
+  for (const row of stale) console.log(`  ${row.surface_id}: its scenario changed after the receipt was written, so the receipt is no longer evidence for it (${row.evidence})`);
   for (const row of rows) {
     if (row.verdict === 'partial') console.log(`partial: ${row.surface_id}: ${PARTIAL_REASON}`);
   }
@@ -322,14 +373,23 @@ try {
       console.log(`INCOMPLETE: ${uncovered.length} uncovered surfaces`);
       for (const surfaceId of uncovered) console.log(surfaceId);
     }
+    if (stale.length > 0) {
+      console.log(`INCOMPLETE: ${stale.length} receipts are bound to scenario text that has since changed`);
+      for (const row of stale) console.log(row.surface_id);
+    }
+    if (unbound.length > 0) {
+      console.log(`INCOMPLETE: ${unbound.length} receipts cannot be tied to the scenario text that produced them`);
+      for (const row of unbound.slice(0, 20)) console.log(row.surface_id);
+      if (unbound.length > 20) console.log(`  and ${unbound.length - 20} more`);
+    }
     if (unresolved.length > 0) {
       console.log(`INCOMPLETE: ${unresolved.length} findings are neither fixed nor proven out of reach`);
       for (const finding of unresolved) console.log(`${finding.id}: ${finding.title}`);
     }
-    if (uncovered.length > 0 || unresolved.length > 0) {
+    if (uncovered.length > 0 || unresolved.length > 0 || stale.length > 0 || unbound.length > 0) {
       process.exitCode = 1;
     } else {
-      console.log('complete: every surface has a receipt and every finding is fixed or proven out of reach');
+      console.log('complete: every surface has a receipt, every receipt is bound to its scenario, and every finding is fixed or proven out of reach');
     }
   }
 } catch (error) {

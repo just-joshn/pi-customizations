@@ -1,9 +1,21 @@
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { isAbsolute, join, relative } from 'node:path';
+import { createHash } from 'node:crypto';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, isAbsolute, join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export const VERDICTS = ['verified', 'failed', 'inconclusive', 'env-limited', 'not-drivable'];
 export const SCOPES = ['discovery', 'behaviour'];
+
+const SCENARIOS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'scenarios');
+
+export function scenarioFileFor(scenario) {
+  return join(SCENARIOS_DIR, `${scenario}.mjs`);
+}
+
+export function scenarioDigest(path) {
+  return createHash('sha256').update(readFileSync(path)).digest('hex');
+}
 
 function requiredString(value, field) {
   if (typeof value !== 'string' || value.length === 0) throw new Error(`Receipt field ${field} must be a non-empty string`);
@@ -39,6 +51,7 @@ export function createReceipts({ scenario, artifactsRoot, receiptDir = artifacts
   const headSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim();
   const piVersion = execFileSync(piBin, ['--version'], { encoding: 'utf8' }).trim();
   if (!receiptDir) throw new Error('createReceipts requires receiptDir or artifactsRoot');
+  const scenarioSha256 = scenarioDigest(scenarioFileFor(scenario));
   const written = [];
 
   function evidencePath(path) {
@@ -61,6 +74,7 @@ export function createReceipts({ scenario, artifactsRoot, receiptDir = artifacts
       head_sha: headSha,
       pi_version: piVersion,
       checked_at: checkedAt,
+      scenario_sha256: scenarioSha256,
       reason: verdict === 'verified' ? null : reason,
     };
     validateReceipt(receipt);
