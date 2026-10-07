@@ -9,7 +9,7 @@ The `s50` tool (and `/s50` command) is the only writer of `.s50/` state. Same ar
 
 ## Loop
 
-1. Load state: call the `s50` tool with `["status"]`. No run? Start one with `["feature"|"bug"|"frontend", "<objective>", "--consumer", "kind:path", "--criteria", "a;b"]`. A missing registry lock means run `["registry", "refresh", "--sources", "<file>"]` first.
+1. Load state: call the `s50` tool with `["status"]`. No run? Start one with `["feature"|"bug"|"frontend", "<objective>", "--consumer", "kind:path", "--criteria", "a;b"]`. A missing registry lock means run `["registry", "refresh"]` first.
 2. Call `["resume"]`. Its last line is the `nextAction` JSON.
 3. Act on `nextAction.kind`:
    - `invoke_skill`: apply `{"kind":"invoke_skill","skill":"<name>"}`. On `ok`, read that installed skill's SKILL.md and follow it. Record results with `["apply", "<command json>"]`.

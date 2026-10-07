@@ -12,6 +12,16 @@ In DIAGNOSE you may record a diagnostic loop before any seam is confirmed. This 
 
 Loop kinds: `failing_test`, `http`, `cli_fixture`, `browser`, `trace_replay`, `throwaway_program`, `fuzz`, `bisect`, `differential`, `human_assisted`.
 
+## No feedback loop
+
+If no red-capable loop can be built, do not guess the cause. Record what is missing (environment access or a redacted artifact):
+
+```json
+{"kind":"declare_inconclusive","missing":"access to the production queue"}
+```
+
+The run cannot advance while INCONCLUSIVE. Recording a new diagnostic loop resumes it. The same command marks VERIFY or REVERIFY_STALE inconclusive when the consumer route has no driver; a later MEASURED record resumes it.
+
 ## Root cause
 
 Requires a `red` diagnostic loop:

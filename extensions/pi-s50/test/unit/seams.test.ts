@@ -84,3 +84,30 @@ describe('TDD seams with diagnostics', () => {
     expect(state.run.diagnostics).toEqual([{ ...LOOP, status: 'promoted', promotedTo: 'seam-parser' }]);
   });
 });
+
+describe('diagnosis without a feedback loop', () => {
+  const NO_LOOP = { kind: 'declare_inconclusive', missing: 'production log access' } as const;
+
+  test('no feedback loop leaves the bug run INCONCLUSIVE', () => {
+    const state = expectOk(apply(inPhase('DIAGNOSE'), NO_LOOP, fixedClock()));
+    expect(state.run.status).toEqual({ kind: 'inconclusive', missing: 'production log access' });
+  });
+
+  test('an INCONCLUSIVE run cannot advance past diagnosis', () => {
+    const state = expectOk(apply(inPhase('DIAGNOSE'), NO_LOOP, fixedClock()));
+    expect(apply(state, { kind: 'advance', to: 'DOMAIN' }, fixedClock())).toEqual({ kind: 'rejected', reason: 'run is INCONCLUSIVE: missing production log access', gate: null });
+  });
+
+  test('a new red loop resumes the INCONCLUSIVE run', () => {
+    const state = expectOk(apply(inPhase('DIAGNOSE'), NO_LOOP, fixedClock()));
+    expect(expectOk(apply(state, { kind: 'record_diagnostic', loop: LOOP }, fixedClock())).run.status).toEqual({ kind: 'active' });
+  });
+
+  test('INCONCLUSIVE cannot be declared during implementation', () => {
+    expect(apply(inPhase('CONFIRM_TDD_SEAMS'), NO_LOOP, fixedClock())).toEqual({
+      kind: 'rejected',
+      reason: 'inconclusive is declared in DIAGNOSE, VERIFY, REVERIFY_STALE, not CONFIRM_TDD_SEAMS',
+      gate: null,
+    });
+  });
+});

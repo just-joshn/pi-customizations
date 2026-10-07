@@ -21,6 +21,7 @@ export function prReadyBlockers(state: RunState): readonly string[] {
   const { run, graph, findings } = state;
   const blockers: string[] = [];
   if (run.status.kind === 'blocked') blockers.push(`blocked on ${run.status.gate.kind} gate`);
+  if (run.status.kind === 'inconclusive') blockers.push(`INCONCLUSIVE: missing ${run.status.missing}`);
   if (run.frozenRevision === null) blockers.push('revision not frozen');
   else if (run.frozenRevision !== run.currentRevision) blockers.push(`frozen revision ${run.frozenRevision} differs from current ${run.currentRevision}`);
   for (const required of requiredEvidence(state)) {

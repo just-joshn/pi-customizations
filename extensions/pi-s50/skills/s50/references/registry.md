@@ -2,8 +2,8 @@
 
 S50 skills are locked to the skills.sh all-time top 50 in `.s50/registry.lock.json`.
 
-- `s50 registry refresh --sources <sources.json>`: fetch https://skills.sh/ (all-time view) and lock. Network access.
-- `s50 registry refresh --from <leaderboard.json> --sources <sources.json>`: lock from a captured leaderboard.
+- `s50 registry refresh [--sources <sources.json>]`: fetch https://skills.sh/ (all-time view) and lock. Network access. Without `--sources` it uses the package's inspected `registry/skill-sources.json`.
+- `s50 registry refresh --from <leaderboard.json> [--sources <sources.json>]`: lock from a captured leaderboard.
 - `s50 registry show`: one line per skill: `<rank> <source>/<name> <invocationPolicy>`.
 - `s50 registry verify`: checks every skill rank is <= 50 and matches its leaderboard entry.
 

@@ -54,7 +54,8 @@ export type Command =
   | { readonly kind: 'resolve_finding'; readonly id: string; readonly resolution: 'resolved' | 'dismissed' }
   | { readonly kind: 'request_authorization'; readonly action: AuthorizationAction; readonly scope: string }
   | { readonly kind: 'grant_authorization'; readonly action: AuthorizationAction; readonly scope: string }
-  | { readonly kind: 'freeze_revision' };
+  | { readonly kind: 'freeze_revision' }
+  | { readonly kind: 'declare_inconclusive'; readonly missing: string };
 
 export type CommandKind = Command['kind'];
 
@@ -275,6 +276,7 @@ function advance(state: RunState, to: Phase, clock: Clock): Outcome {
   if (!isLegalTransition(from, to)) return reject(`illegal transition ${from} -> ${to}`);
   const gate = blockedGate(state.run);
   if (gate !== null) return reject(`run blocked on ${gate.kind} gate`, gate);
+  if (state.run.status.kind === 'inconclusive') return reject(`run is INCONCLUSIVE: missing ${state.run.status.missing}`);
   const reason = guard(state, to);
   if (reason !== null) return reject(`cannot advance ${from} -> ${to}: ${reason}`);
   return done(withRun(state, { phase: to, status: statusOnEntry(state, to) }), 'advance', `advance ${from} -> ${to}`, clock);
@@ -397,7 +399,21 @@ function recordDiagnostic(state: RunState, loop: DiagnosticLoop, clock: Clock): 
   if (existing !== undefined && same(existing, loop)) return noop(state);
   const clean = { ...loop, symptom: redact(loop.symptom), command: redact(loop.command), promotedTo: null };
   const diagnostics = existing === undefined ? [...state.run.diagnostics, clean] : state.run.diagnostics.map((candidate) => (candidate.id === loop.id ? clean : candidate));
-  return done(withRun(state, { diagnostics }), 'record_diagnostic', `diagnostic ${loop.id} (${loop.kind}) is ${loop.status}`, clock);
+  return done(resumed(withRun(state, { diagnostics })), 'record_diagnostic', `diagnostic ${loop.id} (${loop.kind}) is ${loop.status}`, clock);
+}
+
+const INCONCLUSIVE_PHASES: readonly Phase[] = ['DIAGNOSE', 'VERIFY', 'REVERIFY_STALE'];
+
+function declareInconclusive(state: RunState, missing: string, clock: Clock): Outcome {
+  const clean = redact(missing);
+  if (same(state.run.status, { kind: 'inconclusive', missing: clean })) return noop(state);
+  if (!INCONCLUSIVE_PHASES.includes(state.run.phase)) return reject(`inconclusive is declared in ${INCONCLUSIVE_PHASES.join(', ')}, not ${state.run.phase}`);
+  return done(withRun(state, { status: { kind: 'inconclusive', missing: clean } }), 'declare_inconclusive', `INCONCLUSIVE: missing ${clean}`, clock);
+}
+
+// New feedback (a loop or a measurement) means the missing access was obtained, so the run resumes.
+function resumed(state: RunState): RunState {
+  return state.run.status.kind === 'inconclusive' ? withRun(state, { status: { kind: 'active' } }) : state;
 }
 
 function recordRootCause(state: RunState, cause: string, clock: Clock): Outcome {
@@ -532,7 +548,8 @@ function revisionChanged(state: RunState, revision: string, changedPaths: readon
 function recordEvidence(state: RunState, input: EvidenceInput, clock: Clock): Outcome {
   const { record, duplicate } = evidenceFrom(state, input, clock);
   if (duplicate) return noop(state);
-  return done({ ...state, evidence: [...state.evidence, record] }, 'record_evidence', `${record.state} ${record.claim} at ${record.revision}`, clock);
+  const next = { ...state, evidence: [...state.evidence, record] };
+  return done(record.state === 'MEASURED' ? resumed(next) : next, 'record_evidence', `${record.state} ${record.claim} at ${record.revision}`, clock);
 }
 
 function recordFinding(state: RunState, input: FindingInput, clock: Clock): Outcome {
@@ -632,6 +649,8 @@ export function apply(state: RunState, command: Command, clock: Clock): Outcome 
     case 'freeze_revision':
       if (state.run.frozenRevision === state.run.currentRevision) return noop(state);
       return done(withRun(state, { frozenRevision: state.run.currentRevision }), 'freeze_revision', `froze ${state.run.currentRevision}`, clock);
+    case 'declare_inconclusive':
+      return declareInconclusive(state, command.missing, clock);
     default: {
       const _exhaustive: never = command;
       return _exhaustive;
