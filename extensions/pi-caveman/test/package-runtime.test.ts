@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { createServer, type Server } from 'node:http';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -13,6 +13,7 @@ const piCli = join(packageRoot, 'node_modules/@earendil-works/pi-coding-agent/di
 const vendoredTests = join(packageRoot, 'vendor/caveman/packages/pi-extension/tests');
 const stubProviders = join(vendoredTests, 'fixtures/stub-provider-extension.mjs');
 const mcpStub = join(vendoredTests, 'fixtures/stub-caveman-mcp.mjs');
+const cliRuntimeCopy = join(packageRoot, 'vendor/caveman/packages/pi-extension/src/index.ts');
 
 type Hit = { method: string; path: string; body: string };
 type Stub = { server: Server; hits: Hit[]; port: number };
@@ -28,7 +29,7 @@ const COMPLETION = [
   { choices: [{ index: 0, delta: {}, finish_reason: 'stop' }], usage: { prompt_tokens: 10, completion_tokens: 3, total_tokens: 13 } },
 ];
 
-function answer(req: { method?: string; url?: string }, res: import('node:http').ServerResponse): void {
+function answer(req: IncomingMessage, res: ServerResponse): void {
   if (req.method === 'GET' && req.url === '/health/live') {
     res.writeHead(200, { 'x-caveman-instance': 'test-token' }).end('{}');
     return;
@@ -81,8 +82,13 @@ function fixture({ port, runState, hook }: FixtureOptions): NodeJS.ProcessEnv {
   const cavemanHome = join(root, 'caveman');
   mkdirSync(home, { recursive: true });
   mkdirSync(join(cavemanHome, 'run'), { recursive: true });
-  const hookScript = join(root, 'hook.mjs');
-  writeFileSync(hookScript, HOOK);
+  const bin = join(root, 'bin');
+  mkdirSync(bin);
+  writeFileSync(join(root, 'hook.mjs'), HOOK);
+  if (hook) {
+    writeFileSync(join(bin, 'caveman'), `#!/bin/sh\nexec "${process.execPath}" "${join(root, 'hook.mjs')}" "$@"\n`);
+    chmodSync(join(bin, 'caveman'), 0o755);
+  }
   const mcp = join(root, 'caveman-mcp');
   writeFileSync(mcp, `#!/bin/sh\nexec "${process.execPath}" "${mcpStub}" "$@"\n`);
   chmodSync(mcp, 0o755);
@@ -105,7 +111,7 @@ function fixture({ port, runState, hook }: FixtureOptions): NodeJS.ProcessEnv {
     );
   }
   return {
-    PATH: '/usr/bin:/bin',
+    PATH: `${bin}:/usr/bin:/bin`,
     HOME: home,
     USERPROFILE: home,
     ROOT: root,
@@ -113,14 +119,13 @@ function fixture({ port, runState, hook }: FixtureOptions): NodeJS.ProcessEnv {
     CAVEMAN_HOME: cavemanHome,
     CAVEMAN_DEFAULT_MODE: 'caveman',
     CAVE_GATEWAY_URL: `http://127.0.0.1:${port}`,
-    CAVEMAN_PI_HOOK_CMD: JSON.stringify(hook ? [process.execPath, hookScript, 'placeholder'] : [join(root, 'missing-caveman')]),
     CAVEMAN_MCP_BIN: mcp,
     NO_COLOR: '1',
   };
 }
 
-function runPi(env: NodeJS.ProcessEnv, provider: string, model: string): Promise<Run> {
-  const args = [piCli, '--extension', stubProviders, '--extension', join(env['ROOT'] ?? '', 'direct.mjs')];
+function runPi(env: NodeJS.ProcessEnv, provider: string, model: string, before: string[] = []): Promise<Run> {
+  const args = [piCli, '--extension', stubProviders, '--extension', join(env['ROOT'] ?? '', 'direct.mjs'), ...before];
   args.push('--extension', packageRoot, '--no-session', '--no-context-files', '--no-themes', '--no-extensions');
   args.push('--provider', provider, '--model', model, '-p', 'say hi');
   return new Promise((resolve) => {
@@ -178,4 +183,18 @@ test('a missing caveman CLI degrades to direct mode', async () => {
   expect(posts(stub)[0]?.body).not.toContain('CORE_MARKER_XYZ');
   expect(run.stderr).toContain('caveman native runtime unreachable');
   expect(directNotices(run)).toBe(1);
+});
+
+test('under caveman wrap pi the package yields the runtime and keeps its ruleset', async () => {
+  const stub = await startStub();
+  const env = fixture({ port: stub.port, runState: true, hook: true });
+  const wrapped = { ...env, CAVEMAN_PI_HOOK_CMD: JSON.stringify([join(env['ROOT'] ?? '', 'bin', 'caveman')]) };
+
+  const run = await runPi(wrapped, 'openai', 'stub-model', ['--extension', cliRuntimeCopy]);
+
+  expect(run.stderr).not.toContain('conflicts');
+  const first = posts(stub)[0];
+  expect(first?.path).toBe('/w/pi/openai/v1/chat/completions');
+  expect(first?.body).toContain('CORE_MARKER_XYZ');
+  expect(first?.body).toContain('CAVEMAN MODE ACTIVE — mode: caveman');
 });

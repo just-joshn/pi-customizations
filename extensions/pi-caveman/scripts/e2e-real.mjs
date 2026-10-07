@@ -39,7 +39,7 @@ const check = (ok, label, detail = '') => {
 
 // A bare `seq` listing panics the pinned engine (engine/filewrap.go:35, all-whitespace body after
 // listing unwrap), so the tool output is log-shaped text.
-const TOOL_COMMAND = 'for i in $(seq 1 300); do echo "worker $i: GET /api/items status=200 latency=${i}ms"; done';
+const TOOL_COMMAND = 'for i in $(seq 1 300); do echo "worker $i: GET /api/items status=200 latency_ms=$i"; done';
 const hits = [];
 const sse = (res, delta, finish) => {
   const chunk = (d, f, usage) => ({ id: 's', object: 'chat.completion.chunk', model: 'm', choices: [{ index: 0, delta: d, finish_reason: f }], ...usage });

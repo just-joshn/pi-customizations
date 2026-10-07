@@ -71,12 +71,19 @@ export function registerModeTracking(pi: ExtensionAPI): ModeController {
   pi.on('before_agent_start', (event, ctx) => {
     const mode = activeMode(state);
     const prose = mode !== null && isProseMode(mode) && getDefaultMode(ctx.cwd) !== 'off' ? mode : null;
-    if (prose) event.systemPromptOptions.sections['caveman'] = rulesetSection(prose);
+    const section = prose ? rulesetSection(prose) : null;
+    if (section) event.systemPromptOptions.sections['caveman'] = section;
+    // A runtime copy loaded by `caveman wrap pi` or `caveman enable pi` can run first and replace the
+    // whole prompt, which drops sections, so the ruleset then rides the replacement.
+    const forced = event.systemPromptOptions.forceSystemPrompt;
+    const systemPrompt = section && forced !== undefined && !forced.includes(section) ? `${forced}\n\n${section}` : undefined;
     // Upstream answers a status request without the per-turn reminder.
     const reminder = prose && pending?.reinforce !== false ? reinforcement(prose) : null;
     const context = [pending?.context ?? null, reminder].filter((line) => line !== null).join('\n\n');
     pending = null;
-    return context ? { message: { customType: 'caveman-context', content: context, display: false } } : undefined;
+    const message = context ? { customType: 'caveman-context', content: context, display: false } : undefined;
+    if (!message && !systemPrompt) return undefined;
+    return { ...(message && { message }), ...(systemPrompt !== undefined && { systemPrompt }) };
   });
 
   return { active: () => activeMode(state), handlePrompt };

@@ -1,5 +1,10 @@
 {
   "extends": "../../tsconfig.json",
   "include": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
-  "exclude": ["node_modules", "dist", "build", "coverage", "vendor"]
+  "exclude": ["node_modules", "dist", "build", "coverage", "vendor"],
+  "compilerOptions": {
+    "paths": {
+      "#caveman-runtime": ["./src/caveman-runtime.d.ts"]
+    }
+  }
 }
