@@ -1,4 +1,4 @@
-// Vendored from @earendil-works/pi-ai 1.0.2 src/api/google-shared.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 1.0.4 src/api/google-shared.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
 /**
  * Shared utilities for Google Generative AI and Google Vertex providers.
  */

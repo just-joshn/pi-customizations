@@ -1,4 +1,4 @@
-// Vendored from @earendil-works/pi-ai 1.0.2 src/utils/headers.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 1.0.4 src/utils/headers.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
 import type { ProviderHeaders } from '@earendil-works/pi-ai';
 
 export function headersToRecord(headers: Headers): Record<string, string> {

@@ -1,4 +1,4 @@
-// Vendored from @earendil-works/pi-ai 1.0.2 src/api/transform-messages.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 1.0.4 src/api/transform-messages.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
 import type { Api, AssistantMessage, ImageContent, Message, Model, TextContent, ToolCall, ToolResultMessage } from '@earendil-works/pi-ai';
 
 const NON_VISION_USER_IMAGE_PLACEHOLDER = '(image omitted: model does not support images)';
