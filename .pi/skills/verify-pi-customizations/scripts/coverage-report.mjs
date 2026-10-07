@@ -10,7 +10,7 @@ const DEFAULT_ARTIFACTS = join(ROOT, 'artifacts/user-perspective');
 const DEFAULT_OUT = join(ROOT, 'docs/user-perspective-testing/verdicts.tsv');
 
 const SURFACE_COLUMNS = ['surface_id', 'package', 'kind', 'name', 'trigger', 'expected', 'source', 'tier', 'veto'];
-const VERDICT_COLUMNS = ['surface_id', 'package', 'tier', 'scope', 'verdict', 'observed', 'evidence', 'head_sha', 'checked_at'];
+const VERDICT_COLUMNS = ['surface_id', 'package', 'tier', 'scope', 'verdict', 'reason', 'observed', 'evidence', 'head_sha', 'checked_at'];
 const VERDICTS = new Set(['verified', 'failed', 'inconclusive', 'env-limited', 'not-drivable']);
 const SCOPES = new Set(['discovery', 'behaviour']);
 const VERDICT_ORDER = ['verified', 'failed', 'partial', 'inconclusive', 'env-limited', 'not-drivable', 'uncovered'];
@@ -173,6 +173,7 @@ function rowFromReceipt(base, picked, head, warnings) {
     ...base,
     scope: stringValue(receipt.scope),
     verdict: receipt.verdict,
+    reason: stringValue(receipt.reason),
     observed: receipt.observed,
     evidence: stringValue(receipt.evidence),
     head_sha: stringValue(receipt.head_sha),
@@ -185,7 +186,7 @@ function buildRows(surfaces, receipts, head, warnings) {
     const entries = receipts.get(surface.surface_id);
     const base = { surface_id: surface.surface_id, package: surface.package, tier: surface.tier };
     if (!entries || entries.length === 0) {
-      return { ...base, scope: '', verdict: 'uncovered', observed: '', evidence: '', head_sha: '', checked_at: '' };
+      return { ...base, scope: '', verdict: 'uncovered', reason: 'no receipt was produced for this surface', observed: '', evidence: '', head_sha: '', checked_at: '' };
     }
     // A scenario authors its own expected text, which is the freedom that lets a claim move away
     // from the row without anyone noticing. They are allowed to narrow; the divergence is not
@@ -217,6 +218,7 @@ function buildRows(surfaces, receipts, head, warnings) {
       return {
         ...base,
         verdict: 'partial',
+        reason: PARTIAL_REASON,
         observed: PARTIAL_REASON,
         evidence: stringValue(only.receipt.evidence),
         head_sha: stringValue(only.receipt.head_sha),
