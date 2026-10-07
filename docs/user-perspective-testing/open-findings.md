@@ -167,17 +167,21 @@ No drive exercises those effects. What the drives observed is registration and d
 
 ## F-017: the shutdown hook can be cut by a second shutdown
 
-**Status.** open
+**Status.** out-of-reach
+
+**Boundary proof.** `3b62704` adds a deterministic real-Pi probe at `scripts/probe-rpc-double-shutdown.mjs`. Both cases load production pstack, populate its context board, and point its detached launch at a local recorder. A preceding extension hook records entry, awaits one second, and records completion. With one shutdown, the hook completes and pstack launches consolidation. Closing stdin after disposal starts produces a second shutdown. The hook never completes and pstack never launches consolidation. Both observations repeat after formatting the probe. Captures and result JSON are in `artifacts/user-perspective/f017-double-shutdown/`.
+
+**Mechanism outside this repository.** The installed Pi 1.0.4 RPC host calls `process.exit(exitCode)` when `shuttingDown` is already true, while its first call still awaits `runtimeHost.dispose()`. The observed source is recorded in `host-shutdown.txt`. That hard exit stops pending hooks before control reaches pstack. Moving pstack's launch within its own hook cannot make the host reach it while an earlier extension is still awaited. Extension code cannot guarantee completion after the host exits. Fixing the reentrant shutdown requires changing the installed host's shutdown implementation, which this repository neither supplies nor loads as an extension.
 
 **Found by** the pi-pstack environment unit, which saw an intermittent failure rather than a clean one.
 
-**What happens.** In two full runs of the environment scenario the populated-board shutdown never spawned the consolidation session; the recorder log was still absent after 60 seconds. In an isolated ten-attempt probe all ten launched. So it is a race, not a failure.
+**Original symptom.** Two full environment drives did not record a consolidation launch within 60 seconds. Ten isolated attempts did launch. Those observations alone did not identify the trigger. The new probe isolates the double-shutdown failure without retries.
 
-**Likely cause, from the unit's reading.** The pi RPC host's `shutdown()` short-circuits to `process.exit` when a second shutdown arrives while `runtimeHost.dispose()` is still in flight, at `@earendil-works/pi-coding-agent@1.0.4` `dist/modes/rpc/rpc-mode.js:579`. That can cut `session_shutdown` handlers before `launchRemOnShutdown` runs.
+**Rerun the proof.** `node .pi/skills/verify-pi-customizations/scripts/probe-rpc-double-shutdown.mjs`. It asserts that the single-shutdown control completes and launches consolidation, while the double-shutdown treatment does neither.
 
 **Evidence.** `artifacts/user-perspective/pstack-env-variables/raw/env-16-rem.json`, and the retry count recorded in `PS-ENV-16.json`.
 
-**Why it is parked.** It is a host-level race rather than a package defect, the unit's evidence is two observations against ten, and the row is verified by the attempt that succeeded with the retry count recorded rather than hidden.
+**Limit of the proof.** This establishes the host's double-shutdown mechanism. It does not establish that the earlier intermittent drives produced that exact sequence. The package remains testable under a single orderly shutdown, but cannot enforce orderly shutdown against this host exit path.
 
 ---
 
