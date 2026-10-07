@@ -46,13 +46,15 @@ Claim two, that Node will not strip types under `node_modules`, holds. A copy un
 
 ## F-010: no gate enforces a coverage threshold
 
-**Status.** open
+**Status.** fixed
+
+**Closure evidence.** The policy regression in `1d42514` fails when any of the eight packages lacks an 80% floor for statements, branches, functions, or lines. `fd1c83a` adds those thresholds and behavioural tests for s50 status output and Git adapters. A scratch checkout of `1d42514` with the new thresholds reproduces the real coverage failure with 823 passing tests and 78.1% branches. The fixed s50 suite passes 849 tests with 80% branches. Full `make verify` exits 0, with all eight packages meeting all four enforced floors. Evidence is in `artifacts/user-perspective/f010-coverage/baseline.log`, `s50-threshold.log`, and `full-verify.log`.
 
 **Found by** the baseline capture. `bun run ci` and every `test:coverage` script report a number and enforce nothing. No `vitest.config.ts` in the repository sets `thresholds`. Root `AGENTS.md` states 80% as a minimum.
 
 **Measured coverage at the time of writing.** pi-caveman 95.34, pi-xai-oauth 98.91, pi-antigravity-oauth 97.13, pi-tui-skin 97.69, pi-one-dark-pro-theme 97.4, pi-anthropic-oauth 90.77, pi-s50 88.84, pi-pstack 80.55 statements.
 
-**Why it is parked.** pi-pstack sits 0.55 points above the documented floor. Adding a repo-wide threshold is one bad refactor away from turning the gate red on a change that has nothing to do with coverage, so the decision belongs with the owner rather than with this run.
+**Enforcement.** `make verify` runs the coverage scripts with native Vitest thresholds. Its lint target also runs `scripts/check-coverage-policy.mjs`, which rejects a missing or lower threshold rather than accepting a temporarily high measurement.
 
 ---
 
