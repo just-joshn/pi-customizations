@@ -28,6 +28,7 @@ function writeDiscoveryReceipts({ receipts, rows, discovered, strip, evidence, e
       observed: command ? `${strip}${row.name} discovered from ${command.sourceInfo.path}` : `${strip}${row.name} missing; discovered ${discoveredNames}`,
       evidence,
       verdict: command ? 'verified' : 'failed',
+      scope: 'discovery',
       reason: command ? null : `resource ${strip}${row.name} was not discovered by Pi`,
     });
   }
@@ -81,6 +82,7 @@ export default async function cavemanResources(context) {
       observed: `pi.extensions=${JSON.stringify(manifest.pi.extensions)}; caveman commands from ${cavemanCommands[0]?.sourceInfo?.path}; ${skills.size} skill commands; ${prompts.size} prompt commands`,
       evidence,
       verdict: cavemanCommands.length === 5 && skills.size === 22 && prompts.size === 4 ? 'verified' : 'failed',
+      scope: 'discovery',
       reason: cavemanCommands.length === 5 && skills.size === 22 && prompts.size === 4 ? null : `expected 5 commands plus 22 skills and 4 prompts from the manifest entry, saw ${cavemanCommands.length}/${skills.size}/${prompts.size}`,
     });
     assert.equal(manifestSource, './src/index.ts', 'manifest entry point changed');

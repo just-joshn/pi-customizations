@@ -18,7 +18,11 @@ const CROSS_HEADER = ['Surface ID', 'Kind', 'Exact name/identifier', 'Packages t
 const SURFACE_ID = /^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*$/;
 const KINDS = new Set(['command', 'tool', 'event-hook', 'ui-widget', 'ui-notification', 'skill', 'prompt-template', 'agent', 'config-file', 'env-var', 'install-side-effect', 'theme', 'provider', 'virtual-model', 'mcp-server']);
 const CROSS_KINDS = new Set(['env-var', 'config-file', 'process']);
-const T1_KINDS = new Set(['command', 'tool', 'provider', 'virtual-model', 'mcp-server', 'skill', 'prompt-template', 'agent', 'theme', 'config-file', 'env-var']);
+// A kind's tier is the claim its row makes, not the thing it names. Registration claims ("this
+// exists and is named this") are T1 and an enumeration receipt is enough; anything that does or
+// changes something is T2 and needs a receipt that observed the behaviour. T3 overrides both.
+const DISCOVERY_KINDS = new Set(['skill', 'prompt-template', 'agent', 'theme', 'provider', 'virtual-model', 'mcp-server', 'install-side-effect']);
+const BEHAVIOUR_KINDS = new Set(['command', 'tool', 'event-hook', 'ui-widget', 'ui-notification', 'config-file', 'env-var']);
 
 const PACKAGE_SECTIONS = {
   'pi-pstack': 'extensions/pi-pstack',
@@ -310,7 +314,9 @@ function vetoFor(surfaceId, expected, memberName) {
 
 function tierFor(surfaceId, kind) {
   if (T3_IDS.has(surfaceId)) return 'T3';
-  return T1_KINDS.has(kind) ? 'T1' : 'T2';
+  if (DISCOVERY_KINDS.has(kind)) return 'T1';
+  if (BEHAVIOUR_KINDS.has(kind)) return 'T2';
+  throw new Error(`surface ${surfaceId}: kind '${kind}' has no claim scope; add it to DISCOVERY_KINDS or BEHAVIOUR_KINDS`);
 }
 
 function surfaceRow(row) {

@@ -24,6 +24,7 @@ A drive asserts, and only asserts, by writing a receipt. A surface never receive
   "package": "extensions/pi-pstack",
   "scenario": "pstack-commands",
   "verdict": "verified",
+  "scope": "behaviour",
   "expected": "sending /pstack status posts a pstack-status custom message",
   "observed": "custom message customType=pstack-status, text starts \"pstack 0.15.9\"",
   "evidence": "artifacts/user-perspective/pstack-commands/raw/rpc-1.jsonl",
@@ -37,6 +38,7 @@ A drive asserts, and only asserts, by writing a receipt. A surface never receive
 Rules for the fields.
 
 - `verdict` is exactly one of `verified`, `failed`, `inconclusive`, `env-limited`, `not-drivable`.
+- `scope` is exactly one of `discovery` and `behaviour`. A `discovery` receipt observed that a surface is registered or listed; a `behaviour` receipt observed what it does. Drives default to `behaviour`; a drive that only enumerated passes `scope: "discovery"` explicitly. A receipt written before this field is read as discovery evidence, because it cannot be shown to have driven anything.
 - `reason` is required and specific for every verdict except `verified`. "Needs network" is not specific. "Grok subscription login requires an interactive browser and the account is not enrolled in this environment" is.
 - `observed` states the value that was actually read, not a restatement of `expected`. A receipt whose `observed` could have been written without running anything is a defect in the drive.
 - `evidence` points at the raw capture the assertion was made against. The capture is written before the assertion, so a crash still leaves the evidence.
@@ -55,14 +57,14 @@ Rules for the fields.
 | `trigger` | What a user does to reach it |
 | `expected` | The user-observable result |
 | `source` | `file:line` for the registration site |
-| `tier` | `T1` discovery, `T2` behaviour, or `T3` deep flow |
+| `tier` | `T1` discovery claim, `T2` behaviour claim, or `T3` deep flow |
 | `veto` | The one observation that falsifies the row |
 
 `veto` is the important column. If it cannot be written in one line, the row is not a testable unit and must be split.
 
 ## The predicate
 
-Every surface in `surfaces.tsv` has a receipt, and every defect found is either fixed with a real-artifact receipt or parked in `open-findings.md` with a reproduction. `scripts/coverage-report.mjs` computes this from the two tables. A row with no receipt is `uncovered`, and `uncovered` is the only state the predicate rejects.
+Every surface in `surfaces.tsv` has a receipt, and every defect found is either fixed with a real-artifact receipt or parked in `open-findings.md` with a reproduction. `scripts/coverage-report.mjs` computes this from the two tables. A surface is `verified` only when a receipt's scope satisfies its tier: discovery receipts satisfy discovery (`T1`) rows, and behavioural (`T2`, `T3`) rows require a `behaviour` receipt. A behavioural row with only discovery evidence is `partial`, with the reason `only discovery evidence; the row's claim is behavioural`; a `partial` never outranks a `verified` and never masks a `failed`. A row with no receipt is `uncovered`, and `uncovered` is the only state the predicate rejects.
 
 ## Non-negotiables
 

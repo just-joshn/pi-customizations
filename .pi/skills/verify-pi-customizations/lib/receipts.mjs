@@ -3,9 +3,15 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, relative } from 'node:path';
 
 export const VERDICTS = ['verified', 'failed', 'inconclusive', 'env-limited', 'not-drivable'];
+export const SCOPES = ['discovery', 'behaviour'];
 
 function requiredString(value, field) {
   if (typeof value !== 'string' || value.length === 0) throw new Error(`Receipt field ${field} must be a non-empty string`);
+  return value;
+}
+
+function requiredScope(value) {
+  if (!SCOPES.includes(value)) throw new Error(`Receipt field scope must be one of ${SCOPES.join(', ')}, got ${JSON.stringify(value)}`);
   return value;
 }
 
@@ -20,6 +26,7 @@ export function validateReceipt(receipt) {
   requiredString(receipt.pi_version, 'pi_version');
   requiredString(receipt.checked_at, 'checked_at');
   if (!VERDICTS.includes(receipt.verdict)) throw new Error(`Receipt ${receipt.surface_id} has unknown verdict '${receipt.verdict}'`);
+  requiredScope(receipt.scope);
   if (receipt.verdict !== 'verified' && (typeof receipt.reason !== 'string' || receipt.reason.trim().length === 0)) {
     throw new Error(`Receipt ${receipt.surface_id} with verdict '${receipt.verdict}' requires a specific reason`);
   }
@@ -41,12 +48,13 @@ export function createReceipts({ scenario, artifactsRoot, receiptDir = artifacts
     return repoRelative.startsWith('..') ? absolute : repoRelative;
   }
 
-  function write({ surfaceId, package: packageName, expected, observed, evidence, verdict = 'verified', reason = null, checkedAt = new Date().toISOString() }) {
+  function write({ surfaceId, package: packageName, expected, observed, evidence, verdict = 'verified', scope = 'behaviour', reason = null, checkedAt = new Date().toISOString() }) {
     const receipt = {
       surface_id: surfaceId,
       package: packageName,
       scenario,
       verdict,
+      scope,
       expected,
       observed,
       evidence: evidencePath(evidence),
@@ -62,16 +70,16 @@ export function createReceipts({ scenario, artifactsRoot, receiptDir = artifacts
     return receipt;
   }
 
-  function assertVerdict({ surfaceId, package: packageName, expected, observed, evidence, check }) {
+  function assertVerdict({ surfaceId, package: packageName, expected, observed, evidence, scope, check }) {
     if (typeof check !== 'function') throw new Error(`assertVerdict for ${surfaceId} requires a check function`);
     try {
       check();
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
-      write({ surfaceId, package: packageName, expected, observed, evidence, verdict: 'failed', reason });
+      write({ surfaceId, package: packageName, expected, observed, evidence, verdict: 'failed', scope, reason });
       throw new Error(`Assertion failed for ${surfaceId}: ${reason}`);
     }
-    return write({ surfaceId, package: packageName, expected, observed, evidence, verdict: 'verified' });
+    return write({ surfaceId, package: packageName, expected, observed, evidence, verdict: 'verified', scope });
   }
 
   return {

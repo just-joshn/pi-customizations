@@ -47,6 +47,7 @@ export default async function oauthProviders(context) {
       expected: `pi --list-models ${entry.provider} lists the models the extension registers`,
       observed: matched ? matched.trim() : `no matching model line; first lines: ${output.split('\n').slice(0, 3).join(' | ')}`,
       evidence,
+      scope: 'discovery',
       check: () => assert.match(output, entry.modelPattern, `Expected ${entry.provider} models not found`),
     });
   }

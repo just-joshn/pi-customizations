@@ -49,8 +49,13 @@ function surfaceName(row) {
   return row.name.replace(/^`|`$/g, '').replace(/^\//, '');
 }
 
-function t1Rows(repoRoot) {
-  return readRows(repoRoot).filter((row) => row.tier === 'T1' && row.package === PACKAGE);
+// The rows this drive is accountable for: everything below the T3 deep-flow rows, which other
+// drives cover. It is keyed on kind rather than tier because the drive enumerates registration for
+// some of them and drives the rest; the receipt's scope records which.
+const DRIVEN_KINDS = new Set(['command', 'tool', 'provider', 'virtual-model', 'mcp-server', 'skill', 'prompt-template', 'agent', 'config-file', 'env-var']);
+
+function drivenRows(repoRoot) {
+  return readRows(repoRoot).filter((row) => row.package === PACKAGE && row.tier !== 'T3' && DRIVEN_KINDS.has(row.kind));
 }
 
 function describeCommand(command) {
@@ -224,7 +229,7 @@ async function collectDiscovery(context) {
 }
 
 function writeDiscoveryReceipts(context, discovery) {
-  const rows = t1Rows(context.repoRoot);
+  const rows = drivenRows(context.repoRoot);
   const { commands, snapshot, observerFile, commandsCapture } = discovery;
   const extensionCommands = commands.filter((command) => command.source === 'extension');
   for (const row of rows.filter((candidate) => candidate.kind === 'command')) {
@@ -236,6 +241,7 @@ function writeDiscoveryReceipts(context, discovery) {
       expected: row.expected,
       observed: command ? describeCommand(command) : `absent; extension commands observed: ${extensionCommands.map((candidate) => candidate.name).join(', ')}`,
       evidence: commandsCapture,
+      scope: 'discovery',
       check: () => assert.ok(command, `command ${name} missing from the extension command set`),
     });
   }
@@ -260,6 +266,7 @@ function writeResourceReceipts(context, rows, commands, evidence) {
         expected: row.expected,
         observed: command ? describeCommand(command) : `absent; ${group.label}s observed: ${observedCommands.map((candidate) => candidate.name).join(', ')}`,
         evidence,
+        scope: 'discovery',
         check: () => assert.ok(command, `${group.label} ${name} missing`),
       });
     }
@@ -276,6 +283,7 @@ function writeToolReceipts(context, rows, snapshot, observerFile) {
       expected: row.expected,
       observed: tool ? `${tool.name} in getActiveTools; exposure=${tool.exposure} description=${JSON.stringify(tool.description.slice(0, 90))}` : `absent from getActiveTools [${snapshot.activeTools.join(', ')}]`,
       evidence: observerFile,
+      scope: 'discovery',
       check: () => {
         assert.ok(snapshot.activeTools.includes(name), `${name} not in pi.getActiveTools()`);
         assert.ok(tool, `${name} not in pi.getAllTools()`);
@@ -647,7 +655,7 @@ function writeUndriven(context) {
   const written = new Set(context.receipts.receipts().map((receipt) => receipt.surface_id));
   const evidence = join(context.rawDir, 'undriven.json');
   const undriven = [];
-  for (const row of t1Rows(context.repoRoot)) {
+  for (const row of drivenRows(context.repoRoot)) {
     if (written.has(row.surface_id)) continue;
     const reason = UNDRIVEN_REASONS[row.surface_id];
     if (!reason) throw new Error(`No receipt and no documented reason for ${row.surface_id}`);
@@ -670,7 +678,7 @@ export default async function pstackDiscovery(context) {
   await observeWorkflowFlag(context, discovery.snapshot);
   await observeHeadless(
     context,
-    t1Rows(context.repoRoot).find((row) => row.surface_id === 'PS-ENV-1'),
+    drivenRows(context.repoRoot).find((row) => row.surface_id === 'PS-ENV-1'),
   );
   writeUndriven(context);
   context.log(`✓ pstack-discovery wrote ${context.receipts.receipts().length} receipts`);

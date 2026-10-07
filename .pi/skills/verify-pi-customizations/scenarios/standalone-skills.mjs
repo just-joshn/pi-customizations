@@ -23,6 +23,7 @@ export default async function standaloneSkills(context) {
         expected: `${name} is registered as a Pi skill command from the root package skill declaration`,
         observed: command ? `${command.name}: ${command.description ?? '(no description)'}` : `missing; registered skill commands: ${skillCommands.map((candidate) => candidate.name).join(', ')}`,
         evidence: session.capturePath,
+        scope: 'discovery',
         check: () => assert.ok(command, `Expected standalone skill ${name} not registered`),
       });
     }

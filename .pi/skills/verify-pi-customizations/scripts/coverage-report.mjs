@@ -12,7 +12,9 @@ const DEFAULT_OUT = join(ROOT, 'docs/user-perspective-testing/verdicts.tsv');
 const SURFACE_COLUMNS = ['surface_id', 'package', 'kind', 'name', 'trigger', 'expected', 'source', 'tier', 'veto'];
 const VERDICT_COLUMNS = ['surface_id', 'package', 'tier', 'verdict', 'observed', 'evidence', 'head_sha', 'checked_at'];
 const VERDICTS = new Set(['verified', 'failed', 'inconclusive', 'env-limited', 'not-drivable']);
-const VERDICT_ORDER = ['verified', 'failed', 'inconclusive', 'env-limited', 'not-drivable', 'uncovered'];
+const SCOPES = new Set(['discovery', 'behaviour']);
+const VERDICT_ORDER = ['verified', 'failed', 'partial', 'inconclusive', 'env-limited', 'not-drivable', 'uncovered'];
+const PARTIAL_REASON = "only discovery evidence; the row's claim is behavioural";
 
 function parseArgs(argv) {
   const options = { surfaces: DEFAULT_SURFACES, artifacts: DEFAULT_ARTIFACTS, out: DEFAULT_OUT, requireComplete: false };
@@ -54,6 +56,7 @@ function receiptProblem(receipt, claimedId) {
   if (typeof receipt !== 'object' || receipt === null || Array.isArray(receipt)) return 'receipt is not a JSON object';
   if (receipt.surface_id !== claimedId) return `surface_id ${JSON.stringify(receipt.surface_id)} does not match file name '${claimedId}'`;
   if (!VERDICTS.has(receipt.verdict)) return `invalid verdict ${JSON.stringify(receipt.verdict)}`;
+  if (receipt.scope !== undefined && !SCOPES.has(receipt.scope)) return `invalid scope ${JSON.stringify(receipt.scope)}`;
   if (typeof receipt.observed !== 'string' || receipt.observed.trim() === '') return 'observed is empty';
   if (receipt.verdict !== 'verified' && (typeof receipt.reason !== 'string' || receipt.reason.trim() === '')) {
     return `verdict '${receipt.verdict}' needs a reason`;
@@ -111,6 +114,17 @@ function rank(entry) {
   return index === -1 ? VERDICT_PRECEDENCE.length : index;
 }
 
+// A receipt that does not declare behaviour scope cannot satisfy a behavioural claim. Legacy
+// receipts written before the scope field existed are read as discovery evidence, the weaker
+// reading; runs after this contract carry the scope they actually observed.
+function receiptScope(entry) {
+  return entry.receipt.scope === 'behaviour' ? 'behaviour' : 'discovery';
+}
+
+function satisfiesTier(tier, entry) {
+  return tier === 'T1' || receiptScope(entry) === 'behaviour';
+}
+
 function pickReceipt(entries) {
   const valid = entries.filter((entry) => !entry.problem);
   if (valid.length === 0) return entries[0];
@@ -145,6 +159,26 @@ function displayPath(path) {
   return display.startsWith('..') ? path : display;
 }
 
+function staleWarning(surfaceId, picked, head, warnings) {
+  const { receipt } = picked;
+  if (head && receipt.head_sha && receipt.head_sha !== head) {
+    warnings.push(`${surfaceId}: receipt head_sha ${String(receipt.head_sha).slice(0, 12)} differs from HEAD ${head.slice(0, 12)} (${displayPath(picked.path)})`);
+  }
+}
+
+function rowFromReceipt(base, picked, head, warnings) {
+  staleWarning(base.surface_id, picked, head, warnings);
+  const { receipt } = picked;
+  return {
+    ...base,
+    verdict: receipt.verdict,
+    observed: receipt.observed,
+    evidence: stringValue(receipt.evidence),
+    head_sha: stringValue(receipt.head_sha),
+    checked_at: stringValue(receipt.checked_at),
+  };
+}
+
 function buildRows(surfaces, receipts, head, warnings) {
   return surfaces.map((surface) => {
     const entries = receipts.get(surface.surface_id);
@@ -152,8 +186,9 @@ function buildRows(surfaces, receipts, head, warnings) {
     if (!entries || entries.length === 0) {
       return { ...base, verdict: 'uncovered', observed: '', evidence: '', head_sha: '', checked_at: '' };
     }
-    const picked = pickReceipt(entries);
-    if (picked.problem) {
+    const valid = entries.filter((entry) => !entry.problem);
+    if (valid.length === 0) {
+      const picked = entries[0];
       return {
         ...base,
         verdict: 'inconclusive',
@@ -163,18 +198,22 @@ function buildRows(surfaces, receipts, head, warnings) {
         checked_at: stringValue(picked.receipt.checked_at),
       };
     }
-    const { receipt } = picked;
-    if (head && receipt.head_sha && receipt.head_sha !== head) {
-      warnings.push(`${surface.surface_id}: receipt head_sha ${String(receipt.head_sha).slice(0, 12)} differs from HEAD ${head.slice(0, 12)} (${displayPath(picked.path)})`);
+    const failed = valid.find((entry) => entry.receipt.verdict === 'failed');
+    const satisfying = valid.filter((entry) => satisfiesTier(surface.tier, entry));
+    if (!failed && satisfying.length === 0) {
+      const only = pickReceipt(valid);
+      if (only.receipt.verdict !== 'verified') return rowFromReceipt(base, only, head, warnings);
+      staleWarning(surface.surface_id, only, head, warnings);
+      return {
+        ...base,
+        verdict: 'partial',
+        observed: PARTIAL_REASON,
+        evidence: stringValue(only.receipt.evidence),
+        head_sha: stringValue(only.receipt.head_sha),
+        checked_at: stringValue(only.receipt.checked_at),
+      };
     }
-    return {
-      ...base,
-      verdict: receipt.verdict,
-      observed: receipt.observed,
-      evidence: stringValue(receipt.evidence),
-      head_sha: stringValue(receipt.head_sha),
-      checked_at: stringValue(receipt.checked_at),
-    };
+    return rowFromReceipt(base, failed ?? pickReceipt(satisfying), head, warnings);
   });
 }
 
@@ -225,6 +264,9 @@ try {
   const warnings = [];
   const rows = buildRows(surfaces, receipts, head, warnings);
   for (const warning of warnings) console.log(`warning: ${warning}`);
+  for (const row of rows) {
+    if (row.verdict === 'partial') console.log(`partial: ${row.surface_id}: ${PARTIAL_REASON}`);
+  }
   const conflicts = reportConflicts(receipts);
   if (conflicts > 0) console.log(`warning: ${conflicts} surfaces have conflicting receipts; the strongest verdict is reported`);
   writeVerdicts(options.out, rows);
