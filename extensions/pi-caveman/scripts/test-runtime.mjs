@@ -20,7 +20,7 @@ const suiteDir = join(pkg, 'tests-host');
 let status = 1;
 try {
   cpSync(join(pkg, 'tests'), suiteDir, { recursive: true });
-  admitHostSdk(join(suiteDir, 'provider-compat.runtime.mjs'));
+  await admitHostSdk(join(suiteDir, 'provider-compat.runtime.mjs'));
   await build({ entryPoints: [join(pkg, 'src', 'index.ts')], outfile: join(pkg, 'dist', 'index.mjs'), ...common });
   await build({ entryPoints: [join(pkg, 'src', 'testable.ts')], outfile: join(pkg, 'dist', 'testable.mjs'), ...common });
   if (!existsSync(link)) symlinkSync(join(root, 'node_modules'), link, 'dir');
@@ -36,7 +36,7 @@ process.exit(status);
 // Upstream's compat suite asserts the exact pi-ai version it reviewed. A newer host
 // SDK is admitted only when its dist differs from that pin in exactly the files
 // recorded in sdk-review.json and every routed provider keeps its catalog hosts.
-function admitHostSdk(compat) {
+async function admitHostSdk(compat) {
   const source = readFileSync(compat, 'utf8');
   const pinned = /\.version, "([^"]+)", "Review compat detection/.exec(source)?.[1];
   const hostDir = join(root, 'node_modules', '@earendil-works', 'pi-ai');
@@ -49,11 +49,13 @@ function admitHostSdk(compat) {
   }
   const scratch = mkdtempSync(join(tmpdir(), 'caveman-sdk-'));
   try {
-    const pack = spawnSync('npm', ['pack', `@earendil-works/pi-ai@${pinned}`, '--pack-destination', scratch], { encoding: 'utf8' });
-    if (pack.status !== 0) throw new Error(`npm pack pi-ai@${pinned} failed: ${pack.stderr}`);
-    const tarball = pack.stdout.trim().split('\n').pop() ?? '';
-    const untar = spawnSync('tar', ['xzf', join(scratch, tarball), '-C', scratch], { encoding: 'utf8' });
-    if (!tarball.endsWith('.tgz') || untar.status !== 0) throw new Error(`could not unpack pi-ai@${pinned} (${tarball}): ${untar.stderr}`);
+    const url = `https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-${pinned}.tgz`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`could not download ${url}: HTTP ${response.status}`);
+    const tarball = join(scratch, 'pi-ai.tgz');
+    writeFileSync(tarball, Buffer.from(await response.arrayBuffer()));
+    const untar = spawnSync('tar', ['xzf', tarball, '-C', scratch], { encoding: 'utf8' });
+    if (untar.status !== 0) throw new Error(`could not unpack pi-ai@${pinned}: ${untar.stderr}`);
     const pinnedDist = join(scratch, 'package', 'dist');
     const hostDist = join(hostDir, 'dist');
     const changed = [...new Set([...listFiles(pinnedDist), ...listFiles(hostDist)])]
