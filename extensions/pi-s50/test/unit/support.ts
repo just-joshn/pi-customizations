@@ -131,7 +131,7 @@ export function satisfiedAt(from: Phase, to: Phase): RunState {
       prototypes: [{ question: 'stream?', verdict: 'yes', branch: 'proto/stream', issuePointer: null }],
     },
     graph: { schemaVersion: 1, nodes: [graphNode('export', 'integrated')] },
-    evidence: [measured('csv export lists every invoice', 'r1')],
+    evidence: [measured('csv export lists every invoice', 'r1'), measured('review', 'r1', { criterion: 'review', method: 'review', dependencies: ['**'] })],
     findings: [],
   };
 }

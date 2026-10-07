@@ -9,7 +9,8 @@ import { type ConsumerRoute, redact, routeConsumer } from '../evidence/verificat
 import { grantMatches } from '../policy/authorization.ts';
 import { prReadyBlockers, requiredEvidence } from '../policy/completion.ts';
 import { canModelInvoke, routeSkills } from '../policy/invocation.ts';
-import { createFinding, type FindingInput, resolveFinding, sameFinding } from '../review/findings.ts';
+import { captureGuidelines, createFinding, type FindingInput, resolveFinding, sameFinding } from '../review/findings.ts';
+import { type ReviewAssurance, type ReviewSurface, reviewAssurance, reviewDimensions } from '../review/reviewer.ts';
 import { conflict } from '../scheduler/conflicts.ts';
 import { blockedBy, readyFrontier } from '../scheduler/frontier.ts';
 import { canRunConcurrently, schedule } from '../scheduler/ownership.ts';
@@ -55,7 +56,8 @@ export type Command =
   | { readonly kind: 'request_authorization'; readonly action: AuthorizationAction; readonly scope: string }
   | { readonly kind: 'grant_authorization'; readonly action: AuthorizationAction; readonly scope: string }
   | { readonly kind: 'freeze_revision' }
-  | { readonly kind: 'declare_inconclusive'; readonly missing: string };
+  | { readonly kind: 'declare_inconclusive'; readonly missing: string }
+  | { readonly kind: 'record_review'; readonly reviewer: string; readonly dimensions: readonly string[]; readonly guidelinesContent: string | null };
 
 export type CommandKind = Command['kind'];
 
@@ -70,6 +72,7 @@ export type NextAction =
   | { readonly kind: 'start_nodes'; readonly ids: readonly string[] }
   | { readonly kind: 'verify'; readonly route: ConsumerRoute; readonly criteria: readonly string[] }
   | { readonly kind: 'freeze_revision' }
+  | { readonly kind: 'review'; readonly dimensions: readonly string[]; readonly assurance: ReviewAssurance; readonly guidelinesRequired: boolean }
   | { readonly kind: 'work'; readonly phase: Phase; readonly task: string }
   | { readonly kind: 'done'; readonly revision: string };
 
@@ -228,6 +231,7 @@ export function guard(state: RunState, to: Phase): string | null {
       return pending.length > 0 ? `nodes not integrated: ${pending.map((node) => node.id).join(', ')}` : null;
     }
     case 'VERIFY': {
+      if (from === 'REVIEW' && currentReview(state) === null) return 'no review recorded at the current revision';
       const open = state.findings.filter((finding) => finding.status === 'open');
       return open.length > 0 ? `open findings: ${open.map((finding) => finding.id).join(', ')}` : null;
     }
@@ -402,6 +406,60 @@ function recordDiagnostic(state: RunState, loop: DiagnosticLoop, clock: Clock): 
   return done(resumed(withRun(state, { diagnostics })), 'record_diagnostic', `diagnostic ${loop.id} (${loop.kind}) is ${loop.status}`, clock);
 }
 
+export const REVIEW_CLAIM = 'review';
+
+function reviewSurface(run: Run): ReviewSurface {
+  const facts = routeFacts(run);
+  return facts.webUi ? { kind: 'web_ui', react: facts.reactStack } : { kind: 'non_web' };
+}
+
+function guidelinesLock(run: Run): string {
+  const skill = run.skillRegistry.skills.find((candidate) => candidate.name === 'web-design-guidelines');
+  if (skill === undefined) return 'web-design-guidelines@unlocked';
+  return skill.lock.kind === 'git_commit' ? `web-design-guidelines@${skill.lock.commit}` : `web-design-guidelines@${skill.lock.contentHash}`;
+}
+
+export function currentReview(state: RunState): EvidenceRecord | null {
+  const record = latestByClaim(state.evidence).find((candidate) => candidate.claim === REVIEW_CLAIM);
+  return record !== undefined && record.state === 'MEASURED' && record.revision === state.run.currentRevision ? record : null;
+}
+
+function currentGuidelines(state: RunState): Finding['guidelines'] {
+  const review = currentReview(state);
+  if (review === null || !review.artifact.startsWith('sha256:')) return null;
+  return { contentHash: review.artifact, skillLock: guidelinesLock(state.run) };
+}
+
+// A review covers the code the graph wrote; with no write sets it cannot bound itself, so any change stales it.
+function reviewedPaths(state: RunState): readonly string[] {
+  const paths = [...new Set(state.graph.nodes.flatMap((node) => node.writeSet))];
+  return paths.length === 0 ? ['**'] : paths;
+}
+
+function recordReview(state: RunState, command: Extract<Command, { kind: 'record_review' }>, clock: Clock): Outcome {
+  if (state.run.phase !== 'REVIEW' && state.run.phase !== 'REVERIFY_STALE') return reject(`reviews are recorded in REVIEW or REVERIFY_STALE, not ${state.run.phase}`);
+  const surface = reviewSurface(state.run);
+  const missing = reviewDimensions(surface).filter((dimension) => !command.dimensions.includes(dimension));
+  if (missing.length > 0) return reject(`review misses dimensions: ${missing.join(', ')}`);
+  if (surface.kind === 'web_ui' && command.guidelinesContent === null) return reject('web UI review needs the fetched web-design-guidelines content');
+  const guidelines = command.guidelinesContent === null ? null : captureGuidelines(command.guidelinesContent, guidelinesLock(state.run));
+  const assurance = reviewAssurance(state.run.capabilities);
+  const label = assurance.kind === 'independent' ? 'independent' : `reduced: ${assurance.reason}`;
+  const input: EvidenceInput = {
+    claim: REVIEW_CLAIM,
+    criterion: REVIEW_CLAIM,
+    state: 'MEASURED',
+    dependencies: reviewedPaths(state),
+    method: 'review',
+    expected: reviewDimensions(surface).join(','),
+    observed: `${redact(command.reviewer)} (${label})${guidelines === null ? '' : ` guidelines ${guidelines.skillLock}`}`,
+    artifact: guidelines?.contentHash ?? `review by ${redact(command.reviewer)}`,
+  };
+  const { record, duplicate } = evidenceFrom(state, input, clock);
+  if (duplicate) return noop(state);
+  return done({ ...state, evidence: [...state.evidence, record] }, 'record_review', `review at ${record.revision}: ${label}`, clock);
+}
+
 const INCONCLUSIVE_PHASES: readonly Phase[] = ['DIAGNOSE', 'VERIFY', 'REVERIFY_STALE'];
 
 function declareInconclusive(state: RunState, missing: string, clock: Clock): Outcome {
@@ -553,7 +611,7 @@ function recordEvidence(state: RunState, input: EvidenceInput, clock: Clock): Ou
 }
 
 function recordFinding(state: RunState, input: FindingInput, clock: Clock): Outcome {
-  const probe = createFinding(input, '', state.run.currentRevision);
+  const probe = createFinding({ ...input, guidelines: input.guidelines ?? currentGuidelines(state) }, '', state.run.currentRevision);
   if (state.findings.some((finding) => finding.status === 'open' && sameFinding(finding, probe))) return noop(state);
   const finding = { ...probe, id: clock.id('finding') };
   return done({ ...state, findings: [...state.findings, finding] }, 'record_finding', `${finding.severity} finding ${finding.id} by ${finding.reviewer}`, clock);
@@ -651,6 +709,8 @@ export function apply(state: RunState, command: Command, clock: Clock): Outcome 
       return done(withRun(state, { frozenRevision: state.run.currentRevision }), 'freeze_revision', `froze ${state.run.currentRevision}`, clock);
     case 'declare_inconclusive':
       return declareInconclusive(state, command.missing, clock);
+    case 'record_review':
+      return recordReview(state, command, clock);
     default: {
       const _exhaustive: never = command;
       return _exhaustive;
@@ -725,6 +785,10 @@ export function nextAction(state: RunState): NextAction {
       .filter((required) => !required.satisfied)
       .map((required) => required.criterion);
     if (missing.length > 0) return { kind: 'verify', route: routeConsumer(run.consumer.kind, run.capabilities), criteria: missing };
+  }
+  if ((run.phase === 'REVIEW' || run.phase === 'REVERIFY_STALE') && currentReview(state) === null) {
+    const surface = reviewSurface(run);
+    return { kind: 'review', dimensions: reviewDimensions(surface), assurance: reviewAssurance(run.capabilities), guidelinesRequired: surface.kind === 'web_ui' };
   }
   if ((run.phase === 'FREEZE_REVISION' || run.phase === 'REVERIFY_STALE') && run.frozenRevision !== run.currentRevision) return { kind: 'freeze_revision' };
   const skill = routeSkills(run.phase, routeFacts(run)).find((candidate) => canModelInvoke(run.skillRegistry, candidate, run.capabilities.installedSkills).kind === 'allowed');

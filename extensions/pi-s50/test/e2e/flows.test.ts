@@ -6,8 +6,9 @@ import { latestByClaim } from '../../src/evidence/invalidation.ts';
 import { fixedClock } from '../../src/orchestrator/clock.ts';
 import { apply, type Command, nextAction, startRun } from '../../src/orchestrator/coordinator.ts';
 import { prReadyBlockers } from '../../src/policy/completion.ts';
+import { REVIEW_DIMENSIONS } from '../../src/review/reviewer.ts';
 import { ALL_SKILLS, NO_CAPS, registry } from '../unit/support.ts';
-import { BUG_CRITERIA, BUG_EVIDENCE, BUG_NODES, FEATURE_CRITERIA, FEATURE_EVIDENCE, FEATURE_NODES, FEATURE_SCRIPT, REVIEW_FINDING, SEAM } from './scenarios.ts';
+import { BUG_CRITERIA, BUG_EVIDENCE, BUG_NODES, FEATURE_CRITERIA, FEATURE_EVIDENCE, FEATURE_NODES, FEATURE_SCRIPT, REVIEW, REVIEW_FINDING, SEAM } from './scenarios.ts';
 
 class Harness {
   readonly clock = fixedClock();
@@ -97,11 +98,20 @@ async function featureToReady(h: Harness): Promise<void> {
     { kind: 'record_finding', finding: REVIEW_FINDING },
   ]);
   expect(h.state.findings.map((finding) => [finding.id, finding.status, finding.revision])).toEqual([['finding-1', 'open', 'r3']]);
+  expect(apply(h.state, advance('VERIFY'), h.clock)).toEqual({ kind: 'rejected', reason: 'cannot advance REVIEW -> VERIFY: no review recorded at the current revision', gate: null });
+  expect(nextAction(h.state)).toEqual({
+    kind: 'review',
+    dimensions: [...REVIEW_DIMENSIONS],
+    assurance: { kind: 'reduced', reason: 'same-agent read-only review; no independent agents' },
+    guidelinesRequired: false,
+  });
+  h.step(REVIEW);
   expect(apply(h.state, advance('VERIFY'), h.clock)).toEqual({ kind: 'rejected', reason: 'cannot advance REVIEW -> VERIFY: open findings: finding-1', gate: null });
   h.steps([{ kind: 'resolve_finding', id: 'finding-1', resolution: 'resolved' }, advance('VERIFY')]);
   expect(nextAction(h.state)).toEqual({ kind: 'verify', route: { kind: 'drive_executable' }, criteria: [...FEATURE_CRITERIA] });
   h.steps(FEATURE_EVIDENCE.map((evidence): Command => ({ kind: 'record_evidence', evidence })));
   expect(h.latest()).toEqual([
+    ['review', 'MEASURED', 'r3'],
     ['csv-output', 'MEASURED', 'r3'],
     ['readme-export', 'MEASURED', 'r3'],
   ]);
@@ -174,11 +184,13 @@ describe('e2e scenarios', () => {
       advance('REVIEW'),
       { kind: 'record_finding', finding: { ...REVIEW_FINDING, trigger: 'whitespace-only line' } },
       { kind: 'resolve_finding', id: 'finding-1', resolution: 'resolved' },
+      REVIEW,
       advance('VERIFY'),
     ]);
     expect(prReadyBlockers(h.state)).toEqual(['revision not frozen', 'criterion "empty line no longer crashes" lacks MEASURED evidence at r2']);
     h.steps(BUG_EVIDENCE.map((evidence): Command => ({ kind: 'record_evidence', evidence })));
     expect(h.latest()).toEqual([
+      ['review', 'MEASURED', 'r2'],
       ['reproducer-green', 'MEASURED', 'r2'],
       ['consumer-cli-empty-line', 'MEASURED', 'r2'],
     ]);
@@ -192,15 +204,19 @@ describe('e2e scenarios', () => {
     h.step({ kind: 'revision_changed', revision: 'r4', changedPaths: ['src/export/csv.ts'] });
     expect([h.phase(), h.state.run.currentRevision]).toEqual(['REVERIFY_STALE/active', 'r4']);
     expect(h.latest()).toEqual([
+      ['review', 'STALE', 'r3'],
       ['csv-output', 'STALE', 'r3'],
       ['readme-export', 'MEASURED', 'r4'],
     ]);
-    expect(prReadyBlockers(h.state)).toEqual(['frozen revision r3 differs from current r4', 'criterion "csv lists every invoice" lacks MEASURED evidence at r4 (STALE@r3)']);
+    expect(prReadyBlockers(h.state)).toEqual(['frozen revision r3 differs from current r4', 'criterion "csv lists every invoice" lacks MEASURED evidence at r4 (STALE@r3)', 'no review at r4']);
     expect(nextAction(h.state)).toEqual({ kind: 'verify', route: { kind: 'drive_executable' }, criteria: ['csv lists every invoice'] });
     const reverified = FEATURE_EVIDENCE.filter((evidence) => evidence.claim === 'csv-output').map((evidence): Command => ({ kind: 'record_evidence', evidence }));
-    h.steps([...reverified, { kind: 'freeze_revision' }, advance('PR_READY')]);
+    h.steps(reverified);
+    expect(nextAction(h.state).kind).toBe('review');
+    h.steps([REVIEW, { kind: 'freeze_revision' }, advance('PR_READY')]);
     expect(h.state.run.status).toEqual({ kind: 'pr_ready', revision: 'r4' });
     expect(h.latest()).toEqual([
+      ['review', 'MEASURED', 'r4'],
       ['csv-output', 'MEASURED', 'r4'],
       ['readme-export', 'MEASURED', 'r4'],
     ]);

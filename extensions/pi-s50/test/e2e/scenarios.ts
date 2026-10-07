@@ -1,5 +1,6 @@
 import type { SkillResult } from '../../src/adapters/skills.ts';
 import type { Command, EvidenceInput, GraphNodeInput } from '../../src/orchestrator/coordinator.ts';
+import { REVIEW_DIMENSIONS } from '../../src/review/reviewer.ts';
 import { node } from '../unit/support.ts';
 
 export const FEATURE_CRITERIA = ['csv lists every invoice', 'readme documents export'] as const;
@@ -22,6 +23,8 @@ export function evidence(criterion: string, claim: string, dependencies: readonl
 export const FEATURE_EVIDENCE: readonly EvidenceInput[] = [evidence('csv lists every invoice', 'csv-output', ['src/export/**', 'src/list/**']), evidence('readme documents export', 'readme-export', ['docs/**'], 'review')];
 
 export const BUG_EVIDENCE: readonly EvidenceInput[] = [evidence('empty line no longer crashes', 'reproducer-green', ['src/parser/**'], 'test'), evidence('empty line no longer crashes', 'consumer-cli-empty-line', ['src/parser/**'])];
+
+export const REVIEW: Command = { kind: 'record_review', reviewer: 's50-reviewer', dimensions: [...REVIEW_DIMENSIONS], guidelinesContent: null };
 
 export const REVIEW_FINDING: Extract<Command, { kind: 'record_finding' }>['finding'] = {
   severity: 'medium',

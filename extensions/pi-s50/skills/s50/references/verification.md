@@ -29,6 +29,16 @@ States: `MEASURED`, `INFERRED`, `UNKNOWN`, `INCONCLUSIVE`, `STALE`, `FAILED`. On
 
 Changed paths stale matching evidence. `s50 resume` detects new HEADs. Re-measure in REVERIFY_STALE.
 
+## Review
+
+`nextAction` in REVIEW (and REVERIFY_STALE after reviewed code changed) is `{"kind":"review","dimensions":[...],"assurance":{...},"guidelinesRequired":bool}`. Cover every listed dimension, record findings, then:
+
+```json
+{"kind":"record_review","reviewer":"<reviewer id>","dimensions":["<every listed dimension>"],"guidelinesContent":null}
+```
+
+The coordinator decides assurance from host capabilities. Same-agent review is stored as reduced assurance, never independent. A change to reviewed paths stales the review.
+
 ## Findings
 
 ```json

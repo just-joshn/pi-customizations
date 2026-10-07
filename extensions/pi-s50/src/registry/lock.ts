@@ -24,7 +24,11 @@ export const S50_DEPENDENCIES = [
 
 const CUTOFF = 50;
 
-const PREREQUISITES: Readonly<Record<string, readonly string[]>> = { triage: ['setup-matt-pocock-skills'] };
+const PREREQUISITES: Readonly<Record<string, readonly string[]>> = {
+  triage: ['skill:setup-matt-pocock-skills writes docs/agents/issue-tracker.md'],
+  'agent-browser': ['cli:agent-browser on PATH'],
+  'web-design-guidelines': ['network:https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md'],
+};
 
 export type BuildInput = {
   readonly leaderboard: readonly LeaderboardEntry[];

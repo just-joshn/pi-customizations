@@ -26,7 +26,9 @@ export function latestByClaim(evidence: readonly EvidenceRecord[]): readonly Evi
   return [...latest.values()];
 }
 
+// Evidence that declares no dependencies cannot prove it is unaffected, so any change stales it.
 export function isAffected(record: EvidenceRecord, changedPaths: readonly string[]): boolean {
+  if (record.dependencies.length === 0) return changedPaths.length > 0;
   return record.dependencies.some((glob) => changedPaths.some((path) => matches(glob, path)));
 }
 

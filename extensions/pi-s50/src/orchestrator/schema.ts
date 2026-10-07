@@ -165,6 +165,7 @@ const LOGGED_COMMANDS = [
   'grant_authorization',
   'freeze_revision',
   'declare_inconclusive',
+  'record_review',
   'preflight',
 ] as const satisfies readonly DecisionLog['command'][];
 
@@ -205,4 +206,5 @@ export const command: Decoder<Command> = tagged<Command>({
   grant_authorization: object({ kind: k('grant_authorization'), action: authorizationAction, scope: str }),
   freeze_revision: object({ kind: k('freeze_revision') }),
   declare_inconclusive: object({ kind: k('declare_inconclusive'), missing: nonEmptyStr }),
+  record_review: object({ kind: k('record_review'), reviewer: nonEmptyStr, dimensions: strings, guidelinesContent: nullable(str) }),
 });

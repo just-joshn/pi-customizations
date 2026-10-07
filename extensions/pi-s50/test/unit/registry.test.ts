@@ -47,8 +47,16 @@ describe('top-50 eligibility', () => {
     expect(verifySnapshot(tampered)).toEqual(['tdd rank 51 exceeds cutoff 50']);
   });
 
-  test('triage records its setup prerequisite', () => {
-    expect(registry().skills.find((skill) => skill.name === 'triage')?.prerequisites).toEqual(['setup-matt-pocock-skills']);
+  test('locked skills record their runtime prerequisites', () => {
+    expect(
+      registry()
+        .skills.filter((skill) => skill.prerequisites.length > 0)
+        .map((skill) => [skill.name, skill.prerequisites]),
+    ).toEqual([
+      ['agent-browser', ['cli:agent-browser on PATH']],
+      ['triage', ['skill:setup-matt-pocock-skills writes docs/agents/issue-tracker.md']],
+      ['web-design-guidelines', ['network:https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md']],
+    ]);
   });
 });
 

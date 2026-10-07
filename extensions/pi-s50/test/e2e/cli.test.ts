@@ -6,7 +6,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 import type { Command } from '../../src/orchestrator/coordinator.ts';
 import { tempRepo, writeAndCommit } from '../integration/repo.ts';
 import { ALL_SKILLS } from '../unit/support.ts';
-import { BUG_EVIDENCE, BUG_NODES, FEATURE_EVIDENCE, FEATURE_NODES, FEATURE_SCRIPT, REVIEW_FINDING, SEAM } from './scenarios.ts';
+import { BUG_EVIDENCE, BUG_NODES, FEATURE_EVIDENCE, FEATURE_NODES, FEATURE_SCRIPT, REVIEW, REVIEW_FINDING, SEAM } from './scenarios.ts';
 
 const MAIN = fileURLToPath(new URL('../../src/cli/main.ts', import.meta.url));
 const dirs: string[] = [];
@@ -74,7 +74,7 @@ function reviewVerifyFreeze(cwd: string, evidence: readonly Command[]): string {
     { kind: 'record_finding', finding: REVIEW_FINDING },
   ]);
   const findingId = s50(cwd, 'status').stdout.match(/open findings: (finding-\S+)/)?.[1] ?? '';
-  applyAllOk(cwd, [{ kind: 'resolve_finding', id: findingId, resolution: 'resolved' }, { kind: 'advance', to: 'VERIFY' }, ...evidence]);
+  applyAllOk(cwd, [{ kind: 'resolve_finding', id: findingId, resolution: 'resolved' }, REVIEW, { kind: 'advance', to: 'VERIFY' }, ...evidence]);
   return applyAllOk(cwd, [{ kind: 'advance', to: 'FREEZE_REVISION' }, { kind: 'freeze_revision' }, { kind: 'advance', to: 'REVERIFY_STALE' }, { kind: 'advance', to: 'PR_READY' }]);
 }
 
@@ -86,7 +86,7 @@ function reverifyAfterEdit(cwd: string, path: string, evidence: readonly Command
   expect(resumed.stdout).toContain(`stale evidence: ${staleCount}`);
   expect(s50(cwd, 'verify').stdout).toContain(`MISSING`);
   expect(s50(cwd, 'explain').stdout).toContain(`revision_changed: revision`);
-  expect(applyAllOk(cwd, [...evidence, { kind: 'freeze_revision' }, { kind: 'advance', to: 'PR_READY' }])).toBe('PR_READY/pr_ready');
+  expect(applyAllOk(cwd, [...evidence, REVIEW, { kind: 'freeze_revision' }, { kind: 'advance', to: 'PR_READY' }])).toBe('PR_READY/pr_ready');
   expect(s50(cwd, 'resume').stdout).toContain('stale evidence: 0');
   expect(phaseLine(cwd)).toBe('phase: PR_READY (pr_ready)');
 }
@@ -115,7 +115,7 @@ describe('s50 CLI process', () => {
     expect(reviewVerifyFreeze(cwd, record(FEATURE_EVIDENCE))).toBe('PR_READY/pr_ready');
     expect(phaseLine(cwd)).toBe('phase: PR_READY (pr_ready)');
     expect(s50(cwd, 'verify')).toEqual({ code: 0, stdout: 'consumer route: drive_executable\nMEASURED csv lists every invoice\nMEASURED readme documents export\n' });
-    reverifyAfterEdit(cwd, 'src/export/csv.ts', record(FEATURE_EVIDENCE.filter((evidence) => evidence.claim === 'csv-output')), 1);
+    reverifyAfterEdit(cwd, 'src/export/csv.ts', record(FEATURE_EVIDENCE.filter((evidence) => evidence.claim === 'csv-output')), 2);
   });
 
   test('bug flow survives restarts through stale reverify', { timeout: 120_000 }, () => {
@@ -147,6 +147,6 @@ describe('s50 CLI process', () => {
     expect(integrate(cwd, 'fix-parser', { 'src/parser/split.ts': 'export const split = (s: string) => (s === "" ? [] : s.split("\\n"));\n' })).toBe('IMPLEMENT/active');
     expect(reviewVerifyFreeze(cwd, record(BUG_EVIDENCE))).toBe('PR_READY/pr_ready');
     expect(phaseLine(cwd)).toBe('phase: PR_READY (pr_ready)');
-    reverifyAfterEdit(cwd, 'src/parser/split.ts', record(BUG_EVIDENCE), 2);
+    reverifyAfterEdit(cwd, 'src/parser/split.ts', record(BUG_EVIDENCE), 3);
   });
 });

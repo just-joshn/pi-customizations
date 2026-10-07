@@ -105,3 +105,38 @@ describe('prototype retention', () => {
     expect(state.evidence.map((record) => [record.method, record.artifact, record.state])).toEqual([['prototype', 'proto/stream', 'MEASURED']]);
   });
 });
+
+function inReview(consumer: 'cli' | 'browser', independentAgents = false) {
+  const base = freshRun({ consumer: { kind: consumer, userPath: 'invoices' }, capabilities: piHostCapabilities({ independentAgents }) });
+  return { ...base, run: { ...base.run, phase: 'REVIEW' as const } };
+}
+
+const fullReview = (guidelinesContent: string | null) => ({ kind: 'record_review', reviewer: 'reviewer-agent', dimensions: [...reviewDimensions({ kind: 'web_ui', react: true })], guidelinesContent }) as const;
+
+describe('review phase', () => {
+  test('a review missing a required dimension is rejected', () => {
+    expect(apply(inReview('cli'), { kind: 'record_review', reviewer: 'r', dimensions: ['correctness_and_acceptance_criteria'], guidelinesContent: null }, fixedClock())).toMatchObject({
+      kind: 'rejected',
+      reason: expect.stringMatching(/^review misses dimensions: domain_invariants, authorization_and_data_integrity,/),
+    });
+  });
+
+  test('web UI review without fetched guidelines is rejected', () => {
+    expect(apply(inReview('browser'), fullReview(null), fixedClock())).toEqual({ kind: 'rejected', reason: 'web UI review needs the fetched web-design-guidelines content', gate: null });
+  });
+
+  test('same-agent review is stored with reduced assurance', () => {
+    const state = expectOk(apply(inReview('cli'), fullReview(null), fixedClock()));
+    expect(state.evidence.map((record) => [record.claim, record.observed])).toEqual([['review', 'reviewer-agent (reduced: same-agent read-only review; no independent agents)']]);
+  });
+
+  test('independent agents give a review stored as independent', () => {
+    const state = expectOk(apply(inReview('cli', true), fullReview(null), fixedClock()));
+    expect(state.evidence.map((record) => record.observed)).toEqual(['reviewer-agent (independent)']);
+  });
+
+  test('web guideline hash binds to every later finding', () => {
+    const { state } = applyAll(inReview('browser'), [fullReview('abc'), { kind: 'record_finding', finding: FINDING }]);
+    expect(state.findings.map((finding) => [finding.revision, finding.guidelines])).toEqual([['r1', { contentHash: ABC_SHA256, skillLock: 'web-design-guidelines@063bee94c3f4df8453406c830b0a7df0f2860278' }]]);
+  });
+});

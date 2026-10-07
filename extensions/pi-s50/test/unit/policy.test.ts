@@ -109,7 +109,7 @@ describe('completion', () => {
 
   test.for(['UNKNOWN', 'INCONCLUSIVE', 'INFERRED', 'STALE', 'FAILED'] satisfies EvidenceState[])('%s never satisfies completion', (evidenceState) => {
     const base = satisfiedAt('REVERIFY_STALE', 'PR_READY');
-    const state = { ...base, evidence: [measured(CRITERION, 'r1', { state: evidenceState })] };
+    const state = { ...base, evidence: [...base.evidence.filter((record) => record.claim !== CRITERION), measured(CRITERION, 'r1', { state: evidenceState })] };
     expect(prReadyBlockers(state)).toEqual([`criterion "${CRITERION}" lacks MEASURED evidence at r1 (${evidenceState}@r1)`]);
     expect(apply(state, { kind: 'advance', to: 'PR_READY' }, fixedClock()).kind).toBe('rejected');
   });
@@ -125,6 +125,7 @@ describe('completion', () => {
     expect(prReadyBlockers({ ...base, run: { ...base.run, diagnostics: [{ id: 'l', kind: 'fuzz', command: 'x', symptom: 'y', status: 'red', promotedTo: null }] } })).toEqual([
       'revision not frozen',
       `criterion "${CRITERION}" lacks MEASURED evidence at r1`,
+      'no review at r1',
       'graph has no nodes',
       'diagnostic l still red',
       'bug run lacks root cause',
@@ -135,6 +136,6 @@ describe('completion', () => {
   test('measured evidence at an older revision does not satisfy', () => {
     const base = satisfiedAt('REVERIFY_STALE', 'PR_READY');
     const state = { ...base, run: { ...base.run, currentRevision: 'r2', frozenRevision: 'r2' } };
-    expect(prReadyBlockers(state)).toEqual([`criterion "${CRITERION}" lacks MEASURED evidence at r2 (MEASURED@r1)`]);
+    expect(prReadyBlockers(state)).toEqual([`criterion "${CRITERION}" lacks MEASURED evidence at r2 (MEASURED@r1)`, 'no review at r2']);
   });
 });

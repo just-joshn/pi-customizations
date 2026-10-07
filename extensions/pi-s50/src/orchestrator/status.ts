@@ -40,6 +40,8 @@ export function describeAction(action: NextAction): string {
       return `verify via ${action.route.kind}${action.route.kind === 'inconclusive' ? ` (${action.route.missing})` : ''}: ${action.criteria.join('; ')}`;
     case 'freeze_revision':
       return 'freeze revision';
+    case 'review':
+      return `review (${action.assurance.kind === 'independent' ? 'independent' : `reduced assurance: ${action.assurance.reason}`}${action.guidelinesRequired ? ', fetch web-design-guidelines' : ''}): ${action.dimensions.join(', ')}`;
     case 'work':
       return `${action.phase}: ${action.task}`;
     case 'done':

@@ -52,6 +52,11 @@ describe('invalidation', () => {
     expect(matches(glob, path)).toBe(expected);
   });
 
+  test('evidence without declared dependencies stales on any change', () => {
+    const next = invalidate([measured('loose', 'r1', { dependencies: [] })], ['README.md'], 'r2', fixedClock());
+    expect(latestByClaim(next).map((record) => [record.claim, record.state, record.revision])).toEqual([['loose', 'STALE', 'r1']]);
+  });
+
   test('only affected evidence turns STALE', () => {
     const evidence = [measured('export', 'r1', { dependencies: ['src/export/**'] }), measured('docs', 'r1', { dependencies: ['docs/**'] })];
     const next = invalidate(evidence, ['src/export/csv.ts'], 'r2', fixedClock());

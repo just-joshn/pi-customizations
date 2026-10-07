@@ -22,8 +22,8 @@ Settle each item in grilling rounds or the design record before CONFIRM_TDD_SEAM
 
 ## web-design-guidelines hash capture
 
-In REVIEW, fetch the guidelines content once. Bind findings to its sha256 digest and the registry lock entry, so the review cites the exact revision of the guidelines. Findings carry `guidelines: {"contentHash":"sha256:<hex>","skillLock":"<source>@<commit>"}`:
+In REVIEW, fetch the guidelines content once and pass the raw text in the review. The coordinator stores its sha256 and the locked `web-design-guidelines` commit, and attaches both to every finding recorded after it at the same revision:
 
 ```json
-{"kind":"record_finding","finding":{"severity":"medium","trigger":"...","consequence":"...","evidence":"...","owner":"...","reviewer":"...","guidelines":{"contentHash":"sha256:<hex>","skillLock":"<lock entry>"}}}
+{"kind":"record_review","reviewer":"...","dimensions":["..."],"guidelinesContent":"<fetched command.md text>"}
 ```

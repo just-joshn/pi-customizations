@@ -20,6 +20,7 @@ export function requiredEvidence(state: RunState): readonly RequiredEvidence[] {
 export function prReadyBlockers(state: RunState): readonly string[] {
   const { run, graph, findings } = state;
   const blockers: string[] = [];
+  const latest = latestByClaim(state.evidence);
   if (run.status.kind === 'blocked') blockers.push(`blocked on ${run.status.gate.kind} gate`);
   if (run.status.kind === 'inconclusive') blockers.push(`INCONCLUSIVE: missing ${run.status.missing}`);
   if (run.frozenRevision === null) blockers.push('revision not frozen');
@@ -29,6 +30,8 @@ export function prReadyBlockers(state: RunState): readonly string[] {
     const states = required.records.map((record) => `${record.state}@${record.revision}`).join(', ');
     blockers.push(`criterion "${required.criterion}" lacks MEASURED evidence at ${run.currentRevision}${states === '' ? '' : ` (${states})`}`);
   }
+  const review = latest.find((record) => record.claim === 'review');
+  if (review === undefined || !satisfies(review, run.currentRevision)) blockers.push(`no review at ${run.currentRevision}`);
   for (const finding of findings) if (finding.status === 'open') blockers.push(`open ${finding.severity} finding ${finding.id}`);
   if (graph.nodes.length === 0) blockers.push('graph has no nodes');
   for (const node of graph.nodes) if (node.status !== 'integrated') blockers.push(`node ${node.id} is ${node.status}`);
