@@ -4,7 +4,7 @@ import { join, resolve, sep } from 'node:path';
 import { type ExtensionAPI, type ExtensionContext, isToolCallEventType, truncateHead, withFileMutationQueue } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { hashInstalled } from './adapters/skills.ts';
-import { type CliResult, defaultContext, type Host, runCli, SUBCOMMANDS, USAGE } from './cli/commands.ts';
+import { type CliResult, defaultContext, type Host, openGate, runCli, SUBCOMMANDS, USAGE } from './cli/commands.ts';
 import { isRecord, parseJson } from './orchestrator/decode.ts';
 import { S50_DIR } from './orchestrator/persistence.ts';
 import { gatedActions } from './policy/authorization.ts';
@@ -189,6 +189,11 @@ async function authorizeBash(pi: Pi, command: string, ctx: ExtensionContext): Pr
   const actions = gatedActions(command, ctx.cwd);
   if (actions.length === 0 || !(await hasRun(ctx.cwd))) return undefined;
   const label = actions.join(', ');
+  // The coordinator records one gate at a time, so prompting while another gate is open would confirm a command it then refuses.
+  const gate = await openGate(ctx.cwd);
+  if (gate !== null && !(gate.kind === 'authorization' && actions.every((action) => gate.action === action && gate.scope === command))) {
+    return { block: true, reason: `S50 is blocked on the ${gate.kind} gate; resolve that before ${label}` };
+  }
   if (!ctx.hasUI) return { block: true, reason: `S50 stops for ${label}: ask the user to authorize this exact command` };
   if (!(await ctx.ui.confirm(`S50: authorize ${label}?`, command))) return { block: true, reason: `user declined ${label}` };
   for (const action of actions) {

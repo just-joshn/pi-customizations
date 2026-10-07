@@ -10,10 +10,10 @@ import { localShell, type Shell } from '../adapters/shell.ts';
 import { discoverInstalledSkills, parseInstalled } from '../adapters/skills.ts';
 import type { RegistryLock, RegistrySnapshot } from '../domain/registry.ts';
 import { CONSUMER_KINDS, type Consumer, type HostCapabilities, type InstalledSkill, type RunState } from '../domain/run.ts';
-import type { Mode } from '../domain/state.ts';
+import type { Gate, Mode } from '../domain/state.ts';
 import { routeConsumer } from '../evidence/verification.ts';
 import { type Clock, systemClock } from '../orchestrator/clock.ts';
-import type { Command, DecisionLog, Outcome } from '../orchestrator/command.ts';
+import { blockedGate, type Command, type DecisionLog, type Outcome } from '../orchestrator/command.ts';
 import { apply, applyPreflight, hostSkills, nextAction, reconcile, startRun } from '../orchestrator/coordinator.ts';
 import { decode, parseJson } from '../orchestrator/decode.ts';
 import { loadState, readDecisions, readLock, S50_DIR, saveState, writeLock } from '../orchestrator/persistence.ts';
@@ -318,6 +318,12 @@ async function registry(context: CliContext, args: readonly string[]): Promise<C
   if (sub === 'show') return ok(describeLock(lock.value));
   const problems = verifySnapshot(lock.value.snapshot);
   return problems.length === 0 ? ok('registry lock verified\n') : refused(`${problems.join('\n')}\n`);
+}
+
+// The Pi guard needs the open gate before it prompts, so a gated command is not confirmed and then refused.
+export async function openGate(cwd: string): Promise<Gate | null> {
+  const loaded = await loadState(join(cwd, S50_DIR));
+  return loaded.kind === 'ok' ? blockedGate(loaded.state.run) : null;
 }
 
 export async function runCli(argv: readonly string[], context: CliContext): Promise<CliResult> {

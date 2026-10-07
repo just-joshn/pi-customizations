@@ -47,7 +47,7 @@ User-only upstream skills such as `/skill:triage` are never invoked by S50. The 
 
 When the model applies a command that records a user decision (`answer_decisions` with a user decision, `confirm_understanding`, `confirm_seams`, `grant_authorization`, `complete_user_workflow`), Pi asks the user first. Without a UI the tool refuses.
 
-During a run, a bash command that force-pushes, merges a pull request, deploys, deletes data destructively, publishes a package, or posts a public message asks the user first. Without a UI it is blocked. The classifier lives in `src/policy/authorization.ts`; a command it does not recognize is not stopped, so S50 also tells the agent to stop at these actions.
+During a run, a bash command that force-pushes, merges a pull request, deploys, deletes data destructively, publishes a package, or posts a public message asks the user first. Without a UI it is blocked. The classifier lives in `src/policy/authorization.ts`; a command it does not recognize is not stopped, so S50 also tells the agent to stop at these actions. While the run waits on another gate the command is blocked with that gate named, without a dialog.
 
 ## How the documentation separates its facts
 

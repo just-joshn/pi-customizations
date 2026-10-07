@@ -231,7 +231,7 @@ async function gateBlockedRun(): Promise<string> {
   return cwd;
 }
 
-test.fails('a gated bash command while another gate is open is blocked without a dialog', async () => {
+test('a gated bash command while another gate is open is blocked without a dialog', async () => {
   const { handlers } = loadFakePi();
   const cwd = await gateBlockedRun();
   const ui = fakeUi(true);
