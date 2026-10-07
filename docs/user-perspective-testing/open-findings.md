@@ -50,6 +50,8 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 
 **Why it is parked.** Migrating the pins is a deliberate version move with its own migration doc and audit, not a side effect of a verification run.
 
+**The sharp version of this, from the cross-model review.** The run resolved the pin split by bringing `pi-caveman` down to 1.0.2 rather than bringing the other seven up to 1.0.4. That restored a green gate with one package changed instead of seven, and it is the direction the repository had already chosen, but it also chose to keep the type surface one minor behind the runtime users actually run. Aligning up would have made the typecheck see 1.0.4 and would have been the larger change. A reviewer should know that the smaller change was taken deliberately and that the direction is still open.
+
 ---
 
 ## F-012: the rubber-duck agent type cannot start
@@ -65,6 +67,8 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 **Found by** the OAuth unit. `session_shutdown` and `session_start` register the same reset closure at `extensions/pi-anthropic-oauth/src/guard.ts:169` and `:197-198`. Pi fires them back to back with no guard-observable request between them, so deleting either handler leaves every observation unchanged. The row's receipt is `inconclusive`, which is the correct verdict for a surface this harness cannot distinguish.
 
 **What would settle it.** A guard-observable effect that can only happen between the two events, or a direct inspection of which handler is registered for which event.
+
+**The risk this understates, from the cross-model review.** Sharing one reset closure across startup and shutdown means shutdown cleanup cannot be validated separately from startup. If the shutdown side of that closure is wrong, every observation still matches, because the next `session_start` resets the same state. The row being `inconclusive` is correct, and the practical consequence is that this extension's teardown is unverified rather than merely unverifiable in this harness.
 
 ---
 
