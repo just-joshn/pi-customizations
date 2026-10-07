@@ -9,10 +9,14 @@ export const systemClock: Clock = {
 
 export function fixedClock(start = '2026-10-07T00:00:00.000Z'): Clock {
   let tick = 0;
-  let counter = 0;
+  const counters = new Map<string, number>();
   const base = Date.parse(start);
   return {
     now: () => new Date(base + 1000 * tick++).toISOString(),
-    id: (prefix) => `${prefix}-${++counter}`,
+    id: (prefix) => {
+      const next = (counters.get(prefix) ?? 0) + 1;
+      counters.set(prefix, next);
+      return `${prefix}-${next}`;
+    },
   };
 }
