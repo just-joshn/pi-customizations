@@ -1,19 +1,24 @@
 import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
 import { PROVIDER_ID, parseApiKey, postCloudCode } from './cloudcode.ts';
-import { type AvailableModel, parseAvailableModels } from './models.ts';
-import { fetchEmail, LOAD_CODE_ASSIST_BODY } from './oauth.ts';
+import { fetchEmail, LOAD_CODE_ASSIST_BODY, type OAuthEndpoints } from './oauth.ts';
 
-export interface CommandEndpoints {
-  cloudCode: readonly string[];
-  userInfoUrl: string;
+export interface QuotaBucket {
+  displayName: string;
+  remainingFraction?: number | undefined;
+  resetTime?: string | undefined;
+}
+
+export interface QuotaGroup {
+  displayName: string;
+  buckets: QuotaBucket[];
 }
 
 export interface AccountSummary {
   email?: string | undefined;
   projectId: string;
   tier?: string | undefined;
-  models: AvailableModel[];
-  modelsError?: string | undefined;
+  quota: QuotaGroup[];
+  quotaError?: string | undefined;
 }
 
 function tierName(data: unknown): string | undefined {
@@ -26,21 +31,38 @@ function tierName(data: unknown): string | undefined {
   return undefined;
 }
 
+function text(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+export function parseQuotaSummary(data: unknown): QuotaGroup[] {
+  const groups = (data as { groups?: unknown } | null)?.groups;
+  if (!Array.isArray(groups)) return [];
+  return groups.map((group: { displayName?: unknown; buckets?: unknown }) => ({
+    displayName: text(group?.displayName) ?? 'Models',
+    buckets: (Array.isArray(group?.buckets) ? group.buckets : []).map((bucket: { displayName?: unknown; remainingFraction?: unknown; resetTime?: unknown }) => ({
+      displayName: text(bucket?.displayName) ?? 'Limit',
+      remainingFraction: typeof bucket?.remainingFraction === 'number' ? bucket.remainingFraction : undefined,
+      resetTime: text(bucket?.resetTime),
+    })),
+  }));
+}
+
 /** Budget for the account command's three lookups, so a stalled connection cannot hold the command open indefinitely. */
 const accountLookupTimeoutMs = 30_000;
 
-export async function fetchAccountSummary(apiKey: string, endpoints: CommandEndpoints): Promise<AccountSummary> {
+export async function fetchAccountSummary(apiKey: string, endpoints: Pick<OAuthEndpoints, 'cloudCode' | 'userInfoUrl'>): Promise<AccountSummary> {
   const { token, projectId } = parseApiKey(apiKey);
   const signal = AbortSignal.timeout(accountLookupTimeoutMs);
-  const [email, assist, available] = await Promise.all([
+  const [email, assist, quota] = await Promise.all([
     fetchEmail(endpoints.userInfoUrl, token, signal),
     postCloudCode(endpoints.cloudCode, 'loadCodeAssist', token, LOAD_CODE_ASSIST_BODY, signal).catch(() => undefined),
-    postCloudCode(endpoints.cloudCode, 'fetchAvailableModels', token, { project: projectId }, signal).then(
-      (data): { models: AvailableModel[]; error?: string } => ({ models: parseAvailableModels(data) }),
-      (error: unknown) => ({ models: [], error: error instanceof Error ? error.message : String(error) }),
+    postCloudCode(endpoints.cloudCode, 'retrieveUserQuotaSummary', token, { project: projectId }, signal).then(
+      (data): { groups: QuotaGroup[]; error?: string } => ({ groups: parseQuotaSummary(data) }),
+      (error: unknown) => ({ groups: [], error: error instanceof Error ? error.message : String(error) }),
     ),
   ]);
-  return { email, projectId, tier: tierName(assist), models: available.models, modelsError: available.error };
+  return { email, projectId, tier: tierName(assist), quota: quota.groups, quotaError: quota.error };
 }
 
 function formatReset(resetTime: string | undefined, now: number): string {
@@ -53,22 +75,25 @@ function formatReset(resetTime: string | undefined, now: number): string {
 
 export function formatAccountSummary(summary: AccountSummary, now = Date.now()): string {
   const lines = [`Account: ${summary.email ?? 'unknown'}`, `Project: ${summary.projectId}`, `Tier: ${summary.tier ?? 'unknown'}`, 'Quota:'];
-  if (summary.modelsError) lines.push(`  unavailable: ${summary.modelsError}`);
-  else if (summary.models.length === 0) lines.push('  no models returned');
-  for (const model of summary.models) {
-    const left = model.remainingFraction === undefined ? 'unknown' : `${Math.round(model.remainingFraction * 100)}% left`;
-    lines.push(`  ${model.id}: ${left}${formatReset(model.resetTime, now)}`);
+  if (summary.quotaError) lines.push(`  unavailable: ${summary.quotaError}`);
+  else if (summary.quota.length === 0) lines.push('  no quota returned');
+  for (const group of summary.quota) {
+    lines.push(`  ${group.displayName}:`);
+    for (const bucket of group.buckets) {
+      const left = bucket.remainingFraction === undefined ? 'unknown' : `${Math.round(bucket.remainingFraction * 100)}% left`;
+      lines.push(`    ${bucket.displayName}: ${left}${formatReset(bucket.resetTime, now)}`);
+    }
   }
   return lines.join('\n');
 }
 
-export function createAntigravityCommand(endpoints: CommandEndpoints) {
+export function createAntigravityCommand(endpoints: Pick<OAuthEndpoints, 'cloudCode' | 'userInfoUrl'>) {
   const report = (ctx: ExtensionCommandContext, text: string, level: 'info' | 'error') => {
     if (ctx.hasUI) ctx.ui.notify(text, level);
     else process.stderr.write(`${text}\n`);
   };
   return {
-    description: 'Show the Google Antigravity account, project, tier, and per-model quota',
+    description: 'Show the Google Antigravity account, project, tier, and quota',
     handler: async (_args: string, ctx: ExtensionCommandContext) => {
       const apiKey = await ctx.modelRegistry.getApiKeyForProvider(PROVIDER_ID);
       if (!apiKey) {

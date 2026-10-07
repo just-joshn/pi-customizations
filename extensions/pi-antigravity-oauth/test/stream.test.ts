@@ -51,14 +51,12 @@ async function run(
     model?: (model: Model<Api>) => Model<Api>;
     context?: Context;
     stream?: SimpleStreamOptions;
-    endpoints?: (url: string) => string[];
   } = {},
 ): Promise<Run> {
   const server = await fakeServer(reply);
   try {
-    const endpoints = options.endpoints?.(server.url) ?? [server.url];
-    const provider = createAntigravityProvider({ endpoints, oauth: GOOGLE_OAUTH });
-    const base = provider.getModels().find((item) => item.id === (options.modelId ?? 'gemini-3.1-pro-low')) ?? provider.getModels()[0];
+    const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
+    const base = provider.getModels().find((item) => item.id === (options.modelId ?? 'gemini-3.1-pro'));
     if (!base) throw new Error('missing base model');
     const model = options.model?.(base) ?? base;
     const result = provider.streamSimple(model, normalizeContext(options.context ?? hello), {
@@ -100,18 +98,26 @@ test('text and thinking stream into balanced Pi events with usage', async () => 
   expect(message.usage.totalTokens).toBe(15);
 });
 
-test('the envelope names the project, model, and Antigravity agent request type', async () => {
+test('the envelope matches the Antigravity CLI agent request for the selected effort', async () => {
   const { server } = await run((_, res) => stream(res, textAndThinking), { stream: { reasoning: 'high' } });
   const sent = body(server.requests[0]);
   expect(server.requests[0]?.path).toBe('/v1internal:streamGenerateContent?alt=sse');
+  expect(Object.keys(sent)).toEqual(['project', 'requestId', 'request', 'model', 'userAgent', 'requestType']);
   expect(sent.project).toBe('proj-123');
-  expect(sent.model).toBe('gemini-3.1-pro-low');
+  expect(sent.model).toBe('gemini-pro-agent');
   expect(sent.requestType).toBe('agent');
   expect(sent.userAgent).toBe('antigravity');
-  expect(sent.requestId).toMatch(/^agent-[0-9a-f-]{36}$/);
+  expect(sent.requestId).toMatch(/^agent\/[0-9a-f-]{36}\/1\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/1$/);
   expect(sent.request.contents).toEqual([{ role: 'user', parts: [{ text: 'hi' }] }]);
   expect(sent.request.systemInstruction).toEqual({ role: 'user', parts: [{ text: 'Be brief.' }] });
-  expect(sent.request.generationConfig?.thinkingConfig).toEqual({ includeThoughts: true, thinkingLevel: 'HIGH' });
+  expect(sent.request.generationConfig).toEqual({ maxOutputTokens: 65535, thinkingConfig: { includeThoughts: true, thinkingBudget: 10001 } });
+});
+
+test('a lower effort selects the low Cloud Code model and its thinking budget', async () => {
+  const { server, message } = await run((_, res) => stream(res, textAndThinking), { stream: { reasoning: 'low' } });
+  expect(body(server.requests[0]).model).toBe('gemini-3.1-pro-low');
+  expect(body(server.requests[0]).request.generationConfig.thinkingConfig).toEqual({ includeThoughts: true, thinkingBudget: 1001 });
+  expect(message.thinkingLevel).toBe('low');
 });
 
 test('OpenAI sampling metadata does not enter the Cloud Code request', async () => {
@@ -122,51 +128,52 @@ test('OpenAI sampling metadata does not enter the Cloud Code request', async () 
   expect(body(server.requests[0]).request.generationConfig).toEqual({
     temperature: 0.3,
     maxOutputTokens: 4000,
-    thinkingConfig: { includeThoughts: true, thinkingLevel: 'HIGH' },
+    thinkingConfig: { includeThoughts: true, thinkingBudget: 10001 },
   });
   expect(message.stopReason).toBe('stop');
 });
 
-test('Gemini sends bearer auth and the Antigravity user agent without the Claude beta header', async () => {
+test('the request carries only the headers the Antigravity CLI sends', async () => {
   const { server } = await run((_, res) => stream(res, textAndThinking));
   const headers = server.requests[0]?.headers ?? {};
   expect(headers.authorization).toBe('Bearer ya29.test');
-  expect(headers['user-agent']).toMatch(/^antigravity\/cli\/\d+\.\d+\.\d+ \(aidev_client; os_type=\w+; arch=\w+; cl=\d+; auth_method=consumer\)$/);
-  expect(headers.accept).toBe('text/event-stream');
+  expect(headers['content-type']).toBe('application/json');
+  expect(headers['user-agent']).toBe(userAgent());
+  expect(headers.accept).not.toBe('text/event-stream');
   expect(headers['anthropic-beta']).toBeUndefined();
 });
 
 test("the user agent names the host in Go's os and arch spelling", () => {
-  expect(userAgent('darwin', 'arm64')).toBe('antigravity/cli/1.1.23 (aidev_client; os_type=darwin; arch=arm64; cl=974125021; auth_method=consumer)');
-  expect(userAgent('win32', 'x64')).toBe('antigravity/cli/1.1.23 (aidev_client; os_type=windows; arch=amd64; cl=974125021; auth_method=consumer)');
+  expect(userAgent('darwin', 'arm64')).toBe('antigravity/cli/1.3.1 (aidev_client; os_type=darwin; arch=arm64; cl=994719654; auth_method=consumer)');
+  expect(userAgent('win32', 'x64')).toBe('antigravity/cli/1.3.1 (aidev_client; os_type=windows; arch=amd64; cl=994719654; auth_method=consumer)');
 });
 
-test('a reasoning Claude model gets the interleaved-thinking beta and a thinking budget', async () => {
-  const { server } = await run((_, res) => stream(res, textAndThinking), {
-    modelId: 'claude-sonnet-4-6',
-    stream: { reasoning: 'medium', maxTokens: 4000 },
-  });
-  expect(server.requests[0]?.headers['anthropic-beta']).toBe('interleaved-thinking-2025-05-14');
-  expect(body(server.requests[0]).request.generationConfig).toEqual({
-    maxOutputTokens: 12192,
-    thinkingConfig: { includeThoughts: true, thinkingBudget: 8192 },
-  });
-});
-
-test('a non-reasoning Claude model gets no beta header', async () => {
-  const { server, message } = await run((_, res) => stream(res, textAndThinking), {
-    modelId: 'claude-sonnet-4-6',
-    model: (model) => ({ ...model, id: 'claude-sonnet-4-5', reasoning: false }),
-  });
-  expect(body(server.requests[0]).model).toBe('claude-sonnet-4-5');
-  expect(message.content).toContainEqual({ type: 'text', text: 'Hello' });
+test('a Claude effort is sent as a thinking level with a zero budget and no beta header', async () => {
+  const { server } = await run((_, res) => stream(res, textAndThinking), { modelId: 'claude-sonnet-5-5', stream: { reasoning: 'low' } });
   expect(server.requests[0]?.headers['anthropic-beta']).toBeUndefined();
-  expect(body(server.requests[0]).request.generationConfig?.thinkingConfig).toBeUndefined();
+  expect(body(server.requests[0]).model).toBe('claude-sonnet-5-5-low');
+  expect(body(server.requests[0]).request.generationConfig).toEqual({
+    maxOutputTokens: 128000,
+    thinkingConfig: { includeThoughts: true, thinkingBudget: 0, thinkingLevel: 'LOW' },
+  });
+});
+
+test('thinking off selects the lowest effort, because every CLI model thinks', async () => {
+  const { server, message } = await run((_, res) => stream(res, textAndThinking), { modelId: 'claude-opus-5-5' });
+  expect(body(server.requests[0]).model).toBe('claude-opus-5-5-low');
+  expect(message.thinkingLevel).toBe('low');
+});
+
+test('a model with one effort uses it for every thinking level', async () => {
+  const { server } = await run((_, res) => stream(res, textAndThinking), { modelId: 'gpt-oss-120b', stream: { reasoning: 'high' } });
+  expect(body(server.requests[0]).model).toBe('gpt-oss-120b-medium');
+  expect(body(server.requests[0]).request.generationConfig).toEqual({ maxOutputTokens: 32768, thinkingConfig: { includeThoughts: true, thinkingBudget: 8192 } });
 });
 
 async function toolRoundTrip(modelId: string) {
   const first = await run((_, res) => stream(res, toolCallStream('call_1')), {
     modelId,
+    stream: { sessionId: 'session-1' },
     context: { tools: [readTool], messages: [{ role: 'user', content: 'read a', timestamp: 1 }] },
   });
   const followUp: Context = {
@@ -184,25 +191,27 @@ async function toolRoundTrip(modelId: string) {
       },
     ],
   };
-  const second = await run((_, res) => stream(res, textAndThinking), { modelId, context: followUp });
+  const second = await run((_, res) => stream(res, textAndThinking), { modelId, stream: { sessionId: 'session-1' }, context: followUp });
   return { first, sentTools: body(first.server.requests[0]).request.tools, followUp: body(second.server.requests[0]) };
 }
 
-test('a Gemini tool call round trip uses parametersJsonSchema and returns the function response', async () => {
-  const { first, sentTools, followUp } = await toolRoundTrip('gemini-3.1-pro-low');
+const cliParameters = { type: 'OBJECT', properties: { path: { type: 'STRING' } }, required: ['path'] };
+
+test('a Gemini tool call round trip declares OpenAPI parameters and returns the result in a model turn', async () => {
+  const { first, sentTools, followUp } = await toolRoundTrip('gemini-3.1-pro');
   expect(first.message.stopReason).toBe('toolUse');
   expect(first.message.content).toEqual([{ type: 'toolCall', id: 'call_1', name: 'read', arguments: { path: 'a.txt' } }]);
-  expect(sentTools).toEqual([{ functionDeclarations: [{ name: 'read', description: 'Read a file', parametersJsonSchema: readTool.parameters }] }]);
+  expect(sentTools).toEqual([{ functionDeclarations: [{ name: 'read', description: 'Read a file', parameters: cliParameters }] }]);
   expect(followUp.request.contents.at(-1)).toEqual({
-    role: 'user',
+    role: 'model',
     parts: [{ functionResponse: { name: 'read', response: { output: 'hello' }, id: 'call_1' } }],
   });
 });
 
-test('a Claude tool call round trip uses OpenAPI parameters and keeps the tool call id', async () => {
-  const { first, sentTools, followUp } = await toolRoundTrip('claude-sonnet-4-6');
+test('a Claude tool call round trip keeps the tool call id and returns the result in a user turn', async () => {
+  const { first, sentTools, followUp } = await toolRoundTrip('claude-sonnet-5-5');
   expect(first.message.stopReason).toBe('toolUse');
-  expect(sentTools).toEqual([{ functionDeclarations: [{ name: 'read', description: 'Read a file', parameters: readTool.parameters }] }]);
+  expect(sentTools).toEqual([{ functionDeclarations: [{ name: 'read', description: 'Read a file', parameters: cliParameters }] }]);
   expect(followUp.request.contents.at(-2)).toEqual({
     role: 'model',
     parts: [{ functionCall: { name: 'read', args: { path: 'a.txt' }, id: 'call_1' } }],
@@ -211,12 +220,6 @@ test('a Claude tool call round trip uses OpenAPI parameters and keeps the tool c
     role: 'user',
     parts: [{ functionResponse: { name: 'read', response: { output: 'hello' }, id: 'call_1' } }],
   });
-});
-
-test('a 404 cascades to the next endpoint without retrying the first', async () => {
-  const { server, message } = await run((request, res) => (request.path.startsWith('/daily/') ? json(res, 404, { error: { message: 'nope' } }) : stream(res, textAndThinking)), { endpoints: (url) => [`${url}/daily`, `${url}/prod`] });
-  expect(server.requests.map((request) => request.path)).toEqual(['/daily/v1internal:streamGenerateContent?alt=sse', '/prod/v1internal:streamGenerateContent?alt=sse']);
-  expect(message.stopReason).toBe('stop');
 });
 
 test("a 429 reaches Pi's own retry without a provider retry by default", async () => {
@@ -347,9 +350,17 @@ test('a session id is forwarded in the request envelope', async () => {
   expect(body(server.requests[0]).request.sessionId).toBe('sess-1');
 });
 
+test('a tool round trip keeps the turn in the request id and advances the step by two', async () => {
+  const { first, followUp } = await toolRoundTrip('claude-sonnet-5-5');
+  const opening = body(first.server.requests[0]).requestId.split('/');
+  const next = followUp.requestId.split('/');
+  expect(next.slice(0, 4)).toEqual(opening.slice(0, 4));
+  expect([opening[2], opening[4], next[4]]).toEqual(['1', '1', '3']);
+});
+
 test('a null header override removes the base header', async () => {
-  const { server } = await run((_, res) => stream(res, textAndThinking), { stream: { headers: { Accept: null } } });
-  expect(server.requests[0]?.headers.accept).not.toBe('text/event-stream');
+  const { server } = await run((_, res) => stream(res, textAndThinking), { stream: { headers: { 'User-Agent': null } } });
+  expect(server.requests[0]?.headers['user-agent']).not.toBe(userAgent());
   expect(server.requests[0]?.headers.authorization).toBe('Bearer ya29.test');
 });
 
@@ -406,10 +417,10 @@ test('a non-Error payload failure is reported as text', async () => {
   expect(message.errorMessage).toBe('payload rejected');
 });
 
-test('a model base URL outside the configured list is used', async () => {
+test('a model base URL replaces the configured endpoint', async () => {
   const server = await fakeServer((_, res) => stream(res, textAndThinking));
   try {
-    const provider = createAntigravityProvider({ endpoints: ['https://ignored.example'], oauth: GOOGLE_OAUTH });
+    const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: 'https://ignored.example' });
     const base = provider.getModels()[0];
     if (!base) throw new Error('missing base model');
     const message = await provider.streamSimple({ ...base, baseUrl: server.url }, normalizeContext(hello), { apiKey: API_KEY }).result();
@@ -431,5 +442,5 @@ test('onProviderStreamEvent observes each raw chunk before normalization', async
   });
   expect(observed.length).toBe(3);
   expect(message.stopReason).toBe('stop');
-  expect(observed[0]?.modelId).toBe('gemini-3.1-pro-low');
+  expect(observed[0]?.modelId).toBe('gemini-3.1-pro');
 });

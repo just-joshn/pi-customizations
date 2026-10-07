@@ -1,167 +1,101 @@
-import type { Api, Model, RefreshModelsContext, ThinkingLevelMap } from '@earendil-works/pi-ai';
+import type { Api, Model, ModelThinkingLevel, RefreshModelsContext, ThinkingLevelMap } from '@earendil-works/pi-ai';
+import snapshot from './catalog-snapshot.ts';
 import { PROVIDER_ID, postCloudCode } from './cloudcode.ts';
 import { parseCredential } from './oauth.ts';
 
 export const API: Api = 'cloud-code-assist';
 
-export type Family = 'gemini' | 'claude' | 'gpt-oss';
+const CLAUDE_LEVELS = { 1: 'LOW', 2: 'MEDIUM', 3: 'HIGH' } as const;
 
-interface FamilySpec {
-  toolParameters: boolean;
-  thinking: 'level' | 'budget' | 'none';
-  extraHeaders?: Record<string, string>;
-  contextWindow: number;
-  maxTokens: number;
+type Effort = 'low' | 'medium' | 'high' | 'max';
+
+/** One Cloud Code model id and the fixed thinking settings the Antigravity CLI sends with it. */
+export interface Variant {
+  model: string;
+  thinkingBudget?: number;
+  thinkingLevel?: (typeof CLAUDE_LEVELS)[keyof typeof CLAUDE_LEVELS];
 }
 
-export const FAMILY: Record<Family, FamilySpec> = {
-  gemini: { toolParameters: false, thinking: 'level', contextWindow: 1048576, maxTokens: 65535 },
-  claude: {
-    toolParameters: true,
-    thinking: 'budget',
-    extraHeaders: { 'anthropic-beta': 'interleaved-thinking-2025-05-14' },
-    contextWindow: 200000,
-    maxTokens: 64000,
-  },
-  'gpt-oss': { toolParameters: false, thinking: 'none', contextWindow: 131072, maxTokens: 32768 },
-};
-
-export function familyOf(modelId: string): Family {
-  if (modelId.startsWith('claude-')) return 'claude';
-  if (modelId.startsWith('gpt-oss-')) return 'gpt-oss';
-  return 'gemini';
+interface CatalogEntry {
+  displayName?: string;
+  supportsImages?: boolean;
+  supportsThinking?: boolean;
+  thinkingBudget?: number;
+  thinkingLevel?: number;
+  maxTokens?: number;
+  maxOutputTokens?: number;
 }
 
-// Gemini Pro accepts only LOW and HIGH thinking levels.
-const GEMINI_PRO_LEVELS: ThinkingLevelMap = { minimal: 'low', low: 'low', medium: 'high', high: 'high' };
-
-function geminiLevels(modelId: string): ThinkingLevelMap | undefined {
-  return /-pro\b/.test(modelId) ? GEMINI_PRO_LEVELS : undefined;
+interface Catalog {
+  models?: Record<string, CatalogEntry>;
+  agentModelSorts?: { groups?: { modelIds?: string[] }[] }[];
+  deprecatedModelIds?: Record<string, { newModelId?: string }>;
 }
 
-type ModelRow = Omit<Model<Api>, 'api' | 'provider' | 'baseUrl'>;
+const UNSUPPORTED: Record<ModelThinkingLevel, null> = { off: null, minimal: null, low: null, medium: null, high: null, xhigh: null, max: null };
 
-const ZERO_COST = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+const EFFORT_SUFFIX = /^(.+)-(low|medium|high|max)$/;
+const EFFORT_LABEL = / \((?:Low|Medium|High|Max)\)$/;
 
-const BASELINE: readonly ModelRow[] = [
-  {
-    id: 'gemini-3.1-pro-low',
-    name: 'Gemini 3.1 Pro Low (Antigravity)',
-    reasoning: true,
-    thinkingLevelMap: GEMINI_PRO_LEVELS,
-    input: ['text', 'image'],
-    cost: { input: 2, output: 12, cacheRead: 0.2, cacheWrite: 2.375 },
-    contextWindow: 1048576,
-    maxTokens: 65535,
-  },
-  {
-    id: 'gemini-3-flash-agent',
-    name: 'Gemini 3 Flash Agent (Antigravity)',
-    reasoning: true,
-    input: ['text', 'image'],
-    cost: { input: 0.5, output: 3, cacheRead: 0.5, cacheWrite: 0 },
-    contextWindow: 1048576,
-    maxTokens: 65535,
-  },
-  {
-    id: 'claude-sonnet-4-6',
-    name: 'Claude Sonnet 4.6 (Antigravity)',
-    reasoning: true,
-    input: ['text', 'image'],
-    cost: { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 },
-    contextWindow: 200000,
-    maxTokens: 64000,
-  },
-  {
-    id: 'claude-opus-4-6-thinking',
-    name: 'Claude Opus 4.6 Thinking (Antigravity)',
-    reasoning: true,
-    input: ['text', 'image'],
-    cost: { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 },
-    contextWindow: 200000,
-    maxTokens: 64000,
-  },
-  {
-    id: 'gpt-oss-120b-medium',
-    name: 'GPT-OSS 120B Medium (Antigravity)',
-    reasoning: false,
-    input: ['text'],
-    cost: { input: 0.09, output: 0.36, cacheRead: 0, cacheWrite: 0 },
-    contextWindow: 131072,
-    maxTokens: 32768,
-  },
-];
+function variantOf(id: string, entry: CatalogEntry): Variant {
+  if (!entry.supportsThinking) return { model: id };
+  const level = CLAUDE_LEVELS[entry.thinkingLevel as keyof typeof CLAUDE_LEVELS];
+  return { model: id, thinkingBudget: entry.thinkingBudget ?? 0, ...(level && { thinkingLevel: level }) };
+}
 
-function toModel(row: ModelRow, baseUrl: string): Model<Api> {
-  return { ...row, api: API, provider: PROVIDER_ID, baseUrl };
+/** Reads the Cloud Code variant that Pi's thinking level selected for a model. */
+export function parseVariant(value: string | null | undefined): Variant | undefined {
+  if (!value) return undefined;
+  const parsed = JSON.parse(value) as Partial<Variant>;
+  return typeof parsed.model === 'string' ? (parsed as Variant) : undefined;
+}
+
+// The CLI lists agent models as one id per effort (`claude-sonnet-5-5-low`) and asks for
+// `--model claude-sonnet-5-5 --effort low`. Pi models the same split with thinking levels.
+export function catalogModels(data: unknown, baseUrl: string): Model<Api>[] {
+  const catalog = (data ?? {}) as Catalog;
+  const entries = catalog.models ?? {};
+  const shownId = new Map(Object.entries(catalog.deprecatedModelIds ?? {}).map(([old, { newModelId }]) => [newModelId, old]));
+  const agentIds = [...new Set((catalog.agentModelSorts ?? []).flatMap((sort) => (sort.groups ?? []).flatMap((group) => group.modelIds ?? [])))];
+  const models = new Map<string, Model<Api>>();
+  for (const id of agentIds) {
+    const entry = entries[id];
+    if (!entry) continue;
+    const [, base = shownId.get(id) ?? id, effort = 'medium'] = EFFORT_SUFFIX.exec(shownId.get(id) ?? id) ?? [];
+    const known = models.get(base);
+    const model: Model<Api> = known ?? {
+      id: base,
+      name: `${(entry.displayName ?? base).replace(EFFORT_LABEL, '')} (Antigravity)`,
+      api: API,
+      provider: PROVIDER_ID,
+      baseUrl,
+      reasoning: true,
+      thinkingLevelMap: { ...UNSUPPORTED },
+      input: entry.supportsImages ? ['text', 'image'] : ['text'],
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      contextWindow: entry.maxTokens ?? 0,
+      maxTokens: entry.maxOutputTokens ?? 0,
+    };
+    const thinkingLevelMap: ThinkingLevelMap = { ...model.thinkingLevelMap, [effort as Effort]: JSON.stringify(variantOf(id, entry)) };
+    models.set(base, {
+      ...model,
+      thinkingLevelMap,
+      contextWindow: Math.max(model.contextWindow, entry.maxTokens ?? 0),
+      maxTokens: Math.max(model.maxTokens, entry.maxOutputTokens ?? 0),
+    });
+  }
+  return [...models.values()];
 }
 
 export function baselineModels(baseUrl: string): Model<Api>[] {
-  return BASELINE.map((row) => toModel(row, baseUrl));
+  return catalogModels(snapshot, baseUrl);
 }
 
-export interface AvailableModel {
-  id: string;
-  displayName?: string | undefined;
-  supportsThinking?: boolean | undefined;
-  supportsImages?: boolean | undefined;
-  remainingFraction?: number | undefined;
-  resetTime?: string | undefined;
-}
-
-const RUNTIME_ID = /^(gemini-|claude-|gpt-oss-)[\w.-]+$/;
-
-export function parseAvailableModels(data: unknown): AvailableModel[] {
-  const models = (data as { models?: unknown } | null)?.models;
-  if (!models || typeof models !== 'object') return [];
-  const parsed: AvailableModel[] = [];
-  for (const [id, raw] of Object.entries(models as Record<string, unknown>)) {
-    if (!RUNTIME_ID.test(id) || !raw || typeof raw !== 'object') continue;
-    const info = raw as Record<string, unknown>;
-    if (info['isInternal'] === true) continue;
-    const quota = (info['quotaInfo'] ?? {}) as Record<string, unknown>;
-    parsed.push({
-      id,
-      displayName: typeof info['displayName'] === 'string' ? info['displayName'] : undefined,
-      supportsThinking: typeof info['supportsThinking'] === 'boolean' ? info['supportsThinking'] : undefined,
-      supportsImages: typeof info['supportsImages'] === 'boolean' ? info['supportsImages'] : undefined,
-      remainingFraction: typeof quota['remainingFraction'] === 'number' ? quota['remainingFraction'] : undefined,
-      resetTime: typeof quota['resetTime'] === 'string' ? quota['resetTime'] : undefined,
-    });
-  }
-  return parsed.sort((a, b) => a.id.localeCompare(b.id));
-}
-
-export function catalogFromAvailable(available: readonly AvailableModel[], baseUrl: string): Model<Api>[] {
-  return available.map((entry) => {
-    const known = BASELINE.find((row) => row.id === entry.id);
-    if (known) return toModel(known, baseUrl);
-    const family = FAMILY[familyOf(entry.id)];
-    const reasoning = entry.supportsThinking ?? family.thinking !== 'none';
-    const thinkingLevelMap = reasoning && familyOf(entry.id) === 'gemini' ? geminiLevels(entry.id) : undefined;
-    return toModel(
-      {
-        id: entry.id,
-        name: `${entry.displayName ?? entry.id} (Antigravity)`,
-        reasoning,
-        ...(thinkingLevelMap !== undefined && { thinkingLevelMap }),
-        input: entry.supportsImages === false ? ['text'] : ['text', 'image'],
-        cost: ZERO_COST,
-        contextWindow: family.contextWindow,
-        maxTokens: family.maxTokens,
-      },
-      baseUrl,
-    );
-  });
-}
-
-export function createFetchModels(endpoints: readonly string[]) {
+export function createFetchModels(endpoint: string) {
   return async (context: RefreshModelsContext): Promise<Model<Api>[]> => {
     if (context.credential?.type !== 'oauth') throw new Error('Google Antigravity is not logged in');
     const credential = parseCredential(context.credential);
-    const data = await postCloudCode(endpoints, 'fetchAvailableModels', credential.access, { project: credential.projectId }, context.signal);
-    const endpoint = endpoints[0];
-    if (!endpoint) throw new Error('No endpoints configured for Google Antigravity');
-    return catalogFromAvailable(parseAvailableModels(data), endpoint);
+    const data = await postCloudCode(endpoint, 'fetchAvailableModels', credential.access, { project: credential.projectId }, context.signal);
+    return catalogModels(data, endpoint);
   };
 }
