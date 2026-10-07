@@ -38,9 +38,13 @@ Claim two, that Node will not strip types under `node_modules`, holds. A copy un
 
 **Why it matters.** The done predicate trusts receipts. Nothing binds a receipt to the scenario text that produced it, so an expectation can be moved to match observed output and the report cannot tell.
 
-**Proposed guard, not yet built.** Have `lib/receipts.mjs` record a hash of the producing scenario file in each receipt, and have `coverage-report.mjs` report a receipt whose scenario hash has changed as `stale-scenario` instead of `verified`. This closes the after-the-fact edit but not a weakened assertion written and run in one go. The stronger guard is to move expected values out of the scenarios and into coordinator-owned rows of `surfaces.tsv`, so a worker can edit a drive but not the expectation it is judged against.
+**Implemented guard.** `4f97be4` records the producing scenario's SHA-256 digest in each receipt. The report rejects changed or unbound scenarios under strict completion. Legacy receipts are accepted only when git proves that their scenario text is unchanged. The sixteen formerly unbound scenarios have now been re-driven. The fresh report has 433 bound receipts, zero changed receipts, and zero unbound receipts. Evidence is under `artifacts/user-perspective/f009-rebinding/`.
 
-**Why it is parked.** It changes the receipt contract and therefore every existing receipt, and it is a Phase E hardening step rather than part of the sweep.
+**Re-drive regression.** The sweep exposed two scenarios reading historical recorder output. `78a875e` adds a real-Pi regression that seeds stale records and fails both drives. `af5da17` resets only the two owned recorder logs. Both regression cases and both canonical re-drives pass. The sweep also caught an obsolete fallback assertion left after F-019. `95764ea` replaces it with an assertion that no fallback child starts for an unavailable model; the real-Pi drive passes.
+
+**Remaining defect.** A digest detects an after-the-fact edit, but not a weakened assertion followed by a new run. The reporter still cannot establish that a scenario's assertions cover the coordinator-owned expected result. F-009 remains open until that gap has a failing regression and a structural fix.
+
+**Completion gate.** The strict report still exits 1 while F-009 or another finding remains open. Scenario binding alone does not close this finding.
 
 ---
 
