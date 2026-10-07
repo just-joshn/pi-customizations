@@ -57,6 +57,18 @@ createInterface({ input: process.stdin }).on('line', (line) => {
   else send({ id, result: {} });
 });
 `;
+const REAL_HOME = process.env.HOME;
+const SERVICES_COMMAND = (url) =>
+  [
+    `caveman shrink -- sh -c '${TOOL_COMMAND.replaceAll("'", '')}' | tail -n 2`,
+    'echo ---',
+    'caveman mem remember "deploy key lives in vault path secret/deploy" >/dev/null && caveman mem recall "deploy key"',
+    'echo ---',
+    `HOME=${REAL_HOME} perl -e 'alarm 90; exec @ARGV' caveman browse ${url}; HOME=${REAL_HOME} caveman browse close >/dev/null 2>&1`,
+    'echo ---',
+    'caveman mem hook install pi 2>&1',
+  ].join('; ');
+let servicesUrl = '';
 const hits = [];
 const sse = (res, delta, finish) => {
   const chunk = (d, f, usage) => ({ id: 's', object: 'chat.completion.chunk', model: 'm', choices: [{ index: 0, delta: d, finish_reason: f }], ...usage });
@@ -81,6 +93,7 @@ function reply(messages, res) {
   if (last?.role === 'user' && asked.includes('RUN_VERBS')) return sse(res, toolCall('bash', { command: VERB_PROBE }), 'tool_calls');
   if (last?.role === 'user' && asked.includes('RUN_TOOL')) return sse(res, toolCall('bash', { command: TOOL_COMMAND }), 'tool_calls');
   if (last?.role === 'user' && asked.includes('RUN_PARALLEL')) return sse(res, toolCalls(['bash', { command: TOOL_COMMAND }], ['bash', { command: PARALLEL_COMMAND }]), 'tool_calls');
+  if (last?.role === 'user' && asked.includes('RUN_SERVICES')) return sse(res, toolCall('bash', { command: SERVICES_COMMAND(servicesUrl) }), 'tool_calls');
   if (last?.role === 'user' && asked.includes('RUN_MCP')) return sse(res, toolCall('mcp__fixture__noisy', {}), 'tool_calls');
   const handle = last?.role === 'tool' ? /ccr_[A-Za-z0-9_]+/.exec(textOf(last))?.[0] : undefined;
   const retrieved = messages.some((m) => JSON.stringify(m.tool_calls ?? '').includes('caveman_retrieve'));
@@ -233,6 +246,19 @@ try {
     'a shrunk bash result keeps no structuredContent that contradicts its text',
     JSON.stringify(results.map((entry) => Object.keys(entry.message))),
   );
+
+  const page = createServer((_req, res) => res.end('<html><body><h1>Release notes</h1><p>Version 4.2 fixes the login timeout.</p></body></html>'));
+  await new Promise((r) => page.listen(0, '127.0.0.1', r));
+  servicesUrl = `http://127.0.0.1:${page.address().port}/`;
+  const services = await runPi('RUN_SERVICES please', { ...env, CAVE_SSRF_ALLOWLIST: `${allow},127.0.0.1:${page.address().port}` });
+  page.close();
+  const serviceTurns = fresh();
+  const serviceText = toolTexts(serviceTurns[2] ?? { messages: [] })[1] ?? toolTexts(serviceTurns[1] ?? { messages: [] })[0] ?? '';
+  const [shrinkOut, memOut, browseOut, hookOut] = serviceText.split('---\n');
+  check(services.code === 0 && /caveman: shrank .* recover: caveman retrieve ccr_[a-f0-9]+/.test(shrinkOut ?? ''), 'caveman shrink -- <cmd> compresses command output from Pi bash with a recovery handle', shrinkOut);
+  check(/"basis": "inferred"/.test(memOut ?? '') && (memOut ?? '').includes('secret/deploy'), 'caveman mem remember and recall round-trip from Pi bash with an inferred cost basis', memOut);
+  check(/"recovery_handle":"ccr_[a-f0-9]+"/.test(browseOut ?? '') && (browseOut ?? '').includes('Version 4.2 fixes the login timeout.'), 'caveman browse returns a compressed page view with a recovery handle from Pi bash', browseOut);
+  check((hookOut ?? '').includes('Pi: no auto-recall surface'), 'caveman mem hook install pi reports that Pi has no auto-recall surface', hookOut);
 
   const mcpConfig = join(home, '.pi', 'agent', 'mcp.json');
   mkdirSync(dirname(mcpConfig), { recursive: true });

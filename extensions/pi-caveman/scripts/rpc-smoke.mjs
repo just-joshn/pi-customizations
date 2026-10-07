@@ -192,11 +192,17 @@ try {
   check(resumed.lastStatus() === undefined, 'explicit off survives a restart with --continue', resumed.lastStatus());
   await resumed.prompt('talk like caveman');
   check(resumed.lastStatus() === '[CAVEMAN]', 'natural-language "talk like caveman" re-activates', resumed.lastStatus());
+  await resumed.prompt('/megacave');
+  check(resumed.lastStatus() === '[MEGACAVE]', 'the live branch moves to megacave before the fork', resumed.lastStatus());
   const { response: forks } = await resumed.request({ type: 'get_fork_messages' });
   const firstQuestion = forks.data.messages.find((m) => m.text.startsWith('Why does React'));
   await resumed.request({ type: 'fork', entryId: firstQuestion.entryId });
   await new Promise((r) => setTimeout(r, 300));
-  check(resumed.lastStatus() === '[CAVEMAN]', 'a fork restores the mode stored on its branch', resumed.lastStatus());
+  check(resumed.lastStatus() === '[CAVEMAN]', 'a fork restores the mode stored on its branch, not the abandoned megacave', resumed.lastStatus());
+  await resumed.prompt('/ultracave');
+  await resumed.request({ type: 'new_session' });
+  await new Promise((r) => setTimeout(r, 300));
+  check(resumed.lastStatus() === '[CAVEMAN]', 'a new session starts from the default, not the previous session', resumed.lastStatus());
   await resumed.stop();
 } catch (error) {
   failures++;

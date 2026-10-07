@@ -228,7 +228,7 @@
       "id": "default-mode-config",
       "capability": "Default mode and config precedence",
       "applicability": "pi",
-      "surface": [],
+      "surface": ["env:CAVEMAN_DEFAULT_MODE"],
       "userEntrypoints": ["CAVEMAN_DEFAULT_MODE", ".caveman/config.json", ".caveman.json", "$XDG_CONFIG_HOME/caveman/config.json", "%APPDATA%\\caveman\\config.json"],
       "cavemanSource": {
         "commit": "99aafe151a1be72be783e662858e8a0955add59f",
@@ -1215,7 +1215,7 @@
       "id": "cli-verbs",
       "capability": "Caveman CLI verbs",
       "applicability": "pi",
-      "surface": ["cli-verb:*"],
+      "surface": ["cli-verb:*", "package:cli", "package:device-auth"],
       "userEntrypoints": ["caveman <verb>"],
       "cavemanSource": {
         "commit": "99aafe151a1be72be783e662858e8a0955add59f",
@@ -1248,7 +1248,7 @@
       "id": "proxy-routing",
       "capability": "Gated provider routing through the local proxy",
       "applicability": "pi",
-      "surface": ["pi-event:model_select"],
+      "surface": ["pi-event:model_select", "component:proxy", "component:engine"],
       "userEntrypoints": ["any model turn with caveman-proxy running"],
       "cavemanSource": {
         "commit": "99aafe151a1be72be783e662858e8a0955add59f",
@@ -1288,7 +1288,7 @@
       "id": "exact-recovery",
       "capability": "caveman_retrieve exact recovery",
       "applicability": "pi",
-      "surface": ["pi-tool:caveman_retrieve"],
+      "surface": ["pi-tool:caveman_retrieve", "component:mcp"],
       "userEntrypoints": ["caveman_retrieve tool"],
       "cavemanSource": {
         "commit": "99aafe151a1be72be783e662858e8a0955add59f",
@@ -1373,7 +1373,7 @@
       "id": "native-lifecycle",
       "capability": "Lifecycle bridge and Core injection",
       "applicability": "pi",
-      "surface": ["pi-event:session_start", "pi-event:before_agent_start", "pi-event:turn_start", "pi-event:turn_end", "pi-event:session_before_compact", "pi-event:session_compact", "pi-event:session_shutdown"],
+      "surface": ["pi-event:session_start", "pi-event:before_agent_start", "pi-event:turn_start", "pi-event:turn_end", "pi-event:session_before_compact", "pi-event:session_compact", "pi-event:session_shutdown", "package:pi-extension"],
       "userEntrypoints": ["session start, prompts, turns, tool calls, compaction, shutdown"],
       "cavemanSource": {
         "commit": "99aafe151a1be72be783e662858e8a0955add59f",
@@ -1489,7 +1489,7 @@
       "id": "privacy",
       "capability": "No prompt, payload, or secret logging",
       "applicability": "pi",
-      "surface": [],
+      "surface": ["env:CAVEMAN_TELEMETRY", "env:CAVEMAN_TELEMETRY_URL", "env:CAVEMAN_OFFLINE"],
       "userEntrypoints": ["all runtime calls"],
       "cavemanSource": {
         "commit": "99aafe151a1be72be783e662858e8a0955add59f",
@@ -1502,7 +1502,12 @@
         "sideEffects": [],
         "persistence": [],
         "failureBehavior": [],
-        "safetyBehavior": ["prompt sent as sha256 digest and filtered terms", "secret-looking terms dropped", "notices name no key values"]
+        "safetyBehavior": [
+          "prompt sent as sha256 digest and filtered terms",
+          "secret-looking terms dropped",
+          "notices name no key values",
+          "the package itself sends nothing; telemetry and offline switches are honored by the canonical CLI and proxy it spawns with the unchanged environment"
+        ]
       },
       "piMapping": {
         "mechanisms": ["vendored lifecycle"],
@@ -1512,7 +1517,8 @@
       "verification": {
         "tests": [
           "vendor/caveman/packages/pi-extension/tests/protocol.runtime.mjs::prompt digest carries bytes+sha256, never raw text",
-          "vendor/caveman/packages/pi-extension/tests/provider.runtime.mjs::unresolved provider headers restore direct mode without exposing resolver details"
+          "vendor/caveman/packages/pi-extension/tests/provider.runtime.mjs::unresolved provider headers restore direct mode without exposing resolver details",
+          "scripts/check-parity.mjs::the package source opens no network connection of its own"
         ],
         "oracle": "Upstream runtime tests.",
         "positiveCases": [],
@@ -1593,7 +1599,7 @@
       "id": "hook-caveman-config",
       "capability": "Claude Code hook caveman-config",
       "applicability": "host-specific",
-      "surface": ["hook:caveman-config"],
+      "surface": ["hook:caveman-config", "env:CAVEMAN_DEBUG", "env:CAVEMAN_SESSION_TTL_MS"],
       "userEntrypoints": ["Claude Code hook"],
       "cavemanSource": {
         "commit": "99aafe151a1be72be783e662858e8a0955add59f",
@@ -1602,7 +1608,7 @@
       "behavior": {
         "preconditions": [],
         "inputs": [],
-        "observableOutputs": [],
+        "observableOutputs": ["CAVEMAN_DEBUG=1 prints stderr diagnostics when a flag-file write is refused", "CAVEMAN_SESSION_TTL_MS sets the age after which per-session flag files are garbage-collected"],
         "sideEffects": [],
         "persistence": [],
         "failureBehavior": [],
@@ -1611,7 +1617,7 @@
       "piMapping": {
         "mechanisms": ["see equivalent rows"],
         "owner": "extension",
-        "rationale": "Claude hook mechanics are replaced by Pi-native mechanisms."
+        "rationale": "Claude hook mechanics are replaced by Pi-native mechanisms. Both variables tune flag files. Pi keeps mode in session entries, so there is no flag write to refuse and no flag store to collect."
       },
       "verification": {
         "tests": [],
@@ -1859,6 +1865,321 @@
         "edgeCases": []
       },
       "status": "verified"
+    },
+    {
+      "id": "cli-shrink",
+      "capability": "caveman shrink -- <cmd>: compress noisy command output with a recovery handle",
+      "applicability": "pi",
+      "surface": ["component:shrink"],
+      "userEntrypoints": ["caveman shrink -- <cmd>"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["shrink/README.md", "README.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["elided output with an inferred token count and a caveman retrieve handle"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["Pi bash tool", "canonical caveman CLI"],
+        "owner": "external-caveman-service",
+        "rationale": "The canonical CLI owns this behavior; Pi runs it unchanged and the Pi package does not reimplement it."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::caveman shrink -- <cmd> compresses command output from Pi bash with a recovery handle"],
+        "oracle": "Real caveman binaries driven from a real Pi print-mode session through the bash tool.",
+        "positiveCases": ["log-shaped output"],
+        "negativeCases": [],
+        "edgeCases": ["Pi tool_result shrinking runs on top and stays exactly recoverable"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-mem",
+      "capability": "cavemem durable memory: remember, recall, supersede, history, recover, forget",
+      "applicability": "pi",
+      "surface": ["component:mem"],
+      "userEntrypoints": ["caveman mem remember|recall|supersede|history|recover|forget"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["mem/README.md", "packages/cli/src/index.ts"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["recall hits with an inferred cost basis"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["Pi bash tool", "canonical caveman CLI"],
+        "owner": "external-caveman-service",
+        "rationale": "The canonical CLI owns this behavior; Pi runs it unchanged and the Pi package does not reimplement it."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::caveman mem remember and recall round-trip from Pi bash with an inferred cost basis", "scripts/e2e-real.mjs::caveman mem hook install pi reports that Pi has no auto-recall surface"],
+        "oracle": "Real caveman binaries driven from a real Pi print-mode session through the bash tool.",
+        "positiveCases": ["remember then recall"],
+        "negativeCases": ["mem hook install pi: upstream has no Pi auto-recall surface and says so"],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-browse",
+      "capability": "caveman browse: compressed accessibility view of a page with a recovery handle",
+      "applicability": "pi",
+      "surface": ["component:browse"],
+      "userEntrypoints": ["caveman browse <url> [query]", "caveman browse act|recover|eval|close"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["browse/README.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["JSON view with uids, recovery_handle, token counts, basis inferred"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["Pi bash tool", "canonical caveman CLI"],
+        "owner": "external-caveman-service",
+        "rationale": "The canonical CLI owns this behavior; Pi runs it unchanged and the Pi package does not reimplement it."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::caveman browse returns a compressed page view with a recovery handle from Pi bash"],
+        "oracle": "Real caveman binaries driven from a real Pi print-mode session through the bash tool.",
+        "positiveCases": ["local page"],
+        "negativeCases": [],
+        "edgeCases": ["needs a local Chrome and the real HOME on macOS"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "service-config",
+      "capability": "Proxy, CLI, and installer environment configuration",
+      "applicability": "pi",
+      "surface": [
+        "env:CAVEMAN_HOME",
+        "env:CAVE_TOKEN",
+        "env:CAVEMAN_AUTH_TOKEN",
+        "env:CAVEMAN_LISTEN",
+        "env:CAVEMAN_TLS_CERT_FILE",
+        "env:CAVEMAN_TLS_KEY_FILE",
+        "env:CAVEMAN_TLS_CLIENT_CA_FILE",
+        "env:CAVEMAN_TLS_CLIENT_CN_FALLBACK",
+        "env:CAVEMAN_METRICS_TOKEN",
+        "env:CAVEMAN_CCR_MAX_BYTES",
+        "env:CAVEMAN_WORK_TAGS",
+        "env:CAVEMAN_REF"
+      ],
+      "userEntrypoints": ["environment variables"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["SECURITY.md", "INSTALL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["the proxy and CLI read these from the environment Pi passes through"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["Pi bash tool", "canonical caveman CLI"],
+        "owner": "external-caveman-service",
+        "rationale": "The canonical CLI owns this behavior; Pi runs it unchanged and the Pi package does not reimplement it."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::a killed proxy leaves its stale run-state file", "scripts/e2e-real.mjs::routed turn completes through the real proxy"],
+        "oracle": "Real caveman binaries driven from a real Pi print-mode session through the bash tool.",
+        "positiveCases": ["CAVEMAN_HOME locates run state"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "browser-extension",
+      "capability": "Caveman browser extension for web chat UIs",
+      "applicability": "out-of-scope",
+      "surface": ["component:extension"],
+      "userEntrypoints": [],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["extension/README.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "external-caveman-service",
+        "rationale": "A Chrome/Firefox extension for web chat pages. It has no coding-agent host surface."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Not an agent-host capability.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "outOfScopeReason": "A Chrome/Firefox extension for web chat pages. It has no coding-agent host surface."
+    },
+    {
+      "id": "sdk-middleware",
+      "capability": "SDK and middleware for apps that call LLM APIs directly",
+      "applicability": "out-of-scope",
+      "surface": ["package:sdk", "package:middleware", "env:CAVEMAN_MIDDLEWARE_DATABASE_URL"],
+      "userEntrypoints": [],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/sdk", "packages/middleware"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "external-caveman-service",
+        "rationale": "Libraries a developer imports into their own application. Pi users reach the same engine through the proxy route."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Not an agent-host capability.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "outOfScopeReason": "Libraries a developer imports into their own application. Pi users reach the same engine through the proxy route."
+    },
+    {
+      "id": "integration-recipes",
+      "capability": "Gateway code recipes for third-party SDKs",
+      "applicability": "out-of-scope",
+      "surface": ["component:integrations"],
+      "userEntrypoints": [],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["integrations/recipes.json"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "external-caveman-service",
+        "rationale": "Copy-paste snippets for Python/TypeScript SDKs; none targets an agent host."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Not an agent-host capability.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "outOfScopeReason": "Copy-paste snippets for Python/TypeScript SDKs; none targets an agent host."
+    },
+    {
+      "id": "subagent-tax",
+      "capability": "Harness prefix-size measurement tool",
+      "applicability": "out-of-scope",
+      "surface": ["package:subagent-tax"],
+      "userEntrypoints": [],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/subagent-tax/README.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "external-caveman-service",
+        "rationale": "A standalone benchmark that runs harnesses, Pi included, from outside. It is not a feature delivered inside a host."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Not an agent-host capability.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "outOfScopeReason": "A standalone benchmark that runs harnesses, Pi included, from outside. It is not a feature delivered inside a host."
+    },
+    {
+      "id": "maintainer-tooling",
+      "capability": "Docs site, evals, and shared internal library",
+      "applicability": "out-of-scope",
+      "surface": ["component:docs", "component:evals", "package:shared"],
+      "userEntrypoints": [],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["docs", "evals", "packages/shared"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "external-caveman-service",
+        "rationale": "Maintainer documentation, evaluation harnesses, and an internal library with no user entrypoint. Their user-facing claims are ledgered per feature."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Not an agent-host capability.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "outOfScopeReason": "Maintainer documentation, evaluation harnesses, and an internal library with no user entrypoint. Their user-facing claims are ledgered per feature."
     }
   ],
   "host": {

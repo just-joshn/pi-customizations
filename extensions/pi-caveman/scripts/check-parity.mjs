@@ -53,6 +53,11 @@ function census() {
   const extension = readFileSync(join(checkout, 'packages/pi-extension/src/index.ts'), 'utf8');
   for (const [, name] of extension.matchAll(/pi\.on\("([a-z_]+)"/g)) keys.add(`pi-event:${name}`);
   for (const [, name] of extension.matchAll(/const RECOVERY_TOOL = "([a-z_]+)"/g)) keys.add(`pi-tool:${name}`);
+  for (const name of listNames(checkout, (e) => e.isDirectory() && (existsSync(join(checkout, e.name, 'README.md')) || e.name === 'integrations'))) keys.add(`component:${name}`);
+  for (const name of listNames(join(checkout, 'packages'), (e) => e.isDirectory())) keys.add(`package:${name}`);
+  for (const file of ['README.md', 'INSTALL.md', 'SECURITY.md', ...listNames(join(checkout, 'src/hooks'), (e) => e.name.endsWith('.js')).map((name) => `src/hooks/${name}`)]) {
+    for (const [name] of readFileSync(join(checkout, file), 'utf8').matchAll(/\bCAVE(?:MAN)?_[A-Z0-9_]+\b/g)) keys.add(`env:${name}`);
+  }
   for (const verb of JSON.parse(readFileSync(join(checkout, 'agents/reserved-verbs.json'), 'utf8')).verbs) {
     if (!verb.startsWith('-')) keys.add(`cli-verb:${verb}`);
   }
@@ -63,7 +68,8 @@ function checkShape(row) {
   const where = `row ${row.id ?? '(no id)'}`;
   if (typeof row.id !== 'string' || !row.id) fail(`${where}: missing id`);
   if (typeof row.capability !== 'string' || !row.capability) fail(`${where}: missing capability`);
-  if (!['pi', 'host-specific'].includes(row.applicability)) fail(`${where}: applicability must be pi or host-specific`);
+  if (!['pi', 'host-specific', 'out-of-scope'].includes(row.applicability)) fail(`${where}: applicability must be pi, host-specific, or out-of-scope`);
+  if (row.applicability === 'out-of-scope' && !row.outOfScopeReason) fail(`${where}: out-of-scope rows need an outOfScopeReason`);
   if (!Array.isArray(row.userEntrypoints) || !Array.isArray(row.surface)) fail(`${where}: userEntrypoints and surface must be arrays`);
   if (row.cavemanSource?.commit !== ledger.upstream.commit) fail(`${where}: cavemanSource.commit differs from the pin`);
   for (const key of BEHAVIOR_KEYS) if (!Array.isArray(row.behavior?.[key])) fail(`${where}: behavior.${key} must be an array`);
@@ -86,7 +92,9 @@ function checkReferences(row, ids) {
     if (!existsSync(join(root, file))) fail(`row ${row.id}: test file missing: ${file}`);
     else if (!readFileSync(join(root, file), 'utf8').includes(name)) fail(`row ${row.id}: ${file} has no test or check named "${name}"`);
   }
-  if (row.applicability === 'host-specific') {
+  if (row.applicability === 'out-of-scope') {
+    if (row.status !== 'verified' || row.verification.tests.length) fail(`row ${row.id}: out-of-scope rows carry no tests and are verified by their reason`);
+  } else if (row.applicability === 'host-specific') {
     const missing = (row.piEquivalent ?? []).filter((id) => !ids.has(id));
     if (!row.piEquivalent?.length || missing.length) fail(`row ${row.id}: host-specific rows need existing piEquivalent rows`);
   } else if (row.status === 'verified' && row.verification.tests.length === 0) {
@@ -125,6 +133,13 @@ function checkResources() {
   else fail("prompts/caveman-init.md differs from upstream's commands/caveman-init.md");
 }
 
+function checkSourcePrivacy() {
+  const sources = readdirSync(join(root, 'src'), { recursive: true }).filter((name) => /\.ts$/.test(name));
+  const network = sources.filter((name) => /\bfetch\(|from 'node:(?:http|https|net|dgram)'/.test(readFileSync(join(root, 'src', name), 'utf8')));
+  if (!network.length) pass('the package source opens no network connection of its own');
+  else fail(`package source opens network connections: ${network.join(', ')}`);
+}
+
 function checkPack() {
   const listing = execFileSync('bun', ['pm', 'pack', '--dry-run', '--ignore-scripts'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   const files = new Set([...listing.matchAll(/^packed \S+ (.+)$/gm)].map((match) => match[1]));
@@ -143,6 +158,7 @@ if (ids.size !== rows.length) fail('duplicate row ids');
 for (const row of rows) checkReferences(row, ids);
 checkCoverage(rows);
 checkResources();
+checkSourcePrivacy();
 checkPack();
 
 const applicable = rows.filter((row) => row.applicability === 'pi');
@@ -150,7 +166,7 @@ const count = (status) => applicable.filter((row) => row.status === status).leng
 const open = applicable.filter((row) => (final ? row.status !== 'verified' : row.status !== 'verified' && row.status !== 'blocked'));
 for (const row of open) fail(`row ${row.id} is ${row.status}${row.blocker ? ` (${row.blocker})` : ''}`);
 process.stdout.write(
-  `rows ${rows.length}: applicable ${applicable.length}, verified ${count('verified')}, blocked ${count('blocked')}, incomplete ${applicable.length - count('verified') - count('blocked')}, host-specific ${rows.length - applicable.length}\n`,
+  `rows ${rows.length}: applicable ${applicable.length}, verified ${count('verified')}, blocked ${count('blocked')}, incomplete ${applicable.length - count('verified') - count('blocked')}, host-specific ${rows.filter((row) => row.applicability === 'host-specific').length}, out-of-scope ${rows.filter((row) => row.applicability === 'out-of-scope').length}\n`,
 );
 if (failures.length) {
   process.stderr.write(`${failures.map((f) => `FAIL ${f}`).join('\n')}\n`);
