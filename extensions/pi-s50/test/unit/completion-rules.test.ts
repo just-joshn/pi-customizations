@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { RunState } from '../../src/domain/run.ts';
 import type { Command } from '../../src/orchestrator/command.ts';
-import { apply, reconcile } from '../../src/orchestrator/coordinator.ts';
+import { apply, nextAction, reconcile } from '../../src/orchestrator/coordinator.ts';
 import { currentReview, prReadyBlockers } from '../../src/policy/completion.ts';
 import { REVIEW_DIMENSIONS } from '../../src/review/reviewer.ts';
 import { fixedClock } from '../support/clock.ts';
@@ -108,5 +108,15 @@ describe('loaded state is re-derived', () => {
     const loaded = { ...ready, evidence: ready.evidence.filter((record) => record.claim !== 'review') };
     const { state } = reconcile(loaded, fixedClock());
     expect([state.run.phase, state.run.status.kind, state.run.blockers]).toEqual(['REVERIFY_STALE', 'active', ['no review at r1']]);
+  });
+});
+
+describe('work hints name the command to run', () => {
+  test.fails.for([
+    ['CONFIRM_TDD_SEAMS', 'propose_seams at public interfaces, each with what it catches and misses; the user confirms them'],
+    ['BUILD_GRAPH', 'build_graph with vertical-slice nodes, each with an owner, a write set, and expected behavior'],
+  ] as const)('%s with nothing recorded says %s', ([phase, task]) => {
+    const base = freshRun();
+    expect(nextAction({ ...base, run: { ...base.run, phase, invokedSkills: ['tdd'] } })).toEqual({ kind: 'work', phase, task });
   });
 });
