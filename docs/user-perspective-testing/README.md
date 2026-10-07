@@ -39,6 +39,7 @@ Rules for the fields.
 
 - `verdict` is exactly one of `verified`, `failed`, `inconclusive`, `env-limited`, `not-drivable`.
 - `scope` is exactly one of `discovery` and `behaviour`. A `discovery` receipt observed that a surface is registered or listed; a `behaviour` receipt observed what it does. Drives default to `behaviour`; a drive that only enumerated passes `scope: "discovery"` explicitly. A receipt written before this field is read as discovery evidence, because it cannot be shown to have driven anything.
+- `scenario_sha256` is the digest of the scenario file that produced the receipt. A receipt is evidence for the scenario text that produced it and nothing else, so an expectation moved onto observed output after the fact becomes detectable. A receipt written before this field exists is bound by proving its scenario file is byte-identical to that file at the receipt's own commit. `verdicts.tsv` carries the result as `binding`, one of `scenario-unchanged`, `scenario-changed` or `unbound`. The last two both mean the receipt is no longer evidence for the row.
 - `reason` is required and specific for every verdict except `verified`. "Needs network" is not specific. "Grok subscription login requires an interactive browser and the account is not enrolled in this environment" is.
 - `observed` states the value that was actually read, not a restatement of `expected`. A receipt whose `observed` could have been written without running anything is a defect in the drive.
 - `evidence` points at the raw capture the assertion was made against. The capture is written before the assertion, so a crash still leaves the evidence.
@@ -64,7 +65,16 @@ Rules for the fields.
 
 ## The predicate
 
-Every surface in `surfaces.tsv` has a receipt, and every defect found is either fixed with a real-artifact receipt or parked in `open-findings.md` with a reproduction. `scripts/coverage-report.mjs` computes this from the two tables. A surface is `verified` only when a receipt's scope satisfies its tier: discovery receipts satisfy discovery (`T1`) rows, and behavioural (`T2`, `T3`) rows require a `behaviour` receipt. A behavioural row with only discovery evidence is `partial`, with the reason `only discovery evidence; the row's claim is behavioural`; a `partial` never outranks a `verified` and never masks a `failed`. A row with no receipt is `uncovered`, and `uncovered` is the only state the predicate rejects.
+Every surface in `surfaces.tsv` has a receipt, and every defect recorded in `open-findings.md` is either fixed with a real-artifact receipt or proven out of reach from this repository. `scripts/coverage-report.mjs` computes this from the two tables. A surface is `verified` only when a receipt's scope satisfies its tier: discovery receipts satisfy discovery (`T1`) rows, and behavioural (`T2`, `T3`) rows require a `behaviour` receipt. A behavioural row with only discovery evidence is `partial`, with the reason `only discovery evidence; the row's claim is behavioural`; a `partial` never outranks a `verified` and never masks a `failed`. A row with no receipt is `uncovered`.
+
+The predicate rejects four states, and nothing else closes a row.
+
+1. An `uncovered` row, meaning no receipt was produced.
+2. A receipt whose `binding` is `scenario-changed`, meaning the scenario was edited after the receipt and its expectation may have moved onto observed output.
+3. A receipt whose `binding` is `unbound`, meaning it cannot be tied to the scenario text that produced it.
+4. A finding in `open-findings.md` whose status is neither `fixed` nor `out-of-reach`.
+
+State 4 is the one that matters most here. An earlier version of this contract let a finding count as closed by being written down, and the run then reported complete with sixteen defects still live. Writing a defect into this directory does not close it. Only a fix, or proof that the fix is out of this repository's reach, does.
 
 ## Non-negotiables
 
