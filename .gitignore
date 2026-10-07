@@ -4,3 +4,5 @@ node_modules/
 .DS_Store
 .audit/
 artifacts/
+extensions/pi-caveman/vendor/caveman/packages/pi-extension/dist/
+extensions/pi-caveman/vendor/caveman/packages/pi-extension/node_modules

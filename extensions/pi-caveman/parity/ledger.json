@@ -1,0 +1,2231 @@
+{
+  "schema": "pi-caveman.parity.v1",
+  "upstream": {
+    "repository": "https://github.com/JuliusBrussee/caveman",
+    "commit": "99aafe151a1be72be783e662858e8a0955add59f"
+  },
+  "rows": [
+    {
+      "id": "mode-caveman",
+      "capability": "Caveman voice mode and its /caveman command arguments",
+      "applicability": "pi",
+      "surface": ["command:caveman"],
+      "userEntrypoints": ["/caveman", "/caveman ultra", "/caveman wenyan", "/caveman lite|full|wenyan-*"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["commands/caveman.toml", "src/hooks/caveman-mode-tracker.js", "src/hooks/caveman-config.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": ["/caveman [ultra|wenyan|off|status|legacy alias]"],
+        "observableOutputs": ["badge [CAVEMAN]", "caveman ruleset reaches the model"],
+        "sideEffects": [],
+        "persistence": ["caveman-mode session entry"],
+        "failureBehavior": ["unknown argument reported without echo, mode unchanged"],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["pi.registerCommand", "pi.on('input')", "pi.appendEntry"],
+        "owner": "extension",
+        "rationale": "Stateful mode switch needs deterministic command handling and branch-scoped persistence."
+      },
+      "verification": {
+        "tests": [
+          "test/commands.test.ts::repeating the active mode says unchanged",
+          "test/commands.test.ts::an unknown argument is reported without echo",
+          "test/parse.test.ts::bare /caveman activates caveman under the manual policy",
+          "scripts/rpc-smoke.mjs::fresh session starts in caveman with [CAVEMAN] badge",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn",
+          "scripts/response-contract.mjs::keeps its payload"
+        ],
+        "oracle": "Upstream mode-activation-cases.json corpus and literal badge/entry assertions; live Pi RPC run. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
+        "positiveCases": ["/caveman", "/caveman ultra", "live model keeps commands, paths, error text, code, numbers with units, negations, and quoted German text verbatim"],
+        "negativeCases": ["/caveman bogus"],
+        "edgeCases": ["repeat of active mode", "legacy lite/full aliases"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "mode-ultracave",
+      "capability": "Ultracave mode",
+      "applicability": "pi",
+      "surface": ["command:ultracave", "skill:ultracave"],
+      "userEntrypoints": ["/ultracave", "/ultracave off", "/ultracave status"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["commands/ultracave.toml", "skills/ultracave/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["badge [ULTRACAVE]", "ultracave ruleset reaches the model"],
+        "sideEffects": [],
+        "persistence": ["caveman-mode entry"],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["pi.registerCommand", "before_agent_start systemPromptOptions.sections", "skill resource"],
+        "owner": "extension",
+        "rationale": "Mode state is executable; ruleset text ships as the upstream skill."
+      },
+      "verification": {
+        "tests": [
+          "test/commands.test.ts::/ultracave reports the new mode",
+          "test/commands.test.ts::/ultracave switches the injected ruleset",
+          "scripts/rpc-smoke.mjs::switched ruleset reaches the model",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn",
+          "scripts/response-contract.mjs::keeps its payload",
+          "test/commands.test.ts::a mode switch prints its confirmation on stderr"
+        ],
+        "oracle": "Literal badge and system-prompt section; live model run. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
+        "positiveCases": ["/ultracave", "live model keeps commands, paths, error text, code, numbers with units, negations, and quoted German text verbatim"],
+        "negativeCases": ["/ultracave bogus"],
+        "edgeCases": ["/ultracave while already ultracave"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "mode-megacave",
+      "capability": "Megacave (Classical Chinese) mode",
+      "applicability": "pi",
+      "surface": ["command:megacave", "skill:megacave"],
+      "userEntrypoints": ["/megacave", "/megacave off", "/caveman wenyan"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["commands/megacave.toml", "skills/megacave/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["badge [MEGACAVE]", "megacave ruleset reaches the model; technical terms verbatim"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["pi.registerCommand", "systemPromptOptions.sections", "skill resource"],
+        "owner": "extension",
+        "rationale": "Same as ultracave."
+      },
+      "verification": {
+        "tests": [
+          "test/commands.test.ts::/megacave off turns caveman off",
+          "scripts/rpc-smoke.mjs::/megacave switches the badge",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn",
+          "scripts/response-contract.mjs::keeps its payload"
+        ],
+        "oracle": "Literal badge assertions; live RPC. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
+        "positiveCases": ["/megacave", "live model keeps commands, paths, error text, code, numbers with units, negations, and quoted German text verbatim"],
+        "negativeCases": ["/megacave off"],
+        "edgeCases": ["wenyan alias"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "mode-status",
+      "capability": "Read-only mode status",
+      "applicability": "pi",
+      "surface": [],
+      "userEntrypoints": ["/caveman status", "/ultracave status"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["commands/caveman.toml", "src/hooks/caveman-mode-tracker.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["current mode reported", "without a UI (print, JSON) the report goes to stderr, keeping stdout for the reply or event stream"],
+        "sideEffects": ["none: no entry written, mode unchanged"],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["pi.registerCommand"],
+        "owner": "extension",
+        "rationale": "Status must not mutate session state."
+      },
+      "verification": {
+        "tests": [
+          "test/commands.test.ts::/caveman status writes no entry",
+          "test/commands.test.ts::/caveman status reports the mode",
+          "test/state.test.ts::status reports without changing state",
+          "scripts/rpc-smoke.mjs::/caveman status reports the mode",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn",
+          "test/commands.test.ts::/caveman status prints the mode on stderr",
+          "scripts/e2e-real.mjs::print-mode /caveman status reports the mode without a model call"
+        ],
+        "oracle": "Entry count unchanged and literal report. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
+        "positiveCases": ["status while caveman"],
+        "negativeCases": ["status while off"],
+        "edgeCases": ["status in one-shot mode"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "mode-off",
+      "capability": "Deactivation by command and natural language",
+      "applicability": "pi",
+      "surface": [],
+      "userEntrypoints": ["/caveman off", "stop caveman", "normal mode", "turn off caveman"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-parse.js", "src/hooks/caveman-mode-tracker.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["badge cleared", "no ruleset sent"],
+        "sideEffects": [],
+        "persistence": ["explicit off entry never undone by default mode"],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["pi.on('input')", "pi.appendEntry"],
+        "owner": "extension",
+        "rationale": "Parser port of caveman-parse.js runs on submitted input without rewriting it."
+      },
+      "verification": {
+        "tests": [
+          "test/state.test.ts::explicit off survives an ordinary prompt",
+          "test/extension.test.ts::an explicit off survives a reload",
+          "scripts/rpc-smoke.mjs::natural-language \"stop caveman\" clears the badge",
+          "scripts/rpc-smoke.mjs::explicit off survives a restart with --continue",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+        ],
+        "oracle": "Upstream corpus plus live restart. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
+        "positiveCases": ["stop caveman"],
+        "negativeCases": ["don't stop caveman (negated)"],
+        "edgeCases": ["off then restart"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "nl-triggers",
+      "capability": "Natural-language activation and deactivation parser",
+      "applicability": "pi",
+      "surface": [],
+      "userEntrypoints": ["talk like caveman", "be terse", "less tokens", "stop caveman"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-parse.js", "tests/fixtures/mode-activation/cases.json", "tests/test_caveman_parse.js"],
+        "tests": ["tests/fixtures/mode-activation/cases.json", "tests/test_caveman_parse.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": ["submitted prompt text"],
+        "observableOutputs": ["mode change or none"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": ["quoted text, questions and negations never trigger", "user text reaches the model unchanged"]
+      },
+      "piMapping": {
+        "mechanisms": ["pi.on('input') returning continue"],
+        "owner": "extension",
+        "rationale": "Input parsing is deterministic executable behavior."
+      },
+      "verification": {
+        "tests": [
+          "test/parse.test.ts::case #$id: $prompt",
+          "test/parse.test.ts::a foreign slash command never fires natural-language triggers",
+          "scripts/rpc-smoke.mjs::natural-language \"talk like caveman\" re-activates",
+          "test/package-runtime.test.ts::an open gate routes the first request through /w/pi",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+        ],
+        "oracle": "Upstream mode-activation-cases.json corpus, run case by case; user message asserted byte-equal in request body. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
+        "positiveCases": ["talk like caveman"],
+        "negativeCases": ["\"talk like caveman\" quoted", "don't use caveman"],
+        "edgeCases": ["question form"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "default-mode-config",
+      "capability": "Default mode and config precedence",
+      "applicability": "pi",
+      "surface": ["env:CAVEMAN_DEFAULT_MODE"],
+      "userEntrypoints": ["CAVEMAN_DEFAULT_MODE", ".caveman/config.json", ".caveman.json", "$XDG_CONFIG_HOME/caveman/config.json", "%APPDATA%\\caveman\\config.json"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-config.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["fresh session mode"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": ["invalid value falls through to next source", "symlinked repo config ignored"],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["session_start restore", "fs reads"],
+        "owner": "extension",
+        "rationale": "Cross-session config uses the same upstream files; live mode stays in session entries."
+      },
+      "verification": {
+        "tests": [
+          "test/config.test.ts::the environment variable wins over every file",
+          "test/config.test.ts::repo config beats user config",
+          "test/config.test.ts::a symlinked repo config is ignored",
+          "test/config.test.ts::uses APPDATA on Windows",
+          "test/extension.test.ts::manual default starts with no badge",
+          "test/extension.test.ts::a repo default of off gates injection",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+        ],
+        "oracle": "Literal precedence assertions against temp files. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
+        "positiveCases": ["env var"],
+        "negativeCases": ["invalid value"],
+        "edgeCases": ["manual", "off"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "ruleset-injection",
+      "capability": "Caveman ruleset injection (SessionStart activation)",
+      "applicability": "pi",
+      "surface": ["skill:caveman"],
+      "userEntrypoints": ["any prompt while a prose mode is active"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-activate.js", "skills/caveman/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["ruleset present in every request's system prompt"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": ["absent when default is off"]
+      },
+      "piMapping": {
+        "mechanisms": ["before_agent_start systemPromptOptions.sections", "forceSystemPrompt fallback"],
+        "owner": "extension",
+        "rationale": "Pi sends the system prompt every request, so compaction cannot drop it."
+      },
+      "verification": {
+        "tests": [
+          "test/extension.test.ts::the active ruleset becomes a system prompt section",
+          "scripts/rpc-smoke.mjs::ruleset injected as a system prompt section",
+          "test/package-runtime.test.ts::under caveman wrap pi the package yields the runtime and keeps its ruleset",
+          "scripts/e2e-real.mjs::caveman ruleset rides the routed system prompt",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+        ],
+        "oracle": "Section text equals upstream SKILL.md body; observed in provider request body. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
+        "positiveCases": ["fresh session"],
+        "negativeCases": ["default off"],
+        "edgeCases": ["forced system prompt from CLI runtime copy"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "reinforcement",
+      "capability": "Per-turn reminder",
+      "applicability": "pi",
+      "surface": [],
+      "userEntrypoints": ["every prompt"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-mode-tracker.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["hidden caveman-context message per turn"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": ["status turns carry no reminder"]
+      },
+      "piMapping": {
+        "mechanisms": ["before_agent_start message"],
+        "owner": "extension",
+        "rationale": "Hidden custom message rides only its turn."
+      },
+      "verification": {
+        "tests": [
+          "test/extension.test.ts::each turn carries a hidden reinforcement message",
+          "test/extension.test.ts::asks the model to relay the status without a reminder",
+          "scripts/rpc-smoke.mjs::per-turn reinforcement stored as a hidden custom message",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+        ],
+        "oracle": "Literal message content. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
+        "positiveCases": ["normal prompt"],
+        "negativeCases": ["status prompt"],
+        "edgeCases": ["queued steer drops notice"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "auto-clarity",
+      "capability": "Auto-clarity exceptions and payload exactness rules",
+      "applicability": "pi",
+      "surface": [],
+      "userEntrypoints": ["any response in a prose mode"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman/SKILL.md", "skills/ultracave/SKILL.md", "skills/megacave/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["model receives upstream rules: normal prose for security warnings, irreversible actions, ambiguous ordered steps, confused users; code, commands, paths, errors, numbers, negation stay exact"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": ["persisted artifacts keep normal voice"]
+      },
+      "piMapping": {
+        "mechanisms": ["systemPromptOptions.sections", "reinforcement message"],
+        "owner": "skill",
+        "rationale": "These are model instructions; upstream delivers them as skill text in every host."
+      },
+      "verification": {
+        "tests": [
+          "test/ruleset.test.ts::the section carries the upstream auto-clarity and exactness rules",
+          "test/ruleset.test.ts::the reminder names the mode",
+          "scripts/rpc-smoke.mjs::ruleset injected as a system prompt section",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn",
+          "scripts/response-contract.mjs::keeps its payload",
+          "scripts/response-contract.mjs::and its warning"
+        ],
+        "oracle": "Byte-equal delivery of the upstream rule text to the model. Model compliance is model-dependent in every host and is not asserted. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
+        "positiveCases": [
+          "security warning prompt",
+          "live model keeps commands, paths, error text, code, numbers with units, negations, and quoted German text verbatim",
+          "security warning and irreversible action keep a clear warning in every prose mode"
+        ],
+        "negativeCases": [],
+        "edgeCases": ["megacave keeps technical terms verbatim"]
+      },
+      "status": "verified",
+      "residualRisk": "Model adherence to the delivered rules is not deterministically testable; the rpc smoke run shows exact identifiers preserved in one live reply."
+    },
+    {
+      "id": "session-topology",
+      "capability": "Mode persistence across turns, tools, compaction, resume, reload, fork, tree navigation, and new sessions",
+      "applicability": "pi",
+      "surface": [],
+      "userEntrypoints": ["/fork", "/tree", "--continue", "/reload", "/new", "compaction"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-mode-tracker.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": ["caveman-mode custom entries on the active branch"],
+        "failureBehavior": [],
+        "safetyBehavior": ["abandoned branches do not leak transitions"]
+      },
+      "piMapping": {
+        "mechanisms": ["pi.appendEntry", "sessionManager.getBranch() on session_start and session_tree"],
+        "owner": "pi-session",
+        "rationale": "Pi owns branch topology; state is rebuilt from the active branch."
+      },
+      "verification": {
+        "tests": [
+          "test/extension.test.ts::tree navigation restores the stored mode",
+          "test/extension.test.ts::a reload writes no extra entry",
+          "test/state.test.ts::the last valid entry on the branch wins",
+          "test/extension.test.ts::a session switch drops a pending notice",
+          "scripts/rpc-smoke.mjs::mode and reminder survive compaction",
+          "scripts/rpc-smoke.mjs::explicit off survives a restart with --continue",
+          "scripts/rpc-smoke.mjs::a fork restores the mode stored on its branch",
+          "test/package-runtime.test.ts::Core and the ruleset survive a compaction, which reaches the runtime hooks"
+        ],
+        "oracle": "Live RPC session with real model plus branch-entry unit tests.",
+        "positiveCases": ["fork to earlier branch"],
+        "negativeCases": ["abandoned branch with later off"],
+        "edgeCases": ["compaction then prompt"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "one-shot-modes",
+      "capability": "One-shot commit, review, and compress modes that restore the displaced mode",
+      "applicability": "pi",
+      "surface": ["command:caveman-commit", "command:caveman-review"],
+      "userEntrypoints": ["/caveman-commit", "/caveman-review", "/caveman-compress"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["commands/caveman-commit.toml", "commands/caveman-review.toml", "src/hooks/caveman-mode-tracker.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["badge [CAVEMAN:COMMIT] etc.", "next prompt restores prior mode"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["input transform to /skill:<name>", "pi.appendEntry"],
+        "owner": "extension",
+        "rationale": "Command expands the upstream skill; state restore is deterministic."
+      },
+      "verification": {
+        "tests": [
+          "test/state.test.ts::commit returns to the displaced prose mode on the next prompt",
+          "test/state.test.ts::chained one-shots keep the original return target",
+          "test/extension.test.ts::/caveman-commit is rewritten to its skill",
+          "scripts/rpc-smoke.mjs::one-shot review shows [CAVEMAN:REVIEW]",
+          "scripts/rpc-smoke.mjs::next prompt restores the displaced mode",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+        ],
+        "oracle": "Literal state transitions plus live run. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
+        "positiveCases": ["/caveman-review"],
+        "negativeCases": ["one-shot while off returns to off"],
+        "edgeCases": ["chained one-shots"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "statusline",
+      "capability": "Mode badge",
+      "applicability": "pi",
+      "surface": ["hook:caveman-statusline"],
+      "userEntrypoints": ["status bar"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-statusline.sh", "src/hooks/caveman-statusline.ps1"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["[CAVEMAN] [ULTRACAVE] [MEGACAVE] [CAVEMAN:COMMIT] or nothing"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["ctx.ui.setStatus"],
+        "owner": "extension",
+        "rationale": "Pi status slot replaces the Claude statusline script; works in RPC as setStatus events."
+      },
+      "verification": {
+        "tests": ["test/extension.test.ts::a fresh session shows the caveman badge", "test/commands.test.ts::/ultracave switches the badge", "scripts/rpc-smoke.mjs::/ultracave switches the badge"],
+        "oracle": "Literal badge strings in RPC setStatus events.",
+        "positiveCases": ["mode switch"],
+        "negativeCases": ["off clears"],
+        "edgeCases": ["noninteractive print mode"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "caveman-commit-skill",
+      "capability": "caveman-commit writing contract",
+      "applicability": "pi",
+      "surface": ["skill:caveman-commit"],
+      "userEntrypoints": ["/caveman-commit", "/skill:caveman-commit"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman-commit/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["upstream contract text expanded for the model"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["skill resource", "prompt template"],
+        "owner": "skill",
+        "rationale": "Pure instruction workflow."
+      },
+      "verification": {
+        "tests": [
+          "test/extension.test.ts::commit mode injects no ruleset",
+          "test/extension.test.ts::commit mode shows its badge",
+          "scripts/rpc-smoke.mjs::slash commands and prompt templates registered",
+          "scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output"
+        ],
+        "oracle": "Skill text byte-equal to upstream sync output; live expansion.",
+        "positiveCases": ["/caveman-commit"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "caveman-review-skill",
+      "capability": "caveman-review writing contract",
+      "applicability": "pi",
+      "surface": ["skill:caveman-review"],
+      "userEntrypoints": ["/caveman-review", "/skill:caveman-review"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman-review/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["upstream contract text expanded for the model"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["skill resource", "prompt template"],
+        "owner": "skill",
+        "rationale": "Pure instruction workflow."
+      },
+      "verification": {
+        "tests": ["scripts/rpc-smoke.mjs::/caveman-review expands the caveman-review skill", "scripts/rpc-smoke.mjs::one-shot review shows [CAVEMAN:REVIEW]", "scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output"],
+        "oracle": "Skill text byte-equal to upstream sync output; live expansion.",
+        "positiveCases": ["/caveman-review"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "caveman-compress",
+      "capability": "Memory-file compression with backup and validation",
+      "applicability": "pi",
+      "surface": ["skill:caveman-compress"],
+      "userEntrypoints": ["/caveman-compress <file>", "caveman_compress tool"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman-compress/SKILL.md", "skills/caveman-compress/scripts/compress.py", "skills/caveman-compress/scripts/validate.py", "skills/caveman-compress/scripts/detect.py"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["file compressed in place, .original.md backup"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": ["validation failure leaves original untouched"],
+        "safetyBehavior": ["sensitive paths refused", "code files skipped"]
+      },
+      "piMapping": {
+        "mechanisms": ["pi.registerTool", "ctx.modelRegistry streamSimple", "withFileMutationQueue"],
+        "owner": "extension",
+        "rationale": "Python scripts that call the claude CLI become a TypeScript tool on Pi's model registry."
+      },
+      "verification": {
+        "tests": [
+          "test/compress/compress.test.ts::exhausted validation retries leave the original untouched",
+          "test/compress/compress.test.ts::sensitive path refused",
+          "test/compress/validate.test.ts::file validates against itself",
+          "scripts/rpc-smoke.mjs::/caveman-compress runs the caveman_compress tool",
+          "scripts/rpc-smoke.mjs::file shrank with an out-of-tree backup"
+        ],
+        "oracle": "Upstream compress fixtures and validate.py differential; live run.",
+        "positiveCases": ["markdown memory file"],
+        "negativeCases": ["code file", "sensitive path"],
+        "edgeCases": ["CRLF", "BOM", "frontmatter"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "caveman-stats",
+      "capability": "Session token stats with honest savings",
+      "applicability": "pi",
+      "surface": ["skill:caveman-stats", "command:caveman-stats", "hook:caveman-stats"],
+      "userEntrypoints": ["/caveman-stats", "--share", "--all", "--since 7d"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-stats.js", "commands/caveman-stats.toml", "skills/caveman-stats/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["output and cache-read tokens per mode", "Savings: unknown without a measured comparison", "without a UI (print, JSON) the report goes to stderr, keeping stdout for the reply or event stream"],
+        "sideEffects": [],
+        "persistence": ["~/.pi/agent/caveman/history.jsonl"],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["pi.registerCommand", "sessionManager usage on active branch"],
+        "owner": "extension",
+        "rationale": "Uses Pi's native usage; never derives savings from current counts."
+      },
+      "verification": {
+        "tests": [
+          "test/stats.test.ts::splits output at each mode transition",
+          "test/stats.test.ts::counts only pairs where the original is larger",
+          "test/commands.test.ts::a malformed --since is rejected",
+          "scripts/rpc-smoke.mjs::/caveman-stats reports turns and per-mode attribution",
+          "test/commands.test.ts::/caveman-stats prints the report on stderr"
+        ],
+        "oracle": "Literal stats output from fixture sessions; live run reports 'Savings: unknown'.",
+        "positiveCases": ["--all"],
+        "negativeCases": ["malformed --since"],
+        "edgeCases": ["empty session"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "caveman-help",
+      "capability": "Quick-reference card",
+      "applicability": "pi",
+      "surface": ["skill:caveman-help"],
+      "userEntrypoints": ["/caveman-help"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman-help/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["help card", "without a UI (print, JSON) the report goes to stderr, keeping stdout for the reply or event stream"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["pi.registerCommand", "message renderer"],
+        "owner": "extension",
+        "rationale": "Deterministic card display."
+      },
+      "verification": {
+        "tests": ["test/commands.test.ts::posts the help card without frontmatter", "test/commands.test.ts::/caveman-help prints the card on stderr", "scripts/e2e-real.mjs::print-mode /caveman-help prints the card without a model call"],
+        "oracle": "Card equals skill body.",
+        "positiveCases": ["/caveman-help"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "caveman-init",
+      "capability": "Write always-on rule files for other IDE agents",
+      "applicability": "pi",
+      "surface": ["command:caveman-init", "rule:caveman-activate"],
+      "userEntrypoints": ["/caveman-init", "--dry-run", "--force"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["commands/caveman-init.md", "commands/caveman-init.toml", "src/tools/caveman-init.js", "src/rules/caveman-activate.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["rule files for Cursor, Windsurf, Cline, Copilot, AGENTS.md"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": ["dry run first unless --force"]
+      },
+      "piMapping": {
+        "mechanisms": ["prompt template"],
+        "owner": "prompt",
+        "rationale": "Static prompt expansion that runs upstream's own script."
+      },
+      "verification": {
+        "tests": [
+          "scripts/rpc-smoke.mjs::slash commands and prompt templates registered",
+          "test/extension.test.ts::every upstream command is registered",
+          "scripts/check-parity.mjs::prompts/caveman-init.md matches upstream's command",
+          "scripts/rpc-smoke.mjs::/caveman-init runs upstream's caveman-init.js"
+        ],
+        "oracle": "Template text matches upstream command; live run executes upstream's script.",
+        "positiveCases": ["/caveman-init --dry-run"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "residualRisk": "The template fetches caveman-init.js from upstream main, as upstream does, so the script is not pinned. A live deepseek-flash run also re-ran without --dry-run after the dry run; the template text is upstream's."
+    },
+    {
+      "id": "cavecrew",
+      "capability": "Cavecrew investigator, builder, reviewer subagents",
+      "applicability": "pi",
+      "surface": ["skill:cavecrew", "agent:cavecrew-investigator", "agent:cavecrew-builder", "agent:cavecrew-reviewer", "hook:cavecrew-model-overrides"],
+      "userEntrypoints": ["cavecrew tool", "/skill:cavecrew", "CAVECREW_<ROLE>_MODEL"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["agents/cavecrew-investigator.md", "agents/cavecrew-builder.md", "agents/cavecrew-reviewer.md", "skills/cavecrew/SKILL.md", "src/hooks/cavecrew-model-overrides.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["compressed subagent result with usage"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": ["failed subagent throws with stderr", "abort kills the child process group"],
+        "safetyBehavior": ["read-only roles get read-only tools", "builder gets edit tools"]
+      },
+      "piMapping": {
+        "mechanisms": ["pi.registerTool", "isolated pi --mode json child"],
+        "owner": "extension",
+        "rationale": "Pi has no Claude subagents; an isolated Pi process gives context isolation with upstream agent prompts."
+      },
+      "verification": {
+        "tests": [
+          "test/cavecrew.test.ts::read-only roles get only read-only tools",
+          "test/cavecrew.test.ts::the builder gets edit tools",
+          "test/cavecrew.test.ts::an env override beats every other source",
+          "test/cavecrew-process.test.ts::an abort kills a long-running child",
+          "scripts/rpc-smoke.mjs::cavecrew investigator returns a path:line answer",
+          "scripts/rpc-smoke.mjs::cavecrew reviewer returns one line per finding",
+          "scripts/rpc-smoke.mjs::cavecrew builder edits the file"
+        ],
+        "oracle": "Unit tests on tool sets and model choice; live runs of all three roles through the cavecrew tool.",
+        "positiveCases": ["investigator", "reviewer", "builder"],
+        "negativeCases": ["failed subagent"],
+        "edgeCases": ["pre-aborted signal"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cavecrew-delegate-mcp",
+      "capability": "Delegate MCP used by hosts without native subagents",
+      "applicability": "host-specific",
+      "surface": ["agent:delegate"],
+      "userEntrypoints": ["caveman-delegate-mcp"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["agents/delegate/caveman-delegate-mcp.mjs"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["cavecrew tool"],
+        "owner": "extension",
+        "rationale": "Pi gets the cavecrew tool instead of an MCP shim."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Covered by the cavecrew row.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "piEquivalent": ["cavecrew"]
+    },
+    {
+      "id": "native-investigate-first",
+      "capability": "Classified native skill investigate-first",
+      "applicability": "pi",
+      "surface": ["skill:investigate-first"],
+      "userEntrypoints": ["task prompt of the matching type", "/skill:investigate-first"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/investigate-first/SKILL.md", "skills/registry.json"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["'Active skill investigate-first' context on matching task types"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["vendored runtime before_agent_start via caveman native-hook", "skill resource"],
+        "owner": "external-caveman-service",
+        "rationale": "Upstream classifies tasks in the native runtime; the package forwards prompts by digest and classifier terms only."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::the native runtime activates ${skill} for a matching task", "scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output"],
+        "oracle": "Real caveman native-hook output in the provider request.",
+        "positiveCases": ["investigate-first prompt"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "native-lean-build",
+      "capability": "Classified native skill lean-build",
+      "applicability": "pi",
+      "surface": ["skill:lean-build"],
+      "userEntrypoints": ["task prompt of the matching type", "/skill:lean-build"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/lean-build/SKILL.md", "skills/registry.json"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["'Active skill lean-build' context on matching task types"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["vendored runtime before_agent_start via caveman native-hook", "skill resource"],
+        "owner": "external-caveman-service",
+        "rationale": "Upstream classifies tasks in the native runtime; the package forwards prompts by digest and classifier terms only."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::the native runtime activates ${skill} for a matching task", "scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output"],
+        "oracle": "Real caveman native-hook output in the provider request.",
+        "positiveCases": ["lean-build prompt"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "native-migration",
+      "capability": "Classified native skill migration",
+      "applicability": "pi",
+      "surface": ["skill:migration"],
+      "userEntrypoints": ["task prompt of the matching type", "/skill:migration"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/migration/SKILL.md", "skills/registry.json"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["'Active skill migration' context on matching task types"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["vendored runtime before_agent_start via caveman native-hook", "skill resource"],
+        "owner": "external-caveman-service",
+        "rationale": "Upstream classifies tasks in the native runtime; the package forwards prompts by digest and classifier terms only."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::the native runtime activates ${skill} for a matching task", "scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output"],
+        "oracle": "Real caveman native-hook output in the provider request.",
+        "positiveCases": ["migration prompt"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "native-safe-refactor",
+      "capability": "Classified native skill safe-refactor",
+      "applicability": "pi",
+      "surface": ["skill:safe-refactor"],
+      "userEntrypoints": ["task prompt of the matching type", "/skill:safe-refactor"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/safe-refactor/SKILL.md", "skills/registry.json"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["'Active skill safe-refactor' context on matching task types"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["vendored runtime before_agent_start via caveman native-hook", "skill resource"],
+        "owner": "external-caveman-service",
+        "rationale": "Upstream classifies tasks in the native runtime; the package forwards prompts by digest and classifier terms only."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::the native runtime activates ${skill} for a matching task", "scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output"],
+        "oracle": "Real caveman native-hook output in the provider request.",
+        "positiveCases": ["safe-refactor prompt"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "native-surgical-patch",
+      "capability": "Classified native skill surgical-patch",
+      "applicability": "pi",
+      "surface": ["skill:surgical-patch"],
+      "userEntrypoints": ["task prompt of the matching type", "/skill:surgical-patch"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/surgical-patch/SKILL.md", "skills/registry.json"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["'Active skill surgical-patch' context on matching task types"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["vendored runtime before_agent_start via caveman native-hook", "skill resource"],
+        "owner": "external-caveman-service",
+        "rationale": "Upstream classifies tasks in the native runtime; the package forwards prompts by digest and classifier terms only."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::the native runtime activates ${skill} for a matching task", "scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output"],
+        "oracle": "Real caveman native-hook output in the provider request.",
+        "positiveCases": ["surgical-patch prompt"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "native-verify-and-stop",
+      "capability": "Classified native skill verify-and-stop",
+      "applicability": "pi",
+      "surface": ["skill:verify-and-stop"],
+      "userEntrypoints": ["task prompt of the matching type", "/skill:verify-and-stop"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/verify-and-stop/SKILL.md", "skills/registry.json"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["'Active skill verify-and-stop' context on matching task types"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["vendored runtime before_agent_start via caveman native-hook", "skill resource"],
+        "owner": "external-caveman-service",
+        "rationale": "Upstream classifies tasks in the native runtime; the package forwards prompts by digest and classifier terms only."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::the native runtime activates ${skill} for a matching task", "scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output"],
+        "oracle": "Real caveman native-hook output in the provider request.",
+        "positiveCases": ["verify-and-stop prompt"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-skill-caveman-setup",
+      "capability": "caveman-setup workflow skill",
+      "applicability": "pi",
+      "surface": ["skill:caveman-setup"],
+      "userEntrypoints": ["/skill:caveman-setup"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman-setup/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["upstream workflow instructions that drive the caveman CLI"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["skill resource", "bash tool"],
+        "owner": "skill",
+        "rationale": "Instruction workflow; the CLI it drives is reachable from Pi's bash tool."
+      },
+      "verification": {
+        "tests": ["scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output", "scripts/rpc-smoke.mjs::upstream skills discovered", "scripts/e2e-real.mjs::all ${verbs.length} caveman CLI verbs run from Pi's bash tool"],
+        "oracle": "Byte-equal skill text, discovery by real Pi, CLI reachability.",
+        "positiveCases": ["/skill:caveman-setup"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-skill-caveman-discover",
+      "capability": "caveman-discover workflow skill",
+      "applicability": "pi",
+      "surface": ["skill:caveman-discover"],
+      "userEntrypoints": ["/skill:caveman-discover"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman-discover/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["upstream workflow instructions that drive the caveman CLI"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["skill resource", "bash tool"],
+        "owner": "skill",
+        "rationale": "Instruction workflow; the CLI it drives is reachable from Pi's bash tool."
+      },
+      "verification": {
+        "tests": ["scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output", "scripts/rpc-smoke.mjs::upstream skills discovered", "scripts/e2e-real.mjs::all ${verbs.length} caveman CLI verbs run from Pi's bash tool"],
+        "oracle": "Byte-equal skill text, discovery by real Pi, CLI reachability.",
+        "positiveCases": ["/skill:caveman-discover"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-skill-caveman-learn",
+      "capability": "caveman-learn workflow skill",
+      "applicability": "pi",
+      "surface": ["skill:caveman-learn"],
+      "userEntrypoints": ["/skill:caveman-learn"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman-learn/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["upstream workflow instructions that drive the caveman CLI"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["skill resource", "bash tool"],
+        "owner": "skill",
+        "rationale": "Instruction workflow; the CLI it drives is reachable from Pi's bash tool."
+      },
+      "verification": {
+        "tests": ["scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output", "scripts/rpc-smoke.mjs::upstream skills discovered", "scripts/e2e-real.mjs::all ${verbs.length} caveman CLI verbs run from Pi's bash tool"],
+        "oracle": "Byte-equal skill text, discovery by real Pi, CLI reachability.",
+        "positiveCases": ["/skill:caveman-learn"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-skill-caveman-manage",
+      "capability": "caveman-manage workflow skill",
+      "applicability": "pi",
+      "surface": ["skill:caveman-manage"],
+      "userEntrypoints": ["/skill:caveman-manage"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman-manage/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["upstream workflow instructions that drive the caveman CLI"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["skill resource", "bash tool"],
+        "owner": "skill",
+        "rationale": "Instruction workflow; the CLI it drives is reachable from Pi's bash tool."
+      },
+      "verification": {
+        "tests": ["scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output", "scripts/rpc-smoke.mjs::upstream skills discovered", "scripts/e2e-real.mjs::all ${verbs.length} caveman CLI verbs run from Pi's bash tool"],
+        "oracle": "Byte-equal skill text, discovery by real Pi, CLI reachability.",
+        "positiveCases": ["/skill:caveman-manage"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-skill-caveman-optimize",
+      "capability": "caveman-optimize workflow skill",
+      "applicability": "pi",
+      "surface": ["skill:caveman-optimize"],
+      "userEntrypoints": ["/skill:caveman-optimize"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman-optimize/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["upstream workflow instructions that drive the caveman CLI"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["skill resource", "bash tool"],
+        "owner": "skill",
+        "rationale": "Instruction workflow; the CLI it drives is reachable from Pi's bash tool."
+      },
+      "verification": {
+        "tests": ["scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output", "scripts/rpc-smoke.mjs::upstream skills discovered", "scripts/e2e-real.mjs::all ${verbs.length} caveman CLI verbs run from Pi's bash tool"],
+        "oracle": "Byte-equal skill text, discovery by real Pi, CLI reachability.",
+        "positiveCases": ["/skill:caveman-optimize"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-skill-caveman-evidence-review",
+      "capability": "caveman-evidence-review workflow skill",
+      "applicability": "pi",
+      "surface": ["skill:caveman-evidence-review"],
+      "userEntrypoints": ["/skill:caveman-evidence-review"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman-evidence-review/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["upstream workflow instructions that drive the caveman CLI"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["skill resource", "bash tool"],
+        "owner": "skill",
+        "rationale": "Instruction workflow; the CLI it drives is reachable from Pi's bash tool."
+      },
+      "verification": {
+        "tests": ["scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output", "scripts/rpc-smoke.mjs::upstream skills discovered", "scripts/e2e-real.mjs::all ${verbs.length} caveman CLI verbs run from Pi's bash tool"],
+        "oracle": "Byte-equal skill text, discovery by real Pi, CLI reachability.",
+        "positiveCases": ["/skill:caveman-evidence-review"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-skill-caveman-explore",
+      "capability": "caveman-explore workflow skill",
+      "applicability": "pi",
+      "surface": ["skill:caveman-explore"],
+      "userEntrypoints": ["/skill:caveman-explore"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["skills/caveman-explore/SKILL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["upstream workflow instructions that drive the caveman CLI"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["skill resource", "bash tool"],
+        "owner": "skill",
+        "rationale": "Instruction workflow; the CLI it drives is reachable from Pi's bash tool."
+      },
+      "verification": {
+        "tests": ["scripts/check-parity.mjs::skills/ and agents/ match sync-upstream output", "scripts/rpc-smoke.mjs::upstream skills discovered", "scripts/e2e-real.mjs::all ${verbs.length} caveman CLI verbs run from Pi's bash tool"],
+        "oracle": "Byte-equal skill text, discovery by real Pi, CLI reachability.",
+        "positiveCases": ["/skill:caveman-explore"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-verbs",
+      "capability": "Caveman CLI verbs",
+      "applicability": "pi",
+      "surface": ["cli-verb:*", "package:cli", "package:device-auth"],
+      "userEntrypoints": ["caveman <verb>"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["agents/reserved-verbs.json", "packages/cli/src/index.ts"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["each verb runs from Pi's bash tool"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["bash tool"],
+        "owner": "external-caveman-service",
+        "rationale": "The CLI is canonical; Pi reaches it unchanged."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::all ${verbs.length} caveman CLI verbs run from Pi's bash tool"],
+        "oracle": "Every reserved verb answers --help through Pi's bash tool (directly or under `caveman tools`).",
+        "positiveCases": ["caveman stats --help"],
+        "negativeCases": ["unknown verb"],
+        "edgeCases": ["verbs mounted only under tools"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "proxy-routing",
+      "capability": "Gated provider routing through the local proxy",
+      "applicability": "pi",
+      "surface": ["pi-event:model_select", "component:proxy", "component:engine"],
+      "userEntrypoints": ["any model turn with caveman-proxy running"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/pi-extension/src/provider.ts", "packages/pi-extension/src/provider-compat.ts", "packages/pi-extension/src/protocol.ts", "packages/cli/src/provider-routing.ts"]
+      },
+      "behavior": {
+        "preconditions": ["live proxy whose identity matches its run-state", "recovery via MCP published and initialized"],
+        "inputs": [],
+        "observableOutputs": ["first request routed through /w/pi"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": ["OAuth stays direct", "unknown endpoints stay direct", "api.openai.com chat completions stays direct", "headers preserved or direct"]
+      },
+      "piMapping": {
+        "mechanisms": ["registerProvider-free model endpoint update", "model_select", "before_agent_start recheck"],
+        "owner": "extension",
+        "rationale": "Vendored upstream router; Pi keeps registry and auth."
+      },
+      "verification": {
+        "tests": [
+          "vendor/caveman/packages/pi-extension/tests/provider.runtime.mjs::OAuth and unknown auth restore the active routed model before claiming direct mode",
+          "vendor/caveman/packages/pi-extension/tests/provider-compat.runtime.mjs::OpenAI Chat stays direct because Pi exposes no override for its URL-derived cache key",
+          "vendor/caveman/packages/pi-extension/tests/integration.runtime.mjs::open gate: a custom provider with no compat mount stays direct and says why",
+          "test/package-runtime.test.ts::an open gate routes the first request through /w/pi",
+          "scripts/e2e-real.mjs::the request arrives through the proxy, not the SDK directly",
+          "scripts/e2e-real.mjs::the routed request keeps the provider credential Pi resolved"
+        ],
+        "oracle": "Upstream runtime suite on the vendored source plus the real proxy binary.",
+        "positiveCases": ["compat mount"],
+        "negativeCases": ["no mount", "OAuth"],
+        "edgeCases": ["model switch restores endpoint"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "exact-recovery",
+      "capability": "caveman_retrieve exact recovery",
+      "applicability": "pi",
+      "surface": ["pi-tool:caveman_retrieve", "component:mcp"],
+      "userEntrypoints": ["caveman_retrieve tool"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/pi-extension/src/recovery.ts", "packages/pi-extension/src/index.ts"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["byte-exact original"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": ["MCP errors surface as tool errors"],
+        "safetyBehavior": ["recovered output never re-shrunk", "verification does not consume the model's recovery"]
+      },
+      "piMapping": {
+        "mechanisms": ["pi.registerTool", "caveman-mcp child"],
+        "owner": "extension",
+        "rationale": "Vendored upstream client over the canonical MCP store."
+      },
+      "verification": {
+        "tests": [
+          "vendor/caveman/packages/pi-extension/tests/recovery.runtime.mjs::invalid or failed verification proofs keep original output",
+          "vendor/caveman/packages/pi-extension/tests/integration.runtime.mjs::fresh tool-output handles recover exactly; caveman_retrieve output is never shrunk",
+          "scripts/e2e-real.mjs::recovered bytes equal the unshrunk direct tool output",
+          "scripts/e2e-real.mjs::caveman_retrieve output is the original and is not re-shrunk",
+          "scripts/e2e-real.mjs::caveman_retrieve returns the MCP tool output byte for byte"
+        ],
+        "oracle": "Byte compare against the same tool output taken directly.",
+        "positiveCases": ["fresh handle"],
+        "negativeCases": ["malformed handle", "mismatched handle"],
+        "edgeCases": ["recursive recovery"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "tool-output-shrink",
+      "capability": "Post-tool output shrinking",
+      "applicability": "pi",
+      "surface": ["pi-event:tool_result", "pi-event:tool_call"],
+      "userEntrypoints": ["any tool result"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/pi-extension/src/tool-output.ts"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["model sees a ccr handle summary"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": [
+          "only text blocks replaced; images kept",
+          "over-cap output skipped, never truncated",
+          "replacement only after handle verifies",
+          "Pi drops a structuredContent the handler did not replace, so a shrunk result never carries the original structured payload"
+        ]
+      },
+      "piMapping": {
+        "mechanisms": ["pi.on('tool_result')"],
+        "owner": "extension",
+        "rationale": "Vendored upstream handler."
+      },
+      "verification": {
+        "tests": [
+          "vendor/caveman/packages/pi-extension/tests/recovery.runtime.mjs::unavailable recovery and thrown failures leave tool results untouched",
+          "scripts/e2e-real.mjs::large bash output reaches the model shrunk behind a ccr handle",
+          "scripts/e2e-real.mjs::a mismatched proxy identity leaves tool output untouched",
+          "scripts/e2e-real.mjs::parallel tool calls each shrink behind their own ccr handle",
+          "scripts/e2e-real.mjs::a shrunk bash result keeps no structuredContent that contradicts its text",
+          "scripts/e2e-real.mjs::an MCP tool result shrinks behind a ccr handle like a built-in tool"
+        ],
+        "oracle": "Real engine decision plus verification.",
+        "positiveCases": ["log output", "parallel bash calls", "Pi MCP server tool"],
+        "negativeCases": ["proxy identity mismatch"],
+        "edgeCases": ["image blocks", "structuredContent dropped with replaced content (Pi runner contract)"]
+      },
+      "status": "verified",
+      "residualRisk": "The pinned engine panics on a bare `seq` listing (engine/filewrap.go:35); that is an upstream defect outside the Pi package."
+    },
+    {
+      "id": "native-lifecycle",
+      "capability": "Lifecycle bridge and Core injection",
+      "applicability": "pi",
+      "surface": ["pi-event:session_start", "pi-event:before_agent_start", "pi-event:turn_start", "pi-event:turn_end", "pi-event:session_before_compact", "pi-event:session_compact", "pi-event:session_shutdown", "package:pi-extension"],
+      "userEntrypoints": ["session start, prompts, turns, tool calls, compaction, shutdown"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/pi-extension/src/lifecycle.ts", "packages/pi-extension/src/index.ts"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["Core appended every turn", "dynamic context on its turn"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": ["raw prompt never leaves the process: digest and bounded terms only", "factory starts nothing"]
+      },
+      "piMapping": {
+        "mechanisms": ["pi.on lifecycle events", "caveman native-hook pi"],
+        "owner": "extension",
+        "rationale": "Vendored upstream bridge to the canonical CLI protocol."
+      },
+      "verification": {
+        "tests": [
+          "vendor/caveman/packages/pi-extension/tests/protocol.runtime.mjs::sanitizeHookResponse drops oversized and mistyped fields",
+          "vendor/caveman/packages/pi-extension/tests/protocol.runtime.mjs::hook invocation resolution honors CAVEMAN_PI_HOOK_CMD with fallback",
+          "test/package-runtime.test.ts::Core and the ruleset survive a compaction, which reaches the runtime hooks",
+          "scripts/e2e-real.mjs::native Core from caveman native-hook rides the system prompt"
+        ],
+        "oracle": "Hook log events and Core marker in requests.",
+        "positiveCases": ["SessionStart"],
+        "negativeCases": ["no CLI"],
+        "edgeCases": ["compaction"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "honest-fallback",
+      "capability": "Direct mode with one diagnostic when prerequisites fail",
+      "applicability": "pi",
+      "surface": [],
+      "userEntrypoints": ["missing CLI", "proxy stopped", "stale run-state", "identity mismatch", "recovery unpublished"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/pi-extension/src/index.ts"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["one 'Caveman: direct mode, no compression' notice", "original tool output", "no savings claim"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": ["Pi stays usable"]
+      },
+      "piMapping": {
+        "mechanisms": ["session_start gate", "stderr when no UI"],
+        "owner": "extension",
+        "rationale": "Vendored gate plus package notice when a yielded runtime never loaded."
+      },
+      "verification": {
+        "tests": [
+          "test/package-runtime.test.ts::a missing caveman CLI degrades to direct mode",
+          "scripts/e2e-real.mjs::a stopped proxy gives exactly one direct-mode notice",
+          "scripts/e2e-real.mjs::a stale run-state file stays direct with one notice",
+          "scripts/e2e-real.mjs::a mismatched proxy identity stays direct with one notice",
+          "vendor/caveman/packages/pi-extension/tests/integration.runtime.mjs::published recovery=false: gate refuses even with a live proxy and working MCP"
+        ],
+        "oracle": "Notice count and direct request headers.",
+        "positiveCases": ["proxy stopped"],
+        "negativeCases": [],
+        "edgeCases": ["stale pid"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "runtime-coexistence",
+      "capability": "One runtime when caveman wrap pi or caveman enable pi also loads a copy",
+      "applicability": "pi",
+      "surface": [],
+      "userEntrypoints": ["caveman wrap pi", "caveman enable pi", "caveman pi"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/cli/src/index.ts"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["single caveman_retrieve", "ruleset once", "no startup conflict"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": ["yielded runtime that never loaded is reported"],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["factory-time owner check", "before_agent_start forceSystemPrompt handling"],
+        "owner": "extension",
+        "rationale": "Pi aborts on duplicate tool names, so the package yields to the CLI-managed copy."
+      },
+      "verification": {
+        "tests": [
+          "test/runtime.test.ts::a caveman enable pi extension owns the runtime",
+          "test/package-runtime.test.ts::under caveman wrap pi the package yields the runtime and keeps its ruleset",
+          "scripts/e2e-real.mjs::package plus caveman enable pi exposes one caveman_retrieve",
+          "scripts/e2e-real.mjs::package plus caveman enable pi sends the ruleset once",
+          "scripts/e2e-real.mjs::a skipped caveman enable pi extension is reported, not silent"
+        ],
+        "oracle": "Real CLI enable plus pi install in an isolated HOME.",
+        "positiveCases": ["enable pi"],
+        "negativeCases": ["--no-extensions with enable file"],
+        "edgeCases": ["wrap env"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "privacy",
+      "capability": "No prompt, payload, or secret logging",
+      "applicability": "pi",
+      "surface": ["env:CAVEMAN_TELEMETRY", "env:CAVEMAN_TELEMETRY_URL", "env:CAVEMAN_OFFLINE"],
+      "userEntrypoints": ["all runtime calls"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/pi-extension/src/lifecycle.ts", "SECURITY.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": [
+          "prompt sent as sha256 digest and filtered terms",
+          "secret-looking terms dropped",
+          "notices name no key values",
+          "the package itself sends nothing; telemetry and offline switches are honored by the canonical CLI and proxy it spawns with the unchanged environment"
+        ]
+      },
+      "piMapping": {
+        "mechanisms": ["vendored lifecycle"],
+        "owner": "extension",
+        "rationale": "Vendored upstream contract."
+      },
+      "verification": {
+        "tests": [
+          "vendor/caveman/packages/pi-extension/tests/protocol.runtime.mjs::prompt digest carries bytes+sha256, never raw text",
+          "vendor/caveman/packages/pi-extension/tests/provider.runtime.mjs::unresolved provider headers restore direct mode without exposing resolver details",
+          "scripts/check-parity.mjs::the package source opens no network connection of its own"
+        ],
+        "oracle": "Upstream runtime tests.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "hook-caveman-activate",
+      "capability": "Claude Code hook caveman-activate",
+      "applicability": "host-specific",
+      "surface": ["hook:caveman-activate"],
+      "userEntrypoints": ["Claude Code hook"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-activate.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["see equivalent rows"],
+        "owner": "extension",
+        "rationale": "Claude hook mechanics are replaced by Pi-native mechanisms."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Covered by equivalent rows.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "piEquivalent": ["ruleset-injection"]
+    },
+    {
+      "id": "hook-caveman-mode-tracker",
+      "capability": "Claude Code hook caveman-mode-tracker",
+      "applicability": "host-specific",
+      "surface": ["hook:caveman-mode-tracker"],
+      "userEntrypoints": ["Claude Code hook"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-mode-tracker.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["see equivalent rows"],
+        "owner": "extension",
+        "rationale": "Claude hook mechanics are replaced by Pi-native mechanisms."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Covered by equivalent rows.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "piEquivalent": ["mode-caveman", "reinforcement"]
+    },
+    {
+      "id": "hook-caveman-config",
+      "capability": "Claude Code hook caveman-config",
+      "applicability": "host-specific",
+      "surface": ["hook:caveman-config", "env:CAVEMAN_DEBUG", "env:CAVEMAN_SESSION_TTL_MS"],
+      "userEntrypoints": ["Claude Code hook"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-config.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["CAVEMAN_DEBUG=1 prints stderr diagnostics when a flag-file write is refused", "CAVEMAN_SESSION_TTL_MS sets the age after which per-session flag files are garbage-collected"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["see equivalent rows"],
+        "owner": "extension",
+        "rationale": "Claude hook mechanics are replaced by Pi-native mechanisms. Both variables tune flag files. Pi keeps mode in session entries, so there is no flag write to refuse and no flag store to collect."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Covered by equivalent rows.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "piEquivalent": ["default-mode-config"]
+    },
+    {
+      "id": "hook-caveman-parse",
+      "capability": "Claude Code hook caveman-parse",
+      "applicability": "host-specific",
+      "surface": ["hook:caveman-parse"],
+      "userEntrypoints": ["Claude Code hook"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/caveman-parse.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["see equivalent rows"],
+        "owner": "extension",
+        "rationale": "Claude hook mechanics are replaced by Pi-native mechanisms."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Covered by equivalent rows.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "piEquivalent": ["nl-triggers"]
+    },
+    {
+      "id": "hook-install",
+      "capability": "Claude Code hook install",
+      "applicability": "host-specific",
+      "surface": ["hook:install"],
+      "userEntrypoints": ["Claude Code hook"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/install.sh"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["see equivalent rows"],
+        "owner": "extension",
+        "rationale": "Claude hook mechanics are replaced by Pi-native mechanisms."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Covered by equivalent rows.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "piEquivalent": ["distribution"]
+    },
+    {
+      "id": "hook-uninstall",
+      "capability": "Claude Code hook uninstall",
+      "applicability": "host-specific",
+      "surface": ["hook:uninstall"],
+      "userEntrypoints": ["Claude Code hook"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/hooks/uninstall.sh"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["see equivalent rows"],
+        "owner": "extension",
+        "rationale": "Claude hook mechanics are replaced by Pi-native mechanisms."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Covered by equivalent rows.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "piEquivalent": ["distribution"]
+    },
+    {
+      "id": "opencode-plugin",
+      "capability": "OpenCode plugin",
+      "applicability": "host-specific",
+      "surface": ["plugin:opencode"],
+      "userEntrypoints": ["opencode"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/plugins/opencode/plugin.js"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "extension",
+        "rationale": "Other host."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "n/a",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "piEquivalent": ["native-lifecycle"]
+    },
+    {
+      "id": "openclaw-rule",
+      "capability": "OpenClaw bootstrap rule",
+      "applicability": "host-specific",
+      "surface": ["rule:caveman-openclaw-bootstrap"],
+      "userEntrypoints": ["openclaw"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/rules/caveman-openclaw-bootstrap.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "extension",
+        "rationale": "Other host."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "n/a",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "piEquivalent": ["ruleset-injection"]
+    },
+    {
+      "id": "shrink-mcp",
+      "capability": "caveman-shrink MCP server",
+      "applicability": "host-specific",
+      "surface": ["mcp:caveman-shrink"],
+      "userEntrypoints": ["MCP hosts"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["src/mcp-servers/caveman-shrink"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "extension",
+        "rationale": "Pi shrinks through tool_result instead of an MCP proxy. Verified: a Pi MCP server tool result shrinks and recovers byte for byte through tool_result (e2e-real)."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "n/a",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "piEquivalent": ["tool-output-shrink"]
+    },
+    {
+      "id": "distribution",
+      "capability": "Install as a normal Pi package",
+      "applicability": "pi",
+      "surface": [],
+      "userEntrypoints": ["pi install <path>", "pi -e <path>"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/pi-extension/package.json", "INSTALL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["extension, 22 skills, prompts load from one package"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["pi package manifest"],
+        "owner": "extension",
+        "rationale": "One package carries extension, skills, prompts, and vendored runtime."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::package plus caveman enable pi starts without a tool conflict", "scripts/check-parity.mjs::the packed package includes every runtime file", "scripts/rpc-smoke.mjs::upstream skills discovered"],
+        "oracle": "Real pi install in isolated HOME and packed file list.",
+        "positiveCases": ["pi install"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-shrink",
+      "capability": "caveman shrink -- <cmd>: compress noisy command output with a recovery handle",
+      "applicability": "pi",
+      "surface": ["component:shrink"],
+      "userEntrypoints": ["caveman shrink -- <cmd>"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["shrink/README.md", "README.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["elided output with an inferred token count and a caveman retrieve handle"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["Pi bash tool", "canonical caveman CLI"],
+        "owner": "external-caveman-service",
+        "rationale": "The canonical CLI owns this behavior; Pi runs it unchanged and the Pi package does not reimplement it."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::caveman shrink -- <cmd> compresses command output from Pi bash with a recovery handle"],
+        "oracle": "Real caveman binaries driven from a real Pi print-mode session through the bash tool.",
+        "positiveCases": ["log-shaped output"],
+        "negativeCases": [],
+        "edgeCases": ["Pi tool_result shrinking runs on top and stays exactly recoverable"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-mem",
+      "capability": "cavemem durable memory: remember, recall, supersede, history, recover, forget",
+      "applicability": "pi",
+      "surface": ["component:mem"],
+      "userEntrypoints": ["caveman mem remember|recall|supersede|history|recover|forget"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["mem/README.md", "packages/cli/src/index.ts"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["recall hits with an inferred cost basis"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["Pi bash tool", "canonical caveman CLI"],
+        "owner": "external-caveman-service",
+        "rationale": "The canonical CLI owns this behavior; Pi runs it unchanged and the Pi package does not reimplement it."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::caveman mem remember and recall round-trip from Pi bash with an inferred cost basis", "scripts/e2e-real.mjs::caveman mem hook install pi reports that Pi has no auto-recall surface"],
+        "oracle": "Real caveman binaries driven from a real Pi print-mode session through the bash tool.",
+        "positiveCases": ["remember then recall"],
+        "negativeCases": ["mem hook install pi: upstream has no Pi auto-recall surface and says so"],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "cli-browse",
+      "capability": "caveman browse: compressed accessibility view of a page with a recovery handle",
+      "applicability": "pi",
+      "surface": ["component:browse"],
+      "userEntrypoints": ["caveman browse <url> [query]", "caveman browse act|recover|eval|close"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["browse/README.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["JSON view with uids, recovery_handle, token counts, basis inferred"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["Pi bash tool", "canonical caveman CLI"],
+        "owner": "external-caveman-service",
+        "rationale": "The canonical CLI owns this behavior; Pi runs it unchanged and the Pi package does not reimplement it."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::caveman browse returns a compressed page view with a recovery handle from Pi bash"],
+        "oracle": "Real caveman binaries driven from a real Pi print-mode session through the bash tool.",
+        "positiveCases": ["local page"],
+        "negativeCases": [],
+        "edgeCases": ["needs a local Chrome and the real HOME on macOS"]
+      },
+      "status": "verified"
+    },
+    {
+      "id": "service-config",
+      "capability": "Proxy, CLI, and installer environment configuration",
+      "applicability": "pi",
+      "surface": [
+        "env:CAVEMAN_HOME",
+        "env:CAVE_TOKEN",
+        "env:CAVEMAN_AUTH_TOKEN",
+        "env:CAVEMAN_LISTEN",
+        "env:CAVEMAN_TLS_CERT_FILE",
+        "env:CAVEMAN_TLS_KEY_FILE",
+        "env:CAVEMAN_TLS_CLIENT_CA_FILE",
+        "env:CAVEMAN_TLS_CLIENT_CN_FALLBACK",
+        "env:CAVEMAN_METRICS_TOKEN",
+        "env:CAVEMAN_CCR_MAX_BYTES",
+        "env:CAVEMAN_WORK_TAGS",
+        "env:CAVEMAN_REF"
+      ],
+      "userEntrypoints": ["environment variables"],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["SECURITY.md", "INSTALL.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": ["the proxy and CLI read these from the environment Pi passes through"],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": ["Pi bash tool", "canonical caveman CLI"],
+        "owner": "external-caveman-service",
+        "rationale": "The canonical CLI owns this behavior; Pi runs it unchanged and the Pi package does not reimplement it."
+      },
+      "verification": {
+        "tests": ["scripts/e2e-real.mjs::a killed proxy leaves its stale run-state file", "scripts/e2e-real.mjs::routed turn completes through the real proxy"],
+        "oracle": "Real caveman binaries driven from a real Pi print-mode session through the bash tool.",
+        "positiveCases": ["CAVEMAN_HOME locates run state"],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified"
+    },
+    {
+      "id": "browser-extension",
+      "capability": "Caveman browser extension for web chat UIs",
+      "applicability": "out-of-scope",
+      "surface": ["component:extension"],
+      "userEntrypoints": [],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["extension/README.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "external-caveman-service",
+        "rationale": "A Chrome/Firefox extension for web chat pages. It has no coding-agent host surface."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Not an agent-host capability.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "outOfScopeReason": "A Chrome/Firefox extension for web chat pages. It has no coding-agent host surface."
+    },
+    {
+      "id": "sdk-middleware",
+      "capability": "SDK and middleware for apps that call LLM APIs directly",
+      "applicability": "out-of-scope",
+      "surface": ["package:sdk", "package:middleware", "env:CAVEMAN_MIDDLEWARE_DATABASE_URL"],
+      "userEntrypoints": [],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/sdk", "packages/middleware"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "external-caveman-service",
+        "rationale": "Libraries a developer imports into their own application. Pi users reach the same engine through the proxy route."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Not an agent-host capability.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "outOfScopeReason": "Libraries a developer imports into their own application. Pi users reach the same engine through the proxy route."
+    },
+    {
+      "id": "integration-recipes",
+      "capability": "Gateway code recipes for third-party SDKs",
+      "applicability": "out-of-scope",
+      "surface": ["component:integrations"],
+      "userEntrypoints": [],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["integrations/recipes.json"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "external-caveman-service",
+        "rationale": "Copy-paste snippets for Python/TypeScript SDKs; none targets an agent host."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Not an agent-host capability.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "outOfScopeReason": "Copy-paste snippets for Python/TypeScript SDKs; none targets an agent host."
+    },
+    {
+      "id": "subagent-tax",
+      "capability": "Harness prefix-size measurement tool",
+      "applicability": "out-of-scope",
+      "surface": ["package:subagent-tax"],
+      "userEntrypoints": [],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["packages/subagent-tax/README.md"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "external-caveman-service",
+        "rationale": "A standalone benchmark that runs harnesses, Pi included, from outside. It is not a feature delivered inside a host."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Not an agent-host capability.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "outOfScopeReason": "A standalone benchmark that runs harnesses, Pi included, from outside. It is not a feature delivered inside a host."
+    },
+    {
+      "id": "maintainer-tooling",
+      "capability": "Docs site, evals, and shared internal library",
+      "applicability": "out-of-scope",
+      "surface": ["component:docs", "component:evals", "package:shared"],
+      "userEntrypoints": [],
+      "cavemanSource": {
+        "commit": "99aafe151a1be72be783e662858e8a0955add59f",
+        "files": ["docs", "evals", "packages/shared"]
+      },
+      "behavior": {
+        "preconditions": [],
+        "inputs": [],
+        "observableOutputs": [],
+        "sideEffects": [],
+        "persistence": [],
+        "failureBehavior": [],
+        "safetyBehavior": []
+      },
+      "piMapping": {
+        "mechanisms": [],
+        "owner": "external-caveman-service",
+        "rationale": "Maintainer documentation, evaluation harnesses, and an internal library with no user entrypoint. Their user-facing claims are ledgered per feature."
+      },
+      "verification": {
+        "tests": [],
+        "oracle": "Not an agent-host capability.",
+        "positiveCases": [],
+        "negativeCases": [],
+        "edgeCases": []
+      },
+      "status": "verified",
+      "outOfScopeReason": "Maintainer documentation, evaluation harnesses, and an internal library with no user entrypoint. Their user-facing claims are ledgered per feature."
+    }
+  ],
+  "host": {
+    "pi": "1.0.4",
+    "packages": {
+      "@earendil-works/pi-coding-agent": "1.0.4",
+      "@earendil-works/pi-ai": "1.0.4",
+      "@earendil-works/pi-tui": "1.0.4"
+    },
+    "upstreamRuntimeSdkPin": "pi-ai 1.0.2 (admitted at 1.0.4 via scripts/sdk-review.json)",
+    "node": "v24.21.0",
+    "platform": "darwin-arm64"
+  }
+}

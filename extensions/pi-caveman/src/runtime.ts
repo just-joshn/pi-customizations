@@ -1,0 +1,42 @@
+import { readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import upstreamRuntime from '#caveman-runtime';
+import { notify } from './report.ts';
+
+// The marker and path that `caveman enable pi` writes (packages/cli/src/index.ts piNativeMutations).
+const ENABLE_MARKER = 'caveman:native-pi';
+const enabledExtension = (home: string): string => join(home, '.pi', 'agent', 'extensions', 'caveman-native.js');
+
+export type RuntimeOwner = 'package' | 'caveman-wrap' | 'caveman-enable';
+
+// `caveman wrap pi` and `caveman enable pi` each load their own copy of this runtime. Pi refuses a
+// second `caveman_retrieve` registration and aborts startup, so the package yields to the CLI's copy.
+export function runtimeOwner(env: NodeJS.ProcessEnv, home: string): RuntimeOwner {
+  if (env['CAVEMAN_PI_HOOK_CMD']) return 'caveman-wrap';
+  try {
+    return readFileSync(enabledExtension(home), 'utf8').includes(ENABLE_MARKER) ? 'caveman-enable' : 'package';
+  } catch {
+    // An unreadable or absent CLI extension cannot load, so the package owns the runtime.
+    return 'package';
+  }
+}
+
+const RECOVERY_TOOL = 'caveman_retrieve';
+
+export function registerRuntime(pi: ExtensionAPI): RuntimeOwner {
+  const owner = runtimeOwner(process.env, homedir());
+  if (owner === 'package') {
+    upstreamRuntime(pi);
+    return owner;
+  }
+  // Yielding is only safe if the CLI's copy actually loaded; `pi --no-extensions` skips caveman-native.js.
+  pi.on('session_start', (_event, ctx) => {
+    if (pi.getAllTools().some((tool) => tool.name === RECOVERY_TOOL)) return;
+    const message = `Caveman: direct mode, no compression this session (the ${owner} runtime extension did not load)`;
+    notify(ctx, message, 'warning');
+  });
+  return owner;
+}

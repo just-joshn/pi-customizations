@@ -1,6 +1,6 @@
 # pi-caveman
 
-This Pi package brings [Caveman](https://github.com/JuliusBrussee/caveman) to Pi. The agent answers in a terse caveman voice: answer first, filler gone, every technical fact kept. Code, commands, paths, and error strings stay exact. The package matches the agent-side Caveman plugin at upstream commit `99aafe1` (see `UPSTREAM.json`) and uses only Pi's own mechanisms.
+This Pi package brings [Caveman](https://github.com/JuliusBrussee/caveman) to Pi. The agent answers in a terse caveman voice: answer first, filler gone, every technical fact kept. Code, commands, paths, and error strings stay exact. The package tracks upstream commit `99aafe1` (see `UPSTREAM.json`): the agent-side plugin ported to Pi mechanisms, plus upstream's own Pi runtime for proxy routing and exact recovery.
 
 ## Use it
 
@@ -58,15 +58,27 @@ The first source that sets a valid `defaultMode` wins:
 
 Upstream's sensitive-path check never matches `.ssh`, `.aws`, `.gnupg`, `.kube`, or `.docker`, because it compares dot-stripped names against dotted ones. `caveman_compress` refuses files under those directories. This is stricter than upstream and fixes a security gap. `docs/agents-audit.md` records the full rule-by-rule audit.
 
-## Out of scope
+## Native runtime
 
-The Caveman proxy, engine, `caveman browse`, MCP server, cloud SDKs, and browser extension are separate native programs. The `caveman-setup`, `caveman-learn`, and other proxy skills ship unchanged and drive the `caveman` CLI when it is installed. For proxy routing inside Pi, use upstream's own `@caveman-ai/pi` package.
+The package also carries upstream's own Pi runtime (`@caveman-ai/pi`), vendored unchanged under `vendor/caveman/` and started from `src/runtime.ts`. With the Caveman CLI and its local binaries installed (`npm i -g @caveman-ai/cli`, then `caveman setup --install`), it does four things:
+
+- It routes the selected model through the local `caveman-proxy` at `/w/pi`, but only after the proxy proves its identity and recovery is available. OAuth models, unknown endpoints, and endpoints whose headers or cache keys cannot be preserved stay direct.
+- It registers `caveman_retrieve`, which returns the exact original bytes behind a `ccr_` handle.
+- It shrinks large tool results only after the handle verifies against the original. Recovered output is never shrunk again.
+- It forwards Pi lifecycle events to `caveman native-hook pi`, which adds Core and the task-classified skills (`surgical-patch`, `investigate-first`, `migration`, `safe-refactor`, `verify-and-stop`, `lean-build`) to the system prompt.
+
+Without the CLI, or with the proxy down, stale, or answering with another identity, the session stays direct. Pi prints one `Caveman: direct mode, no compression this session` line and tool output stays untouched.
+
+`caveman wrap pi` and `caveman enable pi` load their own copy of the same runtime. Pi refuses a second `caveman_retrieve`, so the package yields to the CLI's copy and keeps its ruleset in the prompt that copy writes. If the CLI's copy does not load, for example under `pi --no-extensions`, the package says so instead of failing silently.
+
+Known upstream defect: the pinned engine panics on a bare numeric listing such as `seq 1 1500` (`engine/filewrap.go:35`), which takes the proxy down mid-session. The package cannot fix that.
 
 ## Update from upstream
 
 ```bash
 git clone https://github.com/JuliusBrussee/caveman /tmp/caveman
 bun run sync:upstream /tmp/caveman
+bun run vendor /tmp/caveman
 ```
 
 `scripts/sync-upstream.mjs` copies the skills and cavecrew agents, drops frontmatter fields that Pi does not read, applies `overrides/`, and records the commit in `UPSTREAM.json`.
@@ -76,8 +88,13 @@ bun run sync:upstream /tmp/caveman
 ```bash
 bun run test
 bun run typecheck
-node scripts/rpc-smoke.mjs
+bun run test:runtime                      # upstream's runtime suite on the vendored source
+bun run check:parity:final                # parity ledger gate (needs /tmp/caveman at the pin)
+node scripts/rpc-smoke.mjs --model <provider/id>
+node scripts/e2e-real.mjs --cli <dir with caveman> --bin <dir with caveman-proxy>
 ```
+
+`parity/ledger.json` lists every upstream capability, its Pi mechanism, and the tests that prove it. `check-parity.mjs` fails when an upstream skill, command, hook, agent, CLI verb, runtime event, top-level component, package, or documented `CAVEMAN_*` variable has no row, when the installed Pi packages differ from the ledger's host pin, when the package source opens its own network connection, when a cited test or source path is missing, when skills or the vendored runtime drift from the pin, or when `npm pack` would ship without a runtime file. `e2e-real.mjs` drives the package against the real `caveman-proxy`, `caveman-mcp`, and `caveman native-hook`, including parallel and MCP tool results and the `shrink`, `mem`, and `browse` services from Pi's bash tool. `response-contract.mjs` asks a live model representative questions in every prose mode and fails when a command, path, error string, code line, number with its unit, negation, or quoted foreign text is not reproduced verbatim, or when a security or irreversible-action answer drops its warning. `hook-differential.test.ts` replays scripted sessions through the extension and compares the model-facing context with what upstream's own hooks inject (`test/upstream/hook-oracle.json`). Rows marked `out-of-scope` (browser extension, SDK and middleware, integration recipes, subagent-tax, maintainer tooling) name why they have no Pi surface. Upstream's runtime suite pins pi-ai 1.0.2; `test-runtime.mjs` admits the installed 1.0.4 only through the file-level review in `scripts/sdk-review.json`.
 
 `rpc-smoke.mjs` drives a real Pi over RPC with the default model. It checks skill discovery, prompt injection, `/caveman status`, `/ultracave`, `/megacave`, one-shot restore, `/caveman-stats`, `caveman_compress`, `cavecrew`, the mode across manual compaction, an explicit off across a restart with `--continue`, and the mode stored on a forked branch.
 

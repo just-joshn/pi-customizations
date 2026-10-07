@@ -48,3 +48,16 @@ describe('missing skills directory', () => {
     expect(reinforcement('caveman', empty).startsWith('CAVEMAN MODE ACTIVE (caveman). Respond terse')).toBe(true);
   });
 });
+
+test('the section carries the upstream auto-clarity and exactness rules', () => {
+  const section = rulesetSection('caveman');
+
+  const rules = [
+    'Never drop not/never/no/only/except. Numbers and units exact.',
+    'Code blocks unchanged. Commands, paths, API names exact. Errors quoted exact, shortest decisive line only.',
+    '1. Security warning.',
+    '2. Irreversible action. Confirm in full sentences first.',
+    '4. User confused or repeats the question.',
+  ];
+  expect(rules.map((rule) => section.includes(rule))).toStrictEqual([true, true, true, true, true]);
+});

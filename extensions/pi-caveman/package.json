@@ -1,7 +1,7 @@
 {
   "name": "pi-caveman",
   "version": "0.1.0",
-  "description": "Pi-native Caveman: terse caveman voice modes, mode tracking, status badge, stats, compress, and cavecrew subagents.",
+  "description": "Pi-native Caveman: voice modes, mode tracking, status, stats, compress, cavecrew, and the native runtime (proxy routing, caveman_retrieve exact recovery, tool-output shrinking).",
   "type": "module",
   "license": "Apache-2.0",
   "keywords": [
@@ -26,15 +26,28 @@
     "skills",
     "prompts",
     "agents",
+    "vendor/caveman/packages/pi-extension/src",
+    "vendor/caveman/packages/pi-extension/NOTICE",
+    "vendor/caveman/packages/pi-extension/LICENSE",
+    "vendor/caveman/packages/cli/src/provider-routing.ts",
     "NOTICE",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "parity"
   ],
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -p .",
-    "sync:upstream": "node scripts/sync-upstream.mjs"
+    "typecheck": "tsc -p . && tsc -p vendor/caveman/packages/pi-extension/tsconfig.json",
+    "sync:upstream": "node scripts/sync-upstream.mjs",
+    "vendor": "node scripts/vendor-runtime.mjs",
+    "check:vendor": "node scripts/vendor-runtime.mjs --check",
+    "test:runtime": "node scripts/test-runtime.mjs",
+    "e2e:real": "node scripts/e2e-real.mjs",
+    "check:parity": "node scripts/check-parity.mjs",
+    "check:parity:final": "node scripts/check-parity.mjs --final",
+    "capture:hook-oracle": "node scripts/capture-hook-oracle.mjs",
+    "e2e:contract": "node scripts/response-contract.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
@@ -43,13 +56,20 @@
     "typebox": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-ai": "1.0.2",
-    "@earendil-works/pi-coding-agent": "1.0.2",
-    "@earendil-works/pi-tui": "1.0.2",
+    "@earendil-works/pi-ai": "1.0.4",
+    "@earendil-works/pi-coding-agent": "1.0.4",
+    "@earendil-works/pi-tui": "1.0.4",
     "@types/node": "^22.19.0",
     "@vitest/coverage-v8": "^5.0.2",
+    "esbuild": "0.28.1",
     "typebox": "1.3.27",
     "typescript": "^7.0.2",
     "vitest": "^5.0.2"
+  },
+  "imports": {
+    "#caveman-runtime": {
+      "types": "./src/caveman-runtime.d.ts",
+      "default": "./vendor/caveman/packages/pi-extension/src/index.ts"
+    }
   }
 }

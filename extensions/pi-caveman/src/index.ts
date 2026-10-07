@@ -4,6 +4,7 @@ import { registerHelp, registerModeCommands, registerStats } from './commands.ts
 import { registerCompress } from './compress-tool.ts';
 import { registerModeTracking } from './controller.ts';
 import { registerRenderers } from './renderers.ts';
+import { registerRuntime } from './runtime.ts';
 
 export default function caveman(pi: ExtensionAPI): void {
   const controller = registerModeTracking(pi);
@@ -13,4 +14,6 @@ export default function caveman(pi: ExtensionAPI): void {
   registerCavecrew(pi);
   registerCompress(pi);
   registerRenderers(pi);
+  // After mode tracking, so its ruleset section is already in the prompt that the runtime's Core extends.
+  registerRuntime(pi);
 }

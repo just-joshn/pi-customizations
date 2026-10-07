@@ -1,5 +1,9 @@
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, MessageRenderer, ToolDefinition } from '@earendil-works/pi-coding-agent';
+import { vi } from 'vitest';
 import caveman from '../../src/index.ts';
+
+// The vendored runtime spawns the caveman CLI on session_start; package-runtime.test.ts covers it through real Pi.
+vi.mock(import('#caveman-runtime'), () => ({ default: () => undefined }));
 
 type Handler = (event: Record<string, unknown>, ctx: ExtensionContext) => unknown;
 type Command = { handler: (args: string, ctx: ExtensionCommandContext) => Promise<void>; getArgumentCompletions?: (prefix: string) => unknown };
@@ -21,7 +25,7 @@ export interface Harness {
   readonly record: (entry: unknown) => void;
 }
 
-export function harness(cwd: string = process.cwd()): Harness {
+export function harness(cwd: string = process.cwd(), { hasUI = true }: { readonly hasUI?: boolean } = {}): Harness {
   const handlers = new Map<string, Handler[]>();
   const commands = new Map<string, Command>();
   const tools = new Map<string, ToolDefinition>();
@@ -42,6 +46,7 @@ export function harness(cwd: string = process.cwd()): Harness {
   };
   const ctx = {
     cwd,
+    hasUI,
     ui: { setStatus: (_key: string, text: string | undefined) => statuses.push(text), notify: (text: string) => notices.push(text), theme: { fg: (_c: string, text: string) => text } },
     sessionManager: { getBranch: () => entries, getSessionId: () => 'sid', getSessionFile: () => undefined },
   };

@@ -36,7 +36,7 @@ This audit checks every file that branch `feat/pi-caveman` adds against the root
 | Rule | Verdict | Evidence or fix |
 |---|---|---|
 | Pi-native first, least powerful mechanism | Compliant | Skills ship as a Pi package resource. Prompt templates provide `/caveman-commit`, `/caveman-review`, `/caveman-compress`, and `/caveman-init`. State uses `pi.appendEntry`. Prompt changes use `systemPromptOptions.sections`. The badge uses `ctx.ui.setStatus`. Model calls use `ctx.modelRegistry.streamSimple`. |
-| Source of truth: installed Pi version and exported types | Compliant | Built against the installed `@earendil-works/pi-coding-agent` 1.0.2 declarations and verified live on Pi 1.0.4. No private import paths are used. |
+| Source of truth: installed Pi version and exported types | Compliant | Built against the installed `@earendil-works/pi-coding-agent` 1.0.4 declarations and verified live on Pi 1.0.4. Upstream's runtime suite pins pi-ai 1.0.2; `scripts/test-runtime.mjs` admits 1.0.4 only through the file-level review in `scripts/sdk-review.json`. No private import paths are used. |
 | Native-gap gate for custom logic | Compliant | See the native-gap table below. |
 | Factory registers only; no session resources in the factory | Compliant | The factory only registers handlers, commands, tools, and renderers. Child processes start inside `cavecrew` tool calls and end with them. |
 | Reconstruct branch state from `getBranch()` on `session_start` | Compliant | `controller.ts` restores from `ctx.sessionManager.getBranch()` on `session_start` and `session_tree`, and clears pending notices on both. |
