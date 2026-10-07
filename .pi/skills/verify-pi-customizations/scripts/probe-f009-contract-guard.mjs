@@ -238,6 +238,20 @@ test('a receipt produced under changed helpers stays stale after the helpers are
   }
 });
 
+test('a malformed approval fails the real strict report after a successful drive', async () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), 'f009-malformed-report-'));
+  try {
+    const { checkout } = buildCheckout(repoRoot, ORIGINAL_SCENARIO);
+    drive(repoRoot, checkout);
+    writeFileSync(join(repoRoot, APPROVAL_RELATIVE), 'not json\n');
+    const rejected = report(repoRoot, checkout);
+    assert.equal(rejected.status, 1, `${rejected.stdout}\n${rejected.stderr}`);
+    assert.match(`${rejected.stdout}\n${rejected.stderr}`, /approval.*not valid JSON/);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test('a real drive stamps the contract digest it ran under', async () => {
   const api = requireApi(await contractApi(SKILL_DIR));
   const repoRoot = mkdtempSync(join(tmpdir(), 'f009-stamp-'));
