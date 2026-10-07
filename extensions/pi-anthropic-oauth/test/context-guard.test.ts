@@ -19,6 +19,7 @@ interface Rig {
   readonly notices: string[];
   beforeStart(): BeforeStartHandler;
   sessionStart(): SessionHandler;
+  sessionShutdown(): SessionHandler;
 }
 
 function subscriptionModel(): NonNullable<GuardContext['model']> {
@@ -54,12 +55,14 @@ function createRig(compactionEnabled = true): Rig {
   const guard = installContextGuard(api, { providerId: 'claude-subscription', notify: (message) => notices.push(message) });
   const beforeAgentStart = handlers.get('before_agent_start');
   const sessionStart = handlers.get('session_start');
+  const sessionShutdown = handlers.get('session_shutdown');
   if (beforeAgentStart === undefined || sessionStart === undefined) throw new Error('the guard did not register its handlers');
   return {
     guard,
     notices,
     beforeStart: () => (event, ctx) => invoke(beforeAgentStart, [event, ctx]),
     sessionStart: () => () => invoke(sessionStart, []),
+    sessionShutdown: () => () => invoke(sessionShutdown, []),
   };
 }
 
@@ -229,6 +232,20 @@ test('a session start resets the observed bias', async () => {
   expect(counter.count()).toBe(1);
   rig.sessionStart()();
   await rig.beforeStart()(prompt, ctx);
+  expect(counter.count()).toBe(1);
+});
+
+test('shutdown resets the observed bias before another session starts', async () => {
+  const rig = createRig();
+  const counter = counted();
+  const ctx = guardContext({ projection: bigProjection(300_000), compact: counter.compact });
+  rig.guard.observe({ model: 'claude-opus-5-5', messages: [{ role: 'user', content: 'a'.repeat(300_000) }] }, 50_000);
+  await rig.beforeStart()(prompt, ctx);
+  expect(counter.count()).toBe(1);
+
+  rig.sessionShutdown()();
+  await rig.beforeStart()(prompt, ctx);
+
   expect(counter.count()).toBe(1);
 });
 
