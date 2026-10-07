@@ -8,15 +8,23 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 
 ## F-008: the advertised `s50` command does not exist after the advertised install
 
-**Status.** open
+**Status.** fixed
 
 **Found by** `S50-INSTALL-1` / `S50-INSTALL-2` and `artifacts/user-perspective/s50-install/`.
 
-**What a user sees.** `extensions/pi-s50/package.json` declares `bin.s50`. `extensions/pi-s50/README.md:8` advertises `pi install ./extensions/pi-s50`. After that install, typing `s50` in a shell fails with command not found.
+**What the finding claimed.** That `extensions/pi-s50/package.json` declares `bin.s50`, that `extensions/pi-s50/README.md:8` advertises `pi install ./extensions/pi-s50`, and that typing `s50` after that install fails.
 
-**What actually happens.** Pi's local install branch performs no bin linking at all. It resolves the path and checks it exists, then returns, at `@earendil-works/pi-coding-agent@1.0.4` `dist/core/package-manager.js:796-802`. `installNpm()` delegates to `npm install --prefix <root>` at `:1527-1530`, and `getNpmInstallRoot()` at `:1730-1739` puts that root at `<cwd>/.pi/npm` or `<agentDir>/npm`, neither of which is on `PATH`. Measured across five install shapes. `pi install npm:file:<abs-dir>` does link `.pi/npm/node_modules/.bin/s50`, but the linked name is still not on `PATH`. `docs/packages.md` states that local packages are loaded from their path without copying, and the word `bin` does not appear in it.
+**What the coordinator verified, and what it refuted.** The README never promised `s50` would be on `PATH`. It gave the working invocation `node extensions/pi-s50/src/cli/main.ts status` and stated the constraint. Both of the constraint's claims were then tested directly rather than taken on faith.
 
-**Why it is parked rather than fixed.** The manifest is valid npm metadata and the package documents the constraint at `README.md:15-21`, including the working invocation `node extensions/pi-s50/src/cli/main.ts status`. The gap is between what a reader expects from a declared `bin` and what any install shape delivers onto `PATH`. Closing it means choosing between documenting a `PATH` step, shipping a wrapper on `PATH`, or dropping `bin` from the manifest. That is a packaging decision, not a defect to patch.
+Claim one, that the bin runs through a symlink into the checkout, holds. A symlink at a temporary `bin/s50` pointed at `extensions/pi-s50/src/cli/main.ts` and `s50 status` ran, from the repository and from an unrelated working directory, exiting 0 and printing `no run in .s50/`.
+
+Claim two, that Node will not strip types under `node_modules`, holds. A copy under a temporary `node_modules/pi-s50` failed with `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING` at `node:internal/modules/typescript:189`, on Node v24.21.0.
+
+**What was actually wrong, and is now fixed.** The manifest's `bin` field sets an expectation that the documented install cannot meet, and the explanation sat in the next section rather than beside the command that creates the expectation. The install section now states plainly that `pi install` registers the extension and skill but does not put `s50` on `PATH`, with the reason, and the shell section names both invocations that work.
+
+**What is not a defect.** Pi's local install performing no bin linking is host behaviour, and a TypeScript entry point cannot run from a `node_modules` copy on any install shape. Neither is fixable from this package, and neither was a promise the README made.
+
+**Residual gap.** A user who wants `s50` on `PATH` still has to create the symlink themselves. Shipping a compiled entry point would remove that, at the cost of a build step this package deliberately does not have.
 
 **Reproduction.** `artifacts/user-perspective/s50-install/raw/s50-install.json` records the nine searched locations, the `PATH` scan, and `which s50`.
 
