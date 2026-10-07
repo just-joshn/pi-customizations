@@ -49,6 +49,14 @@ When the model applies a command that records a user decision (`answer_decisions
 
 During a run, a bash command that force-pushes, merges a pull request, deploys, deletes data destructively, publishes a package, or posts a public message asks the user first. Without a UI it is blocked. The patterns live in `src/policy/authorization.ts`; a command they do not recognize is not stopped, so S50 also tells the agent to stop at these actions.
 
+## How the documentation separates its facts
+
+- Facts inherited from external skill contracts are marked **Upstream** in [Workflows](docs/workflows.md) and [Verification](docs/verification.md).
+- S50 policy choices are marked **S50** there; the coordinator enforces each one.
+- Host-dependent capabilities are listed in the next section and marked **Host** in the docs.
+- Live registry facts are in [Registry](docs/registry.md#live-registry-facts-on-2026-10-07), dated and tied to their fixtures.
+- Known limitations close this README.
+
 ## Documentation
 
 - [Architecture](docs/architecture.md) explains the coordinator, the data shape, persistence, the rejected designs, concurrency, and the Pi surfaces.
@@ -66,6 +74,22 @@ During a run, a bash command that force-pushes, merges a pull request, deploys, 
 | Native UI automation (declared with `--capabilities`) | Native verification is INCONCLUSIVE. |
 | Network access to skills.sh and GitHub | `registry refresh` fails; `--from` locks offline. |
 | A Pi UI | Commands that record user decisions and gated bash commands are refused. |
+
+## Verification in this environment
+
+Exercised on 2026-10-07 on macOS with Node 24 and Pi 1.0.4:
+
+- The unit, integration, and end-to-end suites, including the real CLI driven as a separate process through feature and bug runs in temporary Git repositories, with a restart and a stale-evidence round trip.
+- A live `registry refresh` against skills.sh and GitHub (`S50_LIVE=1`, `test/integration/host.test.ts`).
+- The Pi install path: `pi install -l --approve` into a throwaway project, then one bounded feature simulation through `pi -p --approve` (`make verify-s50-harness`). The agent drove the run only through the `s50` tool and the run stopped at the decision gate. In one of these runs the coordinator refused a decision round that mixed a question with one that depended on it, and the agent re-asked only the frontier.
+
+Not exercised, so INCONCLUSIVE here:
+
+- Browser and Electron verification, because `agent-browser` is not installed.
+- Native UI verification, because no native automation driver is available.
+- Real parallel workers running graph nodes in their worktrees. Worktree creation is tested; no two agents ran nodes at once.
+- A full Pi run from start to `PR_READY`, because every decision gate needs a human answer.
+- Pi surfaces under `pi install` from npm or Git, because the package is not published.
 
 ## Known limitations
 
