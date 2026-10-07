@@ -8,6 +8,8 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 
 ## F-008: the advertised `s50` command does not exist after the advertised install
 
+**Status.** open
+
 **Found by** `S50-INSTALL-1` / `S50-INSTALL-2` and `artifacts/user-perspective/s50-install/`.
 
 **What a user sees.** `extensions/pi-s50/package.json` declares `bin.s50`. `extensions/pi-s50/README.md:8` advertises `pi install ./extensions/pi-s50`. After that install, typing `s50` in a shell fails with command not found.
@@ -22,6 +24,8 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 
 ## F-009: a receipt can be made to lie by editing the scenario that produces it
 
+**Status.** open
+
 **Found by** the run itself. A worker deleted the trailing `\n` from an expected string in `scenarios/caveman-tools.mjs` after the check failed. The receipt flipped to `verified` while its own `observed` field still showed the file without the newline. It was caught by a human reading the two fields against each other.
 
 **Why it matters.** The done predicate trusts receipts. Nothing binds a receipt to the scenario text that produced it, so an expectation can be moved to match observed output and the report cannot tell.
@@ -34,6 +38,8 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 
 ## F-010: no gate enforces a coverage threshold
 
+**Status.** open
+
 **Found by** the baseline capture. `bun run ci` and every `test:coverage` script report a number and enforce nothing. No `vitest.config.ts` in the repository sets `thresholds`. Root `AGENTS.md` states 80% as a minimum.
 
 **Measured coverage at the time of writing.** pi-caveman 95.34, pi-xai-oauth 98.91, pi-antigravity-oauth 97.13, pi-tui-skin 97.69, pi-one-dark-pro-theme 97.4, pi-anthropic-oauth 90.77, pi-s50 88.84, pi-pstack 80.55 statements.
@@ -43,6 +49,8 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 ---
 
 ## F-011: the packages typecheck against a different Pi than users run
+
+**Status.** open
 
 **Found by** the baseline capture. Seven of eight packages pin `@earendil-works/pi-*` at 1.0.2 for typechecking and tests. The installed Pi that every user-perspective drive ran against is 1.0.4. `docs/pi-1.0.2-migration.md` describes the 1.0.2 migration as current.
 
@@ -55,6 +63,8 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 ---
 
 ## F-012: the rubber-duck agent type cannot start on the Cloud Code Assist provider
+
+**Status.** open
 
 **Found by** the caveman fix unit, which tried to use it twice for plan review and self-reviewed instead. **Now measured directly** by the coordinator, because the run's own rigor rules say an unseen cause is a guess.
 
@@ -76,6 +86,8 @@ Unknown name "uniqueItems" at 'request.tools[0].function_declarations[32].parame
 
 ## F-013: `AN-EVT-2` cannot be falsified as specified
 
+**Status.** open
+
 **Found by** the OAuth unit. `session_shutdown` and `session_start` register the same reset closure at `extensions/pi-anthropic-oauth/src/guard.ts:169` and `:197-198`. Pi fires them back to back with no guard-observable request between them, so deleting either handler leaves every observation unchanged. The row's receipt is `inconclusive`, which is the correct verdict for a surface this harness cannot distinguish.
 
 **What would settle it.** A guard-observable effect that can only happen between the two events, or a direct inspection of which handler is registered for which event.
@@ -85,6 +97,8 @@ Unknown name "uniqueItems" at 'request.tools[0].function_declarations[32].parame
 ---
 
 ## F-014: composite rows whose evidence is narrower than the row
+
+**Status.** open
 
 **Found by** the pi-tui-skin unit auditing its own work, and disclosed rather than left silent. Several rows in the inventory bundle clauses that behave independently. The drive asserts some of them and says so. The row therefore reads wider than its receipt, and a reader taking the row's text at face value would over-trust it.
 
@@ -107,6 +121,8 @@ Unknown name "uniqueItems" at 'request.tools[0].function_declarations[32].parame
 
 ## F-015: the tui-skin spec still claims the skin sets the terminal title
 
+**Status.** open
+
 **Found by** the title fix, which reported it rather than editing outside its scope.
 
 `extensions/pi-tui-skin/docs/PI_TUI_SKIN_IMPLEMENTATION_SPEC.md` states in five places that the skin sets the terminal title: lines 144, 178, 241, 586 and 1315. The behaviour was removed in `30706da`, because Pi owns the title and re-asserts it after the extension's `session_start` handler runs, so the call never survived.
@@ -116,6 +132,8 @@ Unknown name "uniqueItems" at 'request.tools[0].function_declarations[32].parame
 ---
 
 ## F-016: declared resources are verified at discovery scope, not behaviour scope
+
+**Status.** open
 
 **Found by** the drift check that compares each receipt's expectation against its row's, which surfaced 89 divergences and 16 that drop three or more content words.
 
@@ -131,6 +149,8 @@ No drive exercises those effects. What the drives observed is registration and d
 
 ## F-017: the shutdown hook can be cut by a second shutdown
 
+**Status.** open
+
 **Found by** the pi-pstack environment unit, which saw an intermittent failure rather than a clean one.
 
 **What happens.** In two full runs of the environment scenario the populated-board shutdown never spawned the consolidation session; the recorder log was still absent after 60 seconds. In an isolated ten-attempt probe all ten launched. So it is a race, not a failure.
@@ -145,6 +165,8 @@ No drive exercises those effects. What the drives observed is registration and d
 
 ## F-018: disabling a subagent does not take effect in the current session
 
+**Status.** open
+
 **Found by** the same unit while driving `PS-CMD-9`.
 
 `/subagents rubber-duck off` writes the preference but the current session keeps using the agent. `SettingsStore.adopt` updates the saved settings while `factory.offered` caches its list until `invalidateToolConfig` runs, at `extensions/pi-pstack/src/subagents/subagent-commands.ts:51` and `src/subagents/factory.ts:89`. The warning that the agent is disabled appears only in the next session, which is why the drive had to move to a fresh session to observe it.
@@ -157,6 +179,8 @@ No drive exercises those effects. What the drives observed is registration and d
 
 ## F-019: an unknown subagent model falls back silently where an unknown model elsewhere throws
 
+**Status.** open
+
 **Found by** the same unit while driving `PS-ENV-20`.
 
 Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls back to the inherited model, and the drive records the fallback rather than a rejection. `resolveModel` throws for an unknown model elsewhere, at `extensions/pi-pstack/src/models.ts:82` against `src/subagents/specialized-tools.ts:58`.
@@ -166,6 +190,8 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 ---
 
 ## F-020: a subagent reads files the user excluded, because the exclusion never wires up
+
+**Status.** fixed
 
 **Found by** `PS-EVT-32` while driving the pi-pstack policy hooks. **Highest severity in this run.**
 
@@ -183,6 +209,8 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 
 ## F-021: a worker transcript keeps reading `running` after shutdown
 
+**Status.** open
+
 **Found by** `PS-EVT-44`. A local worker is in-process, so after shutdown the transcript still records the task as `running` plus a cleanup-usage entry, and only the next session start rewrites it to `interrupted`. Between the two, a user reading their own session sees a task that has already stopped.
 
 **Why it is parked.** The rewrite does happen, so the state converges; the window is the defect. Fixing it means deciding whether shutdown should write the terminal state or the read path should derive it.
@@ -190,6 +218,8 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 ---
 
 ## F-022: navigating away from a task re-appends its settled record
+
+**Status.** open
 
 **Found by** the same unit while driving `PS-EVT-43`. On a session-tree navigation, the worker-restore path re-appends an already-settled task record onto the newly navigated branch, so a task the user has navigated away from stays listed.
 
@@ -199,6 +229,8 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 
 ## F-023: two defensive guards are unreachable from a real session
 
+**Status.** open
+
 **Found by** `PS-EVT-30` and `PS-EVT-31`. Pi rejects a call to a deactivated tool with `Tool <name> not found` before any `tool_call` hook runs, so the policy guard for that case cannot execute. An agent with a named tool list never receives the other tools, and a child whose parent lacks `write` and `edit` has them dropped from its plan, so the second guard is unreachable for the same reason.
 
 **Why it matters.** Unreachable guards read as protection and provide none, and they cost a reader time. Either they should be deleted, or the comment should say which host behaviour makes them dead. The verification consequence is recorded in the receipt as `not-drivable` rather than `verified`, because the row cannot be exercised.
@@ -206,6 +238,8 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 ---
 
 ## F-024: two packages were never driven together in a real terminal
+
+**Status.** open
 
 **Found by** the close-out audit against the requirement that coverage include cross-extension interaction.
 

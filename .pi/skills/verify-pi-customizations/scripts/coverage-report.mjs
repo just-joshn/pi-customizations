@@ -8,6 +8,10 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 
 const DEFAULT_SURFACES = join(ROOT, 'docs/user-perspective-testing/surfaces.tsv');
 const DEFAULT_ARTIFACTS = join(ROOT, 'artifacts/user-perspective');
 const DEFAULT_OUT = join(ROOT, 'docs/user-perspective-testing/verdicts.tsv');
+const DEFAULT_FINDINGS = join(ROOT, 'docs/user-perspective-testing/open-findings.md');
+
+const FINDING_STATUSES = new Set(['open', 'fixed', 'out-of-reach']);
+const CLOSED_STATUSES = new Set(['fixed', 'out-of-reach']);
 
 const SURFACE_COLUMNS = ['surface_id', 'package', 'kind', 'name', 'trigger', 'expected', 'source', 'tier', 'veto'];
 const VERDICT_COLUMNS = ['surface_id', 'package', 'tier', 'scope', 'verdict', 'reason', 'observed', 'evidence', 'head_sha', 'checked_at'];
@@ -17,7 +21,7 @@ const VERDICT_ORDER = ['verified', 'failed', 'partial', 'inconclusive', 'env-lim
 const PARTIAL_REASON = "only discovery evidence; the row's claim is behavioural";
 
 function parseArgs(argv) {
-  const options = { surfaces: DEFAULT_SURFACES, artifacts: DEFAULT_ARTIFACTS, out: DEFAULT_OUT, requireComplete: false };
+  const options = { surfaces: DEFAULT_SURFACES, artifacts: DEFAULT_ARTIFACTS, out: DEFAULT_OUT, findings: DEFAULT_FINDINGS, requireComplete: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--require-complete') {
@@ -50,6 +54,23 @@ function readSurfaces(path) {
       seen.add(surface.surface_id);
       return surface;
     });
+}
+
+function readFindings(path) {
+  const findings = [];
+  let current = null;
+  for (const line of readFileSync(path, 'utf8').split('\n')) {
+    const heading = /^##\s+(F-\d+)\s*:\s*(.+?)\s*$/.exec(line);
+    if (heading) {
+      current = { id: heading[1], title: heading[2], status: null };
+      findings.push(current);
+      continue;
+    }
+    if (!current || current.status !== null) continue;
+    const status = /^\*\*Status\.\*\*\s*(.+?)\s*$/.exec(line);
+    if (status) current.status = status[1];
+  }
+  return findings;
 }
 
 function receiptProblem(receipt, claimedId) {
@@ -281,18 +302,34 @@ try {
   }
   const conflicts = reportConflicts(receipts);
   if (conflicts > 0) console.log(`warning: ${conflicts} surfaces have conflicting receipts; the strongest verdict is reported`);
+  const findings = options.findings && existsSync(options.findings) ? readFindings(options.findings) : [];
   writeVerdicts(options.out, rows);
   printTable(rows);
   const display = displayPath(options.out);
   console.log(`wrote ${display}`);
+  if (findings.length > 0) {
+    const open = findings.filter((finding) => !CLOSED_STATUSES.has(finding.status ?? ''));
+    console.log(`findings: ${findings.length} recorded, ${open.length - findings.filter((finding) => !FINDING_STATUSES.has(finding.status ?? '')).length} fixed or out-of-reach, ${open.length} still open`);
+    for (const finding of open) {
+      const reason = finding.status === null ? 'no status line' : FINDING_STATUSES.has(finding.status) ? finding.status : `unrecognised status '${finding.status}'`;
+      console.log(`  ${finding.id}: ${reason}: ${finding.title}`);
+    }
+  }
   if (options.requireComplete) {
     const uncovered = rows.filter((row) => row.verdict === 'uncovered').map((row) => row.surface_id);
+    const unresolved = findings.filter((finding) => !CLOSED_STATUSES.has(finding.status ?? ''));
     if (uncovered.length > 0) {
       console.log(`INCOMPLETE: ${uncovered.length} uncovered surfaces`);
       for (const surfaceId of uncovered) console.log(surfaceId);
+    }
+    if (unresolved.length > 0) {
+      console.log(`INCOMPLETE: ${unresolved.length} findings are neither fixed nor proven out of reach`);
+      for (const finding of unresolved) console.log(`${finding.id}: ${finding.title}`);
+    }
+    if (uncovered.length > 0 || unresolved.length > 0) {
       process.exitCode = 1;
     } else {
-      console.log('complete: every surface has a receipt');
+      console.log('complete: every surface has a receipt and every finding is fixed or proven out of reach');
     }
   }
 } catch (error) {
