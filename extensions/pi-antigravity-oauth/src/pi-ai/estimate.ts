@@ -1,4 +1,4 @@
-// Vendored from @earendil-works/pi-ai 1.0.4 src/utils/estimate.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 1.1.0 src/utils/estimate.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
 import type { AssistantMessage, ImageContent, Message, TextContent, TranscriptContext, Usage } from '@earendil-works/pi-ai';
 import { getSystemMessageText } from '@earendil-works/pi-ai';
 
@@ -13,7 +13,7 @@ export interface ContextUsageEstimate {
   lastUsageIndex: number | null;
 }
 
-const CHARS_PER_TOKEN = 4;
+const CHARS_PER_TOKEN = 3.5;
 const ESTIMATED_IMAGE_CHARS = 4800;
 
 export function calculateContextTokens(usage: Usage): number {

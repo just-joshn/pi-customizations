@@ -1,4 +1,4 @@
-// Vendored from @earendil-works/pi-ai 1.0.4 src/api/constrained-sampling.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 1.1.0 src/api/constrained-sampling.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
 import type { Tool } from '@earendil-works/pi-ai';
 
 interface JsonSchemaObject {

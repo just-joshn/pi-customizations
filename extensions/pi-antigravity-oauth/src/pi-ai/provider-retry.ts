@@ -1,10 +1,12 @@
-// Vendored from @earendil-works/pi-ai 1.0.4 src/utils/provider-retry.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 1.1.0 src/utils/provider-retry.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
 const DEFAULT_MAX_RETRY_DELAY_MS = 60_000;
 
 interface ProviderRetryOptions {
   maxRetries?: number;
   maxRetryDelayMs?: number;
   signal?: AbortSignal;
+  /** HTTP statuses that fail at once although the default policy would retry them. */
+  noRetryStatuses?: readonly number[];
 }
 
 interface ProviderError extends Error {
@@ -100,6 +102,7 @@ export async function retryProviderRequest<T>(request: () => Promise<T>, options
     } catch (error) {
       if (options.signal?.aborted) throw createAbortError();
       if (retriesRemaining <= 0 || !isProviderError(error) || !isRetryableProviderError(error)) throw error;
+      if (error.status !== undefined && options.noRetryStatuses?.includes(error.status)) throw error;
 
       const retryIndex = maxRetries - retriesRemaining;
       retriesRemaining--;
