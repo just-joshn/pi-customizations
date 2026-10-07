@@ -4,6 +4,7 @@ verify: verify-s50 verify-lint verify-agents verify-mechanisms verify-toolchain 
 
 verify-lint:
 	bun run ci
+	node scripts/check-coverage-policy.mjs
 
 verify-agents:
 	bun run check:agents
