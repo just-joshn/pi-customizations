@@ -4,108 +4,132 @@ export type SimpleCommand = { readonly words: readonly string[]; readonly redire
 
 const SEPARATORS = new Set([';', '&', '|', '\n', '(', ')']);
 
-type Reader = { readonly text: string; index: number };
+type Token = { readonly kind: 'word'; readonly text: string } | { readonly kind: 'separator' } | { readonly kind: 'redirect' };
 
-function closing(reader: Reader, open: string, close: string): string {
-  const start = reader.index;
+type Read = { readonly text: string; readonly subs: readonly string[]; readonly end: number };
+
+function matching(text: string, start: number, open: string, close: string): { readonly body: string; readonly end: number } {
   let depth = 1;
-  while (reader.index < reader.text.length) {
-    const char = reader.text[reader.index];
-    if (char === '\\') reader.index += 1;
+  let index = start;
+  while (index < text.length) {
+    const char = text[index];
+    if (char === '\\') index += 1;
     else if (char === open && open !== close) depth += 1;
     else if (char === close && --depth === 0) break;
-    reader.index += 1;
+    index += 1;
   }
-  const body = reader.text.slice(start, reader.index);
-  reader.index += 1;
-  return body;
+  return { body: text.slice(start, index), end: index + 1 };
 }
 
-function parse(text: string): readonly SimpleCommand[] {
-  const commands: SimpleCommand[] = [];
-  const nested: string[] = [];
-  let words: string[] = [];
-  let redirects: string[] = [];
-  let word: string | null = null;
-  let redirecting = false;
-  const reader: Reader = { text: text.replace(/\\\r?\n/g, ' '), index: 0 };
-  const endWord = (): void => {
-    if (word === null) return;
-    if (redirecting) redirects = [...redirects, word];
-    else words = [...words, word];
-    word = null;
-    redirecting = false;
-  };
-  const endCommand = (): void => {
-    endWord();
-    if (words.length > 0 || redirects.length > 0) commands.push({ words, redirects });
-    words = [];
-    redirects = [];
-  };
-  const substitution = (): void => {
-    if (reader.text.startsWith('$(', reader.index)) {
-      reader.index += 2;
-      nested.push(closing(reader, '(', ')'));
+function startsSubstitution(text: string, index: number): boolean {
+  return text[index] === '`' || (text[index] === '$' && text[index + 1] === '(');
+}
+
+function substitution(text: string, index: number): Read {
+  const backtick = text[index] === '`';
+  const found = backtick ? matching(text, index + 1, '`', '`') : matching(text, index + 2, '(', ')');
+  return { text: '$()', subs: [found.body], end: found.end };
+}
+
+function doubleQuoted(text: string, start: number): Read {
+  let index = start + 1;
+  let value = '';
+  let subs: readonly string[] = [];
+  while (index < text.length && text[index] !== '"') {
+    if (text[index] === '\\' && index + 1 < text.length) {
+      value += text[index + 1];
+      index += 2;
+    } else if (startsSubstitution(text, index)) {
+      const nested = substitution(text, index);
+      value += nested.text;
+      subs = [...subs, ...nested.subs];
+      index = nested.end;
     } else {
-      reader.index += 1;
-      nested.push(closing(reader, '`', '`'));
-    }
-    word = `${word ?? ''}$()`;
-  };
-  while (reader.index < reader.text.length) {
-    const char = reader.text[reader.index] ?? '';
-    if (char === '$' && reader.text[reader.index + 1] === '(') substitution();
-    else if (char === '`') substitution();
-    else if (char === "'") {
-      reader.index += 1;
-      const end = reader.text.indexOf("'", reader.index);
-      const stop = end === -1 ? reader.text.length : end;
-      word = `${word ?? ''}${reader.text.slice(reader.index, stop)}`;
-      reader.index = stop + 1;
-    } else if (char === '"') {
-      reader.index += 1;
-      let quoted = '';
-      while (reader.index < reader.text.length && reader.text[reader.index] !== '"') {
-        const inner = reader.text[reader.index] ?? '';
-        if (inner === '\\' && reader.index + 1 < reader.text.length) {
-          quoted += reader.text[reader.index + 1];
-          reader.index += 2;
-        } else if (inner === '`' || (inner === '$' && reader.text[reader.index + 1] === '(')) {
-          word = `${word ?? ''}${quoted}`;
-          quoted = '';
-          substitution();
-        } else {
-          quoted += inner;
-          reader.index += 1;
-        }
-      }
-      word = `${word ?? ''}${quoted}`;
-      reader.index += 1;
-    } else if (char === '\\') {
-      word = `${word ?? ''}${reader.text[reader.index + 1] ?? ''}`;
-      reader.index += 2;
-    } else if (char === '#' && word === null) {
-      const end = reader.text.indexOf('\n', reader.index);
-      reader.index = end === -1 ? reader.text.length : end;
-    } else if (/\s/.test(char) && char !== '\n') {
-      endWord();
-      reader.index += 1;
-    } else if (SEPARATORS.has(char)) {
-      endCommand();
-      reader.index += 1;
-    } else if (char === '>' || char === '<') {
-      if (word !== null && /^\d+$/.test(word)) word = null;
-      endWord();
-      reader.index += 1;
-      while (reader.text[reader.index] === '>' || reader.text[reader.index] === '&') reader.index += 1;
-      redirecting = true;
-    } else {
-      word = `${word ?? ''}${char}`;
-      reader.index += 1;
+      value += text[index];
+      index += 1;
     }
   }
-  endCommand();
-  return [...commands, ...nested.flatMap(parse)];
+  return { text: value, subs, end: index + 1 };
+}
+
+function piece(text: string, index: number): Read {
+  const char = text[index] ?? '';
+  if (startsSubstitution(text, index)) return substitution(text, index);
+  if (char === '"') return doubleQuoted(text, index);
+  if (char === "'") {
+    const close = text.indexOf("'", index + 1);
+    const stop = close === -1 ? text.length : close;
+    return { text: text.slice(index + 1, stop), subs: [], end: stop + 1 };
+  }
+  if (char === '\\') return { text: text[index + 1] ?? '', subs: [], end: index + 2 };
+  return { text: char, subs: [], end: index + 1 };
+}
+
+const WORD_END = /[\s;&|()<>]/;
+
+function word(text: string, start: number): Read {
+  let index = start;
+  let value = '';
+  let subs: readonly string[] = [];
+  while (index < text.length && !WORD_END.test(text[index] ?? '')) {
+    const next = piece(text, index);
+    value += next.text;
+    subs = [...subs, ...next.subs];
+    index = next.end;
+  }
+  return { text: value, subs, end: index };
+}
+
+function lex(text: string): { readonly tokens: readonly Token[]; readonly subs: readonly string[] } {
+  const tokens: Token[] = [];
+  const subs: string[] = [];
+  let index = 0;
+  while (index < text.length) {
+    const char = text[index] ?? '';
+    if (char === '#' && (index === 0 || /\s/.test(text[index - 1] ?? ''))) {
+      const close = text.indexOf('\n', index);
+      index = close === -1 ? text.length : close;
+    } else if (SEPARATORS.has(char)) {
+      tokens.push({ kind: 'separator' });
+      index += 1;
+    } else if (/\s/.test(char)) index += 1;
+    else if (char === '>' || char === '<') {
+      const last = tokens.at(-1);
+      if (last?.kind === 'word' && /^\d+$/.test(last.text)) tokens.pop();
+      tokens.push({ kind: 'redirect' });
+      index += 1;
+      while (text[index] === '>' || text[index] === '&') index += 1;
+    } else {
+      const read = word(text, index);
+      tokens.push({ kind: 'word', text: read.text });
+      subs.push(...read.subs);
+      index = read.end;
+    }
+  }
+  return { tokens, subs };
+}
+
+const SEPARATOR: Token = { kind: 'separator' };
+
+function parse(text: string): readonly SimpleCommand[] {
+  const { tokens, subs } = lex(text.replace(/\\\r?\n/g, ' '));
+  const commands: SimpleCommand[] = [];
+  let words: string[] = [];
+  let redirects: string[] = [];
+  let redirecting = false;
+  for (const token of [...tokens, SEPARATOR]) {
+    if (token.kind === 'redirect') redirecting = true;
+    else if (token.kind === 'word') {
+      if (redirecting) redirects = [...redirects, token.text];
+      else words = [...words, token.text];
+      redirecting = false;
+    } else {
+      if (words.length > 0 || redirects.length > 0) commands.push({ words, redirects });
+      words = [];
+      redirects = [];
+    }
+  }
+  return [...commands, ...subs.flatMap(parse)];
 }
 
 const ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=/;

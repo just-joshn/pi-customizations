@@ -102,7 +102,7 @@ describe('authorization', () => {
   test.for(['git push origin feature', 'git push -u origin feature', 'git push --follow-tags', 'git push --dry-run origin main', 'git status', 'rm -rf dist', 'bun run test', 'gh pr view 64', 'terraform plan'])(
     '%s needs no authorization',
     (command) => {
-      expect(gatedActions(command, '/work/app')).toEqual([]);
+      expect([gatedActions(command, '/work/app'), gatedActions(`${command}; gh pr merge 1`, '/work/app')]).toStrictEqual([[], ['merge']]);
     },
   );
 

@@ -45,6 +45,6 @@ describe('gated shell commands', () => {
     'git commit -m "never run rm -rf / or git push --force"',
     'echo "DROP TABLE users" > notes.txt',
   ])('%s needs no authorization', (command) => {
-    expect(gatedActions(command, CWD)).toEqual([]);
+    expect([gatedActions(command, CWD), gatedActions(`${command}; gh pr merge 1`, CWD)]).toStrictEqual([[], ['merge']]);
   });
 });

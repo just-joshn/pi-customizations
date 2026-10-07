@@ -8,7 +8,7 @@ S50 takes a feature, bug, frontend change, external issue, or architecture surve
 pi install ./extensions/pi-s50
 ```
 
-The package ships one extension (`src/index.ts`), one skill (`skills/s50`), and the inspected skill sources (`registry/skill-sources.json`). The external skills that S50 calls are installed separately. When a run needs one that Pi cannot find, the run stops with a `missing_skill` gate that names the install command, for example `npx skills add mattpocock/skills --skill grilling`.
+The package ships one extension (`src/index.ts`), one skill (`skills/s50`), and the inspected skill sources (`registry/skill-sources.json`). The external skills that S50 calls are installed separately. When a run needs one that Pi cannot find, the run stops with a `missing_skill` gate that names the skills.sh install command for that skill.
 
 ## Use
 
