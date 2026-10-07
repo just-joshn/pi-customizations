@@ -114,3 +114,39 @@ No drive exercises those effects. What the drives observed is registration and d
 **How to read the result.** `verdicts.tsv` now carries a `scope` column, so a reader can see which kind of observation stands behind each verdict without opening a receipt. `verified` next to `scope: discovery` means the resource is declared and discovered, and says nothing about its effect. `verified` next to `scope: behaviour` means a drive exercised the claim. At the time of writing that split is 161 behaviour and 172 discovery.
 
 **Why it is parked rather than resolved.** Closing it means either rewriting the `expected` text of roughly 188 declared-resource rows to the claim the package actually owns, or writing behavioural drives for each effect. The first is a large mechanical edit to the program's contract and the second is a second program. Both are decisions about what this verification standard means, and making them silently inside a run is exactly the failure this file exists to prevent.
+
+---
+
+## F-017: the shutdown hook can be cut by a second shutdown
+
+**Found by** the pi-pstack environment unit, which saw an intermittent failure rather than a clean one.
+
+**What happens.** In two full runs of the environment scenario the populated-board shutdown never spawned the consolidation session; the recorder log was still absent after 60 seconds. In an isolated ten-attempt probe all ten launched. So it is a race, not a failure.
+
+**Likely cause, from the unit's reading.** The pi RPC host's `shutdown()` short-circuits to `process.exit` when a second shutdown arrives while `runtimeHost.dispose()` is still in flight, at `@earendil-works/pi-coding-agent@1.0.4` `dist/modes/rpc/rpc-mode.js:579`. That can cut `session_shutdown` handlers before `launchRemOnShutdown` runs.
+
+**Evidence.** `artifacts/user-perspective/pstack-env-variables/raw/env-16-rem.json`, and the retry count recorded in `PS-ENV-16.json`.
+
+**Why it is parked.** It is a host-level race rather than a package defect, the unit's evidence is two observations against ten, and the row is verified by the attempt that succeeded with the retry count recorded rather than hidden.
+
+---
+
+## F-018: disabling a subagent does not take effect in the current session
+
+**Found by** the same unit while driving `PS-CMD-9`.
+
+`/subagents rubber-duck off` writes the preference but the current session keeps using the agent. `SettingsStore.adopt` updates the saved settings while `factory.offered` caches its list until `invalidateToolConfig` runs, at `extensions/pi-pstack/src/subagents/subagent-commands.ts:51` and `src/subagents/factory.ts:89`. The warning that the agent is disabled appears only in the next session, which is why the drive had to move to a fresh session to observe it.
+
+**Why this matters to a user.** They turn an agent off, the confirmation says it worked, and it keeps running in the session they are in. The stale-settings gap is silent.
+
+**Why it is parked.** It is a real product defect and the fix is in a package this run has otherwise left alone; it needs its own change with a test that fails before and passes after, not a drive-side workaround. The drive's fresh-session observation is correct for the row as written and the same-session gap is recorded here instead of being absorbed into the scenario.
+
+---
+
+## F-019: an unknown subagent model falls back silently where an unknown model elsewhere throws
+
+**Found by** the same unit while driving `PS-ENV-20`.
+
+Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls back to the inherited model, and the drive records the fallback rather than a rejection. `resolveModel` throws for an unknown model elsewhere, at `extensions/pi-pstack/src/models.ts:82` against `src/subagents/specialized-tools.ts:58`.
+
+**Why it is parked.** Two paths disagree about whether an unknown model is an error. That is a product decision about which behaviour is wanted, and the drive correctly recorded what the interface does rather than what a reader might expect.
