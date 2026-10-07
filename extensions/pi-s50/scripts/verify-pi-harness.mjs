@@ -80,7 +80,8 @@ const runFile = join(project, '.s50/run.json');
 check(existsSync(runFile), 'the coordinator wrote .s50/run.json');
 if (existsSync(runFile)) {
   const state = JSON.parse(readFileSync(runFile, 'utf8'));
-  check(state.schemaVersion === 2 && state.mode === 'feature', `run.json is a schema 2 feature run (phase ${state.phase}, status ${state.status.kind})`);
+  check(state.schemaVersion === 2 && state.mode === 'feature', `run.json is a schema 2 feature run (phase ${state.phase})`);
+  check(state.status.kind === 'blocked', `the run stopped at a human gate (${state.status.gate?.kind ?? state.status.kind})`);
   const decisions = readFileSync(join(project, '.s50/decisions.jsonl'), 'utf8');
   check(decisions.includes('"invoked grilling"'), 'the coordinator logged the grilling invocation');
 }

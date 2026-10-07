@@ -84,7 +84,7 @@ Preflight turns these into risks: a dirty tree, an INCONCLUSIVE consumer route, 
 3. The loop lists the temporary instrumentation added for it. After the fix, the agent records the original reproducer green with the instrumentation cleared.
 4. PR_READY needs a root cause, a promoted loop, every loop green, and no instrumentation left.
 
-With no possible loop, `declare_inconclusive` sets the run INCONCLUSIVE with what is missing, and the run cannot advance until a new loop is recorded.
+With no possible loop, `declare_inconclusive` sets the run INCONCLUSIVE with what is missing. The run cannot advance until a diagnostic loop or a `MEASURED` measurement is recorded.
 
 ## Graph
 

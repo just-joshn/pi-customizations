@@ -81,7 +81,7 @@ Exercised on 2026-10-07 on macOS with Node 24 and Pi 1.0.4:
 
 - The unit, integration, and end-to-end suites, including the real CLI driven as a separate process through feature and bug runs in temporary Git repositories, with a restart and a stale-evidence round trip.
 - A live `registry refresh` against skills.sh and GitHub (`S50_LIVE=1`, `test/integration/host.test.ts`).
-- The Pi install path: `pi install -l --approve` into a throwaway project, then one bounded feature simulation through `pi -p --approve` (`make verify-s50-harness`). The agent drove the run only through the `s50` tool and the run stopped at the decision gate. In one of these runs the coordinator refused a decision round that mixed a question with one that depended on it, and the agent re-asked only the frontier.
+- The Pi install path: `pi install -l --approve` into a throwaway project, then one bounded feature simulation through `pi -p --approve` (`make verify-s50-harness`). The script checks that the agent drove the run only through the `s50` tool, that the coordinator alone wrote `.s50/`, and that the run stopped at a human gate.
 
 Not exercised, so INCONCLUSIVE here:
 
