@@ -51,7 +51,7 @@ const MIGRATIONS: Readonly<Record<number, Migration>> = {
     const { diagnostics: loops, capabilities: host } = input;
     const diagnostics = Array.isArray(loops) ? loops.map(v2Loop) : loops;
     const capabilities = isRecord(host) ? v2Capabilities(host) : host;
-    return { kind: 'ok', value: { ...input, schemaVersion: 3, diagnostics, capabilities, integrationOwner: null, preflight: null } };
+    return { kind: 'ok', value: { ...input, schemaVersion: 3, diagnostics, capabilities, invokedSkills: [], integrationOwner: null, preflight: null } };
   },
 };
 

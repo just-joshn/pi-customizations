@@ -83,6 +83,7 @@ export type Run = {
   readonly diagnostics: readonly DiagnosticLoop[];
   readonly rootCause: string | null;
   readonly prototypes: readonly Prototype[];
+  readonly invokedSkills: readonly string[];
   readonly integrationOwner: string | null;
   readonly preflight: Preflight | null;
   readonly capabilities: HostCapabilities;

@@ -26,7 +26,8 @@ export function invokeSkill(state: RunState, skill: string, clock: Clock): Outco
   const check = canModelInvoke(state.run.skillRegistry, skill, state.run.capabilities.installedSkills);
   switch (check.kind) {
     case 'allowed':
-      return done(state, 'invoke_skill', `invoked ${skill}`, clock);
+      if (state.run.invokedSkills.includes(skill)) return noop(state);
+      return done(withRun(state, { invokedSkills: [...state.run.invokedSkills, skill] }), 'invoke_skill', `invoked ${skill}`, clock);
     case 'user_only':
       return reject(`${skill} is user-only; the user must run ${check.action}`, { kind: 'user_workflow', skill, action: check.action });
     case 'not_in_registry':

@@ -98,6 +98,7 @@ export const run: Decoder<Run> = object<Run>({
   diagnostics: array(loop),
   rootCause: nullable(str),
   prototypes: array(prototype),
+  invokedSkills: strings,
   integrationOwner: nullable(str),
   preflight: nullable(preflight),
   capabilities,

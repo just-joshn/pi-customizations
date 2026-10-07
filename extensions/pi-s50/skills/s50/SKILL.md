@@ -12,7 +12,7 @@ The `s50` tool, the `/s50` command, and the `s50` shell command take the same ar
 1. Call `s50` with `["status"]`. With no run, start one: `["feature", "<objective>", "--criteria", "a;b", "--consumer", "cli:<how the user runs it>"]` (or `bug`, `frontend`, `issue`, `survey`). With no registry lock, run `["registry", "refresh"]` first.
 2. Call `["resume"]`. Its last line is the `nextAction` JSON.
 3. Act on `nextAction.kind`, then record the result with `["apply", "<command json>"]`:
-   - `invoke_skill`: apply `{"kind":"invoke_skill","skill":"<name>"}`. On `ok`, read that installed skill's SKILL.md and follow it. If you already loaded it in this run, continue with it.
+   - `invoke_skill`: apply `{"kind":"invoke_skill","skill":"<name>"}`. On `ok`, read that installed skill's SKILL.md and follow it; the next action is then the phase's own work.
    - `advance`: apply `{"kind":"advance","to":"<phase>"}`.
    - `work`: do the task it names.
    - `start_nodes`: start the listed nodes, one worker per workspace.

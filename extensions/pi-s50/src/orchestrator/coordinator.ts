@@ -103,6 +103,7 @@ export function startRun(input: StartInput, registry: RegistrySnapshot, clock: C
     diagnostics: [],
     rootCause: null,
     prototypes: [],
+    invokedSkills: [],
     integrationOwner: null,
     preflight: null,
     capabilities: input.capabilities,
@@ -170,11 +171,17 @@ function holdReady(outcome: Outcome, clock: Clock): Outcome {
 // The fetched guideline text is hashed, never stored, so redacting it would only corrupt the digest.
 const UNREDACTED_KEYS: ReadonlySet<string> = new Set(['guidelinesContent']);
 
+// Routed skills are invoked once per phase visit, so leaving a phase forgets which skills it loaded.
+function settle(before: RunState, after: RunState): RunState {
+  const moved = after.run.phase !== before.run.phase && after.run.invokedSkills.length > 0 ? withRun(after, { invokedSkills: [] }) : after;
+  return withBlockers(moved);
+}
+
 export function apply(state: RunState, command: Command, clock: Clock): Outcome {
   const clean = decode(commandDecoder, redactValue(command, UNREDACTED_KEYS));
   if (clean.kind === 'invalid') return reject(`invalid command: ${clean.reason}`);
   const outcome = holdReady(dispatch(clean.value.kind, state, clean.value, clock), clock);
-  return outcome.kind === 'ok' && outcome.decisions.length > 0 ? { ...outcome, state: withBlockers(outcome.state) } : outcome;
+  return outcome.kind === 'ok' && outcome.decisions.length > 0 ? { ...outcome, state: settle(state, outcome.state) } : outcome;
 }
 
 function describePreflight(run: Run, facts: Preflight): string {
@@ -285,7 +292,7 @@ export function nextAction(state: RunState): NextAction {
     return { kind: 'review', dimensions: reviewDimensions(surface), assurance: reviewAssurance(run.capabilities), guidelinesRequired: surface.kind === 'web_ui' };
   }
   if ((run.phase === 'FREEZE_REVISION' || run.phase === 'REVERIFY_STALE') && run.frozenRevision !== run.currentRevision) return { kind: 'freeze_revision' };
-  const skill = routeSkills(run.phase, routeFacts(run)).find((candidate) => canModelInvoke(run.skillRegistry, candidate, run.capabilities.installedSkills).kind === 'allowed');
+  const skill = routeSkills(run.phase, routeFacts(run)).find((candidate) => !run.invokedSkills.includes(candidate) && canModelInvoke(run.skillRegistry, candidate, run.capabilities.installedSkills).kind === 'allowed');
   if (skill !== undefined) return { kind: 'invoke_skill', skill };
   return { kind: 'work', phase: run.phase, task: phaseWork(state, target) };
 }

@@ -53,6 +53,30 @@ describe('clarification frontier', () => {
   });
 });
 
+describe('skill invocation per phase', () => {
+  test('an invoked skill hands the phase over to its work', () => {
+    const state = expectOk(apply(inPhase('CLARIFY'), { kind: 'invoke_skill', skill: 'grilling' }, fixedClock()));
+    expect(nextAction(state)).toEqual({
+      kind: 'work',
+      phase: 'CLARIFY',
+      task: 'ask the whole unblocked decision frontier with ask_decisions; when no question is left, ask_decisions with an empty round',
+    });
+  });
+
+  test('invoking the same skill twice in a phase is a no-op', () => {
+    const state = expectOk(apply(inPhase('CLARIFY'), { kind: 'invoke_skill', skill: 'grilling' }, fixedClock()));
+    expect(apply(state, { kind: 'invoke_skill', skill: 'grilling' }, fixedClock())).toEqual({ kind: 'ok', state, decisions: [] });
+  });
+
+  test('leaving a phase forgets the skills it invoked', () => {
+    const { state } = applyAll(satisfiedAt('DOMAIN', 'ARCHITECT'), [
+      { kind: 'invoke_skill', skill: 'domain-modeling' },
+      { kind: 'advance', to: 'ARCHITECT' },
+    ]);
+    expect([state.run.phase, state.run.invokedSkills]).toEqual(['ARCHITECT', []]);
+  });
+});
+
 describe('routing after clarification', () => {
   const unchanged: Command = { kind: 'answer_decisions', decisions: [{ id: 'domain.model_change', question: 'model change?', answer: 'no', decidedBy: 'fact' }] };
 

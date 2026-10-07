@@ -36,7 +36,7 @@ The coordinator is a set of modules in `src/orchestrator/`:
 
 Every phase change goes through `advance`, which checks the edge table and then the target phase's guard in the `GUARDS` table. A failed check uses `route_failure`, which moves the run along a legal edge to the phase that owns that check (`FAILURE_OWNERS` in `routes.ts`), so a failure never restarts the run.
 
-Re-applying a command whose effect already holds returns `ok` with the same state and no decision. An allowed `invoke_skill` is the exception: it changes no state but logs each invocation.
+Re-applying a command whose effect already holds returns `ok` with the same state and no decision. `invoke_skill` records each routed skill once per phase visit, so `nextAction` moves on to the phase's work after the skill is loaded, and leaving the phase clears the record.
 
 ## Data shape
 
