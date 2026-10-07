@@ -7,7 +7,7 @@ import { validateGraph } from '../../src/orchestrator/handlers.ts';
 import { conflict, patternsOverlap } from '../../src/scheduler/conflicts.ts';
 import { readyFrontier } from '../../src/scheduler/frontier.ts';
 import { schedule } from '../../src/scheduler/ownership.ts';
-import { freshRun, graphNode, NO_CAPS, node, PARALLEL_CAPS } from './support.ts';
+import { expectOk, freshRun, graphNode, NO_CAPS, node, PARALLEL_CAPS } from './support.ts';
 
 function implementing(graph: Graph, capabilities = PARALLEL_CAPS): RunState {
   const base = freshRun({ capabilities });
@@ -111,5 +111,17 @@ describe('concurrency', () => {
     ['docs/x.md', 'docs/x.md', true],
   ] as const)('%s overlaps %s: %s', ([a, b, expected]) => {
     expect(patternsOverlap(a, b)).toBe(expected);
+  });
+});
+
+describe('serialization across calls', () => {
+  test('a second start cannot join a conflicting running node', () => {
+    const graph: Graph = { schemaVersion: 1, nodes: [graphNode('a', 'pending', { writeSet: ['src/**'] }), graphNode('b', 'pending', { writeSet: ['src/b/x.ts'] })] };
+    const running = expectOk(apply(implementing(graph), { kind: 'start_nodes', ids: ['a'] }, fixedClock()));
+    expect(apply(running, { kind: 'start_nodes', ids: ['b'] }, fixedClock())).toEqual({
+      kind: 'rejected',
+      reason: 'serialized: a conflicts with b: overlapping write set src/** / src/b/x.ts',
+      gate: null,
+    });
   });
 });

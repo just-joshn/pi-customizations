@@ -5,7 +5,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 import { type CliContext, runCli } from '../../src/cli/commands.ts';
 import { fixedClock } from '../../src/orchestrator/clock.ts';
 import { fixturePath } from '../unit/support.ts';
-import { tempRepo } from './repo.ts';
+import { git, tempRepo } from './repo.ts';
 
 const dirs: string[] = [];
 
@@ -126,5 +126,24 @@ describe('run commands', () => {
 
   test('an unknown subcommand prints usage', async () => {
     expect((await runCli(['launch'], context(repo()))).stdout.split('\n')[0]).toBe('usage: s50 <command>');
+  });
+
+  test('a revision other than HEAD is refused', async () => {
+    const cwd = await started();
+    const command = JSON.stringify({ kind: 'revision_changed', revision: 'f'.repeat(40), changedPaths: [] });
+    const head = git(cwd, 'rev-parse', 'HEAD');
+    expect(await runCli(['apply', command], context(cwd))).toEqual({
+      code: 2,
+      stdout: `${JSON.stringify({ kind: 'rejected', reason: `revision_changed names ${'f'.repeat(40)}, but HEAD is ${head}`, gate: null })}\n`,
+    });
+  });
+
+  test('a rename stales evidence on the old path', async () => {
+    const cwd = await started();
+    const evidence = { claim: 'csv', criterion: 'csv lists invoices', state: 'MEASURED', dependencies: ['src/export/csv.ts'], method: 'cli', expected: 'rows', observed: 'rows', artifact: 'a.log' };
+    await runCli(['apply', JSON.stringify({ kind: 'record_evidence', evidence })], context(cwd));
+    git(cwd, 'mv', 'src/export/csv.ts', 'src/export/table.ts');
+    git(cwd, 'commit', '-qm', 'rename');
+    expect((await runCli(['resume'], context(cwd))).stdout).toContain('stale evidence: 1');
   });
 });

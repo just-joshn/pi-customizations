@@ -128,6 +128,15 @@ async function withState(context: CliContext, body: (state: RunState, dir: strin
   return body(loaded.state, dir);
 }
 
+// Git HEAD is the revision truth on every call, so a caller cannot keep evidence current by naming a revision or an empty path list.
+async function syncHead(context: CliContext, state: RunState): Promise<{ readonly head: string; readonly state: RunState; readonly decisions: readonly DecisionLog[] }> {
+  const head = await revision(context.cwd);
+  if (head === state.run.currentRevision) return { head, state, decisions: [] };
+  const paths = await changedPaths(context.cwd, state.run.currentRevision, head);
+  const outcome = apply(state, { kind: 'revision_changed', revision: head, changedPaths: paths }, context.clock);
+  return outcome.kind === 'ok' ? { head, state: outcome.state, decisions: outcome.decisions } : { head, state, decisions: [] };
+}
+
 async function applyCommand(context: CliContext, raw: string | undefined): Promise<CliResult> {
   if (raw === undefined) return error(USAGE);
   const json = parseJson(raw);
@@ -136,28 +145,25 @@ async function applyCommand(context: CliContext, raw: string | undefined): Promi
   if (decoded.kind === 'invalid') return error(`invalid command: ${decoded.reason}\n`);
   const parsed: Command = decoded.value;
   return withState(context, async (state, dir) => {
-    const outcome = apply(state, parsed, context.clock);
-    if (outcome.kind === 'rejected') return blocked(outcomeJson(outcome));
-    await saveState(dir, state, outcome.state, outcome.decisions);
+    const synced = await syncHead(context, state);
+    if ((parsed.kind === 'integrate_node' || parsed.kind === 'revision_changed') && parsed.revision !== synced.head) {
+      return blocked(`${JSON.stringify({ kind: 'rejected', reason: `${parsed.kind} names ${parsed.revision}, but HEAD is ${synced.head}`, gate: null })}\n`);
+    }
+    const outcome = apply(synced.state, parsed, context.clock);
+    if (outcome.kind === 'rejected') {
+      await saveState(dir, state, synced.state, synced.decisions);
+      return blocked(outcomeJson(outcome));
+    }
+    await saveState(dir, state, outcome.state, [...synced.decisions, ...outcome.decisions]);
     return { code: outcome.state.run.status.kind === 'blocked' ? 2 : 0, stdout: outcomeJson(outcome) };
   });
 }
 
 async function resume(context: CliContext): Promise<CliResult> {
   return withState(context, async (state, dir) => {
-    const head = await revision(context.cwd);
-    let next = state;
-    const decisions: DecisionLog[] = [];
-    if (head !== state.run.currentRevision) {
-      const paths = await changedPaths(context.cwd, state.run.currentRevision, head);
-      const outcome = apply(state, { kind: 'revision_changed', revision: head, changedPaths: paths }, context.clock);
-      if (outcome.kind === 'ok') {
-        next = outcome.state;
-        decisions.push(...outcome.decisions);
-      }
-    }
-    await saveState(dir, state, next, decisions);
-    return ok(`${renderStatus(next)}${JSON.stringify(nextAction(next))}\n`);
+    const synced = await syncHead(context, state);
+    await saveState(dir, state, synced.state, synced.decisions);
+    return ok(`${renderStatus(synced.state)}${JSON.stringify(nextAction(synced.state))}\n`);
   });
 }
 
@@ -165,7 +171,7 @@ async function verify(context: CliContext): Promise<CliResult> {
   return withState(context, async (state) => {
     const route = routeConsumer(state.run.consumer.kind, state.run.capabilities);
     const lines = requiredEvidence(state).map((required) => `${required.satisfied ? 'MEASURED' : 'MISSING'} ${required.criterion}`);
-    const blockers = state.run.phase === 'PR_READY' ? [] : prReadyBlockers(state);
+    const blockers = prReadyBlockers(state);
     const body = [`consumer route: ${route.kind}${route.kind === 'inconclusive' ? ` (${route.missing})` : ''}`, ...lines, ...blockers.map((blocker) => `blocker: ${blocker}`)].join('\n');
     return { code: blockers.length === 0 ? 0 : 2, stdout: `${body}\n` };
   });

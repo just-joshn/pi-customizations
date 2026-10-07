@@ -20,7 +20,7 @@ export function evidence(criterion: string, claim: string, dependencies: readonl
   return { claim, criterion, state: 'MEASURED', dependencies, method, expected: 'exit 0 with expected output', observed: 'exit 0 with expected output', artifact: `artifacts/${claim}.log` };
 }
 
-export const FEATURE_EVIDENCE: readonly EvidenceInput[] = [evidence('csv lists every invoice', 'csv-output', ['src/export/**', 'src/list/**']), evidence('readme documents export', 'readme-export', ['docs/**'], 'review')];
+export const FEATURE_EVIDENCE: readonly EvidenceInput[] = [evidence('csv lists every invoice', 'csv-output', ['src/export/**', 'src/list/**']), evidence('readme documents export', 'readme-export', ['docs/**'])];
 
 export const BUG_EVIDENCE: readonly EvidenceInput[] = [evidence('empty line no longer crashes', 'reproducer-green', ['src/parser/**'], 'test'), evidence('empty line no longer crashes', 'consumer-cli-empty-line', ['src/parser/**'])];
 

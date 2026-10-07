@@ -3,6 +3,7 @@ import type { GraphNode } from '../domain/graph.ts';
 import type { Consumer, Decision, DesignCandidate, DiagnosticLoop, HostCapabilities, Run, RunState, Seam } from '../domain/run.ts';
 import type { AuthorizationAction, Gate, Mode, Phase } from '../domain/state.ts';
 import type { ConsumerRoute } from '../evidence/verification.ts';
+import { redact } from '../evidence/verification.ts';
 import type { FindingInput } from '../review/findings.ts';
 import type { ReviewAssurance } from '../review/reviewer.ts';
 import type { Clock } from './clock.ts';
@@ -106,7 +107,7 @@ export function reject(reason: string, gate: Gate | null = null): Outcome {
 }
 
 export function done(next: RunState, command: CommandKind, summary: string, clock: Clock): Outcome {
-  return { kind: 'ok', state: next, decisions: [{ at: clock.now(), phase: next.run.phase, command, summary }] };
+  return { kind: 'ok', state: next, decisions: [{ at: clock.now(), phase: next.run.phase, command, summary: redact(summary) }] };
 }
 
 export function withRun(state: RunState, patch: Partial<Run>): RunState {

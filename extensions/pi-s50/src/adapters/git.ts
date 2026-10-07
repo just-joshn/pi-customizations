@@ -11,7 +11,7 @@ export function revision(cwd: string): Promise<string> {
 }
 
 export async function changedPaths(cwd: string, from: string, to: string): Promise<readonly string[]> {
-  const out = await git(cwd, ['diff', '--name-only', from, to]);
+  const out = await git(cwd, ['diff', '--name-only', '--no-renames', from, to]);
   return out === '' ? [] : out.split('\n');
 }
 

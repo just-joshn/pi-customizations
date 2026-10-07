@@ -14,6 +14,8 @@ export function createFinding(input: FindingInput, id: string, revision: string)
     trigger: redact(input.trigger),
     consequence: redact(input.consequence),
     evidence: redact(input.evidence),
+    owner: redact(input.owner),
+    reviewer: redact(input.reviewer),
   };
 }
 

@@ -49,7 +49,9 @@ export function completeUserWorkflow(state: RunState, skill: string, clock: Cloc
   return reject(`no ${skill} gate is open`, gate);
 }
 
-export function answerDecisions(state: RunState, decisions: readonly Decision[], clock: Clock): Outcome {
+export function answerDecisions(state: RunState, input: readonly Decision[], clock: Clock): Outcome {
+  if (input.some((answer) => answer.id === SHARED_UNDERSTANDING_ID)) return reject(`${SHARED_UNDERSTANDING_ID} is recorded only by confirm_understanding`);
+  const decisions = input.map((answer) => ({ ...answer, question: redact(answer.question), answer: redact(answer.answer) }));
   const existing = state.run.domain.decisions;
   const merged = [...existing.filter((decision) => !decisions.some((answer) => answer.id === decision.id)), ...decisions];
   if (decisions.every((answer) => existing.some((decision) => same(decision, answer)))) return noop(state);
@@ -90,21 +92,23 @@ export function evidenceFrom(state: RunState, input: EvidenceInput, clock: Clock
 
 export function recordPrototype(state: RunState, command: Extract<Command, { kind: 'record_prototype' }>, clock: Clock): Outcome {
   if (command.branch.trim() === '') return reject('prototype branch required; prototypes are retained on a branch');
-  const prototype = { question: redact(command.question), verdict: redact(command.verdict), branch: command.branch, issuePointer: command.issuePointer };
+  const prototype = { question: redact(command.question), verdict: redact(command.verdict), branch: redact(command.branch), issuePointer: command.issuePointer === null ? null : redact(command.issuePointer) };
   if (state.run.prototypes.some((existing) => same(existing, prototype))) return noop(state);
   const { record } = evidenceFrom(
     state,
-    { claim: `prototype: ${prototype.question}`, criterion: 'prototype', state: 'MEASURED', dependencies: [], method: 'prototype', expected: prototype.question, observed: prototype.verdict, artifact: command.branch },
+    { claim: `prototype: ${prototype.question}`, criterion: 'prototype', state: 'MEASURED', dependencies: [], method: 'prototype', expected: prototype.question, observed: prototype.verdict, artifact: prototype.branch },
     clock,
   );
   const next = { ...withRun(state, { prototypes: [...state.run.prototypes, prototype] }), evidence: [...state.evidence, record] };
-  return done(next, 'record_prototype', `prototype retained on branch ${command.branch}`, clock);
+  return done(next, 'record_prototype', `prototype retained on branch ${prototype.branch}`, clock);
 }
 
 export function proposeSeams(state: RunState, seams: readonly Seam[], clock: Clock): Outcome {
   if (seams.length === 0) return reject('no seams proposed');
   const proposed = state.run.testContract.proposedSeams;
   if (seams.every((seam) => proposed.some((existing) => same(existing, seam)))) return noop(state);
+  const rewritten = seams.find((seam) => state.run.testContract.confirmedSeams.some((confirmed) => confirmed.id === seam.id && !same(confirmed, seam)));
+  if (rewritten !== undefined) return reject(`confirmed seam ${rewritten.id} cannot change; propose it under a new id`);
   const merged = [...proposed.filter((existing) => !seams.some((seam) => seam.id === existing.id)), ...seams];
   const unconfirmed = merged.filter((seam) => !isConfirmed(state.run, seam.id)).map((seam) => seam.id);
   const status: RunStatus = state.run.status.kind === 'active' && unconfirmed.length > 0 ? { kind: 'blocked', gate: { kind: 'seam_confirmation', seams: unconfirmed } } : state.run.status;
@@ -190,6 +194,8 @@ export const INCONCLUSIVE_PHASES: readonly Phase[] = ['DIAGNOSE', 'VERIFY', 'REV
 export function declareInconclusive(state: RunState, missing: string, clock: Clock): Outcome {
   const clean = redact(missing);
   if (same(state.run.status, { kind: 'inconclusive', missing: clean })) return noop(state);
+  const gate = blockedGate(state.run);
+  if (gate !== null) return reject(`run blocked on ${gate.kind} gate`, gate);
   if (!INCONCLUSIVE_PHASES.includes(state.run.phase)) return reject(`inconclusive is declared in ${INCONCLUSIVE_PHASES.join(', ')}, not ${state.run.phase}`);
   return done(withRun(state, { status: { kind: 'inconclusive', missing: clean } }), 'declare_inconclusive', `INCONCLUSIVE: missing ${clean}`, clock);
 }
@@ -277,10 +283,12 @@ export function startNodes(state: RunState, ids: readonly string[], clock: Clock
     }
     picked.push(node);
   }
-  if (picked.length > 1) {
+  const running = state.graph.nodes.filter((node) => node.status === 'running' && !ids.includes(node.id));
+  const together = [...running, ...picked];
+  if (together.length > 1) {
     if (!canRunConcurrently(state.run.capabilities)) return reject('serialized: concurrent nodes require independent agents with isolated worktrees');
-    for (const [index, a] of picked.entries()) {
-      for (const b of picked.slice(index + 1)) {
+    for (const [index, a] of together.entries()) {
+      for (const b of together.slice(index + 1)) {
         const reason = conflict(a, b);
         if (reason !== null) return reject(`serialized: ${a.id} conflicts with ${b.id}: ${reason}`);
       }
@@ -328,7 +336,10 @@ export function revisionChanged(state: RunState, revision: string, changedPaths:
   return done(next, 'revision_changed', `revision ${state.run.currentRevision} -> ${revision}; ${stale} records rebound or staled`, clock);
 }
 
+const RESERVED_METHODS: readonly EvidenceInput['method'][] = ['review', 'prototype'];
+
 export function recordEvidence(state: RunState, input: EvidenceInput, clock: Clock): Outcome {
+  if (input.claim === REVIEW_CLAIM || RESERVED_METHODS.includes(input.method)) return reject(`review and prototype evidence come only from record_review and record_prototype`);
   const { record, duplicate } = evidenceFrom(state, input, clock);
   if (duplicate) return noop(state);
   const next = { ...state, evidence: [...state.evidence, record] };

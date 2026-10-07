@@ -1,13 +1,13 @@
 import type { RegistrySnapshot } from '../domain/registry.ts';
 import { RUN_SCHEMA_VERSION, type Run, type RunState } from '../domain/run.ts';
 import type { Gate, Mode, Phase, RunStatus } from '../domain/state.ts';
-import { routeConsumer } from '../evidence/verification.ts';
-import { currentReview, requiredEvidence } from '../policy/completion.ts';
+import { redact, routeConsumer } from '../evidence/verification.ts';
+import { currentReview, prReadyBlockers, requiredEvidence } from '../policy/completion.ts';
 import { canModelInvoke, routeSkills } from '../policy/invocation.ts';
 import { reviewAssurance, reviewDimensions } from '../review/reviewer.ts';
 import { schedule } from '../scheduler/ownership.ts';
 import type { Clock } from './clock.ts';
-import { type Command, type NextAction, type Outcome, reject, type StartInput, withRun } from './command.ts';
+import { type Command, type NextAction, type Outcome, reject, type StartInput, same, withRun } from './command.ts';
 import {
   answerDecisions,
   buildGraph,
@@ -115,7 +115,7 @@ const HANDLERS: Handlers = {
   confirm_understanding: (state, _command, clock) => confirmUnderstanding(state, clock),
   record_domain: (state, command, clock) => recordDomain(state, command, clock),
   propose_designs: (state, command, clock) => proposeDesigns(state, command.candidates, clock),
-  choose_design: (state, command, clock) => chooseDesign(state, command, clock),
+  choose_design: (state, command, clock) => chooseDesign(state, { ...command, reason: redact(command.reason) }, clock),
   record_prototype: (state, command, clock) => recordPrototype(state, command, clock),
   propose_seams: (state, command, clock) => proposeSeams(state, command.seams, clock),
   confirm_seams: (state, command, clock) => confirmSeams(state, command.ids, clock),
@@ -131,8 +131,8 @@ const HANDLERS: Handlers = {
   revision_changed: (state, command, clock) => revisionChanged(state, command.revision, command.changedPaths, clock),
   record_finding: (state, command, clock) => recordFinding(state, command.finding, clock),
   resolve_finding: (state, command, clock) => resolve(state, command.id, command.resolution, clock),
-  request_authorization: (state, command, clock) => requestAuthorization(state, command.action, command.scope, clock),
-  grant_authorization: (state, command, clock) => grantAuthorization(state, command.action, command.scope, clock),
+  request_authorization: (state, command, clock) => requestAuthorization(state, command.action, redact(command.scope), clock),
+  grant_authorization: (state, command, clock) => grantAuthorization(state, command.action, redact(command.scope), clock),
   freeze_revision: (state, _command, clock) => freezeRevision(state, clock),
   declare_inconclusive: (state, command, clock) => declareInconclusive(state, command.missing, clock),
   record_review: (state, command, clock) => recordReview(state, command, clock),
@@ -142,8 +142,21 @@ function dispatch<K extends keyof CommandOf>(kind: K, state: RunState, command: 
   return HANDLERS[kind](state, command, clock);
 }
 
+// PR_READY is a live predicate: a new finding, a failed measurement, or any other change that reopens a blocker sends the run back to REVERIFY_STALE.
+// A pending human gate (such as merge authorization) pauses the predicate instead of erasing the gate.
+function holdReady(outcome: Outcome, clock: Clock): Outcome {
+  if (outcome.kind === 'rejected' || outcome.state.run.phase !== 'PR_READY' || outcome.state.run.status.kind === 'blocked') return outcome;
+  const blockers = prReadyBlockers(outcome.state);
+  if (blockers.length === 0) {
+    const ready = { kind: 'pr_ready', revision: outcome.state.run.currentRevision } as const;
+    return same(outcome.state.run.status, ready) ? outcome : { ...outcome, state: withRun(outcome.state, { status: ready }) };
+  }
+  const state = withRun(outcome.state, { phase: 'REVERIFY_STALE', status: { kind: 'active' } });
+  return { ...outcome, state, decisions: [...outcome.decisions, { at: clock.now(), phase: 'REVERIFY_STALE', command: 'advance', summary: `left PR_READY: ${redact(blockers.join('; '))}` }] };
+}
+
 export function apply(state: RunState, command: Command, clock: Clock): Outcome {
-  return dispatch(command.kind, state, command, clock);
+  return holdReady(dispatch(command.kind, state, command, clock), clock);
 }
 
 export type RepoFacts = {

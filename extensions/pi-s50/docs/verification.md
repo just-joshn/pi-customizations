@@ -27,7 +27,11 @@ Each record declares `dependencies`, a list of path globs (`*`, `**`, `?`). When
 3. If none match, S50 appends a copy at the new revision with the same state that supersedes it.
 4. A record with no declared dependencies cannot show it is unaffected, so any change stales it.
 
-Old records are never deleted. `evidence.jsonl` keeps the full history, and each new record names the one it supersedes. A `PR_READY` run whose revision changes moves back to `REVERIFY_STALE`.
+The CLI, `/s50`, and the tool read Git `HEAD` before every `apply` and `resume`. If `HEAD` moved, they apply `revision_changed` with the paths from `git diff --name-only --no-renames`, so a rename stales evidence on both the old and new path. An `integrate_node` or `revision_changed` that names any revision other than `HEAD` is refused. A caller cannot keep evidence current by naming a revision or passing an empty path list.
+
+Old records are never deleted. `evidence.jsonl` keeps the full history, and each new record names the one it supersedes. `PR_READY` is a live predicate. After every command, if the run is in `PR_READY` and a blocker reappears (a revision change, a new finding, a `FAILED` measurement), the run moves back to `REVERIFY_STALE`. A pending human gate, such as merge authorization, pauses the predicate and keeps the gate.
+
+`review` evidence comes only from `record_review` and `prototype` evidence only from `record_prototype`. `record_evidence` refuses both, so neither can be forged.
 
 ## Review
 
