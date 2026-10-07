@@ -127,6 +127,9 @@ function checkResources() {
   } finally {
     rmSync(scratch, { recursive: true, force: true });
   }
+  const oracle = spawnSync(process.execPath, [join(root, 'scripts/capture-hook-oracle.mjs'), '--check'], { encoding: 'utf8', env: { ...process.env, CAVEMAN_CHECKOUT: checkout } });
+  if (oracle.status === 0) pass('test/upstream/hook-oracle.json matches the pinned hooks');
+  else fail(`hook oracle drift: ${oracle.stderr.trim()}`);
   const body = (text) => text.replace(/^---\n[\s\S]*?\n---\n/, '').trim();
   const prompt = readFileSync(join(root, 'prompts/caveman-init.md'), 'utf8');
   if (body(prompt) === body(readFileSync(join(checkout, 'commands/caveman-init.md'), 'utf8'))) pass("prompts/caveman-init.md matches upstream's command");

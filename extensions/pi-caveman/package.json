@@ -45,7 +45,8 @@
     "test:runtime": "node scripts/test-runtime.mjs",
     "e2e:real": "node scripts/e2e-real.mjs",
     "check:parity": "node scripts/check-parity.mjs",
-    "check:parity:final": "node scripts/check-parity.mjs --final"
+    "check:parity:final": "node scripts/check-parity.mjs --final",
+    "capture:hook-oracle": "node scripts/capture-hook-oracle.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",

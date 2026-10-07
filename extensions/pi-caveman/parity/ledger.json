@@ -34,9 +34,10 @@
           "test/commands.test.ts::repeating the active mode says unchanged",
           "test/commands.test.ts::an unknown argument is reported without echo",
           "test/parse.test.ts::bare /caveman activates caveman under the manual policy",
-          "scripts/rpc-smoke.mjs::fresh session starts in caveman with [CAVEMAN] badge"
+          "scripts/rpc-smoke.mjs::fresh session starts in caveman with [CAVEMAN] badge",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
         ],
-        "oracle": "Upstream mode-activation-cases.json corpus and literal badge/entry assertions; live Pi RPC run.",
+        "oracle": "Upstream mode-activation-cases.json corpus and literal badge/entry assertions; live Pi RPC run. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["/caveman", "/caveman ultra"],
         "negativeCases": ["/caveman bogus"],
         "edgeCases": ["repeat of active mode", "legacy lite/full aliases"]
@@ -68,8 +69,13 @@
         "rationale": "Mode state is executable; ruleset text ships as the upstream skill."
       },
       "verification": {
-        "tests": ["test/commands.test.ts::/ultracave reports the new mode", "test/commands.test.ts::/ultracave switches the injected ruleset", "scripts/rpc-smoke.mjs::switched ruleset reaches the model"],
-        "oracle": "Literal badge and system-prompt section; live model run.",
+        "tests": [
+          "test/commands.test.ts::/ultracave reports the new mode",
+          "test/commands.test.ts::/ultracave switches the injected ruleset",
+          "scripts/rpc-smoke.mjs::switched ruleset reaches the model",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+        ],
+        "oracle": "Literal badge and system-prompt section; live model run. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["/ultracave"],
         "negativeCases": ["/ultracave bogus"],
         "edgeCases": ["/ultracave while already ultracave"]
@@ -101,8 +107,8 @@
         "rationale": "Same as ultracave."
       },
       "verification": {
-        "tests": ["test/commands.test.ts::/megacave off turns caveman off", "scripts/rpc-smoke.mjs::/megacave switches the badge"],
-        "oracle": "Literal badge assertions; live RPC.",
+        "tests": ["test/commands.test.ts::/megacave off turns caveman off", "scripts/rpc-smoke.mjs::/megacave switches the badge", "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"],
+        "oracle": "Literal badge assertions; live RPC. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["/megacave"],
         "negativeCases": ["/megacave off"],
         "edgeCases": ["wenyan alias"]
@@ -138,9 +144,10 @@
           "test/commands.test.ts::/caveman status writes no entry",
           "test/commands.test.ts::/caveman status reports the mode",
           "test/state.test.ts::status reports without changing state",
-          "scripts/rpc-smoke.mjs::/caveman status reports the mode"
+          "scripts/rpc-smoke.mjs::/caveman status reports the mode",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
         ],
-        "oracle": "Entry count unchanged and literal report.",
+        "oracle": "Entry count unchanged and literal report. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["status while caveman"],
         "negativeCases": ["status while off"],
         "edgeCases": ["status in one-shot mode"]
@@ -176,9 +183,10 @@
           "test/state.test.ts::explicit off survives an ordinary prompt",
           "test/extension.test.ts::an explicit off survives a reload",
           "scripts/rpc-smoke.mjs::natural-language \"stop caveman\" clears the badge",
-          "scripts/rpc-smoke.mjs::explicit off survives a restart with --continue"
+          "scripts/rpc-smoke.mjs::explicit off survives a restart with --continue",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
         ],
-        "oracle": "Upstream corpus plus live restart.",
+        "oracle": "Upstream corpus plus live restart. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["stop caveman"],
         "negativeCases": ["don't stop caveman (negated)"],
         "edgeCases": ["off then restart"]
@@ -215,9 +223,10 @@
           "test/parse.test.ts::case #$id: $prompt",
           "test/parse.test.ts::a foreign slash command never fires natural-language triggers",
           "scripts/rpc-smoke.mjs::natural-language \"talk like caveman\" re-activates",
-          "test/package-runtime.test.ts::an open gate routes the first request through /w/pi"
+          "test/package-runtime.test.ts::an open gate routes the first request through /w/pi",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
         ],
-        "oracle": "Upstream mode-activation-cases.json corpus, run case by case; user message asserted byte-equal in request body.",
+        "oracle": "Upstream mode-activation-cases.json corpus, run case by case; user message asserted byte-equal in request body. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["talk like caveman"],
         "negativeCases": ["\"talk like caveman\" quoted", "don't use caveman"],
         "edgeCases": ["question form"]
@@ -255,9 +264,10 @@
           "test/config.test.ts::a symlinked repo config is ignored",
           "test/config.test.ts::uses APPDATA on Windows",
           "test/extension.test.ts::manual default starts with no badge",
-          "test/extension.test.ts::a repo default of off gates injection"
+          "test/extension.test.ts::a repo default of off gates injection",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
         ],
-        "oracle": "Literal precedence assertions against temp files.",
+        "oracle": "Literal precedence assertions against temp files. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["env var"],
         "negativeCases": ["invalid value"],
         "edgeCases": ["manual", "off"]
@@ -293,9 +303,10 @@
           "test/extension.test.ts::the active ruleset becomes a system prompt section",
           "scripts/rpc-smoke.mjs::ruleset injected as a system prompt section",
           "test/package-runtime.test.ts::under caveman wrap pi the package yields the runtime and keeps its ruleset",
-          "scripts/e2e-real.mjs::caveman ruleset rides the routed system prompt"
+          "scripts/e2e-real.mjs::caveman ruleset rides the routed system prompt",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
         ],
-        "oracle": "Section text equals upstream SKILL.md body; observed in provider request body.",
+        "oracle": "Section text equals upstream SKILL.md body; observed in provider request body. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["fresh session"],
         "negativeCases": ["default off"],
         "edgeCases": ["forced system prompt from CLI runtime copy"]
@@ -330,9 +341,10 @@
         "tests": [
           "test/extension.test.ts::each turn carries a hidden reinforcement message",
           "test/extension.test.ts::asks the model to relay the status without a reminder",
-          "scripts/rpc-smoke.mjs::per-turn reinforcement stored as a hidden custom message"
+          "scripts/rpc-smoke.mjs::per-turn reinforcement stored as a hidden custom message",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
         ],
-        "oracle": "Literal message content.",
+        "oracle": "Literal message content. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["normal prompt"],
         "negativeCases": ["status prompt"],
         "edgeCases": ["queued steer drops notice"]
@@ -364,8 +376,13 @@
         "rationale": "These are model instructions; upstream delivers them as skill text in every host."
       },
       "verification": {
-        "tests": ["test/ruleset.test.ts::the section carries the upstream auto-clarity and exactness rules", "test/ruleset.test.ts::the reminder names the mode", "scripts/rpc-smoke.mjs::ruleset injected as a system prompt section"],
-        "oracle": "Byte-equal delivery of the upstream rule text to the model. Model compliance is model-dependent in every host and is not asserted.",
+        "tests": [
+          "test/ruleset.test.ts::the section carries the upstream auto-clarity and exactness rules",
+          "test/ruleset.test.ts::the reminder names the mode",
+          "scripts/rpc-smoke.mjs::ruleset injected as a system prompt section",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
+        ],
+        "oracle": "Byte-equal delivery of the upstream rule text to the model. Model compliance is model-dependent in every host and is not asserted. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["security warning prompt"],
         "negativeCases": [],
         "edgeCases": ["megacave keeps technical terms verbatim"]
@@ -445,9 +462,10 @@
           "test/state.test.ts::chained one-shots keep the original return target",
           "test/extension.test.ts::/caveman-commit is rewritten to its skill",
           "scripts/rpc-smoke.mjs::one-shot review shows [CAVEMAN:REVIEW]",
-          "scripts/rpc-smoke.mjs::next prompt restores the displaced mode"
+          "scripts/rpc-smoke.mjs::next prompt restores the displaced mode",
+          "test/hook-differential.test.ts::the model sees what upstream hooks inject, turn by turn"
         ],
-        "oracle": "Literal state transitions plus live run.",
+        "oracle": "Literal state transitions plus live run. Differential: upstream caveman-activate.js and caveman-mode-tracker.js run from the pinned checkout (test/upstream/hook-oracle.json) against the Pi extension on the same prompt sequence.",
         "positiveCases": ["/caveman-review"],
         "negativeCases": ["one-shot while off returns to off"],
         "edgeCases": ["chained one-shots"]
