@@ -16,7 +16,7 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 
 **Real-artifact verification.** The new `s50-install` drive exits 0. Local Pi installation registers the command and skill but creates no bin in nine searched locations and leaves `which s50` empty. The npm-shaped Pi install does create `.pi/npm/node_modules/.bin/s50`, targeting the compiled JavaScript, and that bin runs the CLI. These observations are recorded in `artifacts/user-perspective/s50-install/raw/s50-install.json`. `S50-INSTALL-2` now asserts the compiled packed-copy behaviour, not the former inability to run it.
 
-**Evidence.** `artifacts/user-perspective/f008-cli/pack-baseline.log`, `pack-fixed.log`, `unit-gate.log`, and `install-fixed.log` contain the failing-before test, passing-after test, passing typecheck and 849-test coverage run, and the passing real-Pi installation drive. Documentation alone was not used to close the finding.
+**Evidence.** `artifacts/user-perspective/f008-cli/pack-baseline.log`, `pack-fixed.log`, `unit-gate.log`, and `install-fixed.log` contain the failing-before test, passing-after test, passing typecheck and 849-test coverage run, and the passing real-Pi installation drive. Documentation alone was not used to close the finding. The full root gate with the new CLI build also exits 0, recorded in `artifacts/user-perspective/f008-cli/full-verify.log`.
 
 ---
 
