@@ -4,14 +4,15 @@ import { fileURLToPath } from 'node:url';
 import type { EvidenceRecord } from '../../src/domain/evidence.ts';
 import type { GraphNode } from '../../src/domain/graph.ts';
 import type { LeaderboardEntry, RegistrySnapshot } from '../../src/domain/registry.ts';
-import type { HostCapabilities, RunState } from '../../src/domain/run.ts';
+import type { HostCapabilities, InstalledSkill, Preflight, RunState } from '../../src/domain/run.ts';
 import type { Mode, Phase } from '../../src/domain/state.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import { type Command, type GraphNodeInput, type Outcome, SHARED_UNDERSTANDING_ID } from '../../src/orchestrator/command.ts';
 import { apply, startRun } from '../../src/orchestrator/coordinator.ts';
+import { MODEL_CHANGE_ID } from '../../src/orchestrator/facts.ts';
 import { DESIGN_BRIEF } from '../../src/orchestrator/phases.ts';
-import { buildSnapshot, S50_DEPENDENCIES } from '../../src/registry/lock.ts';
-import { parseLeaderboardFile, parseSources, type SourceEntry } from '../../src/registry/validate.ts';
+import { buildLock, S50_SKILLS } from '../../src/registry/lock.ts';
+import { type PinnedSource, parseLeaderboardFile, parseSources } from '../../src/registry/validate.ts';
+import { fixedClock } from '../support/clock.ts';
 
 export const fixturePath = (name: string): string => fileURLToPath(new URL(`../fixtures/${name}`, import.meta.url));
 
@@ -25,23 +26,41 @@ export function loadLeaderboard(): readonly LeaderboardEntry[] {
   return parsed.value.entries;
 }
 
-export function loadSources(): Readonly<Record<string, SourceEntry>> {
+export function loadSources(): Readonly<Record<string, PinnedSource>> {
   const parsed = parseSources(readFixture('skill-sources.2026-10-07.json'));
   if (parsed.kind === 'invalid') throw new Error(parsed.reason);
   return parsed.value;
 }
 
 export function registry(): RegistrySnapshot {
-  const built = buildSnapshot({ leaderboard: loadLeaderboard(), sources: loadSources(), required: S50_DEPENDENCIES, snapshotTime: '2026-10-07T09:14:55Z', source: 'https://skills.sh/' });
-  if (built.kind !== 'ok') throw new Error(`ineligible: ${built.skills.join(',')}`);
-  return built.snapshot;
+  const { lock } = buildLock({ leaderboard: loadLeaderboard(), sources: loadSources(), snapshotTime: '2026-10-07T09:14:55Z', source: 'https://skills.sh/' });
+  if (lock.kind !== 'approved') throw new Error(`rejected: ${lock.ineligible.join(',')}`);
+  return lock.snapshot;
 }
 
 export const NO_CAPS: HostCapabilities = { independentAgents: false, isolatedWorktrees: false, browserDriver: false, nativeAutomation: false, installedSkills: [] };
 
-export const ALL_SKILLS: readonly string[] = S50_DEPENDENCIES;
+export const ALL_SKILLS: readonly string[] = S50_SKILLS;
 
-export const PARALLEL_CAPS: HostCapabilities = { ...NO_CAPS, independentAgents: true, isolatedWorktrees: true, installedSkills: ALL_SKILLS };
+export const INSTALLED: readonly InstalledSkill[] = ALL_SKILLS.map((name) => ({ name, contentHash: null }));
+
+export const CLEAN_REPO: Preflight = {
+  repositoryRoot: '/repo',
+  remote: null,
+  revision: 'r1',
+  dirty: false,
+  languages: ['typescript'],
+  packageManager: 'bun',
+  testCommands: ['bun run test'],
+  buildCommands: ['bun run typecheck'],
+  instructions: [],
+  glossary: [],
+  adrs: 0,
+  issueTrackerDoc: true,
+  reactStack: false,
+};
+
+export const PARALLEL_CAPS: HostCapabilities = { ...NO_CAPS, independentAgents: true, isolatedWorktrees: true, installedSkills: INSTALLED };
 
 export function freshRun(options: { mode?: Mode; capabilities?: HostCapabilities; criteria?: readonly string[]; consumer?: RunState['run']['consumer'] } = {}): RunState {
   return startRun(
@@ -54,7 +73,7 @@ export function freshRun(options: { mode?: Mode; capabilities?: HostCapabilities
       acceptanceCriteria: options.criteria ?? ['csv export lists every invoice'],
       constraints: [],
       nonGoals: [],
-      capabilities: options.capabilities ?? { ...NO_CAPS, installedSkills: ALL_SKILLS },
+      capabilities: options.capabilities ?? { ...NO_CAPS, installedSkills: INSTALLED },
     },
     registry(),
     fixedClock(),
@@ -119,7 +138,11 @@ export function satisfiedAt(from: Phase, to: Phase): RunState {
       domain: {
         ...base.run.domain,
         terms: ['invoice'],
-        decisions: [{ id: SHARED_UNDERSTANDING_ID, question: 'ok?', answer: 'confirmed', decidedBy: 'user' }, ...DESIGN_BRIEF.map((item) => ({ id: `design.${item}`, question: item, answer: 'settled', decidedBy: 'user' as const }))],
+        decisions: [
+          { id: SHARED_UNDERSTANDING_ID, question: 'ok?', answer: 'confirmed', decidedBy: 'user' },
+          { id: MODEL_CHANGE_ID, question: 'does the model change?', answer: 'yes', decidedBy: 'fact' },
+          ...DESIGN_BRIEF.map((item) => ({ id: `design.${item}`, question: item, answer: 'settled', decidedBy: 'user' as const })),
+        ],
       },
       architecture: {
         candidates: [
@@ -132,7 +155,7 @@ export function satisfiedAt(from: Phase, to: Phase): RunState {
         ownership: [],
       },
       testContract: { proposedSeams: [seam], confirmedSeams: [seam] },
-      diagnostics: [{ id: 'loop-1', kind: 'failing_test', command: 'npm test', symptom: 'crash', status: 'promoted', promotedTo: 'seam-cli' }],
+      diagnostics: [{ id: 'loop-1', kind: 'failing_test', command: 'bun run test', symptom: 'crash', status: 'green', promotedTo: 'seam-cli', instrumentation: [] }],
       rootCause: 'off by one',
       prototypes: [{ question: 'stream?', verdict: 'yes', branch: 'proto/stream', issuePointer: null }],
     },

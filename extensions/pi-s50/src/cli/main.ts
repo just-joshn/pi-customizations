@@ -2,7 +2,7 @@
 import { defaultContext, runCli } from './commands.ts';
 
 try {
-  const result = await runCli(process.argv.slice(2), defaultContext(process.cwd()));
+  const result = await runCli(process.argv.slice(2), defaultContext(process.cwd(), undefined));
   process.stdout.write(result.stdout);
   process.exitCode = result.code;
 } catch (error) {

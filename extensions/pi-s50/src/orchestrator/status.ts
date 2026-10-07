@@ -1,7 +1,6 @@
 import type { RunState } from '../domain/run.ts';
 import type { Gate } from '../domain/state.ts';
 import { latestByClaim } from '../evidence/invalidation.ts';
-import { prReadyBlockers } from '../policy/completion.ts';
 import { readyFrontier } from '../scheduler/frontier.ts';
 import type { NextAction } from './command.ts';
 import { nextAction } from './coordinator.ts';
@@ -36,7 +35,7 @@ export function describeAction(action: NextAction): string {
     case 'invoke_skill':
       return `invoke skill ${action.skill}`;
     case 'start_nodes':
-      return `start nodes ${action.ids.join(', ')}`;
+      return `start nodes ${action.ids.map((id, index) => `${id} in ${action.workspaces[index] ?? '.'}`).join(', ')}`;
     case 'verify':
       return `verify via ${action.route.kind}${action.route.kind === 'inconclusive' ? ` (${action.route.missing})` : ''}: ${action.criteria.join('; ')}`;
     case 'freeze_revision':
@@ -57,14 +56,13 @@ export function describeAction(action: NextAction): string {
 export function renderStatus(state: RunState): string {
   const { run, graph, findings } = state;
   const action = nextAction(state);
-  const blockers = run.phase === 'PR_READY' ? [] : prReadyBlockers(state);
   const open = findings.filter((finding) => finding.status === 'open');
   const stale = latestByClaim(state.evidence).filter((record) => record.state === 'STALE').length;
   const lines = [
     `objective: ${run.objective}`,
     `phase: ${run.phase} (${run.status.kind})`,
     `revision: ${run.currentRevision}${run.frozenRevision === null ? '' : ` frozen ${run.frozenRevision}`}`,
-    `blockers: ${blockers.length === 0 ? 'none' : blockers.join('; ')}`,
+    `blockers: ${run.blockers.length === 0 ? 'none' : run.blockers.join('; ')}`,
     `open findings: ${open.length === 0 ? 'none' : open.map((finding) => `${finding.id} ${finding.severity}`).join(', ')}`,
     `ready nodes: ${
       readyFrontier(graph)

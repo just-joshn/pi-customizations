@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import { piHostCapabilities } from '../../src/adapters/agents.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import { apply } from '../../src/orchestrator/coordinator.ts';
 import { captureGuidelines, type FindingInput } from '../../src/review/findings.ts';
 import { REVIEW_DIMENSIONS, reviewAssurance, reviewDimensions } from '../../src/review/reviewer.ts';
+import { fixedClock } from '../support/clock.ts';
 import { applyAll, expectOk, freshRun } from './support.ts';
 
 // biome-ignore lint/security/noSecrets: sha256 of "abc"
@@ -16,13 +16,12 @@ const FINDING: FindingInput = {
   evidence: 'out.csv is 0 bytes',
   owner: 'IMPLEMENT',
   reviewer: 'reviewer-agent',
-  guidelines: null,
 };
 
 describe('findings', () => {
   test('record_finding opens a finding at the current revision', () => {
     const state = expectOk(apply(freshRun(), { kind: 'record_finding', finding: FINDING }, fixedClock()));
-    expect(state.findings).toEqual([{ ...FINDING, id: 'finding-1', status: 'open', revision: 'r1' }]);
+    expect(state.findings).toEqual([{ ...FINDING, guidelines: null, id: 'finding-1', status: 'open', revision: 'r1' }]);
   });
 
   test('resolving a finding closes it', () => {
@@ -58,6 +57,20 @@ describe('review assurance', () => {
     expect(reviewAssurance(piHostCapabilities({ independentAgents: true }))).toEqual({ kind: 'independent' });
   });
 
+  test('a reviewer that did not run independently is reduced', () => {
+    expect(reviewAssurance(piHostCapabilities({ independentAgents: true }), { independent: false, authored: false })).toEqual({
+      kind: 'reduced',
+      reason: 'reviewer did not run as a fresh independent agent',
+    });
+  });
+
+  test('a reviewer that wrote the code is reduced', () => {
+    expect(reviewAssurance(piHostCapabilities({ independentAgents: true }), { independent: true, authored: true })).toEqual({
+      kind: 'reduced',
+      reason: 'reviewer wrote or integrated this revision',
+    });
+  });
+
   test('self review is labelled reduced assurance', () => {
     expect(reviewAssurance(piHostCapabilities())).toEqual({ kind: 'reduced', reason: 'same-agent read-only review; no independent agents' });
   });
@@ -83,16 +96,20 @@ describe('web guidelines', () => {
     });
   });
 
-  test('guideline hash is stored on the finding', () => {
-    const guidelines = captureGuidelines('abc', 'web-design-guidelines@abc123');
-    const state = expectOk(apply(freshRun(), { kind: 'record_finding', finding: { ...FINDING, guidelines } }, fixedClock()));
-    expect(state.findings[0]?.guidelines?.contentHash).toBe(ABC_SHA256);
+  test('a review back-fills the guideline hash on earlier findings', () => {
+    const { state } = applyAll(inReview('browser'), [{ kind: 'record_finding', finding: FINDING }, fullReview('abc')]);
+    expect(state.findings.map((finding) => finding.guidelines?.contentHash)).toEqual([ABC_SHA256]);
   });
 });
 
+function inPrototype() {
+  const base = freshRun();
+  return { ...base, run: { ...base.run, phase: 'PROTOTYPE' as const } };
+}
+
 describe('prototype retention', () => {
   test('prototype without a branch is rejected', () => {
-    expect(apply(freshRun(), { kind: 'record_prototype', question: 'stream?', verdict: 'yes', branch: ' ', issuePointer: null }, fixedClock())).toEqual({
+    expect(apply(inPrototype(), { kind: 'record_prototype', question: 'stream?', verdict: 'yes', branch: ' ', issuePointer: null }, fixedClock())).toEqual({
       kind: 'rejected',
       reason: 'prototype branch required; prototypes are retained on a branch',
       gate: null,
@@ -100,9 +117,17 @@ describe('prototype retention', () => {
   });
 
   test('prototype branch is kept as evidence artifact', () => {
-    const state = expectOk(apply(freshRun(), { kind: 'record_prototype', question: 'stream?', verdict: 'yes', branch: 'proto/stream', issuePointer: '#12' }, fixedClock()));
+    const state = expectOk(apply(inPrototype(), { kind: 'record_prototype', question: 'stream?', verdict: 'yes', branch: 'proto/stream', issuePointer: '#12' }, fixedClock()));
     expect(state.run.prototypes).toEqual([{ question: 'stream?', verdict: 'yes', branch: 'proto/stream', issuePointer: '#12' }]);
-    expect(state.evidence.map((record) => [record.method, record.artifact, record.state])).toEqual([['prototype', 'proto/stream', 'MEASURED']]);
+    expect(state.evidence.map((record) => [record.method, record.artifact, record.state])).toEqual([['prototype', 'branch proto/stream (issue #12)', 'MEASURED']]);
+  });
+
+  test('a prototype outside PROTOTYPE is rejected', () => {
+    expect(apply(freshRun(), { kind: 'record_prototype', question: 'stream?', verdict: 'yes', branch: 'proto/stream', issuePointer: null }, fixedClock())).toEqual({
+      kind: 'rejected',
+      reason: 'prototypes are recorded in PROTOTYPE, not START',
+      gate: null,
+    });
   });
 });
 
@@ -111,11 +136,11 @@ function inReview(consumer: 'cli' | 'browser', independentAgents = false) {
   return { ...base, run: { ...base.run, phase: 'REVIEW' as const } };
 }
 
-const fullReview = (guidelinesContent: string | null) => ({ kind: 'record_review', reviewer: 'reviewer-agent', dimensions: [...reviewDimensions({ kind: 'web_ui', react: true })], guidelinesContent }) as const;
+const fullReview = (guidelinesContent: string | null) => ({ kind: 'record_review', reviewer: 'reviewer-agent', independent: true, dimensions: [...reviewDimensions({ kind: 'web_ui', react: true })], guidelinesContent }) as const;
 
 describe('review phase', () => {
   test('a review missing a required dimension is rejected', () => {
-    expect(apply(inReview('cli'), { kind: 'record_review', reviewer: 'r', dimensions: ['correctness_and_acceptance_criteria'], guidelinesContent: null }, fixedClock())).toMatchObject({
+    expect(apply(inReview('cli'), { kind: 'record_review', reviewer: 'r', independent: true, dimensions: ['correctness_and_acceptance_criteria'], guidelinesContent: null }, fixedClock())).toMatchObject({
       kind: 'rejected',
       reason: expect.stringMatching(/^review misses dimensions: domain_invariants, authorization_and_data_integrity,/),
     });

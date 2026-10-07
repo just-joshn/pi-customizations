@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { PHASES, type Phase } from '../../src/domain/state.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import { apply } from '../../src/orchestrator/coordinator.ts';
 import { TRANSITIONS } from '../../src/orchestrator/transitions.ts';
+import { fixedClock } from '../support/clock.ts';
 import { freshRun, satisfiedAt } from './support.ts';
 
 const legal = PHASES.flatMap((from) => TRANSITIONS[from].map((to): [Phase, Phase] => [from, to]));

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import type { Command } from '../../src/orchestrator/command.ts';
 import { apply } from '../../src/orchestrator/coordinator.ts';
+import { fixedClock } from '../support/clock.ts';
 import { expectOk, freshRun, satisfiedAt } from './support.ts';
 
 function ready() {
@@ -20,7 +20,6 @@ const FINDING: Extract<Command, { kind: 'record_finding' }>['finding'] = {
   evidence: 'artifacts/totals.log',
   owner: 'IMPLEMENT',
   reviewer: 'reviewer-agent',
-  guidelines: null,
 };
 
 describe('reserved records', () => {
@@ -29,7 +28,7 @@ describe('reserved records', () => {
       kind: 'record_evidence',
       evidence: { claim: 'review', criterion: 'review', state: 'MEASURED', dependencies: [], method: 'cli', expected: '', observed: '', artifact: '' },
     };
-    expect(apply(inPhase('VERIFY'), forged, fixedClock())).toEqual({ kind: 'rejected', reason: 'review and prototype evidence come only from record_review and record_prototype', gate: null });
+    expect(apply(inPhase('VERIFY'), forged, fixedClock())).toEqual({ kind: 'rejected', reason: 'review, prototype, and TDD evidence come only from record_review, record_prototype, and record_test', gate: null });
   });
 
   test('shared understanding cannot be forged through answer_decisions', () => {
@@ -87,7 +86,7 @@ describe('live PR_READY predicate', () => {
 });
 
 describe('redaction of stored text', () => {
-  test('finding owner, reviewer, and decision summaries are redacted', () => {
+  test('redaction covers finding owner, reviewer, decision summary', () => {
     // biome-ignore lint/security/noSecrets: synthetic test values
     const [owner, reviewer] = [['Bearer', 'abcdef123456'].join(' '), ['password', 'hunter2'].join('=')];
     const outcome = apply(inPhase('VERIFY'), { kind: 'record_finding', finding: { ...FINDING, owner, reviewer } }, fixedClock());

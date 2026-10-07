@@ -1,11 +1,12 @@
-import { readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 import { type CliContext, runCli } from '../../src/cli/commands.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import { apply } from '../../src/orchestrator/coordinator.ts';
 import { loadState, migrate, saveState } from '../../src/orchestrator/persistence.ts';
+import { fixedClock } from '../support/clock.ts';
+import { testContext } from '../support/context.ts';
 import { ALL_SKILLS, expectOk, freshRun, measured } from '../unit/support.ts';
 import { tempRepo } from './repo.ts';
 
@@ -22,7 +23,7 @@ afterEach(() => {
 });
 
 function context(cwd: string): CliContext {
-  return { cwd, clock: fixedClock(), fetchText: () => Promise.reject(new Error('network disabled in tests')) };
+  return testContext(cwd);
 }
 
 const REFRESH = ['registry', 'refresh', '--from', 'leaderboard.2026-10-07.json', '--sources', 'skill-sources.2026-10-07.json'];
@@ -40,15 +41,30 @@ describe('.s50 persistence', () => {
     expect(readFileSync(join(dir, 'evidence.jsonl'), 'utf8').trim().split('\n').length).toBe(2);
   });
 
-  test('schema v1 run migrates to v2', async () => {
+  function v2Run() {
+    const { integrationOwner: _owner, preflight: _preflight, ...rest } = freshRun().run;
+    return { ...rest, schemaVersion: 2, capabilities: { ...rest.capabilities, installedSkills: ['tdd'] } };
+  }
+
+  test('schema v1 run migrates to v3', async () => {
     const dir = join(repo(), '.s50');
-    const current = freshRun();
-    await saveState(dir, null, current, []);
-    const { diagnostics: _dropped, phase: _phase, ...rest } = current.run;
+    await saveState(dir, null, freshRun(), []);
+    const { diagnostics: _dropped, phase: _phase, ...rest } = v2Run();
     writeFileSync(join(dir, 'run.json'), JSON.stringify({ ...rest, schemaVersion: 1, status: 'IMPLEMENT' }));
     const loaded = await loadState(dir);
-    if (loaded.kind !== 'ok') throw new Error(loaded.kind);
-    expect([loaded.migrated, loaded.state.run.schemaVersion, loaded.state.run.phase, loaded.state.run.status, loaded.state.run.diagnostics]).toEqual([true, 2, 'IMPLEMENT', { kind: 'active' }, []]);
+    if (loaded.kind !== 'ok') throw new Error(loaded.kind === 'invalid' ? loaded.reason : loaded.kind);
+    const { run } = loaded.state;
+    expect([loaded.migrated, run.schemaVersion, run.phase, run.status, run.diagnostics, run.capabilities.installedSkills, run.preflight]).toEqual([true, 3, 'IMPLEMENT', { kind: 'active' }, [], [{ name: 'tdd', contentHash: null }], null]);
+  });
+
+  test('a v2 promoted loop migrates red with its promotion kept', async () => {
+    const dir = join(repo(), '.s50');
+    await saveState(dir, null, freshRun(), []);
+    const loop = { id: 'l', kind: 'fuzz', command: 'x', symptom: 'y', status: 'promoted', promotedTo: 'seam' };
+    writeFileSync(join(dir, 'run.json'), JSON.stringify({ ...v2Run(), diagnostics: [loop] }));
+    const loaded = await loadState(dir);
+    if (loaded.kind !== 'ok') throw new Error(loaded.kind === 'invalid' ? loaded.reason : loaded.kind);
+    expect(loaded.state.run.diagnostics).toEqual([{ ...loop, status: 'red', instrumentation: [] }]);
   });
 
   test.for([
@@ -98,7 +114,26 @@ describe('CLI over .s50', () => {
       readFileSync(join(cwd, '.s50/decisions.jsonl'), 'utf8')
         .split('\n')
         .find((line) => line.includes('"preflight"')) ?? '';
-    expect(JSON.parse(first).summary).toMatch(/^preflight rev=[0-9a-f]{40} dirty=false pm=unknown instructions=none glossary=none adrs=0 installed=find-skills,/);
+    expect(JSON.parse(first).summary).toMatch(/^preflight root=\S+ remote=none rev=[0-9a-f]{40} dirty=false languages=none pm=unknown test=none build=none instructions=none glossary=none adrs=0 react=false installed=grilling,/);
+  });
+
+  test('a deleted .s50/.gitignore stays deleted', async () => {
+    const cwd = repo();
+    await runCli(REFRESH, context(cwd));
+    rmSync(join(cwd, '.s50/.gitignore'));
+    await runCli(START, context(cwd));
+    expect(existsSync(join(cwd, '.s50/.gitignore'))).toBe(false);
+  });
+
+  test('every JSONL line carries its schema version', async () => {
+    const cwd = repo();
+    await runCli(REFRESH, context(cwd));
+    await runCli(START, context(cwd));
+    const versions = readFileSync(join(cwd, '.s50/decisions.jsonl'), 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line).schemaVersion);
+    expect(new Set(versions)).toEqual(new Set([1]));
   });
 
   test('run data stays out of git through a self-ignoring .gitignore', async () => {
@@ -107,16 +142,21 @@ describe('CLI over .s50', () => {
     expect(readFileSync(join(cwd, '.s50/.gitignore'), 'utf8')).toBe('*\n');
   });
 
-  test('refresh with a demoted skill keeps lock plus run snapshot', async () => {
+  test('a demoted required skill rejects the lock but not the active run', async () => {
     const cwd = repo();
     await runCli(REFRESH, context(cwd));
     await runCli(START, context(cwd));
-    const lock = readFileSync(join(cwd, '.s50/registry.lock.json'), 'utf8');
     const refreshed = await runCli(['registry', 'refresh', '--from', 'leaderboard.diagnosing-bugs-rank-51.json', '--sources', 'skill-sources.2026-10-07.json'], context(cwd));
-    expect(refreshed).toEqual({ code: 2, stdout: 'ineligible skills outside the top 50: diagnosing-bugs\n' });
-    expect(readFileSync(join(cwd, '.s50/registry.lock.json'), 'utf8')).toBe(lock);
+    expect(refreshed).toEqual({ code: 2, stdout: 'ineligible required skills outside the top 50: diagnosing-bugs; strict mode starts no new run\n' });
+    expect(JSON.parse(readFileSync(join(cwd, '.s50/registry.lock.json'), 'utf8'))).toEqual({ schemaVersion: 2, kind: 'rejected', checkedAt: '2026-10-07T09:14:55Z', source: 'https://skills.sh/', ineligible: ['diagnosing-bugs'] });
     const loaded = await loadState(join(cwd, '.s50'));
-    expect(loaded.kind === 'ok' && loaded.state.run.skillRegistry.skills.length).toBe(18);
+    expect(loaded.kind === 'ok' && loaded.state.run.skillRegistry.skills.find((skill) => skill.name === 'diagnosing-bugs')?.rank).toBe(42);
+  });
+
+  test('a rejected lock refuses every new run', async () => {
+    const cwd = repo();
+    await runCli(['registry', 'refresh', '--from', 'leaderboard.diagnosing-bugs-rank-51.json', '--sources', 'skill-sources.2026-10-07.json'], context(cwd));
+    expect(await runCli(START, context(cwd))).toEqual({ code: 2, stdout: 'registry refresh at 2026-10-07T09:14:55Z failed closed: diagnosing-bugs; strict mode starts no new run\n' });
   });
 
   test('apply rejects a malformed command at the boundary', async () => {
@@ -157,7 +197,7 @@ describe('CLI over .s50', () => {
   test('pure apply leaves its input untouched', () => {
     const state = freshRun();
     const snapshot = JSON.stringify(state);
-    expectOk(apply(state, { kind: 'confirm_understanding' }, fixedClock()));
+    expectOk(apply(state, { kind: 'request_authorization', action: 'merge', scope: 'PR 1' }, fixedClock()));
     expect(JSON.stringify(state)).toBe(snapshot);
   });
 });

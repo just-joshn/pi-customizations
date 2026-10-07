@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'vitest';
 import type { Graph } from '../../src/domain/graph.ts';
 import type { RunState } from '../../src/domain/run.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import { apply } from '../../src/orchestrator/coordinator.ts';
 import { validateGraph } from '../../src/orchestrator/handlers.ts';
 import { conflict, patternsOverlap } from '../../src/scheduler/conflicts.ts';
 import { readyFrontier } from '../../src/scheduler/frontier.ts';
 import { schedule } from '../../src/scheduler/ownership.ts';
+import { fixedClock } from '../support/clock.ts';
 import { expectOk, freshRun, graphNode, NO_CAPS, node, PARALLEL_CAPS } from './support.ts';
 
 function implementing(graph: Graph, capabilities = PARALLEL_CAPS): RunState {

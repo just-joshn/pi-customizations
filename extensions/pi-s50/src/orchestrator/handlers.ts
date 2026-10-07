@@ -2,21 +2,25 @@ import type { EvidenceRecord } from '../domain/evidence.ts';
 import type { Finding } from '../domain/findings.ts';
 import type { GraphNode } from '../domain/graph.ts';
 import type { Decision, DesignCandidate, DiagnosticLoop, Run, RunState, Seam } from '../domain/run.ts';
-import type { AuthorizationAction, Phase, RunStatus } from '../domain/state.ts';
-import { invalidate, latestByClaim } from '../evidence/invalidation.ts';
-import { redact } from '../evidence/verification.ts';
+import type { AuthorizationAction, Phase, Question, RunStatus } from '../domain/state.ts';
+import { invalidate, latestByClaim, staleMatching } from '../evidence/invalidation.ts';
 import { grantMatches } from '../policy/authorization.ts';
 import { currentReview, REVIEW_CLAIM } from '../policy/completion.ts';
-import { canModelInvoke, type routeSkills } from '../policy/invocation.ts';
+import { canModelInvoke } from '../policy/invocation.ts';
 import { captureGuidelines, createFinding, type FindingInput, resolveFinding, sameFinding } from '../review/findings.ts';
-import { type ReviewSurface, reviewAssurance, reviewDimensions } from '../review/reviewer.ts';
+import { reviewAssurance, reviewDimensions } from '../review/reviewer.ts';
 import { conflict } from '../scheduler/conflicts.ts';
 import { blockedBy, readyFrontier } from '../scheduler/frontier.ts';
 import { canRunConcurrently } from '../scheduler/ownership.ts';
 import type { Clock } from './clock.ts';
-import { blockedGate, type Command, done, type EvidenceInput, type GraphNodeInput, INTEGRATION_OWNER, isConfirmed, noop, type Outcome, reject, SHARED_UNDERSTANDING_ID, same, understood, withRun } from './command.ts';
+import { blockedGate, type Command, done, type EvidenceInput, type GraphNodeInput, isConfirmed, noop, type Outcome, reject, SHARED_UNDERSTANDING_ID, same, understood, withRun } from './command.ts';
+import { reviewSurface } from './facts.ts';
+import { advance } from './phases.ts';
+import { type CheckKind, failureOwner } from './routes.ts';
 
-export const HORIZONTAL_LAYERS = ['database', 'backend', 'frontend', 'tests', 'api', 'ui', 'schema', 'migration'];
+const HORIZONTAL_LAYERS = ['database', 'backend', 'frontend', 'tests', 'api', 'ui', 'schema', 'migration'];
+
+const TDD_CLAIM = 'tdd:';
 
 export function invokeSkill(state: RunState, skill: string, clock: Clock): Outcome {
   const check = canModelInvoke(state.run.skillRegistry, skill, state.run.capabilities.installedSkills);
@@ -43,18 +47,38 @@ export function completeUserWorkflow(state: RunState, skill: string, clock: Cloc
     return done(withRun(state, { status: { kind: 'active' } }), 'complete_user_workflow', `user completed /skill:${skill}`, clock);
   }
   if (gate.kind === 'missing_skill' && gate.skill === skill) {
-    const capabilities = { ...state.run.capabilities, installedSkills: [...state.run.capabilities.installedSkills, skill] };
+    const capabilities = { ...state.run.capabilities, installedSkills: [...state.run.capabilities.installedSkills, { name: skill, contentHash: null }] };
     return done(withRun(state, { status: { kind: 'active' }, capabilities }), 'complete_user_workflow', `user installed ${skill}`, clock);
   }
   return reject(`no ${skill} gate is open`, gate);
 }
 
-export function answerDecisions(state: RunState, input: readonly Decision[], clock: Clock): Outcome {
-  if (input.some((answer) => answer.id === SHARED_UNDERSTANDING_ID)) return reject(`${SHARED_UNDERSTANDING_ID} is recorded only by confirm_understanding`);
-  const decisions = input.map((answer) => ({ ...answer, question: redact(answer.question), answer: redact(answer.answer) }));
+function decided(run: Run, id: string): boolean {
+  return run.domain.decisions.some((decision) => decision.id === id);
+}
+
+export function askDecisions(state: RunState, questions: readonly Question[], clock: Clock): Outcome {
+  if (state.run.phase !== 'CLARIFY') return reject(`decision rounds are asked in CLARIFY, not ${state.run.phase}`);
+  const gate = blockedGate(state.run);
+  if (gate !== null) return reject(`run blocked on ${gate.kind} gate`, gate);
+  if (questions.length === 0) {
+    if (understood(state.run)) return noop(state);
+    return done(withRun(state, { status: { kind: 'blocked', gate: { kind: 'shared_understanding' } } }), 'ask_decisions', 'frontier empty; asked for shared-understanding confirmation', clock);
+  }
+  const ids = questions.map((question) => question.id);
+  if (new Set(ids).size !== ids.length) return reject('decision round needs distinct question ids');
+  const settled = ids.find((id) => decided(state.run, id));
+  if (settled !== undefined) return reject(`question ${settled} is already decided`);
+  const later = questions.find((question) => question.dependsOn.some((dependency) => !decided(state.run, dependency)));
+  if (later !== undefined) return reject(`question ${later.id} depends on an undecided question; it belongs to a later round`);
+  return done(withRun(state, { status: { kind: 'blocked', gate: { kind: 'decisions', questions } } }), 'ask_decisions', `asked round ${ids.join(', ')}`, clock);
+}
+
+export function answerDecisions(state: RunState, decisions: readonly Decision[], clock: Clock): Outcome {
+  if (decisions.some((answer) => answer.id === SHARED_UNDERSTANDING_ID)) return reject(`${SHARED_UNDERSTANDING_ID} is recorded only by confirm_understanding`);
   const existing = state.run.domain.decisions;
-  const merged = [...existing.filter((decision) => !decisions.some((answer) => answer.id === decision.id)), ...decisions];
   if (decisions.every((answer) => existing.some((decision) => same(decision, answer)))) return noop(state);
+  const merged = [...existing.filter((decision) => !decisions.some((answer) => answer.id === decision.id)), ...decisions];
   const gate = blockedGate(state.run);
   const answered = gate?.kind === 'decisions' && gate.questions.every((question) => merged.some((decision) => decision.id === question.id));
   const status: RunStatus = answered ? { kind: 'active' } : state.run.status;
@@ -63,48 +87,48 @@ export function answerDecisions(state: RunState, input: readonly Decision[], clo
 
 export function confirmUnderstanding(state: RunState, clock: Clock): Outcome {
   const gate = blockedGate(state.run);
-  const clears = gate?.kind === 'shared_understanding';
-  if (understood(state.run) && !clears) return noop(state);
+  if (gate?.kind !== 'shared_understanding') return understood(state.run) ? noop(state) : reject('no shared-understanding confirmation was asked; ask_decisions with an empty round asks for it');
   const decision: Decision = { id: SHARED_UNDERSTANDING_ID, question: 'Is the shared understanding correct?', answer: 'confirmed', decidedBy: 'user' };
-  const decisions = understood(state.run) ? state.run.domain.decisions : [...state.run.domain.decisions, decision];
-  const status: RunStatus = clears ? { kind: 'active' } : state.run.status;
-  return done(withRun(state, { domain: { ...state.run.domain, decisions }, status }), 'confirm_understanding', 'shared understanding confirmed', clock);
+  return done(withRun(state, { domain: { ...state.run.domain, decisions: [...state.run.domain.decisions, decision] }, status: { kind: 'active' } }), 'confirm_understanding', 'shared understanding confirmed', clock);
 }
 
 export function evidenceFrom(state: RunState, input: EvidenceInput, clock: Clock): { readonly record: EvidenceRecord; readonly duplicate: boolean } {
-  const claim = redact(input.claim);
-  const previous = latestByClaim(state.evidence).find((record) => record.claim === claim);
-  const record: EvidenceRecord = {
-    ...input,
-    claim,
-    criterion: redact(input.criterion),
-    expected: redact(input.expected),
-    observed: redact(input.observed),
-    artifact: redact(input.artifact),
-    id: '',
-    recordedAt: '',
-    revision: state.run.currentRevision,
-    supersedes: previous?.id ?? null,
-  };
+  const previous = latestByClaim(state.evidence).find((record) => record.claim === input.claim);
+  const record: EvidenceRecord = { ...input, id: '', recordedAt: '', revision: state.run.currentRevision, supersedes: previous?.id ?? null };
   const duplicate = previous !== undefined && same({ ...previous, id: '', recordedAt: '', supersedes: null }, { ...record, supersedes: null });
   return { record: { ...record, id: duplicate ? '' : clock.id('ev'), recordedAt: duplicate ? '' : clock.now() }, duplicate };
 }
 
+function appendEvidence(state: RunState, input: EvidenceInput, clock: Clock): { readonly state: RunState; readonly record: EvidenceRecord | null } {
+  const { record, duplicate } = evidenceFrom(state, input, clock);
+  return duplicate ? { state, record: null } : { state: { ...state, evidence: [...state.evidence, record] }, record };
+}
+
 export function recordPrototype(state: RunState, command: Extract<Command, { kind: 'record_prototype' }>, clock: Clock): Outcome {
+  if (state.run.phase !== 'PROTOTYPE') return reject(`prototypes are recorded in PROTOTYPE, not ${state.run.phase}`);
+  if (command.question.trim() === '' || command.verdict.trim() === '') return reject('a prototype records the one question it answered and its verdict');
   if (command.branch.trim() === '') return reject('prototype branch required; prototypes are retained on a branch');
-  const prototype = { question: redact(command.question), verdict: redact(command.verdict), branch: redact(command.branch), issuePointer: command.issuePointer === null ? null : redact(command.issuePointer) };
+  const prototype = { question: command.question, verdict: command.verdict, branch: command.branch, issuePointer: command.issuePointer };
   if (state.run.prototypes.some((existing) => same(existing, prototype))) return noop(state);
-  const { record } = evidenceFrom(
-    state,
-    { claim: `prototype: ${prototype.question}`, criterion: 'prototype', state: 'MEASURED', dependencies: [], method: 'prototype', expected: prototype.question, observed: prototype.verdict, artifact: prototype.branch },
-    clock,
-  );
-  const next = { ...withRun(state, { prototypes: [...state.run.prototypes, prototype] }), evidence: [...state.evidence, record] };
-  return done(next, 'record_prototype', `prototype retained on branch ${prototype.branch}`, clock);
+  const pointer = prototype.issuePointer === null ? '' : ` (issue ${prototype.issuePointer})`;
+  const evidence: EvidenceInput = {
+    claim: `prototype: ${prototype.question}`,
+    criterion: 'prototype',
+    state: 'MEASURED',
+    dependencies: [],
+    method: 'prototype',
+    expected: prototype.question,
+    observed: prototype.verdict,
+    artifact: `branch ${prototype.branch}${pointer}`,
+  };
+  const next = appendEvidence(withRun(state, { prototypes: [...state.run.prototypes, prototype] }), evidence, clock);
+  return done(next.state, 'record_prototype', `prototype retained on branch ${prototype.branch}${pointer}`, clock);
 }
 
 export function proposeSeams(state: RunState, seams: readonly Seam[], clock: Clock): Outcome {
   if (seams.length === 0) return reject('no seams proposed');
+  const vague = seams.find((seam) => seam.description.trim() === '' || seam.catches.trim() === '' || seam.misses.trim() === '');
+  if (vague !== undefined) return reject(`seam ${vague.id} must say what it is, what it catches, and what it misses`);
   const proposed = state.run.testContract.proposedSeams;
   if (seams.every((seam) => proposed.some((existing) => same(existing, seam)))) return noop(state);
   const rewritten = seams.find((seam) => state.run.testContract.confirmedSeams.some((confirmed) => confirmed.id === seam.id && !same(confirmed, seam)));
@@ -131,36 +155,66 @@ export function confirmSeams(state: RunState, ids: readonly string[], clock: Clo
   return done(withRun(state, { testContract: { proposedSeams, confirmedSeams: confirmed }, status }), 'confirm_seams', `confirmed seams ${fresh.join(', ')}`, clock);
 }
 
+export function recordTest(state: RunState, command: Extract<Command, { kind: 'record_test' }>, clock: Clock): Outcome {
+  if (!isConfirmed(state.run, command.seam)) return reject(`seam ${command.seam} is not confirmed; TDD tests need a confirmed seam`, { kind: 'seam_confirmation', seams: [command.seam] });
+  const claim = `${TDD_CLAIM}${command.name}`;
+  const previous = latestByClaim(state.evidence).find((record) => record.claim === claim);
+  if (command.result === 'green' && previous?.state !== 'FAILED') return reject(`test ${command.name} has no RED record; prove it fails before recording GREEN`);
+  if (command.result === 'red' && previous?.state === 'MEASURED') return reject(`test ${command.name} is already GREEN; write a new failing behavior test`);
+  const evidence: EvidenceInput = {
+    claim,
+    criterion: `${TDD_CLAIM}${command.seam}`,
+    state: command.result === 'red' ? 'FAILED' : 'MEASURED',
+    dependencies: command.dependencies,
+    method: 'test',
+    expected: command.result === 'red' ? 'fails before the behavior exists' : 'passes with the minimum behavior',
+    observed: command.observed,
+    artifact: command.command,
+  };
+  const next = appendEvidence(state, evidence, clock);
+  if (next.record === null) return noop(state);
+  return done(next.state, 'record_test', `${command.result.toUpperCase()} ${command.name} at seam ${command.seam}`, clock);
+}
+
 export function recordDiagnostic(state: RunState, loop: DiagnosticLoop, clock: Clock): Outcome {
-  if (state.run.phase !== 'DIAGNOSE') return reject(`diagnostic loops are recorded in DIAGNOSE, not ${state.run.phase}`);
-  if (loop.status === 'promoted') return reject('promote diagnostics with promote_diagnostic');
   const existing = state.run.diagnostics.find((candidate) => candidate.id === loop.id);
-  if (existing?.status === 'promoted') return reject(`diagnostic ${loop.id} already promoted`);
+  if (existing === undefined && state.run.phase !== 'DIAGNOSE') return reject(`new diagnostic loops are recorded in DIAGNOSE, not ${state.run.phase}`);
+  if (existing !== undefined && existing.promotedTo !== loop.promotedTo) return reject('promote diagnostics with promote_diagnostic');
+  if (existing === undefined && loop.promotedTo !== null) return reject('a new diagnostic loop is not promoted yet');
   if (existing !== undefined && same(existing, loop)) return noop(state);
-  const clean = { ...loop, symptom: redact(loop.symptom), command: redact(loop.command), promotedTo: null };
-  const diagnostics = existing === undefined ? [...state.run.diagnostics, clean] : state.run.diagnostics.map((candidate) => (candidate.id === loop.id ? clean : candidate));
+  const diagnostics = existing === undefined ? [...state.run.diagnostics, loop] : state.run.diagnostics.map((candidate) => (candidate.id === loop.id ? loop : candidate));
   return done(resumed(withRun(state, { diagnostics })), 'record_diagnostic', `diagnostic ${loop.id} (${loop.kind}) is ${loop.status}`, clock);
 }
 
-export function reviewSurface(run: Run): ReviewSurface {
-  const facts = routeFacts(run);
-  return facts.webUi ? { kind: 'web_ui', react: facts.reactStack } : { kind: 'non_web' };
+export function recordRootCause(state: RunState, cause: string, clock: Clock): Outcome {
+  if (state.run.rootCause === cause) return noop(state);
+  if (!state.run.diagnostics.some((loop) => loop.status === 'red')) return reject('root cause requires a red diagnostic loop');
+  return done(withRun(state, { rootCause: cause }), 'record_root_cause', `root cause: ${cause}`, clock);
 }
 
-export function guidelinesLock(run: Run): string {
+export function promoteDiagnostic(state: RunState, loopId: string, seamId: string, clock: Clock): Outcome {
+  const loop = state.run.diagnostics.find((candidate) => candidate.id === loopId);
+  if (loop === undefined) return reject(`unknown diagnostic ${loopId}`);
+  if (loop.promotedTo === seamId) return noop(state);
+  if (!isConfirmed(state.run, seamId)) return reject(`seam ${seamId} is not confirmed`, { kind: 'seam_confirmation', seams: [seamId] });
+  const diagnostics = state.run.diagnostics.map((candidate): DiagnosticLoop => (candidate.id === loopId ? { ...candidate, promotedTo: seamId } : candidate));
+  return done(withRun(state, { diagnostics }), 'promote_diagnostic', `diagnostic ${loopId} promoted to seam ${seamId}`, clock);
+}
+
+function guidelinesLock(run: Run): string {
   const skill = run.skillRegistry.skills.find((candidate) => candidate.name === 'web-design-guidelines');
   if (skill === undefined) return 'web-design-guidelines@unlocked';
   return skill.lock.kind === 'git_commit' ? `web-design-guidelines@${skill.lock.commit}` : `web-design-guidelines@${skill.lock.contentHash}`;
 }
 
-export function currentGuidelines(state: RunState): Finding['guidelines'] {
+function currentGuidelines(state: RunState): Finding['guidelines'] {
   const review = currentReview(state);
   if (review === null || !review.artifact.startsWith('sha256:')) return null;
   return { contentHash: review.artifact, skillLock: guidelinesLock(state.run) };
 }
 
 // A review covers the code the graph wrote; with no write sets it cannot bound itself, so any change stales it.
-export function reviewedPaths(state: RunState): readonly string[] {
+function reviewedPaths(state: RunState): readonly string[] {
   const paths = [...new Set(state.graph.nodes.flatMap((node) => node.writeSet))];
   return paths.length === 0 ? ['**'] : paths;
 }
@@ -172,53 +226,38 @@ export function recordReview(state: RunState, command: Extract<Command, { kind: 
   if (missing.length > 0) return reject(`review misses dimensions: ${missing.join(', ')}`);
   if (surface.kind === 'web_ui' && command.guidelinesContent === null) return reject('web UI review needs the fetched web-design-guidelines content');
   const guidelines = command.guidelinesContent === null ? null : captureGuidelines(command.guidelinesContent, guidelinesLock(state.run));
-  const assurance = reviewAssurance(state.run.capabilities);
+  const authored = state.graph.nodes.some((node) => node.owner === command.reviewer) || state.run.integrationOwner === command.reviewer;
+  const assurance = reviewAssurance(state.run.capabilities, { independent: command.independent, authored });
   const label = assurance.kind === 'independent' ? 'independent' : `reduced: ${assurance.reason}`;
-  const input: EvidenceInput = {
+  const evidence: EvidenceInput = {
     claim: REVIEW_CLAIM,
     criterion: REVIEW_CLAIM,
     state: 'MEASURED',
     dependencies: reviewedPaths(state),
     method: 'review',
     expected: reviewDimensions(surface).join(','),
-    observed: `${redact(command.reviewer)} (${label})${guidelines === null ? '' : ` guidelines ${guidelines.skillLock}`}`,
-    artifact: guidelines?.contentHash ?? `review by ${redact(command.reviewer)}`,
+    observed: `${command.reviewer} (${label})${guidelines === null ? '' : ` guidelines ${guidelines.skillLock}`}`,
+    artifact: guidelines?.contentHash ?? `review by ${command.reviewer}`,
   };
-  const { record, duplicate } = evidenceFrom(state, input, clock);
-  if (duplicate) return noop(state);
-  return done({ ...state, evidence: [...state.evidence, record] }, 'record_review', `review at ${record.revision}: ${label}`, clock);
+  const next = appendEvidence(state, evidence, clock);
+  if (next.record === null) return noop(state);
+  const findings = guidelines === null ? next.state.findings : next.state.findings.map((finding): Finding => (finding.revision === next.record?.revision && finding.guidelines === null ? { ...finding, guidelines } : finding));
+  return done({ ...next.state, findings }, 'record_review', `review at ${next.record.revision}: ${label}`, clock);
 }
 
-export const INCONCLUSIVE_PHASES: readonly Phase[] = ['DIAGNOSE', 'VERIFY', 'REVERIFY_STALE'];
+const INCONCLUSIVE_PHASES: readonly Phase[] = ['DIAGNOSE', 'VERIFY', 'REVERIFY_STALE'];
 
 export function declareInconclusive(state: RunState, missing: string, clock: Clock): Outcome {
-  const clean = redact(missing);
-  if (same(state.run.status, { kind: 'inconclusive', missing: clean })) return noop(state);
+  if (same(state.run.status, { kind: 'inconclusive', missing })) return noop(state);
   const gate = blockedGate(state.run);
   if (gate !== null) return reject(`run blocked on ${gate.kind} gate`, gate);
   if (!INCONCLUSIVE_PHASES.includes(state.run.phase)) return reject(`inconclusive is declared in ${INCONCLUSIVE_PHASES.join(', ')}, not ${state.run.phase}`);
-  return done(withRun(state, { status: { kind: 'inconclusive', missing: clean } }), 'declare_inconclusive', `INCONCLUSIVE: missing ${clean}`, clock);
+  return done(withRun(state, { status: { kind: 'inconclusive', missing } }), 'declare_inconclusive', `INCONCLUSIVE: missing ${missing}`, clock);
 }
 
 // New feedback (a loop or a measurement) means the missing access was obtained, so the run resumes.
-export function resumed(state: RunState): RunState {
+function resumed(state: RunState): RunState {
   return state.run.status.kind === 'inconclusive' ? withRun(state, { status: { kind: 'active' } }) : state;
-}
-
-export function recordRootCause(state: RunState, cause: string, clock: Clock): Outcome {
-  const clean = redact(cause);
-  if (state.run.rootCause === clean) return noop(state);
-  if (!state.run.diagnostics.some((loop) => loop.status === 'red')) return reject('root cause requires a red diagnostic loop');
-  return done(withRun(state, { rootCause: clean }), 'record_root_cause', `root cause: ${clean}`, clock);
-}
-
-export function promoteDiagnostic(state: RunState, loopId: string, seamId: string, clock: Clock): Outcome {
-  const loop = state.run.diagnostics.find((candidate) => candidate.id === loopId);
-  if (loop === undefined) return reject(`unknown diagnostic ${loopId}`);
-  if (loop.status === 'promoted' && loop.promotedTo === seamId) return noop(state);
-  if (!isConfirmed(state.run, seamId)) return reject(`seam ${seamId} is not confirmed`, { kind: 'seam_confirmation', seams: [seamId] });
-  const diagnostics = state.run.diagnostics.map((candidate): DiagnosticLoop => (candidate.id === loopId ? { ...candidate, status: 'promoted', promotedTo: seamId } : candidate));
-  return done(withRun(state, { diagnostics }), 'promote_diagnostic', `diagnostic ${loopId} promoted to seam ${seamId}`, clock);
 }
 
 export function validateGraph(nodes: readonly GraphNodeInput[]): string | null {
@@ -229,6 +268,8 @@ export function validateGraph(nodes: readonly GraphNodeInput[]): string | null {
     ids.add(node.id);
     if (HORIZONTAL_LAYERS.includes(node.objective.trim().toLowerCase())) return `node ${node.id} objective "${node.objective}" is a horizontal layer; slice vertically`;
     if (node.writeSet.length === 0) return `node ${node.id} has an empty write set`;
+    if (node.owner.trim() === '') return `node ${node.id} has no owner`;
+    if (node.expectedBehavior.trim() === '') return `node ${node.id} has no expected behavior`;
   }
   for (const node of nodes) {
     const unknown = node.dependencies.find((dependency) => !ids.has(dependency));
@@ -264,7 +305,7 @@ export function buildGraph(state: RunState, nodes: readonly GraphNodeInput[], cl
   return done({ ...state, graph: { schemaVersion: 1, nodes: graphNodes } }, 'build_graph', `graph with ${nodes.length} vertical slices`, clock);
 }
 
-export function setNodeStatus(state: RunState, ids: readonly string[], status: GraphNode['status']): RunState {
+function setNodeStatus(state: RunState, ids: readonly string[], status: GraphNode['status']): RunState {
   return { ...state, graph: { ...state.graph, nodes: state.graph.nodes.map((node) => (ids.includes(node.id) ? { ...node, status } : node)) } };
 }
 
@@ -306,7 +347,7 @@ export function completeNode(state: RunState, id: string, passed: boolean, clock
   return done(setNodeStatus(state, [id], target), 'complete_node', `node ${id} ${target}`, clock);
 }
 
-export function changeRevision(state: RunState, revision: string, changedPaths: readonly string[], clock: Clock): RunState {
+function changeRevision(state: RunState, revision: string, changedPaths: readonly string[], clock: Clock): RunState {
   if (revision === state.run.currentRevision) return state;
   const evidence = invalidate(state.evidence, changedPaths, revision, clock);
   const leavingReady = state.run.phase === 'PR_READY';
@@ -325,8 +366,12 @@ export function integrateNode(state: RunState, command: Extract<Command, { kind:
   if (node === undefined) return reject(`unknown node ${command.id}`);
   if (node.status === 'integrated' && state.run.currentRevision === command.revision) return noop(state);
   if (node.status !== 'passed') return reject(`node ${command.id} is ${node.status}, not passed`);
-  const next = changeRevision(setNodeStatus(state, [command.id], 'integrated'), command.revision, command.changedPaths, clock);
-  return done(next, 'integrate_node', `${INTEGRATION_OWNER} integrated ${command.id} at ${command.revision}`, clock);
+  if (state.run.integrationOwner !== null && state.run.integrationOwner !== command.integrator) return reject(`${state.run.integrationOwner} owns integration; ${command.integrator} cannot integrate`);
+  if (state.graph.nodes.some((other) => other.owner === command.integrator)) return reject(`${command.integrator} owns a graph node; workers do not merge into one another`);
+  const moved = changeRevision(withRun(setNodeStatus(state, [command.id], 'integrated'), { integrationOwner: command.integrator }), command.revision, command.changedPaths, clock);
+  const keys = [`node:${node.id}`, ...node.definesInterfaces.map((name) => `interface:${name}`)];
+  const next = { ...moved, evidence: staleMatching(moved.evidence, keys, `integrated ${node.id}`, clock) };
+  return done(next, 'integrate_node', `${command.integrator} integrated ${command.id} at ${command.revision}`, clock);
 }
 
 export function revisionChanged(state: RunState, revision: string, changedPaths: readonly string[], clock: Clock): Outcome {
@@ -339,15 +384,16 @@ export function revisionChanged(state: RunState, revision: string, changedPaths:
 const RESERVED_METHODS: readonly EvidenceInput['method'][] = ['review', 'prototype'];
 
 export function recordEvidence(state: RunState, input: EvidenceInput, clock: Clock): Outcome {
-  if (input.claim === REVIEW_CLAIM || RESERVED_METHODS.includes(input.method)) return reject(`review and prototype evidence come only from record_review and record_prototype`);
-  const { record, duplicate } = evidenceFrom(state, input, clock);
-  if (duplicate) return noop(state);
-  const next = { ...state, evidence: [...state.evidence, record] };
-  return done(record.state === 'MEASURED' ? resumed(next) : next, 'record_evidence', `${record.state} ${record.claim} at ${record.revision}`, clock);
+  if (input.claim === REVIEW_CLAIM || input.claim.startsWith(TDD_CLAIM) || RESERVED_METHODS.includes(input.method)) {
+    return reject('review, prototype, and TDD evidence come only from record_review, record_prototype, and record_test');
+  }
+  const next = appendEvidence(state, input, clock);
+  if (next.record === null) return noop(state);
+  return done(next.record.state === 'MEASURED' ? resumed(next.state) : next.state, 'record_evidence', `${next.record.state} ${next.record.claim} at ${next.record.revision}`, clock);
 }
 
 export function recordFinding(state: RunState, input: FindingInput, clock: Clock): Outcome {
-  const probe = createFinding({ ...input, guidelines: input.guidelines ?? currentGuidelines(state) }, '', state.run.currentRevision);
+  const probe = createFinding(input, currentGuidelines(state), '', state.run.currentRevision);
   if (state.findings.some((finding) => finding.status === 'open' && sameFinding(finding, probe))) return noop(state);
   const finding = { ...probe, id: clock.id('finding') };
   return done({ ...state, findings: [...state.findings, finding] }, 'record_finding', `${finding.severity} finding ${finding.id} by ${finding.reviewer}`, clock);
@@ -375,9 +421,11 @@ export function grantAuthorization(state: RunState, action: AuthorizationAction,
   return done(withRun(state, { status: { kind: 'active' } }), 'grant_authorization', `authorization granted: ${action} ${scope}`, clock);
 }
 
-export function routeFacts(run: Run): Parameters<typeof routeSkills>[1] {
-  const web = run.consumer.kind === 'browser' || run.consumer.kind === 'electron';
-  return { modelChange: run.domain.terms.length === 0, reactStack: run.constraints.some((constraint) => /\b(react|next)\b/i.test(constraint)), webUi: web, browserConsumer: web };
+export function routeFailure(state: RunState, check: CheckKind, detail: string, clock: Clock): Outcome {
+  const owner = failureOwner(check);
+  const moved = advance(state, owner, clock);
+  if (moved.kind === 'rejected') return reject(`${check} failure belongs to ${owner}: ${moved.reason}`, moved.gate);
+  return done(moved.state, 'route_failure', `${check} failed in ${state.run.phase}; routed to ${owner}: ${detail}`, clock);
 }
 
 export function recordDomain(state: RunState, command: Extract<Command, { kind: 'record_domain' }>, clock: Clock): Outcome {
@@ -396,14 +444,10 @@ export function proposeDesigns(state: RunState, candidates: readonly DesignCandi
 
 export function chooseDesign(state: RunState, command: Extract<Command, { kind: 'choose_design' }>, clock: Clock): Outcome {
   if (!state.run.architecture.candidates.some((candidate) => candidate.id === command.id)) return reject(`unknown design ${command.id}`);
+  if (command.reason.trim() === '') return reject('a design choice records why');
   const architecture = { ...state.run.architecture, chosen: { id: command.id, reason: command.reason }, interfaces: command.interfaces, seams: command.seams, ownership: command.ownership };
   if (same(architecture, state.run.architecture)) return noop(state);
   return done(withRun(state, { architecture }), 'choose_design', `chose ${command.id}: ${command.reason}`, clock);
-}
-
-export function recordTest(state: RunState, seam: string, clock: Clock): Outcome {
-  if (!isConfirmed(state.run, seam)) return reject(`seam ${seam} is not confirmed; TDD tests need a confirmed seam`, { kind: 'seam_confirmation', seams: [seam] });
-  return done(state, 'record_test', `tdd test at seam ${seam}`, clock);
 }
 
 export function freezeRevision(state: RunState, clock: Clock): Outcome {

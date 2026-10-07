@@ -24,3 +24,5 @@ export type RegistrySnapshot = {
   readonly leaderboard: readonly LeaderboardEntry[];
   readonly skills: readonly LockedSkill[];
 };
+
+export type RegistryLock = { readonly kind: 'approved'; readonly snapshot: RegistrySnapshot } | { readonly kind: 'rejected'; readonly checkedAt: string; readonly source: string; readonly ineligible: readonly string[] };

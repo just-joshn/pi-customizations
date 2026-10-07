@@ -1,22 +1,11 @@
 import { createHash } from 'node:crypto';
 
 import type { Finding, FindingStatus } from '../domain/findings.ts';
-import { redact } from '../evidence/verification.ts';
 
-export type FindingInput = Omit<Finding, 'id' | 'status' | 'revision'>;
+export type FindingInput = Omit<Finding, 'id' | 'status' | 'revision' | 'guidelines'>;
 
-export function createFinding(input: FindingInput, id: string, revision: string): Finding {
-  return {
-    ...input,
-    id,
-    revision,
-    status: 'open',
-    trigger: redact(input.trigger),
-    consequence: redact(input.consequence),
-    evidence: redact(input.evidence),
-    owner: redact(input.owner),
-    reviewer: redact(input.reviewer),
-  };
+export function createFinding(input: FindingInput, guidelines: Finding['guidelines'], id: string, revision: string): Finding {
+  return { ...input, guidelines, id, revision, status: 'open' };
 }
 
 export function sameFinding(a: Finding, b: Finding): boolean {

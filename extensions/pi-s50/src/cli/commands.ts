@@ -4,10 +4,12 @@ import { fileURLToPath } from 'node:url';
 
 import { piHostCapabilities } from '../adapters/agents.ts';
 import { agentBrowserAvailable } from '../adapters/browser.ts';
-import { changedPaths, revision } from '../adapters/git.ts';
+import { changedPaths, ensureWorktree, remoteHead, revision } from '../adapters/git.ts';
 import { repoFacts } from '../adapters/repo.ts';
-import type { RunState } from '../domain/run.ts';
-import { CONSUMER_KINDS, type Consumer, type HostCapabilities } from '../domain/run.ts';
+import { localShell, type Shell } from '../adapters/shell.ts';
+import { discoverInstalledSkills, parseInstalled } from '../adapters/skills.ts';
+import type { RegistryLock, RegistrySnapshot } from '../domain/registry.ts';
+import { CONSUMER_KINDS, type Consumer, type HostCapabilities, type InstalledSkill, type RunState } from '../domain/run.ts';
 import type { Mode } from '../domain/state.ts';
 import { routeConsumer } from '../evidence/verification.ts';
 import { type Clock, systemClock } from '../orchestrator/clock.ts';
@@ -19,22 +21,34 @@ import { classify } from '../orchestrator/routes.ts';
 import { capabilities as capabilitiesDecoder, command as commandDecoder } from '../orchestrator/schema.ts';
 import { describeAction, renderStatus } from '../orchestrator/status.ts';
 import { prReadyBlockers, requiredEvidence } from '../policy/completion.ts';
-import { fetchLeaderboard } from '../registry/fetch.ts';
-import { buildSnapshot, S50_DEPENDENCIES } from '../registry/lock.ts';
-import { parseLeaderboardFile, parseSources, verifySnapshot } from '../registry/validate.ts';
+import { confirmRankingBasis, fetchLeaderboard, resolveSource, SKILLS_SH_URL } from '../registry/fetch.ts';
+import { buildLock, S50_SKILLS } from '../registry/lock.ts';
+import { type PinnedSource, parseLeaderboardFile, parseSources, verifySnapshot } from '../registry/validate.ts';
+import { canRunConcurrently } from '../scheduler/ownership.ts';
 
 export type CliResult = { readonly code: 0 | 1 | 2; readonly stdout: string };
 
-export type CliContext = { readonly cwd: string; readonly clock: Clock; readonly fetchText: (url: string) => Promise<string> };
+export type Host = {
+  readonly installedSkills: () => Promise<readonly InstalledSkill[]>;
+  readonly capabilities: () => Partial<Omit<HostCapabilities, 'installedSkills'>>;
+};
 
-const USAGE = `usage: s50 <command>
-  feature|bug|frontend <text> [--consumer kind:path] [--criteria a;b] [--capabilities json] [--installed a,b]
+export type CliContext = { readonly cwd: string; readonly clock: Clock; readonly fetchText: (url: string) => Promise<string>; readonly shell: Shell; readonly host: Host };
+
+export const SUBCOMMANDS = ['feature', 'bug', 'frontend', 'issue', 'survey', 'status', 'verify', 'resume', 'explain', 'apply', 'registry'] as const;
+
+export const USAGE = `usage: s50 <command>
+  feature|bug|frontend <objective> [--consumer kind:path] [--criteria a;b] [--constraints a;b] [--non-goals a;b] [--capabilities json] [--installed a,b]
+  issue <issue reference> [same flags]       external issue, explicit /skill:triage first
+  survey <area> [same flags]                 architecture survey, explicit /skill:improve-codebase-architecture first
   status | verify | resume | explain
   apply '<command json>'
   registry refresh [--from <leaderboard.json>] [--sources <sources.json>] | registry show | registry verify
 `;
 
 const SHIPPED_SOURCES = fileURLToPath(new URL('../../registry/skill-sources.json', import.meta.url));
+
+const MODE_COMMANDS: Readonly<Record<string, Mode>> = { feature: 'feature', bug: 'bug', frontend: 'frontend', issue: 'external_issue', survey: 'architecture_survey' };
 
 const ok = (stdout: string): CliResult => ({ code: 0, stdout });
 const blocked = (stdout: string): CliResult => ({ code: 2, stdout });
@@ -53,22 +67,29 @@ function flags(args: readonly string[]): { readonly positional: readonly string[
   return { positional, named };
 }
 
+const list = (text: string | undefined): readonly string[] =>
+  (text ?? '')
+    .split(';')
+    .map((item) => item.trim())
+    .filter((item) => item !== '');
+
 async function readJson(path: string) {
   return parseJson(await readFile(path, 'utf8'));
 }
 
-function parseConsumer(text: string | undefined): Consumer | string {
-  if (text === undefined) return { kind: 'cli', userPath: 'run the command line entry point' };
+function parseConsumer(text: string | undefined, mode: Mode): Consumer | string {
+  if (text === undefined) return mode === 'frontend' ? { kind: 'browser', userPath: 'open the changed page' } : { kind: 'cli', userPath: 'run the command line entry point' };
   const split = text.indexOf(':');
   const kind = CONSUMER_KINDS.find((candidate) => candidate === (split === -1 ? text : text.slice(0, split)));
   if (kind === undefined) return `--consumer kind must be one of ${CONSUMER_KINDS.join('|')}`;
   return { kind, userPath: split === -1 ? '' : text.slice(split + 1) };
 }
 
-function parseCapabilities(named: ReadonlyMap<string, string>, browserDriver: boolean): HostCapabilities | string {
-  const installedSkills = (named.get('installed') ?? '').split(',').filter((skill) => skill !== '');
+async function parseCapabilities(context: CliContext, named: ReadonlyMap<string, string>): Promise<HostCapabilities | string> {
+  const flagged = named.get('installed');
+  const installedSkills = flagged === undefined ? await context.host.installedSkills() : parseInstalled(flagged);
+  const base = piHostCapabilities({ browserDriver: await agentBrowserAvailable(context.shell), ...context.host.capabilities(), installedSkills });
   const raw = named.get('capabilities');
-  const base = piHostCapabilities({ installedSkills, browserDriver });
   if (raw === undefined) return base;
   const json = parseJson(raw);
   if (json.kind === 'invalid') return `--capabilities: ${json.reason}`;
@@ -77,10 +98,23 @@ function parseCapabilities(named: ReadonlyMap<string, string>, browserDriver: bo
   return decoded.kind === 'ok' ? decoded.value : `--capabilities: ${decoded.reason}`;
 }
 
-function outcomeJson(outcome: Outcome): string {
+function outcomeJson(outcome: Outcome, workspaces: readonly string[] = []): string {
   if (outcome.kind === 'rejected') return `${JSON.stringify({ kind: 'rejected', reason: outcome.reason, gate: outcome.gate })}\n`;
   const { run } = outcome.state;
-  return `${JSON.stringify({ kind: 'ok', phase: run.phase, status: run.status, decisions: outcome.decisions.map((decision) => decision.summary) })}\n`;
+  const summary = { kind: 'ok', phase: run.phase, status: run.status, decisions: outcome.decisions.map((decision) => decision.summary) };
+  return `${JSON.stringify(workspaces.length === 0 ? summary : { ...summary, workspaces })}\n`;
+}
+
+type Approved = { readonly kind: 'approved'; readonly snapshot: RegistrySnapshot } | { readonly kind: 'stop'; readonly result: CliResult };
+
+async function approvedLock(dir: string): Promise<Approved> {
+  const lock = await readLock(dir);
+  if (lock === null) return { kind: 'stop', result: blocked('no .s50/registry.lock.json; run s50 registry refresh first\n') };
+  if (lock.kind === 'invalid') return { kind: 'stop', result: error(`invalid registry lock: ${lock.reason}\n`) };
+  if (lock.value.kind === 'rejected') return { kind: 'stop', result: blocked(`${describeLock(lock.value).trim()}; strict mode starts no new run\n`) };
+  const problems = verifySnapshot(lock.value.snapshot);
+  if (problems.length > 0) return { kind: 'stop', result: blocked(`registry lock does not verify: ${problems.join('; ')}\n`) };
+  return { kind: 'approved', snapshot: lock.value.snapshot };
 }
 
 async function start(context: CliContext, mode: Mode, args: readonly string[]): Promise<CliResult> {
@@ -89,21 +123,27 @@ async function start(context: CliContext, mode: Mode, args: readonly string[]): 
   const objective = positional.join(' ').trim();
   if (objective === '') return error(USAGE);
   if ((await loadState(dir)).kind !== 'missing') return blocked('a run already exists in .s50/; use s50 resume\n');
-  const lock = await readLock(dir);
-  if (lock === null) return blocked('no .s50/registry.lock.json; run s50 registry refresh first\n');
-  if (lock.kind === 'invalid') return error(`invalid registry lock: ${lock.reason}\n`);
-  const consumer = parseConsumer(named.get('consumer'));
+  const approved = await approvedLock(dir);
+  if (approved.kind === 'stop') return approved.result;
+  const consumer = parseConsumer(named.get('consumer'), mode);
   if (typeof consumer === 'string') return error(`${consumer}\n`);
-  const capabilities = parseCapabilities(named, await agentBrowserAvailable(context.cwd));
+  const capabilities = await parseCapabilities(context, named);
   if (typeof capabilities === 'string') return error(`${capabilities}\n`);
-  const criteria = (named.get('criteria') ?? objective)
-    .split(';')
-    .map((item) => item.trim())
-    .filter((item) => item !== '');
-  const head = await revision(context.cwd);
-  let state: RunState = startRun({ mode, objective, repository: context.cwd, revision: head, consumer, acceptanceCriteria: criteria, constraints: [], nonGoals: [], capabilities }, lock.value, context.clock);
+  const criteria = named.has('criteria') ? list(named.get('criteria')) : [objective];
+  const input = {
+    mode,
+    objective,
+    repository: context.cwd,
+    revision: await revision(context.shell),
+    consumer,
+    acceptanceCriteria: criteria,
+    constraints: list(named.get('constraints')),
+    nonGoals: list(named.get('non-goals')),
+    capabilities,
+  };
+  let state: RunState = startRun(input, approved.snapshot, context.clock);
   const decisions: DecisionLog[] = [];
-  const facts = await repoFacts(context.cwd);
+  const facts = await repoFacts(context.cwd, context.shell);
   const steps: ((current: RunState) => Outcome)[] = [
     (current) => apply(current, { kind: 'advance', to: 'PREFLIGHT' }, context.clock),
     (current) => applyPreflight(current, facts, context.clock),
@@ -130,11 +170,19 @@ async function withState(context: CliContext, body: (state: RunState, dir: strin
 
 // Git HEAD is the revision truth on every call, so a caller cannot keep evidence current by naming a revision or an empty path list.
 async function syncHead(context: CliContext, state: RunState): Promise<{ readonly head: string; readonly state: RunState; readonly decisions: readonly DecisionLog[] }> {
-  const head = await revision(context.cwd);
+  const head = await revision(context.shell);
   if (head === state.run.currentRevision) return { head, state, decisions: [] };
-  const paths = await changedPaths(context.cwd, state.run.currentRevision, head);
+  const paths = await changedPaths(context.shell, state.run.currentRevision, head);
   const outcome = apply(state, { kind: 'revision_changed', revision: head, changedPaths: paths }, context.clock);
   return outcome.kind === 'ok' ? { head, state: outcome.state, decisions: outcome.decisions } : { head, state, decisions: [] };
+}
+
+async function workspacesFor(context: CliContext, state: RunState): Promise<readonly string[]> {
+  const running = state.graph.nodes.filter((node) => node.status === 'running');
+  if (running.length < 2 || !canRunConcurrently(state.run.capabilities)) return [];
+  const paths = running.map((node) => `${S50_DIR}/worktrees/${node.id}`);
+  for (const [index, node] of running.entries()) await ensureWorktree(context.shell, paths[index] ?? '', `s50/${state.run.id}/${node.id}`);
+  return paths;
 }
 
 async function applyCommand(context: CliContext, raw: string | undefined): Promise<CliResult> {
@@ -147,6 +195,7 @@ async function applyCommand(context: CliContext, raw: string | undefined): Promi
   return withState(context, async (state, dir) => {
     const synced = await syncHead(context, state);
     if ((parsed.kind === 'integrate_node' || parsed.kind === 'revision_changed') && parsed.revision !== synced.head) {
+      await saveState(dir, state, synced.state, synced.decisions);
       return blocked(`${JSON.stringify({ kind: 'rejected', reason: `${parsed.kind} names ${parsed.revision}, but HEAD is ${synced.head}`, gate: null })}\n`);
     }
     const outcome = apply(synced.state, parsed, context.clock);
@@ -155,7 +204,8 @@ async function applyCommand(context: CliContext, raw: string | undefined): Promi
       return blocked(outcomeJson(outcome));
     }
     await saveState(dir, state, outcome.state, [...synced.decisions, ...outcome.decisions]);
-    return { code: outcome.state.run.status.kind === 'blocked' ? 2 : 0, stdout: outcomeJson(outcome) };
+    const workspaces = parsed.kind === 'start_nodes' ? await workspacesFor(context, outcome.state) : [];
+    return { code: outcome.state.run.status.kind === 'blocked' ? 2 : 0, stdout: outcomeJson(outcome, workspaces) };
   });
 }
 
@@ -186,51 +236,78 @@ async function explain(context: CliContext): Promise<CliResult> {
   });
 }
 
-async function registry(context: CliContext, args: readonly string[]): Promise<CliResult> {
-  const dir = join(context.cwd, S50_DIR);
-  const [sub, ...rest] = args;
-  if (sub === 'show' || sub === 'verify') {
-    const lock = await readLock(dir);
-    if (lock === null) return blocked('no registry lock\n');
-    if (lock.kind === 'invalid') return error(`invalid registry lock: ${lock.reason}\n`);
-    if (sub === 'show') return ok(`${lock.value.skills.map((skill) => `${skill.rank} ${skill.source}/${skill.name} ${skill.invocationPolicy}`).join('\n')}\n`);
-    const problems = verifySnapshot(lock.value);
-    return problems.length === 0 ? ok('registry lock verified\n') : blocked(`${problems.join('\n')}\n`);
+function describeLock(lock: RegistryLock): string {
+  if (lock.kind === 'rejected') return `registry refresh at ${lock.checkedAt} failed closed: ${lock.ineligible.join(', ')}\n`;
+  const rows = lock.snapshot.skills
+    .toSorted((a, b) => a.rank - b.rank)
+    .map((skill) => `${skill.rank} ${skill.source}/${skill.name} ${skill.invocationPolicy} ${skill.lock.kind === 'git_commit' ? skill.lock.commit.slice(0, 7) : skill.lock.contentHash}`);
+  return `snapshot ${lock.snapshot.snapshotTime} from ${lock.snapshot.source}\n${rows.join('\n')}\n`;
+}
+
+async function liveSources(context: CliContext, pins: Readonly<Record<string, PinnedSource>>): Promise<Readonly<Record<string, PinnedSource>> | string> {
+  const heads = new Map<string, Promise<string>>();
+  const head = (repository: string): Promise<string> => {
+    const cached = heads.get(repository) ?? remoteHead(context.shell, repository);
+    heads.set(repository, cached);
+    return cached;
+  };
+  const resolved: Record<string, PinnedSource> = {};
+  for (const name of S50_SKILLS) {
+    const pin = pins[name];
+    if (pin === undefined) continue;
+    const source = await resolveSource(name, pin, { fetchText: context.fetchText, head });
+    if (source.kind === 'invalid') return source.reason;
+    resolved[name] = source.value;
   }
-  if (sub !== 'refresh') return error(USAGE);
-  const { named } = flags(rest);
+  return resolved;
+}
+
+async function refresh(context: CliContext, dir: string, named: ReadonlyMap<string, string>): Promise<CliResult> {
   const sourcesPath = named.get('sources');
   const sourcesJson = await readJson(sourcesPath === undefined ? SHIPPED_SOURCES : resolve(context.cwd, sourcesPath));
   if (sourcesJson.kind === 'invalid') return error(`${sourcesJson.reason}\n`);
-  const sources = parseSources(sourcesJson.value);
-  if (sources.kind === 'invalid') return error(`sources ${sources.reason}\n`);
+  const pins = parseSources(sourcesJson.value);
+  if (pins.kind === 'invalid') return error(`sources ${pins.reason}\n`);
   const from = named.get('from');
-  let leaderboard: Awaited<ReturnType<typeof fetchLeaderboard>>;
-  let snapshotTime = context.clock.now();
-  let source = 'https://skills.sh/';
-  if (from === undefined) leaderboard = await fetchLeaderboard(context.fetchText);
-  else {
+  let built: ReturnType<typeof buildLock>;
+  if (from === undefined) {
+    const basis = await confirmRankingBasis(context.fetchText);
+    if (basis.kind === 'invalid') return error(`${basis.reason}\n`);
+    const leaderboard = await fetchLeaderboard(context.fetchText);
+    if (leaderboard.kind === 'invalid') return error(`leaderboard ${leaderboard.reason}\n`);
+    const sources = await liveSources(context, pins.value);
+    if (typeof sources === 'string') return error(`source ${sources}\n`);
+    built = buildLock({ leaderboard: leaderboard.value, sources, snapshotTime: context.clock.now(), source: SKILLS_SH_URL });
+  } else {
     const file = await readJson(resolve(context.cwd, from));
     if (file.kind === 'invalid') return error(`${file.reason}\n`);
     const parsed = parseLeaderboardFile(file.value);
     if (parsed.kind === 'invalid') return error(`leaderboard ${parsed.reason}\n`);
-    leaderboard = { kind: 'ok', value: parsed.value.entries };
-    snapshotTime = parsed.value.fetchedAt;
-    source = parsed.value.source;
+    built = buildLock({ leaderboard: parsed.value.entries, sources: pins.value, snapshotTime: parsed.value.fetchedAt, source: parsed.value.source });
   }
-  if (leaderboard.kind === 'invalid') return error(`leaderboard ${leaderboard.reason}\n`);
-  const built = buildSnapshot({ leaderboard: leaderboard.value, sources: sources.value, required: S50_DEPENDENCIES, snapshotTime, source });
-  if (built.kind === 'ineligible') return blocked(`ineligible skills outside the top 50: ${built.skills.join(', ')}\n`);
-  await writeLock(dir, built.snapshot);
-  return ok(`locked ${built.snapshot.skills.length} skills at ${snapshotTime}\n`);
+  await writeLock(dir, built.lock);
+  if (built.lock.kind === 'rejected') return blocked(`ineligible required skills outside the top 50: ${built.lock.ineligible.join(', ')}; strict mode starts no new run\n`);
+  const dropped = built.dropped.length === 0 ? '' : `; dropped optional ${built.dropped.join(', ')}`;
+  return ok(`locked ${built.lock.snapshot.skills.length} skills at ${built.lock.snapshot.snapshotTime}${dropped}\n`);
 }
 
-const MODE_COMMANDS: Readonly<Record<string, Mode>> = { feature: 'feature', bug: 'bug', frontend: 'frontend' };
+async function registry(context: CliContext, args: readonly string[]): Promise<CliResult> {
+  const dir = join(context.cwd, S50_DIR);
+  const [sub, ...rest] = args;
+  if (sub === 'refresh') return refresh(context, dir, flags(rest).named);
+  if (sub !== 'show' && sub !== 'verify') return error(USAGE);
+  const lock = await readLock(dir);
+  if (lock === null) return blocked('no registry lock\n');
+  if (lock.kind === 'invalid') return error(`invalid registry lock: ${lock.reason}\n`);
+  if (lock.value.kind === 'rejected') return blocked(describeLock(lock.value));
+  if (sub === 'show') return ok(describeLock(lock.value));
+  const problems = verifySnapshot(lock.value.snapshot);
+  return problems.length === 0 ? ok('registry lock verified\n') : blocked(`${problems.join('\n')}\n`);
+}
 
 export async function runCli(argv: readonly string[], context: CliContext): Promise<CliResult> {
   const [name, ...rest] = argv;
-  if (name === undefined) return error(USAGE);
-  const mode = MODE_COMMANDS[name];
+  const mode = MODE_COMMANDS[name ?? ''];
   if (mode !== undefined) return start(context, mode, rest);
   switch (name) {
     case 'status':
@@ -250,12 +327,14 @@ export async function runCli(argv: readonly string[], context: CliContext): Prom
   }
 }
 
-export function defaultContext(cwd: string): CliContext {
+export function defaultContext(cwd: string, signal: AbortSignal | undefined, host: Host = { installedSkills: () => discoverInstalledSkills(cwd), capabilities: () => ({}) }): CliContext {
   return {
     cwd,
     clock: systemClock,
+    shell: localShell(cwd, signal),
+    host,
     fetchText: async (url) => {
-      const response = await fetch(url);
+      const response = await fetch(url, signal === undefined ? {} : { signal });
       if (!response.ok) throw new Error(`GET ${url} failed: ${response.status}`);
       return response.text();
     },

@@ -1,3 +1,4 @@
+import type { VerificationMethod } from '../domain/graph.ts';
 import type { ConsumerKind, HostCapabilities } from '../domain/run.ts';
 
 export type ConsumerRoute =
@@ -30,6 +31,21 @@ export function routeConsumer(kind: ConsumerKind, capabilities: HostCapabilities
   }
 }
 
+const CONSUMER_METHODS: { readonly [K in ConsumerKind]: VerificationMethod } = {
+  browser: 'browser',
+  electron: 'browser',
+  cli: 'cli',
+  tui: 'cli',
+  http: 'http',
+  rpc: 'http',
+  library: 'library',
+  native: 'native',
+};
+
+export function consumerMethod(kind: ConsumerKind): VerificationMethod {
+  return CONSUMER_METHODS[kind];
+}
+
 const REDACTED = '<REDACTED>';
 
 const PATTERNS: readonly (readonly [RegExp, string])[] = [
@@ -42,8 +58,16 @@ const PATTERNS: readonly (readonly [RegExp, string])[] = [
   [/\bxox[bp]-[A-Za-z0-9-]+/g, REDACTED],
   [/\bAKIA[0-9A-Z]{16}\b/g, REDACTED],
   [/(password\s*[=:]\s*)[^\s&"']+/gi, `$1${REDACTED}`],
+  [/(\b[a-z][a-z0-9+.-]*:\/\/)[^\s/:@]+:[^\s/@]+@/gi, `$1${REDACTED}@`],
 ];
 
 export function redact(text: string): string {
   return PATTERNS.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), text);
+}
+
+export function redactValue(value: unknown, keep: ReadonlySet<string>): unknown {
+  if (typeof value === 'string') return redact(value);
+  if (Array.isArray(value)) return value.map((item) => redactValue(item, keep));
+  if (typeof value === 'object' && value !== null) return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, keep.has(key) ? item : redactValue(item, keep)]));
+  return value;
 }

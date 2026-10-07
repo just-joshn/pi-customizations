@@ -1,11 +1,13 @@
 import { EVIDENCE_STATES, type EvidenceRecord } from '../domain/evidence.ts';
 import type { Finding } from '../domain/findings.ts';
 import type { Graph, GraphNode, VerificationMethod } from '../domain/graph.ts';
-import { CONSUMER_KINDS, type Consumer, type Decision, type DesignCandidate, type DiagnosticLoop, type HostCapabilities, type Prototype, RUN_SCHEMA_VERSION, type Run, type Seam } from '../domain/run.ts';
+import { CONSUMER_KINDS, type Consumer, type Decision, type DesignCandidate, type DiagnosticLoop, type HostCapabilities, type InstalledSkill, type Preflight, type Prototype, RUN_SCHEMA_VERSION, type Run, type Seam } from '../domain/run.ts';
 import { AUTHORIZATION_ACTIONS, type Gate, MODES, PHASES, type Question, type RunStatus } from '../domain/state.ts';
 import { registrySnapshot } from '../registry/validate.ts';
+import type { FindingInput } from '../review/findings.ts';
 import type { Command, DecisionLog, EvidenceInput, GraphNodeInput } from './command.ts';
-import { array, bool, type Decoder, nonEmptyStr, nullable, object, oneOf, str, tagged } from './decode.ts';
+import { array, bool, type Decoder, nonEmptyStr, nullable, num, object, oneOf, str, tagged } from './decode.ts';
+import { CHECK_KINDS } from './routes.ts';
 
 const strings = array(str);
 const phase = oneOf(PHASES);
@@ -20,11 +22,12 @@ const loop = object<DiagnosticLoop>({
   kind: oneOf(['failing_test', 'http', 'cli_fixture', 'browser', 'trace_replay', 'throwaway_program', 'fuzz', 'bisect', 'differential', 'human_assisted']),
   command: str,
   symptom: str,
-  status: oneOf(['red', 'green', 'promoted']),
+  status: oneOf(['red', 'green']),
   promotedTo: nullable(str),
+  instrumentation: strings,
 });
 const prototype = object<Prototype>({ question: str, verdict: str, branch: nonEmptyStr, issuePointer: nullable(str) });
-const question = object<Question>({ id: nonEmptyStr, title: str, body: str, recommendation: str });
+const question = object<Question>({ id: nonEmptyStr, title: nonEmptyStr, body: str, recommendation: str, dependsOn: strings });
 
 export const gate: Decoder<Gate> = tagged<Gate>({
   user_workflow: object({ kind: oneOf(['user_workflow']), skill: nonEmptyStr, action: nonEmptyStr }),
@@ -47,7 +50,23 @@ export const capabilities: Decoder<HostCapabilities> = object<HostCapabilities>(
   isolatedWorktrees: bool,
   browserDriver: bool,
   nativeAutomation: bool,
-  installedSkills: strings,
+  installedSkills: array(object<InstalledSkill>({ name: nonEmptyStr, contentHash: nullable(str) })),
+});
+
+const preflight = object<Preflight>({
+  repositoryRoot: str,
+  remote: nullable(str),
+  revision: str,
+  dirty: bool,
+  languages: strings,
+  packageManager: str,
+  testCommands: strings,
+  buildCommands: strings,
+  instructions: strings,
+  glossary: strings,
+  adrs: num,
+  issueTrackerDoc: bool,
+  reactStack: bool,
 });
 
 const consumer = object<Consumer>({ kind: oneOf(CONSUMER_KINDS), userPath: str });
@@ -79,6 +98,8 @@ export const run: Decoder<Run> = object<Run>({
   diagnostics: array(loop),
   rootCause: nullable(str),
   prototypes: array(prototype),
+  integrationOwner: nullable(str),
+  preflight: nullable(preflight),
   capabilities,
   skillRegistry: registrySnapshot,
   blockers: strings,
@@ -128,10 +149,11 @@ export const evidenceRecord: Decoder<EvidenceRecord> = object<EvidenceRecord>({
 
 const severity = oneOf(['critical', 'high', 'medium', 'low']);
 const guidelines = nullable(object<NonNullable<Finding['guidelines']>>({ contentHash: str, skillLock: str }));
-const findingInputFields = { severity, trigger: str, consequence: str, evidence: str, owner: str, reviewer: nonEmptyStr, guidelines };
+const findingInputFields = { severity, trigger: nonEmptyStr, consequence: nonEmptyStr, evidence: nonEmptyStr, owner: nonEmptyStr, reviewer: nonEmptyStr };
 
 export const finding: Decoder<Finding> = object<Finding>({
   ...findingInputFields,
+  guidelines,
   id: nonEmptyStr,
   revision: str,
   status: oneOf(['open', 'resolved', 'dismissed']),
@@ -141,6 +163,7 @@ const LOGGED_COMMANDS = [
   'advance',
   'invoke_skill',
   'complete_user_workflow',
+  'ask_decisions',
   'answer_decisions',
   'confirm_understanding',
   'record_domain',
@@ -166,6 +189,7 @@ const LOGGED_COMMANDS = [
   'freeze_revision',
   'declare_inconclusive',
   'record_review',
+  'route_failure',
   'preflight',
 ] as const satisfies readonly DecisionLog['command'][];
 
@@ -182,6 +206,7 @@ export const command: Decoder<Command> = tagged<Command>({
   advance: object({ kind: k('advance'), to: phase }),
   invoke_skill: object({ kind: k('invoke_skill'), skill: nonEmptyStr }),
   complete_user_workflow: object({ kind: k('complete_user_workflow'), skill: nonEmptyStr }),
+  ask_decisions: object({ kind: k('ask_decisions'), questions: array(question) }),
   answer_decisions: object({ kind: k('answer_decisions'), decisions: array(decision) }),
   confirm_understanding: object({ kind: k('confirm_understanding') }),
   record_domain: object({ kind: k('record_domain'), terms: strings, invariants: strings, scenarios: strings }),
@@ -190,21 +215,22 @@ export const command: Decoder<Command> = tagged<Command>({
   record_prototype: object({ kind: k('record_prototype'), question: str, verdict: str, branch: str, issuePointer: nullable(str) }),
   propose_seams: object({ kind: k('propose_seams'), seams: array(seam) }),
   confirm_seams: object({ kind: k('confirm_seams'), ids: strings }),
-  record_test: object({ kind: k('record_test'), seam: nonEmptyStr, test: k('tdd') }),
+  record_test: object({ kind: k('record_test'), seam: nonEmptyStr, name: nonEmptyStr, result: oneOf(['red', 'green']), command: nonEmptyStr, observed: str, dependencies: strings }),
   record_diagnostic: object({ kind: k('record_diagnostic'), loop }),
   record_root_cause: object({ kind: k('record_root_cause'), cause: nonEmptyStr }),
   promote_diagnostic: object({ kind: k('promote_diagnostic'), loopId: nonEmptyStr, seamId: nonEmptyStr }),
   build_graph: object({ kind: k('build_graph'), nodes: array(nodeInput) }),
   start_nodes: object({ kind: k('start_nodes'), ids: strings }),
   complete_node: object({ kind: k('complete_node'), id: nonEmptyStr, passed: bool }),
-  integrate_node: object({ kind: k('integrate_node'), id: nonEmptyStr, revision: nonEmptyStr, changedPaths: strings }),
+  integrate_node: object({ kind: k('integrate_node'), id: nonEmptyStr, revision: nonEmptyStr, changedPaths: strings, integrator: nonEmptyStr }),
   record_evidence: object({ kind: k('record_evidence'), evidence: object<EvidenceInput>(evidenceInputFields) }),
   revision_changed: object({ kind: k('revision_changed'), revision: nonEmptyStr, changedPaths: strings }),
-  record_finding: object({ kind: k('record_finding'), finding: object<Omit<Finding, 'id' | 'status' | 'revision'>>(findingInputFields) }),
+  record_finding: object({ kind: k('record_finding'), finding: object<FindingInput>(findingInputFields) }),
   resolve_finding: object({ kind: k('resolve_finding'), id: nonEmptyStr, resolution: oneOf(['resolved', 'dismissed']) }),
   request_authorization: object({ kind: k('request_authorization'), action: authorizationAction, scope: str }),
   grant_authorization: object({ kind: k('grant_authorization'), action: authorizationAction, scope: str }),
   freeze_revision: object({ kind: k('freeze_revision') }),
   declare_inconclusive: object({ kind: k('declare_inconclusive'), missing: nonEmptyStr }),
-  record_review: object({ kind: k('record_review'), reviewer: nonEmptyStr, dimensions: strings, guidelinesContent: nullable(str) }),
+  record_review: object({ kind: k('record_review'), reviewer: nonEmptyStr, independent: bool, dimensions: strings, guidelinesContent: nullable(str) }),
+  route_failure: object({ kind: k('route_failure'), check: oneOf(CHECK_KINDS), detail: nonEmptyStr }),
 });

@@ -19,8 +19,13 @@ export const WEB_UI_REVIEW_DIMENSIONS = ['frontend_design_contract', 'web_design
 
 export type ReviewAssurance = { readonly kind: 'independent' } | { readonly kind: 'reduced'; readonly reason: string };
 
-export function reviewAssurance(capabilities: HostCapabilities): ReviewAssurance {
-  return capabilities.independentAgents ? { kind: 'independent' } : { kind: 'reduced', reason: 'same-agent read-only review; no independent agents' };
+export type Reviewer = { readonly independent: boolean; readonly authored: boolean };
+
+export function reviewAssurance(capabilities: HostCapabilities, reviewer: Reviewer = { independent: true, authored: false }): ReviewAssurance {
+  if (!capabilities.independentAgents) return { kind: 'reduced', reason: 'same-agent read-only review; no independent agents' };
+  if (!reviewer.independent) return { kind: 'reduced', reason: 'reviewer did not run as a fresh independent agent' };
+  if (reviewer.authored) return { kind: 'reduced', reason: 'reviewer wrote or integrated this revision' };
+  return { kind: 'independent' };
 }
 
 export type ReviewSurface = { readonly kind: 'non_web' } | { readonly kind: 'web_ui'; readonly react: boolean };

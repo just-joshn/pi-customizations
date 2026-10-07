@@ -2,9 +2,9 @@ import { describe, expect, test } from 'vitest';
 import type { ConsumerKind } from '../../src/domain/run.ts';
 import { invalidate, latestByClaim, matches } from '../../src/evidence/invalidation.ts';
 import { redact, routeConsumer } from '../../src/evidence/verification.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import type { EvidenceInput } from '../../src/orchestrator/command.ts';
 import { apply } from '../../src/orchestrator/coordinator.ts';
+import { fixedClock } from '../support/clock.ts';
 import { applyAll, expectOk, freshRun, measured, NO_CAPS } from './support.ts';
 
 const INPUT: EvidenceInput = {

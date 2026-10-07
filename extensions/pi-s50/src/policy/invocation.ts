@@ -1,14 +1,23 @@
 import type { RegistrySnapshot } from '../domain/registry.ts';
+import type { InstalledSkill } from '../domain/run.ts';
 import type { Phase } from '../domain/state.ts';
 
 export type InvocationCheck = { readonly kind: 'allowed' } | { readonly kind: 'user_only'; readonly action: string } | { readonly kind: 'not_in_registry' } | { readonly kind: 'not_installed'; readonly install: string };
 
-export function canModelInvoke(registry: RegistrySnapshot, skill: string, installed: readonly string[]): InvocationCheck {
+export function canModelInvoke(registry: RegistrySnapshot, skill: string, installed: readonly InstalledSkill[]): InvocationCheck {
   const locked = registry.skills.find((candidate) => candidate.name === skill);
   if (locked === undefined) return { kind: 'not_in_registry' };
   if (locked.invocationPolicy === 'user') return { kind: 'user_only', action: `/skill:${skill}` };
-  if (!installed.includes(skill)) return { kind: 'not_installed', install: `npx skills add ${locked.source} --skill ${skill}` };
+  if (!installed.some((candidate) => candidate.name === skill)) return { kind: 'not_installed', install: `npx skills add ${locked.source} --skill ${skill}` };
   return { kind: 'allowed' };
+}
+
+export function installedDrift(registry: RegistrySnapshot, installed: readonly InstalledSkill[]): readonly string[] {
+  return installed.flatMap((skill) => {
+    const locked = registry.skills.find((candidate) => candidate.name === skill.name);
+    if (locked === undefined || skill.contentHash === null || skill.contentHash === locked.lock.contentHash) return [];
+    return [`installed ${skill.name} (${skill.contentHash.slice(0, 19)}) differs from locked ${locked.source}${locked.lock.kind === 'git_commit' ? `@${locked.lock.commit.slice(0, 7)}` : ''}`];
+  });
 }
 
 export type RouteCondition = 'always' | 'model_change' | 'react_stack' | 'web_ui' | 'browser_consumer';

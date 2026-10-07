@@ -1,44 +1,52 @@
 import { readFileSync } from 'node:fs';
 
 import { describe, expect, test } from 'vitest';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import type { Command } from '../../src/orchestrator/command.ts';
 import { apply } from '../../src/orchestrator/coordinator.ts';
-import { parseLeaderboardHtml } from '../../src/registry/fetch.ts';
-import { buildSnapshot, S50_DEPENDENCIES } from '../../src/registry/lock.ts';
-import { parseLeaderboardFile, parseSnapshot, verifySnapshot } from '../../src/registry/validate.ts';
+import { parseFrontmatter, parseLeaderboardHtml } from '../../src/registry/fetch.ts';
+import { buildLock, OPTIONAL_SKILLS, REQUIRED_SKILLS } from '../../src/registry/lock.ts';
+import { parseLeaderboardFile, parseLock, verifySnapshot } from '../../src/registry/validate.ts';
+import { fixedClock } from '../support/clock.ts';
 import { fixturePath, loadLeaderboard, loadSources, registry, satisfiedAt } from './support.ts';
 
 describe('top-50 eligibility', () => {
-  test('all 18 dependencies lock from the captured leaderboard', () => {
+  test('all 18 skills lock from the captured leaderboard', () => {
     const snapshot = registry();
     expect(snapshot.skills.map((skill) => [skill.name, skill.rank])).toEqual([
+      ['grilling', 12],
+      ['domain-modeling', 17],
+      ['codebase-design', 19],
+      ['prototype', 11],
+      ['tdd', 6],
+      ['diagnosing-bugs', 42],
+      ['frontend-design', 7],
+      ['vercel-react-best-practices', 16],
+      ['web-design-guidelines', 47],
+      ['agent-browser', 5],
+      ['triage', 10],
+      ['improve-codebase-architecture', 4],
+      ['setup-matt-pocock-skills', 8],
       ['find-skills', 1],
       ['grill-me', 2],
       ['grill-with-docs', 3],
-      ['improve-codebase-architecture', 4],
-      ['agent-browser', 5],
-      ['tdd', 6],
-      ['frontend-design', 7],
-      ['setup-matt-pocock-skills', 8],
       ['handoff', 9],
-      ['triage', 10],
-      ['prototype', 11],
-      ['grilling', 12],
-      ['vercel-react-best-practices', 16],
-      ['domain-modeling', 17],
       ['teach', 18],
-      ['codebase-design', 19],
-      ['diagnosing-bugs', 42],
-      ['web-design-guidelines', 47],
     ]);
     expect(snapshot.leaderboard.length).toBe(50);
     expect(verifySnapshot(snapshot)).toEqual([]);
   });
 
-  test('a skill ranked 55 is ineligible', () => {
-    const built = buildSnapshot({ leaderboard: loadLeaderboard(), sources: loadSources(), required: ['tdd', 'code-review'], snapshotTime: 't', source: 's' });
-    expect(built).toEqual({ kind: 'ineligible', skills: ['code-review'] });
+  test('code-review at rank 55 is outside the strict registry', () => {
+    expect([loadLeaderboard().find((entry) => entry.skillId === 'code-review')?.rank, registry().skills.some((skill) => skill.name === 'code-review')]).toEqual([55, false]);
+  });
+
+  test('S50 requires 13 skills with 5 optional ones', () => {
+    expect([REQUIRED_SKILLS.length, OPTIONAL_SKILLS.length]).toEqual([13, 5]);
+  });
+
+  test('a leaderboard shorter than 50 entries fails closed', () => {
+    const { lock } = buildLock({ leaderboard: loadLeaderboard().slice(0, 40), sources: loadSources(), snapshotTime: 't', source: 's' });
+    expect(lock).toEqual({ kind: 'rejected', checkedAt: 't', source: 's', ineligible: ['leaderboard has 40 entries, fewer than 50'] });
   });
 
   test('verifySnapshot flags a rank above the cutoff', () => {
@@ -53,19 +61,26 @@ describe('top-50 eligibility', () => {
         .skills.filter((skill) => skill.prerequisites.length > 0)
         .map((skill) => [skill.name, skill.prerequisites]),
     ).toEqual([
+      ['web-design-guidelines', ['network:https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md']],
       ['agent-browser', ['cli:agent-browser on PATH']],
       ['triage', ['skill:setup-matt-pocock-skills writes docs/agents/issue-tracker.md']],
-      ['web-design-guidelines', ['network:https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md']],
+      ['find-skills', ['cli:skills (npx skills)']],
     ]);
   });
 });
 
 describe('snapshot lifecycle', () => {
-  test('skill leaving the top 50 makes a new snapshot ineligible', () => {
+  test('a required skill leaving the top 50 rejects the new lock', () => {
     const file = parseLeaderboardFile(JSON.parse(readFileSync(fixturePath('leaderboard.diagnosing-bugs-rank-51.json'), 'utf8')));
     if (file.kind === 'invalid') throw new Error(file.reason);
-    const built = buildSnapshot({ leaderboard: file.value.entries, sources: loadSources(), required: S50_DEPENDENCIES, snapshotTime: 't', source: 's' });
-    expect(built).toEqual({ kind: 'ineligible', skills: ['diagnosing-bugs'] });
+    const { lock } = buildLock({ leaderboard: file.value.entries, sources: loadSources(), snapshotTime: 't', source: 's' });
+    expect(lock).toEqual({ kind: 'rejected', checkedAt: 't', source: 's', ineligible: ['diagnosing-bugs'] });
+  });
+
+  test('an optional skill leaving the top 50 is dropped from the new lock', () => {
+    const demoted = loadLeaderboard().map((entry) => (entry.skillId === 'teach' ? { ...entry, rank: 51 } : entry.rank === 51 ? { ...entry, rank: 18 } : entry));
+    const { lock, dropped } = buildLock({ leaderboard: demoted, sources: loadSources(), snapshotTime: 't', source: 's' });
+    expect([lock.kind === 'approved' && lock.snapshot.skills.some((skill) => skill.name === 'teach'), dropped]).toEqual([false, ['teach']]);
   });
 
   const commands: readonly Command[] = [
@@ -73,7 +88,7 @@ describe('snapshot lifecycle', () => {
     { kind: 'invoke_skill', skill: 'tdd' },
     { kind: 'record_evidence', evidence: { claim: 'c', criterion: 'c', state: 'MEASURED', dependencies: [], method: 'cli', expected: 'e', observed: 'o', artifact: 'a' } },
     { kind: 'revision_changed', revision: 'r2', changedPaths: ['src/a.ts'] },
-    { kind: 'record_finding', finding: { severity: 'low', trigger: 't', consequence: 'c', evidence: 'e', owner: 'o', reviewer: 'r', guidelines: null } },
+    { kind: 'record_finding', finding: { severity: 'low', trigger: 't', consequence: 'c', evidence: 'e', owner: 'o', reviewer: 'r' } },
     { kind: 'request_authorization', action: 'merge', scope: 'main' },
     { kind: 'freeze_revision' },
   ];
@@ -88,11 +103,23 @@ describe('snapshot lifecycle', () => {
 
   test('lock round-trips through the boundary parser', () => {
     const snapshot = registry();
-    expect(parseSnapshot(JSON.parse(JSON.stringify(snapshot)))).toEqual({ kind: 'ok', value: snapshot });
+    expect(parseLock(JSON.parse(JSON.stringify({ schemaVersion: 2, kind: 'approved', snapshot })))).toEqual({ kind: 'ok', value: { kind: 'approved', snapshot } });
+  });
+
+  test('a version 1 lock file migrates to an approved lock', () => {
+    const snapshot = registry();
+    expect(parseLock(JSON.parse(JSON.stringify(snapshot)))).toEqual({ kind: 'ok', value: { kind: 'approved', snapshot } });
   });
 
   test('parser rejects a lock with cutoff 60', () => {
-    expect(parseSnapshot({ ...registry(), cutoff: 60 })).toEqual({ kind: 'invalid', reason: '$.cutoff: expected one of 50' });
+    expect(parseLock({ schemaVersion: 2, kind: 'approved', snapshot: { ...registry(), cutoff: 60 } })).toEqual({ kind: 'invalid', reason: '$.snapshot.cutoff: expected one of 50' });
+  });
+
+  test('frontmatter policy follows disable-model-invocation', () => {
+    expect([parseFrontmatter('---\nname: triage\ndisable-model-invocation: true\n---\nbody'), parseFrontmatter('---\nname: tdd\ndescription: x\n---\n')]).toEqual([
+      { kind: 'ok', value: { name: 'triage', invocationPolicy: 'user' } },
+      { kind: 'ok', value: { name: 'tdd', invocationPolicy: 'model' } },
+    ]);
   });
 });
 

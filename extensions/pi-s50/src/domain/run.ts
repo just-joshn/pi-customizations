@@ -4,7 +4,7 @@ import type { Graph } from './graph.ts';
 import type { RegistrySnapshot } from './registry.ts';
 import type { Mode, Phase, RunStatus } from './state.ts';
 
-export const RUN_SCHEMA_VERSION = 2;
+export const RUN_SCHEMA_VERSION = 3;
 
 export const CONSUMER_KINDS = ['browser', 'electron', 'cli', 'tui', 'http', 'rpc', 'library', 'native'] as const;
 
@@ -23,18 +23,37 @@ export type DiagnosticLoop = {
   readonly kind: 'failing_test' | 'http' | 'cli_fixture' | 'browser' | 'trace_replay' | 'throwaway_program' | 'fuzz' | 'bisect' | 'differential' | 'human_assisted';
   readonly command: string;
   readonly symptom: string;
-  readonly status: 'red' | 'green' | 'promoted';
+  readonly status: 'red' | 'green';
   readonly promotedTo: string | null;
+  readonly instrumentation: readonly string[];
 };
 
 export type Prototype = { readonly question: string; readonly verdict: string; readonly branch: string; readonly issuePointer: string | null };
+
+export type Preflight = {
+  readonly repositoryRoot: string;
+  readonly remote: string | null;
+  readonly revision: string;
+  readonly dirty: boolean;
+  readonly languages: readonly string[];
+  readonly packageManager: string;
+  readonly testCommands: readonly string[];
+  readonly buildCommands: readonly string[];
+  readonly instructions: readonly string[];
+  readonly glossary: readonly string[];
+  readonly adrs: number;
+  readonly issueTrackerDoc: boolean;
+  readonly reactStack: boolean;
+};
+
+export type InstalledSkill = { readonly name: string; readonly contentHash: string | null };
 
 export type HostCapabilities = {
   readonly independentAgents: boolean;
   readonly isolatedWorktrees: boolean;
   readonly browserDriver: boolean;
   readonly nativeAutomation: boolean;
-  readonly installedSkills: readonly string[];
+  readonly installedSkills: readonly InstalledSkill[];
 };
 
 export type Run = {
@@ -64,6 +83,8 @@ export type Run = {
   readonly diagnostics: readonly DiagnosticLoop[];
   readonly rootCause: string | null;
   readonly prototypes: readonly Prototype[];
+  readonly integrationOwner: string | null;
+  readonly preflight: Preflight | null;
   readonly capabilities: HostCapabilities;
   readonly skillRegistry: RegistrySnapshot;
   readonly blockers: readonly string[];

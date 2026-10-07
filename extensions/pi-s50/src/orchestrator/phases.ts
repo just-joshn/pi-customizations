@@ -3,6 +3,7 @@ import type { Phase, RunStatus } from '../domain/state.ts';
 import { currentReview, prReadyBlockers, requiredEvidence } from '../policy/completion.ts';
 import type { Clock } from './clock.ts';
 import { blockedGate, done, noop, type Outcome, reject, understood, withRun } from './command.ts';
+import { MODEL_CHANGE_ID, modelChange, pendingUncertainty } from './facts.ts';
 import { classify } from './routes.ts';
 import { isLegalTransition } from './transitions.ts';
 
@@ -31,6 +32,8 @@ function unlessEmpty(prefix: string, items: readonly { readonly id: string }[]):
 function designReady(state: RunState, from: Phase): string | null {
   const { run } = state;
   if (from === 'ARCHITECT' && run.architecture.chosen === null) return 'no design chosen';
+  const uncertainty = pendingUncertainty(run);
+  if (from === 'ARCHITECT' && uncertainty !== null) return `empirical question needs a prototype first: ${uncertainty}`;
   if (from === 'PROTOTYPE' && run.prototypes.length === 0) return 'no prototype recorded';
   if (from !== 'DESIGN') return null;
   const settled = new Set(run.domain.decisions.map((decision) => decision.id));
@@ -50,7 +53,12 @@ const GUARDS: { readonly [P in Phase]: Guard } = {
   DIAGNOSE: open,
   EXPLICIT_TRIAGE: open,
   EXPLICIT_ARCH_REVIEW: open,
-  ARCHITECT: open,
+  ARCHITECT: ({ run }, from) => {
+    if (from !== 'DOMAIN') return null;
+    const change = modelChange(run);
+    if (change === null) return `decide ${MODEL_CHANGE_ID} (yes or no) before leaving DOMAIN`;
+    return change && run.domain.terms.length === 0 ? 'the domain model changes but no terms were recorded' : null;
+  },
   DOMAIN: ({ run }, from) => {
     if (from === 'CLARIFY' && !understood(run)) return 'shared understanding not confirmed';
     return from === 'DIAGNOSE' && run.rootCause === null ? 'root cause not recorded' : null;

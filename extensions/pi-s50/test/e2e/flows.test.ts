@@ -1,15 +1,15 @@
 import { describe, expect, test } from 'vitest';
-import { FakeSkillRuntime } from '../../src/adapters/skills.ts';
 import type { RunState } from '../../src/domain/run.ts';
 import type { Mode } from '../../src/domain/state.ts';
 import { latestByClaim } from '../../src/evidence/invalidation.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import type { Command } from '../../src/orchestrator/command.ts';
 import { apply, nextAction, startRun } from '../../src/orchestrator/coordinator.ts';
 import { prReadyBlockers } from '../../src/policy/completion.ts';
 import { REVIEW_DIMENSIONS } from '../../src/review/reviewer.ts';
-import { ALL_SKILLS, NO_CAPS, registry } from '../unit/support.ts';
-import { BUG_CRITERIA, BUG_EVIDENCE, BUG_NODES, FEATURE_CRITERIA, FEATURE_EVIDENCE, FEATURE_NODES, FEATURE_SCRIPT, REVIEW, REVIEW_FINDING, SEAM } from './scenarios.ts';
+import { fixedClock } from '../support/clock.ts';
+import { FakeSkillRuntime } from '../support/fake-skills.ts';
+import { INSTALLED, NO_CAPS, registry } from '../unit/support.ts';
+import { BUG_CRITERIA, BUG_EVIDENCE, BUG_NODES, FEATURE_CRITERIA, FEATURE_EVIDENCE, FEATURE_NODES, FEATURE_SCRIPT, INTEGRATOR, MODEL_CHANGES, MODEL_UNCHANGED, REVIEW, REVIEW_FINDING, SEAM, tddTest } from './scenarios.ts';
 
 class Harness {
   readonly clock = fixedClock();
@@ -29,7 +29,7 @@ class Harness {
         acceptanceCriteria: criteria,
         constraints: [],
         nonGoals: [],
-        capabilities: { ...NO_CAPS, installedSkills: ALL_SKILLS },
+        capabilities: { ...NO_CAPS, installedSkills: INSTALLED },
       },
       registry(),
       this.clock,
@@ -73,7 +73,11 @@ async function featureToReady(h: Harness): Promise<void> {
   expect(h.state.run.domain.decisions.map((decision) => decision.id)).toEqual(['q-format', 'shared-understanding']);
   expect(nextAction(h.state)).toEqual({ kind: 'advance', to: 'DOMAIN' });
   h.step(advance('DOMAIN'));
+  expect(apply(h.state, advance('ARCHITECT'), h.clock)).toEqual({ kind: 'rejected', reason: 'cannot advance DOMAIN -> ARCHITECT: decide domain.model_change (yes or no) before leaving DOMAIN', gate: null });
+  h.step(MODEL_CHANGES);
+  expect(nextAction(h.state)).toEqual({ kind: 'invoke_skill', skill: 'domain-modeling' });
   await h.skill('domain-modeling');
+  expect(h.state.run.domain.terms).toEqual(['invoice']);
   h.step(advance('ARCHITECT'));
   await h.skill('codebase-design');
   expect(h.state.run.architecture.chosen).toEqual({ id: 'stream', reason: 'bounded memory' });
@@ -81,23 +85,25 @@ async function featureToReady(h: Harness): Promise<void> {
   await h.skill('tdd');
   expect(h.phase()).toBe('CONFIRM_TDD_SEAMS/blocked');
   expect(nextAction(h.state)).toEqual({ kind: 'human_gate', gate: { kind: 'seam_confirmation', seams: ['seam-cli'] } });
-  h.steps([{ kind: 'confirm_seams', ids: ['seam-cli'] }, { kind: 'record_test', seam: 'seam-cli', test: 'tdd' }, advance('BUILD_GRAPH')]);
+  h.steps([{ kind: 'confirm_seams', ids: ['seam-cli'] }, tddTest('red'), tddTest('green'), advance('BUILD_GRAPH')]);
+  expect(h.latest()).toEqual([['tdd:export prints a header row', 'MEASURED', 'r1']]);
   await buildAndReview(h);
 }
 
 async function buildAndReview(h: Harness): Promise<void> {
   h.steps([{ kind: 'build_graph', nodes: FEATURE_NODES }, advance('IMPLEMENT')]);
-  expect(nextAction(h.state)).toEqual({ kind: 'start_nodes', ids: ['list-invoices'] });
+  expect(nextAction(h.state)).toEqual({ kind: 'start_nodes', ids: ['list-invoices'], workspaces: ['.'] });
   h.steps([
     { kind: 'start_nodes', ids: ['list-invoices'] },
     { kind: 'complete_node', id: 'list-invoices', passed: true },
-    { kind: 'integrate_node', id: 'list-invoices', revision: 'r2', changedPaths: ['src/list/index.ts'] },
+    { kind: 'integrate_node', id: 'list-invoices', revision: 'r2', changedPaths: ['src/list/index.ts'], integrator: INTEGRATOR },
   ]);
-  expect(nextAction(h.state)).toEqual({ kind: 'start_nodes', ids: ['export-csv'] });
+  expect([h.state.run.integrationOwner, h.latest()]).toEqual([INTEGRATOR, [['tdd:export prints a header row', 'MEASURED', 'r2']]]);
+  expect(nextAction(h.state)).toEqual({ kind: 'start_nodes', ids: ['export-csv'], workspaces: ['.'] });
   h.steps([
     { kind: 'start_nodes', ids: ['export-csv'] },
     { kind: 'complete_node', id: 'export-csv', passed: true },
-    { kind: 'integrate_node', id: 'export-csv', revision: 'r3', changedPaths: ['src/export/csv.ts', 'docs/readme.md'] },
+    { kind: 'integrate_node', id: 'export-csv', revision: 'r3', changedPaths: ['src/export/csv.ts', 'docs/readme.md'], integrator: INTEGRATOR },
     advance('INTEGRATE'),
     advance('REVIEW'),
     { kind: 'record_finding', finding: REVIEW_FINDING },
@@ -116,6 +122,7 @@ async function buildAndReview(h: Harness): Promise<void> {
   expect(nextAction(h.state)).toEqual({ kind: 'verify', route: { kind: 'drive_executable' }, criteria: [...FEATURE_CRITERIA] });
   h.steps(FEATURE_EVIDENCE.map((evidence): Command => ({ kind: 'record_evidence', evidence })));
   expect(h.latest()).toEqual([
+    ['tdd:export prints a header row', 'STALE', 'r2'],
     ['review', 'MEASURED', 'r3'],
     ['csv-output', 'MEASURED', 'r3'],
     ['readme-export', 'MEASURED', 'r3'],
@@ -150,7 +157,7 @@ describe('e2e scenarios', () => {
   });
 
   test('bug flow promotes its reproducer before PR_READY', async () => {
-    const loop = { id: 'repro-1', kind: 'failing_test', command: 'npm test -- parser', symptom: 'TypeError on empty line', status: 'red', promotedTo: null } as const;
+    const loop = { id: 'repro-1', kind: 'failing_test', command: 'bun run test -- parser', symptom: 'TypeError on empty line', status: 'red', promotedTo: null, instrumentation: ['console.error in split()'] } as const;
     const h = new Harness('bug', BUG_CRITERIA, {
       ...FEATURE_SCRIPT,
       'diagnosing-bugs': [
@@ -169,7 +176,7 @@ describe('e2e scenarios', () => {
     await h.skill('diagnosing-bugs');
     expect([h.phase(), h.state.run.testContract.confirmedSeams, h.state.run.diagnostics]).toEqual(['DIAGNOSE/active', [], [loop]]);
     expect(h.state.run.rootCause).toBe('split() yields [""] for empty input');
-    h.steps([advance('DOMAIN'), advance('ARCHITECT')]);
+    h.steps([advance('DOMAIN'), MODEL_UNCHANGED, advance('ARCHITECT')]);
     await h.skill('codebase-design');
     h.steps([advance('CONFIRM_TDD_SEAMS'), { kind: 'propose_seams', seams: [SEAM] }]);
     expect(h.phase()).toBe('CONFIRM_TDD_SEAMS/blocked');
@@ -177,14 +184,14 @@ describe('e2e scenarios', () => {
       { kind: 'confirm_seams', ids: ['seam-cli'] },
       { kind: 'promote_diagnostic', loopId: 'repro-1', seamId: 'seam-cli' },
     ]);
-    expect(h.state.run.diagnostics).toEqual([{ ...loop, status: 'promoted', promotedTo: 'seam-cli' }]);
+    expect(h.state.run.diagnostics).toEqual([{ ...loop, promotedTo: 'seam-cli' }]);
     h.steps([
       advance('BUILD_GRAPH'),
       { kind: 'build_graph', nodes: BUG_NODES },
       advance('IMPLEMENT'),
       { kind: 'start_nodes', ids: ['fix-parser'] },
       { kind: 'complete_node', id: 'fix-parser', passed: true },
-      { kind: 'integrate_node', id: 'fix-parser', revision: 'r2', changedPaths: ['src/parser/split.ts'] },
+      { kind: 'integrate_node', id: 'fix-parser', revision: 'r2', changedPaths: ['src/parser/split.ts'], integrator: INTEGRATOR },
       advance('INTEGRATE'),
       advance('REVIEW'),
       { kind: 'record_finding', finding: { ...REVIEW_FINDING, trigger: 'whitespace-only line' } },
@@ -192,7 +199,14 @@ describe('e2e scenarios', () => {
       REVIEW,
       advance('VERIFY'),
     ]);
-    expect(prReadyBlockers(h.state)).toEqual(['revision not frozen', 'criterion "empty line no longer crashes" lacks MEASURED evidence at r2']);
+    expect(prReadyBlockers(h.state)).toEqual([
+      'revision not frozen',
+      'criterion "empty line no longer crashes" lacks MEASURED cli evidence at r2',
+      'diagnostic repro-1 still red',
+      'diagnostic repro-1 still has temporary instrumentation: console.error in split()',
+    ]);
+    h.step({ kind: 'record_diagnostic', loop: { ...loop, promotedTo: 'seam-cli', status: 'green', instrumentation: [] } });
+    expect(h.state.run.diagnostics).toEqual([{ ...loop, promotedTo: 'seam-cli', status: 'green', instrumentation: [] }]);
     h.steps(BUG_EVIDENCE.map((evidence): Command => ({ kind: 'record_evidence', evidence })));
     expect(h.latest()).toEqual([
       ['review', 'MEASURED', 'r2'],
@@ -209,11 +223,12 @@ describe('e2e scenarios', () => {
     h.step({ kind: 'revision_changed', revision: 'r4', changedPaths: ['src/export/csv.ts'] });
     expect([h.phase(), h.state.run.currentRevision]).toEqual(['REVERIFY_STALE/active', 'r4']);
     expect(h.latest()).toEqual([
+      ['tdd:export prints a header row', 'STALE', 'r2'],
       ['review', 'STALE', 'r3'],
       ['csv-output', 'STALE', 'r3'],
       ['readme-export', 'MEASURED', 'r4'],
     ]);
-    expect(prReadyBlockers(h.state)).toEqual(['frozen revision r3 differs from current r4', 'criterion "csv lists every invoice" lacks MEASURED evidence at r4 (STALE@r3)', 'no review at r4']);
+    expect(prReadyBlockers(h.state)).toEqual(['frozen revision r3 differs from current r4', 'criterion "csv lists every invoice" lacks MEASURED cli evidence at r4 (STALE@r3)', 'no review at r4']);
     expect(nextAction(h.state)).toEqual({ kind: 'verify', route: { kind: 'drive_executable' }, criteria: ['csv lists every invoice'] });
     const reverified = FEATURE_EVIDENCE.filter((evidence) => evidence.claim === 'csv-output').map((evidence): Command => ({ kind: 'record_evidence', evidence }));
     h.steps(reverified);
@@ -221,6 +236,7 @@ describe('e2e scenarios', () => {
     h.steps([REVIEW, { kind: 'freeze_revision' }, advance('PR_READY')]);
     expect(h.state.run.status).toEqual({ kind: 'pr_ready', revision: 'r4' });
     expect(h.latest()).toEqual([
+      ['tdd:export prints a header row', 'STALE', 'r2'],
       ['review', 'MEASURED', 'r4'],
       ['csv-output', 'MEASURED', 'r4'],
       ['readme-export', 'MEASURED', 'r4'],

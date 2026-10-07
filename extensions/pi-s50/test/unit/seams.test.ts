@@ -1,11 +1,14 @@
 import { describe, expect, test } from 'vitest';
 import type { DiagnosticLoop } from '../../src/domain/run.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import { apply } from '../../src/orchestrator/coordinator.ts';
+import { fixedClock } from '../support/clock.ts';
 import { applyAll, expectOk, freshRun } from './support.ts';
 
 const SEAM = { id: 'seam-parser', description: 'parse(input) public API', catches: 'parse errors', misses: 'IO failures' };
-const LOOP: DiagnosticLoop = { id: 'repro-1', kind: 'failing_test', command: 'npm test -- parser', symptom: 'throws on empty line', status: 'red', promotedTo: null };
+const LOOP: DiagnosticLoop = { id: 'repro-1', kind: 'failing_test', command: 'bun run test -- parser', symptom: 'throws on empty line', status: 'red', promotedTo: null, instrumentation: ['log in parse()'] };
+
+const tddTest = (result: 'red' | 'green') =>
+  ({ kind: 'record_test', seam: 'seam-parser', name: 'empty line parses', result, command: 'bun run test -- parser', observed: result === 'red' ? 'TypeError' : '1 passed', dependencies: ['src/parser/**'] }) as const;
 
 function inPhase(phase: 'DIAGNOSE' | 'CONFIRM_TDD_SEAMS') {
   const base = freshRun({ mode: 'bug' });
@@ -43,7 +46,7 @@ describe('seam confirmation', () => {
 describe('TDD seams with diagnostics', () => {
   test('TDD test at an unconfirmed seam is rejected', () => {
     const state = expectOk(apply(inPhase('CONFIRM_TDD_SEAMS'), { kind: 'propose_seams', seams: [SEAM] }, fixedClock()));
-    expect(apply(state, { kind: 'record_test', seam: 'seam-parser', test: 'tdd' }, fixedClock())).toEqual({
+    expect(apply(state, tddTest('red'), fixedClock())).toEqual({
       kind: 'rejected',
       reason: 'seam seam-parser is not confirmed; TDD tests need a confirmed seam',
       gate: { kind: 'seam_confirmation', seams: ['seam-parser'] },
@@ -58,10 +61,10 @@ describe('TDD seams with diagnostics', () => {
     expect(outcome.kind === 'ok' && outcome.decisions[0]?.summary).toBe('diagnostic repro-1 (failing_test) is red');
   });
 
-  test('diagnostic recording outside DIAGNOSE is rejected', () => {
+  test('a new diagnostic loop outside DIAGNOSE is rejected', () => {
     expect(apply(inPhase('CONFIRM_TDD_SEAMS'), { kind: 'record_diagnostic', loop: LOOP }, fixedClock())).toEqual({
       kind: 'rejected',
-      reason: 'diagnostic loops are recorded in DIAGNOSE, not CONFIRM_TDD_SEAMS',
+      reason: 'new diagnostic loops are recorded in DIAGNOSE, not CONFIRM_TDD_SEAMS',
       gate: null,
     });
   });
@@ -79,9 +82,50 @@ describe('TDD seams with diagnostics', () => {
       { kind: 'propose_seams', seams: [SEAM] },
       { kind: 'confirm_seams', ids: ['seam-parser'] },
       { kind: 'promote_diagnostic', loopId: 'repro-1', seamId: 'seam-parser' },
-      { kind: 'record_test', seam: 'seam-parser', test: 'tdd' },
     ]);
-    expect(state.run.diagnostics).toEqual([{ ...LOOP, status: 'promoted', promotedTo: 'seam-parser' }]);
+    expect(state.run.diagnostics).toEqual([{ ...LOOP, promotedTo: 'seam-parser' }]);
+  });
+
+  test('the original reproducer turns green after the fix', () => {
+    const diagnosed = applyAll(inPhase('DIAGNOSE'), [{ kind: 'record_diagnostic', loop: LOOP }]).state;
+    const fixed = { ...diagnosed, run: { ...diagnosed.run, phase: 'VERIFY' as const } };
+    const { state } = applyAll(fixed, [{ kind: 'record_diagnostic', loop: { ...LOOP, status: 'green', instrumentation: [] } }]);
+    expect(state.run.diagnostics).toEqual([{ ...LOOP, status: 'green', instrumentation: [] }]);
+  });
+});
+
+describe('TDD red then green', () => {
+  function confirmed() {
+    return applyAll(inPhase('CONFIRM_TDD_SEAMS'), [
+      { kind: 'propose_seams', seams: [SEAM] },
+      { kind: 'confirm_seams', ids: ['seam-parser'] },
+    ]).state;
+  }
+
+  test('GREEN without a RED record is rejected', () => {
+    expect(apply(confirmed(), tddTest('green'), fixedClock())).toEqual({ kind: 'rejected', reason: 'test empty line parses has no RED record; prove it fails before recording GREEN', gate: null });
+  });
+
+  test('RED then GREEN records failing then measured evidence', () => {
+    const { state } = applyAll(confirmed(), [tddTest('red'), tddTest('green')]);
+    expect(state.evidence.map((record) => [record.claim, record.criterion, record.state, record.observed])).toEqual([
+      ['tdd:empty line parses', 'tdd:seam-parser', 'FAILED', 'TypeError'],
+      ['tdd:empty line parses', 'tdd:seam-parser', 'MEASURED', '1 passed'],
+    ]);
+  });
+
+  test('a GREEN test cannot be recorded RED again', () => {
+    const { state } = applyAll(confirmed(), [tddTest('red'), tddTest('green')]);
+    expect(apply(state, tddTest('red'), fixedClock())).toEqual({ kind: 'rejected', reason: 'test empty line parses is already GREEN; write a new failing behavior test', gate: null });
+  });
+
+  test('TDD evidence cannot be forged through record_evidence', () => {
+    const forged = { claim: 'tdd:empty line parses', criterion: 'tdd:seam-parser', state: 'MEASURED', dependencies: [], method: 'test', expected: '', observed: '', artifact: '' } as const;
+    expect(apply(confirmed(), { kind: 'record_evidence', evidence: forged }, fixedClock())).toEqual({
+      kind: 'rejected',
+      reason: 'review, prototype, and TDD evidence come only from record_review, record_prototype, and record_test',
+      gate: null,
+    });
   });
 });
 

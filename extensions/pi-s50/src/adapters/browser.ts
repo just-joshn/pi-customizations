@@ -1,5 +1,5 @@
-import { runCommand } from './shell.ts';
+import type { Shell } from './shell.ts';
 
-export async function agentBrowserAvailable(cwd: string = process.cwd()): Promise<boolean> {
-  return (await runCommand('which', ['agent-browser'], cwd)).exitCode === 0;
+export async function agentBrowserAvailable(shell: Shell): Promise<boolean> {
+  return (await shell('agent-browser', ['--version']).catch(() => ({ exitCode: 1 }))).exitCode === 0;
 }

@@ -27,7 +27,7 @@ export const MODES = ['feature', 'bug', 'frontend', 'external_issue', 'architect
 
 export type Mode = (typeof MODES)[number];
 
-export type Question = { readonly id: string; readonly title: string; readonly body: string; readonly recommendation: string };
+export type Question = { readonly id: string; readonly title: string; readonly body: string; readonly recommendation: string; readonly dependsOn: readonly string[] };
 
 export type Gate =
   | { readonly kind: 'user_workflow'; readonly skill: string; readonly action: string }

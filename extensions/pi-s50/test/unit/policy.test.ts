@@ -1,13 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import type { EvidenceState } from '../../src/domain/evidence.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import { apply, preflight } from '../../src/orchestrator/coordinator.ts';
-import { grantMatches, requiresAuthorization } from '../../src/policy/authorization.ts';
+import { gatedAction, grantMatches } from '../../src/policy/authorization.ts';
 import { prReadyBlockers, requiredEvidence } from '../../src/policy/completion.ts';
 import { canModelInvoke, routeSkills } from '../../src/policy/invocation.ts';
-import { freshRun, measured, NO_CAPS, registry, satisfiedAt } from './support.ts';
-
-const CLEAN_REPO = { issueTrackerDoc: true, dirty: false, packageManager: 'bun', instructions: [], glossary: [], adrs: 0 };
+import { fixedClock } from '../support/clock.ts';
+import { CLEAN_REPO, freshRun, measured, NO_CAPS, registry, satisfiedAt } from './support.ts';
 
 const CRITERION = 'csv export lists every invoice';
 
@@ -20,7 +18,12 @@ describe('invocation policy', () => {
     ['improve-codebase-architecture', { kind: 'user_only', action: '/skill:improve-codebase-architecture' }],
     ['code-review', { kind: 'not_in_registry' }],
   ] as const)('%s -> %o', ([skill, expected]) => {
-    expect(canModelInvoke(registry(), skill, ['tdd', 'grilling'])).toEqual(expected);
+    expect(
+      canModelInvoke(registry(), skill, [
+        { name: 'tdd', contentHash: null },
+        { name: 'grilling', contentHash: null },
+      ]),
+    ).toEqual(expected);
   });
 
   test('uninstalled model skill yields an install command', () => {
@@ -77,8 +80,24 @@ describe('user-only gate', () => {
 });
 
 describe('authorization', () => {
-  test('merge requires authorization', () => {
-    expect([requiresAuthorization('merge'), requiresAuthorization('lint')]).toEqual([true, false]);
+  test.for([
+    ['git push --force origin main', 'force_push'],
+    ['git push -f origin feature', 'force_push'],
+    ['git push origin +main', 'force_push'],
+    ['gh pr merge 64 --squash', 'merge'],
+    ['vercel deploy --prod', 'deploy'],
+    ['terraform apply -auto-approve', 'deploy'],
+    ['git reset --hard HEAD~3', 'destructive_data_deletion'],
+    ['psql -c "DROP TABLE invoices"', 'destructive_data_deletion'],
+    ['rm -rf ~/data', 'destructive_data_deletion'],
+    ['gh pr create --title x', 'public_message'],
+    ['bun publish', 'irreversible_action'],
+  ] as const)('%s needs %s authorization', ([command, action]) => {
+    expect(gatedAction(command)).toBe(action);
+  });
+
+  test.for(['git push origin feature', 'git status', 'rm -rf dist', 'bun run test', 'gh pr view 64'])('%s needs no authorization', (command) => {
+    expect(gatedAction(command)).toBeNull();
   });
 
   test('only the exact action with scope clears the gate', () => {
@@ -110,7 +129,7 @@ describe('completion', () => {
   test.for(['UNKNOWN', 'INCONCLUSIVE', 'INFERRED', 'STALE', 'FAILED'] satisfies EvidenceState[])('%s never satisfies completion', (evidenceState) => {
     const base = satisfiedAt('REVERIFY_STALE', 'PR_READY');
     const state = { ...base, evidence: [...base.evidence.filter((record) => record.claim !== CRITERION), measured(CRITERION, 'r1', { state: evidenceState })] };
-    expect(prReadyBlockers(state)).toEqual([`criterion "${CRITERION}" lacks MEASURED evidence at r1 (${evidenceState}@r1)`]);
+    expect(prReadyBlockers(state)).toEqual([`criterion "${CRITERION}" lacks MEASURED cli evidence at r1 (${evidenceState}@r1)`]);
     expect(apply(state, { kind: 'advance', to: 'PR_READY' }, fixedClock()).kind).toBe('rejected');
   });
 
@@ -122,20 +141,28 @@ describe('completion', () => {
 
   test('PR_READY predicate lists every unmet condition', () => {
     const base = freshRun({ mode: 'bug' });
-    expect(prReadyBlockers({ ...base, run: { ...base.run, diagnostics: [{ id: 'l', kind: 'fuzz', command: 'x', symptom: 'y', status: 'red', promotedTo: null }] } })).toEqual([
+    const loop = { id: 'l', kind: 'fuzz', command: 'x', symptom: 'y', status: 'red', promotedTo: null, instrumentation: ['console.log in parse()'] } as const;
+    expect(prReadyBlockers({ ...base, run: { ...base.run, diagnostics: [loop] } })).toEqual([
       'revision not frozen',
-      `criterion "${CRITERION}" lacks MEASURED evidence at r1`,
+      `criterion "${CRITERION}" lacks MEASURED cli evidence at r1`,
       'no review at r1',
       'graph has no nodes',
       'diagnostic l still red',
+      'diagnostic l still has temporary instrumentation: console.log in parse()',
       'bug run lacks root cause',
-      'bug run lacks promoted diagnostic',
+      'bug run lacks a diagnostic promoted to a confirmed seam',
     ]);
   });
 
   test('measured evidence at an older revision does not satisfy', () => {
     const base = satisfiedAt('REVERIFY_STALE', 'PR_READY');
     const state = { ...base, run: { ...base.run, currentRevision: 'r2', frozenRevision: 'r2' } };
-    expect(prReadyBlockers(state)).toEqual([`criterion "${CRITERION}" lacks MEASURED evidence at r2 (MEASURED@r1)`, 'no review at r2']);
+    expect(prReadyBlockers(state)).toEqual([`criterion "${CRITERION}" lacks MEASURED cli evidence at r2 (MEASURED@r1)`, 'no review at r2']);
+  });
+
+  test('a test record alone never stands in for the consumer path', () => {
+    const base = satisfiedAt('REVERIFY_STALE', 'PR_READY');
+    const state = { ...base, evidence: [...base.evidence.filter((record) => record.claim !== CRITERION), measured(CRITERION, 'r1', { method: 'test' })] };
+    expect(prReadyBlockers(state)).toEqual([`criterion "${CRITERION}" lacks MEASURED cli evidence at r1 (MEASURED@r1)`]);
   });
 });

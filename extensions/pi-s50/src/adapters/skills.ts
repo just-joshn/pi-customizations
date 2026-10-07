@@ -1,23 +1,38 @@
-import type { Command } from '../orchestrator/command.ts';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 
-export type SkillInput = { readonly phase: string; readonly objective: string };
+import type { InstalledSkill } from '../domain/run.ts';
 
-export type SkillResult = { readonly skill: string; readonly summary: string; readonly commands: readonly Command[] };
+export type SkillFile = { readonly name: string; readonly path: string };
 
-export type SkillRuntime = { run(skill: string, input: SkillInput): Promise<SkillResult> };
+export async function hashInstalled(files: readonly SkillFile[]): Promise<readonly InstalledSkill[]> {
+  return Promise.all(
+    files.map(async ({ name, path }) => {
+      const body = await readFile(path).catch(() => null);
+      return { name, contentHash: body === null ? null : `sha256:${createHash('sha256').update(body).digest('hex')}` };
+    }),
+  );
+}
 
-export class FakeSkillRuntime implements SkillRuntime {
-  readonly calls: { readonly skill: string; readonly input: SkillInput }[] = [];
-  readonly #script: Map<string, SkillResult[]>;
+// The shell has no Pi session, so it asks Pi's own resource loader which skills a session in this directory would load.
+export async function discoverInstalledSkills(cwd: string): Promise<readonly InstalledSkill[]> {
+  const { DefaultResourceLoader, getAgentDir } = await import('@earendil-works/pi-coding-agent');
+  const loader = new DefaultResourceLoader({ cwd, agentDir: getAgentDir(), noExtensions: true, noPromptTemplates: true, noThemes: true, noContextFiles: true });
+  await loader.reload();
+  return hashInstalled(loader.getSkills().skills.map((skill) => ({ name: skill.name, path: skill.filePath })));
+}
 
-  constructor(script: Readonly<Record<string, readonly SkillResult[]>>) {
-    this.#script = new Map(Object.entries(script).map(([skill, results]) => [skill, [...results]]));
-  }
+export function formatInstalled(skills: readonly InstalledSkill[]): string {
+  return skills.map((skill) => (skill.contentHash === null ? skill.name : `${skill.name}=${skill.contentHash}`)).join(',');
+}
 
-  run(skill: string, input: SkillInput): Promise<SkillResult> {
-    this.calls.push({ skill, input });
-    const next = this.#script.get(skill)?.shift();
-    if (next === undefined) return Promise.reject(new Error(`FakeSkillRuntime: no scripted result for ${skill}`));
-    return Promise.resolve(next);
-  }
+export function parseInstalled(text: string): readonly InstalledSkill[] {
+  return text
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item !== '')
+    .map((item) => {
+      const split = item.indexOf('=');
+      return split === -1 ? { name: item, contentHash: null } : { name: item.slice(0, split), contentHash: item.slice(split + 1) };
+    });
 }

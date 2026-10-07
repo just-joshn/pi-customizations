@@ -1,6 +1,9 @@
 import { appendFile, readFile } from 'node:fs/promises';
 
-import { type Decoded, type Decoder, decode, parseJson } from '../orchestrator/decode.ts';
+import { type Decoded, type Decoder, decode, isRecord, parseJson } from '../orchestrator/decode.ts';
+
+// Every line carries its own version so one append-only file can outlive a shape change; lines written before versioning are version 1.
+export const JSONL_SCHEMA_VERSION = 1;
 
 export async function readJsonl<T>(path: string, decoder: Decoder<T>): Promise<Decoded<readonly T[]>> {
   let text: string;
@@ -16,6 +19,8 @@ export async function readJsonl<T>(path: string, decoder: Decoder<T>): Promise<D
     if (line.trim() === '') continue;
     const json = parseJson(line);
     if (json.kind === 'invalid') return { kind: 'invalid', reason: `${path}:${index + 1}: ${json.reason}` };
+    const { schemaVersion: version = JSONL_SCHEMA_VERSION } = isRecord(json.value) ? json.value : {};
+    if (version !== JSONL_SCHEMA_VERSION) return { kind: 'invalid', reason: `${path}:${index + 1}: unsupported record schema version ${String(version)}` };
     const item = decode(decoder, json.value);
     if (item.kind === 'invalid') return { kind: 'invalid', reason: `${path}:${index + 1}: ${item.reason}` };
     out.push(item.value);
@@ -23,9 +28,9 @@ export async function readJsonl<T>(path: string, decoder: Decoder<T>): Promise<D
   return { kind: 'ok', value: out };
 }
 
-export async function appendJsonl(path: string, items: readonly unknown[]): Promise<void> {
+export async function appendJsonl(path: string, items: readonly object[]): Promise<void> {
   if (items.length === 0) return;
-  await appendFile(path, items.map((item) => `${JSON.stringify(item)}\n`).join(''), 'utf8');
+  await appendFile(path, items.map((item) => `${JSON.stringify({ schemaVersion: JSONL_SCHEMA_VERSION, ...item })}\n`).join(''), 'utf8');
 }
 
 export function latestById<T extends { readonly id: string }>(items: readonly T[]): readonly T[] {

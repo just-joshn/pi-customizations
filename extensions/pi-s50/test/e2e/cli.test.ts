@@ -1,12 +1,14 @@
 import { spawnSync } from 'node:child_process';
-import { rmSync } from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, test } from 'vitest';
 import type { Command } from '../../src/orchestrator/command.ts';
 import { tempRepo, writeAndCommit } from '../integration/repo.ts';
+import { FakeSkillRuntime } from '../support/fake-skills.ts';
 import { ALL_SKILLS } from '../unit/support.ts';
-import { BUG_EVIDENCE, BUG_NODES, FEATURE_EVIDENCE, FEATURE_NODES, FEATURE_SCRIPT, REVIEW, REVIEW_FINDING, SEAM } from './scenarios.ts';
+import { BUG_EVIDENCE, BUG_NODES, FEATURE_EVIDENCE, FEATURE_NODES, FEATURE_SCRIPT, INTEGRATOR, MODEL_CHANGES, MODEL_UNCHANGED, REVIEW, REVIEW_FINDING, SEAM } from './scenarios.ts';
 
 const MAIN = fileURLToPath(new URL('../../src/cli/main.ts', import.meta.url));
 const dirs: string[] = [];
@@ -40,8 +42,13 @@ function applyAllOk(cwd: string, commands: readonly Command[]): string {
   return last;
 }
 
-function scripted(skill: string): readonly Command[] {
-  return [{ kind: 'invoke_skill', skill }, ...(FEATURE_SCRIPT[skill]?.[0]?.commands ?? [])];
+async function scripted(runtime: FakeSkillRuntime, skill: string, objective: string): Promise<readonly Command[]> {
+  const result = await runtime.run(skill, { phase: 'scripted', objective });
+  return [{ kind: 'invoke_skill', skill }, ...result.commands];
+}
+
+function stateFile(cwd: string, name: string): string {
+  return readFileSync(join(cwd, '.s50', name), 'utf8');
 }
 
 function phaseLine(cwd: string): string {
@@ -64,7 +71,7 @@ function integrate(cwd: string, id: string, files: Readonly<Record<string, strin
     { kind: 'complete_node', id, passed: true },
   ]);
   const revision = writeAndCommit(cwd, files, `feat: ${id}`);
-  return applyAllOk(cwd, [{ kind: 'integrate_node', id, revision, changedPaths: Object.keys(files) }]);
+  return applyAllOk(cwd, [{ kind: 'integrate_node', id, revision, changedPaths: Object.keys(files), integrator: INTEGRATOR }]);
 }
 
 function reviewVerifyFreeze(cwd: string, evidence: readonly Command[]): string {
@@ -94,13 +101,17 @@ function reverifyAfterEdit(cwd: string, path: string, evidence: readonly Command
 const record = (items: typeof FEATURE_EVIDENCE): readonly Command[] => items.map((evidence): Command => ({ kind: 'record_evidence', evidence }));
 
 describe('s50 CLI process', () => {
-  test('feature flow survives restarts through stale reverify', { timeout: 120_000 }, () => {
+  test('feature flow survives restarts through stale reverify', { timeout: 120_000 }, async () => {
     const cwd = setup();
+    const runtime = new FakeSkillRuntime(FEATURE_SCRIPT);
     const started = s50(cwd, 'feature', 'export invoices as CSV', '--criteria', 'csv lists every invoice;readme documents export', '--installed', ALL_SKILLS.join(','));
     expect([started.code, started.stdout.split('\n')[1]]).toEqual([0, 'phase: CLARIFY (active)']);
-    expect(applyAllOk(cwd, [...scripted('grilling'), { kind: 'advance', to: 'DOMAIN' }])).toBe('DOMAIN/active');
-    expect(applyAllOk(cwd, [...scripted('domain-modeling'), { kind: 'advance', to: 'ARCHITECT' }, ...scripted('codebase-design')])).toBe('ARCHITECT/active');
-    expect(applyAllOk(cwd, [{ kind: 'advance', to: 'CONFIRM_TDD_SEAMS' }, ...scripted('tdd')])).toBe('CONFIRM_TDD_SEAMS/blocked');
+    const run = JSON.parse(stateFile(cwd, 'run.json'));
+    expect([run.schemaVersion, run.phase, run.preflight.revision, stateFile(cwd, '.gitignore')]).toEqual([3, 'CLARIFY', run.currentRevision, '*\n']);
+    expect(applyAllOk(cwd, [...(await scripted(runtime, 'grilling', run.objective)), { kind: 'advance', to: 'DOMAIN' }])).toBe('DOMAIN/active');
+    expect(applyAllOk(cwd, [MODEL_CHANGES, ...(await scripted(runtime, 'domain-modeling', run.objective)), { kind: 'advance', to: 'ARCHITECT' }, ...(await scripted(runtime, 'codebase-design', run.objective))])).toBe('ARCHITECT/active');
+    expect(applyAllOk(cwd, [{ kind: 'advance', to: 'CONFIRM_TDD_SEAMS' }, ...(await scripted(runtime, 'tdd', run.objective))])).toBe('CONFIRM_TDD_SEAMS/blocked');
+    expect(runtime.calls.map((call) => call.skill)).toEqual(['grilling', 'domain-modeling', 'codebase-design', 'tdd']);
     expect(phaseLine(cwd)).toBe('phase: CONFIRM_TDD_SEAMS (blocked)');
     expect(
       applyAllOk(cwd, [
@@ -115,22 +126,29 @@ describe('s50 CLI process', () => {
     expect(reviewVerifyFreeze(cwd, record(FEATURE_EVIDENCE))).toBe('PR_READY/pr_ready');
     expect(phaseLine(cwd)).toBe('phase: PR_READY (pr_ready)');
     expect(s50(cwd, 'verify')).toEqual({ code: 0, stdout: 'consumer route: drive_executable\nMEASURED csv lists every invoice\nMEASURED readme documents export\n' });
+    const evidence = stateFile(cwd, 'evidence.jsonl')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    expect(evidence.filter((record) => record.state === 'MEASURED' && record.method === 'cli').map((record) => record.claim)).toEqual(['csv-output', 'readme-export']);
     reverifyAfterEdit(cwd, 'src/export/csv.ts', record(FEATURE_EVIDENCE.filter((evidence) => evidence.claim === 'csv-output')), 2);
   });
 
-  test('bug flow survives restarts through stale reverify', { timeout: 120_000 }, () => {
+  test('bug flow survives restarts through stale reverify', { timeout: 120_000 }, async () => {
     const cwd = setup();
+    const runtime = new FakeSkillRuntime(FEATURE_SCRIPT);
     const started = s50(cwd, 'bug', 'parser crashes on empty line', '--criteria', 'empty line no longer crashes', '--installed', ALL_SKILLS.join(','));
     expect([started.code, started.stdout.split('\n')[1]]).toEqual([0, 'phase: DIAGNOSE (active)']);
-    const loop = { id: 'repro-1', kind: 'failing_test', command: 'npm test -- parser', symptom: 'TypeError on empty line', status: 'red', promotedTo: null } as const;
+    const loop = { id: 'repro-1', kind: 'failing_test', command: 'bun run test -- parser', symptom: 'TypeError on empty line', status: 'red', promotedTo: null, instrumentation: [] } as const;
     expect(
       applyAllOk(cwd, [
         { kind: 'invoke_skill', skill: 'diagnosing-bugs' },
         { kind: 'record_diagnostic', loop },
         { kind: 'record_root_cause', cause: 'split() yields [""] for empty input' },
         { kind: 'advance', to: 'DOMAIN' },
+        MODEL_UNCHANGED,
         { kind: 'advance', to: 'ARCHITECT' },
-        ...scripted('codebase-design'),
+        ...(await scripted(runtime, 'codebase-design', 'parser crashes on empty line')),
         { kind: 'advance', to: 'CONFIRM_TDD_SEAMS' },
         { kind: 'propose_seams', seams: [SEAM] },
       ]),
@@ -145,6 +163,8 @@ describe('s50 CLI process', () => {
       ]),
     ).toBe('IMPLEMENT/active');
     expect(integrate(cwd, 'fix-parser', { 'src/parser/split.ts': 'export const split = (s: string) => (s === "" ? [] : s.split("\\n"));\n' })).toBe('IMPLEMENT/active');
+    expect(applyAllOk(cwd, [{ kind: 'record_diagnostic', loop: { ...loop, promotedTo: 'seam-cli', status: 'green' } }])).toBe('IMPLEMENT/active');
+    expect(JSON.parse(stateFile(cwd, 'run.json')).diagnostics).toEqual([{ ...loop, promotedTo: 'seam-cli', status: 'green' }]);
     expect(reviewVerifyFreeze(cwd, record(BUG_EVIDENCE))).toBe('PR_READY/pr_ready');
     expect(phaseLine(cwd)).toBe('phase: PR_READY (pr_ready)');
     reverifyAfterEdit(cwd, 'src/parser/split.ts', record(BUG_EVIDENCE), 3);

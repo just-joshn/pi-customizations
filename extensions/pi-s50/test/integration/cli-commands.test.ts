@@ -2,9 +2,11 @@ import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
+import { localShell } from '../../src/adapters/shell.ts';
 import { type CliContext, runCli } from '../../src/cli/commands.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
-import { fixturePath } from '../unit/support.ts';
+import { fixedClock } from '../support/clock.ts';
+import { NO_HOST, testContext } from '../support/context.ts';
+import { fixturePath, loadSources } from '../unit/support.ts';
 import { git, tempRepo } from './repo.ts';
 
 const dirs: string[] = [];
@@ -21,47 +23,69 @@ function repo(): string {
 
 const PAGE = readFileSync(fixturePath('skills-sh.2026-10-07.excerpt.html'), 'utf8');
 
-function context(cwd: string, fetchText: CliContext['fetchText'] = () => Promise.resolve(PAGE)): CliContext {
-  return { cwd, clock: fixedClock(), fetchText };
+const FAQ = 'The skills leaderboard is powered by anonymous telemetry data from the skills CLI. The telemetry only tracks aggregate skill installation counts.';
+
+const HEAD = 'f'.repeat(40);
+
+const USER_ONLY = new Set(['grill-me', 'grill-with-docs', 'improve-codebase-architecture', 'setup-matt-pocock-skills', 'handoff', 'triage', 'teach']);
+
+// Upstream skill bodies are never copied into this repository, so the fake web serves a minimal frontmatter per locked path.
+function fakeWeb(page = PAGE): { readonly urls: string[]; readonly fetchText: CliContext['fetchText'] } {
+  const urls: string[] = [];
+  const paths = new Map(Object.entries(loadSources()).map(([name, pin]) => [`https://raw.githubusercontent.com/${pin.repository}/${HEAD}/${pin.path}`, name]));
+  const fetchText = (url: string): Promise<string> => {
+    urls.push(url);
+    if (url === 'https://skills.sh/') return Promise.resolve(page);
+    if (url === 'https://skills.sh/docs/faq') return Promise.resolve(FAQ);
+    const name = paths.get(url);
+    if (name === undefined) return Promise.reject(new Error(`unexpected fetch ${url}`));
+    return Promise.resolve(`---\nname: ${name}\n${USER_ONLY.has(name) ? 'disable-model-invocation: true\n' : ''}---\nbody\n`);
+  };
+  return { urls, fetchText };
+}
+
+function liveContext(cwd: string, page = PAGE): CliContext & { readonly urls: readonly string[] } {
+  const web = fakeWeb(page);
+  const local = localShell(cwd, undefined);
+  const shell: CliContext['shell'] = (cmd, args) => (args[0] === 'ls-remote' ? Promise.resolve({ stdout: `${HEAD}\tHEAD\n`, stderr: '', exitCode: 0 }) : local(cmd, args));
+  return { cwd, clock: fixedClock(), fetchText: web.fetchText, shell, host: NO_HOST, urls: web.urls };
+}
+
+const OFFLINE_REFRESH = ['registry', 'refresh', '--from', 'leaderboard.2026-10-07.json', '--sources', 'skill-sources.2026-10-07.json'];
+
+function context(cwd: string): CliContext {
+  return testContext(cwd);
 }
 
 describe('registry commands', () => {
-  test('live refresh parses the fetched skills.sh page', async () => {
-    const cwd = repo();
-    const urls: string[] = [];
-    const result = await runCli(
-      ['registry', 'refresh'],
-      context(cwd, (url) => {
-        urls.push(url);
-        return Promise.resolve(PAGE);
-      }),
-    );
-    expect([result, urls]).toEqual([{ code: 0, stdout: 'locked 18 skills at 2026-10-07T00:00:00.000Z\n' }, ['https://skills.sh/']]);
+  test('live refresh resolves every locked skill at upstream HEAD', async () => {
+    const live = liveContext(repo());
+    const result = await runCli(['registry', 'refresh'], live);
+    expect([result, live.urls.slice(0, 2), live.urls.length]).toEqual([{ code: 0, stdout: 'locked 18 skills at 2026-10-07T00:00:00.000Z\n' }, ['https://skills.sh/docs/faq', 'https://skills.sh/'], 20]);
   });
 
-  test('refresh fails closed when the page format changes', async () => {
-    const cwd = repo();
-    expect(
-      await runCli(
-        ['registry', 'refresh'],
-        context(cwd, () => Promise.resolve('<html></html>')),
-      ),
-    ).toEqual({
-      code: 1,
-      stdout: 'leaderboard initialSkills payload not found\n',
-    });
+  test('live refresh records the resolved commit with its policy', async () => {
+    const live = liveContext(repo());
+    await runCli(['registry', 'refresh'], live);
+    const lock = JSON.parse(readFileSync(join(live.cwd, '.s50/registry.lock.json'), 'utf8'));
+    const triage = lock.snapshot.skills.find((skill: { readonly name: string }) => skill.name === 'triage');
+    expect([lock.schemaVersion, lock.kind, triage.lock.commit, triage.invocationPolicy]).toEqual([2, 'approved', HEAD, 'user']);
   });
 
-  test('show lists locked skills with rank, source, policy', async () => {
+  test('refresh fails when the page format changes', async () => {
+    expect(await runCli(['registry', 'refresh'], liveContext(repo(), '<html></html>'))).toEqual({ code: 1, stdout: 'leaderboard initialSkills payload not found\n' });
+  });
+
+  test('show lists locked skills with rank, source, policy, commit', async () => {
     const cwd = repo();
-    await runCli(['registry', 'refresh'], context(cwd));
+    await runCli(['registry', 'refresh'], liveContext(cwd));
     const shown = await runCli(['registry', 'show'], context(cwd));
-    expect(shown.stdout.split('\n').slice(0, 2)).toEqual(['1 vercel-labs/skills/find-skills model', '2 mattpocock/skills/grill-me user']);
+    expect(shown.stdout.split('\n').slice(0, 3)).toEqual(['snapshot 2026-10-07T00:00:00.000Z from https://skills.sh/', '1 vercel-labs/skills/find-skills model fffffff', '2 mattpocock/skills/grill-me user fffffff']);
   });
 
   test('verify accepts a fresh lock', async () => {
     const cwd = repo();
-    await runCli(['registry', 'refresh'], context(cwd));
+    await runCli(['registry', 'refresh'], liveContext(cwd));
     expect(await runCli(['registry', 'verify'], context(cwd))).toEqual({ code: 0, stdout: 'registry lock verified\n' });
   });
 
@@ -71,7 +95,7 @@ describe('registry commands', () => {
 
   test('a corrupt lock is reported invalid', async () => {
     const cwd = repo();
-    await runCli(['registry', 'refresh'], context(cwd));
+    await runCli(OFFLINE_REFRESH, context(cwd));
     writeFileSync(join(cwd, '.s50/registry.lock.json'), '{}');
     expect((await runCli(['registry', 'verify'], context(cwd))).stdout).toMatch(/^invalid registry lock: /);
   });
@@ -80,7 +104,7 @@ describe('registry commands', () => {
 describe('run commands', () => {
   async function started(): Promise<string> {
     const cwd = repo();
-    await runCli(['registry', 'refresh'], context(cwd));
+    await runCli(OFFLINE_REFRESH, context(cwd));
     await runCli(['feature', 'export invoices', '--criteria', 'csv lists invoices', '--installed', 'grilling,codebase-design,tdd'], context(cwd));
     return cwd;
   }
@@ -106,7 +130,7 @@ describe('run commands', () => {
 
   test('an unknown consumer kind is rejected', async () => {
     const cwd = repo();
-    await runCli(['registry', 'refresh'], context(cwd));
+    await runCli(OFFLINE_REFRESH, context(cwd));
     expect(await runCli(['feature', 'x', '--consumer', 'fax:machine'], context(cwd))).toEqual({
       code: 1,
       // biome-ignore lint/security/noSecrets: the CLI's consumer-kind usage text
@@ -116,7 +140,7 @@ describe('run commands', () => {
 
   test('malformed capabilities JSON is rejected', async () => {
     const cwd = repo();
-    await runCli(['registry', 'refresh'], context(cwd));
+    await runCli(OFFLINE_REFRESH, context(cwd));
     expect((await runCli(['feature', 'x', '--capabilities', '{'], context(cwd))).stdout).toMatch(/^--capabilities: /);
   });
 

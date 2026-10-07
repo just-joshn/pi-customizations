@@ -41,3 +41,12 @@ export function invalidate(evidence: readonly EvidenceRecord[], changedPaths: re
   });
   return [...evidence, ...appended];
 }
+
+// Integration changes what node and interface evidence proves even when no file path matches, so `node:<id>` and `interface:<name>` dependencies stale here.
+export function staleMatching(evidence: readonly EvidenceRecord[], keys: readonly string[], reason: string, clock: Clock): readonly EvidenceRecord[] {
+  const appended = latestByClaim(evidence).flatMap((record): EvidenceRecord[] => {
+    if (record.state === 'STALE' || !record.dependencies.some((dependency) => keys.some((key) => matches(dependency, key)))) return [];
+    return [{ ...record, id: clock.id('ev'), recordedAt: clock.now(), supersedes: record.id, state: 'STALE', observed: `stale: ${reason}` }];
+  });
+  return [...evidence, ...appended];
+}
