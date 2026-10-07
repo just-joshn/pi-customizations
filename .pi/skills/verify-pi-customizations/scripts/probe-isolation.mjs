@@ -13,13 +13,22 @@ const PACKAGE = join(ROOT, 'extensions/pi-pstack');
 function commands(extraArgs) {
   const scratch = mkdtempSync(join(tmpdir(), 'isolation-probe-'));
   try {
-    const out = execFileSync(
-      'pi',
-      ['--mode', 'rpc', '--no-session', ...extraArgs, '-e', PACKAGE],
-      { cwd: scratch, env: { ...process.env, PI_CODING_AGENT_DIR: scratch }, encoding: 'utf8', input: '{"id":"1","type":"get_commands"}\n', timeout: 120_000 },
-    );
-    const record = out.split('\n').filter(Boolean).map((line) => JSON.parse(line)).find((entry) => entry.id === '1');
-    return record.data.commands.filter((command) => command.source === 'extension').map((command) => command.name).sort();
+    const out = execFileSync('pi', ['--mode', 'rpc', '--no-session', ...extraArgs, '-e', PACKAGE], {
+      cwd: scratch,
+      env: { ...process.env, PI_CODING_AGENT_DIR: scratch },
+      encoding: 'utf8',
+      input: '{"id":"1","type":"get_commands"}\n',
+      timeout: 120_000,
+    });
+    const record = out
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => JSON.parse(line))
+      .find((entry) => entry.id === '1');
+    return record.data.commands
+      .filter((command) => command.source === 'extension')
+      .map((command) => command.name)
+      .sort();
   } finally {
     rmSync(scratch, { recursive: true, force: true });
   }
