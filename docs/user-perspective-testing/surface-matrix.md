@@ -325,7 +325,7 @@ side effect. Presentation only: all handlers are read-only and install only in T
 | TS-EVT-5 | event-hook | `tool_execution_start` | Tool starts | Adds a live activity row | extensions/pi-tui-skin/src/lifecycle/register-lifecycle.ts:29 | |
 | TS-EVT-6 | event-hook | `tool_execution_end` | Tool ends | Finishes the activity row | extensions/pi-tui-skin/src/lifecycle/register-lifecycle.ts:38 | |
 | TS-EVT-7 | event-hook | `model_select` and `thinking_level_select` | Model/thinking change | Repaints footer | extensions/pi-tui-skin/src/lifecycle/register-lifecycle.ts:47-51 | Two registrations |
-| TS-UI-1 | ui-widget | title `agent` | Session start | Terminal title is set to "agent" | extensions/pi-tui-skin/src/ui/install-ui.ts:75 | |
+| TS-UI-1 | ui-widget | terminal title | Settle a TUI session and read the pane title | The title is Pi's own "π - <workspace>"; the skin does not take it | extensions/pi-tui-skin/src/ui/install-ui.ts:75 | Was "Terminal title is set to \"agent\"" until the drive showed the skin cannot hold it; the call was removed |
 | TS-UI-2 | ui-widget | header banner | Session start | "Pi Coding Agent" + version + one random tip | extensions/pi-tui-skin/src/ui/install-ui.ts:79-84, src/ui/header.ts:30-40 | Tips rotate per launch |
 | TS-UI-3 | ui-widget | footer | Session start | Thinking-level row, model + context percentage row, location row | extensions/pi-tui-skin/src/ui/install-ui.ts:85-90, src/ui/footer.ts | Reads HOME to shorten paths |
 | TS-UI-4 | ui-widget | editor component | Session start | Custom prompt editor with a working-animation band | extensions/pi-tui-skin/src/ui/install-ui.ts:96-102 | |

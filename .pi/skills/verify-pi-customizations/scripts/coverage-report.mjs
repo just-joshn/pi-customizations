@@ -45,7 +45,7 @@ function readSurfaces(path) {
     .map((line) => {
       const cells = line.split('\t');
       if (cells.length !== SURFACE_COLUMNS.length) throw new Error(`${path}: row has ${cells.length} cells: ${line}`);
-      const surface = { surface_id: cells[0], package: cells[1], tier: cells[7] };
+      const surface = { surface_id: cells[0], package: cells[1], tier: cells[7], expected: cells[5] };
       if (seen.has(surface.surface_id)) throw new Error(`${path}: duplicate surface_id ${surface.surface_id}`);
       seen.add(surface.surface_id);
       return surface;
@@ -185,6 +185,15 @@ function buildRows(surfaces, receipts, head, warnings) {
     const base = { surface_id: surface.surface_id, package: surface.package, tier: surface.tier };
     if (!entries || entries.length === 0) {
       return { ...base, verdict: 'uncovered', observed: '', evidence: '', head_sha: '', checked_at: '' };
+    }
+    // A scenario authors its own expected text, which is the freedom that lets a claim move away
+    // from the row without anyone noticing. They are allowed to narrow; the divergence is not
+    // allowed to be silent.
+    for (const entry of entries) {
+      const claimed = stringValue(entry.receipt.expected);
+      if (!entry.problem && claimed && claimed !== surface.expected) {
+        warnings.push(`${surface.surface_id}: receipt expected text differs from the row (row: ${JSON.stringify(surface.expected)}, receipt: ${JSON.stringify(claimed)})`);
+      }
     }
     const valid = entries.filter((entry) => !entry.problem);
     if (valid.length === 0) {
