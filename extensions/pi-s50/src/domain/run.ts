@@ -4,7 +4,7 @@ import type { Graph } from './graph.ts';
 import type { RegistrySnapshot } from './registry.ts';
 import type { Mode, Phase, RunStatus } from './state.ts';
 
-export const RUN_SCHEMA_VERSION = 3;
+export const RUN_SCHEMA_VERSION = 2;
 
 export const CONSUMER_KINDS = ['browser', 'electron', 'cli', 'tui', 'http', 'rpc', 'library', 'native'] as const;
 

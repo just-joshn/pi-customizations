@@ -69,7 +69,7 @@ describe('registry commands', () => {
     await runCli(['registry', 'refresh'], live);
     const lock = JSON.parse(readFileSync(join(live.cwd, '.s50/registry.lock.json'), 'utf8'));
     const triage = lock.snapshot.skills.find((skill: { readonly name: string }) => skill.name === 'triage');
-    expect([lock.schemaVersion, lock.kind, triage.lock.commit, triage.invocationPolicy]).toEqual([2, 'approved', HEAD, 'user']);
+    expect([lock.schemaVersion, lock.kind, triage.lock.commit, triage.invocationPolicy]).toEqual([1, 'approved', HEAD, 'user']);
   });
 
   test('refresh fails when the page format changes', async () => {

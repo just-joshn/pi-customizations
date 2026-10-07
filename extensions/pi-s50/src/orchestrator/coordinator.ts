@@ -4,6 +4,7 @@ import type { Gate, Mode, Phase, RunStatus } from '../domain/state.ts';
 import { redact, redactValue, routeConsumer } from '../evidence/verification.ts';
 import { currentReview, prReadyBlockers, requiredEvidence } from '../policy/completion.ts';
 import { canModelInvoke, installedDrift, routeSkills } from '../policy/invocation.ts';
+import { verifySnapshot } from '../registry/validate.ts';
 import { reviewAssurance, reviewDimensions } from '../review/reviewer.ts';
 import { schedule } from '../scheduler/ownership.ts';
 import type { Clock } from './clock.ts';
@@ -43,7 +44,7 @@ import {
 } from './handlers.ts';
 import { advance, guard } from './phases.ts';
 import { classify } from './routes.ts';
-import { command as commandDecoder } from './schema.ts';
+import { command as commandDecoder, preflight as preflightDecoder } from './schema.ts';
 
 const MODE_SKILLS: { readonly [M in Mode]: readonly string[] } = {
   feature: ['grilling', 'codebase-design', 'tdd'],
@@ -171,6 +172,8 @@ function holdReady(outcome: Outcome, clock: Clock): Outcome {
 // The fetched guideline text is hashed, never stored, so redacting it would only corrupt the digest.
 const UNREDACTED_KEYS: ReadonlySet<string> = new Set(['guidelinesContent']);
 
+const NOTHING_KEPT: ReadonlySet<string> = new Set();
+
 // Routed skills are invoked once per phase visit, so leaving a phase forgets which skills it loaded.
 function settle(before: RunState, after: RunState): RunState {
   const moved = after.run.phase !== before.run.phase && after.run.invokedSkills.length > 0 ? withRun(after, { invokedSkills: [] }) : after;
@@ -186,11 +189,14 @@ export function apply(state: RunState, command: Command, clock: Clock): Outcome 
 
 function describePreflight(run: Run, facts: Preflight): string {
   const list = (items: readonly string[]): string => (items.length === 0 ? 'none' : items.join(','));
+  const caps = run.capabilities;
+  const lockProblems = verifySnapshot(run.skillRegistry);
   return [
     `preflight root=${facts.repositoryRoot} remote=${facts.remote ?? 'none'} rev=${facts.revision} dirty=${facts.dirty}`,
     `languages=${list(facts.languages)} pm=${facts.packageManager} test=${list(facts.testCommands)} build=${list(facts.buildCommands)}`,
     `instructions=${list(facts.instructions)} glossary=${list(facts.glossary)} adrs=${facts.adrs} react=${facts.reactStack}`,
-    `installed=${list(run.capabilities.installedSkills.map((skill) => skill.name))} registry=${run.skillRegistry.snapshotTime} consumer=${routeConsumer(run.consumer.kind, run.capabilities).kind}`,
+    `installed=${list(run.capabilities.installedSkills.map((skill) => skill.name))} registry=${run.skillRegistry.snapshotTime} lock=${lockProblems.length === 0 ? 'verified' : 'unverified'}`,
+    `agents=${caps.independentAgents} worktrees=${caps.isolatedWorktrees} browser=${caps.browserDriver} native=${caps.nativeAutomation} consumer=${routeConsumer(run.consumer.kind, caps).kind}`,
   ].join(' ');
 }
 
@@ -212,13 +218,16 @@ function preflightRisks(run: Run, facts: Preflight): readonly string[] {
     ...(route.kind === 'inconclusive' ? [`consumer verification will be INCONCLUSIVE: ${route.missing}`] : []),
     ...(facts.testCommands.length === 0 ? ['no test command found'] : []),
     ...installedDrift(run.skillRegistry, run.capabilities.installedSkills),
+    ...verifySnapshot(run.skillRegistry).map((problem) => `locked registry does not verify: ${problem}`),
   ];
   return [...run.risks, ...found.filter((risk) => !run.risks.includes(risk))];
 }
 
 export function applyPreflight(state: RunState, input: Preflight, clock: Clock): Outcome {
   if (state.run.phase !== 'PREFLIGHT') return reject(`preflight runs in PREFLIGHT, not ${state.run.phase}`);
-  const facts: Preflight = { ...input, repositoryRoot: redact(input.repositoryRoot), remote: input.remote === null ? null : redact(input.remote) };
+  const clean = decode(preflightDecoder, redactValue(input, NOTHING_KEPT));
+  if (clean.kind === 'invalid') return reject(`invalid preflight facts: ${clean.reason}`);
+  const facts = clean.value;
   const gate = preflight(state, facts);
   const status: RunStatus = gate === null ? state.run.status : { kind: 'blocked', gate };
   const summary = gate === null ? describePreflight(state.run, facts) : `${describePreflight(state.run, facts)}; blocked on ${gate.kind} gate`;

@@ -70,11 +70,10 @@ const registryLock: Decoder<RegistryLock> = tagged<RegistryLock>({
   rejected: object({ kind: oneOf(['rejected']), checkedAt: str, source: str, ineligible: array(str) }),
 });
 
-export const REGISTRY_LOCK_VERSION = 2;
+export const REGISTRY_LOCK_VERSION = 1;
 
 export function parseLock(input: unknown): Decoded<RegistryLock> {
   const { schemaVersion } = isRecord(input) ? input : {};
-  if (schemaVersion === 1) return decode(registryLock, { kind: 'approved', snapshot: input });
   if (schemaVersion !== REGISTRY_LOCK_VERSION) return { kind: 'invalid', reason: `unsupported registry lock schema version ${String(schemaVersion ?? 'none')}` };
   return decode(registryLock, input);
 }

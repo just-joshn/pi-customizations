@@ -53,7 +53,7 @@ export const capabilities: Decoder<HostCapabilities> = object<HostCapabilities>(
   installedSkills: array(object<InstalledSkill>({ name: nonEmptyStr, contentHash: nullable(str) })),
 });
 
-const preflight = object<Preflight>({
+export const preflight: Decoder<Preflight> = object<Preflight>({
   repositoryRoot: str,
   remote: nullable(str),
   revision: str,

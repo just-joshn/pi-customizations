@@ -41,30 +41,25 @@ describe('.s50 persistence', () => {
     expect(readFileSync(join(dir, 'evidence.jsonl'), 'utf8').trim().split('\n').length).toBe(2);
   });
 
-  function v2Run() {
-    const { integrationOwner: _owner, preflight: _preflight, ...rest } = freshRun().run;
-    return { ...rest, schemaVersion: 2, capabilities: { ...rest.capabilities, installedSkills: ['tdd'] } };
-  }
-
-  test('schema v1 run migrates to v3', async () => {
+  test('schema v1 run migrates to v2', async () => {
     const dir = join(repo(), '.s50');
     await saveState(dir, null, freshRun(), []);
-    const { diagnostics: _dropped, phase: _phase, ...rest } = v2Run();
-    writeFileSync(join(dir, 'run.json'), JSON.stringify({ ...rest, schemaVersion: 1, status: 'IMPLEMENT' }));
+    const { diagnostics: _dropped, phase: _phase, invokedSkills: _invoked, integrationOwner: _owner, preflight: _preflight, ...rest } = freshRun().run;
+    const v1 = { ...rest, schemaVersion: 1, status: 'IMPLEMENT', capabilities: { ...rest.capabilities, installedSkills: ['tdd'] } };
+    writeFileSync(join(dir, 'run.json'), JSON.stringify(v1));
     const loaded = await loadState(dir);
     if (loaded.kind !== 'ok') throw new Error(loaded.kind === 'invalid' ? loaded.reason : loaded.kind);
     const { run } = loaded.state;
-    expect([loaded.migrated, run.schemaVersion, run.phase, run.status, run.diagnostics, run.capabilities.installedSkills, run.preflight]).toEqual([true, 3, 'IMPLEMENT', { kind: 'active' }, [], [{ name: 'tdd', contentHash: null }], null]);
-  });
-
-  test('a v2 promoted loop migrates red with its promotion kept', async () => {
-    const dir = join(repo(), '.s50');
-    await saveState(dir, null, freshRun(), []);
-    const loop = { id: 'l', kind: 'fuzz', command: 'x', symptom: 'y', status: 'promoted', promotedTo: 'seam' };
-    writeFileSync(join(dir, 'run.json'), JSON.stringify({ ...v2Run(), diagnostics: [loop] }));
-    const loaded = await loadState(dir);
-    if (loaded.kind !== 'ok') throw new Error(loaded.kind === 'invalid' ? loaded.reason : loaded.kind);
-    expect(loaded.state.run.diagnostics).toEqual([{ ...loop, status: 'red', instrumentation: [] }]);
+    expect([loaded.migrated, run.schemaVersion, run.phase, run.status, run.diagnostics, run.capabilities.installedSkills, run.preflight, run.invokedSkills]).toEqual([
+      true,
+      2,
+      'IMPLEMENT',
+      { kind: 'active' },
+      [],
+      [{ name: 'tdd', contentHash: null }],
+      null,
+      [],
+    ]);
   });
 
   test.for([
@@ -148,7 +143,7 @@ describe('CLI over .s50', () => {
     await runCli(START, context(cwd));
     const refreshed = await runCli(['registry', 'refresh', '--from', 'leaderboard.diagnosing-bugs-rank-51.json', '--sources', 'skill-sources.2026-10-07.json'], context(cwd));
     expect(refreshed).toEqual({ code: 2, stdout: 'ineligible required skills outside the top 50: diagnosing-bugs; strict mode starts no new run\n' });
-    expect(JSON.parse(readFileSync(join(cwd, '.s50/registry.lock.json'), 'utf8'))).toEqual({ schemaVersion: 2, kind: 'rejected', checkedAt: '2026-10-07T09:14:55Z', source: 'https://skills.sh/', ineligible: ['diagnosing-bugs'] });
+    expect(JSON.parse(readFileSync(join(cwd, '.s50/registry.lock.json'), 'utf8'))).toEqual({ schemaVersion: 1, kind: 'rejected', checkedAt: '2026-10-07T09:14:55Z', source: 'https://skills.sh/', ineligible: ['diagnosing-bugs'] });
     const loaded = await loadState(join(cwd, '.s50'));
     expect(loaded.kind === 'ok' && loaded.state.run.skillRegistry.skills.find((skill) => skill.name === 'diagnosing-bugs')?.rank).toBe(42);
   });

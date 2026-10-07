@@ -43,7 +43,7 @@ Re-applying a command whose effect already holds returns `ok` with the same stat
 The data shape lives in `src/domain/`:
 
 - `state.ts`: the 20 phases, the five modes, the `Gate` union, and `RunStatus` (`active`, `blocked` with a gate, `inconclusive` with what is missing, `pr_ready` with a revision).
-- `run.ts`: `Run` (schema version 3), `RunState` (`run`, `graph`, `evidence`, `findings`), `Preflight`, `DiagnosticLoop`, and `InstalledSkill`.
+- `run.ts`: `Run` (schema version 2), `RunState` (`run`, `graph`, `evidence`, `findings`), `Preflight`, `DiagnosticLoop`, and `InstalledSkill`.
 - `graph.ts`: `GraphNode` with dependencies, owner, write set, schemas, migrations, defined and consumed interfaces, runtime ownership, expected behavior, and verification method.
 - `evidence.ts`: `EvidenceRecord` with states `MEASURED`, `INFERRED`, `UNKNOWN`, `INCONCLUSIVE`, `STALE`, and `FAILED`.
 - `findings.ts`: `Finding` with severity, trigger, consequence, evidence, revision, owner, status, reviewer, and the guideline digest.
@@ -53,8 +53,8 @@ The data shape lives in `src/domain/`:
 
 | File | Shape | Write mode |
 | --- | --- | --- |
-| `registry.lock.json` | `RegistryLock`, schema version 2 | replaced by `registry refresh` |
-| `run.json` | `Run`, schema version 3 | replaced atomically |
+| `registry.lock.json` | `RegistryLock`, schema version 1 | replaced by `registry refresh` |
+| `run.json` | `Run`, schema version 2 | replaced atomically |
 | `graph.json` | `Graph`, schema version 1 | replaced atomically |
 | `evidence.jsonl` | one `EvidenceRecord` per line, each with `schemaVersion` | append-only |
 | `findings.jsonl` | one `Finding` per status change, each with `schemaVersion` | append-only |
@@ -62,7 +62,7 @@ The data shape lives in `src/domain/`:
 | `.gitignore` | `*` | written once, when S50 creates `.s50/` |
 | `worktrees/<node>/` | a Git worktree per concurrent node | created by `start_nodes` |
 
-`loadState` validates `run.json`, `graph.json`, `evidence.jsonl`, and `findings.jsonl`, and migrates version 1 and 2 runs step by step to version 3. `readLock` migrates a version 1 lock file to an approved lock. `readDecisions` validates the decision log. A JSONL line without `schemaVersion` reads as version 1, and any other version is refused.
+`loadState` validates `run.json`, `graph.json`, `evidence.jsonl`, and `findings.jsonl`, and migrates a version 1 run, which kept the phase in `status`, to version 2 through the `MIGRATIONS` table. `readLock` and `readDecisions` validate the lock and the decision log. Every JSONL line must carry `schemaVersion` 1, and a lock file must carry `schemaVersion` 1; anything else is refused.
 
 Inside one Pi process, every surface runs under `withFileMutationQueue` on the `.s50/` path, and the tool runs with `executionMode: 'sequential'`, so sibling tool calls cannot interleave a read-modify-write of `.s50/`.
 

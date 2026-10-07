@@ -103,16 +103,19 @@ describe('snapshot lifecycle', () => {
 
   test('lock round-trips through the boundary parser', () => {
     const snapshot = registry();
-    expect(parseLock(JSON.parse(JSON.stringify({ schemaVersion: 2, kind: 'approved', snapshot })))).toEqual({ kind: 'ok', value: { kind: 'approved', snapshot } });
+    expect(parseLock(JSON.parse(JSON.stringify({ schemaVersion: 1, kind: 'approved', snapshot })))).toEqual({ kind: 'ok', value: { kind: 'approved', snapshot } });
   });
 
-  test('a version 1 lock file migrates to an approved lock', () => {
-    const snapshot = registry();
-    expect(parseLock(JSON.parse(JSON.stringify(snapshot)))).toEqual({ kind: 'ok', value: { kind: 'approved', snapshot } });
+  test('a bare snapshot is not a lock file', () => {
+    expect(parseLock(JSON.parse(JSON.stringify(registry())))).toEqual({ kind: 'invalid', reason: '$.kind: expected one of approved|rejected' });
+  });
+
+  test('a lock file from an unknown schema version is refused', () => {
+    expect(parseLock({ schemaVersion: 9, kind: 'approved', snapshot: registry() })).toEqual({ kind: 'invalid', reason: 'unsupported registry lock schema version 9' });
   });
 
   test('parser rejects a lock with cutoff 60', () => {
-    expect(parseLock({ schemaVersion: 2, kind: 'approved', snapshot: { ...registry(), cutoff: 60 } })).toEqual({ kind: 'invalid', reason: '$.snapshot.cutoff: expected one of 50' });
+    expect(parseLock({ schemaVersion: 1, kind: 'approved', snapshot: { ...registry(), cutoff: 60 } })).toEqual({ kind: 'invalid', reason: '$.snapshot.cutoff: expected one of 50' });
   });
 
   test('frontmatter policy follows disable-model-invocation', () => {

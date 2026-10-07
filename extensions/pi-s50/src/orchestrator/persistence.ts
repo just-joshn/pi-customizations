@@ -29,29 +29,30 @@ const FILES = {
 
 type Migration = (input: Readonly<Record<string, unknown>>) => Decoded<Readonly<Record<string, unknown>>>;
 
-function v2Loop(loop: unknown): unknown {
-  if (!isRecord(loop)) return loop;
-  // A v2 "promoted" loop never proved the reproducer green, so it migrates as red with its promotion kept.
-  const { status } = loop;
-  return { ...loop, status: status === 'promoted' ? 'red' : status, instrumentation: [] };
-}
-
-function v2Capabilities(capabilities: Readonly<Record<string, unknown>>): unknown {
+function v1Capabilities(capabilities: unknown): unknown {
+  if (!isRecord(capabilities)) return capabilities;
   const { installedSkills: installed } = capabilities;
   return { ...capabilities, installedSkills: Array.isArray(installed) ? installed.map((name) => ({ name, contentHash: null })) : installed };
 }
 
+// Version 1 kept the phase in `status`, listed installed skills by name, and had no diagnostics, preflight, or skill bookkeeping.
 const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: (input) => {
-    const { status: phase, rootCause } = input;
+    const { status: phase, rootCause, capabilities } = input;
     if (typeof phase !== 'string') return { kind: 'invalid', reason: 'v1 run.json status must be a phase string' };
-    return { kind: 'ok', value: { ...input, schemaVersion: 2, phase, status: { kind: 'active' }, diagnostics: [], rootCause: rootCause ?? null } };
-  },
-  2: (input) => {
-    const { diagnostics: loops, capabilities: host } = input;
-    const diagnostics = Array.isArray(loops) ? loops.map(v2Loop) : loops;
-    const capabilities = isRecord(host) ? v2Capabilities(host) : host;
-    return { kind: 'ok', value: { ...input, schemaVersion: 3, diagnostics, capabilities, invokedSkills: [], integrationOwner: null, preflight: null } };
+    const value = {
+      ...input,
+      schemaVersion: 2,
+      phase,
+      status: { kind: 'active' },
+      capabilities: v1Capabilities(capabilities),
+      diagnostics: [],
+      rootCause: rootCause ?? null,
+      invokedSkills: [],
+      integrationOwner: null,
+      preflight: null,
+    };
+    return { kind: 'ok', value };
   },
 };
 

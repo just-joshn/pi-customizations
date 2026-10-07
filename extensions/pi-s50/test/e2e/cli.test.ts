@@ -107,7 +107,7 @@ describe('s50 CLI process', () => {
     const started = s50(cwd, 'feature', 'export invoices as CSV', '--criteria', 'csv lists every invoice;readme documents export', '--installed', ALL_SKILLS.join(','));
     expect([started.code, started.stdout.split('\n')[1]]).toEqual([0, 'phase: CLARIFY (active)']);
     const run = JSON.parse(stateFile(cwd, 'run.json'));
-    expect([run.schemaVersion, run.phase, run.preflight.revision, stateFile(cwd, '.gitignore')]).toEqual([3, 'CLARIFY', run.currentRevision, '*\n']);
+    expect([run.schemaVersion, run.phase, run.preflight.revision, stateFile(cwd, '.gitignore')]).toEqual([2, 'CLARIFY', run.currentRevision, '*\n']);
     expect(applyAllOk(cwd, [...(await scripted(runtime, 'grilling', run.objective)), { kind: 'advance', to: 'DOMAIN' }])).toBe('DOMAIN/active');
     expect(applyAllOk(cwd, [MODEL_CHANGES, ...(await scripted(runtime, 'domain-modeling', run.objective)), { kind: 'advance', to: 'ARCHITECT' }, ...(await scripted(runtime, 'codebase-design', run.objective))])).toBe('ARCHITECT/active');
     expect(applyAllOk(cwd, [{ kind: 'advance', to: 'CONFIRM_TDD_SEAMS' }, ...(await scripted(runtime, 'tdd', run.objective))])).toBe('CONFIRM_TDD_SEAMS/blocked');
