@@ -12,10 +12,12 @@
  * control can evaluate all of them per mutant. The default export below drives
  * the live entrypoint and writes the receipts.
  */
+import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { COMPOSITE_IDLE_PLACEHOLDER, COMPOSITE_MODEL, COMPOSITE_MODEL_ALT, COMPOSITE_MODEL_COMMAND, COMPOSITE_THINKING_HINT, COMPOSITE_WIDGET_LINE } from './lib/pi-tui-skin-composite-drive.mjs';
+import { piBinary, requireTmux } from '../../../../extensions/pi-tui-skin/scripts/lib/tmux-driver.mjs';
+import { COMPOSITE_IDLE_PLACEHOLDER, COMPOSITE_MODEL, COMPOSITE_MODEL_ALT, COMPOSITE_MODEL_COMMAND, COMPOSITE_PACKAGE, COMPOSITE_THINKING_HINT, COMPOSITE_WIDGET_LINE, runCompositeSession } from './lib/pi-tui-skin-composite-drive.mjs';
 
 /** The eight cleanup calls `uninstall` issues, each with its reset argument. */
 export const COMPOSITE_CLEANUPS = [
@@ -196,3 +198,24 @@ export const COMPOSITE_CHECKS = [
     },
   },
 ];
+
+export default async function piTuiSkinComposite(context) {
+  const { repoRoot, rawDir, receipts, log } = context;
+  requireTmux();
+  piBinary();
+  const observations = runCompositeSession({ repoRoot, rawDir });
+  for (const check of COMPOSITE_CHECKS) {
+    const result = check.run(observations);
+    receipts.assertVerdict({
+      surfaceId: check.surfaceId,
+      package: COMPOSITE_PACKAGE,
+      expected: check.expected,
+      observed: result.detail,
+      evidence: check.evidence(observations),
+      check: () => {
+        assert.ok(result.ok, result.detail);
+      },
+    });
+  }
+  log(`✓ ${receipts.receipts().length} composite receipts written`);
+}
