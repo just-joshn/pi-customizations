@@ -52,6 +52,17 @@ test('the execution subagent takes its model from its own variable, not the task
   }
 });
 
+test('an unavailable execution model is rejected instead of silently inheriting', async () => {
+  vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'copilot_cli_execution_subagent,copilot_cli_execution_subagent_model');
+  vi.stubEnv('EXECUTION_SUBAGENT_MODEL', 'missing/none');
+  const fixture = await workerFixture();
+  try {
+    await expect(fixture.call('execution_subagent', { description: 'run it', prompt: 'hello' })).rejects.toThrow(/missing\/none/);
+  } finally {
+    await fixture.close();
+  }
+});
+
 test('the execution model variable is ignored while its own flag is off', async () => {
   vi.stubEnv('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'copilot_cli_execution_subagent');
   vi.stubEnv('EXECUTION_SUBAGENT_MODEL', 'worker-test/alternate');
