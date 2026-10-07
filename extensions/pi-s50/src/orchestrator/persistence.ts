@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import type { Finding } from '../domain/findings.ts';
 import type { RegistryLock } from '../domain/registry.ts';
 import { RUN_SCHEMA_VERSION, type RunState } from '../domain/run.ts';
 import { appendJsonl, latestById, readJsonl } from '../evidence/store.ts';
@@ -109,8 +110,15 @@ export async function loadState(dir: string): Promise<Loaded> {
   if (evidence.kind === 'invalid') return evidence;
   const findings = await readJsonl(join(dir, FILES.findings), finding);
   if (findings.kind === 'invalid') return findings;
-  const state: RunState = { run: decodedRun.value, graph: decodedGraph.value, evidence: evidence.value, findings: latestById(findings.value) };
+  const state: RunState = { run: decodedRun.value, graph: decodedGraph.value, evidence: evidence.value, findings: latestById(findings.value).map(labelLegacy) };
   return { kind: 'ok', state, migrated: rawRun.value !== migrated.value };
+}
+
+const NOT_RECORDED = '(not recorded)';
+
+function labelLegacy(item: Finding): Finding {
+  const label = (value: string): string => (value === '' ? NOT_RECORDED : value);
+  return { ...item, trigger: label(item.trigger), consequence: label(item.consequence), evidence: label(item.evidence), owner: label(item.owner) };
 }
 
 export async function saveState(dir: string, before: RunState | null, after: RunState, decisions: readonly DecisionLog[]): Promise<void> {

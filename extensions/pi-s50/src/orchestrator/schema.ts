@@ -152,8 +152,13 @@ const severity = oneOf(['critical', 'high', 'medium', 'low']);
 const guidelines = nullable(object<NonNullable<Finding['guidelines']>>({ contentHash: str, skillLock: str }));
 const findingInputFields = { severity, trigger: nonEmptyStr, consequence: nonEmptyStr, evidence: nonEmptyStr, owner: nonEmptyStr, reviewer: nonEmptyStr };
 
+// Findings written before these fields were required may hold empty strings; they still load, and the loader labels them.
 export const finding: Decoder<Finding> = object<Finding>({
   ...findingInputFields,
+  trigger: str,
+  consequence: str,
+  evidence: str,
+  owner: str,
   guidelines,
   id: nonEmptyStr,
   revision: str,

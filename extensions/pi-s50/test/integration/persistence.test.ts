@@ -53,7 +53,7 @@ describe('.s50 persistence', () => {
     expect(loaded.kind === 'ok' && loaded.state.findings.map((item) => item.guidelines)).toEqual([{ contentHash: 'sha256:abc', skillLock: 'web-design-guidelines@063bee9' }]);
   });
 
-  test.fails('a finding saved before fields were required still loads', async () => {
+  test('a finding saved before fields were required still loads', async () => {
     const dir = join(repo(), '.s50');
     await saveState(dir, null, freshRun(), []);
     const legacy = { id: 'finding-1', severity: 'low', trigger: 't', consequence: 'c', evidence: '', owner: '', reviewer: 'r', revision: 'r1', status: 'open', guidelines: null };
