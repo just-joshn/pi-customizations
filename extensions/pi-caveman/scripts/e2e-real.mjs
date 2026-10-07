@@ -58,6 +58,7 @@ createInterface({ input: process.stdin }).on('line', (line) => {
 });
 `;
 const REAL_HOME = process.env.HOME;
+const PAGE_TEXT = 'Version 4.2 fixes the login timeout.';
 const SERVICES_COMMAND = (url) =>
   [
     `caveman shrink -- sh -c '${TOOL_COMMAND.replaceAll("'", '')}' | tail -n 2`,
@@ -247,7 +248,7 @@ try {
     JSON.stringify(results.map((entry) => Object.keys(entry.message))),
   );
 
-  const page = createServer((_req, res) => res.end('<html><body><h1>Release notes</h1><p>Version 4.2 fixes the login timeout.</p></body></html>'));
+  const page = createServer((_req, res) => res.end(`<h1>Release notes</h1><p>${PAGE_TEXT}</p>`));
   await new Promise((r) => page.listen(0, '127.0.0.1', r));
   servicesUrl = `http://127.0.0.1:${page.address().port}/`;
   const services = await runPi('RUN_SERVICES please', { ...env, CAVE_SSRF_ALLOWLIST: `${allow},127.0.0.1:${page.address().port}` });
@@ -257,7 +258,7 @@ try {
   const [shrinkOut, memOut, browseOut, hookOut] = serviceText.split('---\n');
   check(services.code === 0 && /caveman: shrank .* recover: caveman retrieve ccr_[a-f0-9]+/.test(shrinkOut ?? ''), 'caveman shrink -- <cmd> compresses command output from Pi bash with a recovery handle', shrinkOut);
   check(/"basis": "inferred"/.test(memOut ?? '') && (memOut ?? '').includes('secret/deploy'), 'caveman mem remember and recall round-trip from Pi bash with an inferred cost basis', memOut);
-  check(/"recovery_handle":"ccr_[a-f0-9]+"/.test(browseOut ?? '') && (browseOut ?? '').includes('Version 4.2 fixes the login timeout.'), 'caveman browse returns a compressed page view with a recovery handle from Pi bash', browseOut);
+  check(/"recovery_handle":"ccr_[a-f0-9]+"/.test(browseOut ?? '') && (browseOut ?? '').includes(PAGE_TEXT), 'caveman browse returns a compressed page view with a recovery handle from Pi bash', browseOut);
   check((hookOut ?? '').includes('Pi: no auto-recall surface'), 'caveman mem hook install pi reports that Pi has no auto-recall surface', hookOut);
 
   const mcpConfig = join(home, '.pi', 'agent', 'mcp.json');
