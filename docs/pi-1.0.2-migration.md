@@ -1,5 +1,7 @@
 # Pi 1.0.2 migration
 
+This report records the earlier migration. The current development target is documented in [Pi 1.0.4 development target](pi-1.0.4-migration.md).
+
 ## Scope
 
 The migration covers all six packages under `extensions/`. Every Pi development dependency pins `1.0.2`. Executable extensions retain wildcard host peers. The theme-only package has no runtime imports or host peers.
