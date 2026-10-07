@@ -1,7 +1,7 @@
 {
   "name": "pi-caveman",
   "version": "0.1.0",
-  "description": "Pi-native Caveman: terse caveman voice modes, mode tracking, status badge, stats, compress, and cavecrew subagents.",
+  "description": "Pi-native Caveman: voice modes, mode tracking, status, stats, compress, cavecrew, and the native runtime (proxy routing, caveman_retrieve exact recovery, tool-output shrinking).",
   "type": "module",
   "license": "Apache-2.0",
   "keywords": [
@@ -12,7 +12,8 @@
   },
   "pi": {
     "extensions": [
-      "./src/index.ts"
+      "./src/index.ts",
+      "./vendor/caveman/packages/pi-extension/src/index.ts"
     ],
     "skills": [
       "./skills"
@@ -26,6 +27,10 @@
     "skills",
     "prompts",
     "agents",
+    "vendor/caveman/packages/pi-extension/src",
+    "vendor/caveman/packages/pi-extension/NOTICE",
+    "vendor/caveman/packages/pi-extension/LICENSE",
+    "vendor/caveman/packages/cli/src/provider-routing.ts",
     "NOTICE",
     "README.md",
     "LICENSE"
@@ -33,8 +38,11 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -p .",
-    "sync:upstream": "node scripts/sync-upstream.mjs"
+    "typecheck": "tsc -p . && tsc -p tsconfig.vendor.json",
+    "sync:upstream": "node scripts/sync-upstream.mjs",
+    "vendor": "node scripts/vendor-runtime.mjs",
+    "check:vendor": "node scripts/vendor-runtime.mjs --check",
+    "test:runtime": "node scripts/test-runtime.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
@@ -48,6 +56,7 @@
     "@earendil-works/pi-tui": "1.0.2",
     "@types/node": "^22.19.0",
     "@vitest/coverage-v8": "^5.0.2",
+    "esbuild": "0.28.1",
     "typebox": "1.3.27",
     "typescript": "^7.0.2",
     "vitest": "^5.0.2"
