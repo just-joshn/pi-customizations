@@ -91,7 +91,7 @@ describe('tui-skin extension chrome lifecycle', () => {
     const { ctx, ui } = sessionContext('tui');
 
     handlers.get('session_start')?.({}, ctx);
-    expect(ui.setTitle).toHaveBeenCalledWith('agent');
+    expect(ui.setTitle).not.toHaveBeenCalled();
     expect(ui.setTheme).toHaveBeenCalledWith('tui-skin');
     expect(ui.setHeader).toHaveBeenCalledTimes(1);
     expect(ui.setFooter).toHaveBeenCalledTimes(1);

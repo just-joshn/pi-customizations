@@ -72,7 +72,6 @@ export function createUiController(store: PresentationStore): UiController {
       if (ctx.mode !== 'tui' || installed) return;
       installed = true;
 
-      ctx.ui.setTitle('agent');
       ctx.ui.setTheme('tui-skin');
 
       const header = createHeader(ctx);

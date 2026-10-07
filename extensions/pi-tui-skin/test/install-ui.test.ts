@@ -71,7 +71,7 @@ type UiCall = { method: string; args: unknown[] };
 
 const UI_METHODS = ['setTitle', 'setTheme', 'setHeader', 'setFooter', 'setEditorComponent', 'setWidget', 'setWorkingIndicator', 'setWorkingMessage', 'setWorkingVisible', 'setHiddenThinkingLabel'];
 
-const INSTALL_METHODS = ['setTitle', 'setTheme', 'setHeader', 'setFooter', 'setEditorComponent', 'setWorkingIndicator', 'setWorkingMessage', 'setWidget', 'setHiddenThinkingLabel'];
+const INSTALL_METHODS = ['setTheme', 'setHeader', 'setFooter', 'setEditorComponent', 'setWorkingIndicator', 'setWorkingMessage', 'setWidget', 'setHiddenThinkingLabel'];
 const UNINSTALL_METHODS = ['setWidget', 'setEditorComponent', 'setFooter', 'setHeader', 'setWorkingMessage', 'setWorkingIndicator', 'setWorkingVisible', 'setHiddenThinkingLabel'];
 
 function fakeContext(mode: string) {
@@ -148,7 +148,7 @@ describe('install-ui controller', () => {
     controller.install(ctx);
 
     expect(calls.map((call) => call.method)).toEqual(INSTALL_METHODS);
-    expect(callsFor(calls, 'setTitle')[0]?.args).toEqual(['agent']);
+    expect(callsFor(calls, 'setTitle')).toEqual([]);
     expect(callsFor(calls, 'setTheme')[0]?.args).toEqual(['tui-skin']);
     expect(callsFor(calls, 'setHiddenThinkingLabel')[0]?.args).toEqual(['Thinking']);
     const widget = callsFor(calls, 'setWidget')[0];
