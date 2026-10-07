@@ -205,6 +205,39 @@ test.for(['write', 'edit'])('the model cannot %s files under .s50', async (toolN
   expect(await toolCall(handlers, cwd, toolName, { path: join(cwd, '.s50/run.json'), content: '{}' })).toStrictEqual({ block: true, reason: S50_ONLY });
 });
 
+// Reaching a second human gate needs the CLARIFY and ARCHITECT rounds, so the helper drives the documented commands.
+async function gateBlockedRun(): Promise<string> {
+  const cwd = await startedRun();
+  const apply = (spec: object) => runCli(['apply', JSON.stringify(spec)], testContext(cwd));
+  await apply({ kind: 'advance', to: 'CLASSIFY' });
+  await apply({ kind: 'advance', to: 'CLARIFY' });
+  await apply({ kind: 'ask_decisions', questions: [{ id: 'q1', title: 'Format', body: 'CSV or TSV?', recommendation: 'CSV', dependsOn: [] }] });
+  await apply({ kind: 'answer_decisions', decisions: [{ id: 'q1', question: 'Format', answer: 'CSV', decidedBy: 'user' }] });
+  await apply({ kind: 'ask_decisions', questions: [] });
+  await apply({ kind: 'confirm_understanding' });
+  await apply({ kind: 'advance', to: 'DOMAIN' });
+  await apply({ kind: 'answer_decisions', decisions: [{ id: 'domain.model_change', question: 'Model change?', answer: 'no', decidedBy: 'fact' }] });
+  await apply({ kind: 'advance', to: 'ARCHITECT' });
+  await apply({
+    kind: 'propose_designs',
+    candidates: [
+      { id: 'a', summary: 'stream', tradeoffs: 'more code' },
+      { id: 'b', summary: 'buffer', tradeoffs: 'memory' },
+    ],
+  });
+  await apply({ kind: 'choose_design', id: 'a', reason: 'bounded memory', interfaces: [], seams: [], ownership: [] });
+  await apply({ kind: 'advance', to: 'CONFIRM_TDD_SEAMS' });
+  await apply({ kind: 'propose_seams', seams: [{ id: 'seam-cli', description: 'csv stdout', catches: 'format regressions', misses: 'disk errors' }] });
+  return cwd;
+}
+
+test.fails('a gated bash command while another gate is open is blocked without a dialog', async () => {
+  const { handlers } = loadFakePi();
+  const cwd = await gateBlockedRun();
+  const ui = fakeUi(true);
+  expect([await bashCall(handlers, cwd, 'git push --force origin main', ui), ui.confirms]).toStrictEqual([{ block: true, reason: 'S50 is blocked on the seam_confirmation gate; resolve that before force_push' }, []]);
+});
+
 test('gated commands outside an S50 run pass through', async () => {
   const { handlers } = loadFakePi();
   expect(await bashCall(handlers, repo(), 'git push --force origin main', null)).toStrictEqual(undefined);
