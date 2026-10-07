@@ -41,6 +41,18 @@ describe('.s50 persistence', () => {
     expect(readFileSync(join(dir, 'evidence.jsonl'), 'utf8').trim().split('\n').length).toBe(2);
   });
 
+  test('a finding changed in place is saved', async () => {
+    const dir = join(repo(), '.s50');
+    const base = freshRun();
+    const finding = { id: 'finding-1', severity: 'low', trigger: 't', consequence: 'c', evidence: 'e', owner: 'o', reviewer: 'r', revision: 'r1', status: 'open', guidelines: null } as const;
+    const before = { ...base, findings: [finding] };
+    await saveState(dir, null, before, []);
+    const after = { ...before, findings: [{ ...finding, guidelines: { contentHash: 'sha256:abc', skillLock: 'web-design-guidelines@063bee9' } }] };
+    await saveState(dir, before, after, []);
+    const loaded = await loadState(dir);
+    expect(loaded.kind === 'ok' && loaded.state.findings.map((item) => item.guidelines)).toEqual([{ contentHash: 'sha256:abc', skillLock: 'web-design-guidelines@063bee9' }]);
+  });
+
   test('schema v1 run migrates to v2', async () => {
     const dir = join(repo(), '.s50');
     await saveState(dir, null, freshRun(), []);

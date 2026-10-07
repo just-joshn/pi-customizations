@@ -41,7 +41,7 @@ Preflight turns these into risks: a dirty tree, an INCONCLUSIVE consumer route, 
 
 **Upstream (`grilling`).** Decisions form a tree. Each round asks the whole frontier, numbered, each with a recommended answer. A question that depends on another open question waits for a later round. Facts are found by the agent, never asked. The work waits for the user to confirm a shared understanding.
 
-**S50.** `ask_decisions` blocks the run on a `decisions` gate and refuses a question whose `dependsOn` names an undecided one. `answer_decisions` clears the gate once every question is answered, and it is a user decision when any answer is `decidedBy: user`. An empty round asks for the shared-understanding confirmation, and only `confirm_understanding` records it. `CLARIFY -> DOMAIN` is refused until it holds.
+**S50.** `ask_decisions` blocks the run on a `decisions` gate and refuses a question whose `dependsOn` names an undecided one. `answer_decisions` clears the gate once every question is answered. A question put to the user takes only a `decidedBy: user` answer, and a fact cannot replace a user's decision; Pi asks the user before the model may record a user answer. An empty round asks for the shared-understanding confirmation, and only `confirm_understanding` records it. `CLARIFY -> DOMAIN` is refused until it holds.
 
 ## Domain
 
@@ -71,7 +71,7 @@ Preflight turns these into risks: a dirty tree, an INCONCLUSIVE consumer route, 
 
 **Upstream (`tdd`).** Tests live only at seams confirmed with the user. One failing test, then only enough code to pass it. Refactoring is not part of the loop; it belongs to review.
 
-**S50.** `propose_seams` needs each seam's description, what it catches, and what it misses, and blocks on `seam_confirmation`. A confirmed seam cannot be rewritten under the same id. `record_test` at an unconfirmed seam is rejected. A test's GREEN record is refused until the same test has a RED record, and a GREEN test cannot go back to RED. `CONFIRM_TDD_SEAMS -> BUILD_GRAPH` needs at least one confirmed seam.
+**S50.** `propose_seams` needs each seam's description, what it catches, and what it misses, and blocks on `seam_confirmation`. A confirmed seam cannot be rewritten under the same id. `record_test` at an unconfirmed seam is rejected. A test's GREEN record is refused until the same test has a RED record, and a test that is GREEN at the current revision cannot be recorded RED. `CONFIRM_TDD_SEAMS -> BUILD_GRAPH` needs at least one confirmed seam.
 
 ## The diagnostic-test exception (bug)
 
@@ -104,6 +104,6 @@ See [verification.md](verification.md#review).
 
 ## Authorization
 
-**S50.** `request_authorization` blocks for force-push, merge, deploy, destructive data deletion, public messages, customer communication, sensitive-data disclosure, and other irreversible actions. Only `grant_authorization` with the exact action and scope clears it, and Pi asks the user before the model may apply it. A broad autonomy grant does not clear it.
+**S50.** `request_authorization` is refused while the run is INCONCLUSIVE, and otherwise blocks for force-push, merge, deploy, destructive data deletion, public messages, customer communication, sensitive-data disclosure, and other irreversible actions. Only `grant_authorization` with the exact action and scope clears it, and Pi asks the user before the model may apply it. A broad autonomy grant does not clear it.
 
 **Host.** Inside Pi, a `tool_call` handler recognizes force-push, PR merge, deploy, destructive deletion, publish, and public-message bash commands during a run. With a UI it asks the user and records the request and the grant. Without a UI it blocks the command.

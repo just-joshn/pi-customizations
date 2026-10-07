@@ -205,8 +205,8 @@ async function applyCommand(context: CliContext, raw: string | undefined): Promi
       await saveState(dir, state, synced.state, synced.decisions);
       return refused(outcomeJson(outcome));
     }
-    await saveState(dir, state, outcome.state, [...synced.decisions, ...outcome.decisions]);
     const workspaces = parsed.kind === 'start_nodes' ? await workspacesFor(context, outcome.state) : [];
+    await saveState(dir, state, outcome.state, [...synced.decisions, ...outcome.decisions]);
     return { code: gated(outcome.state), stdout: outcomeJson(outcome, workspaces) };
   });
 }

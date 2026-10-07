@@ -122,7 +122,7 @@ export async function saveState(dir: string, before: RunState | null, after: Run
   );
   const changed = after.findings.filter((item) => {
     const prior = before?.findings.find((candidate) => candidate.id === item.id);
-    return prior === undefined || prior.status !== item.status;
+    return prior === undefined || JSON.stringify(prior) !== JSON.stringify(item);
   });
   await appendJsonl(join(dir, FILES.findings), changed);
   await appendJsonl(join(dir, FILES.decisions), decisions);

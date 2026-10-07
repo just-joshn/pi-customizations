@@ -23,6 +23,8 @@ const HORIZONTAL_LAYERS = ['database', 'backend', 'frontend', 'tests', 'api', 'u
 // Node ids name Git branches and worktree directories, so they stay plain path segments.
 const NODE_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
+const nodeIdUsable = (id: string): boolean => NODE_ID.test(id) && !id.includes('..') && !id.endsWith('.lock');
+
 const TDD_CLAIM = 'tdd:';
 
 export function invokeSkill(state: RunState, skill: string, clock: Clock): Outcome {
@@ -80,10 +82,15 @@ export function askDecisions(state: RunState, questions: readonly Question[], cl
 
 export function answerDecisions(state: RunState, decisions: readonly Decision[], clock: Clock): Outcome {
   if (decisions.some((answer) => answer.id === SHARED_UNDERSTANDING_ID)) return reject(`${SHARED_UNDERSTANDING_ID} is recorded only by confirm_understanding`);
+  const gate = blockedGate(state.run);
+  const asked = gate?.kind === 'decisions' ? gate.questions.map((question) => question.id) : [];
+  const guessed = decisions.find((answer) => answer.decidedBy !== 'user' && asked.includes(answer.id));
+  if (guessed !== undefined) return reject(`question ${guessed.id} was put to the user; only the user's answer records it`);
   const existing = state.run.domain.decisions;
+  const overruled = decisions.find((answer) => answer.decidedBy !== 'user' && existing.some((decision) => decision.id === answer.id && decision.decidedBy === 'user'));
+  if (overruled !== undefined) return reject(`decision ${overruled.id} is the user's; a fact cannot replace it`);
   if (decisions.every((answer) => existing.some((decision) => same(decision, answer)))) return noop(state);
   const merged = [...existing.filter((decision) => !decisions.some((answer) => answer.id === decision.id)), ...decisions];
-  const gate = blockedGate(state.run);
   const answered = gate?.kind === 'decisions' && gate.questions.every((question) => merged.some((decision) => decision.id === question.id));
   const status: RunStatus = answered ? { kind: 'active' } : state.run.status;
   return done(withRun(state, { domain: { ...state.run.domain, decisions: merged }, status }), 'answer_decisions', `answered ${decisions.map((decision) => decision.id).join(', ')}`, clock);
@@ -163,8 +170,11 @@ export function recordTest(state: RunState, command: Extract<Command, { kind: 'r
   if (!isConfirmed(state.run, command.seam)) return reject(`seam ${command.seam} is not confirmed; TDD tests need a confirmed seam`, { kind: 'seam_confirmation', seams: [command.seam] });
   const claim = `${TDD_CLAIM}${command.name}`;
   const previous = latestByClaim(state.evidence).find((record) => record.claim === claim);
-  if (command.result === 'green' && previous?.state !== 'FAILED') return reject(`test ${command.name} has no RED record; prove it fails before recording GREEN`);
-  if (command.result === 'red' && previous?.state === 'MEASURED') return reject(`test ${command.name} is already GREEN; write a new failing behavior test`);
+  const provedRed = state.evidence.some((record) => record.claim === claim && record.state === 'FAILED');
+  if (command.result === 'green' && !provedRed) return reject(`test ${command.name} has no RED record; prove it fails before recording GREEN`);
+  if (command.result === 'red' && previous?.state === 'MEASURED' && previous.revision === state.run.currentRevision) {
+    return reject(`test ${command.name} is GREEN at this revision; write a new failing behavior test`);
+  }
   const evidence: EvidenceInput = {
     claim,
     criterion: `${TDD_CLAIM}${command.seam}`,
@@ -268,7 +278,7 @@ export function validateGraph(nodes: readonly GraphNodeInput[]): string | null {
   if (nodes.length === 0) return 'graph needs at least one node';
   const ids = new Set<string>();
   for (const node of nodes) {
-    if (!NODE_ID.test(node.id) || node.id.includes('..')) return `node id ${JSON.stringify(node.id)} must be letters, digits, dots, dashes, or underscores`;
+    if (!nodeIdUsable(node.id)) return `node id ${JSON.stringify(node.id)} must be letters, digits, dots, dashes, or underscores`;
     if (ids.has(node.id)) return `duplicate node id ${node.id}`;
     ids.add(node.id);
     if (HORIZONTAL_LAYERS.includes(node.objective.trim().toLowerCase())) return `node ${node.id} objective "${node.objective}" is a horizontal layer; slice vertically`;
@@ -416,6 +426,7 @@ export function requestAuthorization(state: RunState, action: AuthorizationActio
   const gate = blockedGate(state.run);
   if (gate !== null && grantMatches(gate, action, scope)) return noop(state);
   if (gate !== null) return reject(`run already blocked on ${gate.kind} gate`, gate);
+  if (state.run.status.kind === 'inconclusive') return reject(`run is INCONCLUSIVE: missing ${state.run.status.missing}; resolve it before an irreversible action`);
   return done(withRun(state, { status: { kind: 'blocked', gate: { kind: 'authorization', action, scope } } }), 'request_authorization', `authorization requested: ${action} ${scope}`, clock);
 }
 

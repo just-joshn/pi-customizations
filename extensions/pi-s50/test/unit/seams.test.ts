@@ -114,9 +114,19 @@ describe('TDD red then green', () => {
     ]);
   });
 
-  test('a GREEN test cannot be recorded RED again', () => {
+  test('a GREEN test cannot be recorded RED at the same revision', () => {
     const { state } = applyAll(confirmed(), [tddTest('red'), tddTest('green')]);
-    expect(apply(state, tddTest('red'), fixedClock())).toEqual({ kind: 'rejected', reason: 'test empty line parses is already GREEN; write a new failing behavior test', gate: null });
+    expect(apply(state, tddTest('red'), fixedClock())).toEqual({ kind: 'rejected', reason: 'test empty line parses is GREEN at this revision; write a new failing behavior test', gate: null });
+  });
+
+  test('a stale GREEN test can be recorded GREEN again', () => {
+    const { state } = applyAll(confirmed(), [tddTest('red'), tddTest('green'), { kind: 'revision_changed', revision: 'r2', changedPaths: ['src/parser/split.ts'] }, tddTest('green')]);
+    expect(state.evidence.map((record) => [record.state, record.revision])).toEqual([
+      ['FAILED', 'r1'],
+      ['MEASURED', 'r1'],
+      ['STALE', 'r1'],
+      ['MEASURED', 'r2'],
+    ]);
   });
 
   test('TDD evidence cannot be forged through record_evidence', () => {

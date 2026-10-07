@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import type { Command } from '../../src/orchestrator/command.ts';
 import { apply } from '../../src/orchestrator/coordinator.ts';
 import { fixedClock } from '../support/clock.ts';
-import { expectOk, freshRun, satisfiedAt } from './support.ts';
+import { applyAll, expectOk, freshRun, node, satisfiedAt } from './support.ts';
 
 function ready() {
   return expectOk(apply(satisfiedAt('REVERIFY_STALE', 'PR_READY'), { kind: 'advance', to: 'PR_READY' }, fixedClock()));
@@ -86,13 +86,55 @@ describe('live PR_READY predicate', () => {
 });
 
 describe('redaction of stored text', () => {
-  test('redaction covers finding owner, reviewer, decision summary', () => {
+  test('redaction covers finding free text', () => {
     // biome-ignore lint/security/noSecrets: synthetic test values
-    const [owner, reviewer] = [['Bearer', 'abcdef123456'].join(' '), ['password', 'hunter2'].join('=')];
-    const outcome = apply(inPhase('VERIFY'), { kind: 'record_finding', finding: { ...FINDING, owner, reviewer } }, fixedClock());
-    const state = expectOk(outcome);
-    const redactedReviewer = `${'password'}=<REDACTED>`;
-    expect([state.findings[0]?.owner, state.findings[0]?.reviewer]).toEqual(['Bearer <REDACTED>', redactedReviewer]);
-    expect(outcome.kind === 'ok' && outcome.decisions[0]?.summary).toBe(`high finding finding-1 by ${redactedReviewer}`);
+    const [evidence, consequence] = [['curl -H', 'Bearer', 'abcdef123456'].join(' '), ['login with', ['password', 'hunter2'].join('=')].join(' ')];
+    const state = expectOk(apply(inPhase('VERIFY'), { kind: 'record_finding', finding: { ...FINDING, evidence, consequence } }, fixedClock()));
+    expect([state.findings[0]?.evidence, state.findings[0]?.consequence]).toEqual(['curl -H Bearer <REDACTED>', `login with ${'password'}=<REDACTED>`]);
+  });
+
+  test('identifiers that look like secrets stay distinct', () => {
+    const base = inPhase('VERIFY');
+    const nodes = ['sk-login-flow', 'sk-signup-flow'].map((id) => node(id));
+    const state = expectOk(apply({ ...base, run: { ...base.run, phase: 'BUILD_GRAPH' } }, { kind: 'build_graph', nodes }, fixedClock()));
+    expect(state.graph.nodes.map((item) => item.id)).toEqual(['sk-login-flow', 'sk-signup-flow']);
+  });
+});
+
+describe('user decisions', () => {
+  const ASKED: Command = { kind: 'ask_decisions', questions: [{ id: 'q1', title: 'Format', body: 'CSV?', recommendation: 'CSV', dependsOn: [] }] };
+
+  function clarifying() {
+    const base = freshRun();
+    return { ...base, run: { ...base.run, phase: 'CLARIFY' as const } };
+  }
+
+  test('a question put to the user cannot be answered as a fact', () => {
+    const asked = expectOk(apply(clarifying(), ASKED, fixedClock()));
+    expect(apply(asked, { kind: 'answer_decisions', decisions: [{ id: 'q1', question: 'CSV?', answer: 'CSV', decidedBy: 'fact' }] }, fixedClock())).toEqual({
+      kind: 'rejected',
+      reason: "question q1 was put to the user; only the user's answer records it",
+      gate: null,
+    });
+  });
+
+  test('a fact cannot replace a user decision', () => {
+    const { state } = applyAll(clarifying(), [ASKED, { kind: 'answer_decisions', decisions: [{ id: 'q1', question: 'CSV?', answer: 'CSV', decidedBy: 'user' }] }]);
+    expect(apply(state, { kind: 'answer_decisions', decisions: [{ id: 'q1', question: 'CSV?', answer: 'TSV', decidedBy: 'fact' }] }, fixedClock())).toEqual({
+      kind: 'rejected',
+      reason: "decision q1 is the user's; a fact cannot replace it",
+      gate: null,
+    });
+  });
+});
+
+describe('INCONCLUSIVE runs', () => {
+  test('an INCONCLUSIVE run refuses an authorization request', () => {
+    const inconclusive = expectOk(apply(inPhase('VERIFY'), { kind: 'declare_inconclusive', missing: 'agent-browser' }, fixedClock()));
+    expect(apply(inconclusive, { kind: 'request_authorization', action: 'deploy', scope: 'prod' }, fixedClock())).toEqual({
+      kind: 'rejected',
+      reason: 'run is INCONCLUSIVE: missing agent-browser; resolve it before an irreversible action',
+      gate: null,
+    });
   });
 });

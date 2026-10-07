@@ -169,8 +169,33 @@ function holdReady(outcome: Outcome, clock: Clock): Outcome {
   return { ...outcome, state, decisions: [...outcome.decisions, { at: clock.now(), phase: 'REVERIFY_STALE', command: 'advance', summary: `left PR_READY: ${blockers.join('; ')}` }] };
 }
 
-// The fetched guideline text is hashed, never stored, so redacting it would only corrupt the digest.
-const UNREDACTED_KEYS: ReadonlySet<string> = new Set(['guidelinesContent']);
+// Identifiers link one command to the next, so redacting them could merge two ids or break a lookup.
+// The fetched guideline text is hashed and never stored, so redacting it would only corrupt the digest.
+const UNREDACTED_KEYS: ReadonlySet<string> = new Set([
+  'guidelinesContent',
+  'id',
+  'ids',
+  'loopId',
+  'seamId',
+  'seam',
+  'dependsOn',
+  'dependencies',
+  'claim',
+  'criterion',
+  'name',
+  'owner',
+  'reviewer',
+  'integrator',
+  'revision',
+  'changedPaths',
+  'writeSet',
+  'schemas',
+  'migrations',
+  'definesInterfaces',
+  'consumesInterfaces',
+  'runtimeOwnership',
+  'skill',
+]);
 
 const NOTHING_KEPT: ReadonlySet<string> = new Set();
 
