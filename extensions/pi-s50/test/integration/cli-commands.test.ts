@@ -132,6 +132,14 @@ describe('run commands', () => {
     expect(result.stdout.split('\n').slice(0, 2)).toEqual(['consumer route: drive_executable', 'MISSING csv lists invoices']);
   });
 
+  test.fails('status lists the preflight risks', async () => {
+    const cwd = await started();
+    const run = JSON.parse(readFileSync(join(cwd, '.s50/run.json'), 'utf8'));
+    run.risks = ['a dirty tree at preflight', 'no test command found'];
+    writeFileSync(join(cwd, '.s50/run.json'), JSON.stringify(run));
+    expect((await runCli(['status'], context(cwd))).stdout).toContain('risks: a dirty tree at preflight; no test command found');
+  });
+
   test('explain ends with the next action', async () => {
     const lines = (await runCli(['explain'], context(await started()))).stdout.trim().split('\n');
     expect(lines.at(-1)).toBe('next: invoke skill grilling');
