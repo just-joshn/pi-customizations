@@ -26,7 +26,7 @@ Preconditions:
 
 - **Query registered commands.** Send `{"type": "get_commands"}` to the RPC session loading the root repository. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive standalone-skills`.
 - **Verify skill availability.** Filter returned commands for `source: "skill"` and ensure `skill:doctor`, `skill:implement-cli-from-contract`, `skill:reverse-engineer-cli`, `skill:run`, and `skill:simplify` are all registered.
-- **Proof.** Verify that artifacts exist at `artifacts/verify-pi-customizations/standalone-skills/skills.txt` and `skills.json`.
+- **Proof.** Receipts `RS-SKILL-1.json` through `RS-SKILL-5.json` exist under `artifacts/user-perspective/standalone-skills/`, each asserted against `raw/rpc-1.jsonl`.
 
 ## Gotchas
 

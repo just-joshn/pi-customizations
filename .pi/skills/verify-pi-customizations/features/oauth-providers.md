@@ -22,9 +22,9 @@ Preconditions:
 - For the two manual `pi --list-models` commands below, the `auth.json` in your normal Pi data directory must contain a matching OAuth credential record. The driver creates a separate temporary `auth.json` fixture for its own checks.
 
 - **List Claude models manually.** Execute `pi --no-extensions -e extensions/pi-anthropic-oauth --list-models claude-subscription`. The model list includes Claude Opus models from the installed Pi Anthropic catalog. Exact model IDs depend on the Pi version.
-- **List Antigravity models manually.** Execute `pi --no-extensions -e extensions/pi-antigravity-oauth --list-models google-antigravity`. The model list includes `gemini-3-flash-agent`, `claude-opus-4-6-thinking`, and other Antigravity models.
+- **List Antigravity models manually.** Execute `pi --no-extensions -e extensions/pi-antigravity-oauth --list-models google-antigravity`. The model list includes `gemini-3.6-flash`, `claude-opus-5-5`, `claude-sonnet-5-5`, `gpt-oss-120b`, and other Antigravity models. Exact model IDs follow the extension's catalog snapshot and the Pi version.
 - **Run verification.** Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive oauth-providers`.
-- **Proof.** Verify that artifacts exist at `artifacts/verify-pi-customizations/oauth-providers/claude-models.txt` and `antigravity-models.txt`. The fixture drive proves model listing only. It does not prove login, token validity, token refresh, or a successful model response.
+- **Proof.** Receipts `AN-PROV-1.json`, `AG-PROV-1.json`, and `XA-PROV-1.json` exist under `artifacts/user-perspective/oauth-providers/`, asserted against `raw/claude-models.txt`, `raw/antigravity-models.txt`, and `raw/grok-build-models.txt`. The fixture drive proves model listing only. It does not prove login, token validity, token refresh, or a successful model response.
 
 ## Gotchas
 

@@ -24,7 +24,7 @@ Preconditions:
 
 - **Turn off mode.** Send `/poteto-mode off` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive poteto-mode`. An `extension_ui_request` notification arrives with `message: "Poteto mode is off."` and `notifyType: "info"`. The driver asserts the message and records `notifyType` without asserting it.
 - **Verify branch entry.** Check the appended entries stream. An `entry_appended` record arrives with `type: "custom"`, `customType: "pstack-state"`, and `data.enabled: false`. In this fresh session, `data.todos` is empty; toggling an existing branch preserves its todos. The driver records `todos` without asserting it.
-- **Proof.** Verify that artifacts exist at `artifacts/verify-pi-customizations/poteto-mode/off.txt` and `off.json`. The JSON file captures both the UI notification and the custom state entry.
+- **Proof.** Receipts `PS-UI-5.json` and `PS-CMD-1.json` exist under `artifacts/user-perspective/poteto-mode/`, each asserted against `raw/rpc-1.jsonl`. The receipts capture both the UI notification and the custom state entry.
 
 ## Gotchas
 

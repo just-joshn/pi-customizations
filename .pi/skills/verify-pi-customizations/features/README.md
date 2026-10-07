@@ -13,7 +13,8 @@ This directory is the maintained source for verifying the user-facing behavior o
 
 - Use `./.pi/skills/verify-pi-customizations/bin/control-pi` for mapped RPC drives. Run manual CLI checks only when a feature recipe lists them.
 - Capture both the command input and the observable outputs (stdout, stderr, custom RPC messages, notifications, state entries).
-- Write evidence artifacts under `artifacts/verify-pi-customizations/<feature>/`.
+- `control-pi drive <name>` loads `scenarios/<name>.mjs`; adding a scenario is adding a file, and an unknown name lists the available scenarios.
+- Write one receipt per asserted surface under `artifacts/user-perspective/<scenario>/<surface_id>.json`, with the raw capture it was asserted against under `artifacts/user-perspective/<scenario>/raw/`. The receipt contract lives in `docs/user-perspective-testing/README.md`.
 - Do not remove proof artifacts during cleanup; remove only temporary scratch directories and child processes.
 
 ## Proof and skip reporting
@@ -21,6 +22,7 @@ This directory is the maintained source for verifying the user-facing behavior o
 - Proof for CLI commands includes exit code, stdout, and stderr.
 - Proof for RPC prompts includes custom messages (`pstack-status`), UI notifications (`notify`), and appended branch entries (`pstack-state`).
 - Proof for model providers includes table listing of available models.
+- A drive exits nonzero when any receipt it wrote has verdict `failed`.
 - Record the feature ID and entry point used with every artifact.
 - Do not report a skipped entry point as verified through a different path.
 

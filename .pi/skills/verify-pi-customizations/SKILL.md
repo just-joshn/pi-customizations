@@ -9,18 +9,13 @@ Drive `pi-customizations` packages and extensions through the real Pi CLI and RP
 
 ## Launch
 
-For verification, Pi runs in RPC mode with `--no-session` and `--no-extensions`, loading the target package explicitly via `-e <package-dir>` inside an isolated temporary directory (`PI_CODING_AGENT_DIR` set to a disposable scratch directory).
+For verification, Pi runs in RPC mode inside an isolated temporary directory with `PI_CODING_AGENT_DIR` pointed at a disposable scratch directory and the target package loaded explicitly via `-e <package-dir>`. `lib/rpc.mjs` owns the launch, spawns the real `pi` binary from `PATH` (override with `PI_BIN`), and appends every stdout record to a raw capture file as it arrives so a crash still leaves evidence.
 
-Exact launch command:
-```bash
-pi --mode rpc --no-session --no-extensions -e <package-dir>
-```
+Base launch args: `pi --mode rpc -e <package-dir>`, plus `--no-session` unless the caller opts into session persistence. A scenario that must observe restart persistence passes `persistSession` (and usually `sessionId`) to `startSession`, then calls `session.restart()` and reads prior state.
 
-Ready indicator:
-- The Pi process starts listening on stdin/stdout. Sending `{"id":"1","type":"get_commands"}` receives an immediate response with `{"id":"1","type":"response","command":"get_commands","success":true}`.
+The client exposes a dialog bridge for `select`, `confirm`, `input`, and `editor` requests, a settle-aware `prompt(message)`, `waitForIdle`, enumeration helpers (`commands`, `messages`, `models`, `state`, `bash`), and a per-request deadline that names the timed-out request.
 
-Teardown:
-- Close process stdin (`child.stdin.end()`), wait up to 5 seconds for normal exit, and issue `SIGKILL` only if the child fails to terminate. Remove the scratch directory.
+Teardown: `session.close()` ends stdin, waits up to 5 seconds for normal exit, and issues `SIGKILL` only to that child. The CLI removes only its own scratch directory.
 
 ## Doctor
 
@@ -40,7 +35,7 @@ Exits `0` on success. If doctor fails, resolve environment issues before driving
 
 ## Drive
 
-Drive features end-to-end using the project harness:
+Scenarios are modules under `scenarios/`. `drive <name>` loads `scenarios/<name>.mjs`, so a new scenario is a new file with no CLI edit; an unknown name reports the available scenario names. Each scenario asserts through `lib/receipts.mjs`, which writes the receipt and the assertion in one call, and the CLI exits nonzero when any receipt written during the run has verdict `failed`.
 
 ```bash
 # Verify pstack status and todo reporting
@@ -56,44 +51,42 @@ Drive features end-to-end using the project harness:
 ./.pi/skills/verify-pi-customizations/bin/control-pi drive oauth-providers
 ```
 
-To choose a custom evidence directory for a supported feature drive:
-```bash
-./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-status --out artifacts/custom-status
-```
+`--out <dir>` overrides the scenario artifact directory for receipts and raw captures.
 
 ## Evidence
 
-Every drive captures user-observable evidence written directly to `artifacts/verify-pi-customizations/<feature>/`:
+Every scenario writes receipts and raw captures under `artifacts/user-perspective/<scenario>/`:
 
-- **pstack-status:**
-  - `status.txt` and `status.json`: complete pstack version, team-kit version, skill counts (65 skills, 64 prompt templates), and mode state.
-  - `todos.txt`: output confirming todo list state (`Todos: none.`).
-- **poteto-mode:**
-  - `off.txt` and `off.json`: UI notification (`"Poteto mode is off."`) and appended branch state entry (`"pstack-state"`, `enabled: false`).
-- **standalone-skills:**
-  - `skills.txt` and `skills.json`: verified registration of `skill:doctor`, `skill:implement-cli-from-contract`, `skill:reverse-engineer-cli`, `skill:run`, and `skill:simplify`.
-- **oauth-providers:**
-  - `claude-models.txt`: table of registered `claude-subscription` models.
-  - `antigravity-models.txt`: table of registered `google-antigravity` models.
-  - `grok-build-models.txt`: table of registered `grok-build` models.
+- `<surface_id>.json`: the receipt defined by `docs/user-perspective-testing/README.md`, with `head_sha`, `pi_version`, and `checked_at` filled in.
+- `raw/`: the stdout capture the assertion ran against, written before the assertion, plus any CLI output a drive reads.
+
+Surface coverage by scenario:
+
+- **pstack-status:** `PS-CMD-4` (`/pstack status` and `/pstack todos` post `pstack-status` custom messages and report `Todos: none.`) and `PS-UI-8` (the status block reports the pstack and team-kit versions plus the bundled counts of 71 skills and 69 prompt templates). Raw capture `raw/rpc-1.jsonl`.
+- **poteto-mode:** `PS-UI-5` (`/poteto-mode off` notifies `"Poteto mode is off."`) and `PS-CMD-1` (the command appends a `pstack-state` entry with `enabled: false`). Raw capture `raw/rpc-1.jsonl`.
+- **standalone-skills:** `RS-SKILL-1` through `RS-SKILL-5` register `skill:doctor`, `skill:run`, `skill:simplify`, `skill:reverse-engineer-cli`, and `skill:implement-cli-from-contract`. Raw capture `raw/rpc-1.jsonl`.
+- **oauth-providers:** `AN-PROV-1`, `AG-PROV-1`, and `XA-PROV-1` list provider models from the fixture `auth.json`. Raw captures `raw/claude-models.txt`, `raw/antigravity-models.txt`, and `raw/grok-build-models.txt`.
 
 Proof standards:
 - All commands execute through real CLI/RPC calls, not unit test stubs.
 - Evidence records action, responses, notifications, and branch state mutations.
 - Proof artifacts survive cleanup.
-- Coverage is limited to the mapped drives: status and empty todos, the mode-off notification and appended state, skill registration, and fixture-backed provider model listing. These drives do not prove restart persistence, workflow execution, OAuth login, or inference.
-- Run doctor before each fresh drive and again after a failure. Check saved artifacts at their named paths after cleanup.
+- Coverage is limited to the mapped surfaces: status and empty todos, the mode-off notification and appended state, skill registration, and fixture-backed provider model listing. These drives do not prove restart persistence, workflow execution, OAuth login, or inference.
+- Run doctor before each fresh drive and again after a failure.
 
 ## Cleanup
 
 Cleanup is strictly scoped to test instances:
-- The harness tracks the child PID started for verification and terminates only that process. It never runs blanket process-killing commands like `pkill pi`.
+- The harness tracks every child process it starts and terminates only those processes. It never runs blanket process-killing commands like `pkill pi`.
 - The temporary scratch directory (`/tmp/control-pi-*`) is completely removed in process exit hooks.
-- Proof artifacts in `artifacts/verify-pi-customizations/` are preserved for review.
+- Receipts and raw captures under `artifacts/user-perspective/` are preserved for review.
 
 ## Helpers
 
-The verification skill provides `./.pi/skills/verify-pi-customizations/bin/control-pi`, an executable Node.js CLI script that encapsulates isolated environment setup, RPC lifecycle management, assertion checking, and evidence collection:
+The verification skill provides `./.pi/skills/verify-pi-customizations/bin/control-pi`, an executable Node.js CLI script, plus two libraries it loads:
 
-- `./.pi/skills/verify-pi-customizations/bin/control-pi doctor`: environment and CLI readiness probe.
-- `./.pi/skills/verify-pi-customizations/bin/control-pi drive <feature> [--out <dir>]`: runs mapped feature drives (`pstack-status`, `poteto-mode`, `standalone-skills`, `oauth-providers`).
+- `lib/rpc.mjs`: generic RPC session client (real `pi` child, raw capture, dialog bridge, settle-aware prompting, restart, enumeration, per-request deadlines).
+- `lib/receipts.mjs`: receipt writer and validator; `assertVerdict` writes a `verified` or `failed` receipt from a real assertion.
+- `scenarios/<name>.mjs`: one module per scenario, default-exporting an async function that takes the CLI context.
+- `control-pi doctor`: environment and CLI readiness probe.
+- `control-pi drive <name> [--out <dir>]`: runs the matching scenario.

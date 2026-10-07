@@ -1,19 +1,22 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+import { createReceipts } from '../lib/receipts.mjs';
+import { createRpcSession } from '../lib/rpc.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 // Root of pi-customizations workspace is 4 levels up: bin -> verify-pi-customizations -> skills -> .pi -> repo root
 const REPO_ROOT = resolve(__dirname, '../../../..');
-
-const REQUEST_TIMEOUT_MS = 15000;
-const SHUTDOWN_TIMEOUT_MS = 5000;
+const SCENARIOS_DIR = resolve(__dirname, '../scenarios');
+const ARTIFACTS_ROOT = join(REPO_ROOT, 'artifacts/user-perspective');
+const SCENARIO_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
 function parseArgs(args) {
   const [command, ...rest] = args;
@@ -34,165 +37,48 @@ function parseArgs(args) {
   return options;
 }
 
-function createRpcSession(packagePath, cwd) {
-  const child = spawn('pi', ['--mode', 'rpc', '--no-session', '--no-extensions', '-e', packagePath], {
-    cwd,
-    env: { ...process.env, PI_CODING_AGENT_DIR: cwd },
-    stdio: ['pipe', 'pipe', 'pipe'],
-  });
+function piBin() {
+  return process.env.PI_BIN ?? 'pi';
+}
 
-  const pendingRequests = new Map();
-  const uiNotifications = [];
-  const entriesAppended = [];
-  let stderr = '';
-  let requestSeq = 0;
-  let closedError = null;
+async function scenarioNames() {
+  const entries = await readdir(SCENARIOS_DIR).catch(() => []);
+  return entries
+    .filter((name) => name.endsWith('.mjs'))
+    .map((name) => name.slice(0, -4))
+    .sort();
+}
 
-  const onFatalError = (err) => {
-    for (const [id, req] of pendingRequests.entries()) {
-      clearTimeout(req.timer);
-      req.reject(err);
-      pendingRequests.delete(id);
-    }
-  };
+function runDoctorChecks() {
+  const [major, minor] = process.versions.node.split('.').map(Number);
+  assert.ok(major > 22 || (major === 22 && minor >= 19), `Node.js >= 22.19.0 required, current is ${process.versions.node}`);
+  process.stdout.write(`✓ Node.js ${process.versions.node} (>= 22.19.0)\n`);
 
-  let buffer = '';
-  child.stdout.setEncoding('utf8');
-  child.stdout.on('data', (chunk) => {
-    buffer += chunk;
-    let newlineIndex = buffer.indexOf('\n');
-    while (newlineIndex >= 0) {
-      const line = buffer.slice(0, newlineIndex).trim();
-      buffer = buffer.slice(newlineIndex + 1);
-      if (line) {
-        try {
-          const record = JSON.parse(line);
-          if (record.type === 'response') {
-            const req = pendingRequests.get(record.id);
-            if (req) {
-              clearTimeout(req.timer);
-              pendingRequests.delete(record.id);
-              if (record.success) {
-                req.resolve(record.data);
-              } else {
-                req.reject(new Error(record.error ?? 'RPC response indicated failure'));
-              }
-            }
-          } else if (record.type === 'extension_ui_request' && record.method === 'notify') {
-            uiNotifications.push({ message: record.message, notifyType: record.notifyType });
-          } else if (record.type === 'entry_appended') {
-            entriesAppended.push(record.entry);
-          }
-        } catch (parseErr) {
-          // ignore unparseable RPC lines
-        }
-      }
-      newlineIndex = buffer.indexOf('\n');
-    }
-  });
+  let version = '';
+  try {
+    version = execFileSync(piBin(), ['--version'], { encoding: 'utf8' }).trim();
+  } catch (error) {
+    throw new Error(`Failed to execute 'pi --version': ${error.message}`);
+  }
+  assert.ok(version.length > 0, 'Pi CLI returned empty version');
+  process.stdout.write(`✓ Pi CLI executable on PATH (${version})\n`);
 
-  child.stderr.setEncoding('utf8');
-  child.stderr.on('data', (chunk) => {
-    stderr += chunk;
-  });
-
-  child.on('error', (err) => {
-    onFatalError(err);
-  });
-
-  const closePromise = new Promise((resolveClose) => {
-    child.once('close', (code, signal) => {
-      closedError = new Error(`Pi process exited ${code ?? signal}: ${stderr}`);
-      onFatalError(closedError);
-      resolveClose(code);
-    });
-  });
-
-  return {
-    send(payload) {
-      if (closedError) return Promise.reject(closedError);
-      requestSeq += 1;
-      const id = `req-${requestSeq}`;
-      return new Promise((resolveReq, rejectReq) => {
-        const timer = setTimeout(() => {
-          pendingRequests.delete(id);
-          rejectReq(new Error(`RPC timeout waiting for response to ${payload.type}: ${stderr}`));
-        }, REQUEST_TIMEOUT_MS);
-
-        pendingRequests.set(id, { resolve: resolveReq, reject: rejectReq, timer });
-        try {
-          child.stdin.write(`${JSON.stringify({ id, ...payload })}\n`, (writeErr) => {
-            if (writeErr) {
-              clearTimeout(timer);
-              pendingRequests.delete(id);
-              rejectReq(writeErr);
-            }
-          });
-        } catch (err) {
-          clearTimeout(timer);
-          pendingRequests.delete(id);
-          rejectReq(err);
-        }
-      });
-    },
-    get notifications() {
-      return [...uiNotifications];
-    },
-    get entries() {
-      return [...entriesAppended];
-    },
-    get stderr() {
-      return stderr;
-    },
-    async close() {
-      child.stdin.end();
-      const killTimer = setTimeout(() => {
-        if (child.exitCode === null && child.signalCode === null) {
-          child.kill('SIGKILL');
-        }
-      }, SHUTDOWN_TIMEOUT_MS);
-      try {
-        await closePromise;
-      } finally {
-        clearTimeout(killTimer);
-      }
-    },
-  };
+  const pkgJsonPath = join(REPO_ROOT, 'package.json');
+  assert.ok(existsSync(pkgJsonPath), `package.json not found at ${pkgJsonPath}`);
+  process.stdout.write(`✓ Workspace root verified at ${REPO_ROOT}\n`);
 }
 
 async function runDoctor() {
   process.stdout.write('[doctor] Checking environment and Pi CLI...\n');
+  runDoctorChecks();
 
-  // 1. Check Node.js engine
-  const nodeVersion = process.versions.node;
-  const [major, minor] = nodeVersion.split('.').map(Number);
-  const nodeOk = major > 22 || (major === 22 && minor >= 19);
-  assert.ok(nodeOk, `Node.js >= 22.19.0 required, current is ${nodeVersion}`);
-  process.stdout.write(`✓ Node.js ${nodeVersion} (>= 22.19.0)\n`);
-
-  // 2. Check pi executable on PATH
-  let piVersion = '';
-  try {
-    piVersion = execFileSync('pi', ['--version'], { encoding: 'utf8' }).trim();
-    assert.ok(piVersion.length > 0, 'Pi CLI returned empty version');
-    process.stdout.write(`✓ Pi CLI executable on PATH (${piVersion})\n`);
-  } catch (err) {
-    throw new Error(`Failed to execute 'pi --version': ${err.message}`);
-  }
-
-  // 3. Check workspace root package
-  const pkgJsonPath = join(REPO_ROOT, 'package.json');
-  assert.ok(existsSync(pkgJsonPath), `package.json not found at ${pkgJsonPath}`);
-  process.stdout.write(`✓ Workspace root verified at ${REPO_ROOT}\n`);
-
-  // 4. Test RPC startup with root package
   const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-doctor-'));
   try {
-    const session = createRpcSession(REPO_ROOT, scratchDir);
+    const session = createRpcSession({ packagePath: REPO_ROOT, agentDir: scratchDir, capturePath: join(scratchDir, 'doctor-rpc.jsonl') });
     try {
-      const res = await session.send({ type: 'get_commands' });
-      assert.ok(Array.isArray(res.commands), 'get_commands did not return array of commands');
-      process.stdout.write(`✓ Pi RPC initialized with root package (${res.commands.length} commands available)\n`);
+      const commands = await session.commands();
+      assert.ok(Array.isArray(commands), 'get_commands did not return array of commands');
+      process.stdout.write(`✓ Pi RPC initialized with root package (${commands.length} commands available)\n`);
     } finally {
       await session.close();
     }
@@ -203,164 +89,82 @@ async function runDoctor() {
   process.stdout.write('[doctor] Doctor check passed cleanly.\n');
 }
 
-async function drivePstackStatus(artifactDir) {
-  process.stdout.write('[drive:pstack-status] Starting verification...\n');
-  const outDir = artifactDir ?? join(REPO_ROOT, 'artifacts/verify-pi-customizations/pstack-status');
-  await mkdir(outDir, { recursive: true });
-
-  const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-status-'));
-  const pstackPkg = join(REPO_ROOT, 'extensions/pi-pstack');
-
-  try {
-    const session = createRpcSession(pstackPkg, scratchDir);
-    try {
-      // 1. Issue /pstack status
-      await session.send({ type: 'prompt', message: '/pstack status' });
-      const msgs = await session.send({ type: 'get_messages' });
-      const statusMsgs = msgs.messages.filter((m) => m.role === 'custom' && m.customType === 'pstack-status');
-      assert.ok(statusMsgs.length > 0, 'Expected pstack-status message not received');
-      const statusContent = String(statusMsgs[0].content);
-      assert.match(statusContent, /pstack \d+\.\d+\.\d+/, 'Status did not report pstack version');
-      assert.match(statusContent, /team-kit/, 'Status did not report team-kit');
-      assert.match(statusContent, /\d+ skills, \d+ prompt templates/, 'Status did not report skills/prompts count');
-
-      await writeFile(join(outDir, 'status.txt'), `${statusContent}\n`, 'utf8');
-      await writeFile(join(outDir, 'status.json'), `${JSON.stringify(statusMsgs[0], null, 2)}\n`, 'utf8');
-
-      // 2. Issue /pstack todos
-      await session.send({ type: 'prompt', message: '/pstack todos' });
-      const msgsAfterTodos = await session.send({ type: 'get_messages' });
-      const todosMsgs = msgsAfterTodos.messages.filter((m) => m.role === 'custom' && m.customType === 'pstack-status');
-      assert.ok(todosMsgs.length >= 2, 'Expected pstack todos message not received');
-      const todosContent = String(todosMsgs[todosMsgs.length - 1].content);
-      assert.match(todosContent, /Todos: none\./, 'Expected "Todos: none."');
-
-      await writeFile(join(outDir, 'todos.txt'), `${todosContent}\n`, 'utf8');
-      process.stdout.write(`✓ Captured pstack status & todos evidence in ${outDir}\n`);
-    } finally {
-      await session.close();
-    }
-  } finally {
-    await rm(scratchDir, { recursive: true, force: true });
-  }
+function createContext({ scenario, artifactDir, rawDir, scratchDir, receipts }) {
+  const sessions = [];
+  let sessionCount = 0;
+  return {
+    scenario,
+    repoRoot: REPO_ROOT,
+    artifactDir,
+    rawDir,
+    scratchDir,
+    receipts,
+    piBin: piBin(),
+    log(message) {
+      process.stdout.write(`${message}\n`);
+    },
+    rawPath(name) {
+      return join(rawDir, name);
+    },
+    startSession(options = {}) {
+      sessionCount += 1;
+      const session = createRpcSession({
+        packagePath: options.packagePath ?? REPO_ROOT,
+        agentDir: scratchDir,
+        cwd: options.cwd ?? scratchDir,
+        capturePath: options.capturePath ?? join(rawDir, options.captureName ?? `rpc-${sessionCount}.jsonl`),
+        persistSession: options.persistSession ?? false,
+        sessionId: options.sessionId,
+        answers: options.answers,
+        requestTimeoutMs: options.requestTimeoutMs,
+        idleTimeoutMs: options.idleTimeoutMs,
+        piBin: piBin(),
+      });
+      sessions.push(session);
+      return session;
+    },
+    runPi(args, options = {}) {
+      return execFileSync(piBin(), args, {
+        cwd: options.cwd ?? scratchDir,
+        env: { ...process.env, ...options.env, PI_CODING_AGENT_DIR: options.agentDir ?? scratchDir },
+        encoding: 'utf8',
+        timeout: options.timeoutMs ?? 60000,
+      });
+    },
+    async closeSessions() {
+      await Promise.all(sessions.map((session) => session.close().catch(() => {})));
+    },
+  };
 }
 
-async function drivePotetoMode(artifactDir) {
-  process.stdout.write('[drive:poteto-mode] Starting verification...\n');
-  const outDir = artifactDir ?? join(REPO_ROOT, 'artifacts/verify-pi-customizations/poteto-mode');
-  await mkdir(outDir, { recursive: true });
+async function drive(name, outDir) {
+  const available = await scenarioNames();
+  if (!name) throw new Error(`Missing scenario name. Available scenarios: ${available.join(', ')}`);
+  if (!SCENARIO_NAME_PATTERN.test(name) || !available.includes(name)) {
+    throw new Error(`Unknown scenario '${name}'. Available scenarios: ${available.join(', ')}`);
+  }
 
-  const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-mode-'));
-  const pstackPkg = join(REPO_ROOT, 'extensions/pi-pstack');
+  const scenarioPath = join(SCENARIOS_DIR, `${name}.mjs`);
+  const artifactDir = outDir ? resolve(REPO_ROOT, outDir) : join(ARTIFACTS_ROOT, name);
+  const rawDir = join(artifactDir, 'raw');
+  await mkdir(rawDir, { recursive: true });
 
+  const receipts = createReceipts({ scenario: name, artifactsRoot: ARTIFACTS_ROOT, receiptDir: artifactDir, repoRoot: REPO_ROOT });
+  const scratchDir = await mkdtemp(join(tmpdir(), `control-pi-${name}-`));
+  const context = createContext({ scenario: name, artifactDir, rawDir, scratchDir, receipts });
+  process.stdout.write(`[drive:${name}] Starting verification...\n`);
   try {
-    const session = createRpcSession(pstackPkg, scratchDir);
-    try {
-      await session.send({ type: 'prompt', message: '/poteto-mode off' });
-      const notifications = session.notifications;
-      assert.ok(
-        notifications.some((n) => n.message === 'Poteto mode is off.'),
-        'Expected UI notification "Poteto mode is off." not observed',
-      );
-
-      const entries = session.entries;
-      const stateEntry = entries.find((e) => e.type === 'custom' && e.customType === 'pstack-state');
-      assert.ok(stateEntry, 'Expected pstack-state entry appended to branch');
-      assert.equal(stateEntry.data?.enabled, false, 'State entry did not reflect enabled: false');
-
-      await writeFile(join(outDir, 'off.txt'), 'Poteto mode is off.\n', 'utf8');
-      await writeFile(join(outDir, 'off.json'), `${JSON.stringify({ notifications, stateEntry }, null, 2)}\n`, 'utf8');
-      process.stdout.write(`✓ Captured poteto mode off evidence in ${outDir}\n`);
-    } finally {
-      await session.close();
-    }
+    const module = await import(pathToFileURL(scenarioPath).href);
+    if (typeof module.default !== 'function') throw new Error(`Scenario ${name} must export a default async function`);
+    await module.default(context);
   } finally {
+    await context.closeSessions();
     await rm(scratchDir, { recursive: true, force: true });
   }
-}
 
-async function driveStandaloneSkills(artifactDir) {
-  process.stdout.write('[drive:standalone-skills] Starting verification...\n');
-  const outDir = artifactDir ?? join(REPO_ROOT, 'artifacts/verify-pi-customizations/standalone-skills');
-  await mkdir(outDir, { recursive: true });
-
-  const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-skills-'));
-
-  try {
-    const session = createRpcSession(REPO_ROOT, scratchDir);
-    try {
-      const res = await session.send({ type: 'get_commands' });
-      const skills = res.commands.filter((c) => c.source === 'skill' && c.name.startsWith('skill:')).map((c) => c.name);
-
-      const expected = [
-        'skill:doctor',
-        'skill:implement-cli-from-contract',
-        'skill:reverse-engineer-cli',
-        'skill:run',
-        'skill:simplify',
-      ];
-
-      for (const exp of expected) {
-        assert.ok(skills.includes(exp), `Expected standalone skill ${exp} not registered`);
-      }
-
-      await writeFile(join(outDir, 'skills.txt'), `${skills.join('\n')}\n`, 'utf8');
-      await writeFile(join(outDir, 'skills.json'), `${JSON.stringify(res.commands.filter((c) => c.source === 'skill'), null, 2)}\n`, 'utf8');
-      process.stdout.write(`✓ Captured standalone skills evidence in ${outDir} (${skills.length} skills)\n`);
-    } finally {
-      await session.close();
-    }
-  } finally {
-    await rm(scratchDir, { recursive: true, force: true });
-  }
-}
-
-async function driveOauthProviders(artifactDir) {
-  process.stdout.write('[drive:oauth-providers] Starting verification...\n');
-  const outDir = artifactDir ?? join(REPO_ROOT, 'artifacts/verify-pi-customizations/oauth-providers');
-  await mkdir(outDir, { recursive: true });
-
-  const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-oauth-'));
-  try {
-    const credential = { type: 'oauth', access: 'fixture', refresh: 'fixture', expires: Date.UTC(2100, 0, 1) };
-    const auth = {
-      'claude-subscription': credential,
-      'google-antigravity': { ...credential, projectId: 'fixture-project', email: 'fixture@example.com' },
-      'grok-build': credential,
-    };
-    await writeFile(join(scratchDir, 'auth.json'), JSON.stringify(auth), { mode: 0o600 });
-
-    const claudePkg = join(REPO_ROOT, 'extensions/pi-anthropic-oauth');
-    const claudeOutput = execFileSync('pi', ['--no-extensions', '-e', claudePkg, '--list-models', 'claude-subscription'], {
-      cwd: scratchDir,
-      env: { ...process.env, PI_CODING_AGENT_DIR: scratchDir },
-      encoding: 'utf8',
-    });
-    assert.match(claudeOutput, /claude-subscription\s+claude-opus/, 'Expected claude-subscription models not found');
-
-    const antigravityPkg = join(REPO_ROOT, 'extensions/pi-antigravity-oauth');
-    const antigravityOutput = execFileSync('pi', ['--no-extensions', '-e', antigravityPkg, '--list-models', 'google-antigravity'], {
-      cwd: scratchDir,
-      env: { ...process.env, PI_CODING_AGENT_DIR: scratchDir },
-      encoding: 'utf8',
-    });
-    assert.match(antigravityOutput, /google-antigravity\s+gemini-3-flash-agent/, 'Expected google-antigravity models not found');
-
-    const grokPkg = join(REPO_ROOT, 'extensions/pi-xai-oauth');
-    const grokOutput = execFileSync('pi', ['--no-extensions', '-e', grokPkg, '--list-models', 'grok-build'], {
-      cwd: scratchDir,
-      env: { ...process.env, PI_CODING_AGENT_DIR: scratchDir },
-      encoding: 'utf8',
-    });
-    assert.match(grokOutput, /grok-build\s+grok-4\.7-build-fast/, 'Expected grok-build models not found');
-
-    await writeFile(join(outDir, 'claude-models.txt'), claudeOutput, 'utf8');
-    await writeFile(join(outDir, 'antigravity-models.txt'), antigravityOutput, 'utf8');
-    await writeFile(join(outDir, 'grok-build-models.txt'), grokOutput, 'utf8');
-    process.stdout.write(`✓ Captured OAuth provider model registration evidence in ${outDir}\n`);
-  } finally {
-    await rm(scratchDir, { recursive: true, force: true });
-  }
+  const failed = receipts.failed();
+  if (failed.length > 0) throw new Error(`Scenario ${name} wrote ${failed.length} failed receipt(s): ${failed.map((receipt) => receipt.surface_id).join(', ')}`);
+  process.stdout.write(`✓ Scenario ${name} wrote ${receipts.receipts().length} receipt(s) to ${artifactDir}\n`);
 }
 
 async function main() {
@@ -370,28 +174,19 @@ async function main() {
     if (command === 'doctor') {
       await runDoctor();
     } else if (command === 'drive') {
-      const feature = target || flags.feature;
-      const artifactDir = flags['artifact-dir'] || flags.out;
-      if (feature === 'pstack-status') {
-        await drivePstackStatus(artifactDir);
-      } else if (feature === 'poteto-mode') {
-        await drivePotetoMode(artifactDir);
-      } else if (feature === 'standalone-skills') {
-        await driveStandaloneSkills(artifactDir);
-      } else if (feature === 'oauth-providers') {
-        await driveOauthProviders(artifactDir);
-      } else {
-        throw new Error(`Unknown feature to drive: '${feature}'. Expected: pstack-status, poteto-mode, standalone-skills, oauth-providers`);
-      }
+      await drive(target || flags.feature, flags['artifact-dir'] || flags.out);
     } else {
       process.stdout.write(`Usage:
   control-pi doctor
-  control-pi drive <pstack-status | poteto-mode | standalone-skills | oauth-providers> [--out <dir>]
+  control-pi drive <name> [--out <dir>]
+
+Scenarios:
+  ${(await scenarioNames()).join('\n  ')}
 `);
       process.exit(1);
     }
-  } catch (err) {
-    process.stderr.write(`[control-pi error] ${err.message}\n`);
+  } catch (error) {
+    process.stderr.write(`[control-pi error] ${error.message}\n`);
     process.exit(1);
   }
 }

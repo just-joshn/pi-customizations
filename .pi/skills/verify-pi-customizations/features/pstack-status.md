@@ -28,9 +28,9 @@ Preconditions:
 - Environment passes `./.pi/skills/verify-pi-customizations/bin/control-pi doctor`.
 - `extensions/pi-pstack` is present and unchanged.
 
-- **Request status.** Send `/pstack status` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-status`. A custom message of type `pstack-status` reports source versions, bundled resource counts, Poteto mode, configuration paths, host limits, and any todo summary.
+- **Request status.** Send `/pstack status` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-status`. A custom message of type `pstack-status` reports source versions, bundled resource counts (71 skills, 69 prompt templates), Poteto mode, configuration paths, host limits, and any todo summary.
 - **Request todos.** Send `/pstack todos` to the RPC session. The empty scratch state produces `Todos: none.`.
-- **Proof.** Verify that artifacts exist at `artifacts/verify-pi-customizations/pstack-status/status.txt`, `status.json`, and `todos.txt`. The driver checks the status version, team-kit, and resource-count patterns, plus the empty todo response. It does not seed todos or verify a non-empty summary or list.
+- **Proof.** Receipts `PS-CMD-4.json` and `PS-UI-8.json` exist under `artifacts/user-perspective/pstack-status/`, each asserted against `raw/rpc-1.jsonl`. The driver asserts the pstack version, team-kit, the concrete counts 71 and 69, and the empty todo response. It does not seed todos or verify a non-empty summary or list.
 
 ## Gotchas
 
