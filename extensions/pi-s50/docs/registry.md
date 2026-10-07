@@ -6,33 +6,44 @@ S50 may depend on an external agent skill only when that skill is inside the ski
 
 | Command | Effect |
 | --- | --- |
-| `s50 registry refresh` | Fetch `https://skills.sh/` (all-time view), parse the leaderboard, and write `.s50/registry.lock.json`. |
-| `s50 registry refresh --from <leaderboard.json>` | Build the lock from a captured leaderboard file. No network. |
+| `s50 registry refresh` | Confirm the ranking basis, fetch the leaderboard, resolve every S50 skill upstream, and write `.s50/registry.lock.json`. |
+| `s50 registry refresh --from <leaderboard.json>` | Build the lock from a captured leaderboard and pinned sources. No network. |
 | `s50 registry refresh --sources <file>` | Use a different skill-source file. The default is the package's `registry/skill-sources.json`. |
-| `s50 registry show` | Print each locked skill with rank, source, and invocation policy. |
-| `s50 registry verify` | Check every locked skill is ranked 50 or better and matches its leaderboard entry. |
+| `s50 registry show` | Print the snapshot time and source, then each locked skill with rank, source, invocation policy, and commit. |
+| `s50 registry verify` | Check every locked skill ranks 50 or better and matches its leaderboard entry. |
 
-A refresh stores the top 50 entries with rank and install count, the timestamp, and the source URL. It locks each of the 18 S50 dependencies with repository, commit, path, SKILL.md sha256, invocation policy, and runtime prerequisites. It fails closed: if any required dependency ranks below 50 or is missing, it writes nothing and exits 2 with the names.
+A live refresh does four things in order:
+
+1. It reads `https://skills.sh/docs/faq` and fails unless the page still says the leaderboard comes from anonymous telemetry of installation counts.
+2. It parses the all-time leaderboard embedded in `https://skills.sh/`.
+3. For each skill, it reads the repository's current `HEAD` with `git ls-remote`, fetches `SKILL.md` at that commit, checks that its `name` matches, takes the invocation policy from `disable-model-invocation`, and records the sha256 of the file.
+4. It writes the lock with the timestamp, the source URL, and the top 50 entries with rank and install count.
+
+## Required and optional skills
+
+S50 requires the 13 skills it routes to or gates on: `grilling`, `domain-modeling`, `codebase-design`, `prototype`, `tdd`, `diagnosing-bugs`, `frontend-design`, `vercel-react-best-practices`, `web-design-guidelines`, `agent-browser`, `triage`, `improve-codebase-architecture`, and `setup-matt-pocock-skills`. It also locks 5 optional skills it knows about but never routes to: `find-skills`, `grill-me`, `grill-with-docs`, `handoff`, and `teach`.
+
+A refresh fails closed. When a required skill is outside the top 50 or the leaderboard has fewer than 50 entries, it writes a rejected lock, exits 2, and no new run starts until a refresh succeeds. An optional skill outside the top 50 is left out of the new lock. A network or parse failure writes nothing and exits 1.
 
 ## Snapshots and runs
 
-A new run copies the current lock into `run.skillRegistry`. No command changes that copy, so a refresh during an active run cannot change which skills the run may call. A skill that leaves the top 50 stays usable by the run that locked it and is refused for every new run.
+A new run copies the approved lock into `run.skillRegistry`. No command changes that copy, so a refresh during an active run cannot change which skills the run may call. A skill that leaves the top 50 stays usable by the run that locked it.
 
 ## Locking sources
 
-S50 does not copy third-party SKILL.md bodies. It records the strongest identifier available: the Git commit of the source repository, the path, and the sha256 of the SKILL.md content. The installed skill package is what runs.
+S50 does not copy third-party SKILL.md bodies. It records the repository, the commit, the path, and the sha256 of the SKILL.md at that commit. The installed skill package is what runs. Preflight hashes the installed SKILL.md files that Pi reports and records a risk when one differs from the lock.
 
 ## Why install count is not a quality score
 
-skills.sh ranks by installation telemetry. Its FAQ, read on 2026-10-07, says the leaderboard "is powered by anonymous telemetry data from the skills CLI" and "only tracks aggregate skill installation counts". An install says someone ran `npx skills add`. It says nothing about whether the skill worked. S50 uses rank only as an eligibility cut-off and never orders, weights, or prefers skills by rank or installs.
+skills.sh ranks by installation telemetry. Its FAQ says the leaderboard "is powered by anonymous telemetry data from the skills CLI" and "only tracks aggregate skill installation counts". An install says someone ran `npx skills add`. It says nothing about whether the skill worked. S50 uses rank only as an eligibility cut-off and never orders, weights, or prefers skills by rank or installs.
 
 ## Why strict mode excludes useful skills
 
-`code-review` (rank 55 on 2026-10-07), `ask-matt`, `implement`, `implement-spec`, and `wayfinder` are outside the top 50. Several would help. Strict mode excludes them because the point of the constraint is a dependency set anyone can reproduce from one public, dated snapshot. Allowing "useful" exceptions turns the rule into a judgment call per run. S50 implements its own review phase instead of calling `code-review`.
+`code-review` (rank 55), `ask-matt` (56), and `implement` (57) were outside the top 50 on 2026-10-07, and `implement-spec` and `wayfinder` were not in the captured top 60. Several would help. Strict mode excludes them because the point of the constraint is a dependency set anyone can reproduce from one public, dated snapshot. Allowing useful exceptions turns the rule into a judgment call per run. S50 implements its own review phase instead of calling `code-review`.
 
 ## Live registry facts on 2026-10-07
 
-Captured at 2026-10-07T09:14:55Z from `https://skills.sh/` (page sha256 `246e0d3d…d9`). Fixture: `test/fixtures/leaderboard.2026-10-07.json`, with the raw page chunk in `test/fixtures/skills-sh.2026-10-07.excerpt.html`.
+Captured at 2026-10-07T09:14:55Z from `https://skills.sh/`, page sha256 `246e0d3d…d9`. Fixture: `test/fixtures/leaderboard.2026-10-07.json`, with the raw page chunk in `test/fixtures/skills-sh.2026-10-07.excerpt.html`. The commits are the ones pinned in `registry/skill-sources.json`.
 
 | Rank | Skill | Source | Installs | Policy | Commit |
 | --- | --- | --- | --- | --- | --- |
@@ -55,6 +66,8 @@ Captured at 2026-10-07T09:14:55Z from `https://skills.sh/` (page sha256 `246e0d3
 | 42 | diagnosing-bugs | mattpocock/skills | 730,107 | model | `dd400c3` |
 | 47 | web-design-guidelines | vercel-labs/agent-skills | 706,188 | model | `063bee9` |
 
-`teach` is user-only at this revision (`disable-model-invocation: true`), unlike the prompt's original model-invocable list.
+`teach` is user-only at this revision (`disable-model-invocation: true`).
 
-Each locked skill carries its runtime prerequisites. `agent-browser` needs the `agent-browser` CLI on `PATH`. `web-design-guidelines` fetches its rules from `https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md` on every run. `triage` needs the `docs/agents/issue-tracker.md` that `setup-matt-pocock-skills` writes.
+A live refresh at 2026-10-07T15:27Z found the same ranks for all 18 skills. By then `mattpocock/skills` had moved from `dd400c3` to `f3fc563`, and five of the locked SKILL.md files there had changed, so a live refresh locks the newer commit and hashes.
+
+Each locked skill carries its runtime prerequisites. `agent-browser` needs the `agent-browser` CLI on `PATH`. `web-design-guidelines` fetches its rules from `https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md` on every run. `triage` needs the `docs/agents/issue-tracker.md` that `setup-matt-pocock-skills` writes. `find-skills` uses the `skills` CLI.

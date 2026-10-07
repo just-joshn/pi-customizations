@@ -25,6 +25,7 @@
     "src",
     "skills",
     "registry",
+    "docs",
     "README.md"
   ],
   "scripts": {

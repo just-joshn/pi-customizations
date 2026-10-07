@@ -4,54 +4,67 @@ S50 is one deterministic coordinator behind three surfaces that share one argv g
 
 | Surface | Who types it | Entry |
 | --- | --- | --- |
-| `s50 ...` shell command | the human | `src/cli/main.ts` |
-| `/s50 ...` Pi command | the human | `pi.registerCommand('s50')` in `src/index.ts` |
-| `s50` Pi tool, `{ argv: [...] }` | the model | `pi.registerTool({ name: 's50' })` in `src/index.ts` |
+| `s50 ...` in a shell | the human | `src/cli/main.ts` |
+| `/s50 ...` in Pi | the human | `pi.registerCommand('s50')` in `src/index.ts` |
+| the `s50` tool, `{ argv: [...] }` | the model | `pi.registerTool({ name: 's50' })` in `src/index.ts` |
 
-All three call `runCli(argv, context)` in `src/cli/commands.ts`. The only asymmetry is deliberate. The model surface asks the user through `ctx.ui.confirm` before it applies a human-only command (`confirm_understanding`, `confirm_seams`, `grant_authorization`, `complete_user_workflow`). Without a UI it refuses and names the `/s50 apply ...` the user must type.
+All three call `runCli(argv, context)` in `src/cli/commands.ts`. The context is the only thing that differs, and it carries host facts, not grammar:
 
-The `s50` skill (`skills/s50/SKILL.md`) is thin. It tells the agent to read state through the tool, act on `nextAction`, load an installed eligible skill when the coordinator says so, and stop at gates. Workflow detail lives in `skills/s50/references/`.
+- The shell asks Pi's `DefaultResourceLoader` which skills a session in that directory would load.
+- Pi asks its session (`pi.getCommands()`) which skills are loaded, hashes each SKILL.md, and reports independent agents when a `subagent` or `Task` tool is registered.
+- The tool passes the turn's abort signal to every Git call and fetch.
+
+The model surface adds two guards on top. Before it applies a command that records a user decision, it asks the user through `ctx.ui.confirm`; without a UI it refuses. A `tool_call` handler stops gated bash commands during a run in the same way.
+
+The `s50` skill (`skills/s50/SKILL.md`) is thin. It tells the agent to read state through the tool, act on `nextAction`, load an installed eligible skill when the coordinator says so, and stop at gates. Workflow detail lives in `skills/s50/references/`, and a test decodes every command example in those references.
 
 ## The coordinator
 
-The coordinator is four modules in `src/orchestrator/`. `command.ts` holds the `Command`, `Outcome`, and `NextAction` types and the small state helpers. `phases.ts` holds the guard table and `advance`. `handlers.ts` holds one pure handler per command. `coordinator.ts` maps each command kind to its handler and exposes three pure functions:
+The coordinator is a set of modules in `src/orchestrator/`:
 
-- `startRun(input, registry, clock)` builds a `RunState`.
-- `apply(state, command, clock)` returns `{ kind: 'ok', state, decisions }` or `{ kind: 'rejected', reason, gate }`.
-- `nextAction(state)` returns the next automatic action or the human gate.
+- `command.ts` holds the `Command`, `Outcome`, and `NextAction` types and small state helpers.
+- `transitions.ts` holds the legal phase edges.
+- `phases.ts` holds the guard for entering each phase, and `advance`.
+- `handlers.ts` holds one pure handler per command.
+- `facts.ts` derives routing facts from the run.
+- `coordinator.ts` maps each command kind to its handler and exposes `startRun`, `apply`, `applyPreflight`, and `nextAction`.
+- `schema.ts` and `decode.ts` validate everything that crosses a boundary.
+- `persistence.ts` reads and writes `.s50/`.
+- `status.ts` renders status, and `routes.ts` holds the classification and failure-owner tables.
 
-`Command` is a discriminated union of 29 kinds. Every phase change goes through `advance`, which checks the edge table in `src/orchestrator/transitions.ts` and then the target phase's entry in the `GUARDS` table. Failures route back along table edges to the owning phase (for example `REVIEW -> IMPLEMENT`, `VERIFY -> DESIGN`, `REVERIFY_STALE -> IMPLEMENT`), so a failed check never restarts the run.
+`apply(state, command, clock)` decodes the command again after redacting every string in it, so no caller can store a secret or skip validation. It returns `{ kind: 'ok', state, decisions }` or `{ kind: 'rejected', reason, gate }`. After every change it recomputes `run.blockers` from the PR_READY predicate and moves a `PR_READY` run back to `REVERIFY_STALE` when a blocker reappears.
 
-Re-applying a command whose effect already holds returns `ok` with the same state and no decision. Two commands log on every call and change no state: an allowed `invoke_skill` and `record_test`. They are records of an event, not state.
+Every phase change goes through `advance`, which checks the edge table and then the target phase's guard in the `GUARDS` table. A failed check uses `route_failure`, which moves the run along a legal edge to the phase that owns that check (`FAILURE_OWNERS` in `routes.ts`), so a failure never restarts the run.
+
+Re-applying a command whose effect already holds returns `ok` with the same state and no decision. An allowed `invoke_skill` is the exception: it changes no state but logs each invocation.
 
 ## Data shape
 
-The data shape lives in `src/domain/` and was written before any logic:
+The data shape lives in `src/domain/`:
 
-- `state.ts`: the 20 phases, five modes, the `Gate` union, and `RunStatus` (`active`, `blocked` with a gate, `inconclusive` with what is missing, `pr_ready` with a revision).
-- `run.ts`: `Run` (schema version 2) and `RunState` (`run`, `graph`, `evidence`, `findings`).
+- `state.ts`: the 20 phases, the five modes, the `Gate` union, and `RunStatus` (`active`, `blocked` with a gate, `inconclusive` with what is missing, `pr_ready` with a revision).
+- `run.ts`: `Run` (schema version 3), `RunState` (`run`, `graph`, `evidence`, `findings`), `Preflight`, `DiagnosticLoop`, and `InstalledSkill`.
 - `graph.ts`: `GraphNode` with dependencies, owner, write set, schemas, migrations, defined and consumed interfaces, runtime ownership, expected behavior, and verification method.
-- `evidence.ts`: `EvidenceRecord` with states `MEASURED`, `INFERRED`, `UNKNOWN`, `INCONCLUSIVE`, `STALE`, `FAILED`.
-- `findings.ts`: `Finding` with severity, trigger, consequence, evidence, revision, owner, status, reviewer, and the web-guideline digest.
-- `registry.ts`: `RegistrySnapshot` and `LockedSkill`.
+- `evidence.ts`: `EvidenceRecord` with states `MEASURED`, `INFERRED`, `UNKNOWN`, `INCONCLUSIVE`, `STALE`, and `FAILED`.
+- `findings.ts`: `Finding` with severity, trigger, consequence, evidence, revision, owner, status, reviewer, and the guideline digest.
+- `registry.ts`: `RegistrySnapshot`, `LockedSkill`, and `RegistryLock` (approved or rejected).
 
 ## Persistence
 
-`src/orchestrator/persistence.ts` is the only module that writes `.s50/`. Each file has one owner and one shape:
-
 | File | Shape | Write mode |
 | --- | --- | --- |
-| `registry.lock.json` | `RegistrySnapshot` | replaced by `registry refresh` |
-| `run.json` | `Run` | replaced atomically |
-| `graph.json` | `Graph` | replaced atomically |
-| `evidence.jsonl` | `EvidenceRecord` per line | append-only |
-| `findings.jsonl` | `Finding` per status change | append-only |
-| `decisions.jsonl` | `DecisionLog` per line | append-only |
-| `.gitignore` | `*` | created once |
+| `registry.lock.json` | `RegistryLock`, schema version 2 | replaced by `registry refresh` |
+| `run.json` | `Run`, schema version 3 | replaced atomically |
+| `graph.json` | `Graph`, schema version 1 | replaced atomically |
+| `evidence.jsonl` | one `EvidenceRecord` per line, each with `schemaVersion` | append-only |
+| `findings.jsonl` | one `Finding` per status change, each with `schemaVersion` | append-only |
+| `decisions.jsonl` | one `DecisionLog` per line, each with `schemaVersion` | append-only |
+| `.gitignore` | `*` | written once, when S50 creates `.s50/` |
+| `worktrees/<node>/` | a Git worktree per concurrent node | created by `start_nodes` |
 
-The self-ignoring `.gitignore` keeps run data out of Git without editing the project's ignore rules. Delete it to commit an audit trail.
+`loadState` validates `run.json`, `graph.json`, `evidence.jsonl`, and `findings.jsonl`, and migrates version 1 and 2 runs step by step to version 3. `readLock` migrates a version 1 lock file to an approved lock. `readDecisions` validates the decision log. A JSONL line without `schemaVersion` reads as version 1, and any other version is refused.
 
-`loadState` validates every file at the boundary through the decoders in `src/orchestrator/schema.ts` and migrates schema version 1 runs to version 2.
+Inside one Pi process, every surface runs under `withFileMutationQueue` on the `.s50/` path, and the tool runs with `executionMode: 'sequential'`, so sibling tool calls cannot interleave a read-modify-write of `.s50/`.
 
 ## Design alternatives
 
@@ -59,17 +72,16 @@ The self-ignoring `.gitignore` keeps run data out of Git without editing the pro
 | --- | --- | --- |
 | State on disk | snapshot files plus append-only histories | every event, state rebuilt by replay |
 | Resume cost | read four files | replay the whole log |
-| Schema migration | one migration per snapshot version | every historical event shape forever |
-| Ownership | one module per file | one log every module writes |
-| Testability | pure `apply` on a value | pure fold, plus replay fixtures |
+| Schema migration | one step per snapshot version | every historical event shape forever |
+| Ownership | one module writes `.s50/` | one log every module writes |
 | Reader load | read `run.json` to see the run | run the fold to see the run |
 
-The event-sourced fold buys a full replay, but the append-only evidence, findings, and decision logs already keep the history that matters. It costs a migration for every event shape ever written. The reducer won.
+The event-sourced fold buys a full replay, but the append-only evidence, findings, and decision logs already keep the history that matters, and the fold costs a migration for every event shape ever written. The reducer won.
 
-A second rejected shape was putting the workflow in skill prose. Prose cannot enforce a gate, so the coordinator owns every rule and the skill only routes.
+A second rejected shape put the workflow in skill prose. Prose cannot enforce a gate, so the coordinator owns every rule and the skill only routes.
 
 ## Concurrency
 
-`src/scheduler/` decides what may run at once. `readyFrontier` lists nodes whose dependencies all passed. `conflict(a, b)` returns the reason two nodes cannot run together: overlapping write sets (glob-aware), a shared schema, a shared migration, one defining an interface the other consumes, or shared runtime ownership. `schedule` returns a concurrent batch only when the host reports both `independentAgents` and `isolatedWorktrees`. Each concurrent node gets its own workspace under `.s50/worktrees/<node-id>`. Otherwise it returns one node at a time. S50 never labels sequential work as parallel.
+`src/scheduler/` decides what may run at once. `readyFrontier` lists pending or failed nodes whose dependencies all passed or integrated. `conflict(a, b)` returns why two nodes cannot run together: overlapping write sets, a shared schema, a shared migration, one defining an interface the other consumes, or shared runtime ownership. `start_nodes` checks the nodes it starts against each other and against nodes still running. It allows more than one running node only when the host reports both `independentAgents` and `isolatedWorktrees`. Each concurrent node then gets a Git worktree at `.s50/worktrees/<node>` on branch `s50/<run>/<node>`.
 
-The Pi host reports `independentAgents: false` by default (`src/adapters/agents.ts`). Pi has no built-in subagent primitive, so S50 serializes unless the caller passes `--capabilities` describing a host that has one.
+Inside Pi, `independentAgents` follows the registered tools, and `isolatedWorktrees` comes only from `--capabilities`. A Pi session with no declared worktree isolation therefore runs nodes one at a time.
