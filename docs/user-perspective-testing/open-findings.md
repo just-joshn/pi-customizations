@@ -96,3 +96,17 @@ Nothing here is a pass. A surface whose receipt is `env-limited` or `not-drivabl
 `extensions/pi-tui-skin/docs/PI_TUI_SKIN_IMPLEMENTATION_SPEC.md` states in five places that the skin sets the terminal title: lines 144, 178, 241, 586 and 1315. The behaviour was removed in `30706da`, because Pi owns the title and re-asserts it after the extension's `session_start` handler runs, so the call never survived.
 
 **Why it is parked.** The code and the tests are corrected; the spec text is not, and a reader following the spec would reintroduce the dead call. Five edits in one document is a small task, but it is documentation scope that belongs with whoever owns the spec's shape rather than with the verification run.
+
+---
+
+## F-016: declared resources are verified at discovery scope, not behaviour scope
+
+**Found by** the drift check that compares each receipt's expectation against its row's, which surfaced 89 divergences and 16 that drop three or more content words.
+
+**What is happening.** A skill, prompt template, agent or theme that a package declares is a resource. The package's own surface is that it declares that resource and Pi discovers it under that name. The rows in `surfaces.tsv` nonetheless describe the resource's *effect*: `RS-SKILL-1` says "Reports Pi setup health, then applies only confirmed fixes", `PS-SKILL-01` says "Injects the skill body into the conversation", `AN-PROV-1` says "Claude Pro/Max subscription answers".
+
+No drive exercises those effects. What the drives observed is registration and discovery. That is honest for the package, because injecting a skill body and answering on a subscription are Pi's and the service's behaviour rather than the package's, but it is not what the row's text claims.
+
+**How to read the result.** `verdicts.tsv` now carries a `scope` column, so a reader can see which kind of observation stands behind each verdict without opening a receipt. `verified` next to `scope: discovery` means the resource is declared and discovered, and says nothing about its effect. `verified` next to `scope: behaviour` means a drive exercised the claim. At the time of writing that split is 161 behaviour and 172 discovery.
+
+**Why it is parked rather than resolved.** Closing it means either rewriting the `expected` text of roughly 188 declared-resource rows to the claim the package actually owns, or writing behavioural drives for each effect. The first is a large mechanical edit to the program's contract and the second is a second program. Both are decisions about what this verification standard means, and making them silently inside a run is exactly the failure this file exists to prevent.
