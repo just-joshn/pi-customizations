@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import type { ConsumerKind } from '../../src/domain/run.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
-import { apply, type EvidenceInput } from '../../src/orchestrator/coordinator.ts';
 import { invalidate, latestByClaim, matches } from '../../src/evidence/invalidation.ts';
 import { redact, routeConsumer } from '../../src/evidence/verification.ts';
+import { fixedClock } from '../../src/orchestrator/clock.ts';
+import { apply, type EvidenceInput } from '../../src/orchestrator/coordinator.ts';
 import { applyAll, expectOk, freshRun, measured, NO_CAPS } from './support.ts';
 
 const INPUT: EvidenceInput = {
@@ -91,12 +91,16 @@ describe('secret redaction', () => {
   test.for([
     ['Authorization: Bearer abc.def', 'Authorization: <REDACTED>'],
     ['token Bearer abcdef123456', 'token Bearer <REDACTED>'],
+    // biome-ignore lint/security/noSecrets: synthetic test value
     ['key sk-abcdefghijklmnop1234', 'key <REDACTED>'],
+    // biome-ignore lint/security/noSecrets: synthetic test value
     ['gh ghp_abcdefghijklmnopqrstuvwxyz0123', 'gh <REDACTED>'],
     ['slack xoxb-1234-abcd', 'slack <REDACTED>'],
     ['aws AKIAABCDEFGHIJKLMNOP', 'aws <REDACTED>'],
+    // biome-ignore lint/security/noSecrets: synthetic test value
     ['db password=hunter2 ok', 'db password=<REDACTED> ok'],
     ['jwt eyJhbGciOi.eyJzdWIiOi.c2lnbmF0dXJl', 'jwt <REDACTED>'],
+    // biome-ignore lint/security/noSecrets: synthetic test value
     ['-----BEGIN RSA PRIVATE KEY-----\nMIIE\n-----END RSA PRIVATE KEY-----', '<REDACTED>'],
   ] as const)('redacts %j', ([input, expected]) => {
     expect(redact(input)).toBe(expected);

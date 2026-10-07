@@ -6,6 +6,9 @@ import { captureGuidelines, type FindingInput } from '../../src/review/findings.
 import { REVIEW_DIMENSIONS, reviewAssurance, reviewDimensions } from '../../src/review/reviewer.ts';
 import { applyAll, expectOk, freshRun } from './support.ts';
 
+// biome-ignore lint/security/noSecrets: sha256 of "abc"
+const ABC_SHA256 = 'sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad';
+
 const FINDING: FindingInput = {
   severity: 'high',
   trigger: 'empty invoice list',
@@ -36,6 +39,7 @@ describe('findings', () => {
   });
 
   test('finding text is redacted', () => {
+    // biome-ignore lint/security/noSecrets: synthetic test value
     const state = expectOk(apply(freshRun(), { kind: 'record_finding', finding: { ...FINDING, evidence: 'logged sk-livekey12345678' } }, fixedClock()));
     expect(state.findings[0]?.evidence).toBe('logged <REDACTED>');
   });
@@ -66,7 +70,7 @@ describe('review assurance', () => {
 describe('web guidelines', () => {
   test('captures sha256 of fetched guideline content', () => {
     expect(captureGuidelines('abc', 'web-design-guidelines@abc123')).toEqual({
-      contentHash: 'sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+      contentHash: ABC_SHA256,
       skillLock: 'web-design-guidelines@abc123',
     });
   });
@@ -74,7 +78,7 @@ describe('web guidelines', () => {
   test('guideline hash is stored on the finding', () => {
     const guidelines = captureGuidelines('abc', 'web-design-guidelines@abc123');
     const state = expectOk(apply(freshRun(), { kind: 'record_finding', finding: { ...FINDING, guidelines } }, fixedClock()));
-    expect(state.findings[0]?.guidelines?.contentHash).toBe('sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+    expect(state.findings[0]?.guidelines?.contentHash).toBe(ABC_SHA256);
   });
 });
 

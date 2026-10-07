@@ -1,14 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+
 import type { EvidenceRecord } from '../../src/domain/evidence.ts';
 import type { GraphNode } from '../../src/domain/graph.ts';
 import type { LeaderboardEntry, RegistrySnapshot } from '../../src/domain/registry.ts';
 import type { HostCapabilities, RunState } from '../../src/domain/run.ts';
 import type { Mode, Phase } from '../../src/domain/state.ts';
 import { fixedClock } from '../../src/orchestrator/clock.ts';
-import { type Command, type GraphNodeInput, type Outcome, SHARED_UNDERSTANDING_ID, apply, startRun } from '../../src/orchestrator/coordinator.ts';
+import { apply, type Command, type GraphNodeInput, type Outcome, SHARED_UNDERSTANDING_ID, startRun } from '../../src/orchestrator/coordinator.ts';
 import { buildSnapshot, S50_DEPENDENCIES } from '../../src/registry/lock.ts';
-import { parseLeaderboardFile, type SourceEntry, parseSources } from '../../src/registry/validate.ts';
+import { parseLeaderboardFile, parseSources, type SourceEntry } from '../../src/registry/validate.ts';
 
 export const fixturePath = (name: string): string => fileURLToPath(new URL(`../fixtures/${name}`, import.meta.url));
 

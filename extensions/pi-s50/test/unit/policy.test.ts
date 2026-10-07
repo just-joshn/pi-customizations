@@ -30,7 +30,8 @@ describe('invocation policy', () => {
   });
 
   test('domain-modeling routes only on a model change', () => {
-    expect(routeSkills('DOMAIN', { modelChange: false, reactStack: false, webUi: false, browserConsumer: false })).toEqual([]);
+    const facts = { modelChange: false, reactStack: false, webUi: false, browserConsumer: false };
+    expect([routeSkills('DOMAIN', facts), routeSkills('DOMAIN', { ...facts, modelChange: true })]).toEqual([[], ['domain-modeling']]);
   });
 });
 
@@ -112,7 +113,9 @@ describe('completion', () => {
   });
 
   test('PR_READY predicate holds for a satisfied run', () => {
-    expect(prReadyBlockers(satisfiedAt('REVERIFY_STALE', 'PR_READY'))).toEqual([]);
+    const state = satisfiedAt('REVERIFY_STALE', 'PR_READY');
+    const outcome = apply(state, { kind: 'advance', to: 'PR_READY' }, fixedClock());
+    expect([prReadyBlockers(state).length, outcome.kind === 'ok' && outcome.state.run.status]).toEqual([0, { kind: 'pr_ready', revision: 'r1' }]);
   });
 
   test('PR_READY predicate lists every unmet condition', () => {

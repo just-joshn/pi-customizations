@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs';
+
 import { describe, expect, test } from 'vitest';
+import { fixedClock } from '../../src/orchestrator/clock.ts';
 import type { Command } from '../../src/orchestrator/coordinator.ts';
 import { apply } from '../../src/orchestrator/coordinator.ts';
-import { fixedClock } from '../../src/orchestrator/clock.ts';
 import { parseLeaderboardHtml } from '../../src/registry/fetch.ts';
 import { buildSnapshot, S50_DEPENDENCIES } from '../../src/registry/lock.ts';
 import { parseLeaderboardFile, parseSnapshot, verifySnapshot } from '../../src/registry/validate.ts';
@@ -89,7 +90,9 @@ describe('snapshot lifecycle', () => {
 
 describe('skills.sh HTML parsing', () => {
   test('reads initialSkills from an escaped flight payload', () => {
-    const html = '<script>self.__next_f.push([1,"{\\"view\\":\\"all-time\\",\\"initialSkills\\":[{\\"source\\":\\"vercel-labs/skills\\",\\"skillId\\":\\"find-skills\\",\\"installs\\":3727722},{\\"source\\":\\"mattpocock/skills\\",\\"skillId\\":\\"grill-me\\",\\"installs\\":1298039}]}"])</script>';
+    const html =
+      // biome-ignore lint/security/noSecrets: synthetic test value
+      '<script>self.__next_f.push([1,"{\\"view\\":\\"all-time\\",\\"initialSkills\\":[{\\"source\\":\\"vercel-labs/skills\\",\\"skillId\\":\\"find-skills\\",\\"installs\\":3727722},{\\"source\\":\\"mattpocock/skills\\",\\"skillId\\":\\"grill-me\\",\\"installs\\":1298039}]}"])</script>';
     expect(parseLeaderboardHtml(html)).toEqual({
       kind: 'ok',
       value: [
