@@ -96,12 +96,32 @@ test('symlink targets never escape fixture ownership', (t) => {
   symlinkSync('/etc/hosts', join(local.root, 'skills/link'));
   assert.throws(() => createDoctorEvidence(local), /Unowned Doctor evidence path/);
 });
+test('notification wait is bounded and rejects closure instead of inventing an event', async (t) => {
+  const local = fixture(t);
+  const observer = createDoctorEvidence(local);
+  t.after(() => observer.close());
+  await assert.rejects(observer.waitForNotification(local.settings, 5), /deadline/);
+  const pending = observer.waitForNotification(local.settings, 5000);
+  observer.close();
+  await assert.rejects(pending, /closed/);
+  await assert.rejects(observer.waitForNotification(local.settings, 5), /closed/);
+});
+
+test('notification wait rejects unowned paths and extended deadlines', async (t) => {
+  const local = fixture(t);
+  const observer = createDoctorEvidence(local);
+  t.after(() => observer.close());
+  await assert.rejects(observer.waitForNotification('/outside', 5), /target/);
+  for (const ms of [0, 5001, NaN]) await assert.rejects(observer.waitForNotification(local.settings, ms), /bounded/);
+});
+
 test('owned file notifications remain supplemental and cannot assert completeness', async (t) => {
   const local = fixture(t);
   const observer = createDoctorEvidence(local);
   t.after(() => observer.close());
+  const observed = observer.waitForNotification(local.settings, 5000);
   writeFileSync(local.settings, '{"changed":true}');
-  await new Promise((resolve) => setTimeout(resolve, 25));
+  await observed;
   const report = observer.checkpoint('report', 'Report.');
   assert.equal(
     report.journal.events.some((event) => event.path === local.settings),
