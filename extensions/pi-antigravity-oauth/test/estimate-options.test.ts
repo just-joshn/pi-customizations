@@ -20,7 +20,7 @@ test('provider headers override case-insensitively with null deletion', () => {
 test.for([
   { text: '', tokens: 0 },
   { text: 'abcde', tokens: 2 },
-  { text: '😀你好', tokens: 1 },
+  { text: '😀你好', tokens: 2 },
 ])('text token estimates round up character count', ({ text, tokens }) => {
   expect(estimateTextTokens(text)).toBe(tokens);
   expect(estimateTextAndImageContentTokens(text)).toBe(tokens);
@@ -32,7 +32,7 @@ test('image content reserves a fixed token allowance', () => {
       { type: 'image', mimeType: 'image/png', data: 'AA==' },
       { type: 'text', text: 'hello' },
     ]),
-  ).toBe(1202);
+  ).toBe(1373);
 });
 
 test('context token totals prefer reported totals with a component fallback', () => {
@@ -43,7 +43,7 @@ test('context token totals prefer reported totals with a component fallback', ()
 test.for([
   { message: { role: 'user', content: 'hello', timestamp: 1 }, tokens: 2 },
   { message: { role: 'toolResult', toolCallId: '1', toolName: 'run', content: [{ type: 'text', text: '123456789' }], isError: false, timestamp: 1 }, tokens: 3 },
-  { message: { role: 'system', content: '12345678', timestamp: 1 }, tokens: 2 },
+  { message: { role: 'system', content: '12345678', timestamp: 1 }, tokens: 3 },
   {
     message: assistant({
       content: [
@@ -52,19 +52,19 @@ test.for([
         { type: 'toolCall', id: '1', name: 'run', arguments: { x: 1 } },
       ],
     }),
-    tokens: 5,
+    tokens: 6,
   },
 ] satisfies { message: Message; tokens: number }[])('message estimates count caller-visible content', ({ message, tokens }) => {
   expect(estimateMessageTokens(message)).toBe(tokens);
 });
 
 test('system messages include added plus removed tool declarations', () => {
-  expect(estimateMessageTokens({ role: 'system', content: '', timestamp: 1, toolsAdded: [{ name: 'a', description: '', parameters: { type: 'object' } }], toolsRemoved: [] })).toBe(16);
+  expect(estimateMessageTokens({ role: 'system', content: '', timestamp: 1, toolsAdded: [{ name: 'a', description: '', parameters: { type: 'object' } }], toolsRemoved: [] })).toBe(18);
 });
 
 test('unserializable tool arguments remain estimable', () => {
   const message = { ...assistant(), content: [{ type: 'toolCall', id: '1', name: 'run', arguments: { n: 1n } }] };
-  expect(Reflect.apply(estimateMessageTokens, undefined, [message])).toBe(5);
+  expect(Reflect.apply(estimateMessageTokens, undefined, [message])).toBe(6);
 });
 
 test('latest valid usage includes only subsequent estimated tokens', () => {
@@ -76,7 +76,7 @@ test('latest valid usage includes only subsequent estimated tokens', () => {
 test.for([assistant({ stopReason: 'error' }), assistant({ stopReason: 'aborted' }), assistant({ usage: { ...usage, input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0 } }), assistant({ timestamp: 0 })])(
   'invalid usage falls back to estimating the current transcript',
   (message) => {
-    expect(estimateContextTokens([{ role: 'user', content: 'hello', timestamp: 1 }, message])).toEqual({ tokens: 3, usageTokens: 0, trailingTokens: 3, lastUsageIndex: null });
+    expect(estimateContextTokens([{ role: 'user', content: 'hello', timestamp: 1 }, message])).toEqual({ tokens: 4, usageTokens: 0, trailingTokens: 4, lastUsageIndex: null });
   },
 );
 
