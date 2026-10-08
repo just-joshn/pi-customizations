@@ -4,6 +4,7 @@ import { join } from 'node:path';
 
 import { seedGreetingCli, seedLibrary, seedSimplify } from '../helpers/resource-workflows-fixtures.mjs';
 import { attemptPrompt, checkInteraction, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
+import { collectSimplifyEvidence } from '../helpers/resource-workflows-simplify-evidence.mjs';
 import { evaluateSimplify } from '../helpers/resource-workflows-simplify-outcome.mjs';
 import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 
@@ -95,6 +96,7 @@ export default async function drive(context) {
     const testsBefore = execFileSync('node', ['--test', 'greeting.test.mjs'], { cwd: cleanup.cwd, encoding: 'utf8' });
     const testSource = readFileSync(join(cleanup.cwd, 'greeting.test.mjs'), 'utf8');
     const before = readFileSync(join(cleanup.cwd, 'greeting.mjs'), 'utf8');
+    const parentSessionId = (await cleanup.session.state()).sessionId;
     const error = await attemptPrompt(
       cleanup.session,
       `/skill:simplify ${join(cleanup.cwd, 'greeting.mjs')} My project root is ${cleanup.cwd}. Clean up the changed greeting code without changing its behavior. Use the available subagent tool for the independent reviews. Run the existing checks when finished.`,
@@ -116,7 +118,7 @@ export default async function drive(context) {
     const facts = {
       invocation: { error },
       execution: { tests: testsAfter, greeting },
-      evidence: { reviewers: [], orderingComplete: false, firstEditAt: null, unavailable: 'RPC capture has no authenticated owned child metadata/transcript pointers or complete edit timeline.' },
+      evidence: collectSimplifyEvidence({ records: cleanup.session.records, root: join(scratchDir, 'greeting-cleanup'), cwd: cleanup.cwd, parentSessionId, out: cleanup.out }),
       results: { testsUnchanged, changed },
       rescue: { performed: false },
     };

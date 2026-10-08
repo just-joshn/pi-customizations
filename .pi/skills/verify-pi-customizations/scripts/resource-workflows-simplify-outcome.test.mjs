@@ -54,6 +54,15 @@ test('review ownership, angles, findings and edit ordering are required', () => 
   assert.equal(evaluateSimplify({ ...original, evidence: { ...original.evidence, firstEditAt: 20 } }).eligible, false);
 });
 test('missing facts, errors, signals and altered tests fail closed', () => {
-  for (const input of [undefined, null, {}, { ...facts(), results: { testsUnchanged: false } }, { ...facts(), invocation: { error: 'timeout' } }]) assert.equal(evaluateSimplify(input).eligible, false);
+  for (const input of [
+    undefined,
+    null,
+    {},
+    { ...facts(), evidence: { reviewers: 'bad!' } },
+    { ...facts(), evidence: { reviewers: [null, null, null, null] } },
+    { ...facts(), results: { testsUnchanged: false } },
+    { ...facts(), invocation: { error: 'timeout' } },
+  ])
+    assert.equal(evaluateSimplify(input).eligible, false);
   for (const patch of [{ signal: 'SIGTERM' }, { error: 'launch failed' }, { code: null }]) assert.equal(evaluateSimplify({ ...facts(), execution: { ...facts().execution, tests: { ...success, ...patch } } }).eligible, false);
 });

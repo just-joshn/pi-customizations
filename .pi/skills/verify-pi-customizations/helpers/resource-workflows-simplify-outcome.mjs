@@ -2,9 +2,10 @@ const angles = ['reuse', 'simplification', 'efficiency', 'altitude'];
 const succeeded = (result) => result?.code === 0 && result.signal === null && result.error === null;
 
 export function evaluateSimplify(facts) {
-  const reviewers = facts?.evidence?.reviewers ?? [];
+  const reviewers = Array.isArray(facts?.evidence?.reviewers) ? facts.evidence.reviewers : [];
   const validReviews =
     reviewers.length === 4 &&
+    reviewers.every((item) => item !== null && typeof item === 'object') &&
     new Set(reviewers.map((item) => item.id)).size === 4 &&
     angles.every((angle) => reviewers.filter((item) => item.angle === angle).length === 1) &&
     reviewers.every(
