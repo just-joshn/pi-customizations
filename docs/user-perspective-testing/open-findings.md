@@ -112,9 +112,15 @@ Unknown name "uniqueItems" at 'request.tools[0].function_declarations[32].parame
 
 ## F-014: composite rows whose evidence is narrower than the row
 
-**Status.** open
+**Status.** fixed
 
-**Found by** the pi-tui-skin unit auditing its own work, and disclosed rather than left silent. Several rows in the inventory bundle clauses that behave independently. The drive asserts some of them and says so. The row therefore reads wider than its receipt, and a reader taking the row's text at face value would over-trust it.
+**Root fix.** The supplemental composite scenario alone did not repair the legacy producers. `a7a00f7` commits the regression before `3be2baa` makes both legacy producers require the whole-row composite result alongside every original assertion. The composite captures use `raw/composite/`, leaving the original captures intact. No row claim was narrowed and no original assertion was removed.
+
+**Independent current-host proof.** On Pi 1.1.0, the coordinator replayed the archived RED producer under the missing-context mutant. It still emitted `verified`, so the regression exited 1. The fixed producers rejected all six targeted mutations, and both production drives exited 0 with 14 flow receipts and 6 chrome receipts. Logs are `artifacts/user-perspective/resume-1.1.0/f014-root/{red,green,pi-tui-skin-flow,pi-tui-skin-chrome}.log`. The worker also replayed all six RED and GREEN cases on both Pi versions, recorded under `artifacts/user-perspective/f014-legacy-oracle/`.
+
+**Full clauses now checked.** The checks observe each cleanup operation across two reloads, the activity widget starting and clearing, model and thinking-level footer changes, a nonzero context percentage, and changing working-animation glyphs in the composer. The table below records the original gap, not the current checks.
+
+**Original finding.** Found by the pi-tui-skin unit auditing its own work, and disclosed rather than left silent. Several rows in the inventory bundle clauses that behave independently. The drive asserts some of them and says so. The row therefore reads wider than its receipt, and a reader taking the row's text at face value would over-trust it.
 
 | Row | Row claims | Receipt asserts | Not asserted |
 | --- | --- | --- | --- |
@@ -127,9 +133,7 @@ Unknown name "uniqueItems" at 'request.tools[0].function_declarations[32].parame
 
 `TS-EVT-1` was on this list and is resolved rather than parked: it duplicated the title clause that `TS-UI-1` owns, which is a subtraction, and the row now states the six surfaces it installs.
 
-**Why it is parked rather than fixed.** Each of these rows needs either a stricter check or a split, and splitting them all is an inventory change that should be decided with the whole table in view rather than patched one row at a time. The rule the table already states is that a row whose veto cannot be written in one line is not a testable unit and must be split. These six are the rows that predate that rule being enforced.
-
-**What to do about it.** Read a `verified` verdict for one of these rows as evidence for the clauses in the middle column, not for the whole of the left column. The receipts carry the `observed` value, so the boundary is visible from the artifact.
+**Disposition choice.** The original parking proposal was rejected. The implemented checks preserve the original rows and test their full clauses. A receipt now fails when either its original assertion or the matching composite observation fails.
 
 ---
 
@@ -259,15 +263,17 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 
 ## F-023: two defensive guards are unreachable from a real session
 
-**Status.** open
+**Status.** fixed
 
-**Remaining legacy-producer defect.** The new dynamic drive reaches both guards, but `pstack-hooks-policy.mjs` still emits unconditional `not-drivable` receipts with universal unreachability reasons for PS-EVT-30 and PS-EVT-31. Those claims contradict the dynamic observations. Closure requires a failing-before/passing-after regression on that actual producer and its replacement with the full guard checks, not just a stronger supplemental receipt.
+**Legacy producer fixed.** The supplemental drive was insufficient while `pstack-hooks-policy.mjs` still emitted universal unreachability claims. `5e5fc14` commits the archived-producer regression before `72545a3` replaces those emissions with the causal dynamic checks. Every original assertion remains. Static observations are retained in logs and raw transcripts, not promoted to guard receipts. Child transcripts now come from the matching owned RPC task record rather than a temporary-directory scan.
+
+**Independent closure proof.** The coordinator replayed the RED ref on actual Pi 1.1.0. The producer exited 0 but emitted `not-drivable`, so the regression exited 1. The GREEN ref passed both production and omitted-guard controls, and the current legacy production drive passed. Logs are `artifacts/user-perspective/resume-1.1.0/f023-{red,green,legacy-production}.log`. The isolated replay receipts are not used as production coverage.
 
 **Supplemental verification implemented.** The original static-tool experiments did not establish universal unreachability. `87eeb18` adds isolated packages with each guard registration omitted. `1a5acbc` adds real parent-child drives that exercise the production guards and those controls. With the write gate omitted, the child writes the file. With the tool policy omitted, the MCP server executes the call. The production package rejects both operations. Neither guard was deleted or weakened.
 
 **Reachable mechanisms.** The writer child starts while its parent has write permission, then waits while a companion command removes that permission from the live parent. Its subsequent write reaches the guard and receives the plan-mode refusal. The tool-policy child starts with a named tool list. A direct MCP server completes registration after the initial filter and activates its tool for a later turn. The call reaches the policy guard and receives the named-tool refusal. The production write file and MCP call marker remain absent; both omitted-guard controls produce their respective effects.
 
-**Fresh real-artifact verification.** The coordinator re-ran `control-pi drive pstack-hooks-guards` on installed Pi 1.1.0 and obtained both behavioural receipts with exit 0. The current-host log is `artifacts/user-perspective/resume-1.1.0/f023-guards.log`. Production and control child transcripts, actual provider tool declarations, and exact omitted registrations are under `artifacts/user-perspective/pstack-hooks-guards/raw/`. These observations prove dynamic reachability. They do not close the still-incorrect legacy receipt producer.
+**Fresh real-artifact verification.** The coordinator re-ran `control-pi drive pstack-hooks-guards` on installed Pi 1.1.0 and obtained both behavioural receipts with exit 0. The current-host log is `artifacts/user-perspective/resume-1.1.0/f023-guards.log`. Production and control child transcripts, actual provider tool declarations, and exact omitted registrations are under `artifacts/user-perspective/pstack-hooks-guards/raw/`. These observations prove dynamic reachability. The separate legacy-producer regression above establishes that the original receipt path now requires those causal checks too.
 
 **Original finding.** Found by `PS-EVT-30` and `PS-EVT-31`. Pi rejects a call to a deactivated tool with `Tool <name> not found` before any `tool_call` hook runs, so the policy guard for that case cannot execute. An agent with a named tool list never receives the other tools, and a child whose parent lacks `write` and `edit` has them dropped from its plan, so the second guard is unreachable for the same reason.
 

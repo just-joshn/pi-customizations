@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { assertSurface, capturesFrom, lastToolResult, NAVIGATOR, prepareHooksAgentDir, startHooks, waitFor, writeSurface } from './pstack-hooks-lib.js';
 import pstackHooksGuards from './pstack-hooks-guards.mjs';
+import { assertSurface, capturesFrom, lastToolResult, NAVIGATOR, prepareHooksAgentDir, startHooks, waitFor, writeSurface } from './pstack-hooks-lib.js';
 
 const writerAgent = `---
 name: hk-writer
@@ -109,7 +109,9 @@ export default async function pstackHooksPolicy(context) {
       const planBlocked = transcript.includes(planNeedle);
       assert.ok(!existsSync(guardedPath), 'the guarded child wrote the file');
       writeFileSync(join(context.rawDir, 'legacy-static-write-child.jsonl'), transcript);
-      context.log(`Static write observation only: with the parent's write/edit deactivated, the hk-writer child ${blocked?.agent_id} got ${JSON.stringify(transcript.includes('Tool write not found') ? 'Tool write not found' : 'a different result')}; the write-gate reason ${JSON.stringify(planNeedle)} was ${planBlocked ? 'present' : 'absent'}; ${guardedPath} was never created; capture=${guarded.capture}`);
+      context.log(
+        `Static write observation only: with the parent's write/edit deactivated, the hk-writer child ${blocked?.agent_id} got ${JSON.stringify(transcript.includes('Tool write not found') ? 'Tool write not found' : 'a different result')}; the write-gate reason ${JSON.stringify(planNeedle)} was ${planBlocked ? 'present' : 'absent'}; ${guardedPath} was never created; capture=${guarded.capture}`,
+      );
     } finally {
       await guarded.session.close();
     }
@@ -175,7 +177,9 @@ export default async function pstackHooksPolicy(context) {
     const blockedSeen = await childTranscriptContains(observe.session, blockedResult?.agent_id, 'Tool write not found');
     const transcript = childTranscriptText(observe.session, blockedResult?.agent_id);
     writeFileSync(join(context.rawDir, 'legacy-static-policy-child.jsonl'), transcript);
-    context.log(`Static tool-list observation only: the explore child's write call produced ${JSON.stringify(transcript.includes('Tool write not found') ? 'Tool write not found' : 'a different result')} (${blockedSeen}); the guard reason ${JSON.stringify('is not one of the tools this agent was given')} never appeared; capture=${observe.capture}`);
+    context.log(
+      `Static tool-list observation only: the explore child's write call produced ${JSON.stringify(transcript.includes('Tool write not found') ? 'Tool write not found' : 'a different result')} (${blockedSeen}); the guard reason ${JSON.stringify('is not one of the tools this agent was given')} never appeared; capture=${observe.capture}`,
+    );
 
     await observe.session.prompt('HK_TASK_SUBAGENT_COPILOT');
     const copilotChild = capturesFrom(observe.capture).filter((record) => record.provider === 'github-copilot');

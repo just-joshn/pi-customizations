@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
+
 import { contractDigest, contractUnchangedSince } from '../lib/verification-contract.mjs';
 
 const SKILL = '.pi/skills/verify-pi-customizations';

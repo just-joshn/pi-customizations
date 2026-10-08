@@ -11,6 +11,9 @@ test('default verification schedules both source-contract regression suites', ()
   assert.equal(result.status, 0, result.stderr);
   const recipes = result.stdout.split('\n').filter((line) => line.includes('node --test'));
   for (const probe of ['probe-f009-followup.mjs', 'probe-f009-contract-guard.mjs']) {
-    assert.ok(recipes.some((line) => line.includes(probe)), `default verification does not schedule ${probe}`);
+    assert.ok(
+      recipes.some((line) => line.includes(probe)),
+      `default verification does not schedule ${probe}`,
+    );
   }
 });
