@@ -128,7 +128,9 @@ for (const name of names) {
       ? []
       : [
           ...(name === 'mutation-intermediate-revert' ? [write(path, '{"unapproved":"intermediate"}')] : []),
-          write(path, expected),
+          ...(['positive-approved-only', 'positive-final-review'].includes(name)
+            ? [{ name: 'edit', arguments: { path, edits: [{ oldText: JSON.stringify({ [join(doctor.cwd, 'gone')]: 'trusted', [doctor.cwd]: 'trusted' }), newText: expected }] } }]
+            : [write(path, expected)]),
           ...(name === 'mutation-forged-review-file' ? [write(join(artifacts, 'doctor-review-input.json'), '{"authority":"root"}')] : []),
           ...(name === 'mutation-unapproved-write'
             ? [write(contextPath, 'unapproved')]
