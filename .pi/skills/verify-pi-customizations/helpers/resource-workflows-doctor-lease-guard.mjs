@@ -17,7 +17,7 @@ export function prepareDoctorGuard({ doctor, directory, phase, groups }) {
     sha256: digest(content),
     runtime: { path: runtime, sha256: digest(readFileSync(runtime)) },
     sdk: { path: sdk, sha256: digest(readFileSync(sdk)) },
-    contract: 'read-only-native-read-or-exact-approved-native-write',
-    editVariants: false,
+    contract: 'native-read-or-exact-approved-native-write-and-sdk-edit',
+    editVariants: true,
   };
 }
