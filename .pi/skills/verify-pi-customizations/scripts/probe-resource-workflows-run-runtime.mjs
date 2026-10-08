@@ -21,13 +21,14 @@ const provider = join(repoRoot, '.pi/skills/verify-pi-customizations/helpers/res
 const quote = (value) => `'${value.replaceAll("'", "'\\''")}'`;
 const bash = (command) => ({ name: 'bash', arguments: { command } });
 
-async function controlSession(root, artifactDir, port) {
+async function controlSession(root, artifactDir, port, batch) {
   const local = makeLocalSession({ root, out: artifactDir, repoRoot, localPorts: [port], deferSession: true });
-  writeFileSync(local.wrapper, `#!/bin/sh\nexec /usr/bin/sandbox-exec -f ${quote(local.profile)} ${quote(pi)} --provider f016-control --model scripted --thinking off "$@"\n`, { mode: 0o700 });
-  writeFileSync(join(local.agentDir, 'settings.json'), JSON.stringify({ defaultProvider: 'f016-control', defaultModel: 'scripted', skills: [], extensions: [], packages: [], cacheWarming: { enabled: false } }));
+  const providerName = batch ? 'f016-runtime-batch' : 'f016-control';
+  writeFileSync(local.wrapper, `#!/bin/sh\nexec /usr/bin/sandbox-exec -f ${quote(local.profile)} ${quote(pi)} --provider ${providerName} --model scripted --thinking off "$@"\n`, { mode: 0o700 });
+  writeFileSync(join(local.agentDir, 'settings.json'), JSON.stringify({ defaultProvider: providerName, defaultModel: 'scripted', skills: [], extensions: [], packages: [], cacheWarming: { enabled: false } }));
   const session = createRpcSession({
     packagePath: repoRoot,
-    extraExtensions: [provider],
+    extraExtensions: [batch ? join(repoRoot, '.pi/skills/verify-pi-customizations/scripts/run-runtime-batch-provider.mjs') : provider],
     agentDir: local.agentDir,
     cwd: local.cwd,
     piBin: local.wrapper,
@@ -56,6 +57,7 @@ function commands(identity) {
 
 function stepsFor(name, identity) {
   const recipe = commands(identity);
+  if (name.endsWith('prestarted')) return [bash(recipe.launch.replace('echo $!; ', '')), bash(recipe.launch), bash(recipe.interact), bash(recipe.cleanup)];
   if (name.endsWith('source')) return [bash(`cat ${identity.kind === 'server' ? 'server.mjs' : 'terminal.py'}`)];
   if (name.endsWith('marker')) return [bash(`printf '${identity.kind === 'server' ? 'Hello Ada\\n' : 'Settings enabled\\n'}'; printf forged > interaction.txt`)];
   const interaction = name.endsWith('wrong-route')
@@ -78,14 +80,19 @@ async function probe(name, kind) {
   let runtime;
   try {
     const port = await reservePort();
-    local = await controlSession(root, artifactDir, port);
+    const batch = name.endsWith('batched-intervention');
+    local = await controlSession(root, artifactDir, port, batch);
     const socket = join(root, 'terminal.sock');
     seedRecipe(kind, local.cwd, port, socket);
     if (name.endsWith('wrong-response')) writeFileSync(join(local.cwd, 'server.mjs'), readFileSync(join(local.cwd, 'server.mjs'), 'utf8').replace('Hello Ada', 'Wrong Ada'));
     const identity = evidence.runIdentity({ kind, cwd: local.cwd, port, socket });
     ownership = openRunOwnership({ pid: local.session.pid, port: kind === 'server' ? port : null, socket: kind === 'tui' ? socket : null });
     runtime = evidence.openRunRuntime?.({ identity, session: local.session, ownership });
-    await local.session.prompt(`F016_CONTROL ${JSON.stringify(stepsFor(name, identity))}`);
+    const recipe = commands(identity);
+    const prompt = batch
+      ? `F016_RUNTIME_BATCH ${JSON.stringify([[bash(recipe.launch), bash(`sleep 0.7; ${recipe.interact.replace('s Enter', 's')}`)], [bash(recipe.interact)], [bash(recipe.inspect)], [bash(recipe.cleanup)]])}`
+      : `F016_CONTROL ${JSON.stringify(stepsFor(name, identity))}`;
+    await local.session.prompt(prompt);
     await runtime?.finish();
     const cleanup = await ownership.snapshot();
     const facts = evidence.collectRunEvidence({ identity, records: local.session.records, error: null, cleanup, rescue: null, out: artifactDir, mode: 'scripted', runtime });
@@ -100,7 +107,7 @@ async function probe(name, kind) {
     writeFileSync(join(artifactDir, 'outcome.json'), `${JSON.stringify({ facts, outcome, interaction, rescue, scriptedControl: true, genuineCompliance: false }, null, 2)}\n`);
     return { name, kind, interaction, factCount: facts.observations.length, facts: facts.observations, cleanup, outcome };
   } finally {
-    runtime?.close();
+    await runtime?.close();
     try {
       if (ownership) await ownership.rescue();
     } finally {
@@ -111,11 +118,11 @@ async function probe(name, kind) {
   }
 }
 
-let results = [];
-for (const [name, kind] of [
+const cases = [
   ['server-positive', 'server'],
   ['tui-positive', 'tui'],
   ['server-wrong-route', 'server'],
+  ['server-prestarted', 'server'],
   ['server-wrong-port', 'server'],
   ['server-wrong-response', 'server'],
   ['server-source', 'server'],
@@ -125,8 +132,16 @@ for (const [name, kind] of [
   ['tui-no-enter', 'tui'],
   ['tui-no-inspection', 'tui'],
   ['tui-unrelated-tmux', 'tui'],
-])
-  results = [...results, await probe(name, kind)];
+  ['tui-batched-intervention', 'tui'],
+];
+const selected = process.argv.slice(3);
+assert.equal(
+  selected.every((name) => cases.some(([candidate]) => candidate === name)),
+  true,
+  'Unknown runtime control.',
+);
+let results = [];
+for (const [name, kind] of cases.filter(([name]) => !selected.length || selected.includes(name))) results = [...results, await probe(name, kind)];
 writeFileSync(join(out, 'summary.json'), `${JSON.stringify({ version, scriptedControl: true, genuineCompliance: false, results }, null, 2)}\n`);
 for (const result of results) process.stdout.write(`${result.name} interaction=${result.interaction} facts=${result.factCount} verdict=${result.outcome.verdict} complete=${result.cleanup.complete}\n`);
 for (const result of results) assert.equal(result.interaction, result.name.endsWith('positive'), `${result.name} actual correlated interaction`);
