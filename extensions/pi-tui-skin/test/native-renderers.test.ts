@@ -93,7 +93,22 @@ const rows = [
 const theme = createThemeFixture();
 
 function context(args: unknown): Parameters<NonNullable<ToolRenderers['renderCall']>>[2] {
-  return { args, toolCallId: 'row', invalidate: () => {}, lastComponent: undefined, state: {}, cwd: '/tmp', executionStarted: true, argsComplete: true, isPartial: false, expanded: false, showImages: true, isError: false, durationMs: undefined, outputPad: 0 };
+  return {
+    args,
+    toolCallId: 'row',
+    invalidate: () => {},
+    lastComponent: undefined,
+    state: {},
+    cwd: '/tmp',
+    executionStarted: true,
+    argsComplete: true,
+    isPartial: false,
+    expanded: false,
+    showImages: true,
+    isError: false,
+    durationMs: undefined,
+    outputPad: 0,
+  };
 }
 
 test.for(rows)('$name resolves its own call row', ({ name, args, row }, { loader }) => {

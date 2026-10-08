@@ -166,14 +166,16 @@ test('/skill:setup-pstack continues unchanged without opening native UI', async 
   const notify = vi.fn();
   const sendMessage = vi.fn();
   const pi = {
-    on: (_event: string, handler: typeof input) => { input = handler; },
+    on: (_event: string, handler: typeof input) => {
+      input = handler;
+    },
     getCommands: () => [{ source: 'skill', name: 'skill:setup-pstack', sourceInfo: { path } }],
     sendMessage,
     appendEntry() {},
   } as unknown as ExtensionAPI;
   registerNativeInput(pi, skills, createState(pi));
   const ctx = { hasUI: false, ui: { notify } } as unknown as ExtensionContext;
-  expect(await input?.({ text: '/skill:setup-pstack "two words"\n$ARGUMENTS', images: [{ type: 'image', data: 'a', mimeType: 'image/png' }] }, ctx)).toEqual({ action: 'continue' });
+  expect(await input?.({ text: ['/skill:setup-pstack "two words"', '$ARGUMENTS'].join('\n'), images: [{ type: 'image', data: 'a', mimeType: 'image/png' }] }, ctx)).toEqual({ action: 'continue' });
   expect(notify).not.toHaveBeenCalled();
   expect(sendMessage).not.toHaveBeenCalled();
 });
