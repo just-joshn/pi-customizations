@@ -121,6 +121,11 @@ for (const name of names) {
   }
   if (['forged-origin', 'forged-evidence', 'wrong-loader', 'ownership-gap'].includes(name)) assert.equal(call?.correlated, false);
   if (name === 'child-failure') assert.equal(call?.receipt?.succeeded, false);
+  if (name === 'deadline') {
+    assert.equal(call?.receipt?.rescued, true);
+    assert.equal(call?.receipt?.succeeded, false);
+    assert.ok(call.receipt.execution.children.some((child) => child.signal === 'SIGKILL' && child.streamsClosed));
+  }
   if (name === 'no-op-self-assertion') assert.equal(ended.readonlyBroker.calls.length, 0);
   if (name === 'stale-loader') assert.match(call.receipt.error, /stale/);
   if (name === 'wrong-target-settings') assert.match(mutation.lease.readonlyBroker.calls[0].receipt.error, /wrong target settings/);
