@@ -1,83 +1,58 @@
-import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { attemptPrompt, checkInteraction, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
+import { makeLocalSession } from '../helpers/resource-workflows-local.mjs';
 import { reservePort, seedRecipe } from '../helpers/resource-workflows-recipes.mjs';
+import { collectRunEvidence, runIdentity } from '../helpers/resource-workflows-run-evidence.mjs';
+import { evaluateRun, summarizeRuns } from '../helpers/resource-workflows-run-outcome.mjs';
+import { openRunOwnership } from '../helpers/resource-workflows-run-ownership.mjs';
 import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
-
-function stopOwnedServer(cwd) {
-  const file = join(cwd, 'server.pid');
-  if (!existsSync(file)) return 'No server PID was produced.';
-  const pid = Number(readFileSync(file, 'utf8'));
-  if (!Number.isSafeInteger(pid) || pid <= 1) return 'Invalid server PID.';
-  try {
-    const files = execFileSync('/usr/sbin/lsof', ['-a', '-p', String(pid), '-d', 'cwd', '-Fn'], { encoding: 'utf8' });
-    if (!files.split('\n').includes(`n${realpathSync(cwd)}`)) return 'PID cwd does not match the owned app. Not signalled.';
-    process.kill(pid, 'SIGTERM');
-    return `Stopped owned server ${pid}.`;
-  } catch (error) {
-    return `Server already exited or ownership unavailable. ${error.message}`;
-  }
-}
 
 export function writeOutcomeReceipt({ repoRoot, receipts }, outcome) {
   const { expected } = surfaceContract(readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8'), outcome.surfaceId);
   return receipts.write({ ...outcome, expected });
 }
 
-export default async function drive({ repoRoot, artifactDir, receipts }) {
-  const attempts = [];
-  for (const kind of ['cli', 'electron', 'library', 'playwright', 'server', 'tui']) {
-    const root = mkdtempSync('/tmp/rw-');
-    const out = join(artifactDir, kind);
-    const port = await reservePort();
-    const socket = join(root, 'terminal.sock');
-    const fixture = makeLocalSession({ root, out, repoRoot, localPorts: ['server', 'playwright'].includes(kind) ? [port] : [] });
-    let cleanup;
+async function runAttempt({ kind, repoRoot, artifactDir }) {
+  const root = mkdtempSync('/tmp/rw-');
+  const out = join(artifactDir, kind);
+  const port = await reservePort();
+  const socket = join(root, 'terminal.sock');
+  const fixture = makeLocalSession({ root, out, repoRoot, localPorts: ['server', 'playwright'].includes(kind) ? [port] : [] });
+  const ownership = openRunOwnership({ pid: fixture.session.pid, port: ['server', 'playwright'].includes(kind) ? port : null, socket: kind === 'tui' ? socket : null });
+  try {
+    seedRecipe(kind, fixture.cwd, port, socket);
+    const identity = runIdentity({ kind, cwd: fixture.cwd, port, socket });
+    let error = null;
     try {
-      seedRecipe(kind, fixture.cwd, port, socket);
-      const error = await attemptPrompt(
-        fixture.session,
+      await fixture.session.prompt(
         `/skill:run Run my ${kind} project at ${fixture.cwd} and try its main interaction. ${kind === 'tui' ? 'Open settings with s, capture the pane, then quit with q. Use only the tmux socket in the README.' : kind === 'server' ? 'Request the greeting route with Ada.' : 'Greet Ada.'} Use already-installed tools only. This project is offline. Do not download anything. Stop any processes you start.`,
       );
-      const records = [...fixture.session.records];
-      const outputObserved = checkInteraction(records, kind === 'tui' ? 'Settings enabled' : 'Hello Ada');
-      const actualState =
-        kind === 'tui'
-          ? existsSync(join(fixture.cwd, 'interaction.txt')) && readFileSync(join(fixture.cwd, 'interaction.txt'), 'utf8') === 'Settings enabled'
-          : kind === 'server'
-            ? existsSync(join(fixture.cwd, 'requests.jsonl')) &&
-              readFileSync(join(fixture.cwd, 'requests.jsonl'), 'utf8')
-                .split('\n')
-                .some((line) => line && JSON.parse(line).url === '/greet?name=Ada')
-            : null;
-      cleanup = stopOwnedServer(fixture.cwd);
-      if (existsSync(socket)) {
-        try {
-          execFileSync('tmux', ['-S', socket, 'kill-server'], { stdio: 'pipe' });
-        } catch (failure) {
-          cleanup += ` Owned socket cleanup failed. ${failure.message}`;
-        }
-      }
-      cpSync(fixture.cwd, join(out, 'workspace'), { recursive: true });
-      const status = { kind, error, outputObserved, actualState, cleanup, capture: join(out, 'rpc.jsonl') };
-      writeFileSync(join(out, 'attempt.json'), `${JSON.stringify(status, null, 2)}\n`);
-      attempts.push(status);
+    } catch (failure) {
+      error = failure.message;
+    }
+    const cleanup = await ownership.snapshot();
+    const facts = collectRunEvidence({ identity, records: fixture.session.records, error, cleanup, rescue: null, out });
+    const rescue = await ownership.rescue();
+    const attempt = { ...facts, rescue };
+    const outcome = evaluateRun(attempt);
+    cpSync(fixture.cwd, join(out, 'workspace'), { recursive: true });
+    writeFileSync(join(out, 'attempt.json'), `${JSON.stringify({ attempt, outcome }, null, 2)}\n`);
+    return attempt;
+  } finally {
+    ownership.close();
+    try {
+      await ownership.rescue();
     } finally {
-      try {
-        await fixture.session.close();
-      } finally {
-        stopOwnedServer(fixture.cwd);
-        if (existsSync(socket)) {
-          try {
-            execFileSync('tmux', ['-S', socket, 'kill-server'], { stdio: 'pipe' });
-          } catch {}
-        }
-        rmSync(root, { recursive: true, force: true });
-      }
+      await fixture.session.close();
+      rmSync(root, { recursive: true, force: true });
     }
   }
+}
+
+export default async function drive({ repoRoot, artifactDir, receipts }) {
+  let attempts = [];
+  for (const kind of ['cli', 'electron', 'library', 'playwright', 'server', 'tui']) attempts = [...attempts, await runAttempt({ kind, repoRoot, artifactDir })];
   mkdirSync(artifactDir, { recursive: true });
   const summary = join(artifactDir, 'summary.json');
   writeFileSync(summary, `${JSON.stringify(attempts, null, 2)}\n`);
@@ -88,8 +63,9 @@ export default async function drive({ repoRoot, artifactDir, receipts }) {
       package: 'skills',
       observed: JSON.stringify(attempts),
       evidence: summary,
-      verdict: attempts.some((attempt) => attempt.error) ? 'failed' : 'inconclusive',
-      reason: 'Six genuine recipe attempts are preserved. GUI screenshots, actual browser interactions, launch ownership and cleanup must all be audited. Output text alone cannot verify the complete row.',
+      verdict: summarizeRuns(attempts).verdict,
+      reason:
+        'All six correlated application interactions and pre-rescue cleanup are required. Missing runtime collectors and incomplete descendant capture fail closed. Rescue never credits agent cleanup. Eligible evidence still requires independent genuine-workflow review.',
     },
   );
 }

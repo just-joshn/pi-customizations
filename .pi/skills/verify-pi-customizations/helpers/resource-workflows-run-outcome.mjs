@@ -57,6 +57,7 @@ function gui(attempt) {
   return linked(attempt, 'image-read').some(
     (read) =>
       read.sdkImage === true &&
+      attempt.calls.some((call) => call.id === read.callId && call.toolName === 'read') &&
       linked(attempt, 'png').some(
         (png) =>
           png.sha256 === read.sha256 &&
@@ -94,7 +95,7 @@ export function evaluateRun(attempt) {
     [`${attempt.kind} actual correlated interaction`, Boolean(interactions[attempt.kind]?.(attempt))],
     ['agent cleanup before rescue', cleanup?.beforeRescue === true],
     ['complete owned-resource capture', cleanup?.complete === true],
-    ['agent-owned resources exited and listeners absent', Boolean(cleanup?.resources && cleanup.resources.every((resource) => resource.alive === false && resource.listenerAbsent === true))],
+    ['agent-owned resources exited and listeners absent', cleanup?.listenerAbsent === true && cleanup?.socketAbsent === true && Boolean(cleanup?.resources?.every((resource) => resource.alive === false && resource.listenerAbsent === true))],
   ];
   const missing = requirements.filter(([, satisfied]) => !satisfied).map(([requirement]) => requirement);
   return {

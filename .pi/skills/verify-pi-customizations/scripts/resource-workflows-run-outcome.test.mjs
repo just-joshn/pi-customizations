@@ -24,9 +24,12 @@ function attempt(kind, observations) {
     mode: 'scripted',
     identity,
     invocation: { error: null },
-    calls: [{ id: 'model-1', modelOrigin: true, success: true }],
-    observations: observations.map((fact) => ({ provenance: 'protected-runtime', attemptId: 'attempt-1', applicationId: 'app-1', callId: 'model-1', ...fact })),
-    cleanup: { beforeRescue: true, complete: true, resources: [{ alive: false, listenerAbsent: true }] },
+    calls: [
+      { id: 'model-1', toolName: 'bash', modelOrigin: true, success: true },
+      { id: 'model-read', toolName: 'read', modelOrigin: true, success: true },
+    ],
+    observations: observations.map((fact) => ({ provenance: 'protected-runtime', attemptId: 'attempt-1', applicationId: 'app-1', callId: fact.type === 'image-read' ? 'model-read' : 'model-1', ...fact })),
+    cleanup: { beforeRescue: true, complete: true, listenerAbsent: true, socketAbsent: true, resources: [{ alive: false, listenerAbsent: true }] },
     rescue: { performed: false, confirmed: true },
   };
 }
@@ -130,6 +133,8 @@ test('rescue cannot change the pre-rescue cleanup result', () => {
   for (const cleanup of [
     { ...input.cleanup, beforeRescue: false },
     { ...input.cleanup, complete: false },
+    { ...input.cleanup, listenerAbsent: false, resources: [] },
+    { ...input.cleanup, socketAbsent: false, resources: [] },
     { ...input.cleanup, resources: [{ alive: true, listenerAbsent: false }] },
   ]) {
     assert.equal(evaluateRun({ ...input, cleanup, rescue: { performed: true, confirmed: true } }).eligible, false);
