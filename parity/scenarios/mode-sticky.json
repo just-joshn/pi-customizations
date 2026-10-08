@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "mode-sticky",
+  "status": "draft-awaiting-pair",
+  "requirements": [
+    "PSTACK-MODE-STICKY-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/README.md#just-use-/poteto-mode",
+  "configurationIds": [
+    "default"
+  ],
+  "fixture": {
+    "description": "Same fixture digest family as mode-one-message; sticky activation spelling /poteto-mode sticky on Pi",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "type",
+      "literal": "/poteto-mode sticky",
+      "expect": "Sticky mode activates"
+    },
+    {
+      "kind": "observe",
+      "expect": "Mode chrome persists across follow-up"
+    }
+  ],
+  "execution": {
+    "referenceRun": null,
+    "candidateRun": null,
+    "pairId": null,
+    "verdict": "unverified"
+  },
+  "openWork": [
+    "u-mode-sticky-capture in flight"
+  ]
+}

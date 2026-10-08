@@ -1,0 +1,62 @@
+{
+  "ready": {
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": false,
+    "slashMenuOpen": false,
+    "composerHasPoteto": false,
+    "followUpReady": false,
+    "working": false,
+    "firstReply": false,
+    "secondReply": false
+  },
+  "slashMenu": {
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": false,
+    "slashMenuOpen": true,
+    "composerHasPoteto": true,
+    "followUpReady": false,
+    "working": false,
+    "firstReply": false,
+    "secondReply": false
+  },
+  "afterPlainEnter": {
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": false,
+    "slashMenuOpen": false,
+    "composerHasPoteto": true,
+    "followUpReady": false,
+    "working": false,
+    "firstReply": false,
+    "secondReply": false
+  },
+  "afterFirstTurn": {
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": false,
+    "slashMenuOpen": false,
+    "composerHasPoteto": false,
+    "followUpReady": true,
+    "working": false,
+    "firstReply": true,
+    "secondReply": false
+  },
+  "afterSecondTurn": {
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": false,
+    "slashMenuOpen": false,
+    "composerHasPoteto": false,
+    "followUpReady": true,
+    "working": false,
+    "firstReply": true,
+    "secondReply": true
+  }
+}

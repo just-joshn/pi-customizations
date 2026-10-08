@@ -52,8 +52,20 @@
       "scenarioIds": [
         "mode-one-message"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/mode-one-message/pair-mode-one-message-1.json",
+          "attempts": {
+            "cursor": "5fd487a4-cf8e-4fe4-bbc0-7de39af1a159",
+            "pi": "f19e11c7-b1e5-4788-9f04-bb0e5c9de559"
+          },
+          "closedAt": "2026-10-08T17:55:03Z",
+          "commit": "33153ac6e2e3f13d191b2e17264499bef18cac45",
+          "note": "Both sides non-sticky after plain Enter; follow-up digit reply without crown/Custom Mode"
+        }
+      ]
     },
     {
       "id": "PSTACK-MODE-STICKY-001",
@@ -186,7 +198,7 @@
       "actions": [
         {
           "input": "Open budget selector.",
-          "expectedObservation": "Options are exactly unlimited — max reasoning, large — xhigh reasoning, medium — high reasoning, and small — medium reasoning. Current budget is named when recorded. With no rule, large is identified as matching skill defaults."
+          "expectedObservation": "Options are exactly unlimited \u2014 max reasoning, large \u2014 xhigh reasoning, medium \u2014 high reasoning, and small \u2014 medium reasoning. Current budget is named when recorded. With no rule, large is identified as matching skill defaults."
         }
       ],
       "requiredSideEffects": [],
@@ -225,6 +237,3806 @@
           "note": "the current budget (small) is named on both sides: the reference names it in the prompt and a \"(current)\" option suffix; the candidate names it in the prompt only. Placement is model-authored per the design record rubric; the information is present on both sides."
         }
       ]
+    },
+    {
+      "id": "PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/.cursor-plugin/plugin.json",
+        "locator": "JSON keys skills and agents",
+        "sha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Install or load the locked pstack plugin so the host reads plugin.json.",
+      "preconditions": [
+        "Locked pstack 0.15.15 plugin package available to the host."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Host has no prior in-memory skill registry for this plugin instance.",
+      "actions": [
+        {
+          "input": "Load the plugin manifest.",
+          "expectedObservation": "Host registers skills from \"./skills/\" and agents from \"./agents/\" as declared by the manifest."
+        }
+      ],
+      "requiredSideEffects": [
+        "Skill directory and agents directory paths are bound from the manifest."
+      ],
+      "forbiddenSideEffects": [
+        "Silently omitting the skills directory registration while advertising the plugin as installed."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-DISABLE-MODEL-INVOCATION-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/how/SKILL.md",
+        "locator": "YAML frontmatter disable-model-invocation on how",
+        "sha256": "7e0d902484a90eba73dcf518bff478dc5b962b456d23c3d0a188c2ce36b236d8"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Model considers auto-invoking the how skill without a user slash or explicit handoff.",
+      "preconditions": [
+        "pstack skills loaded from the locked plugin."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Ordinary chat turn with no user /how and no skill handoff naming how.",
+      "actions": [
+        {
+          "input": "Continue a turn where the model might want architectural help.",
+          "expectedObservation": "The how skill is not model-auto-invoked because disable-model-invocation is true; only explicit user or handoff entry points attach it."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Host auto-attaching how from description matching alone when disable-model-invocation is true."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-HOW-SIMPLE-PATH-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/how/SKILL.md",
+        "locator": "## Step 1. Assess Complexity, Simple vs Complex bullets",
+        "sha256": "7e0d902484a90eba73dcf518bff478dc5b962b456d23c3d0a188c2ce36b236d8"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /how (or an explicit how handoff) on a narrow single-module question.",
+      "preconditions": [
+        "how skill attached for this turn.",
+        "Question scope is a single module or narrow function."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "User question is available; no explorers spawned yet.",
+      "actions": [
+        {
+          "input": "Ask a narrow how-does-function-X-work question.",
+          "expectedObservation": "Agent takes the simple path: no explorers; one explainer explores and explains in a single pass (Step 2b)."
+        }
+      ],
+      "requiredSideEffects": [
+        "A how-shaped explanation is produced."
+      ],
+      "forbiddenSideEffects": [
+        "Spawning parallel explorers for a clearly simple narrow question."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-SWARM-FANOUT-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/swarm/SKILL.md",
+        "locator": "frontmatter description and opening Swarm paragraph",
+        "sha256": "bdcee4168e22428036e93d7cdeec3f391dbc4132f927f6db2540328c22db0273"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User types /swarm or says swarm this for parallel coverage, races, gauntlets, or exploration.",
+      "preconditions": [
+        "swarm skill attached.",
+        "Done predicate for the swarm can be stated."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "No swarm workers launched yet.",
+      "actions": [
+        {
+          "input": "Invoke /swarm with a partitionable brief.",
+          "expectedObservation": "Parent frames, fans out N parallel workers, drains them, and returns one aggregated report."
+        }
+      ],
+      "requiredSideEffects": [
+        "A single parent report aggregates worker results."
+      ],
+      "forbiddenSideEffects": [
+        "Returning N separate unaggregated worker dumps as the final user-facing deliverable without aggregation."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-ARENA-BASE-GRAFT-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/arena/SKILL.md",
+        "locator": "frontmatter description and Arena opening paragraph",
+        "sha256": "6e17736b5228b661569c3af054f8302c55cf9bf1649447652d53705cce38bed6"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User types /arena or asks to throw a non-trivial artifact into the arena.",
+      "preconditions": [
+        "arena skill attached.",
+        "Task artifact can be stated as a prompt contract."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "No arena candidates spawned.",
+      "actions": [
+        {
+          "input": "Invoke /arena on one shared task prompt.",
+          "expectedObservation": "N parallel candidates run the same task; the parent picks a base and grafts strongest parts of losers into it, then verifies the synthesized result."
+        }
+      ],
+      "requiredSideEffects": [
+        "A synthesized result after base selection and grafting."
+      ],
+      "forbiddenSideEffects": [
+        "Shipping one candidate without reading every candidate end to end."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-ARCHITECT-GROUND-HOW-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/architect/SKILL.md",
+        "locator": "## Phase A: Ground the problem",
+        "sha256": "922238947195f2fb825e90688bb6cfa520b81a35a7bee12223c73a6cf96ae64b"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User types /architect or asks to design non-trivial work before coding.",
+      "preconditions": [
+        "architect skill attached.",
+        "Surrounding system exists (not pure greenfield)."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "No sketch yet; implementation not started.",
+      "actions": [
+        {
+          "input": "Invoke /architect for a change that touches existing subsystems.",
+          "expectedObservation": "Phase A runs the how skill over relevant subsystems and produces the traced mental model before sketching."
+        }
+      ],
+      "requiredSideEffects": [
+        "Grounding via how precedes sketch and implement phases."
+      ],
+      "forbiddenSideEffects": [
+        "Jumping to implementation without grounding when surrounding systems exist.",
+        "Treating naming a file as grounding."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-INTERROGATE-NO-AUTOAPPLY-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/interrogate/SKILL.md",
+        "locator": "# Interrogate opening paragraphs through deliverable rule",
+        "sha256": "2f7e570ec23791ed2e485a09c98ed0597c46035e2050b351b84d3dc760ddd71f"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User says interrogate, adversarial review, multi-model review, challenge this, stress test this code, find blind spots, or tear this apart.",
+      "preconditions": [
+        "interrogate skill attached.",
+        "A diff or file set is identifiable."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Reviewers not yet spawned.",
+      "actions": [
+        {
+          "input": "Invoke interrogate on the current branch diff.",
+          "expectedObservation": "Multiple model reviewers challenge the changes; the deliverable is a synthesized verdict and changes are not auto-applied."
+        }
+      ],
+      "requiredSideEffects": [
+        "Synthesized verdict presented to the user."
+      ],
+      "forbiddenSideEffects": [
+        "Auto-applying reviewer-proposed edits without an explicit separate apply step."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-REFLECT-TRIGGER-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/reflect/SKILL.md",
+        "locator": "## When to invoke",
+        "sha256": "31b8fb866ebe084e7fb7f16dc0ea46ab84ffdc838d54f948edc78556f301a497"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User says reflect or /reflect.",
+      "preconditions": [
+        "Conversation is non-trivial and not already correctly covered by an existing skill the parent followed."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Active transcript exists for the workspace.",
+      "actions": [
+        {
+          "input": "Type /reflect after a substantive session.",
+          "expectedObservation": "Reflect invokes and mines the active transcript for durable learnings routed into concrete skill edits."
+        },
+        {
+          "input": "Type /reflect on a trivial off-topic chat.",
+          "expectedObservation": "Reflect is skipped."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Treating one-offs as learnings that must edit skills."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-WHY-MOTIVATION-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/why/SKILL.md",
+        "locator": "# Why companion paragraphs",
+        "sha256": "442215bf70e491d4d31bd200c197f2ec447445df38e074c40880fc4bf30a1f9e"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User asks why does X work this way, why we picked Y, or similar motivation questions that attach the why skill.",
+      "preconditions": [
+        "why skill attached."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Target code or decision is identifiable or can be inferred from context.",
+      "actions": [
+        {
+          "input": "Ask why a design looks the way it does.",
+          "expectedObservation": "why investigates motivation and intent; it does not substitute for how runtime behavior answers."
+        }
+      ],
+      "requiredSideEffects": [
+        "Cited read on decisions and tradeoffs when evidence sources are available."
+      ],
+      "forbiddenSideEffects": [
+        "Answering only runtime mechanics while claiming a why investigation completed."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-POTETO-HELP-NO-WORK-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/poteto-help/SKILL.md",
+        "locator": "frontmatter and opening help-vs-work paragraphs",
+        "sha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User types /poteto-help with a question about pstack.",
+      "preconditions": [
+        "poteto-help skill attached.",
+        "Message is a help question, not a request to perform product work."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "User has a routing or setup question.",
+      "actions": [
+        {
+          "input": "Type /poteto-help which skill should i use to review this branch?",
+          "expectedObservation": "Agent answers, hands a prompt the user can send, and links the source file; it does not start the pstack run."
+        }
+      ],
+      "requiredSideEffects": [
+        "User receives a copyable prompt and a public GitHub path under cursor/plugins pstack."
+      ],
+      "forbiddenSideEffects": [
+        "Starting the recommended skill or playbook work on the help turn."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-TDD-EXPLICIT-GATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/tdd/SKILL.md",
+        "locator": "frontmatter description and impractical-test skip paragraph",
+        "sha256": "eeb868e2dfebee528d730a67d7b17498fac4bb85dec2e38bc5c5176aca4d5d2f"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User explicitly asks for TDD, a failing test, or a regression test, or a bug has an obvious cheap local test target.",
+      "preconditions": [
+        "tdd skill attached or handoff applies."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Bug or behavior under fix is identified.",
+      "actions": [
+        {
+          "input": "Ask for a regression test before the fix on a cheap unit path.",
+          "expectedObservation": "A focused failing test is written and run before production code changes."
+        },
+        {
+          "input": "Face a bug whose only test path is expensive integration-heavy harness work and TDD was not requested.",
+          "expectedObservation": "tdd is skipped; closest useful verification is used instead."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Forcing a new impractical test harness solely to satisfy the TDD workflow when the skill says to skip."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-CREATE-VERIFY-SKILL-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/create-verification-skill/SKILL.md",
+        "locator": "frontmatter and opening generate paragraph",
+        "sha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User types /create-verification-skill or asks to make a control skill for this repo when no scripted proof path exists.",
+      "preconditions": [
+        "create-verification-skill attached.",
+        "Repo can be interviewed from the codebase."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "No project-local verify-<app> skill yet, or user requested regeneration.",
+      "actions": [
+        {
+          "input": "Invoke /create-verification-skill.",
+          "expectedObservation": "Agent interviews the repo and writes .cursor/skills/verify-<app>/SKILL.md with YAML frontmatter so the skill registers."
+        }
+      ],
+      "requiredSideEffects": [
+        "Generated skill path under .cursor/skills/verify-<app>/ with name and description frontmatter."
+      ],
+      "forbiddenSideEffects": [
+        "Leaving placeholder sections in the generated skill.",
+        "Writing a skill without frontmatter that never registers."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/show-me-your-work/SKILL.md",
+        "locator": "frontmatter through The format intro",
+        "sha256": "bcff5f7f9fd23f92c12b251f9cd6b947e9485e1055cfacb6fdd9cae0789d7550"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User types /show-me-your-work, or long autonomous/multi-phase work needs a decision trail.",
+      "preconditions": [
+        "show-me-your-work skill attached or handed off."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "No canonical decision log yet for the run, or an existing TSV is designated.",
+      "actions": [
+        {
+          "input": "Invoke /show-me-your-work during a multi-phase run.",
+          "expectedObservation": "A single TSV decision log is kept with one row per decision; evidence cells are pointers, not prose; local by default."
+        }
+      ],
+      "requiredSideEffects": [
+        "Canonical TSV log exists with the prescribed columns."
+      ],
+      "forbiddenSideEffects": [
+        "Replacing the TSV with freeform narrative-only decision notes as the canonical trail."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/figure-it-out/SKILL.md",
+        "locator": "frontmatter and opening Figure it out paragraph",
+        "sha256": "0eb9485f0e7d84fee56b5d0f0af0faf4635e3ca87c8cba3970c01293b76ecc19"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User types /figure-it-out or the task matches no narrower playbook (large migration, ambitious multi-part change, unattended review later).",
+      "preconditions": [
+        "figure-it-out skill attached or selected by poteto-mode routing."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "No bespoke playbook written yet; product code not started for the run.",
+      "actions": [
+        {
+          "input": "Invoke /figure-it-out on a large multi-part change with no matching playbook.",
+          "expectedObservation": "Before any code, the agent designs an auditable workflow playbook with phases, a falsifiable done predicate, and a decision trail via show-me-your-work."
+        }
+      ],
+      "requiredSideEffects": [
+        "Workflow playbook exists before implementation begins."
+      ],
+      "forbiddenSideEffects": [
+        "Starting product code before the playbook deliverable exists."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-CORRECT-ENCODE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/correct/SKILL.md",
+        "locator": "frontmatter and Correct opening paragraph",
+        "sha256": "bf482bacc972b3f124a4af8bf9364b4b3e280cb5845e44c326ea4f4565e5c904"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User types /correct after repeated operator corrections for the same mistake class.",
+      "preconditions": [
+        "correct skill attached.",
+        "At least one mistake class has happened twice."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Recent commits, reviews, or agent instruction files available to mine.",
+      "actions": [
+        {
+          "input": "Invoke /correct for a recurring agent mistake.",
+          "expectedObservation": "Agent encodes the mistake at the highest working level (architecture, then types/lint, then test, docs last) so the next agent cannot repeat it, and proves the check fails on a real past mistake."
+        }
+      ],
+      "requiredSideEffects": [
+        "An enforcement mechanism exists for the mistake class."
+      ],
+      "forbiddenSideEffects": [
+        "Stopping at docs or agent-rule text when a higher-level encoding would make the mistake impossible."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-TECHNICAL-WRITING-DOCS-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/technical-writing/SKILL.md",
+        "locator": "YAML frontmatter description naming /technical-writing",
+        "sha256": "f5c512ffeec70bc4e0dee50f7bb4c26742e1be77967a6e8b15d1921e1c209ceb"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User types /technical-writing or writes or reviews docs, RFCs, readmes, PR descriptions, or commit messages under a technical-writing handoff.",
+      "preconditions": [
+        "technical-writing skill attached."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "A prose document surface is being authored or reviewed.",
+      "actions": [
+        {
+          "input": "Invoke /technical-writing on a README draft.",
+          "expectedObservation": "Writing follows the layered technical-writing standard named in the skill description (Di\u00e1taxis, Google developer style, STE, Global English)."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Ignoring the skill after an explicit /technical-writing attachment for a matching docs surface."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-NO-COMMENTS-SICKO-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/no-comments/SKILL.md",
+        "locator": "frontmatter through Steps item 1 Comment Sicko spawn",
+        "sha256": "5c5b0882297d704c3a9720c52b7a793c68b013eaf717989f0945624efdfe2b05"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /no-comments or poteto-mode routes before-review to no-comments.",
+      "preconditions": [
+        "no-comments skill attached.",
+        "A file set or diff scope is available."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Comment review not started.",
+      "actions": [
+        {
+          "input": "Invoke /no-comments on the current diff.",
+          "expectedObservation": "Agent spawns Task with subagent_type Comment Sicko for the scope, then acts on accepted findings per the skill steps."
+        }
+      ],
+      "requiredSideEffects": [
+        "Comment Sicko subagent is spawned for the scoped review."
+      ],
+      "forbiddenSideEffects": [
+        "Restating Comment Sicko rules in the spawn prompt instead of passing scope."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/agents/comment-sicko.md",
+        "locator": "Comment Sicko first spawned output contract",
+        "sha256": "c0fd0383008da45fc78cfac17b9007d62c42f87ad1c8d5c2fb658b1fd01f7c82"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Spawn the Comment Sicko agent (Task subagent_type Comment Sicko or host equivalent).",
+      "preconditions": [
+        "Locked pstack agents directory loaded."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh Comment Sicko spawn with no prior agent turns in that child.",
+      "actions": [
+        {
+          "input": "Start the agent with a scoped diff or files to review.",
+          "expectedObservation": "The agent's first output is exactly the two-line catchphrase \"Yes... Ha ha ha... Yes!\" before other review content."
+        }
+      ],
+      "requiredSideEffects": [
+        "First visible agent message matches the mandated catchphrase."
+      ],
+      "forbiddenSideEffects": [
+        "Skipping the catchphrase or substituting a different opening."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-POTETO-AGENT-READ-SKILL-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/agents/poteto-agent.md",
+        "locator": "poteto-agent frontmatter and body require reading poteto-mode SKILL.md",
+        "sha256": "abe41c169ecbfe65641f1725f4188d568e046c0dec7fd2dc271abb594c299201"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Spawn a poteto-agent for a new poteto-mode playbook task.",
+      "preconditions": [
+        "Locked pstack poteto-mode skill and poteto-agent definition loaded."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "New task requiring poteto-mode style; no prior poteto-agent resume grant.",
+      "actions": [
+        {
+          "input": "Launch Task with subagent_type poteto-agent.",
+          "expectedObservation": "The agent reads poteto-mode SKILL.md in full before other work, including the Principles index, and does not substitute generalPurpose for that read."
+        }
+      ],
+      "requiredSideEffects": [
+        "poteto-mode SKILL.md is loaded before task execution continues."
+      ],
+      "forbiddenSideEffects": [
+        "Substituting generalPurpose (or equivalent) and skipping the poteto-mode SKILL.md read."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+        "locator": "reproduce-and-fix-issues fail-closed when config or adapter missing",
+        "sha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Benny repro automation invokes reproduce-and-fix-issues without complete external config.",
+      "preconditions": [
+        "Benny automation pack present; external config intentionally incomplete or missing required actions, control adapter, or completed feature map."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Trusted triage marker may or may not be present; repro skill entry begins.",
+      "actions": [
+        {
+          "input": "Start the repro skill with missing required Benny configuration pieces.",
+          "expectedObservation": "The skill fails closed and does not attempt UI repro, product edits, or a draft PR."
+        }
+      ],
+      "requiredSideEffects": [
+        "Fail-closed stop without opening a draft PR."
+      ],
+      "forbiddenSideEffects": [
+        "Proceeding to reproduce or fix without required config, adapter, or feature map."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "setup-benny is not a slash skill; entered via FOR_AGENTS.md bootstrap",
+        "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Human points Cursor at the Benny pack FOR_AGENTS.md to install or reconfigure Benny.",
+      "preconditions": [
+        "Benny pack available under the locked plugin tree or a copied destination."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Target repository has not completed Benny setup, or setup is being revised.",
+      "actions": [
+        {
+          "input": "Follow FOR_AGENTS.md bootstrap so setup-benny/SKILL.md is read at the destination path.",
+          "expectedObservation": "Setup proceeds from the copied pack path; the skill is treated as not a plugin slash skill, and no automation is created until the user explicitly asks."
+        }
+      ],
+      "requiredSideEffects": [
+        "Entry via pack bootstrap rather than plugin slash-menu skill registration."
+      ],
+      "forbiddenSideEffects": [
+        "Creating or updating a live automation before explicit user ask.",
+        "Writing secret values into plugin files, prompts, or committed configuration."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+        "locator": "triage-issue-reports one thread-only verdict and fail-closed without config",
+        "sha256": "216a758b8711e64d19a55e6032c496527daac6364d010611040f3c04ef1a448f"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Benny triage automation invokes triage-issue-reports on a Slack issue report.",
+      "preconditions": [
+        "Benny triage automation configured or intentionally missing config for negative path."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "One Slack report thread awaiting triage.",
+      "actions": [
+        {
+          "input": "Run triage with missing or incomplete external Benny configuration.",
+          "expectedObservation": "With bad or missing config the skill stops without posting or writing to the tracker; with valid config the contract is one thread-only verdict and no reproduce-or-fix work in this skill."
+        }
+      ],
+      "requiredSideEffects": [
+        "No tracker write and no Slack post when config is missing, malformed, or incomplete."
+      ],
+      "forbiddenSideEffects": [
+        "Posting a root message in the source channel.",
+        "Reproducing or fixing the bug inside the triage skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/automate-me/SKILL.md",
+        "locator": "automate-me step 0 checks for an existing personal -mode skill",
+        "sha256": "1510979b0b71b54284427a19c09918f8b1fdfc168f9b7f9e30098793a5ec88ef"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /automate-me or equivalent phrasing to capture working style into a skill.",
+      "preconditions": [
+        "pstack automate-me skill loaded."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "User may or may not already have a matching *-mode/SKILL.md under .cursor/skills or ~/.cursor/skills.",
+      "actions": [
+        {
+          "input": "Invoke automate-me at the start of the flow.",
+          "expectedObservation": "The skill searches for an existing matching -mode skill and, if found without an explicit update request, confirms update-versus-fresh intent before drafting."
+        }
+      ],
+      "requiredSideEffects": [
+        "Existing-skill discovery runs before mining and authoring steps."
+      ],
+      "forbiddenSideEffects": [
+        "Silently overwriting an existing -mode skill without confirm when intent was ambiguous."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/benchmark-checklist/SKILL.md",
+        "locator": "benchmark-checklist requires run evidence before reporting a perf number",
+        "sha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User or agent is about to report or act on a measured speedup, regression, or benchmark.",
+      "preconditions": [
+        "A performance claim is being formed from a run or is about to be."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Claim draft exists or a measurement script is about to run.",
+      "actions": [
+        {
+          "input": "Invoke /benchmark-checklist (or attach the skill) against the claim.",
+          "expectedObservation": "Answers to the checklist questions use evidence from a run, not guesses about the code; a one-run ballpark still checks questions 4 and 7 and labels itself as one run."
+        }
+      ],
+      "requiredSideEffects": [
+        "Reported answers cite run evidence or explicitly mark one-run ballpark limits."
+      ],
+      "forbiddenSideEffects": [
+        "Shipping a comparative claim labeled as a ballpark without the required checks."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/blast-radius/SKILL.md",
+        "locator": "blast-radius refuses writeup-only safety claims; prefers run proof",
+        "sha256": "2e10745b97f5862323dcda3b29ca60d56b5c3c98e37020085d26b48efbe0a436"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User asks for blast radius of a change or reviews a small untrusted diff via /blast-radius.",
+      "preconditions": [
+        "Candidate change or diff in scope."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Change under review; no prior blast-radius proof artifacts required.",
+      "actions": [
+        {
+          "input": "Invoke blast-radius and produce the safety-dependent facts.",
+          "expectedObservation": "The reply does not stop at a persuasive writeup; each critical safety fact is pushed as far down the certainty list as cheap, with step 4 (run a script or test against real code) as the usual target."
+        }
+      ],
+      "requiredSideEffects": [
+        "At least one critical fact is proven by running code or an explicit cheaper stop is named."
+      ],
+      "forbiddenSideEffects": [
+        "Handing back only a narrative blast-radius writeup with no certainty level stated."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-BRO-RESTATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/bro/SKILL.md",
+        "locator": "bro restates the last message without jargon",
+        "sha256": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /bro after a jargon-heavy agent message.",
+      "preconditions": [
+        "A prior agent message exists in the turn history."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Last agent message used jargon or dense technical phrasing.",
+      "actions": [
+        {
+          "input": "Invoke /bro.",
+          "expectedObservation": "The agent restates its last message more simply and concisely in plain human language, without jargon."
+        }
+      ],
+      "requiredSideEffects": [
+        "A plain-language restatement of the prior message is produced."
+      ],
+      "forbiddenSideEffects": [
+        "Continuing the prior task with new work instead of restating.",
+        "Restating while keeping the same jargon density."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "maintain-verification-skill ends in clean, changed, or blocked",
+        "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /maintain-verification-skill or asks to audit the verify skill.",
+      "preconditions": [
+        "A project-local verification skill with a feature map exists, or none exists for the none-path."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Verification skill directory is the only intended edit scope.",
+      "actions": [
+        {
+          "input": "Run maintain-verification-skill to completion of the pass decision.",
+          "expectedObservation": "The run reports exactly one outcome among clean, changed, or blocked, and does not edit product code during the pass."
+        }
+      ],
+      "requiredSideEffects": [
+        "Outcome label is one of clean, changed, blocked.",
+        "Product code outside the verification skill directory is not edited."
+      ],
+      "forbiddenSideEffects": [
+        "Editing product code to paper over map drift.",
+        "Ending without naming clean, changed, or blocked."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/make-bot-ui/SKILL.md",
+        "locator": "make-bot-ui keeps webhook sender key on the server only",
+        "sha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User asks to build a custom UI that wakes a Grok Bot over a webhook via Make Bot UI.",
+      "preconditions": [
+        "Host supports webhook routines / update_state as assumed by the skill."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "No bot UI yet, or an existing UI is being revised.",
+      "actions": [
+        {
+          "input": "Follow Make Bot UI to create the page and webhook wiring.",
+          "expectedObservation": "The sender key stays on the server and is not placed in the browser, chat, or the skill file."
+        }
+      ],
+      "requiredSideEffects": [
+        "Sender key storage remains server-side."
+      ],
+      "forbiddenSideEffects": [
+        "Embedding the sender key in browser code, chat, or committed skill text."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/poteto-mode/SKILL.md",
+        "locator": "poteto-mode Playbooks section requires matching a playbook and copying steps into a todolist",
+        "sha256": "31cd02290360ce63564ef22b74d69fc6d90e62181d05a644cbed8f6c47cc9412"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Agent is operating under poteto-mode on a new task that needs a playbook.",
+      "preconditions": [
+        "poteto-mode skill body is attached for the turn or sticky mode."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Task start before playbook steps are listed.",
+      "actions": [
+        {
+          "input": "Begin executing the user task under poteto-mode.",
+          "expectedObservation": "The agent matches a playbook, opens its file, and opens a todolist whose first items are that playbook's steps copied verbatim, with skipped steps marked skip and a reason."
+        }
+      ],
+      "requiredSideEffects": [
+        "Todolist begins with verbatim playbook steps for the matched playbook."
+      ],
+      "forbiddenSideEffects": [
+        "Proceeding with task-specific todos only and never listing playbook steps."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-RECALL-CAPSULE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/recall/SKILL.md",
+        "locator": "recall output contract capsule, threads, problems, next move",
+        "sha256": "d265b0e5b6dc5b89c0407f3387d24462c988e1990a37d5359735137908128c5a"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /recall or asks to catch up on recent work before acting.",
+      "preconditions": [
+        "Transcripts and optional shared-record sources available for the scoped workspace."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "User has not already supplied a full state capsule that would skip mining.",
+      "actions": [
+        {
+          "input": "Invoke recall with a topic or recent-work ask.",
+          "expectedObservation": "The reply follows the output contract: capsule (at most 5 bullets), tagged threads, problems (at most 5), and a single concrete next move."
+        }
+      ],
+      "requiredSideEffects": [
+        "Brief includes capsule, tagged threads, problems, and next move sections per contract."
+      ],
+      "forbiddenSideEffects": [
+        "Returning only a free-form essay without thread status tags.",
+        "Quietly widening \"all\" history beyond the stated scope window."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-SETUP-WRITE-RULE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "setup-pstack step 5 writes alwaysApply pstack-models.mdc idempotently",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User completes /setup-pstack through confirm and the write step runs.",
+      "preconditions": [
+        "Model choices and budget label already confirmed in the setup flow."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Rule file may be absent or present from a prior run.",
+      "actions": [
+        {
+          "input": "Execute step 5 Write the rule.",
+          "expectedObservation": "The skill writes ~/.cursor/rules/pstack-models.mdc with alwaysApply true, a # budget line, and one line per role, overwriting the whole file so re-runs stay idempotent."
+        }
+      ],
+      "requiredSideEffects": [
+        "pstack-models.mdc is written with alwaysApply true and role lines."
+      ],
+      "forbiddenSideEffects": [
+        "Appending a partial rule without overwrite semantics.",
+        "Skipping the write after confirm."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-TEACH-HOW-WHY-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/teach/SKILL.md",
+        "locator": "teach runs how and why then weaves one explanation",
+        "sha256": "bd286e5a6290673be2cd28aef7af2ec7f1fb138e6bce156ea657368c7e7fc8a4"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /teach or asks to really understand a change or subsystem.",
+      "preconditions": [
+        "how and why skills available from locked pstack."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Explanatory ask; no code-change goal.",
+      "actions": [
+        {
+          "input": "Invoke teach on the named subject.",
+          "expectedObservation": "Teach orients, runs how and why as real skill invocations (in parallel when both are needed), and blends them into one plain explanation without changing the subject code."
+        }
+      ],
+      "requiredSideEffects": [
+        "how and/or why are actually invoked rather than re-implemented inline by default."
+      ],
+      "forbiddenSideEffects": [
+        "Editing product code as part of teach.",
+        "Stripping why confidence hedges during rewording."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-TYPESCRIPT-PATHS-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/typescript-best-practices/SKILL.md",
+        "locator": "typescript-best-practices paths frontmatter and type-system-discipline first",
+        "sha256": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User or agent reads or edits a .ts or .tsx file with the skill available.",
+      "preconditions": [
+        "Locked typescript-best-practices skill loaded."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "TypeScript file in the workspace is being read or edited.",
+      "actions": [
+        {
+          "input": "Attach or invoke typescript-best-practices for the TypeScript edit.",
+          "expectedObservation": "Skill metadata declares paths **/*.ts and **/*.tsx, disable-model-invocation is true, and the body requires applying type-system-discipline first."
+        }
+      ],
+      "requiredSideEffects": [
+        "paths globs are present in frontmatter as declared.",
+        "type-system-discipline is applied before the rule table work."
+      ],
+      "forbiddenSideEffects": [
+        "Model auto-invoking the skill solely from description match when disable-model-invocation is true."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-CMD-UNSLOP-PROCESS-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/unslop/SKILL.md",
+        "locator": "unslop process scans patterns then rewrites",
+        "sha256": "195411d320b5b328f9f642baf59757ed19aaf0931c0838740e0aca273d538dc1"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User or another skill requires prose to pass through unslop.",
+      "preconditions": [
+        "Text to edit exists in the turn."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Draft prose contains candidate AI-tell patterns.",
+      "actions": [
+        {
+          "input": "Invoke /unslop or apply the unslop skill to the draft.",
+          "expectedObservation": "The skill scans for the listed patterns and rewrites, preserving meaning and intended tone."
+        }
+      ],
+      "requiredSideEffects": [
+        "A rewrite pass occurs against the pattern list."
+      ],
+      "forbiddenSideEffects": [
+        "Leaving listed AI-tell patterns untouched while claiming unslop applied."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-ALIAS-ALWAYS-VALID-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 1. Detect available models, aliases inherit-parent and auto",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "/setup-pstack with alias role values.",
+      "preconditions": [
+        "Setup may write role lines."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "/setup-pstack with alias role values.",
+          "expectedObservation": "inherit-parent and auto are accepted as role values without appearing in the detected real-slug set."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Rejecting inherit-parent or auto solely because they are not detected model slugs."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-LOAD-STATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 2. Load current state",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "/setup-pstack when ~/.cursor/rules/pstack-models.mdc may already exist.",
+      "preconditions": [
+        "Rule file may be absent or present."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "/setup-pstack when ~/.cursor/rules/pstack-models.mdc may already exist.",
+          "expectedObservation": "Existing rule budget and role values become the current choices when the file exists; otherwise skill defaults are used. Retired role lines such as how critics are dropped and listed later."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-BUDGET-APPLY-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (b) effort mapping",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Budget choice after discovery and load.",
+      "preconditions": [
+        "Budget labels contract available (PSTACK-SETUP-BUDGET-LABELS-001)."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Budget choice after discovery and load.",
+          "expectedObservation": "unlimited, large, medium, and small set every real slug effort token to max, xhigh, high, or medium respectively, including panel list entries. inherit-parent and auto are unchanged."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-RERUN-PRESERVE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (b) re-run keep",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Re-run /setup-pstack after prior role edits by family, list, or alias.",
+      "preconditions": [
+        "An existing rule with at least one non-default role value."
+      ],
+      "configurationIds": [
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Re-run /setup-pstack after prior role edits by family, list, or alias.",
+          "expectedObservation": "Roles previously changed by family, list, or alias remain those values while the new budget effort mapping is applied to real slugs."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-GROK-XHIGH-CAP-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (b) Grok xhigh cap",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Budget unlimited when a role uses a Grok slug.",
+      "preconditions": [
+        "Detected set includes a Grok family slug."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Budget unlimited when a role uses a Grok slug.",
+          "expectedObservation": "Under unlimited, Grok roles stay at xhigh (including grok-*-xhigh-fast) rather than max."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-ROLE-CONFIRM-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (c)",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "After budget apply, before validate/write.",
+      "preconditions": [
+        "Working role table built."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "After budget apply, before validate/write.",
+          "expectedObservation": "Every role is shown with its model. Real slugs missing from the detected set are marked as needing a choice. Dropped retired lines from step 2 are listed. User is asked to accept as-is or change specific roles via AskQuestion (preferred) with detected models plus inherit-parent and auto."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Writing the rule before this confirmation completes."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-PANEL-LIST-FANOUT-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (c) panel list length",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Configure a panel role value as a comma-separated list.",
+      "preconditions": [
+        "Role is arena runners, architect runners, interrogate reviewers, or arena cross-judge pool."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Configure a panel role value as a comma-separated list.",
+          "expectedObservation": "Panel role values are lists. One subagent runs per entry, including alias entries, so list length sets fan-out count. arena cross-judge pool remains a list from which Arena selects one differing-family value when possible."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-VALIDATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 4. Validate",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User accepts role table after confirmation.",
+      "preconditions": [
+        "Detected model set known."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "User accepts role table after confirmation.",
+          "expectedObservation": "Every real slug to be written is in the detected set. inherit-parent and auto always pass. An unavailable real slug stops the write and re-asks."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Persisting an unavailable real slug."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-WRITE-RULE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 5. Write the rule",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Validation passed.",
+      "preconditions": [
+        "Confirmed budget and role table."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Validation passed.",
+          "expectedObservation": "Writes ~/.cursor/rules/pstack-models.mdc with alwaysApply true, a # budget line naming the chosen label and target effort, and one line per role using poteto-mode labels. Whole file overwrite keeps re-runs idempotent."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-WRITE-CARD-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 5. Write the rule (host edit-card observation after write)",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Successful rule write during /setup-pstack.",
+      "preconditions": [
+        "Write completed."
+      ],
+      "configurationIds": [
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Successful rule write during /setup-pstack.",
+          "expectedObservation": "Transcript shows a host edit card Edited pstack-models.mdc +N -M with gutter context for removed and added budget lines, not a bare Wrote path summary."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-CONFIRM-WRITTEN-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 6. Confirm",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "After successful write.",
+      "preconditions": [
+        "Rule file written."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "After successful write.",
+          "expectedObservation": "User is told the rule was written and that it applies to new sessions. Re-running the skill updates it."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-CANCEL-NO-WRITE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (c) confirmation gate before write",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User skips or cancels AskQuestion during setup before accepting the write.",
+      "preconditions": [
+        "AskQuestion panel is showing."
+      ],
+      "configurationIds": [
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "User skips or cancels AskQuestion during setup before accepting the write.",
+          "expectedObservation": "Panel dismisses (Esc to skip). Rule file digest is unchanged. No configuration write occurs after cancel."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Writing configuration before confirmation."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-VERIFY-OFFER-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 7. Offer a verification skill (optional)",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "After confirm, when project has neither verify-* skill nor existing harness.",
+      "preconditions": [
+        "Write and confirm completed."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "After confirm, when project has neither verify-* skill nor existing harness.",
+          "expectedObservation": "Offers once to generate a project-local verification skill via /create-verification-skill. On yes, invokes that skill. On no, continues without pushing."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-NEW-SESSION-APPLIES-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/docs/guide/01-setup.md",
+        "locator": "## Accept the verification offer, or don't, new-session sentence",
+        "sha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User finishes /setup-pstack.",
+      "preconditions": [
+        "Rule written."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "User finishes /setup-pstack.",
+          "expectedObservation": "Guidance states the model rule applies to new sessions, matching skill step 6."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-GUIDE-RERUN-KEEP-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/docs/guide/01-setup.md",
+        "locator": "## Pick your models, rerun keep paragraph",
+        "sha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User reads guide or re-runs /setup-pstack after customizing roles.",
+      "preconditions": [
+        "Prior rule may pin old defaults."
+      ],
+      "configurationIds": [
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "User reads guide or re-runs /setup-pstack after customizing roles.",
+          "expectedObservation": "A rerun keeps roles whose model differs from the default. Restoring a default requires deleting that role line or the file, then running /setup-pstack again."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-NO-SECRET-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## Set up Benny, secrets boundary",
+        "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Any Benny setup or configuration write.",
+      "preconditions": [
+        "User may supply Slack tokens or other secrets."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Any Benny setup or configuration write.",
+          "expectedObservation": "Secret values never appear in plugin files, prompts, or committed configuration."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Writing secrets into YAML, SKILL.md, templates, or pack files under the repo."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-PACK-MERGE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 1. Copy the pack, merge rules",
+        "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "/setup-benny or FOR_AGENTS.md bootstrap copy into a target repository.",
+      "preconditions": [
+        "Source pack directory containing FOR_AGENTS.md is identified."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "/setup-benny or FOR_AGENTS.md bootstrap copy into a target repository.",
+          "expectedObservation": "Entire source pack merges into <target>/.cursor/automations/benny/ creating the destination when absent, copying every source file to the same relative path, preserving destination-only files, never overwriting user-owned configuration or feature or routing maps outside the destination, merging source-managed conflicts without discarding local edits or stopping when ownership is ambiguous, and verifying required pack files exist afterward."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Deleting unrelated destination files during install or refresh.",
+        "Overwriting user-owned config or maps outside the destination."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-SETTINGS-ENABLE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 1. Copy the pack, enable pstack in settings.json",
+        "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "After pack copy during Benny setup.",
+      "preconditions": [
+        "Target repository may lack .cursor/settings.json."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "After pack copy during Benny setup.",
+          "expectedObservation": "Target .cursor/settings.json exists with plugins.pstack.enabled true. Unrelated top-level settings and other plugin entries stay intact. When plugins.pstack already exists, only enabled changes. JSONC comments and syntax are preserved when the file uses JSONC. The file validates after edit."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Replacing the whole settings file.",
+        "Removing unrelated plugin entries."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-PROJECT-SKILLS-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 1. Copy the pack, project-scoped skill resolve check",
+        "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "After enabling pstack in the target project settings.",
+      "preconditions": [
+        "Target project can be reloaded or a fresh agent started there."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "After enabling pstack in the target project settings.",
+          "expectedObservation": "A fresh agent rooted in the target repository resolves how, why, tdd, unslop, and the listed principle-* skills from project-scoped pstack. Session-loaded or user-scoped plugin loads do not count. Setup stops with an explanation if project-scoped install is unavailable or any listed skill fails to resolve."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Treating a user-scoped or current-session skill load as success."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-USER-CONFIG-OUTSIDE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 2. Adapt the configuration, user-owned copies",
+        "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Adapting Benny configuration and feature map after pack copy.",
+      "preconditions": [
+        "Example templates exist under the copied pack."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Adapting Benny configuration and feature map after pack copy.",
+          "expectedObservation": "User-owned configuration, feature map, and routing map copies live outside .cursor/automations/benny/. Copied example files are not edited. Pack refreshes may update source-managed files after conflict review but never touch the user-owned copies."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Editing copied examples in place.",
+        "Writing user-owned maps inside the pack destination."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-REQUIRED-EXPLICIT-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 3. Fill the required choices, fail on ambiguity",
+        "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Filling Benny required configuration choices.",
+      "preconditions": [
+        "Model picker or supported model list is available for slug checks."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Filling Benny required configuration choices.",
+          "expectedObservation": "Only available model slugs are used. Source channel, triage identity, repository, tracker adapter, control skill, and feature map are explicit. Setup fails if any required value stays ambiguous."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Guessing a model slug.",
+        "Carrying a private default slug.",
+        "Proceeding with an ambiguous required value."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 6. Verify the control adapter, fail closed",
+        "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Before enabling the Benny repro automation.",
+      "preconditions": [
+        "Named control skill and completed feature map exist."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Before enabling the Benny repro automation.",
+          "expectedObservation": "Named control skill is confirmed able to bring up the app, navigate every mapped feature through the real UI, exercise mapped states, inspect without forcing results, capture screenshots, start and stop recording, and clean up. If any capability is missing, the repro automation stays disabled."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Enabling repro while a listed control capability is missing.",
+        "Claiming a reproduction that was not performed."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-EXISTING-NO-AUTOMATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 7. Prepare the live automations, existing automations",
+        "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User wants to update existing Benny automations rather than create new ones.",
+      "preconditions": [
+        "Triage and or repro automations already exist."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "User wants to update existing Benny automations rather than create new ones.",
+          "expectedObservation": "Built-in automate skill is not used to search for, inspect, or update existing automations. User receives an editor checklist and updates each automation in its Automations editor without creating replacements or duplicates."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Using /automate to mutate existing automations.",
+        "Creating duplicate replacement automations for an update path."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 7. Prepare the live automations, creation boundary",
+        "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "First-time creation of Benny triage or repro automations.",
+      "preconditions": [
+        "User explicitly asked to create automations."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "First-time creation of Benny triage or repro automations.",
+          "expectedObservation": "New automations finish only through the built-in automate skill reviewed Automations editor handoff. No direct automation backend service or tool call, no browser URL carrying draft fields, and no Cursor protocol deep link. Neither automation is enabled until the thread-safety test passes after editor save."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Calling a direct automation backend.",
+        "Opening a draft-field browser URL or protocol deep link to finish creation."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 8. Test thread safety",
+        "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "After editor save, before enabling normal Benny traffic.",
+      "preconditions": [
+        "settings.json, pack, and secret-free config are committed on the automation checkout branch; live prompts point at committed operational files."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "After editor save, before enabling normal Benny traffic.",
+          "expectedObservation": "All seven checks pass on a test channel or harmless report: triage stores root thread_ts and posts exactly one verdict reply with one configured marker; repro accepts the marker only from the configured triage identity and keeps immutable source coordinates; no source-channel root message; delegated workers cannot use Slack write actions; missing coordinates, deleted parent, or failed preflight produces no post and no tracker issue. Normal traffic enables only after all seven pass. Any prior commit or prompt-path check failure stops enablement."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Enabling normal traffic with any of the seven checks failing.",
+        "Enabling when pack or referenced config is not committed."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-CREATE-VERIFY-INTERVIEW-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/create-verification-skill/SKILL.md",
+        "locator": "## 1. Interview the repo, not the user",
+        "sha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "/create-verification-skill on a repository.",
+      "preconditions": [
+        "Repository checkout is available."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "/create-verification-skill on a repository.",
+          "expectedObservation": "Surface, run, drive, observe, and isolate answers come from the codebase first. The user is asked only what cannot be observed. If the checkout does not build or start, that is fixed or reported precisely before generating. Generated skills may create irrelevant missing assets only as marked verification scaffolding removed in cleanup."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Interviewing the user for facts observable from the repo.",
+        "Generating against a broken base without reporting the break."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-CREATE-VERIFY-GENERATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/create-verification-skill/SKILL.md",
+        "locator": "## 2. Generate the skill",
+        "sha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "After the repo interview succeeds.",
+      "preconditions": [
+        "Primary surface and run command are known."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "After the repo interview succeeds.",
+          "expectedObservation": "Writes .cursor/skills/verify-<app>/SKILL.md with YAML frontmatter name and description, plus Launch, Doctor, Drive, Evidence, Cleanup, and Helpers sections grounded in interview findings with no placeholders. Helpers shipped by the skill are executable and their invocation appears in the skill body. Cleanup never kills by process name and never deletes named proof artifacts."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Leaving placeholder text in generated sections.",
+        "Omitting YAML frontmatter.",
+        "Killing processes by name during cleanup.",
+        "Deleting proof artifacts in cleanup."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-CREATE-VERIFY-FEATURE-MAP-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/create-verification-skill/SKILL.md",
+        "locator": "## 3. Seed the feature map",
+        "sha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "When generating a project-local verification skill.",
+      "preconditions": [
+        "User-facing features can be identified from routes, commands, menus, or docs."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "When generating a project-local verification skill.",
+          "expectedObservation": "Creates features/README.md plus one file per identified user-facing feature (top 3-5 to start) following references/feature-map-example/ shape. Each feature file answers what the feature is, how to reach it, how to drive it with the harness, and what observable end state proves it, using the four H2s Sub-features, How to get to it (user POV), Driving it with <harness>, and Gotchas."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Omitting the four required H2s.",
+        "Freezing implementation details as the map content instead of user POV paths."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-CREATE-VERIFY-PROVE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/create-verification-skill/SKILL.md",
+        "locator": "## 4. Prove the generated skill before handing it over",
+        "sha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "After generating verify-<app> skill and feature map.",
+      "preconditions": [
+        "Generated skill and at least one mapped feature exist."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "After generating verify-<app> skill and feature map.",
+          "expectedObservation": "Runs launch, doctor, drive of one mapped feature, evidence capture, and cleanup end to end once. After cleanup, evidence still exists at the named location. Failures are fixed and cleanup runs after every failed iteration. A skill never executed remains a draft, not a deliverable."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Handing over a never-executed generated skill.",
+        "Cleanup that removes proof artifacts."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-CREATE-VERIFY-OFFER-MAINTAIN-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/create-verification-skill/SKILL.md",
+        "locator": "## 5. Offer the maintenance loop",
+        "sha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "After a generated verification skill is proven.",
+      "preconditions": [
+        "Generated skill exists."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "After a generated verification skill is proven.",
+          "expectedObservation": "Points the user at /maintain-verification-skill. Suggests a cadence only if the user asks."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Inventing a maintenance cadence unprompted as a hard requirement."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-OUTCOMES-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Outcomes",
+        "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "/maintain-verification-skill run completion.",
+      "preconditions": [
+        "A target verification skill was located."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "/maintain-verification-skill run completion.",
+          "expectedObservation": "Run ends in exactly one named outcome: clean (full source and live coverage, nothing to ship, no branch or PR), changed (one PR of proven corrections), or blocked (coverage unfinished or proven fix cannot ship safely, with the blocker stated)."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Shipping without naming the outcome.",
+        "Opening a PR on a clean run."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-EDIT-SCOPE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Edit scope",
+        "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Any edit during /maintain-verification-skill.",
+      "preconditions": [
+        "Target verification skill directory exists."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Any edit during /maintain-verification-skill.",
+          "expectedObservation": "Edits stay inside the verification skill directory (SKILL.md, features/, harness scripts it owns). Product code is never edited. Map-vs-app mismatch is either doc drift fixed in the map or a product regression reported without papering over it in docs."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Editing product code during a maintain run.",
+        "Changing the map to hide a product regression."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Pass, step 0 Locate the target",
+        "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Starting /maintain-verification-skill.",
+      "preconditions": [
+        "Project may have zero or several verify-* skills."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "Starting /maintain-verification-skill.",
+          "expectedObservation": "Finds the project-local verification skill with launch/drive sections and a feature map. Several candidates prompts which one. None stops and points at /create-verification-skill instead of inventing a target."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Inventing a verification skill target when none exists."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-SOURCE-WAVE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Pass, step 2 Source wave",
+        "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "After index hygiene in /maintain-verification-skill.",
+      "preconditions": [
+        "Feature map has one or more feature files."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "After index hygiene in /maintain-verification-skill.",
+          "expectedObservation": "One read-only subagent per feature file runs concurrently. Each returns feature summary, source entry points, likely drift or none, and one live-verification recipe. Children never drive the app and never edit files."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Child agents driving the app.",
+        "Child agents editing files."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-LIVE-PASS-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Pass, step 4 Live pass",
+        "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "After reconcile in /maintain-verification-skill.",
+      "preconditions": [
+        "Source wave returned a recipe per feature."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "After reconcile in /maintain-verification-skill.",
+          "expectedObservation": "Live pass runs even when source looks clean. Coordinator owns all driving per the verification skill launch model. Every feature is exercised at least once while holding doctor-before-drive, evidence-survives-cleanup, and no leftover residue invariants. Doctor failure from skill drift is fixed under edit scope and retried once before blocked. verified-unreachable requires concrete prerequisite and attempted route. Harness fixes are re-driven live before ship. Final teardown follows the last drive; evidence remains."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Skipping the live pass when source looks clean.",
+        "Calling verified-unreachable without a concrete prerequisite and attempted route."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-SHIP-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Pass, step 6 Ship or stop",
+        "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "End of a changed or non-changed maintain run.",
+      "preconditions": [
+        "Triage classified drift, harness gaps, and product gaps."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Documented preconditions satisfied; behavior not yet paired.",
+      "actions": [
+        {
+          "input": "End of a changed or non-changed maintain run.",
+          "expectedObservation": "changed ships one PR of proven corrections after re-reading every changed file. clean or blocked ships no PR and reports outcome and coverage. Run notes stay in scratch and are not committed."
+        }
+      ],
+      "requiredSideEffects": [],
+      "forbiddenSideEffects": [
+        "Multiple PRs from one maintain run.",
+        "Committing scratch run notes.",
+        "Opening a PR on clean or blocked."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-ATTACK-PREMISE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-attack-the-premise/SKILL.md",
+        "locator": "Attack the Premise frontmatter trigger and disable-model-invocation",
+        "sha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, after two or more fixes that share one premise have failed the same gate, the agent applies principle-attack-the-premise.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-attack-the-premise skill loaded.",
+        "At least two prior fixes sharing one premise failed the same gate."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Continue debugging after the second shared-premise failure.",
+          "expectedObservation": "Before the next fix, the agent Reads the leaf principle-attack-the-premise/SKILL.md and produces a written premise plus a rerunnable census script artifact."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read appears in the transcript tool trace.",
+        "Premise and census artifacts exist before further fix commits."
+      ],
+      "forbiddenSideEffects": [
+        "Starting another fix that still assumes the unwritten premise.",
+        "Model-auto-invocation of the principle skill as a slash command."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-BOUNDARY-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-boundary-discipline/SKILL.md",
+        "locator": "Boundary Discipline frontmatter trigger and disable-model-invocation",
+        "sha256": "62ac2862c2caa22dd14531f51c9c6bb445ceb198ca98a687e25b4d47c1f10a28"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when wiring validation, error handling, or framework adapters, the agent applies principle-boundary-discipline.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-boundary-discipline skill loaded.",
+        "Task involves CLI/config/network/API boundary wiring."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Add or change validation around an external input path.",
+          "expectedObservation": "The agent Reads the leaf skill, places validation at the boundary, and keeps business logic free of re-validation of already-narrowed types."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Boundary parse or validate step present for the new external input."
+      ],
+      "forbiddenSideEffects": [
+        "Re-validating already typed internal values mid-call-chain as the primary fix.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-BUILD-LEVER-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-build-the-lever/SKILL.md",
+        "locator": "Build the Lever frontmatter trigger and disable-model-invocation",
+        "sha256": "458b269eab8e95a1573276955312f7d2a13ae8599879a9efc748248f6bc34b56"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, on non-trivial work (edits, migrations, analyses, checks), the agent applies principle-build-the-lever.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-build-the-lever skill loaded.",
+        "Task is non-trivial (not a couple of obvious glanceable edits)."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Perform non-trivial multi-unit work while citing Build the Lever.",
+          "expectedObservation": "The agent Reads the leaf skill and the diff includes a codemod, script, generator, or delegate skill that a reviewer can rerun."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Lever artifact path present in the work product."
+      ],
+      "forbiddenSideEffects": [
+        "Citing Build the Lever with no lever file in the diff.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-ENCODE-STRUCTURE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+        "locator": "Encode Lessons in Structure frontmatter trigger and disable-model-invocation",
+        "sha256": "77044c83a9ac6df78fc643887ea5f1f11f082adaf14b717c060cdaed03cce863"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when the agent would write the same instruction a second time or notices a recurring correction, it applies principle-encode-lessons-in-structure.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-encode-lessons-in-structure skill loaded.",
+        "A prior textual instruction or human correction already exists for the same rule."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Encounter the same rule that was previously written as prose instruction.",
+          "expectedObservation": "The agent Reads the leaf skill and encodes a lint, metadata flag, runtime check, or script instead of adding another prose copy."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Structural mechanism artifact or CI rule added."
+      ],
+      "forbiddenSideEffects": [
+        "Pasting a second copy of the same instruction as the only fix.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-EXHAUST-DESIGN-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+        "locator": "Exhaust the Design Space frontmatter trigger and disable-model-invocation",
+        "sha256": "8583310d7297b7823d75494faa57b003564d436807febecdecbd8321abe5cf6e"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, facing a novel UI interaction or architectural decision with no codebase precedent, the agent applies principle-exhaust-the-design-space.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-exhaust-the-design-space skill loaded.",
+        "Decision has no established precedent in the repo."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Choose among novel design alternatives before implementation.",
+          "expectedObservation": "The agent Reads the leaf skill and produces 2-3 competing prototypes or sketches before committing to one."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Two or three prototype artifacts recorded."
+      ],
+      "forbiddenSideEffects": [
+        "Committing the first novel design with no alternate sketch.",
+        "Counting a second flavor of the same shape as a second prototype.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-EXPERIENCE-FIRST-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-experience-first/SKILL.md",
+        "locator": "Experience First frontmatter trigger and disable-model-invocation",
+        "sha256": "58903529d733b1c1a7c9ccf127d45ef3c7d0d9f0b81164a4dc6b80efe6f2912b"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when product, UX, or feature-scope tradeoffs arise, the agent applies principle-experience-first.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-experience-first skill loaded.",
+        "A tradeoff exists between user delight and implementation convenience."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Decide feature scope when a convenient implementation would degrade user experience.",
+          "expectedObservation": "The agent Reads the leaf skill and the chosen option favors consumer or maintainer experience over implementation convenience, with impact stated for both."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Decision rationale names user impact."
+      ],
+      "forbiddenSideEffects": [
+        "Choosing the convenient internal design while acknowledging worse UX without course correction.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-EXPLAIN-NUMBER-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-explain-the-number/SKILL.md",
+        "locator": "Explain the Number frontmatter trigger and disable-model-invocation",
+        "sha256": "5aac99e7ce0bb1b37e2579acf4fe88c32a1456d9d46afd4a57cfe1df9092e89c"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, before trusting, reporting, or acting on a measured number (speedup, regression, throughput, latency, or eval result), the agent applies principle-explain-the-number.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-explain-the-number skill loaded.",
+        "A measured numeric result is about to be trusted or reported."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Report a measured speedup or eval delta.",
+          "expectedObservation": "The agent Reads the leaf skill and the report includes a named limiter plus run count and spread (or linked artifact), not the bare number alone."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Limiter and trial metadata attached to the numeric claim."
+      ],
+      "forbiddenSideEffects": [
+        "Acting on a bare number with no limiter or trial evidence.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-FIX-ROOT-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-fix-root-causes/SKILL.md",
+        "locator": "Fix Root Causes frontmatter trigger and disable-model-invocation",
+        "sha256": "ba4cd38da1dcc8fe5432feb64457cba95594736a9b21b2ebf8f8c52aee068707"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when debugging, the agent applies principle-fix-root-causes.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-fix-root-causes skill loaded.",
+        "A defect or crash is under investigation."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Debug a failing symptom such as a nil crash.",
+          "expectedObservation": "The agent Reads the leaf skill, reproduces first, and does not ship a nil-check guard as the sole fix without a root-cause change."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Reproduction evidence before fix."
+      ],
+      "forbiddenSideEffects": [
+        "Nil-check or similar guard as the only change that silences a crash.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-FOUNDATIONAL-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-foundational-thinking/SKILL.md",
+        "locator": "Foundational Thinking frontmatter trigger and disable-model-invocation",
+        "sha256": "864b827e8199d946ce58beca0f89c4ed4099ed6e426fb698a3aaa45de2a9eea2"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, before writing logic (core types, scaffold-vs-feature sequencing, concurrent shared state), the agent applies principle-foundational-thinking.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-foundational-thinking skill loaded.",
+        "New logic or concurrency sharing is about to be written."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Start implementing a feature that needs new core types or shared concurrent state.",
+          "expectedObservation": "The agent Reads the leaf skill and names the data shape or scaffold sequencing before feature logic lands."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Named data shape or scaffold plan precedes feature commits."
+      ],
+      "forbiddenSideEffects": [
+        "Jumping straight to feature branches with no stated data shape when foundational thinking was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-GUARD-CONTEXT-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-guard-the-context-window/SKILL.md",
+        "locator": "Guard the Context Window frontmatter trigger and disable-model-invocation",
+        "sha256": "d2cef147862576e3d709b7afc149d85196245e8338b9c7eef337c95fba412b3e"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when context is filling (large outputs, long files, repeated reads, fan-out planning), the agent applies principle-guard-the-context-window.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-guard-the-context-window skill loaded.",
+        "Bulk payload or fan-out would otherwise land in the main thread."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Handle a large document or verbose tool dump mid-session.",
+          "expectedObservation": "The agent Reads the leaf skill and routes bulk to a subagent while keeping a summary in the main thread."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Subagent or external artifact absorbs the bulk payload."
+      ],
+      "forbiddenSideEffects": [
+        "Inlining the full large payload into the main conversation when the principle was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-LAZINESS-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-laziness-protocol/SKILL.md",
+        "locator": "Laziness Protocol frontmatter trigger and disable-model-invocation",
+        "sha256": "9006579e9e3f33955d17569733db688ae65f22577dc3b21803d219a5a8445aff"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when refactoring, evaluating diff size, or tempted to add abstractions, layers, or signal threading, the agent applies principle-laziness-protocol.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-laziness-protocol skill loaded.",
+        "A refactor or abstraction temptation is active."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Refactor or add a layer to solve a problem.",
+          "expectedObservation": "The agent Reads the leaf skill and prefers deletion or the smallest change that solves the problem over new abstraction layers."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript."
+      ],
+      "forbiddenSideEffects": [
+        "Adding speculative layers or signal threading when a smaller deletion would solve it.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-IDEMPOTENT-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-make-operations-idempotent/SKILL.md",
+        "locator": "Make Operations Idempotent frontmatter trigger and disable-model-invocation",
+        "sha256": "540738217c3da7bf513b9886924ad6a2bc77e58be867f5bd2e1831c74bf2ce70"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when designing commands, lifecycle steps, or processing loops that run amid crashes and retries, the agent applies principle-make-operations-idempotent.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-make-operations-idempotent skill loaded.",
+        "A state-mutating command or lifecycle step is being designed."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Implement a lifecycle command that may crash mid-run.",
+          "expectedObservation": "The agent Reads the leaf skill and the operation converges to the same end state on re-run after partial prior execution."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Re-run after partial state reaches the same end state."
+      ],
+      "forbiddenSideEffects": [
+        "End state that depends on leftover partial state without reconciliation.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-MIGRATE-DELETE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+        "locator": "Migrate Callers Then Delete Legacy APIs frontmatter trigger and disable-model-invocation",
+        "sha256": "09978915a4a11990cf0a9a02d9c08cc59e0b7a04c5c24b83aa560fbe4146f75b"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when introducing a new internal API while old callers still exist, the agent applies principle-migrate-callers-then-delete-legacy-apis.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-migrate-callers-then-delete-legacy-apis skill loaded.",
+        "No external users require the old API compatibility."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Introduce a replacement internal API.",
+          "expectedObservation": "The agent Reads the leaf skill, migrates callers, and deletes the old API in the same wave without leaving a permanent compatibility layer."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Legacy API deleted in the same delivery wave as caller migration."
+      ],
+      "forbiddenSideEffects": [
+        "Shipping the new API while leaving all old callers on the legacy path indefinitely.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-MINIMIZE-READER-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-minimize-reader-load/SKILL.md",
+        "locator": "Minimize Reader Load frontmatter trigger and disable-model-invocation",
+        "sha256": "42551c5dc74cd578163c148da552db3ff67d29b78600ef216bfd311fb828fe69"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when reviewing or shaping hard-to-trace code, the agent applies principle-minimize-reader-load.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-minimize-reader-load skill loaded.",
+        "Code under change has excess layers or hidden mutable state."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Refactor a one-caller wrapper stack or shrink mutable scope.",
+          "expectedObservation": "The agent Reads the leaf skill and collapses pass-through layers or shrinks mutable scope so origin and mutators are easier to answer."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript."
+      ],
+      "forbiddenSideEffects": [
+        "Adding a pass-through layer that does not change abstraction while citing the principle.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-MODEL-DOMAIN-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-model-the-domain/SKILL.md",
+        "locator": "Model the Domain frontmatter trigger and disable-model-invocation",
+        "sha256": "bbadbb9a723fac3f76e782ae45665eb94058ec10993e4bae36d4dc6b0e4eac07"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when writing stateful logic or code that branches a lot or repeats a shape assumption across files, the agent applies principle-model-the-domain.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-model-the-domain skill loaded.",
+        "New stateful or branching logic is required."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Add a feature that would otherwise extend an if/else chain or add a second synced boolean.",
+          "expectedObservation": "The agent Reads the leaf skill and encodes the domain in a structure (state machine, typed model, registry, reducer, or similar) instead of another scattered branch."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Domain structure visible in the diff."
+      ],
+      "forbiddenSideEffects": [
+        "Growing an existing if/else by one branch as the only modeling step when the principle was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-NEVER-BLOCK-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-never-block-on-the-human/SKILL.md",
+        "locator": "Never Block on the Human frontmatter trigger and disable-model-invocation",
+        "sha256": "f2764bb9338cbfc788c903cf4b9cd0a5f4042d3a04dd6d59cbd525d9beaadd0a"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when tempted to ask 'should I do X?' on reversible work, the agent applies principle-never-block-on-the-human.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-never-block-on-the-human skill loaded.",
+        "The contemplated action is reversible."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Face a reversible implementation choice mid-task.",
+          "expectedObservation": "The agent Reads the leaf skill, proceeds without asking permission, and presents the result; irreversible actions still require confirmation."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Reversible work product delivered without a permission question."
+      ],
+      "forbiddenSideEffects": [
+        "Blocking the human for reversible code edits.",
+        "Skipping confirmation for irreversible actions.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-OUTCOME-ORIENTED-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+        "locator": "Outcome-Oriented Execution frontmatter trigger and disable-model-invocation",
+        "sha256": "10eb91633aa570355ba4bb37088fcade2b22e498df7a58edc749e65bc5a78e2d"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, during planned rewrites and migrations with explicit phase boundaries, the agent applies principle-outcome-oriented-execution.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-outcome-oriented-execution skill loaded.",
+        "A planned rewrite or migration with phase boundaries is active."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Execute a multi-phase migration.",
+          "expectedObservation": "The agent Reads the leaf skill, converges on the target architecture, and does not preserve throwaway compatibility layers as long-lived dual paths."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Verification at plan completion."
+      ],
+      "forbiddenSideEffects": [
+        "Keeping permanent throwaway compatibility code to smooth every intermediate state.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-PROVE-IT-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-prove-it-works/SKILL.md",
+        "locator": "Prove It Works frontmatter trigger and disable-model-invocation",
+        "sha256": "ec79a15025bac8d33d62011c54f3b612733fd2a024e623b531b3637aa75070e2"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, after completing a task and before declaring done, the agent applies principle-prove-it-works.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-prove-it-works skill loaded.",
+        "A task output exists that is about to be declared done."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Declare a task complete.",
+          "expectedObservation": "The agent Reads the leaf skill and verifies against the real artifact (run, read actual value, or inspect diff), preferably via a deterministic rerunnable script whose output is kept."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Direct verification evidence of the real artifact."
+      ],
+      "forbiddenSideEffects": [
+        "Declaring done from proxies alone (mtimes, freshness, self-report, compile-only).",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-REDESIGN-FIRST-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+        "locator": "Redesign From First Principles frontmatter trigger and disable-model-invocation",
+        "sha256": "a1c7fd0a96b40e12a74bceb0e6bb20a9666dd844dcabfb624acb27da23b929fe"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when integrating a new requirement into an existing design, the agent applies principle-redesign-from-first-principles.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-redesign-from-first-principles skill loaded.",
+        "A new requirement must integrate into existing design."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Integrate a new requirement into an established module.",
+          "expectedObservation": "The agent Reads the leaf skill and redesigns as if the requirement were foundational, propagating through types, docs, and references rather than bolting a side path."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Propagated updates across affected references in scope."
+      ],
+      "forbiddenSideEffects": [
+        "Bolt-on side path that leaves the old design assumptions intact when the principle was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-SEPARATE-STATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+        "locator": "Separate Before Serializing Shared State frontmatter trigger and disable-model-invocation",
+        "sha256": "05294b40448e927c5da1c7b6f5c6b9fed3744637e3833d2d948b9154a9dd00bb"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when concurrent actors might write the same file, branch, key, or state object, the agent applies principle-separate-before-serializing-shared-state.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-separate-before-serializing-shared-state skill loaded.",
+        "Two or more concurrent writers are in scope."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Design work where two workers produce results.",
+          "expectedObservation": "The agent Reads the leaf skill and gives each actor an owned write target, merging only at the read/reporting boundary, unless one shared writer is a real invariant."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Per-actor owned write targets when sharing is not an invariant."
+      ],
+      "forbiddenSideEffects": [
+        "Two workers mutating the same state.json fields without structural serialization.",
+        "Relying on prose conventions alone as concurrency control.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-SEQUENCE-UNITS-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+        "locator": "Sequence verifiable units frontmatter trigger and disable-model-invocation",
+        "sha256": "2ccbbacc56ace5afdfb8670cef19d7bd009fb2a0033b9a741cbdf2b6baf72187"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, for multi-step sweeps, migrations, or similar edits and for stacking commits/PRs, the agent applies principle-sequence-verifiable-units.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-sequence-verifiable-units skill loaded.",
+        "Work has multiple similar units or stacked delivery."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Run a multi-unit migration or stack commits for a fix.",
+          "expectedObservation": "The agent Reads the leaf skill, verifies each unit before the next, and orders delivery so a reviewer sees a proving sequence (for example failing test then fix)."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Per-unit verification evidence."
+      ],
+      "forbiddenSideEffects": [
+        "Batching all units then verifying once at the end when the principle was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-SUBTRACT-FIRST-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-subtract-before-you-add/SKILL.md",
+        "locator": "Subtract Before You Add frontmatter trigger and disable-model-invocation",
+        "sha256": "a983a50e732c1ed315eba7aaf47a61329e31c4794eb1ab9d25d9945265b31e03"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when sequencing an addition, refactor, or rewrite, the agent applies principle-subtract-before-you-add.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-subtract-before-you-add skill loaded.",
+        "Dead code, redundant validators, or stub references exist in scope."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Evolve a system by adding a capability.",
+          "expectedObservation": "The agent Reads the leaf skill and removes dead weight first, then builds on the simpler base."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Deletion commits or hunks before additive construction when both are required."
+      ],
+      "forbiddenSideEffects": [
+        "Adding speculative validators beyond the spec while leaving dead stubs in place.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-TEST-BEHAVIOR-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+        "locator": "Test Behavior Not Implementation frontmatter trigger and disable-model-invocation",
+        "sha256": "87e40efe4e486f7ea639d2ed1fc0abe6c93b8fd0e89a81218086909d2470a52e"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when writing, changing, or keeping a test, the agent applies principle-test-behavior-not-implementation.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-test-behavior-not-implementation skill loaded.",
+        "A test is being written or retained."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Add or keep a unit test.",
+          "expectedObservation": "The agent Reads the leaf skill; the test calls the subject with a concrete input and asserts a literal observable result, and would fail if imported functions returned undefined."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Subject invoked inside the test body with a concrete assertion."
+      ],
+      "forbiddenSideEffects": [
+        "Keeping a test that still passes if every imported function returns undefined.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "PSTACK-PRIN-TYPE-DISCIPLINE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-type-system-discipline/SKILL.md",
+        "locator": "Type System Discipline frontmatter trigger and disable-model-invocation",
+        "sha256": "c83da8031ffb4c86410030d3e261f659598fca2b7d8158fd9dc269d70a3a025e"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when designing types, reviewing a function signature, or writing code in a statically typed language, the agent applies principle-type-system-discipline.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-type-system-discipline skill loaded.",
+        "Typed-language design or signature work is in scope."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Introduce or change domain types for a feature.",
+          "expectedObservation": "The agent Reads the leaf skill and makes illegal states unrepresentable (or brands/parses at boundaries) rather than relying on casts and bag-of-optionals."
+        }
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Typed model change reflecting unrepresentable illegal states or branded primitives where applicable."
+      ],
+      "forbiddenSideEffects": [
+        "Introducing `as`/`any`/assertNotNull as the primary modeling step when the principle was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "status": "unverified",
+      "evidence": []
     }
   ],
   "openWork": [

@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "pairId": "mode-one-message-1",
+  "scenarioRef": "mode-one-message:plain-enter",
+  "requirementId": "PSTACK-MODE-ONE-MESSAGE-001",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "firstTask": "Reply with exactly the three words: one message only. Do no other work.",
+  "followup": "Reply with exactly the digit 4. Do no other work.",
+  "steps": [
+    { "send": "/poteto-mode", "note": "open slash menu with poteto-mode selected (Cursor)" },
+    { "send": "\r", "note": "plain Enter on selected entry" },
+    { "send": " <firstTask>", "note": "append task text then submit with Enter" },
+    { "send": "\r" },
+    { "wait": "assistant reply one message only; no braille spinner" },
+    { "send": "<followup>" },
+    { "send": "\r" },
+    { "wait": "assistant reply 4; no braille spinner" },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "5fd487a4-cf8e-4fe4-bbc0-7de39af1a159",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/mode-one-message/cursor/5fd487a4-cf8e-4fe4-bbc0-7de39af1a159",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "slashMenuOpen": true,
+      "afterPlainEnterNoCustomMode": true,
+      "usedPotetoModeChrome": false,
+      "afterFirstTurnCustomMode": false,
+      "afterSecondTurnCustomMode": false,
+      "firstReply": true,
+      "secondReply": true
+    },
+    "supersedesAttempt": "d40605ed-3b43-47f3-81dc-c911daff4d61"
+  },
+  "pi": {
+    "attemptId": "f19e11c7-b1e5-4788-9f04-bb0e5c9de559",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/mode-one-message/pi/f19e11c7-b1e5-4788-9f04-bb0e5c9de559",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/2026-10-08T17-51-18-490Z_01a11ca4-17d9-71c9-9a42-7713161ddceb.jsonl",
+    "observations": {
+      "stickyBadgeAfterEnter": false,
+      "stickyBadgeAfterFirstTurn": false,
+      "stickyBadgeAfterSecondTurn": false,
+      "skillBlockShown": true,
+      "firstReply": true,
+      "secondReply": true
+    },
+    "supersedesAttempt": "bb7c8cd9-1fdd-43fe-aeb9-c0cc805f435b"
+  },
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-mode-one-message.mjs --pi-only after MODE-PLAIN-ENTER-STICKY repair",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "priorCursorRace": "parity/evidence/mode-one-message/cursor/d40605ed-3b43-47f3-81dc-c911daff4d61",
+    "priorStickyPi": "parity/evidence/mode-one-message/pi/bb7c8cd9-1fdd-43fe-aeb9-c0cc805f435b"
+  }
+}

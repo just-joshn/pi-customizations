@@ -282,6 +282,37 @@
         "commit": "fd0b41b018130c7f2ec483ca1c29b71b59a73e32",
         "closedAt": "2026-10-08T17:32:00Z"
       }
+    },
+    {
+      "id": "MODE-PLAIN-ENTER-STICKY",
+      "requirementId": "PSTACK-MODE-ONE-MESSAGE-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "33153ac6e2e3f13d191b2e17264499bef18cac45",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/poteto-help/SKILL.md",
+      "discoveredBy": "parity/evidence/mode-one-message/pair-mode-one-message-1.json",
+      "expected": "Plain Enter on /poteto-mode attaches the skill for one message and must not activate persistent mode on the next turn.",
+      "actual": "After repair on 33153ac, Pi plain /poteto-mode stays non-sticky across follow-up (attempt f19e11c7). Cursor plain Enter remains non-sticky (5fd487a4). Sticky spelling is /poteto-mode sticky.",
+      "consequence": "Same user action diverges: Cursor one-message vs Pi sticky session mode.",
+      "acceptanceVerdict": "pass-paired",
+      "evidence": [
+        "parity/briefs/reports/u-mode-one-message-report.md",
+        "parity/evidence/mode-one-message/pair-mode-one-message-1.json"
+      ],
+      "nextAction": "Capture PSTACK-MODE-STICKY-001 with /poteto-mode sticky (in flight).",
+      "closure": {
+        "pairedRun": "parity/evidence/mode-one-message/pair-mode-one-message-1.json",
+        "attemptIds": {
+          "cursor": "5fd487a4-cf8e-4fe4-bbc0-7de39af1a159",
+          "pi": "f19e11c7-b1e5-4788-9f04-bb0e5c9de559"
+        },
+        "evidence": [
+          "parity/evidence/mode-one-message/pair-mode-one-message-1.json",
+          "parity/briefs/reports/u-mode-plain-enter-fix-report.md"
+        ],
+        "repair": "parseModeArgs: only sticky token enables mode; plain /poteto-mode is one-message",
+        "closedAt": "2026-10-08T17:55:03Z",
+        "commit": "33153ac6e2e3f13d191b2e17264499bef18cac45"
+      }
     }
   ]
 }

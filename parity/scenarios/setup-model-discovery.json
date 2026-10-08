@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-model-discovery",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-MODEL-DISCOVERY-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#1-detect-available-models",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Canonical first-run setup pair",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "type",
+      "literal": "/setup-pstack",
+      "expect": "Setup begins"
+    },
+    {
+      "kind": "observe",
+      "expect": "Model slugs detected before write"
+    }
+  ],
+  "execution": {
+    "referenceRun": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+    "candidateRun": "1e448f41-07cb-4335-8a96-aa6312d6d125",
+    "pairId": "setup-first-run-canonical-2",
+    "pairPath": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T11:25:00Z"
+  }
+}

@@ -650,3 +650,46 @@ Closed mismatches: SETUP-WRITE-CARD, HOW-WORKFLOW-EXPLAINER-STEP, HOW-TASK-AGENT
 Orch gate setup-write-card-commit resolved.
 Left uncommitted: Pi 1.1.0 workspace package bumps, research slices, in-flight mode-one-message probes.
 
+## Continuation checkpoint — 2026-10-08T17:34Z (setup-002 drained)
+
+`u-req-slice-setup-002` (c252294b) done. 21 draft proposals under `slice-setup-002/`. Three feature-map example paths marked non-requirement. Not merged into `parity/requirements.json`.
+
+## Continuation checkpoint — 2026-10-08T17:34Z (commands-002 drained)
+
+`u-req-slice-commands-002` (fc251876) done. 17 draft proposals. 24 principle leftovers queued as pending `u-req-slice-principles-001`. Not merged into `parity/requirements.json`.
+
+## Continuation checkpoint — 2026-10-08T17:45Z (goal gap; continue)
+
+Goal NOT met. Measured gaps:
+- requirements: 4 rows (2 verified, 2 unverified); denominatorComplete false; 193 inventory unassigned
+- open mismatch: MODE-PLAIN-ENTER-STICKY (Pi sticky on plain /poteto-mode vs Cursor one-message)
+- completion.json absent
+- 70 draft proposals not yet in the ledger
+
+In flight: u-mode-plain-enter-fix (97ff1068), u-merge-requirements-001 (3bef672f), u-completion-gate-v1 (59d1a392), u-req-slice-principles-001 (d5892725), u-journey-matrix-001 (9caee3e7).
+
+### Exact next executable action
+
+Drain those units. Recapture mode-one-message after the repair. Then mode-sticky. Keep merging and journeying until the completion gate can pass.
+
+## Continuation checkpoint — 2026-10-08T17:49Z (requirements merge drained)
+
+`u-merge-requirements-001` (3bef672f) done. Ledger grew 4 → 74. Seventy new rows are `unverified`. Prior setup verified rows preserved. `coverageDenominatorComplete` remains false (principles/inventory still open).
+
+## Continuation checkpoint — 2026-10-08T17:50Z (gate + journey matrix drained)
+
+- `u-completion-gate-v1` (59d1a392) done. `check-completion.mjs` exits 2, `completion.json` verdict BLOCKED (expected). Goal still unmet.
+- `u-journey-matrix-001` (9caee3e7) done. 16 family stubs: 13 missing, 3 partial, 0 paired.
+
+## Continuation checkpoint — 2026-10-08T17:51Z (principles slice drained)
+
+`u-req-slice-principles-001` (d5892725) done. 24/24 hashes PASS. Merged into ledger as unverified. Requirements count now 98.
+
+## Continuation checkpoint — 2026-10-08T17:52Z (mode plain-enter fix drained)
+
+`u-mode-plain-enter-fix` (97ff1068) done. Sticky spelling `/poteto-mode sticky`. Pi recapture `f19e11c7` has no crown across follow-up. Pair file updated with cursor `5fd487a4` + pi `f19e11c7` both non-sticky. MODE-PLAIN-ENTER-STICKY provisional pending commit + formal close. Spawned `u-mode-sticky-capture`.
+
+## Continuation checkpoint — 2026-10-08T17:55:03Z (MODE-PLAIN-ENTER closed)
+
+Committed mode plain-enter fix `33153ac6e2e3f13d191b2e17264499bef18cac45`. Closed MODE-PLAIN-ENTER-STICKY pass-paired on pair-mode-one-message-1 (cursor 5fd487a4-cf8e-4fe4-bbc0-7de39af1a159, pi f19e11c7-b1e5-4788-9f04-bb0e5c9de559). PSTACK-MODE-ONE-MESSAGE-001 marked verified-pass-paired. Scenario artifacts written for mode-one-message, mode-sticky (awaiting pair), setup-model-discovery; setup-budget-labels pairId linked. Sticky capture still in flight. Goal remains unmet (completion gate still BLOCKED on ~90+ unverified requirements, dependency closure, acceptance freeze).
+
