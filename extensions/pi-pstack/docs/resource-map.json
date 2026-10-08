@@ -323,20 +323,21 @@
   {
     "source": "upstream/skills/poteto-help/SKILL.md",
     "destination": "skills/poteto-help/SKILL.md",
-    "sha256": "2e3db25bc0263f7ced316183824eba0be117038a944b56eab52106dbd0097674",
+    "sha256": "6d11672ffc7e26387d166aad06f6e679da26538f2f9164c8316c96b7105707f3",
     "executable": false,
     "transformations": [
       "Map model rule location to Pi agent configuration.",
       "Map Reference plugin installation and Custom Modes to Pi package installation and the sticky session-branch mode.",
       "The model rule is read on every turn in Pi, so a change applies to the next turn.",
       "State truthfully that the host is Pi, which supplies the host skills and subagent worker tool the source assumes.",
+      "Route branch-review help questions to /interrogate so team-kit /review-and-ship cannot steal the primary recommendation.",
       "Name the standalone /bro prompt template, since Pi ships no bro skill file."
     ]
   },
   {
     "source": "upstream/skills/poteto-help/SKILL.md",
     "destination": "prompts/poteto-help.md",
-    "sha256": "4e8b315c5a767943d44e24f9a67f686e94522561e5f43dac8860251011163ad9",
+    "sha256": "4423eedc00da3ee95f24da2230d466f680b3497ea3e587f8f3dd3bb8bd03703a",
     "executable": false,
     "transformations": [
       "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."

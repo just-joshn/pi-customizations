@@ -76,3 +76,15 @@ test('poteto-help names the Pi install, the sticky mode, and the next-turn model
   expect(help).toContain('The rule applies from the next turn.');
   for (const absent of ['/add-plugin', 'Custom Mode', 'Option+Enter', 'cursor.com/docs', "Reference's"]) expect(help).not.toContain(absent);
 });
+
+test('poteto-help maps branch-review questions to /interrogate ahead of /review-and-ship', async () => {
+  const help = await text('skills/poteto-help/SKILL.md');
+  expect(help).toContain('which skill should I use to review this branch?');
+  expect(help).toContain('| Review this branch or PR (find bugs and blind spots, do not ship yet) | [`/interrogate`](../interrogate/SKILL.md) |');
+  expect(help).toContain('recommend `/interrogate` as the primary skill');
+  expect(help).toContain('do not lead with it for a review-only ask');
+  const primary = help.indexOf('recommend `/interrogate` as the primary skill');
+  const reviewAndShip = help.indexOf('`/review-and-ship` (team-kit)');
+  expect(primary).toBeGreaterThan(-1);
+  expect(reviewAndShip).toBeGreaterThan(primary);
+});
