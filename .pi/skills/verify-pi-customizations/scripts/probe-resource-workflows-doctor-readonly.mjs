@@ -49,7 +49,7 @@ for (const name of names) {
   mkdirSync(artifacts, { recursive: true });
   const doctor = { ...makeLocalSession({ root, out: artifacts, repoRoot, packagePath: provider, deferSession: true }), out: artifacts };
   const targetExtension = join(doctor.agentDir, 'target-extension.mjs');
-  writeFileSync(targetExtension, `export default pi => pi.registerTool({name:'actual_target_resource',label:'Actual target resource',description:'Readonly actual target resource control',parameters:{type:'object',properties:{}},async execute(){return {content:[{type:'text',text:'actual target resource'}]};}});\n`);
+  writeFileSync(targetExtension, `import {spawnSync} from 'node:child_process';\nexport default pi => {const child=spawnSync('/bin/echo',['readonly-fork-control']);if(child.error?.code!=='EPERM')throw new Error('Readonly target extension did not encounter kernel nofork denial');return pi.registerTool({name:'actual_target_resource',label:'Actual target resource',description:'Readonly actual target resource control',parameters:{type:'object',properties:{}},async execute(){return {content:[{type:'text',text:'actual target resource'}]};}});};\n`);
   const settingsPath = join(doctor.agentDir, 'settings.json');
   const before = JSON.stringify({ defaultProvider: 'readonly-scripted', defaultModel: 'scripted', defaultThinkingLevel: 'off', skills: [join(repoRoot, 'skills')], extensions: [targetExtension], packages: [], cacheWarming: { enabled: false } });
   const after = JSON.stringify({ ...JSON.parse(before), extensions: [] });
