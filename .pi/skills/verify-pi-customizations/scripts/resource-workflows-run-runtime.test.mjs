@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import { promisify } from 'node:util';
 
 import { seedRecipe } from '../helpers/resource-workflows-recipes.mjs';
-import { collectRunEvidence, runIdentity } from '../helpers/resource-workflows-run-evidence.mjs';
+import { collectRunEvidence, openRunRuntime, runIdentity } from '../helpers/resource-workflows-run-evidence.mjs';
 
 const execute = promisify(execFile);
 
@@ -34,6 +34,30 @@ for (const kind of ['server', 'tui']) {
     }
   });
 }
+
+test('runtime sealing is idempotent and rejects changed records or a different identity', async () => {
+  const root = mkdtempSync('/tmp/f016-runtime-seal-');
+  const out = join(root, 'protected');
+  mkdirSync(out);
+  try {
+    seedRecipe('server', root, 49123, join(root, 'terminal.sock'));
+    const identity = runIdentity({ kind: 'server', cwd: root, port: 49123, socket: join(root, 'terminal.sock') });
+    const session = { pid: process.pid, records: [] };
+    const runtime = openRunRuntime({ identity, session, ownership: { captured: [] } });
+    const collect = (currentIdentity = identity, records = []) => collectRunEvidence({ identity: currentIdentity, records, runtime, error: null, cleanup: null, rescue: null, out, mode: 'scripted' });
+    assert.equal(collect().gaps.includes('Runtime must finish and seal before evidence collection.'), true);
+    const finishing = runtime.finish();
+    assert.equal(runtime.finish(), finishing);
+    await finishing;
+    assert.deepEqual(collect().observations, []);
+    assert.equal(collect({ ...identity, attemptId: 'another-attempt' }).gaps.includes('No matching observer-authorized runtime.'), true);
+    assert.equal(collect(identity, [{ type: 'forged' }]).gaps.includes('Source or RPC records differ from sealed runtime.'), true);
+    await runtime.close();
+    assert.throws(() => openRunRuntime({ identity: { ...identity, kind: 'cli' }, session, ownership: { captured: [] } }), /only server and tui/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test('actual Pi server and TUI interactions produce facts while negative controls stay uncredited', { timeout: 120000 }, async () => {
   const out = mkdtempSync('/tmp/f016-runtime-test-artifacts-');

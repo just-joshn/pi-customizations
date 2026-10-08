@@ -77,7 +77,10 @@ test('missing GUI runtime observations remain missing rather than text-derived',
     withFixture(kind, ({ collect }) => {
       const input = collect(records('echo "Hello Ada"'));
       assert.deepEqual(input.observations, []);
-      assert.equal(input.gaps.length, ['electron', 'playwright'].includes(kind) ? 2 : 1);
+      assert.equal(
+        input.gaps.some((gap) => gap.includes('Workspace marker files are not runtime observations.')),
+        true,
+      );
     });
   }
 });

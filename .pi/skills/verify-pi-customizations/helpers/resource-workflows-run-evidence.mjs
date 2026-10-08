@@ -2,6 +2,10 @@ import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { runtimeEvidence } from './resource-workflows-run-runtime.mjs';
+
+export { canonicalRunCommands, openRunRuntime } from './resource-workflows-run-runtime.mjs';
+
 const hash = (path) => (existsSync(path) ? createHash('sha256').update(readFileSync(path)).digest('hex') : null);
 const sameArguments = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 
@@ -68,21 +72,23 @@ function directObservations(identity, calls, unchanged) {
     });
 }
 
-export function collectRunEvidence({ identity, records, error, cleanup, rescue, out, mode = 'genuine' }) {
+export function collectRunEvidence({ identity, records, error, cleanup, rescue, out, mode = 'genuine', runtime }) {
   const calls = modelCalls(records);
   const unchanged = hash(identity.executable) === identity.sha256 && hash(join(identity.packageRoot, 'package.json')) === identity.packageSha256;
+  const observed = ['server', 'tui'].includes(identity.kind) && unchanged && runtime !== undefined ? runtimeEvidence(runtime, identity, records) : { observations: [], gaps: [] };
   const input = {
     kind: identity.kind,
     mode,
     identity,
     invocation: { error },
     calls,
-    observations: directObservations(identity, calls, unchanged),
+    observations: [...directObservations(identity, calls, unchanged), ...observed.observations],
     cleanup,
     rescue,
     capture: join(out, 'rpc.jsonl'),
     gaps: [
-      'Only canonical direct CLI and bare-package calls are collected. Independent listener/response and pane observers remain unavailable. Workspace marker files are not runtime observations.',
+      ...observed.gaps,
+      'Only canonical calls are collected. Runtime sampling cannot prove complete resource capture. Workspace marker files are not runtime observations.',
       ...(['electron', 'playwright'].includes(identity.kind) ? ['Actual ready window, model click, same-window visible result, real PNG, and successful SDK image-read correlation await the GUI prototype.'] : []),
     ],
     sourceUnchanged: unchanged,

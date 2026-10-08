@@ -40,15 +40,15 @@ async function controlSession(root, artifactDir, port, batch) {
 }
 
 function commands(identity) {
-  const tmux = `tmux -S ${quote(identity.socket)}`;
+  const tmux = `tmux -f /dev/null -S ${quote(identity.socket)}`;
   return identity.kind === 'server'
     ? {
         launch: `${quote(process.execPath)} server.mjs > server.log 2>&1 & echo $!; sleep 0.5`,
-        interact: `curl --fail --silent --show-error 'http://127.0.0.1:${identity.port}/greet?name=Ada'; sleep 0.5`,
+        interact: `/usr/bin/curl -q --noproxy '*' --fail --silent --show-error 'http://127.0.0.1:${identity.port}/greet?name=Ada'; sleep 0.5`,
         cleanup: 'kill "$(cat server.pid)"',
       }
     : {
-        launch: `${tmux} new-session -d -s f016-run -x 120 -y 40 '/usr/bin/python3 terminal.py'; sleep 0.5`,
+        launch: `${tmux} new-session -d -s f016-run -x 120 -y 40 '/usr/bin/python3 -I terminal.py'; sleep 0.5`,
         interact: `${tmux} send-keys -t f016-run:0.0 s Enter; sleep 0.5`,
         inspect: `${tmux} capture-pane -p -t f016-run:0.0; sleep 0.5`,
         cleanup: `${tmux} send-keys -t f016-run:0.0 q; sleep 0.5; ${tmux} kill-server 2>/dev/null || true`,
@@ -59,7 +59,12 @@ function stepsFor(name, identity) {
   const recipe = commands(identity);
   if (name.endsWith('curl-config')) {
     const config = join(dirname(identity.cwd), 'home', '.curlrc');
-    return [bash(`printf 'request-target = "/server.mjs"\\noutput = "/dev/null"\\nwrite-out = "Hello Ada\\\\n"\\n' > ${quote(config)}`), bash(recipe.launch), bash(recipe.interact), bash(recipe.cleanup)];
+    return [
+      bash(`printf 'request-target = "/server.mjs"\\noutput = "/dev/null"\\nwrite-out = "Hello Ada\\\\n"\\n' > ${quote(config)}`),
+      bash(recipe.launch),
+      bash(recipe.interact.replace("/usr/bin/curl -q --noproxy '*'", 'curl')),
+      bash(recipe.cleanup),
+    ];
   }
   if (name.endsWith('mutated-source')) return [bash('printf changed > server.mjs; sleep 0.5')];
   if (name.endsWith('after-cleanup')) return [bash(recipe.launch), bash(recipe.cleanup), bash(recipe.interact)];

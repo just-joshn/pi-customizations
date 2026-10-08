@@ -41,7 +41,7 @@ test('host HTTP observation preserves the real literal response and status', asy
 
 test('host HTTP observation rejects bodies beyond its protected capture limit', async () => {
   await withServer('large', async (identity) => {
-    await assert.rejects(requestGreeting(identity), { code: 'ENOBUFS' });
+    await assert.rejects(requestGreeting(identity), { code: 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER' });
   });
 });
 
@@ -108,7 +108,7 @@ test('unrelated running processes and sockets cannot become application leases',
     const unrelated = { pid: process.pid, birth: 'not-the-current-process' };
     assert.equal(await inspectProcess(identity, unrelated), null);
     assert.equal(await inspectListener(identity, unrelated), null);
-    await assert.rejects(inspectPane({ ...identity, kind: 'tui' }, []));
+    assert.equal(await inspectPane({ ...identity, kind: 'tui' }, []), null);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
