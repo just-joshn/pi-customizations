@@ -1,0 +1,98 @@
+$ vitest run test/extension.test.ts
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman
+
+ ❯ test/extension.test.ts (29 tests | 5 failed) 14ms
+   ❯ one-shot skills (13)
+     × uppercase commit falls back to its canonical skill when only the lowercase owned template exists 4ms
+     × uppercase review falls back to its canonical skill when only the lowercase owned template exists 1ms
+     × uppercase compress falls back to its canonical skill when only the lowercase owned template exists 0ms
+     × case-exact foreign CAVEMAN-REVIEW template stays user-owned without a mode change 1ms
+     × case-exact foreign Caveman-Review template stays user-owned without a mode change 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/extension.test.ts > one-shot skills > uppercase commit falls back to its canonical skill when only the lowercase owned template exists
+AssertionError: expected [ { action: 'continue' } ] to strictly equal [ { action: 'transform', …(1) } ]
+
+- Expected
++ Received
+
+  [
+    {
+-     "action": "transform",
+-     "text": "/skill:caveman-commit \"two words\"
+- $ARGUMENTS",
++     "action": "continue",
+    },
+  ]
+
+ ❯ test/extension.test.ts:91:112
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  test/extension.test.ts > one-shot skills > uppercase review falls back to its canonical skill when only the lowercase owned template exists
+AssertionError: expected [ { action: 'continue' } ] to strictly equal [ { action: 'transform', …(1) } ]
+
+- Expected
++ Received
+
+  [
+    {
+-     "action": "transform",
+-     "text": "/skill:caveman-review \"two words\"
+- $ARGUMENTS",
++     "action": "continue",
+    },
+  ]
+
+ ❯ test/extension.test.ts:91:112
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  test/extension.test.ts > one-shot skills > uppercase compress falls back to its canonical skill when only the lowercase owned template exists
+AssertionError: expected [ { action: 'continue' } ] to strictly equal [ { action: 'transform', …(1) } ]
+
+- Expected
++ Received
+
+  [
+    {
+-     "action": "transform",
+-     "text": "/skill:caveman-compress \"two words\"
+- $ARGUMENTS",
++     "action": "continue",
+    },
+  ]
+
+ ❯ test/extension.test.ts:91:112
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  test/extension.test.ts > one-shot skills > case-exact foreign CAVEMAN-REVIEW template stays user-owned without a mode change
+ FAIL  test/extension.test.ts > one-shot skills > case-exact foreign Caveman-Review template stays user-owned without a mode change
+AssertionError: expected '[CAVEMAN:REVIEW]' to be '[CAVEMAN]' // Object.is equality
+
+Expected: "[CAVEMAN]"
+Received: "[CAVEMAN:REVIEW]"
+
+ ❯ test/extension.test.ts:102:31
+    100|     h.emit('session_start', { reason: 'startup' });
+    101|     expect(h.emit('input', { text: `/${name} "two words"\n$ARGUMENTS`,…
+    102|     expect(h.statuses.at(-1)).toBe('[CAVEMAN]');
+       |                               ^
+    103|     expect(h.entries).toHaveLength(1);
+    104|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 24 passed (29)
+   Start at  17:42:47
+   Duration  682ms (import 83%, transform 14%, tests 2%)
+
+error: script "test" exited with code 1

@@ -84,6 +84,25 @@ describe('one-shot skills', () => {
     expect(h.emit('input', { text: `/caveman:${name} "two words"\n$ARGUMENTS`, images, source: 'interactive' })).toStrictEqual([{ action: 'transform', text: `/skill:${name} "two words"\n$ARGUMENTS` }]);
   });
 
+  test.for(['commit', 'review', 'compress'])('uppercase %s falls back to its canonical skill when only the lowercase owned template exists', (mode) => {
+    const name = `caveman-${mode}`;
+    const h = harness('/unrelated/cwd', { resources: [{ name, source: 'prompt', description: '', sourceInfo: { path: fileURLToPath(new URL(`../prompts/${name}.md`, import.meta.url)), source: 'package', scope: 'project', origin: 'package' } }] });
+    h.emit('session_start', { reason: 'startup' });
+    expect(h.emit('input', { text: `/${name.toUpperCase()} "two words"\n$ARGUMENTS`, source: 'interactive' })).toStrictEqual([{ action: 'transform', text: `/skill:${name} "two words"\n$ARGUMENTS` }]);
+    expect(h.statuses.at(-1)).toBe(`[CAVEMAN:${mode.toUpperCase()}]`);
+  });
+
+  test.for(['CAVEMAN-REVIEW', 'Caveman-Review'])('case-exact foreign %s template stays user-owned without a mode change', (name) => {
+    const h = harness('/unrelated/cwd', { resources: [
+      { name: 'caveman-review', source: 'prompt', description: '', sourceInfo: { path: fileURLToPath(new URL('../prompts/caveman-review.md', import.meta.url)), source: 'package', scope: 'project', origin: 'package' } },
+      { name, source: 'prompt', description: '', sourceInfo: { path: `/user/prompts/${name}.md`, source: 'user', scope: 'user', origin: 'top-level' } },
+    ] });
+    h.emit('session_start', { reason: 'startup' });
+    expect(h.emit('input', { text: `/${name} "two words"\n$ARGUMENTS`, source: 'interactive' })).toStrictEqual([{ action: 'continue' }]);
+    expect(h.statuses.at(-1)).toBe('[CAVEMAN]');
+    expect(h.entries).toHaveLength(1);
+  });
+
   test('foreign bare template continues without changing mode or recording a one-shot', () => {
     const h = harness('/unrelated/cwd', { resources: [{ name: 'caveman-commit', source: 'prompt', description: '', sourceInfo: { path: '/user/prompts/caveman-commit.md', source: 'user', scope: 'user', origin: 'top-level' } }] });
     h.emit('session_start', { reason: 'startup' });

@@ -1,0 +1,109 @@
+{
+  "version": "1.1.0",
+  "results": [
+    {
+      "foreign": false,
+      "commands": [
+        {
+          "name": "caveman-review",
+          "description": "One-line-per-finding code review of the current changes (caveman-review)",
+          "source": "prompt",
+          "sourceInfo": {
+            "path": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman/prompts/caveman-review.md",
+            "source": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman",
+            "scope": "user",
+            "origin": "package",
+            "baseDir": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman"
+          }
+        },
+        {
+          "name": "skill:caveman-review",
+          "description": "Compressed code review - one line per finding with location, problem and fix. Use for /caveman-review, \"review this PR\", or \"review the diff\".\n",
+          "source": "skill",
+          "sourceInfo": {
+            "path": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman/skills/caveman-review/SKILL.md",
+            "source": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman",
+            "scope": "user",
+            "origin": "package",
+            "baseDir": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman"
+          }
+        }
+      ],
+      "userTexts": [
+        "/CAVEMAN-REVIEW CASE_SENTINEL"
+      ],
+      "entries": [
+        {
+          "type": "custom",
+          "customType": "caveman-mode",
+          "data": {
+            "mode": "review",
+            "returnTo": "off"
+          },
+          "id": "528b7548",
+          "parentId": "97bd038d",
+          "timestamp": "2026-10-08T00:42:17.849Z"
+        }
+      ],
+      "expanded": false
+    },
+    {
+      "foreign": true,
+      "commands": [
+        {
+          "name": "caveman-review",
+          "description": "One-line-per-finding code review of the current changes (caveman-review)",
+          "source": "prompt",
+          "sourceInfo": {
+            "path": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman/prompts/caveman-review.md",
+            "source": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman",
+            "scope": "user",
+            "origin": "package",
+            "baseDir": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman"
+          }
+        },
+        {
+          "name": "CAVEMAN-REVIEW",
+          "description": "FOREIGN_UPPERCASE_BODY $ARGUMENTS",
+          "source": "prompt",
+          "sourceInfo": {
+            "path": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/caveman-command-case-y034GB/foreign/prompts/CAVEMAN-REVIEW.md",
+            "source": "auto",
+            "scope": "user",
+            "origin": "top-level",
+            "baseDir": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/caveman-command-case-y034GB/foreign"
+          }
+        },
+        {
+          "name": "skill:caveman-review",
+          "description": "Compressed code review - one line per finding with location, problem and fix. Use for /caveman-review, \"review this PR\", or \"review the diff\".\n",
+          "source": "skill",
+          "sourceInfo": {
+            "path": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman/skills/caveman-review/SKILL.md",
+            "source": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman",
+            "scope": "user",
+            "origin": "package",
+            "baseDir": "/Users/josh-desktop/src/personal/user-perspective-testing-extensions/extensions/pi-caveman"
+          }
+        }
+      ],
+      "userTexts": [
+        "FOREIGN_UPPERCASE_BODY CASE_SENTINEL"
+      ],
+      "entries": [
+        {
+          "type": "custom",
+          "customType": "caveman-mode",
+          "data": {
+            "mode": "review",
+            "returnTo": "off"
+          },
+          "id": "1c014e7c",
+          "parentId": "286e5c76",
+          "timestamp": "2026-10-08T00:42:18.090Z"
+        }
+      ],
+      "expanded": true
+    }
+  ]
+}
