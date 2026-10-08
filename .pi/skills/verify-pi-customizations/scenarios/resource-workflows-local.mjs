@@ -8,6 +8,8 @@ import { seedGreetingCli, seedLibrary, seedSimplify } from '../helpers/resource-
 import { attemptPrompt, checkInteraction, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
 import { collectSimplifyEvidence } from '../helpers/resource-workflows-simplify-evidence.mjs';
 import { evaluateSimplify } from '../helpers/resource-workflows-simplify-outcome.mjs';
+import { collectReEvidence, freezeReTarget } from '../helpers/resource-workflows-re-evidence.mjs';
+import { evaluateRe } from '../helpers/resource-workflows-re-outcome.mjs';
 import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 
 function preserve(cwd, out) {
@@ -102,46 +104,16 @@ export default async function drive(context) {
   const reverse = launch('greeting-command');
   try {
     const target = seedGreetingCli(reverse.cwd);
+    const frozen = freezeReTarget({ target, env: reverse.env, attemptId: 'greeting-command' });
     const error = await attemptPrompt(
       reverse.session,
       `/skill:reverse-engineer-cli ${target} I own this greeting command. My project root is ${reverse.cwd}. Document help, version, greeting and usage errors. Keep the scope to those behaviors. Produce replayable .re evidence and reports. No external services or downloads.`,
     );
     const re = join(reverse.cwd, '.re');
-    const required = ['report/behavior.md', 'report/architecture.md', 'report/evidence.md', 'probes/cases.json', 'repro/run-all', 'target/identity.json', 'source/command-tree.json'];
-    const present = required.filter((path) => existsSync(join(re, path)) && readFileSync(join(re, path)).length > 0);
-    let replayCode = null;
-    let replay = 'Required workspace absent.';
-    if (present.length === required.length) {
-      const cases = JSON.parse(readFileSync(join(re, 'probes/cases.json'), 'utf8'));
-      const reviewed = Array.isArray(cases) && cases.length > 0 && cases.every((item) => item.safe === true && Array.isArray(item.args) && item.args.every((arg) => typeof arg === 'string') && !item.seed && !item.stdin_file);
-      if (reviewed) {
-        try {
-          replay = execFileSync('/usr/bin/sandbox-exec', ['-f', reverse.profile, 'python3', join(repoRoot, 'skills/reverse-engineer-cli/scripts/investigate.py'), 'run', '--workspace', re], {
-            cwd: reverse.cwd,
-            env: { ...process.env, ...reverse.env },
-            encoding: 'utf8',
-            timeout: 30000,
-          });
-          replayCode = 0;
-        } catch (failure) {
-          replay = `${failure.stdout?.toString()}\n${failure.stderr?.toString()}`;
-          replayCode = failure.status;
-        }
-      } else replay = 'Corpus was not safe for independent replay.';
-    }
+    const evidence = collectReEvidence({ frozen, cwd: reverse.cwd, out: reverse.out, profile: reverse.profile, env: reverse.env, repoRoot });
+    const facts = { invocation: { error }, origin: 'genuine', evidence };
     preserve(reverse.cwd, reverse.out);
-    writeFileSync(join(reverse.out, 'replay.txt'), replay);
-    finish(
-      'RS-SKILL-4',
-      {
-        verdict: error || (replayCode !== null && replayCode !== 0) ? 'failed' : 'inconclusive',
-        error,
-        present,
-        replayCode,
-        reason: 'Workspace presence and any actual replay are recorded. Evidence-to-report audit is still required before verification.',
-      },
-      reverse.out,
-    );
+    finish('RS-SKILL-4', { ...facts, ...evaluateRe(facts) }, reverse.out);
     const implementation = launch('greeting-port');
     try {
       if (existsSync(re)) cpSync(re, join(implementation.cwd, '.re'), { recursive: true });
