@@ -28,7 +28,7 @@ export default async function drive({ repoRoot, artifactDir, receipts }) {
     let cleanup;
     try {
       seedRecipe(kind, fixture.cwd, port, socket);
-      const error = await attemptPrompt(fixture.session, `/skill:run Run this ${kind} project and try its main interaction. ${kind === 'tui' ? 'Open settings with s, capture the pane, then quit with q. Use only the tmux socket in the README.' : kind === 'server' ? 'Request the greeting route with Ada.' : 'Greet Ada.'} Use already-installed tools only. This project is offline. Do not download anything. Stop any processes you start.`);
+      const error = await attemptPrompt(fixture.session, `/skill:run Run my ${kind} project at ${fixture.cwd} and try its main interaction. ${kind === 'tui' ? 'Open settings with s, capture the pane, then quit with q. Use only the tmux socket in the README.' : kind === 'server' ? 'Request the greeting route with Ada.' : 'Greet Ada.'} Use already-installed tools only. This project is offline. Do not download anything. Stop any processes you start.`);
       const records = [...fixture.session.records];
       const outputObserved = checkInteraction(records, kind === 'tui' ? 'Settings enabled' : 'Hello Ada');
       const actualState = kind === 'tui' ? existsSync(join(fixture.cwd, 'interaction.txt')) && readFileSync(join(fixture.cwd, 'interaction.txt'), 'utf8') === 'Settings enabled'

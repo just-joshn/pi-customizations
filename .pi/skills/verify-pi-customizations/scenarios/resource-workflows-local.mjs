@@ -35,7 +35,7 @@ export default async function drive(context) {
     const stale = join(doctor.cwd, 'gone');
     writeFileSync(trust, JSON.stringify({ [stale]: 'trusted' }));
     const before = readFileSync(trust, 'utf8');
-    const firstError = await attemptPrompt(doctor.session, '/skill:doctor Check my Pi setup. It is offline. Present your complete health report before changing anything.');
+    const firstError = await attemptPrompt(doctor.session, `/skill:doctor Check my Pi setup at ${doctor.agentDir} for the project ${doctor.cwd}. It is offline. Present your complete health report before changing anything.`);
     const report = assistantText(doctor.session);
     const unchanged = readFileSync(trust, 'utf8') === before;
     const reported = report.includes('Component') && report.includes('Clean up everything') && report.includes('Let me pick') && report.includes('No, keep everything');
@@ -52,7 +52,7 @@ export default async function drive(context) {
     const app = launch(`greeting-${kind}`);
     try {
       if (kind === 'cli') seedGreetingCli(app.cwd); else seedLibrary(app.cwd);
-      const error = await attemptPrompt(app.session, '/skill:run Run this project for me and try greeting Ada. It is offline and has no dependencies. Do not change its behavior.');
+      const error = await attemptPrompt(app.session, `/skill:run Run my project at ${app.cwd} and try greeting Ada. It is offline and has no dependencies. Do not change its behavior.`);
       const interacted = checkInteraction(app.session.records, 'Hello Ada');
       interactions.push({ kind, error, interacted, capture: join(app.out, 'rpc.jsonl') });
       preserve(app.cwd, app.out);
@@ -68,7 +68,7 @@ export default async function drive(context) {
     const testsBefore = execFileSync('node', ['--test', 'greeting.test.mjs'], { cwd: cleanup.cwd, encoding: 'utf8' });
     const testSource = readFileSync(join(cleanup.cwd, 'greeting.test.mjs'), 'utf8');
     const before = readFileSync(join(cleanup.cwd, 'greeting.mjs'), 'utf8');
-    const error = await attemptPrompt(cleanup.session, '/skill:simplify greeting.mjs Clean up the changed greeting code without changing its behavior. Use the available subagent tool for the independent reviews. Run the existing checks when finished.');
+    const error = await attemptPrompt(cleanup.session, `/skill:simplify ${join(cleanup.cwd, 'greeting.mjs')} My project root is ${cleanup.cwd}. Clean up the changed greeting code without changing its behavior. Use the available subagent tool for the independent reviews. Run the existing checks when finished.`);
     let testsAfter;
     try { testsAfter = execFileSync('/usr/bin/sandbox-exec', ['-f', cleanup.profile, 'node', '--test', 'greeting.test.mjs'], { cwd: cleanup.cwd, env: { ...process.env, ...cleanup.env }, encoding: 'utf8', timeout: 10000, maxBuffer: 1048576 }); } catch (failure) { testsAfter = failure.stdout?.toString() ?? failure.message; }
     writeFileSync(join(cleanup.out, 'tests-before.txt'), testsBefore);
@@ -83,7 +83,7 @@ export default async function drive(context) {
   const reverse = launch('greeting-command');
   try {
     const target = seedGreetingCli(reverse.cwd);
-    const error = await attemptPrompt(reverse.session, `/skill:reverse-engineer-cli ${target} I own this greeting command. Document help, version, greeting and usage errors. Keep the scope to those behaviors. Produce replayable .re evidence and reports. No external services or downloads.`);
+    const error = await attemptPrompt(reverse.session, `/skill:reverse-engineer-cli ${target} I own this greeting command. My project root is ${reverse.cwd}. Document help, version, greeting and usage errors. Keep the scope to those behaviors. Produce replayable .re evidence and reports. No external services or downloads.`);
     const re = join(reverse.cwd, '.re');
     const required = ['report/behavior.md', 'report/architecture.md', 'report/evidence.md', 'probes/cases.json', 'repro/run-all', 'target/identity.json', 'source/command-tree.json'];
     const present = required.filter((path) => existsSync(join(re, path)) && readFileSync(join(re, path)).length > 0);
@@ -106,7 +106,7 @@ export default async function drive(context) {
     try {
       if (existsSync(re)) cpSync(re, join(implementation.cwd, '.re'), { recursive: true });
       cpSync(target, join(implementation.cwd, 'reference-greet'));
-      const implementationError = await attemptPrompt(implementation.session, `/skill:implement-cli-from-contract Reimplement my greeting command in Python as an installable zipapp named greet.pyz. The authorized reference is ${join(implementation.cwd, 'reference-greet')}. Use the .re contract here. Preserve help, version, greetings and usage errors. This is offline. Capture immutable reference results before writing implementation. Prove the packaged zipapp with actual differential execution.`);
+      const implementationError = await attemptPrompt(implementation.session, `/skill:implement-cli-from-contract Reimplement my greeting command in Python as an installable zipapp named greet.pyz in my project ${implementation.cwd}. The authorized reference is ${join(implementation.cwd, 'reference-greet')}. Use the .re contract here. Preserve help, version, greetings and usage errors. This is offline. Capture immutable reference results before writing implementation. Prove the packaged zipapp with actual differential execution.`);
       preserve(implementation.cwd, implementation.out);
       finish('RS-SKILL-5', { verdict: implementationError ? 'failed' : 'inconclusive', error: implementationError, packagedArtifactPresent: existsSync(join(implementation.cwd, 'greet.pyz')), reason: 'Immutable reference-before-code ordering, actual candidate differential results and packaged artifact execution require independent audit. Model prose is not evidence.' }, implementation.out);
     } finally { await implementation.session.close(); }

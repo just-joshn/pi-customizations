@@ -49,6 +49,7 @@ export async function attemptPrompt(session, prompt) {
     await session.prompt(prompt);
     return null;
   } catch (error) {
+    await session.close();
     return error.message;
   }
 }
