@@ -3,8 +3,8 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync,
 import { join } from 'node:path';
 
 import { attemptPrompt, checkInteraction, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
-import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 import { reservePort, seedRecipe } from '../helpers/resource-workflows-recipes.mjs';
+import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 
 function stopOwnedServer(cwd) {
   const file = join(cwd, 'server.pid');
@@ -81,12 +81,15 @@ export default async function drive({ repoRoot, artifactDir, receipts }) {
   mkdirSync(artifactDir, { recursive: true });
   const summary = join(artifactDir, 'summary.json');
   writeFileSync(summary, `${JSON.stringify(attempts, null, 2)}\n`);
-  writeOutcomeReceipt({ repoRoot, receipts }, {
-    surfaceId: 'RS-SKILL-2',
-    package: 'skills',
-    observed: JSON.stringify(attempts),
-    evidence: summary,
-    verdict: attempts.some((attempt) => attempt.error) ? 'failed' : 'inconclusive',
-    reason: 'Six genuine recipe attempts are preserved. GUI screenshots, actual browser interactions, launch ownership and cleanup must all be audited. Output text alone cannot verify the complete row.',
-  });
+  writeOutcomeReceipt(
+    { repoRoot, receipts },
+    {
+      surfaceId: 'RS-SKILL-2',
+      package: 'skills',
+      observed: JSON.stringify(attempts),
+      evidence: summary,
+      verdict: attempts.some((attempt) => attempt.error) ? 'failed' : 'inconclusive',
+      reason: 'Six genuine recipe attempts are preserved. GUI screenshots, actual browser interactions, launch ownership and cleanup must all be audited. Output text alone cannot verify the complete row.',
+    },
+  );
 }

@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 
 test('header names distinguish expected behavior from source after reordering', () => {
   assert.deepEqual(surfaceContract('source\texpected\tsurface_id\ncontract.md:1\tRun the owned app\tROW\n', 'ROW'), {
-    surfaceId: 'ROW', expected: 'Run the owned app', source: 'contract.md:1',
+    surfaceId: 'ROW',
+    expected: 'Run the owned app',
+    source: 'contract.md:1',
   });
 });
 

@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { createReceipts } from '../lib/receipts.mjs';
+import { writeOutcomeReceipt as contract } from '../scenarios/resource-workflows-contract.mjs';
 import { writeOutcomeReceipt as local } from '../scenarios/resource-workflows-local.mjs';
 import { writeOutcomeReceipt as recipes } from '../scenarios/resource-workflows-recipes.mjs';
-import { writeOutcomeReceipt as contract } from '../scenarios/resource-workflows-contract.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const expectations = [
@@ -29,14 +29,17 @@ for (const [scenario, boundary, cases] of [
       const receiptDir = mkdtempSync(join(tmpdir(), 'rw-receipt-'));
       try {
         const receipts = createReceipts({ scenario, receiptDir, repoRoot });
-        boundary({ repoRoot, receipts }, {
-          surfaceId,
-          package: 'skills',
-          observed: 'Genuine attempt failed. No promotion authorized.',
-          evidence: join(receiptDir, 'attempt.json'),
-          verdict: 'failed',
-          reason: 'Existing failure is preserved.',
-        });
+        boundary(
+          { repoRoot, receipts },
+          {
+            surfaceId,
+            package: 'skills',
+            observed: 'Genuine attempt failed. No promotion authorized.',
+            evidence: join(receiptDir, 'attempt.json'),
+            verdict: 'failed',
+            reason: 'Existing failure is preserved.',
+          },
+        );
         const receipt = JSON.parse(readFileSync(join(receiptDir, `${surfaceId}.json`), 'utf8'));
         assert.equal(receipt.expected, expected);
         assert.equal(receipt.verdict, 'failed');
