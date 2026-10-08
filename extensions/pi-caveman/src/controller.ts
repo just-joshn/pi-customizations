@@ -35,6 +35,19 @@ function placeRuleset(section: string, options: BeforeAgentStartEvent['systemPro
   return forced !== undefined && !forced.includes(section) ? `${forced}\n\n${section}` : undefined;
 }
 
+type OneShotRoute = { readonly kind: 'foreign' | 'continue' } | { readonly kind: 'skill'; readonly text: string };
+
+function oneShotRoute(text: string, commands: ReturnType<ExtensionAPI['getCommands']>): OneShotRoute {
+  const oneShot = ONE_SHOT_SKILL.exec(text);
+  if (!oneShot?.[1]) return { kind: 'continue' };
+  const prompt = /^\/caveman:/i.test(text) ? undefined : commands.find((command) => command.name === oneShot[1]);
+  if (prompt?.source === 'prompt') {
+    const ownedPath = fileURLToPath(new URL(`../prompts/${oneShot[1].toLowerCase()}.md`, import.meta.url));
+    return { kind: prompt.sourceInfo.path === ownedPath ? 'continue' : 'foreign' };
+  }
+  return { kind: 'skill', text: `/skill:${oneShot[1].toLowerCase()}${text.slice(oneShot[0].length)}` };
+}
+
 export function registerModeTracking(pi: ExtensionAPI): ModeController {
   let state: ModeState = OFF;
   let pending: PendingTurn | null = null;
@@ -70,16 +83,12 @@ export function registerModeTracking(pi: ExtensionAPI): ModeController {
 
   pi.on('input', (event, ctx) => {
     if (/<scheduled-task\b/i.test(event.text)) return { action: 'continue' };
-    const oneShot = ONE_SHOT_SKILL.exec(event.text);
-    const bare = oneShot !== null && !/^\/caveman:/i.test(event.text);
-    const prompt = bare ? pi.getCommands().find((command) => command.name === oneShot[1]) : undefined;
-    if (prompt?.source === 'prompt' && prompt.sourceInfo.path !== fileURLToPath(new URL(`../prompts/${oneShot?.[1]?.toLowerCase()}.md`, import.meta.url))) return { action: 'continue' };
+    const route = oneShotRoute(event.text, pi.getCommands());
+    if (route.kind === 'foreign') return { action: 'continue' };
     const note = handlePrompt(event.text, ctx);
     // Queued steer and follow-up text never reaches before_agent_start, so its notice has no turn to ride.
     if (event.streamingBehavior === undefined) pending = pendingFor(note);
-    if (prompt?.source === 'prompt') return { action: 'continue' };
-    if (!oneShot?.[1]) return { action: 'continue' };
-    return { action: 'transform', text: `/skill:${oneShot[1].toLowerCase()}${event.text.slice(oneShot[0].length)}` };
+    return route.kind === 'skill' ? { action: 'transform', text: route.text } : { action: 'continue' };
   });
 
   pi.on('before_agent_start', (event, ctx) => {
