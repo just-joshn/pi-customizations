@@ -75,7 +75,7 @@ describe('prompt injection', () => {
 describe('one-shot skills', () => {
   test.for(['commit', 'review', 'compress'])('owned bare %s leaves original bytes and images for SDK template expansion', (mode) => {
     const name = `caveman-${mode}`;
-    const h = harness('/unrelated/cwd', { resources: [{ name, source: 'prompt', description: '', sourceInfo: { path: fileURLToPath(new URL(`../prompts/${name}.md`, import.meta.url)), source: 'package', scope: 'local' } }] });
+    const h = harness('/unrelated/cwd', { resources: [{ name, source: 'prompt', description: '', sourceInfo: { path: fileURLToPath(new URL(`../prompts/${name}.md`, import.meta.url)), source: 'package', scope: 'project', origin: 'package' } }] });
     h.emit('session_start', { reason: 'startup' });
     const text = `/${name} "two words"\n$ARGUMENTS`;
     const images = [{ type: 'image', data: 'a', mimeType: 'image/png' }];
@@ -85,7 +85,7 @@ describe('one-shot skills', () => {
   });
 
   test('foreign bare template continues without changing mode or recording a one-shot', () => {
-    const h = harness('/unrelated/cwd', { resources: [{ name: 'caveman-commit', source: 'prompt', description: '', sourceInfo: { path: '/user/prompts/caveman-commit.md', source: 'user', scope: 'user' } }] });
+    const h = harness('/unrelated/cwd', { resources: [{ name: 'caveman-commit', source: 'prompt', description: '', sourceInfo: { path: '/user/prompts/caveman-commit.md', source: 'user', scope: 'user', origin: 'top-level' } }] });
     h.emit('session_start', { reason: 'startup' });
     expect(h.emit('input', { text: '/caveman-commit fix parser', source: 'interactive' })).toStrictEqual([{ action: 'continue' }]);
     expect(h.statuses.at(-1)).toBe('[CAVEMAN]');

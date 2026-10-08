@@ -83,10 +83,7 @@ export function registerNativeInput(pi: ExtensionAPI, skills: Skills, store: Sta
       const args = native[2] ?? '';
       const discovered = pi.getCommands().find((command) => command.source === 'skill' && command.name === `skill:${name}`);
       if (!discovered || discovered.sourceInfo.path !== skills.get(name)?.path) return { action: 'continue' };
-      if (name === 'setup-pstack') {
-        await handleSetup(pi, ctx, store);
-        return { action: 'handled' };
-      }
+      if (name === 'setup-pstack') return { action: 'continue' };
       if (isOff(args)) {
         turnOff(store, ctx);
         return { action: 'handled' };

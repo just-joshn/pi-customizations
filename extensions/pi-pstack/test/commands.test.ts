@@ -128,7 +128,7 @@ test('a same-name user prompt is not rewritten', async () => {
   expect(await input?.({ text: '/how "keep me"' }, ctx)).toEqual({ action: 'continue' });
 });
 
-test('/setup-pstack handles errors without UI while its canonical skill continues to SDK expansion', async () => {
+test('/setup-pstack handles errors without UI', async () => {
   const path = '/pkg/skills/setup-pstack/SKILL.md';
   const skills = new Map([['setup-pstack', { path, body: 'Body', description: 'Setup' }]]);
   const handlers: Record<string, (args: string, ctx: ExtensionContext) => Promise<void>> = {};
@@ -155,10 +155,27 @@ test('/setup-pstack handles errors without UI while its canonical skill continue
   expect(errors.length).toBe(1);
   expect(errors[0] ?? '').toMatch(/\/setup-pstack requires Pi interactive or RPC dialog UI/);
 
-  const res = await input?.({ text: '/skill:setup-pstack' }, ctx);
-  expect(res).toEqual({ action: 'continue' });
-  expect(errors.length).toBe(1);
-  expect(messages).toEqual([]);
+  expect(messages).toHaveLength(1);
+  expect(messages[0]).toMatchObject({ customType: 'pstack-setup-error' });
+});
+
+test('/skill:setup-pstack continues unchanged without opening native UI', async () => {
+  const path = '/pkg/skills/setup-pstack/SKILL.md';
+  const skills = new Map([['setup-pstack', { path, body: 'Body', description: 'Setup' }]]);
+  let input: ((event: { text: string; images?: unknown[] }, ctx: ExtensionContext) => Promise<unknown>) | undefined;
+  const notify = vi.fn();
+  const sendMessage = vi.fn();
+  const pi = {
+    on: (_event: string, handler: typeof input) => { input = handler; },
+    getCommands: () => [{ source: 'skill', name: 'skill:setup-pstack', sourceInfo: { path } }],
+    sendMessage,
+    appendEntry() {},
+  } as unknown as ExtensionAPI;
+  registerNativeInput(pi, skills, createState(pi));
+  const ctx = { hasUI: false, ui: { notify } } as unknown as ExtensionContext;
+  expect(await input?.({ text: '/skill:setup-pstack "two words"\n$ARGUMENTS', images: [{ type: 'image', data: 'a', mimeType: 'image/png' }] }, ctx)).toEqual({ action: 'continue' });
+  expect(notify).not.toHaveBeenCalled();
+  expect(sendMessage).not.toHaveBeenCalled();
 });
 
 test('native input ignores unrelated input or mismatched skill path', async () => {

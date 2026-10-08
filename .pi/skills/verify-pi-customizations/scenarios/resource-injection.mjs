@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,19 +17,6 @@ const OUTCOME_ROWS = {
   'RS-SKILL-3': 'The row claims a workflow outcome (four parallel cleanup reviewers, then applied fixes). This drive proves the full simplify skill body is injected and spawns no reviewers.',
   'RS-SKILL-4': 'The row claims a workflow outcome (an .re/ evidence workspace, probe scripts, reports). This drive proves the full reverse-engineer-cli skill body is injected and creates no workspace.',
   'RS-SKILL-5': 'The row claims a workflow outcome (a differential implementation against a captured contract). This drive proves the full implement-cli-from-contract skill body is injected and implements nothing.',
-};
-
-// PS-SKILL-54 says `/skill:setup-pstack` injects the skill body. registerNativeInput intercepts it
-// with action "handled", runs the setup flow instead and injects no block.
-const INTERCEPTED = {
-  'PS-SKILL-54':
-    'registerNativeInput intercepts /skill:setup-pstack with action handled and injects no skill body; it runs the setup model pickers instead. The row expected text is contradicted by the production command, which the parent owns for review.',
-  'CV-PROMPT-1':
-    'The caveman input hook rewrites /caveman-commit to /skill:caveman-commit, so the prompt template named caveman-commit never expands. The row expected text is contradicted by the production command, which the parent owns for review.',
-  'CV-PROMPT-2':
-    'The caveman input hook rewrites /caveman-compress to /skill:caveman-compress, so the prompt template named caveman-compress never expands. The row expected text is contradicted by the production command, which the parent owns for review.',
-  'CV-PROMPT-4':
-    'The caveman input hook rewrites /caveman-review to /skill:caveman-review, so the prompt template named caveman-review never expands. The row expected text is contradicted by the production command, which the parent owns for review.',
 };
 
 const SESSIONS = [
@@ -52,7 +39,7 @@ function setupAnswers() {
 }
 
 function writeResourceReceipt(context, row, { observed, evidence, transport }) {
-  const reason = OUTCOME_ROWS[row.surface_id] ?? INTERCEPTED[row.surface_id] ?? null;
+  const reason = OUTCOME_ROWS[row.surface_id] ?? null;
   const verdict = !transport.ok ? 'failed' : reason ? 'inconclusive' : 'verified';
   context.receipts.write({
     surfaceId: row.surface_id,
@@ -95,18 +82,6 @@ async function driveSkill(context, state, session, commands, row) {
   const records = newRecords(state);
   const texts = injectedTexts(records);
 
-  if (row.surface_id === 'PS-SKILL-54') {
-    const injected = texts.some((text) => text.includes('<skill name='));
-    const ranSetup = records.length >= 1 || existsSync(join(state.agentDir, 'pstack', 'models.mdc'));
-    const diff = injected ? 'a skill block was injected even though the row records an intercepted setup flow' : ranSetup ? '' : 'no model call or model rule was produced, so the intercept cannot be confirmed to have run';
-    writeResourceReceipt(context, row, {
-      observed: `no <skill name="..."> block in ${records.length} recorded model call(s) for /skill:setup-pstack; setup evidence ${ranSetup}; source body ${body.length} bytes`,
-      evidence: state.evidence,
-      transport: { ok: !injected && ranSetup && body.length > 0, diff: diff || (body.length === 0 ? `${location} stripped to an empty body` : '') },
-    });
-    return;
-  }
-
   const transport = compareSkillInjection({ userTexts: texts, name, location, body, args: sentinel });
   // `/skill:poteto-mode` is intercepted by registerNativeInput: it toggles sticky mode on and then
   // injects the block. The row only claims the injection, so the toggle is recorded alongside it.
@@ -133,10 +108,8 @@ async function drivePrompt(context, state, session, commands, row) {
   }
   const path = command.sourceInfo.path;
   const content = stripFrontmatter(readFileSync(path, 'utf8'));
-  const contradicted = row.surface_id in INTERCEPTED && row.package === 'extensions/pi-caveman';
-  const skillCommand = contradicted ? commands.find((candidate) => candidate.name === `skill:${name}` && candidate.source === 'skill') : undefined;
-  const requoted = !contradicted && isPstackOwnedPrompt(context, path) && name !== 'bro';
-  const expectedInput = contradicted ? `/skill:${name} ${PROMPT_ARGS}` : requoted ? `/${name} ${encodePromptArgument(PROMPT_ARGS)}` : `/${name} ${PROMPT_ARGS}`;
+  const requoted = isPstackOwnedPrompt(context, path) && name !== 'bro';
+  const expectedInput = requoted ? `/${name} ${encodePromptArgument(PROMPT_ARGS)}` : `/${name} ${PROMPT_ARGS}`;
   const inputCount = readJsonl(state.inputLogPath).length;
   await session.prompt(`/${name} ${PROMPT_ARGS}`);
   const inputs = readJsonl(state.inputLogPath)
@@ -147,21 +120,6 @@ async function drivePrompt(context, state, session, commands, row) {
   const diffs = [];
   if (observedInput !== expectedInput) diffs.push(`input hook ${JSON.stringify(observedInput)} != ${JSON.stringify(expectedInput)}`);
   if (content.length === 0) diffs.push('prompt template stripped to an empty body');
-
-  if (contradicted) {
-    if (!skillCommand) diffs.push(`skill:${name} is not registered, so the one-shot rewrite cannot be checked`);
-    else {
-      const skillBody = stripFrontmatter(readFileSync(skillCommand.sourceInfo.path, 'utf8')).trim();
-      const rewrite = compareSkillInjection({ userTexts: texts, name, location: skillCommand.sourceInfo.path, body: skillBody, args: PROMPT_ARGS });
-      if (!rewrite.ok) diffs.push(`one-shot skill rewrite: ${rewrite.diff}`);
-    }
-    writeResourceReceipt(context, row, {
-      observed: `input hook ${JSON.stringify(observedInput)}; the one-shot rewrite expands the skill ${name} instead of the prompt template ${path}`,
-      evidence: state.evidence,
-      transport: { ok: diffs.length === 0, diff: diffs.join('; ') },
-    });
-    return;
-  }
 
   const expansion = comparePromptExpansion({ userTexts: texts, content, args: requoted ? encodePromptArgument(PROMPT_ARGS) : PROMPT_ARGS });
   if (!expansion.ok) diffs.push(expansion.diff);
