@@ -130,8 +130,8 @@ test('loader validation binds actual session, target settings, image, and invent
   const session = join(root, 'session.jsonl');
   writeFileSync(settings, '{}');
   writeFileSync(image, 'actual-image');
-  writeFileSync(session, '{"type":"session","id":"fresh"}\n');
-  const facts = { agentDir: root, cwd: root, settings, image, session, sessionDir: root, inventory: { settings: { user: 'ok' }, prompt: { loaded_skills: [{ name: 'enabled', location: '/enabled/SKILL.md' }], tool_chars: { read: 10 } } } };
+  writeFileSync(session, JSON.stringify({ type: 'session', id: 'fresh', cwd: root }) + '\n' + JSON.stringify({ type: 'message', message: { role: 'system', sections: { base: 'real' }, toolsAdded: [{ name: 'read' }] } }) + '\n');
+  const facts = { agentDir: root, cwd: root, settings, image, session, sessionDir: root, inventory: { settings: { user: 'ok' }, prompt: { session, loaded_skills: [], tool_chars: { read: 10 } } } };
   const sealed = validateDoctorLoaderEvidence(facts);
   assert.equal(sealed.sourceBound, true);
   assert.deepEqual(sealed.loadedSkills, facts.inventory.prompt.loaded_skills);
