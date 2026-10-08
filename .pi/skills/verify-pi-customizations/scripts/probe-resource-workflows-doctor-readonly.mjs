@@ -102,6 +102,7 @@ for (const name of names) {
   const call = ended.readonlyBroker.calls[0];
   if (name === 'positive-gather' || name === 'positive-afterVerify') {
     assert.equal(call?.correlated, true);
+    assert.equal(JSON.parse(call.receipt.execution.children[1].stdout).install.version, '1.1.0', 'original inventory pi --version semantics remain confined and successful');
     assert.equal(call.receipt.succeeded, true, JSON.stringify(call.receipt.execution));
     assert.equal(call.receipt.execution.inventoryWindow.days, 30, 'agent gather retains actual target usage window');
     assert.equal(call.receipt.execution.children[2].source.argv.at(-1), '30');
