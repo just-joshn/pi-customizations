@@ -9,75 +9,222 @@
   "requirements": [
     {
       "id": "PSTACK-MODE-ONE-MESSAGE-001",
-      "source": { "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba", "file": "pstack/README.md", "locator": "### just use /poteto-mode, paragraph beginning to keep /poteto-mode on across turns", "sha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855" },
-      "dependencies": ["cursor-pstack", "cursor-cli-host"],
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/README.md",
+        "locator": "### just use /poteto-mode, paragraph beginning to keep /poteto-mode on across turns",
+        "sha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
       "implementationOwner": "implementation-parent",
       "trigger": "Select /poteto-mode with plain Enter.",
-      "preconditions": ["Both official reference plugins loaded.", "Interactive terminal session.", "No persistent mode active."],
-      "configurationIds": ["default", "installed-user"],
+      "preconditions": [
+        "Both official reference plugins loaded.",
+        "Interactive terminal session.",
+        "No persistent mode active."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
       "startingState": "Editor with /poteto-mode selected in slash menu.",
-      "actions": [{ "input": "Enter", "expectedObservation": "Skill attaches to one message only." }, { "input": "Submit a subsequent ordinary message without the skill.", "expectedObservation": "The prior one-message invocation does not activate persistent mode." }],
-      "requiredSideEffects": ["Instructions apply to the attached message."],
-      "forbiddenSideEffects": ["Persistently activating mode from plain Enter."],
+      "actions": [
+        {
+          "input": "Enter",
+          "expectedObservation": "Skill attaches to one message only."
+        },
+        {
+          "input": "Submit a subsequent ordinary message without the skill.",
+          "expectedObservation": "The prior one-message invocation does not activate persistent mode."
+        }
+      ],
+      "requiredSideEffects": [
+        "Instructions apply to the attached message."
+      ],
+      "forbiddenSideEffects": [
+        "Persistently activating mode from plain Enter."
+      ],
       "orderingTimingConcurrencyCancellationPersistence": "One-message scope must not leak into subsequent turns or session mode state.",
       "piBindings": [],
-      "scenarioIds": ["mode-one-message"],
+      "scenarioIds": [
+        "mode-one-message"
+      ],
       "status": "unverified",
       "evidence": []
     },
     {
       "id": "PSTACK-MODE-STICKY-001",
-      "source": { "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba", "file": "pstack/README.md", "locator": "### just use /poteto-mode, paragraph beginning to keep /poteto-mode on across turns", "sha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855" },
-      "dependencies": ["cursor-pstack", "cursor-cli-host"],
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/README.md",
+        "locator": "### just use /poteto-mode, paragraph beginning to keep /poteto-mode on across turns",
+        "sha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
       "implementationOwner": "implementation-parent",
       "trigger": "Select /poteto-mode with Option+Enter on macOS or Alt+Enter on Windows.",
-      "preconditions": ["Interactive terminal session.", "Both official reference plugins loaded."],
-      "configurationIds": ["default", "installed-user", "windows"],
+      "preconditions": [
+        "Interactive terminal session.",
+        "Both official reference plugins loaded."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user",
+        "windows"
+      ],
       "startingState": "Editor with /poteto-mode selected in slash menu.",
-      "actions": [{ "input": "Platform-specific modified Enter.", "expectedObservation": "The skill becomes a custom mode." }, { "input": "Submit another task that needs rigor.", "expectedObservation": "Mode remains in context and applies its routing." }],
-      "requiredSideEffects": ["Mode applies on subsequent turns when a playbook matches or rigor is needed."],
-      "forbiddenSideEffects": ["Requiring repeated manual skill attachment on each turn."],
+      "actions": [
+        {
+          "input": "Platform-specific modified Enter.",
+          "expectedObservation": "The skill becomes a custom mode."
+        },
+        {
+          "input": "Submit another task that needs rigor.",
+          "expectedObservation": "Mode remains in context and applies its routing."
+        }
+      ],
+      "requiredSideEffects": [
+        "Mode applies on subsequent turns when a playbook matches or rigor is needed."
+      ],
+      "forbiddenSideEffects": [
+        "Requiring repeated manual skill attachment on each turn."
+      ],
       "orderingTimingConcurrencyCancellationPersistence": "Mode stays active across turns until exit or opt-out. Restart and branch semantics require further reference discovery.",
       "piBindings": [],
-      "scenarioIds": ["mode-sticky"],
+      "scenarioIds": [
+        "mode-sticky"
+      ],
       "status": "unverified",
       "evidence": []
     },
     {
       "id": "PSTACK-SETUP-MODEL-DISCOVERY-001",
-      "source": { "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba", "file": "pstack/skills/setup-pstack/SKILL.md", "locator": "### 1. Detect available models", "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59" },
-      "dependencies": ["cursor-pstack", "cursor-cli-host"],
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 1. Detect available models",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
       "implementationOwner": "implementation-parent",
       "trigger": "/setup-pstack.",
-      "preconditions": ["Model catalog available to current session."],
-      "configurationIds": ["default", "installed-user"],
+      "preconditions": [
+        "Model catalog available to current session."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
       "startingState": "No setup interaction in progress.",
-      "actions": [{ "input": "Invoke /setup-pstack.", "expectedObservation": "Available worker model slugs are detected before model choices are written." }],
-      "requiredSideEffects": ["Only confirmed real slugs or valid aliases are eligible for persisted configuration."],
-      "forbiddenSideEffects": ["Writing an unconfirmed real model slug."],
+      "actions": [
+        {
+          "input": "Invoke /setup-pstack.",
+          "expectedObservation": "Available worker model slugs are detected before model choices are written."
+        }
+      ],
+      "requiredSideEffects": [
+        "Only confirmed real slugs or valid aliases are eligible for persisted configuration."
+      ],
+      "forbiddenSideEffects": [
+        "Writing an unconfirmed real model slug."
+      ],
       "orderingTimingConcurrencyCancellationPersistence": "Detection precedes configuration validation and writing.",
-      "piBindings": ["extensions/pi-pstack/src/models.ts"],
-      "scenarioIds": ["setup-model-discovery"],
-      "status": "unverified",
-      "evidence": []
+      "piBindings": [
+        "extensions/pi-pstack/src/models.ts"
+      ],
+      "scenarioIds": [
+        "setup-model-discovery"
+      ],
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+          "attempts": {
+            "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+            "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125"
+          },
+          "closedAt": "2026-10-08T11:25:00Z"
+        },
+        {
+          "type": "written-artifact",
+          "note": "model detection preceded the write on both sides; the candidate write mapped unlimited to max from the Pi registry and preserved every inherit-parent role, matching the reference rule byte-for-byte"
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BUDGET-LABELS-001",
-      "source": { "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba", "file": "pstack/skills/setup-pstack/SKILL.md", "locator": "### 3. Budget, map, and confirm, subsection (a)", "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59" },
-      "dependencies": ["cursor-pstack", "cursor-cli-host"],
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (a)",
+        "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59"
+      },
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
       "implementationOwner": "implementation-parent",
       "trigger": "Setup budget selection.",
-      "preconditions": ["Model discovery and current-state loading completed."],
-      "configurationIds": ["default", "installed-user"],
+      "preconditions": [
+        "Model discovery and current-state loading completed."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
       "startingState": "Setup awaiting budget choice.",
-      "actions": [{ "input": "Open budget selector.", "expectedObservation": "Options are exactly unlimited — max reasoning, large — xhigh reasoning, medium — high reasoning, and small — medium reasoning. Current budget is named when recorded. With no rule, large is identified as matching skill defaults." }],
+      "actions": [
+        {
+          "input": "Open budget selector.",
+          "expectedObservation": "Options are exactly unlimited — max reasoning, large — xhigh reasoning, medium — high reasoning, and small — medium reasoning. Current budget is named when recorded. With no rule, large is identified as matching skill defaults."
+        }
+      ],
       "requiredSideEffects": [],
-      "forbiddenSideEffects": ["Writing configuration before confirmation."],
+      "forbiddenSideEffects": [
+        "Writing configuration before confirmation."
+      ],
       "orderingTimingConcurrencyCancellationPersistence": "Budget selection precedes role confirmation and validation.",
-      "piBindings": ["extensions/pi-pstack/src/models.ts"],
-      "scenarioIds": ["setup-budget-labels"],
-      "status": "unverified",
-      "evidence": []
+      "piBindings": [
+        "extensions/pi-pstack/src/models.ts"
+      ],
+      "scenarioIds": [
+        "setup-budget-labels"
+      ],
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+          "attempts": {
+            "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+            "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125"
+          },
+          "closedAt": "2026-10-08T11:25:00Z"
+        },
+        {
+          "type": "structured-comparison",
+          "report": "parity/evidence/setup-prepair/panel-parity.json",
+          "result": "chrome match true; the four budget option labels match byte-for-byte between sides after panel padding"
+        },
+        {
+          "type": "written-artifact",
+          "note": "both sides wrote byte-identical rules, sha256:9146cd9fe687813f13618724c14da1ced71a72151a9be4ae6ae166ae23218aaa, budget line '# budget: unlimited (max)'"
+        },
+        {
+          "type": "observation-note",
+          "note": "the current budget (small) is named on both sides: the reference names it in the prompt and a \"(current)\" option suffix; the candidate names it in the prompt only. Placement is model-authored per the design record rubric; the information is present on both sides."
+        }
+      ]
     }
   ],
   "openWork": [
