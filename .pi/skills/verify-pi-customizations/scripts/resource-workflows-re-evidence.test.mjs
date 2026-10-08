@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { test } from 'node:test';
@@ -18,7 +18,7 @@ const expected = [
   { args: ['hello', 'Ada'], stdout: 'Hello Ada\n', stderr: '', code: 0 },
   { args: [], stdout: '', stderr: 'Usage: greet hello NAME\n', code: 2 },
 ];
-export function fixture(root, variant = 'complete') {
+function fixture(root, variant = 'complete') {
   const cwd = join(root, 'workspace');
   const out = join(root, 'out');
   mkdirSync(cwd, { recursive: true });
@@ -43,7 +43,7 @@ export function fixture(root, variant = 'complete') {
   return { frozen, cwd, out, repoRoot, env: {}, re, target };
 }
 
-export function addReportEvidence(re, target, cases) {
+function addReportEvidence(re, target, cases) {
   const records = readFileSync(join(re, 'probes/results.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
   const links = records.map(
     (item) => `Probe: ${item.id}. Scope argv ${JSON.stringify(item.argv.slice(1))}. Exit ${item.exit_code}.\n[stdout](${relative(join(re, 'report'), item.stdout.path)}) [stderr](${relative(join(re, 'report'), item.stderr.path)})`,
@@ -71,7 +71,7 @@ export function addReportEvidence(re, target, cases) {
 
 function ownedTest(name, variant, assertion) {
   test(name, () => {
-    const root = mkdtempSync(join(tmpdir(), 'f016-re-test-'));
+    const root = realpathSync(mkdtempSync(join(tmpdir(), 'f016-re-test-')));
     try {
       assertion(fixture(root, variant));
     } finally {
@@ -115,7 +115,7 @@ ownedTest('changed greeting with exit zero fails literal output despite a stable
   assert.equal(evaluateRe({ invocation: { error: null }, origin: 'scripted-control', evidence }).eligible, false);
 });
 ownedTest('post-freeze target edits block execution', 'complete', (input) => {
-  writeFileSync(input.target, '#!/usr/bin/env python3\nprint("Changed")\n');
+  writeFileSync(input.target, ['#!/usr/bin/env python3', 'print(1)', ''].join('\n'));
   const evidence = collectReEvidence(input);
   assert.equal(evidence.identityMatches, false);
   assert.deepEqual(evidence.observations, []);
@@ -128,7 +128,7 @@ ownedTest('exit-only assertions do not authorize replay', 'complete', (input) =>
   assert.equal(evidence.replayCode, null);
 });
 ownedTest('copied probe tampering blocks replay', 'complete', (input) => {
-  writeFileSync(join(input.re, 'repro/scripts/probe.py'), 'print("fabricated")\n');
+  writeFileSync(join(input.re, 'repro/scripts/probe.py'), ['print("wrong")', ''].join('\n'));
   const evidence = collectReEvidence(input);
   assert.equal(evidence.replayCode, null);
   assert.equal(
@@ -147,4 +147,45 @@ ownedTest('malformed corpus returns a gap instead of throwing', 'complete', (inp
   const evidence = collectReEvidence(input);
   assert.equal(evidence.corpusComplete, false);
   assert.equal(evidence.replayCode, null);
+});
+
+ownedTest('unsafe argv, environment, timing and I/O controls block replay', 'complete', (input) => {
+  const path = join(input.re, 'probes/cases.json');
+  const original = JSON.parse(readFileSync(path));
+  for (const override of [
+    { args: ['download'] },
+    { safe: false },
+    { question: '' },
+    { timeout: 0 },
+    { timeout: 11 },
+    { tty: 'both' },
+    { stdin_mode: 'pipe' },
+    { stdin_text: 'input' },
+    { seed: ['external:file'] },
+    { env: { PYTHONPATH: '/tmp' } },
+    { env: null },
+    { expect: null },
+  ]) {
+    writeFileSync(path, JSON.stringify(original.map((item, index) => (index === 0 ? { ...item, ...override } : item))));
+    const evidence = collectReEvidence(input);
+    assert.equal(evidence.corpusComplete, false);
+    assert.equal(evidence.replayCode, null);
+  }
+});
+ownedTest('dangling source and wrong artifact identity cannot establish eligibility', 'complete', (input) => {
+  writeFileSync(join(input.re, 'source/entrypoints.json'), JSON.stringify([{ path: join(input.cwd, 'missing'), sha256: input.frozen.sha256 }]));
+  assert.equal(collectReEvidence(input).sourceMatches, false);
+  const path = join(input.re, 'target/identity.json');
+  const identity = JSON.parse(readFileSync(path));
+  writeFileSync(path, JSON.stringify({ ...identity, sha256: '0'.repeat(64) }));
+  assert.equal(collectReEvidence(input).identityMatches, false);
+});
+ownedTest('altered raw bytes and broken JSON are explicit collection gaps', 'complete', (input) => {
+  const record = JSON.parse(readFileSync(join(input.re, 'probes/results.jsonl'), 'utf8').split('\n')[0]);
+  writeFileSync(record.stdout.path, 'false evidence');
+  assert.deepEqual(collectReEvidence(input).issues, ['Raw stream hash mismatch.']);
+  writeFileSync(join(input.re, 'probes/cases.json'), '{');
+  const evidence = collectReEvidence(input);
+  assert.equal(evidence.corpusComplete, false);
+  assert.equal(evidence.issues.length, 1);
 });
