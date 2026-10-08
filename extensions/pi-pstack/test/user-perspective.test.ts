@@ -177,6 +177,7 @@ test('user-perspective: prompt templates expansion (/bro, /how, /loop, /deslop)'
 
     await prompt(session, '/how explore session persistence');
     text = JSON.stringify(lastRequest(f.requests).messages);
+    expect(text).toMatch(/<skill name=/);
     expect(text).toMatch(/## Step 2b\. Direct Explain/);
     expect(text).toMatch(/explore session persistence/);
 

@@ -39,3 +39,5 @@ ts	phase	decision	why	evidence	result
 2026-10-08T16:35:57Z	delivery	wrapperless inlineSkill for prompt path	journeyTemplates expects frontmatter body + args without skill tag; expand() stays for /skill: and poteto/setup commands	verify-journeys --no-workers 470/0	pass
 2026-10-08T16:35:57Z	investigate	keep HOW-WORKFLOW-EXPLAINER-STEP open	two cursor runs both spawn Step 2b explainer; pi still answers inline after receiving the same body	cursor 6f45e2db + dfe89f1a spawn; pi 03252b53 two bash calls	open finding
 2026-10-08T16:35:57Z	investigate	record HOW-SKILL-TUI-CHIP	model delivery matches; visible affordance differs (Used how chip vs ctrl+o expand)	pi stream expand chip; investigate-parity.json schema 2	open finding
+2026-10-08T16:38:51Z	delivery	expand() for /name skill path	TUI skill chip needs a <skill> block; journeyTemplates now asserts body and args separately	pi 8ad2dbc5 shows [skill] how; journeys 538/0	closed HOW-SKILL-TUI-CHIP host-equivalent
+2026-10-08T16:38:51Z	investigate	HOW-WORKFLOW stays open	model thinking on 8ad2dbc5 refuses spawn despite Step 2b in message; 2/2 reference spawn	mismatches.json open item	open

@@ -81,8 +81,9 @@ async function journeyTemplates(ctx) {
   for (const file of files) {
     const name = file.endsWith('loop.md') ? 'loop' : file.split('/').at(-1).slice(0, -3);
     const text = requestText(await ctx.turn(`/${name} journey arguments`));
-    const expected = frontmatterBody(await readFile(file, 'utf8')).replaceAll('$ARGUMENTS', 'journey arguments');
-    check(`template: /${name} delivers its template body`, text.includes(expected), `expected ${expected.length} chars`);
+    const body = frontmatterBody(await readFile(file, 'utf8')).replace(/\n*\$ARGUMENTS\s*$/, '').trim();
+    check(`template: /${name} delivers its template body`, text.includes(body), `expected ${body.length} chars`);
+    check(`template: /${name} delivers user arguments`, text.includes('journey arguments'));
     check(`template: /${name} keeps no unexpanded $ARGUMENTS`, !text.includes('$ARGUMENTS'));
   }
 }

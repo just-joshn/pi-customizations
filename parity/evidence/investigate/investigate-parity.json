@@ -1,21 +1,21 @@
 {
-  "schema": 2,
+  "schema": 3,
   "pairId": "investigate-2",
   "pairPath": "parity/evidence/investigate/pair-investigate-2.json",
   "priorPairPath": "parity/evidence/investigate/pair-investigate-1.json",
-  "comparedAt": "2026-10-08T15:47:00.000Z",
+  "chipFollowUpAttempt": "parity/evidence/investigate/pi/8ad2dbc5-5ffa-48e3-8b76-0f6de82f6219",
+  "comparedAt": "2026-10-08T16:40:00.000Z",
   "skillActivation": {
     "cursor": "'Used how' chip after '/how ...' + Enter",
-    "pi": "the transformed user message carries the full skill body; the TUI renders it as a collapsible transcript block ('... (130 earlier lines, ctrl+o to expand)'), with no '[skill]' chip",
-    "match": false,
-    "note": "Model-bound activation now matches: both sides receive the skill content inline in one user message. The visible affordance differs (reference collapses the attachment under a chip; candidate shows the body as message lines collapsed by the viewport expander) — recorded as finding HOW-SKILL-TUI-CHIP."
+    "pi": "'[skill] how (ctrl+o to expand)' after expand() delivery of a <skill name=\"how\"> block",
+    "match": true,
+    "note": "Host chrome wording differs (Used how vs [skill] how). Same activation job. Closed HOW-SKILL-TUI-CHIP as host-equivalent."
   },
   "delivery": {
-    "cursor": "skill body delivered inline in the invoking user message (template body with args substituted)",
-    "pi": "session transcript 2026-10-08T15-30-43-877Z_01a11c23: exactly one user message of 3151 chars containing the full how body ('# How', '## Step 2b. Direct Explain', Output Format section) with the question appended; zero 'Read how/SKILL.md in full' instructions; zero read calls for SKILL.md",
+    "cursor": "skill body delivered inline in the invoking user message",
+    "pi": "user message carries <skill name=\"how\"> with full body including Step 2b; args appended after the block",
     "match": true,
-    "closedFinding": "HOW-SKILL-DELIVERY-MODE",
-    "note": "Repair: src/skills-map.ts loads every bundled and host skill; src/commands.ts branch 3 transforms '/name args' to the inline body plus args (images preserved); generated prompt templates embed the skill body instead of a read instruction. Verified in a real terminal via capture-investigate.mjs --pi-only after the repair."
+    "closedFinding": "HOW-SKILL-DELIVERY-MODE"
   },
   "ruleUnchanged": {
     "cursor": true,
@@ -24,28 +24,23 @@
   },
   "readOnlyHeld": {
     "cursor": true,
-    "pi": true,
-    "note": "Neither side wrote configuration; the investigation stayed read-only on both sides."
+    "pi": true
   },
   "workflowExecution": {
-    "cursor": "spawned the Step 2b explainer again (attempt 6f45e2db: announced 'one explainer subagent, no explorers', read references/explainer-prompt.md, ran Task, ~52k working tokens, structured answer with Where Things Live / Gotchas). Second consecutive reference observation (dfe89f1a, 6f45e2db)",
-    "pi": "skipped the explainer step again (attempt 03252b53: two bash rg/sed calls, direct cited answer, ~22 s)",
+    "cursor": "2/2 reference runs spawn Step 2b explainer (dfe89f1a, 6f45e2db)",
+    "pi": "3/3 candidate runs skip spawn after delivery repair (05056781, 03252b53, 8ad2dbc5). On 8ad2dbc5 the model thinking says it will grep directly rather than spawn a subagent.",
     "match": false,
-    "finding": "HOW-WORKFLOW-EXPLAINER-STEP",
-    "note": "With two reference runs both spawning the explainer, the reference behavior looks deterministic for simple questions. The candidate model receives the same workflow text but does not follow the spawn step."
-  },
-  "modelAuthoredVariance": {
-    "note": "Answer prose, depth, and citations are model-authored and compared by rubric; both sides answered the same question correctly at the budget-line level."
+    "finding": "HOW-WORKFLOW-EXPLAINER-STEP"
   },
   "openFindings": [
-    "HOW-WORKFLOW-EXPLAINER-STEP",
-    "HOW-SKILL-TUI-CHIP"
+    "HOW-WORKFLOW-EXPLAINER-STEP"
   ],
   "closedFindings": [
-    "HOW-SKILL-DELIVERY-MODE"
+    "HOW-SKILL-DELIVERY-MODE",
+    "HOW-SKILL-TUI-CHIP"
   ],
   "nextActions": [
-    "Decide the workflow-finding disposition: the pi model (claude-sonnet-5-5:medium) skipping the Step 2b spawn is a model-behavior difference, not a delivery defect; consider a rubric-based behavioral parity record or a prompt-side lever, and keep the repeated-reference protocol as the comparison method.",
-    "Assess HOW-SKILL-TUI-CHIP under the TUI surface family: whether pi can render the inline skill message under a one-line chip equivalent to the reference 'Used how' chip."
+    "HOW-WORKFLOW-EXPLAINER-STEP remains open in parity/mismatches.json. Delivery is ruled out. Next levers are enforcement, rubric, or model role — not another identical recapture.",
+    "Continue acceptance families: success-flow write-card journey and remaining playbook journeys."
   ]
 }

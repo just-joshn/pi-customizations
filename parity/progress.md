@@ -471,3 +471,21 @@ Findings update in `parity/evidence/investigate/investigate-parity.json` (schema
 
 Commit this delivery slice, then write a mismatch/rubric disposition for
 HOW-WORKFLOW-EXPLAINER-STEP and assess HOW-SKILL-TUI-CHIP under the TUI surface family.
+
+### 2026-10-08 checkpoint (skill chip restored; workflow finding open)
+
+Branch 3 now uses `expand()` so `/how` delivers a `<skill name="how">` block.
+Pi attempt `8ad2dbc5` shows `[skill] how (ctrl+o to expand)`.
+`verify-journeys.mjs --no-workers` is 538 checks, 0 findings after asserting body and args separately.
+
+Findings in `parity/mismatches.json`:
+- Closed HOW-SKILL-DELIVERY-MODE (eab95d9 + investigate-2).
+- Closed HOW-SKILL-TUI-CHIP as host-equivalent (`Used how` vs `[skill] how` wording).
+- Open HOW-WORKFLOW-EXPLAINER-STEP: reference 2/2 spawns Step 2b; candidate 3/3 skips
+  with explicit thinking on `8ad2dbc5`. Delivery is not the cause.
+
+### Exact next executable action
+
+Commit the chip/expand follow-up, then build the success-flow setup write-card journey
+(the open observation that reference shows `Edited pstack-models.mdc +1 -1` vs candidate
+`Wrote ...`).

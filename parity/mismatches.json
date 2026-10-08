@@ -11,15 +11,15 @@
       "candidatePackageSha256": "54cdddcddbeb75dab1ed75c79be217a1d0ab2467670212ef43584949090f5832",
       "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
       "sourceLocator": "Step 3(a), exact budget labels",
-      "expected": "unlimited — max reasoning",
-      "actual": "unlimited — keep max",
+      "expected": "unlimited \u2014 max reasoning",
+      "actual": "unlimited \u2014 keep max",
       "candidateRecording": "parity/evidence/candidate-baseline/terminal.raw",
       "candidateScreen": "parity/evidence/candidate-baseline/02-setup-selected.txt",
       "cursorPairedRun": null,
       "consequence": "The setup selector uses a different stable option label. Source inspection also shows unlimited leaves existing effort unchanged rather than applying max with supported-family fallback.",
       "acceptanceVerdict": "pass-paired",
       "nextAction": "Closed by the canonical-2 pair. One reference run (affc057f) again omitted '(max)'; retained as model-authored variance, not a candidate defect.",
-      "repairNote": "Candidate 0.15.15-pi.1 source uses the label unlimited — max reasoning and raises each entry to its highest supported level. The 2026-10-08 exploration recordings show both the Cursor and Pi selectors with this label. Not a paired run.",
+      "repairNote": "Candidate 0.15.15-pi.1 source uses the label unlimited \u2014 max reasoning and raises each entry to its highest supported level. The 2026-10-08 exploration recordings show both the Cursor and Pi selectors with this label. Not a paired run.",
       "closure": {
         "pairedRun": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
         "attemptIds": {
@@ -64,7 +64,7 @@
         ],
         "repairs": [
           "agent-driven AskQuestion panel replaces the native dialog flow (space toggles, enter advances/submits, escape submits answered and skips)",
-          "panel rows aligned to the captured geometry (' │ ' + content padded to 114 + ' │'); found by the paired chrome comparison",
+          "panel rows aligned to the captured geometry (' \u2502 ' + content padded to 114 + ' \u2502'); found by the paired chrome comparison",
           "space in open text entry appends a literal space (regression test added)",
           "optional AskQuestion title rendered as the panel header, default 'Clarifying Questions'"
         ],
@@ -109,7 +109,7 @@
       "candidateRevision": "repair commit (uncommitted at capture; digest recorded in the commit that lands this slice)",
       "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
       "discoveredBy": "parity/evidence/setup-cancel/pair-setup-escape-cancel-1.json",
-      "expected": "The reference transcript collapses the AskQuestion card ('AskQuestion Clarifying Questions (2) — Questions skipped by user') and hides tool internals; the state inspection output is not rendered as raw JSON.",
+      "expected": "The reference transcript collapses the AskQuestion card ('AskQuestion Clarifying Questions (2) \u2014 Questions skipped by user') and hides tool internals; the state inspection output is not rendered as raw JSON.",
       "actual": "The candidate transcript echoes the AskQuestion request and result as raw JSON (answers [], cancelled true) and renders the pstack_setup state result inline as a full model-slug list.",
       "consequence": "During and after the setup journey the user sees developer-facing tool JSON where the reference shows collapsed, human-readable cards. Cancellation semantics match; the presentation does not.",
       "acceptanceVerdict": "pass-paired",
@@ -132,6 +132,72 @@
         ],
         "closedAt": "2026-10-08T11:10:48.167Z"
       }
+    },
+    {
+      "id": "HOW-SKILL-DELIVERY-MODE",
+      "requirementId": "PSTACK-PLAYBOOK-HOW-001",
+      "status": "closed",
+      "candidateRevision": "eab95d9",
+      "referenceSource": "parity/reference/cursor-docs/skills.md",
+      "discoveredBy": "parity/evidence/investigate/pair-investigate-1.json",
+      "expected": "Invoking /how attaches the skill content to one user message (reference Used how / inline activation).",
+      "actual": "Candidate delivered a read-the-file instruction instead of the skill body.",
+      "consequence": "The model might never load the how workflow, so playbook steps diverge before any explainer spawn.",
+      "acceptanceVerdict": "pass-paired",
+      "closure": {
+        "pairedRun": "parity/evidence/investigate/pair-investigate-2.json",
+        "attemptIds": {
+          "cursor": "6f45e2db-c821-4663-bc85-ac9a01fc76e8",
+          "pi": "03252b53-a395-476d-86c2-a7636c4c4116"
+        },
+        "repair": "loadAllSkills + branch-3 expand/inline delivery; generated prompts embed skill bodies (commit eab95d9). Follow-up uses expand() so the TUI shows [skill] how.",
+        "evidence": [
+          "investigate-2 pi transcript: one user message with full how body and Step 2b; zero Read how/SKILL.md instructions",
+          "bunx vitest run 2222 pass; verify-journeys --no-workers 470 then 538 checks, 0 findings"
+        ],
+        "closedAt": "2026-10-08T16:40:00Z",
+        "commit": "eab95d9"
+      },
+      "nextAction": "Closed. Follow-up chip wording lives under HOW-SKILL-TUI-CHIP."
+    },
+    {
+      "id": "HOW-SKILL-TUI-CHIP",
+      "requirementId": "PSTACK-PLAYBOOK-HOW-001",
+      "status": "closed",
+      "candidateRevision": "pending-chip-expand",
+      "referenceSource": "parity/evidence/investigate/cursor/6f45e2db-c821-4663-bc85-ac9a01fc76e8",
+      "discoveredBy": "parity/evidence/investigate/pair-investigate-2.json",
+      "expected": "After /how the transcript shows a one-line skill activation chip (reference: Used how).",
+      "actual": "After wrapperless inline delivery the candidate showed a viewport-collapsed message body without a skill chip.",
+      "consequence": "Users cannot see at a glance that a skill attached, even though the model received the body.",
+      "acceptanceVerdict": "pass-host-equivalent",
+      "closure": {
+        "attemptIds": {
+          "pi": "8ad2dbc5-5ffa-48e3-8b76-0f6de82f6219"
+        },
+        "repair": "Branch 3 uses expand() so /name delivers a <skill> block; Pi renders [skill] how (ctrl+o to expand).",
+        "evidence": [
+          "pi 8ad2dbc5 stream contains '[skill] how (ctrl+o to expand)'",
+          "transcript user message contains skill name=\"how\" and Step 2b"
+        ],
+        "hostVariance": "Reference label is 'Used how'; candidate label is '[skill] how (ctrl+o to expand)'. Same job, host chrome wording differs.",
+        "closedAt": "2026-10-08T16:40:00Z"
+      },
+      "nextAction": "Closed as host-equivalent chip. Wording difference retained as host variance, not a candidate defect."
+    },
+    {
+      "id": "HOW-WORKFLOW-EXPLAINER-STEP",
+      "requirementId": "PSTACK-PLAYBOOK-HOW-001",
+      "status": "open",
+      "candidateRevision": "eab95d9+",
+      "referenceSource": "extensions/pi-pstack/skills/how/SKILL.md",
+      "discoveredBy": "parity/evidence/investigate/pair-investigate-1.json",
+      "expected": "For a simple /how question the agent takes Step 2b: spawn one readonly explainer Task (how explainer role), then present its structured answer.",
+      "actual": "Candidate model receives the full skill body including Step 2b, then explicitly chooses to answer inline with bash instead of spawning (thinking: 'rather than spawning a subagent').",
+      "consequence": "User-visible journey shape differs: reference ~5 min with Task + structured sections; candidate ~20 s with direct tools. Answer content can still be correct.",
+      "comparisonMethod": "Repeated reference protocol: 2/2 cursor runs (dfe89f1a, 6f45e2db) announced and ran the Step 2b explainer. Candidate skips in 3/3 runs after delivery repair (05056781, 03252b53, 8ad2dbc5).",
+      "acceptanceVerdict": "open",
+      "nextAction": "Keep open. Delivery is not the cause. Next levers are a first-action / playbook-enforcement rule for how, a rubric that scores answer contract without requiring spawn, or a model-role change for investigation journeys. Do not close from one more identical skip."
     }
   ]
 }

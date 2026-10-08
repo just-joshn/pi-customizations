@@ -1,36 +1,36 @@
-   │ Budget    │ Cap    │                                                                                              │
-   ├───────────┼────────┤                                                                                              │
-   │ unlimited │ max    │                                                                                              │
-   ├───────────┼────────┤                                                                                              │
-   │ large     │ xhigh  │                                                                                              │
-   ├───────────┼────────┤                                                                                              │
-   │ medium    │ high   │                                                                                              │
-   ├───────────┼────────┤                                                                                              │
-   │ small     │ medium │                                                                                              │
-   └───────────┴────────┘                                                                                              │
                                                                                                                        │
- - When you pick a budget, applyBudget() (models.ts:106) rewrites each role's model entry to provider/id:level. It     │
-   picks the highest level at or below the cap that the model supports.                                                │
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack && rg -n -i "budget" src | head     │
+ -40; rg -n -i "budget" skills/setup-pstack/SKILL.md | head -20 (timeout 30s)                                          │
                                                                                                                        │
- - Aliases (inherit-parent, auto) and empty values pass through unchanged, so they are not capped.                     │
+ ... (53 earlier lines, ctrl+o to expand)                                                                              │
+ name the current budget when the rule records one. With no rule, say that `large` matches the skill defaults.         │
+ 41:Write `~/.pi/agent/pstack/models.mdc` with `alwaysApply: true`, a `# budget` line with the chosen label and its    │
+ target effort, and one line per role, using the same labels poteto-mode uses. Overwrite the whole file so re-runs     │
+ stay idempotent. Shape:                                                                                               │
+ 50:# budget: large (xhigh)                                                                                            │
                                                                                                                        │
- Your current rule                                                                                                     │
- - Every role is inherit-parent. The budget therefore had nothing to rewrite, and the small (medium) line changes      │
-   nothing about which model or effort is used.                                                                        │
- - Those roles run on the parent chat model at the parent's thinking level. Roles set to inherit-parent don't receive  │
-   a model override on Task calls.                                                                                     │
+ Took 0.0s                                                                                                             │
                                                                                                                        │
- How the rule reaches the agent                                                                                        │
- - index.ts:66 and host.ts:40 read the whole rule file with readModelRule() and put it in the system prompt as the     │
-   "active rule". The model sees the budget comment as context, but nothing enforces it.                               ┃
- - Skills read the per-role lines (feature, refactoring: …) to pick the model for each subagent.                       ┃
- - Editing the budget comment by hand does nothing. To change effort, re-run /setup-pstack so the role values get      ┃
-   rewritten, or put explicit model:level values on the role lines.                                                    ┃
                                                                                                                        ┃
- I read the code directly instead of spawning explorers, since the question was narrow.                                ┃
+ No. The budget line doesn't change agent behavior at runtime. I traced it through the code and skills.                ┃
+                                                                                                                       ┃
+ - It's a comment. The line is # budget: small (medium), and the rule's role lines are written without a #. The skills ┃
+   only read the per-role lines, such as how explorer: inherit-parent, to choose a Task model. Nothing in them reads   ┃
+   the budget line.                                                                                                    ┃
+ - The only runtime code that reads it is for display. currentBudget() in extensions/pi-pstack/src/setup-tool.ts:69-70 ┃
+    matches ^# budget: (.+)$. It does this only in pstack_setup's state and write actions. The result is shown as      ┃
+   "current budget" in the setup UI and in Wrote … with budget …. No Task spawn or model choice calls it.              ┃
+ - It already took effect when the file was written. /setup-pstack maps each budget to a target effort. The labels are ┃
+   small → medium and large → xhigh, and an unlimited budget exists too. applyBudget() (models.ts:106) then applies    ┃
+   that effort to each role's model slug, and writeConfiguration (setup-tool.ts:55-57) records the label in the        ┃
+   comment. The effect is baked into the role values.                                                                  ┃
+ - In your rule, the budget has nothing left to affect. Every role is inherit-parent, so no slug carries an effort     ┃
+   suffix. Editing the line by hand changes nothing until you rerun setup.                                             ┃
+                                                                                                                       ┃
+ I did this with a few greps instead of spawning explainer agents, since the question was narrow.                      ┃
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                         
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
-↑8 ↓1.2k R59k W22k CH93.8% $0.113 (sub) 3.1%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium
+↑8 ↓916 R52k W31k CH93.2% $0.142 (sub) 3.1%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium
