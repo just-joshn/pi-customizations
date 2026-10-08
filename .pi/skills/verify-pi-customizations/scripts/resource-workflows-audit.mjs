@@ -11,7 +11,11 @@ const captures = [
 const ownedCwds = new Set();
 const report = captures.map((path) => {
   if (!existsSync(path)) return { path, missing: true };
-  const records = readFileSync(path, 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line));
+  const records = readFileSync(path, 'utf8')
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
   for (const record of records) {
     if (record.type !== 'message_end' || record.message?.role !== 'system') continue;
     const cwd = record.message.sections?.cwd?.match(/<cwd>\s*(.*?)\s*<\/cwd>/s)?.[1];
@@ -23,8 +27,15 @@ const report = captures.map((path) => {
   const started = records.filter((record) => record.type === 'tool_execution_start' && taskNames.has(record.toolName));
   const finished = records.filter((record) => record.type === 'tool_execution_end' && taskNames.has(record.toolName));
   const errors = records.filter((record) => record.type === 'tool_execution_end' && record.isError).map((record) => ({ name: record.toolName, content: record.result?.content }));
-  return { path, modelsObserved: [...new Set(assistantMessages.map((record) => `${record.message.provider}/${record.message.model}`))], toolCalls: calls,
-    reviewerCallsRequested: calls.filter((call) => taskNames.has(call.name)).length, reviewerExecutionsStarted: started.length, reviewerExecutionsFinished: finished.length, toolErrors: errors };
+  return {
+    path,
+    modelsObserved: [...new Set(assistantMessages.map((record) => `${record.message.provider}/${record.message.model}`))],
+    toolCalls: calls,
+    reviewerCallsRequested: calls.filter((call) => taskNames.has(call.name)).length,
+    reviewerExecutionsStarted: started.length,
+    reviewerExecutionsFinished: finished.length,
+    toolErrors: errors,
+  };
 });
 const processes = spawnSync('/usr/sbin/lsof', ['-n', '-d', 'cwd', '-Fpcn'], { encoding: 'utf8' });
 let pid;
@@ -41,4 +52,17 @@ for (const line of (processes.stdout ?? '').split('\n')) {
 writeFileSync(join(base, 'resource-workflows-process-audit.json'), `${JSON.stringify({ ownedFixtureCwds: [...ownedCwds], liveProcessesWithOwnedFixtureCwd: live, lsofExitCode: processes.status }, null, 2)}\n`);
 const path = join(base, 'resource-workflows-audit.json');
 writeFileSync(path, `${JSON.stringify(report, null, 2)}\n`);
-console.log(JSON.stringify(report.map(({ path, modelsObserved, reviewerCallsRequested, reviewerExecutionsStarted, reviewerExecutionsFinished, toolErrors }) => ({ path, modelsObserved, reviewerCallsRequested, reviewerExecutionsStarted, reviewerExecutionsFinished, toolErrorCount: toolErrors?.length })), null, 2));
+console.log(
+  JSON.stringify(
+    report.map(({ path, modelsObserved, reviewerCallsRequested, reviewerExecutionsStarted, reviewerExecutionsFinished, toolErrors }) => ({
+      path,
+      modelsObserved,
+      reviewerCallsRequested,
+      reviewerExecutionsStarted,
+      reviewerExecutionsFinished,
+      toolErrorCount: toolErrors?.length,
+    })),
+    null,
+    2,
+  ),
+);

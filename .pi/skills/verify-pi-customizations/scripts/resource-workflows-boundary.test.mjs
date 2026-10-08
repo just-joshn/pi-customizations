@@ -4,6 +4,7 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+
 import { makeLocalSession } from '../helpers/resource-workflows-local.mjs';
 
 test('the actual sandbox prevents writes outside its owned fixture', async () => {

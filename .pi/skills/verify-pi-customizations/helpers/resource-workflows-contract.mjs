@@ -26,7 +26,11 @@ export function captureReference({ target, out, cwd, env }) {
     const path = join(directory, item.id);
     mkdirSync(path, { recursive: true });
     const meta = { id: item.id, args: item.args, code: actual.code, signal: actual.signal, error: actual.error, referenceSha256: sha, command: target, capturedAt: new Date().toISOString() };
-    for (const [name, data] of [['stdout.raw', actual.stdout], ['stderr.raw', actual.stderr], ['meta.json', JSON.stringify(meta, null, 2)]]) {
+    for (const [name, data] of [
+      ['stdout.raw', actual.stdout],
+      ['stderr.raw', actual.stderr],
+      ['meta.json', JSON.stringify(meta, null, 2)],
+    ]) {
       writeFileSync(join(path, name), data);
       chmodSync(join(path, name), 0o444);
     }
@@ -38,8 +42,15 @@ export function captureReference({ target, out, cwd, env }) {
 export function comparePackaged({ artifact, reference, cwd, env, profile }) {
   const cases = reference.observations.map((item) => {
     const actual = processObservation('/usr/bin/sandbox-exec', ['-f', profile, 'python3', artifact, ...item.args], { cwd, env });
-    return { id: item.id, code: actual.code, signal: actual.signal, error: actual.error, stdout: actual.stdout.toString('base64'), stderr: actual.stderr.toString('base64'),
-      matched: !actual.error && !actual.signal && actual.code === item.code && actual.stdout.toString('base64') === item.stdout && actual.stderr.toString('base64') === item.stderr };
+    return {
+      id: item.id,
+      code: actual.code,
+      signal: actual.signal,
+      error: actual.error,
+      stdout: actual.stdout.toString('base64'),
+      stderr: actual.stderr.toString('base64'),
+      matched: !actual.error && !actual.signal && actual.code === item.code && actual.stdout.toString('base64') === item.stdout && actual.stderr.toString('base64') === item.stderr,
+    };
   });
   return { artifactSha256: createHash('sha256').update(readFileSync(artifact)).digest('hex'), cases, allMatched: cases.every((item) => item.matched) };
 }

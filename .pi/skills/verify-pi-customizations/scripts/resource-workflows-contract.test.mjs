@@ -3,9 +3,10 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
+
+import { captureReference, comparePackaged } from '../helpers/resource-workflows-contract.mjs';
 import { seedGreetingCli } from '../helpers/resource-workflows-fixtures.mjs';
 import { makeLocalSession } from '../helpers/resource-workflows-local.mjs';
-import { captureReference, comparePackaged } from '../helpers/resource-workflows-contract.mjs';
 
 test('immutable real reference bytes reject a mutated packaged command', async () => {
   const root = mkdtempSync('/tmp/rw-');

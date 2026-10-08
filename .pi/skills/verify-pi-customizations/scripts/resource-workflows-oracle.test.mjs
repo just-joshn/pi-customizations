@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+
 import { checkInteraction } from '../helpers/resource-workflows-local.mjs';
 
 test('an actual app interaction is required and changing its output fails', () => {
