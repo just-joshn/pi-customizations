@@ -167,6 +167,8 @@ No drive exercises those effects. What the drives observed is registration and d
 
 **Boundary proof.** `3b62704` adds a deterministic real-Pi probe at `scripts/probe-rpc-double-shutdown.mjs`. Both cases load production pstack, populate its context board, and point its detached launch at a local recorder. A preceding extension hook records entry, awaits one second, and records completion. With one shutdown, the hook completes and pstack launches consolidation. Closing stdin after disposal starts produces a second shutdown. The hook never completes and pstack never launches consolidation. Both observations repeat after formatting the probe. Captures and result JSON are in `artifacts/user-perspective/f017-double-shutdown/`.
 
+**Current-host re-verification.** The coordinator re-ran the same probe on installed Pi 1.1.0. Single shutdown completes the preceding hook and launches consolidation. Double shutdown records only hook entry and launches nothing. The probe exits 0 with both controls asserted, recorded in `artifacts/user-perspective/resume-1.1.0/f017-double-shutdown.log`. The 1.1.0 host retains the same immediate reentrant-exit branch.
+
 **Mechanism outside this repository.** The installed Pi 1.0.4 RPC host calls `process.exit(exitCode)` when `shuttingDown` is already true, while its first call still awaits `runtimeHost.dispose()`. The observed source is recorded in `host-shutdown.txt`. That hard exit stops pending hooks before control reaches pstack. Moving pstack's launch within its own hook cannot make the host reach it while an earlier extension is still awaited. Extension code cannot guarantee completion after the host exits. Fixing the reentrant shutdown requires changing the installed host's shutdown implementation, which this repository neither supplies nor loads as an extension.
 
 **Found by** the pi-pstack environment unit, which saw an intermittent failure rather than a clean one.
@@ -255,11 +257,17 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 
 ## F-023: two defensive guards are unreachable from a real session
 
-**Status.** open
+**Status.** fixed
 
-**Found by** `PS-EVT-30` and `PS-EVT-31`. Pi rejects a call to a deactivated tool with `Tool <name> not found` before any `tool_call` hook runs, so the policy guard for that case cannot execute. An agent with a named tool list never receives the other tools, and a child whose parent lacks `write` and `edit` has them dropped from its plan, so the second guard is unreachable for the same reason.
+**Verification defect fixed.** The original static-tool experiments did not establish universal unreachability. `87eeb18` adds isolated packages with each guard registration omitted. `1a5acbc` adds real parent-child drives that exercise the production guards and those controls. With the write gate omitted, the child writes the file. With the tool policy omitted, the MCP server executes the call. The production package rejects both operations. Neither guard was deleted or weakened.
 
-**Why it matters.** Unreachable guards read as protection and provide none, and they cost a reader time. Either they should be deleted, or the comment should say which host behaviour makes them dead. The verification consequence is recorded in the receipt as `not-drivable` rather than `verified`, because the row cannot be exercised.
+**Reachable mechanisms.** The writer child starts while its parent has write permission, then waits while a companion command removes that permission from the live parent. Its subsequent write reaches the guard and receives the plan-mode refusal. The tool-policy child starts with a named tool list. A direct MCP server completes registration after the initial filter and activates its tool for a later turn. The call reaches the policy guard and receives the named-tool refusal. The production write file and MCP call marker remain absent; both omitted-guard controls produce their respective effects.
+
+**Fresh real-artifact verification.** The coordinator re-ran `control-pi drive pstack-hooks-guards` on installed Pi 1.1.0 and obtained both behavioural receipts with exit 0. The current-host log is `artifacts/user-perspective/resume-1.1.0/f023-guards.log`. Production and control child transcripts, actual provider tool declarations, and exact omitted registrations are under `artifacts/user-perspective/pstack-hooks-guards/raw/`. These observations close the coverage defect rather than claiming a new product guard was required.
+
+**Original finding.** Found by `PS-EVT-30` and `PS-EVT-31`. Pi rejects a call to a deactivated tool with `Tool <name> not found` before any `tool_call` hook runs, so the policy guard for that case cannot execute. An agent with a named tool list never receives the other tools, and a child whose parent lacks `write` and `edit` has them dropped from its plan, so the second guard is unreachable for the same reason.
+
+**Original consequence.** The earlier receipts classified both guards as `not-drivable` based on the static-tool experiment. That classification was too broad. Static absence still prevents the hook from running, but the live permission and late-registration sequences above reach it. The new drive verifies the row claims under those explicit preconditions.
 
 ---
 
