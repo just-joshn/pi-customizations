@@ -2,7 +2,7 @@
 
   Cursor Agent
   v2026.10.01-e373342
-  Tip: Use /debug to instrument and debug complex problems.
+  Tip: Use /mcp to connect Cursor to your tools and data sources.
 
 
 

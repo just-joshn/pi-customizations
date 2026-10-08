@@ -45,7 +45,9 @@ export interface PanelResult {
 
 const blank = (question: PanelQuestion): PanelAnswer => ({ id: question.id, answers: [], cancelled: true });
 
-export function initialPanelState(questions: readonly PanelQuestion[], title = 'Clarifying Questions'): PanelState {
+export const defaultPanelTitle = 'Clarifying Questions';
+
+export function initialPanelState(questions: readonly PanelQuestion[], title: string = defaultPanelTitle): PanelState {
   return {
     title,
     questions,

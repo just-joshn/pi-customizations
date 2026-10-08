@@ -1,8 +1,8 @@
 {
-  "schema": 1,
-  "pairId": "setup-escape-cancel-1",
-  "pairPath": "parity/evidence/setup-cancel/pair-setup-escape-cancel-1.json",
-  "comparedAt": "2026-10-08T11:00:00Z",
+  "schema": 2,
+  "pairId": "setup-escape-cancel-2",
+  "pairPath": "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json",
+  "comparedAt": "2026-10-08T11:10:48.169Z",
   "ruleUnchanged": {
     "cursor": true,
     "pi": true,
@@ -19,19 +19,18 @@
     "evidence": "screen-02-after-escape on both sides shows no panel box"
   },
   "cancellationSemantics": {
-    "cursor": "collapsed AskQuestion card labeled 'Questions skipped by user'",
-    "pi": "AskQuestion request echoed as raw JSON with result [{\"id\":\"budget\",\"answers\":[],\"cancelled\":true},{\"id\":\"roles\",\"answers\":[],\"cancelled\":true}]"
+    "cursor": "collapsed AskQuestion card labeled 'Questions skipped by user', question blocks unchecked",
+    "pi": "identical collapsed card form, verified by cancel-card-v1",
+    "comparator": "parity/scripts/compare-cancel-card.mjs",
+    "report": "parity/evidence/setup-cancel/card-parity-2.json"
   },
   "noWriteAfterCancel": {
     "match": true,
     "note": "Forbidden side effect (writing configuration before confirmation) absent on both sides"
   },
-  "modelAuthoredContinuation": {
-    "note": "Post-escape agent text is model-authored and compared by rubric; cursor continued explaining alias semantics. The pi final screen shows the pstack_setup state tool result (full model-slug list) rendered inline.",
-    "renderingFinding": "The candidate's transcript renders extension tool calls and results as raw JSON (AskQuestion request echo, pstack_setup state dump); the reference renders collapsed human-readable cards. Recorded as mismatch SETUP-ASKQUESTION-TRANSCRIPT-RENDERING."
+  "modelAuthoredVariance": {
+    "note": "Question count (cursor 1 vs pi 2), titles, and post-escape chat text are model-authored; classified per the established rubric, not normalized away."
   },
   "unexplainedDifferences": 0,
-  "openFindings": [
-    "SETUP-ASKQUESTION-TRANSCRIPT-RENDERING"
-  ]
+  "openFindings": []
 }

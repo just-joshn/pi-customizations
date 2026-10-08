@@ -1,29 +1,28 @@
-  every role is an alias, the budget choice won't move any role — the table stays all-inherit-parent unless you
-  hand-pick models.
-
-    AskQuestion Clarifying Questions (2)                                                 Questions skipped by user
-    1. Which reasoning budget should pstack roles use? (Current rule records: small (medium). Since all roles are
-    `inherit-parent`, this only sets the budget label unless you also pin specific models.)
       [ ] unlimited — max reasoning
       [ ] large — xhigh reasoning
       [ ] medium — high reasoning
-      [ ] small — medium reasoning
+      [ ] small — medium reasoning (current)
 
-    2. Keep every role on `inherit-parent` (each role runs on the parent chat model)?
-      [ ] Keep all on inherit-parent (Recommended)
-      [ ] Change specific roles to pinned models
+  Question skipped — I'll proceed without changing anything, keeping the recorded choices (re-runs are idempotent).
+  Since every role is on the inherit-parent alias and aliases never change under any budget, the working table is
+  identical to your current rule: all 17 roles on inherit-parent, budget small (medium). No retired roles to drop,
+  no undetected slugs to flag.
 
-  The questions were skipped, so I'll keep the current configuration untouched — it's already valid and idempotent.
+  Writing the rule now:
 
-  Rule left as-is at ~/.cursor/rules/pstack-models.mdc:
-  • Budget: small (medium)
-  • All 17 roles: inherit-parent (each role runs on the parent chat model; panel lists keep their fan-out counts)
+    Edited pstack-models.mdc
 
-  It applies to new sessions; re-running /setup-pstack and answering the prompts updates it.
+  Done. ~/.cursor/rules/pstack-models.mdc was rewritten (byte-identical to what was there) with:
 
-  One optional offer: I didn't find a project-local way for agents to drive the real app and prove changes work
-  (only the generic verify-this skill). Want a project-local verification skill so agents can drive the app the way
-  a user does and prove changes work? I can generate one with /create-verification-skill.
+  • Budget: small (medium) — unchanged since the question was skipped
+  • All 17 roles: inherit-parent — every pstack role runs on the parent chat model
+
+  The rule applies to new sessions; re-running /setup-pstack updates it. If you want real models per role later,
+  re-run the skill and pick a budget plus roles — detected options this session include
+  claude-fable-5-1-thinking-high, claude-opus-5-5-medium, grok-4.7-high, and friends.
+
+  I skipped the optional verification-skill offer since this repo already has its own parity harness (parity/
+  fixtures and evidence) for driving the real app.
 
 
 
@@ -31,5 +30,5 @@
   → Add a follow-up                                                                                                    
                                                                                                                        
 
-  GLM 5.3 Flash Max · 11.2%                                                                             Run Everything
+  GLM 5.3 Flash Max · 11.6% · 1 file edited                                                             Run Everything
   ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

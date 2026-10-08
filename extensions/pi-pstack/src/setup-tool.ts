@@ -3,8 +3,10 @@ import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 import type { ExtensionAPI, ExtensionContext, ExtensionToolContext } from '@earendil-works/pi-coding-agent';
+import { Container } from '@earendil-works/pi-tui';
 import { Type } from 'typebox';
 import { isAlias, modelConfigPath, readModelRule, resolveModel, skillDefaultTable } from './models.ts';
+import { setupWriteCard } from './tool-cards.ts';
 
 type ThinkingLevel = NonNullable<ExtensionContext['thinkingLevel']>;
 
@@ -111,6 +113,17 @@ export function registerSetupTool(pi: ExtensionAPI): void {
     exposure: 'model-only',
     executionMode: 'sequential',
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    renderCall(_args, _theme, context) {
+      const component = (context.lastComponent as Container | undefined) ?? new Container();
+      component.clear();
+      return component;
+    },
+    renderResult(result, _options, theme, context) {
+      const component = (context.lastComponent as Container | undefined) ?? new Container();
+      component.clear();
+      if (context.args.action === 'write') component.addChild(setupWriteCard(result.details as { rulePath: string; budget: string | null }, theme));
+      return component;
+    },
     async execute(_id, params, _signal, _update, ctx) {
       if (params.action === 'state') {
         const state = await stateAction(ctx);

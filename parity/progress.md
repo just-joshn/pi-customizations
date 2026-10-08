@@ -377,3 +377,36 @@ Repair SETUP-ASKQUESTION-TRANSCRIPT-RENDERING: inspect pi's extension tool-call/
 facilities at the locked release, make the AskQuestion card collapse to a human-readable summary
 and keep the pstack_setup state result out of the raw transcript (or compact it), verify with unit
 tests plus a fresh cancellation-pair recapture.
+
+### 2026-10-08 checkpoint (transcript rendering repair closed)
+
+SETUP-ASKQUESTION-TRANSCRIPT-RENDERING is closed pass-paired on `setup-escape-cancel-2`
+(cursor 6193b87b, pi 1c010fa9, both ruleUnchanged at fixture digest sha256:2b6b4668...).
+
+Captured reference contract (cursor dumps of this session): the transcript shows exactly one
+collapsed AskQuestion card line, title left-aligned, `Questions skipped by user` right-aligned,
+with the question blocks below rendered unchecked, and NO cards for pstack tool internals. In the
+answered flow the reference also shows the collapsed card with `[x]` marks (canonical-2 cursor
+capture) and the write appears as a host edit card (`Edited pstack-models.mdc +1 -1`).
+
+Repairs, tests first: deleted the AskQuestion call card and the pstack_setup call/state cards
+(the extra visible lines), moved `SetupState` to its consumer, kept the write card for the
+success flow. Suite 2219 pass, typecheck clean. New `parity/scripts/compare-cancel-card.mjs`
+(cancel-card-v1) verifies the contract on both sides of the pair from the retained dumps:
+exactly-one-card-line, right-aligned skip label, unchecked blocks, no JSON echo, no setup tool
+cards. `card-parity-2.json` passes on both sides. `cancel-parity.json` refreshed to schema 2
+pointing at pair-2. Byte comparator on pair-2: inputDifferences 0; raw output differences are
+model-authored chat text and host chrome (sampled, card-region clean).
+
+Discarded attempt retained as variance: pi 9e41166c — the autocomplete popup wait timed out on
+the first recapture; the popup reproduced in isolation minutes later with identical code (probe
+in `/tmp/pi-popup-probe2`), so it was judged a boot-timing flake, not a load regression.
+
+New open observation for the success-flow slice (not yet a mismatch record): the reference write
+appears as a host edit card with diff lines; the candidate shows `Wrote <path> with budget ...`.
+Record it as its own requirement when the success-flow transcript journey is built.
+
+### Exact next executable action
+
+Commit this repair slice, then continue the acceptance families: the playbook user journeys
+(investigation and repair first), reusing the paired-capture harness pattern.

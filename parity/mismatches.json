@@ -105,15 +105,33 @@
     {
       "id": "SETUP-ASKQUESTION-TRANSCRIPT-RENDERING",
       "requirementId": "PSTACK-SETUP-FLOW-001",
-      "status": "observed-candidate-divergence-unrepaired-unpaired",
-      "candidateRevision": "e423743 after 2f4dc020",
+      "status": "closed",
+      "candidateRevision": "repair commit (uncommitted at capture; digest recorded in the commit that lands this slice)",
       "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
       "discoveredBy": "parity/evidence/setup-cancel/pair-setup-escape-cancel-1.json",
       "expected": "The reference transcript collapses the AskQuestion card ('AskQuestion Clarifying Questions (2) — Questions skipped by user') and hides tool internals; the state inspection output is not rendered as raw JSON.",
       "actual": "The candidate transcript echoes the AskQuestion request and result as raw JSON (answers [], cancelled true) and renders the pstack_setup state result inline as a full model-slug list.",
       "consequence": "During and after the setup journey the user sees developer-facing tool JSON where the reference shows collapsed, human-readable cards. Cancellation semantics match; the presentation does not.",
-      "acceptanceVerdict": "fail-paired",
-      "nextAction": "Investigate pi's extension tool-result rendering hooks (custom renderers or compact result forms); repair so the panel card and the state result collapse to human-readable summaries, then recapture this pair."
+      "acceptanceVerdict": "pass-paired",
+      "nextAction": "Investigate pi's extension tool-result rendering hooks (custom renderers or compact result forms); repair so the panel card and the state result collapse to human-readable summaries, then recapture this pair.",
+      "closure": {
+        "pairedRun": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json",
+        "attemptIds": {
+          "cursor": "6193b87b-9040-4edb-a3b4-97d7ac6cb6f0",
+          "pi": "1c010fa9-b2be-44e8-a4fb-baa9febfafd3"
+        },
+        "repair": "AskQuestion call card and pstack_setup call/state cards no longer render; the AskQuestion result card renders one collapsed line with the title left-aligned and \"Questions skipped by user\" right-aligned, with unchecked question blocks below (src/tool-cards.ts, src/questions.ts, src/setup-tool.ts).",
+        "evidence": [
+          "parity/evidence/setup-cancel/card-parity-2.json (cancel-card-v1 comparator pass on both sides: exactly one card line, right-aligned skip label, blocks unchecked, no JSON echo, no setup tool cards)",
+          "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json (fresh paired capture, both sides ruleUnchanged true at fixture digest sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004)",
+          "parity/evidence/setup-cancel/pair-report-cancel-2.json (byte comparator: inputDifferences 0; raw output differences are model-authored chat text and host chrome, sampled and confirmed card-region-clean)"
+        ],
+        "discardedAttempts": [
+          "pi 9e41166c (popup wait timeout, judged boot-timing flake; popup reproduced in isolation immediately after)",
+          "pi 54cf819b (successful smoke run on the repaired rendering before the paired capture)"
+        ],
+        "closedAt": "2026-10-08T11:10:48.167Z"
+      }
     }
   ]
 }
