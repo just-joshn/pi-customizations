@@ -35,6 +35,10 @@ try {
   git(['add', '.'], archive);
   git(['commit', '-qm', `Archive ${sha}`], archive);
   const policy = join(archive, '.pi/skills/verify-pi-customizations/scenarios/pstack-hooks-policy.mjs');
+  if (process.argv.includes('--working-policy')) {
+    writeFileSync(policy, readFileSync(join(root, '.pi/skills/verify-pi-customizations/scenarios/pstack-hooks-policy.mjs'), 'utf8'));
+    console.log('Archived sources with the scoped working legacy policy overlay.');
+  }
   const original = readFileSync(policy, 'utf8');
   if (original.includes('readdirSync(tmpdir())')) {
     writeFileSync(policy, ownedTranscriptSource(original));

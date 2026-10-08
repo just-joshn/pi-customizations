@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { assertSurface, capturesFrom, lastToolResult, NAVIGATOR, prepareHooksAgentDir, startHooks, waitFor, writeSurface } from './pstack-hooks-lib.js';
+import pstackHooksGuards from './pstack-hooks-guards.mjs';
 
 const writerAgent = `---
 name: hk-writer
@@ -20,25 +20,23 @@ function withWriterAgent(context, name, extra = {}) {
   return agentDir;
 }
 
-function childTranscript(agentId) {
-  for (const name of readdirSync(tmpdir())) {
-    if (!name.startsWith('pstack-workers-')) continue;
-    const path = join(tmpdir(), name, `agent-${agentId}.jsonl`);
-    if (existsSync(path)) return path;
-  }
-  return undefined;
+function childTranscript(session, agentId) {
+  return session.records
+    .filter((record) => record.type === 'entry_appended' && record.entry?.customType === 'reference-assistant-agent')
+    .map((record) => record.entry.data)
+    .findLast((data) => data?.id === agentId && typeof data?.sessionFile === 'string' && data.sessionFile !== '')?.sessionFile;
 }
 
-function childTranscriptText(agentId) {
-  const path = childTranscript(agentId);
+function childTranscriptText(session, agentId) {
+  const path = childTranscript(session, agentId);
   return path && existsSync(path) ? readFileSync(path, 'utf8') : '';
 }
 
-async function childTranscriptContains(agentId, needle, timeoutMs = 4000) {
+async function childTranscriptContains(session, agentId, needle, timeoutMs = 4000) {
   return waitFor(
     () => {
-      const path = childTranscript(agentId);
-      if (!path) return undefined;
+      const path = childTranscript(session, agentId);
+      if (!path || !existsSync(path)) return undefined;
       return readFileSync(path, 'utf8').includes(needle) ? true : undefined;
     },
     { timeoutMs, description: `child transcript ${agentId} to contain ${JSON.stringify(needle)}` },
@@ -80,8 +78,8 @@ export default async function pstackHooksPolicy(context) {
     const bashResult = lastToolResult(primary.session, 'task')?.details;
     await primary.session.prompt('HK_TASK_SUBAGENT_EXPLORE_WRITE');
     const exploreWrite = lastToolResult(primary.session, 'task')?.details;
-    const writeRejected = await childTranscriptContains(exploreWrite?.agent_id, 'Tool write not found');
-    const bashTranscript = childTranscriptText(bashResult?.agent_id);
+    const writeRejected = await childTranscriptContains(primary.session, exploreWrite?.agent_id, 'Tool write not found');
+    const bashTranscript = childTranscriptText(primary.session, bashResult?.agent_id);
     assert.equal(bashResult?.status, 'completed');
     assert.match(bashTranscript, /HK_CHILD_BASH/);
     assertSurface(context, {
@@ -107,17 +105,11 @@ export default async function pstackHooksPolicy(context) {
       const blocked = lastToolResult(guarded.session, 'task')?.details;
       const planNeedle = 'The parent session is in plan mode, so this agent cannot modify files.';
       await new Promise((resolve) => setTimeout(resolve, 800));
-      const transcript = childTranscriptText(blocked?.agent_id);
+      const transcript = childTranscriptText(guarded.session, blocked?.agent_id);
       const planBlocked = transcript.includes(planNeedle);
       assert.ok(!existsSync(guardedPath), 'the guarded child wrote the file');
-      writeSurface(context, {
-        surfaceId: 'PS-EVT-31',
-        observed: `with the parent's write/edit deactivated, the hk-writer child ${blocked?.agent_id} got ${JSON.stringify(transcript.includes('Tool write not found') ? 'Tool write not found' : 'a different result')}; the write-gate reason ${JSON.stringify(planNeedle)} was ${planBlocked ? 'present' : 'absent'}; ${guardedPath} was never created`,
-        evidence: guarded.capture,
-        verdict: 'not-drivable',
-        reason:
-          'a child only receives tools its parent still has, so when the parent lacks write/edit the child plan drops them and Pi rejects the call with "Tool write not found" before the tool_call hook; the gate would only see a write from a host-supplied definition that re-adds the tool, which no user action in this environment reaches',
-      });
+      writeFileSync(join(context.rawDir, 'legacy-static-write-child.jsonl'), transcript);
+      context.log(`Static write observation only: with the parent's write/edit deactivated, the hk-writer child ${blocked?.agent_id} got ${JSON.stringify(transcript.includes('Tool write not found') ? 'Tool write not found' : 'a different result')}; the write-gate reason ${JSON.stringify(planNeedle)} was ${planBlocked ? 'present' : 'absent'}; ${guardedPath} was never created; capture=${guarded.capture}`);
     } finally {
       await guarded.session.close();
     }
@@ -144,7 +136,7 @@ export default async function pstackHooksPolicy(context) {
     try {
       await excluded.session.prompt('HK_TASK_SUBAGENT_LOCAL_ENV');
       const envResult = lastToolResult(excluded.session, 'task')?.details;
-      const transcript = childTranscriptText(envResult?.agent_id);
+      const transcript = childTranscriptText(excluded.session, envResult?.agent_id);
       const readSecret = transcript.includes('HK_SECRET=present');
       const blockedByPolicy = transcript.includes('blocked by the content exclusion policy');
       writeSurface(context, {
@@ -180,16 +172,10 @@ export default async function pstackHooksPolicy(context) {
   try {
     await observe.session.prompt('HK_TASK_SUBAGENT_EXPLORE_WRITE');
     const blockedResult = lastToolResult(observe.session, 'task')?.details;
-    const blockedSeen = await childTranscriptContains(blockedResult?.agent_id, 'Tool write not found');
-    const transcript = childTranscriptText(blockedResult?.agent_id);
-    writeSurface(context, {
-      surfaceId: 'PS-EVT-30',
-      observed: `the explore child's write call produced ${JSON.stringify(transcript.includes('Tool write not found') ? 'Tool write not found' : 'a different result')} (${blockedSeen}); the guard reason ${JSON.stringify('is not one of the tools this agent was given')} never appeared`,
-      evidence: observe.capture,
-      verdict: 'not-drivable',
-      reason:
-        'an agent with a named tool list has the other tools deactivated, so Pi rejects the call with "Tool write not found" before any tool_call hook runs; the guard would only see a call to an active tool registered after before_agent_start, which no user action reaches',
-    });
+    const blockedSeen = await childTranscriptContains(observe.session, blockedResult?.agent_id, 'Tool write not found');
+    const transcript = childTranscriptText(observe.session, blockedResult?.agent_id);
+    writeFileSync(join(context.rawDir, 'legacy-static-policy-child.jsonl'), transcript);
+    context.log(`Static tool-list observation only: the explore child's write call produced ${JSON.stringify(transcript.includes('Tool write not found') ? 'Tool write not found' : 'a different result')} (${blockedSeen}); the guard reason ${JSON.stringify('is not one of the tools this agent was given')} never appeared; capture=${observe.capture}`);
 
     await observe.session.prompt('HK_TASK_SUBAGENT_COPILOT');
     const copilotChild = capturesFrom(observe.capture).filter((record) => record.provider === 'github-copilot');
@@ -219,4 +205,6 @@ export default async function pstackHooksPolicy(context) {
   } finally {
     await observe.session.close();
   }
+
+  await pstackHooksGuards(context);
 }
