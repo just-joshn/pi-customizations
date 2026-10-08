@@ -86,6 +86,7 @@ async function probe(name, kind) {
     ownership = openRunOwnership({ pid: local.session.pid, port: kind === 'server' ? port : null, socket: kind === 'tui' ? socket : null });
     runtime = evidence.openRunRuntime?.({ identity, session: local.session, ownership });
     await local.session.prompt(`F016_CONTROL ${JSON.stringify(stepsFor(name, identity))}`);
+    await runtime?.finish();
     const cleanup = await ownership.snapshot();
     const facts = evidence.collectRunEvidence({ identity, records: local.session.records, error: null, cleanup, rescue: null, out: artifactDir, mode: 'scripted', runtime });
     const rescue = await ownership.rescue();
