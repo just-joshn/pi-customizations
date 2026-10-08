@@ -643,3 +643,10 @@ Commit gate unchanged (operator has not said commit-now).
 
 Drain each as it lands. Keep mode-sticky pending until mode-one-message finishes.
 
+## Continuation checkpoint — 2026-10-08T17:32Z (commit-now)
+
+Operator answered commit-now. Product slice landed as `fd0b41b018130c7f2ec483ca1c29b71b59a73e32`.
+Closed mismatches: SETUP-WRITE-CARD, HOW-WORKFLOW-EXPLAINER-STEP, HOW-TASK-AGENT-TYPE.
+Orch gate setup-write-card-commit resolved.
+Left uncommitted: Pi 1.1.0 workspace package bumps, research slices, in-flight mode-one-message probes.
+

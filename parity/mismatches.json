@@ -186,18 +186,102 @@
       "nextAction": "Closed as host-equivalent chip. Wording difference retained as host variance, not a candidate defect."
     },
     {
+      "id": "SETUP-WRITE-CARD",
+      "requirementId": "PSTACK-SETUP-FLOW-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "fd0b41b",
+      "referenceSource": "parity/evidence/setup-prepair/cursor/screen-04-final.txt",
+      "discoveredBy": "parity/progress.md success-flow observation after SETUP-ASKQUESTION-TRANSCRIPT-RENDERING",
+      "expected": "After a successful /setup-pstack write the transcript shows a host edit card: `Edited pstack-models.mdc +N -M` plus \u258e-gutter context with the removed and added budget lines.",
+      "actual": "Candidate previously rendered `Wrote <path> with budget \u2026` and no diff body.",
+      "consequence": "Users see a different write confirmation and cannot inspect the budget line change in the transcript card.",
+      "acceptanceVerdict": "pass-paired",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-success/pair-setup-success-write-card-2.json",
+        "attemptIds": {
+          "cursor": "de231068-bb59-4872-a415-cfac64ddfdfe",
+          "pi": "0d269402-43a6-48fd-bb62-c8ca90306a5c"
+        },
+        "evidence": [
+          "parity/evidence/setup-success/write-card-parity-linked.json",
+          "parity/evidence/setup-success/write-card-verify-rerun.json",
+          "parity/briefs/reports/u-write-card-verify-report.md"
+        ],
+        "commit": "fd0b41b018130c7f2ec483ca1c29b71b59a73e32",
+        "closedAt": "2026-10-08T17:32:00Z",
+        "note": "Sequential same-scenario pair; write-card-v1 pass both sides."
+      },
+      "nextAction": "Closed.",
+      "verifyRerun": {
+        "at": "2026-10-08T17:22:00Z",
+        "agent": "63621cd3-bca1-4bca-a911-1cce3eddeb1e",
+        "report": "parity/briefs/reports/u-write-card-verify-report.md",
+        "rerunJson": "parity/evidence/setup-success/write-card-verify-rerun.json",
+        "writeCardV1": "pass",
+        "blockersUnchanged": [
+          "uncommitted product diffs (no commit hash)",
+          "sequential same-scenario captures, not one recordPair() call"
+        ]
+      }
+    },
+    {
       "id": "HOW-WORKFLOW-EXPLAINER-STEP",
       "requirementId": "PSTACK-PLAYBOOK-HOW-001",
-      "status": "open",
-      "candidateRevision": "eab95d9+",
+      "status": "closed-paired-parity",
+      "candidateRevision": "fd0b41b",
       "referenceSource": "extensions/pi-pstack/skills/how/SKILL.md",
       "discoveredBy": "parity/evidence/investigate/pair-investigate-1.json",
       "expected": "For a simple /how question the agent takes Step 2b: spawn one readonly explainer Task (how explainer role), then present its structured answer.",
       "actual": "Candidate model receives the full skill body including Step 2b, then explicitly chooses to answer inline with bash instead of spawning (thinking: 'rather than spawning a subagent').",
       "consequence": "User-visible journey shape differs: reference ~5 min with Task + structured sections; candidate ~20 s with direct tools. Answer content can still be correct.",
       "comparisonMethod": "Repeated reference protocol: 2/2 cursor runs (dfe89f1a, 6f45e2db) announced and ran the Step 2b explainer. Candidate skips in 3/3 runs after delivery repair (05056781, 03252b53, 8ad2dbc5).",
-      "acceptanceVerdict": "open",
-      "nextAction": "Keep open. Delivery is not the cause. Next levers are a first-action / playbook-enforcement rule for how, a rubric that scores answer contract without requiring spawn, or a model-role change for investigation journeys. Do not close from one more identical skip."
+      "acceptanceVerdict": "pass-paired",
+      "comparisonMethodLocked": "A-deterministic-spawn-required",
+      "disposition": "parity/reviews/how-explainer-disposition.md",
+      "repair": {
+        "design": "A-spawn-gate",
+        "note": "extensions/pi-pstack/docs/how-explainer-spawn-design.md",
+        "files": [
+          "extensions/pi-pstack/src/how-spawn-gate.ts",
+          "extensions/pi-pstack/src/index.ts",
+          "extensions/pi-pstack/test/how-spawn-gate.test.ts"
+        ],
+        "unitVerify": "bunx vitest run test/how-spawn-gate.test.ts (5 pass); typecheck pass; verify-journeys --no-workers 538/0"
+      },
+      "nextAction": "Closed. Follow-up HOW-TASK-AGENT-TYPE also closed on the same commit (explore/how-explainer recognition).",
+      "closure": {
+        "pairedRun": "parity/evidence/investigate/pair-investigate-3.json",
+        "attemptIds": {
+          "cursor": "c1abf807-141d-4731-a887-182cf312ad02",
+          "pi": "951a315d-ac83-4901-9342-c82fbcd235a1"
+        },
+        "evidence": [
+          "parity/briefs/reports/u-how-pair-report.md",
+          "parity/evidence/investigate/how-method-a-pair-3-report.md",
+          "Method A: cursor Running subagent; pi gate then task before answer"
+        ],
+        "commit": "fd0b41b018130c7f2ec483ca1c29b71b59a73e32",
+        "closedAt": "2026-10-08T17:32:00Z"
+      }
+    },
+    {
+      "id": "HOW-TASK-AGENT-TYPE",
+      "requirementId": "PSTACK-PLAYBOOK-HOW-001",
+      "status": "closed",
+      "candidateRevision": "fd0b41b",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/how/SKILL.md",
+      "discoveredBy": "parity/evidence/investigate/pair-investigate-3.json",
+      "expected": "Step 2b explainer Task uses subagent_type generalPurpose (readonly) per the how skill.",
+      "actual": "Linked Pi attempt 951a315d called task with agent_type explore and name how-explainer after the spawn gate blocked a read.",
+      "consequence": "explainerTaskStarted() does not mark spawned for explore, so the gate may keep blocking parent exploration tools after a non-conforming Task. Method A spawn-before-answer still held on this pair.",
+      "acceptanceVerdict": "pass-unit",
+      "nextAction": "Closed on fd0b41b with unit tests for the live explore/how-explainer shape.",
+      "closure": {
+        "repair": "explainerTaskStarted accepts agent_type explore with name how-explainer and readonly prompt (pair-investigate-3 shape)",
+        "tests": "extensions/pi-pstack/test/how-spawn-gate.test.ts",
+        "commit": "fd0b41b018130c7f2ec483ca1c29b71b59a73e32",
+        "closedAt": "2026-10-08T17:32:00Z"
+      }
     }
   ]
 }
