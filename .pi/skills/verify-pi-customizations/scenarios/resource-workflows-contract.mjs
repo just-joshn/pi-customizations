@@ -2,10 +2,12 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 import { captureReference, comparePackaged, GREETING_CASES } from '../helpers/resource-workflows-contract.mjs';
 import { seedGreetingCli } from '../helpers/resource-workflows-fixtures.mjs';
+import { collectDifferential, evidenceMapLinks, readOwnedJson } from '../helpers/resource-workflows-implementation-evidence.mjs';
+import { evaluateImplementation } from '../helpers/resource-workflows-implementation-outcome.mjs';
 import { attemptPrompt, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
+import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 
 export function writeOutcomeReceipt({ repoRoot, receipts }, outcome) {
   const { expected } = surfaceContract(readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8'), outcome.surfaceId);
@@ -18,6 +20,8 @@ export default async function drive({ repoRoot, artifactDir, receipts }) {
   try {
     const target = seedGreetingCli(fixture.cwd);
     const env = { ...process.env, ...fixture.env, PI_CODING_AGENT_DIR: fixture.agentDir };
+    const artifact = join(fixture.cwd, 'greet.pyz');
+    const candidateAbsentAtCapture = !existsSync(artifact);
     const reference = captureReference({ target, cwd: fixture.cwd, env, out: join(artifactDir, 'reference') });
     writeFileSync(join(artifactDir, 'reference-captured.json'), JSON.stringify({ capturedBeforeInvocation: true, candidateAbsent: !existsSync(join(fixture.cwd, 'greet.pyz')), ...reference }, null, 2));
     const re = join(fixture.cwd, '.re');
@@ -54,26 +58,36 @@ export default async function drive({ repoRoot, artifactDir, receipts }) {
         2,
       ),
     );
-    const invocation = `/skill:implement-cli-from-contract Reimplement my owned greet command as a Python zipapp greet.pyz. My project root is ${fixture.cwd}, not the skill installation directory. The reference executable is ${target}. Use the captured contract at ${re} and its six-case compatibility corpus. Keep all output bytes and exit statuses exact. The immutable reference results are already captured before implementation. Use the actual differential driver, execute the packaged zipapp, and leave a machine-readable compatibility report. No downloads or external services.`;
+    const invocation = `/skill:implement-cli-from-contract Reimplement my owned greet command as a Python zipapp greet.pyz. My project root is ${fixture.cwd}, not the skill installation directory. The reference executable is ${target}. Use the captured contract at ${re} and its six-case compatibility corpus. Keep all output bytes and exit statuses exact. The immutable reference results are already captured before implementation. Use the actual differential driver, execute the packaged zipapp, and leave a machine-readable compatibility report at ${join(re, 'impl/greeting/report.json')} with reference.sha256, candidate.artifact_sha256, cases.total/passed/failed and intentional_differences. Leave the evidence map at ${join(re, 'impl/greeting/evidence-map.json')} as six objects with case, behavior, implementation, test and probe fields. Use workspace-relative implementation paths, test links compat/differential/candidate/probes.jsonl#CASE under the greeting packet, and immutable reference/REF_SHA/CASE/meta.json probe paths under its compat directory. Run python3 ${join(repoRoot, 'skills/implement-cli-from-contract/scripts/differential.py')} run ${join(compat, 'cases.json')} --reference '${target}' --candidate 'python3 ${join(fixture.cwd, 'greet.pyz')}' --out ${join(compat, 'differential')}. No downloads or external services.`;
+    const reportPath = join(re, 'impl/greeting/report.json');
+    const mapPath = join(re, 'impl/greeting/evidence-map.json');
+    const reportAbsentBeforeInvocation = !existsSync(reportPath);
+    const mapAbsentBeforeInvocation = !existsSync(mapPath);
     const error = await attemptPrompt(fixture.session, invocation);
-    const artifact = join(fixture.cwd, 'greet.pyz');
     const comparison = existsSync(artifact) ? comparePackaged({ artifact, reference, cwd: fixture.cwd, env, profile: fixture.profile }) : null;
     cpSync(fixture.cwd, join(artifactDir, 'workspace'), { recursive: true });
-    const toolCalls = fixture.session.records
-      .filter((record) => record.type === 'message_end' && record.message?.role === 'assistant')
-      .flatMap((record) => record.message.content ?? [])
-      .filter((part) => part.type === 'toolCall');
-    const differentialRequested = toolCalls.some((call) => call.name === 'bash' && call.arguments?.command?.includes('differential.py'));
-    const result = { error, referenceSha256: reference.sha, referenceCapturedBeforeInvocation: true, packagedArtifactPresent: existsSync(artifact), comparison, differentialRequested };
-    writeFileSync(join(artifactDir, 'comparison.json'), JSON.stringify(result, null, 2));
-    writeOutcomeReceipt({ repoRoot, receipts }, {
-      surfaceId: 'RS-SKILL-5',
-      package: 'skills',
-      observed: JSON.stringify(result),
-      evidence: join(artifactDir, 'comparison.json'),
-      verdict: error || (comparison && !comparison.allMatched) ? 'failed' : 'inconclusive',
-      reason: 'The external immutable corpus and packaged candidate comparison are real. The model-produced differential run and compatibility report still require transcript and artifact audit before verification.',
-    });
+    const cases = join(compat, 'cases.json');
+    const map = readOwnedJson(mapPath, fixture.cwd);
+    const result = {
+      invocation: { error },
+      execution: { differential: collectDifferential({ records: fixture.session.records, cwd: fixture.cwd, driver: join(repoRoot, 'skills/implement-cli-from-contract/scripts/differential.py'), target, artifact, cases, reference }) },
+      evidence: { capturedBeforeInvocation: true, candidateAbsentAtCapture, reportAbsentBeforeInvocation, mapAbsentBeforeInvocation, report: readOwnedJson(reportPath, fixture.cwd), map, mapLinks: evidenceMapLinks(map, fixture.cwd) },
+      results: { referenceSha256: reference.sha, artifactSha256: comparison?.artifactSha256 ?? null, reference: target, candidate: artifact, cases, packagedArtifactPresent: existsSync(artifact), comparison },
+      rescue: { performed: false },
+    };
+    const outcome = evaluateImplementation(result);
+    writeFileSync(join(artifactDir, 'comparison.json'), JSON.stringify({ ...result, ...outcome }, null, 2));
+    writeOutcomeReceipt(
+      { repoRoot, receipts },
+      {
+        surfaceId: 'RS-SKILL-5',
+        package: 'skills',
+        observed: JSON.stringify(result),
+        evidence: join(artifactDir, 'comparison.json'),
+        verdict: outcome.verdict,
+        reason: outcome.reason,
+      },
+    );
   } finally {
     await fixture.session.close();
     rmSync(root, { recursive: true, force: true });
