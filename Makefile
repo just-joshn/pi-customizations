@@ -1,9 +1,12 @@
-.PHONY: verify verify-contract verify-s50 verify-s50-harness sweep-tui-skin verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-caveman verify-parity-audit verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
+.PHONY: verify verify-contract verify-workflow-oracles verify-s50 verify-s50-harness sweep-tui-skin verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-caveman verify-parity-audit verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-test-conventions verify-install verify-python
 
-verify: verify-contract verify-s50 verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-caveman verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-install verify-python
+verify: verify-contract verify-workflow-oracles verify-s50 verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-caveman verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-install verify-python
 
 verify-contract:
 	PI_BIN="$(CURDIR)/extensions/pi-pstack/node_modules/.bin/pi" node --test .pi/skills/verify-pi-customizations/scripts/probe-verification-gate.mjs .pi/skills/verify-pi-customizations/scripts/probe-f009-followup.mjs .pi/skills/verify-pi-customizations/scripts/probe-f009-contract-guard.mjs
+
+verify-workflow-oracles:
+	PI_BIN="$(CURDIR)/extensions/pi-pstack/node_modules/.bin/pi" node --test --experimental-test-coverage --test-coverage-lines=80 --test-coverage-branches=80 --test-coverage-functions=80 --test-coverage-include=".pi/skills/verify-pi-customizations/helpers/resource-workflows-*-outcome.mjs" --test-coverage-include=".pi/skills/verify-pi-customizations/helpers/resource-workflows-*-evidence.mjs" --test-coverage-include=".pi/skills/verify-pi-customizations/lib/rpc.mjs" .pi/skills/verify-pi-customizations/scripts/resource-workflows-*.test.mjs .pi/skills/verify-pi-customizations/scripts/test-rpc-teardown.mjs
 
 verify-lint:
 	bun run ci
