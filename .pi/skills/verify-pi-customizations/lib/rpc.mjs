@@ -48,6 +48,8 @@ export function createRpcSession(options = {}) {
   let settleCount = 0;
   let closedError = null;
   let closed = false;
+  let closePromise = null;
+  let stoppingPromise = null;
 
   function spawnArgs() {
     const args = ['--mode', 'rpc'];
@@ -173,14 +175,19 @@ export function createRpcSession(options = {}) {
 
   function send(command) {
     if (closed) return Promise.reject(new Error('RPC session is closed'));
+    if (stoppingPromise) return Promise.reject(new Error('RPC session is stopping'));
     if (closedError) return Promise.reject(closedError);
     if (!child) return Promise.reject(new Error('RPC session has no child process'));
+    return request(command);
+  }
+
+  function request(command, timeoutMs = requestTimeoutMs) {
     const id = command.id ?? `req-${++requestSeq}`;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         pending.delete(id);
-        reject(new Error(`RPC request '${command.type}' timed out after ${requestTimeoutMs}ms (id=${id}): ${stderr}`));
-      }, requestTimeoutMs);
+        reject(new Error(`RPC request '${command.type}' timed out after ${timeoutMs}ms (id=${id}): ${stderr}`));
+      }, timeoutMs);
       pending.set(id, { resolve, reject, timer });
       try {
         child.stdin.write(`${JSON.stringify({ ...command, id })}\n`, (error) => {
@@ -233,20 +240,52 @@ export function createRpcSession(options = {}) {
     }
   }
 
-  async function stopChild() {
+  function stopChild() {
+    if (stoppingPromise) return stoppingPromise;
     const finishing = child;
-    if (!finishing) return;
+    if (!finishing) return Promise.resolve();
     const done = exitPromise;
-    if (!finishing.stdin.destroyed) finishing.stdin.end();
-    const timer = setTimeout(() => {
+    const deadline = performance.now() + shutdownTimeoutMs;
+    let forced = false;
+    const kill = (error = new Error('RPC shutdown deadline reached')) => {
+      if (forced) return;
+      records.push({ type: 'rpc_shutdown_error', error: error.message });
+      forced = true;
       if (finishing.exitCode === null && finishing.signalCode === null) finishing.kill('SIGKILL');
-    }, shutdownTimeoutMs);
-    try {
-      await done;
-    } finally {
-      clearTimeout(timer);
-      if (child === finishing) child = null;
-    }
+    };
+    const timer = setTimeout(kill, shutdownTimeoutMs);
+    const lifecycleRequest = (command) => {
+      const remaining = deadline - performance.now();
+      if (forced || remaining <= 0) return Promise.reject(new Error('RPC shutdown deadline reached'));
+      if (closedError) return Promise.reject(closedError);
+      return request(command, Math.min(requestTimeoutMs, remaining));
+    };
+    stoppingPromise = (async () => {
+      try {
+        if (finishing.exitCode === null && finishing.signalCode === null) {
+          try {
+            await lifecycleRequest({ type: 'abort' });
+            for (;;) {
+              const snapshot = await lifecycleRequest({ type: 'get_state' });
+              if (forced || performance.now() >= deadline) break;
+              if (snapshot?.isStreaming === false && snapshot.isCompacting === false && snapshot.pendingMessageCount === 0) {
+                if (!finishing.stdin.destroyed) finishing.stdin.end();
+                break;
+              }
+              await delay(Math.min(POLL_INTERVAL_MS, Math.max(0, deadline - performance.now())));
+            }
+          } catch (error) {
+            kill(error);
+          }
+        }
+        await done;
+      } finally {
+        clearTimeout(timer);
+        if (child === finishing) child = null;
+        stoppingPromise = null;
+      }
+    })();
+    return stoppingPromise;
   }
 
   async function restart() {
@@ -259,13 +298,15 @@ export function createRpcSession(options = {}) {
       }
     }
     await stopChild();
+    if (closed) throw new Error('RPC session is closed');
     startChild();
   }
 
-  async function close() {
-    if (closed) return;
+  function close() {
+    if (closePromise) return closePromise;
     closed = true;
-    await stopChild();
+    closePromise = stopChild();
+    return closePromise;
   }
 
   function state() {

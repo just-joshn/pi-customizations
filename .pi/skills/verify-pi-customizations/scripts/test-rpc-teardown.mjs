@@ -28,7 +28,14 @@ if (process.argv.includes('--fixture')) {
       buffer = buffer.slice(boundary + 1);
       if (command.type === 'prompt') { active = true; reply(command, { disposition: 'started' }); }
       if (command.type === 'hold') continue;
-      if (command.type === 'get_state') reply(command, { isStreaming: active, isCompacting: compacting, pendingMessageCount: 0 });
+      if (command.type === 'get_state' && mode !== 'state-frozen') {
+        const profiles = {
+          malformed: { isStreaming: false, pendingMessageCount: 0 },
+          queued: { isStreaming: false, isCompacting: false, pendingMessageCount: 1 },
+          compacting: { isStreaming: false, isCompacting: true, pendingMessageCount: 0 },
+        };
+        reply(command, profiles[mode] ?? { isStreaming: active, isCompacting: compacting, pendingMessageCount: 0 });
+      }
       if (command.type === 'abort') {
         process.stdout.write(`${JSON.stringify({ type: 'abort_received' })}\n`);
         if (mode === 'frozen') continue;
@@ -48,22 +55,30 @@ if (process.argv.includes('--fixture')) {
   });
 } else {
   const session = mode => createRpcSession({ packagePath: script, agentDir: root, piBin: fixture, env: { F016_MODE: mode }, shutdownTimeoutMs: 300, requestTimeoutMs: 1000 });
-  for (const mode of ['normal', 'early', 'reject', 'frozen']) {
+  const forcedModes = ['reject', 'frozen', 'state-frozen', 'malformed', 'queued', 'compacting'];
+  for (const mode of ['normal', 'early', ...forcedModes]) {
     test(`active close drains or kills without active EOF (${mode})`, async () => {
       const rpc = session(mode);
       try {
         await rpc.send({ type: 'prompt', message: 'held' });
         const pending = rpc.send({ type: 'hold' }).catch(error => error);
+        const observer = rpc.waitFor(record => record.type === 'never-emitted').catch(error => error);
         const first = rpc.close();
         const second = rpc.close();
+        assert.equal(first, second);
+        await assert.rejects(rpc.send({ type: 'get_state' }, { teardown: true }), /closed/);
         await second;
         assert.equal(rpc.pid, null, 'repeated close waits for actual teardown');
         await first;
         assert.equal(rpc.ofType('abort_received').length, 1);
         assert.deepEqual(rpc.ofType('extension_error'), []);
         assert.equal(rpc.ofType('eof').some(record => record.active || record.compacting), false);
-        if (mode === 'reject' || mode === 'frozen') assert.equal(rpc.ofType('eof').length, 0);
+        if (forcedModes.includes(mode)) {
+          assert.equal(rpc.ofType('eof').length, 0);
+          assert.equal(rpc.ofType('rpc_shutdown_error').length, 1);
+        }
         assert.match((await pending).message, /exited|closed/);
+        assert.match((await observer).message, /exited|closed/);
         await assert.rejects(rpc.state(), /closed/);
       } finally { await rpc.close(); }
     });
@@ -74,6 +89,32 @@ if (process.argv.includes('--fixture')) {
     await rpc.close();
     assert.deepEqual(rpc.ofType('extension_error'), []);
     assert.equal(rpc.ofType('eof').length, 1);
+  });
+  test('restart rejects new work while draining its child', async () => {
+    const rpc = session('early');
+    let restarting;
+    try {
+      await rpc.state();
+      restarting = rpc.restart().catch(error => error);
+      await assert.rejects(rpc.send({ type: 'prompt', message: 'must not start during drain' }), /stopping/);
+    } finally {
+      await restarting;
+      await rpc.close();
+    }
+    assert.deepEqual(rpc.ofType('extension_error'), []);
+  });
+  test('original prompt deadline error survives teardown', async () => {
+    const rpc = createRpcSession({ packagePath: script, agentDir: root, piBin: fixture, idleTimeoutMs: 80, shutdownTimeoutMs: 300 });
+    let captured;
+    try {
+      await rpc.prompt('held');
+      assert.fail('held prompt must reach its unchanged deadline');
+    } catch (error) {
+      captured = error;
+      assert.match(error.message, /RPC prompt did not settle within 80ms/);
+    } finally { await rpc.close(); }
+    assert.match(captured.message, /RPC prompt did not settle within 80ms/);
+    assert.deepEqual(rpc.ofType('extension_error'), []);
   });
   test('real installed Pi closes a held provider without stale context errors', async () => {
     const pi = execFileSync('/bin/sh', ['-c', 'command -v pi'], { encoding: 'utf8' }).trim();
