@@ -3,6 +3,7 @@ import { mkdtempSync, realpathSync, rmSync } from 'node:fs';
 import test from 'node:test';
 
 import { doctorLeaseJournal } from '../helpers/resource-workflows-doctor-lease.mjs';
+import { evaluateDoctor } from '../helpers/resource-workflows-doctor-outcome.mjs';
 import { openDoctorReadonlyLease } from '../helpers/resource-workflows-doctor-readonly-lease.mjs';
 
 const receipt = { origin: 'parent-authenticated-readonly-broker', receiptId: 'protected-parent', toolCallId: 'real-id', operation: 'gather', agentInitiated: true, synchronousCompletion: true, complete: false };
@@ -30,6 +31,11 @@ test('forged broker evidence and parent ownership gap remain unknown and incompl
     assert.equal(journal.complete, false);
   }
 });
+test('production readonly domain never accepts Root journalComplete override', () => {
+  const outcome = evaluateDoctor({ review: { journalComplete: true }, journal: { complete: false }, leases: [{ nativeDomain: { authority: 'parent-source-bound-main-nofork-policy', complete: false } }] });
+  assert.ok(outcome.missing.includes('source-bound readonly capability domain'));
+});
+
 test('readonly lease refuses synthetic empty native capability self-attestation', () => {
   const root = realpathSync(mkdtempSync('/tmp/doctor-domain-'));
   try {
