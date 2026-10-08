@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 
 import { createDoctorReadonlyAuthority, doctorReadonlyMac, validateDoctorReadonlyInput } from '../helpers/resource-workflows-doctor-readonly.mjs';
-import { validateDoctorLoaderEvidence } from '../helpers/resource-workflows-doctor-readonly-loader.mjs';
+import { runDoctorReadonlyChild, validateDoctorLoaderEvidence } from '../helpers/resource-workflows-doctor-readonly-loader.mjs';
 
 const key = 'a'.repeat(64);
 const start = (id = 'call', operation = 'gather') => ({ type: 'tool_execution_start', toolCallId: id, toolName: 'doctor_readonly', args: { operation } });
@@ -122,6 +122,23 @@ test('end gap remains incomplete and no operation can assert an empty child doma
   assert.equal(receipt.complete, false);
   assert.equal(a.snapshot().calls[0].correlated, false);
 });
+test('deadline rescue closes inherited streams held by a confined child process group', async (t) => {
+  const root = realpathSync(mkdtempSync('/tmp/doctor-readonly-group-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const profile = join(root, 'readonly.sb');
+  writeFileSync(profile, '(version 1)\n(allow default)\n(deny network*)\n(deny file-write*)\n');
+  const controller = new AbortController();
+  const done = runDoctorReadonlyChild({ profile, executable: '/bin/sh', argv: ['-c', 'sleep 2 & wait'], cwd: root, env: { PATH: '/usr/bin:/bin' }, pins: [] }, { signal: controller.signal, deadline: performance.now() + 1000 });
+  const abort = setTimeout(() => controller.abort(), 50);
+  let deadline;
+  try {
+    const receipt = await Promise.race([done, new Promise((_, reject) => { deadline = setTimeout(() => reject(new Error('Inherited streams remained open after group rescue')), 700); })]);
+    assert.equal(receipt.rescued, true);
+    assert.equal(receipt.streamsClosed, true);
+    assert.equal(receipt.signal, 'SIGKILL');
+  } finally { clearTimeout(abort); clearTimeout(deadline); await done; }
+});
+
 test('loader validation binds actual session, target settings, image, and inventory bytes', (t) => {
   const root = realpathSync(mkdtempSync('/tmp/doctor-loader-test-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
