@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
 
@@ -123,7 +123,7 @@ test('end gap remains incomplete and no operation can assert an empty child doma
   assert.equal(a.snapshot().calls[0].correlated, false);
 });
 test('loader validation binds actual session, target settings, image, and inventory bytes', (t) => {
-  const root = mkdtempSync('/tmp/doctor-loader-test-');
+  const root = realpathSync(mkdtempSync('/tmp/doctor-loader-test-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const settings = join(root, 'settings.json');
   const image = join(root, 'pi');
@@ -131,11 +131,13 @@ test('loader validation binds actual session, target settings, image, and invent
   writeFileSync(settings, '{}');
   writeFileSync(image, 'actual-image');
   writeFileSync(session, JSON.stringify({ type: 'session', id: 'fresh', cwd: root }) + '\n' + JSON.stringify({ type: 'message', message: { role: 'system', sections: { base: 'real' }, toolsAdded: [{ name: 'read' }] } }) + '\n');
-  const facts = { agentDir: root, cwd: root, settings, image, session, sessionDir: root, inventory: { settings: { user: 'ok' }, prompt: { session, loaded_skills: [], tool_chars: { read: 10 } } } };
+  const facts = { agentDir: root, cwd: root, settings, image, session, sessionDir: root, inventory: { settings: { user: 'ok' }, prompt: { session, loaded_skills: [], tool_chars: { read: 16 } } } };
   const sealed = validateDoctorLoaderEvidence(facts);
   assert.equal(sealed.sourceBound, true);
   assert.deepEqual(sealed.loadedSkills, facts.inventory.prompt.loaded_skills);
-  assert.deepEqual(sealed.toolDeclarations, { read: 10 });
+  assert.deepEqual(sealed.toolDeclarations, { read: 16 });
+  assert.throws(() => validateDoctorLoaderEvidence({ ...facts, inventory: { ...facts.inventory, prompt: { ...facts.inventory.prompt, tool_chars: { invented: 1 } } } }), /declarations|source/);
+  assert.throws(() => validateDoctorLoaderEvidence({ ...facts, inventory: { ...facts.inventory, prompt: { ...facts.inventory.prompt, loaded_skills: [{ name: 'forged', location: '/forged' }] } } }), /skills|source/);
   for (const wrong of [{ ...sealed, agentDir: '/wrong' }, { ...sealed, imageSha256: '0'.repeat(64) }, { ...sealed, settingsSha256: '0'.repeat(64) }, { ...sealed, sessionSha256: '0'.repeat(64) }]) {
     assert.throws(() => validateDoctorLoaderEvidence(facts, wrong), /source|target|loader|settings|session/);
   }
