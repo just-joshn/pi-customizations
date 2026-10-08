@@ -17,3 +17,24 @@ test('default verification schedules both source-contract regression suites', ()
     );
   }
 });
+
+test('default verification schedules workflow and RPC regressions with source coverage floors', () => {
+  const result = spawnSync('make', ['-C', REPO_ROOT, '-n', 'verify'], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const recipes = result.stdout.replaceAll('\\\n', ' ').split('\n');
+  const recipe = recipes.find((line) => line.includes('node --test') && line.includes('resource-workflows-*.test.mjs'));
+  assert.ok(recipe, 'default verification does not schedule all workflow regression tests');
+  for (const argument of [
+    `PI_BIN="${REPO_ROOT}/extensions/pi-pstack/node_modules/.bin/pi"`,
+    'test-rpc-teardown.mjs',
+    '--experimental-test-coverage',
+    '--test-coverage-lines=80',
+    '--test-coverage-branches=80',
+    '--test-coverage-functions=80',
+    '--test-coverage-include=".pi/skills/verify-pi-customizations/helpers/resource-workflows-*-outcome.mjs"',
+    '--test-coverage-include=".pi/skills/verify-pi-customizations/helpers/resource-workflows-*-evidence.mjs"',
+    '--test-coverage-include=".pi/skills/verify-pi-customizations/lib/rpc.mjs"',
+  ]) {
+    assert.ok(recipe.includes(argument), `workflow verification is missing ${argument}`);
+  }
+});
