@@ -2,15 +2,13 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 import { captureReference, comparePackaged, GREETING_CASES } from '../helpers/resource-workflows-contract.mjs';
 import { seedGreetingCli } from '../helpers/resource-workflows-fixtures.mjs';
 import { attemptPrompt, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
 
 export function writeOutcomeReceipt({ repoRoot, receipts }, outcome) {
-  const expected = readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8')
-    .split('\n')
-    .find((line) => line.startsWith(`${outcome.surfaceId}\t`))
-    .split('\t')[6];
+  const { expected } = surfaceContract(readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8'), outcome.surfaceId);
   return receipts.write({ ...outcome, expected });
 }
 

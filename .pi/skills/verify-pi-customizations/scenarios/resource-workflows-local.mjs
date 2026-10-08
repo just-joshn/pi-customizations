@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 import { seedGreetingCli, seedLibrary, seedSimplify } from '../helpers/resource-workflows-fixtures.mjs';
 import { attemptPrompt, checkInteraction, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
 
@@ -19,8 +20,7 @@ function preserve(cwd, out) {
 }
 
 export function writeOutcomeReceipt({ repoRoot, receipts }, outcome) {
-  const rows = readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8').split('\n');
-  const expected = rows.find((row) => row.startsWith(`${outcome.surfaceId}\t`)).split('\t')[6];
+  const { expected } = surfaceContract(readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8'), outcome.surfaceId);
   return receipts.write({ ...outcome, expected });
 }
 

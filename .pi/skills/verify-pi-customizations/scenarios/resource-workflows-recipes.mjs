@@ -3,6 +3,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync,
 import { join } from 'node:path';
 
 import { attemptPrompt, checkInteraction, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
+import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 import { reservePort, seedRecipe } from '../helpers/resource-workflows-recipes.mjs';
 
 function stopOwnedServer(cwd) {
@@ -21,10 +22,7 @@ function stopOwnedServer(cwd) {
 }
 
 export function writeOutcomeReceipt({ repoRoot, receipts }, outcome) {
-  const expected = readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8')
-    .split('\n')
-    .find((line) => line.startsWith(`${outcome.surfaceId}\t`))
-    .split('\t')[6];
+  const { expected } = surfaceContract(readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8'), outcome.surfaceId);
   return receipts.write({ ...outcome, expected });
 }
 
