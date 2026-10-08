@@ -19,6 +19,7 @@ import { registerShells } from './shells.ts';
 import { createState, registerStateTools } from './state.ts';
 import { loadAllSkills } from './skills-map.ts';
 import { registerTimers } from './timers.ts';
+import { registerWhySpawnGate } from './why-spawn-gate.ts';
 import { registerWorkers } from './workers.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -78,6 +79,7 @@ export default async function pstack(pi: ExtensionAPI) {
   registerStatus(pi, store);
   registerWorkers(pi);
   registerHowSpawnGate(pi);
+  registerWhySpawnGate(pi);
   registerShells(pi);
   registerGoal(pi);
   registerTimers(pi);
