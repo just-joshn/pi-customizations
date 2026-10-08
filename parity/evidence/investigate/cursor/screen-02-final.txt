@@ -1,0 +1,35 @@
+
+  Where Things Live
+
+  • Rule (Cursor): ~/.cursor/rules/pstack-models.mdc — the live file; .probe-backup / .investigate-backup beside
+    it are snapshots from today, nothing config-wise hangs on them
+  • Rule (Claude twin): ~/.claude/rules/pstack-models.md — same system for the ~/.claude/skills copies
+  • Writer/spec: setup-pstack/SKILL.md in the reference plugin (Cursor/Codex, effort-token semantics),
+    ~/.claude/skills/setup-pstack/SKILL.md (Claude Code, tier-ladder semantics)
+  • Runtime consumers: ~/.claude/skills/{how,why,arena,swarm,reflect,interrogate,architect}/SKILL.md and the
+    mirror set under parity/reference/cursor-plugins/pstack/skills/
+
+  Gotchas
+
+  • The budget line is dormant for you. Its only live role is telling a future /setup-pstack what you last picked.
+  • Deleting a role line falls back to that skill's own hardcoded default, not a budget-adjusted default. Per the
+    guide, "The defaults run at xhigh reasoning, the same as the large budget" — so deleting lines silently
+    re-inflates to large regardless of your recorded small.
+  • The parenthetical is derived state, not a knob. Only setup-pstack reads the line, and it keys off the label;
+    hand-editing (medium) has no specified effect (inference — no text describes consuming it independently).
+  • Platform difference. Cursor/Codex subagents take real slugs with per-call effort, so the budget rewrites
+    effort tokens on the ladder. Claude Code subagents take only model aliases with no per-call effort, so the
+    budget steps roles down the tier ladder fable > opus > sonnet > haiku — under small, opus→sonnet and
+    sonnet→haiku, applied simultaneously, not sequentially, and the Claude rule records no parenthetical.
+  • Re-run preservation phrasing differs slightly between the Cursor variant ("keep any role you changed by
+    family, list, or alias") and the Claude variant ("keep every role whose recorded value differs from that
+    result") — same intent, worth noting given this repo is a parity study.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  GLM 5.3 Flash Max · 23.5%                                                                             Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

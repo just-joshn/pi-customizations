@@ -1,0 +1,20 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /debug to instrument and debug complex problems.
+
+                                                                                                                       
+  /how does the pstack budget line in models.mdc change agent behavior?                                                
+                                                                                                                       
+
+    Used how
+
+ ⠘⠤ Thinking  1.17k tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  GLM 5.3 Flash Max · 7.6%                                                                              Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

@@ -1,0 +1,14 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /debug to instrument and debug complex problems.
+
+
+
+                                                                                                                       
+  → Plan, search, build anything                                                                                       
+                                                                                                                       
+
+  GLM 5.3 Flash Max                                                                                     Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

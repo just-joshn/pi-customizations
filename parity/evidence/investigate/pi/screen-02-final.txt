@@ -1,0 +1,36 @@
+ const budgetValues = [...budgets.keys()] as [string, ...string[]];                                                    │
+ const panelRoles = new Set(['arena runners', 'arena cross-judge pool', 'architect runners', 'interrogate              │
+ reviewers']);                                                                                                         │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Mostly no. In your current config the budget line changes nothing at runtime.                                         │
+                                                                                                                       │
+ What the line is. /setup-pstack writes # budget: small (medium) as a comment (src/setup-tool.ts:57). The label        │
+ (small) maps to a target thinking level (medium). The only runtime reader is currentBudget() (src/setup-tool.ts:69).  │
+ It regex-matches the line so the setup tool can show the current budget on re-runs.                                   │
+                                                                                                                       │
+ When it takes effect. The budget doesn't act when the rule is read. setup-pstack applies it once, at write time.      │
+ applyBudget() in src/models.ts:106 caps each role's model at the target effort. It picks the highest thinking level   │
+ the model supports, at or below the target, and writes a concrete provider/id:level value into that role's line. That │
+ is the only way the budget changes behavior.                                                                          │
+                                                                                                                       │
+ Why it does nothing for you. Every role in your models.mdc is inherit-parent. applyBudget returns aliases             │
+ (inherit-parent, auto) unchanged, so nothing was capped. Those roles run on the parent chat model at the parent's     ┃
+ thinking level.                                                                                                       ┃
+                                                                                                                       ┃
+ Caveats.                                                                                                              ┃
+ - I found no other runtime reader of the # budget line in src. I didn't check whether the host's prompt injection     ┃
+   uses it. The host contract prints the file contents, so the model sees the comment but gets no instruction from it. ┃
+ - If you hand-edit the role lines to explicit models, the budget no longer applies to them. Re-run /setup-pstack to   ┃
+   re-clamp.                                                                                                           ┃
+                                                                                                                       ┃
+ I traced this myself with grep and by reading src/setup-tool.ts and src/models.ts, without spawning explorer or       ┃
+ explainer subagents.                                                                                                  ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑12 ↓1.3k R105k W20k CH96.1% $0.116 (sub) 2.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

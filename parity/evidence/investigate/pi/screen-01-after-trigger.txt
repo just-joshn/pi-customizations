@@ -1,0 +1,36 @@
+                                                                                                                       ┃
+ Read how/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.           ┃
+ Follow those instructions, resolving references and supporting scripts relative to that skill directory.              ┃
+ If the pstack host contract is unavailable, report that the package extension must be enabled to locate this bundled  ┃
+ skill. Do not invent a path.                                                                                          ┃
+                                                                                                                       ┃
+ does the pstack budget line in models.mdc change agent behavior?                                                      ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] how:1-2000 (ctrl+o to expand)                                                                                 ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠋ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑4 ↓140 R7.7k W15k CH34.4% $0.062 (sub) 2.3%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

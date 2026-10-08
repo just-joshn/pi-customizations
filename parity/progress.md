@@ -410,3 +410,34 @@ Record it as its own requirement when the success-flow transcript journey is bui
 
 Commit this repair slice, then continue the acceptance families: the playbook user journeys
 (investigation and repair first), reusing the paired-capture harness pattern.
+
+### 2026-10-08 checkpoint (investigation journey captured)
+
+First playbook journey captured as a pair (`investigate-1`: cursor dfe89f1a, pi 05056781; the
+`/how` question "how does the pstack budget line in models.mdc change agent behavior?"; both
+sides rule byte-unchanged at fixture digest sha256:2b6b4668..., read-only held).
+
+Parity confirmed on the activation surface: both sides activate the how skill from the same user
+action (cursor shows the `Used how` chip; the candidate shows the `[skill] how:1-2000` chip plus
+the bundled-skill delivery header). Both answered the question with citations.
+
+Two open findings recorded in `investigate-parity.json`, deliberately not forced into a verdict
+from one pair:
+
+- HOW-WORKFLOW-EXPLAINER-STEP. The reference run announced the Step 2b single-explainer spawn
+  ("per the /how workflow I'll spawn a single explainer, role how explainer → inherit-parent")
+  and spent ~4.7 min with 63k+ working tokens; the candidate skipped the explainer step
+  explicitly and answered in ~24 s. The candidate's Task tool is registered (src/workers.ts),
+  so the skip is a model choice, not a missing capability. Establishing whether the reference
+  deterministically spawns for this question class needs repeated reference runs under a
+  declared protocol before the comparison method is defined.
+- HOW-SKILL-DELIVERY-MODE. The reference activates the skill inline (`Used how`); the candidate
+  delivers a read-the-file instruction ("Read how/SKILL.md in full under the bundled pstack
+  skills directory..."). Whether the candidate model actually reads the file, and whether the
+  delivered bytes match the reference skill content, is the next verification.
+
+### Exact next executable action
+
+Commit this journey slice, then verify the delivered skill bytes on the candidate (inline
+content vs read-the-file instruction, whether the model read how/SKILL.md), and run repeated
+reference `/how` journeys to establish the comparison method for the explainer step.

@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "pairId": "investigate-1",
+  "scenarioRef": "how:investigation-question",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "question": "how does the pstack budget line in models.mdc change agent behavior?",
+  "steps": [
+    {
+      "send": "/how does the pstack budget line in models.mdc change agent behavior?"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "dfe89f1a-a5a9-4837-ac17-0b21ba5ee462",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/investigate/cursor/dfe89f1a-a5a9-4837-ac17-0b21ba5ee462",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "pi": {
+    "attemptId": "05056781-f5a2-4f64-8480-9748deee5686",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/investigate/pi/05056781-f5a2-4f64-8480-9748deee5686",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-investigate.mjs",
+    "supersedes": null
+  }
+}

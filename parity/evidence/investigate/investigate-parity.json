@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "pairId": "investigate-1",
+  "pairPath": "parity/evidence/investigate/pair-investigate-1.json",
+  "comparedAt": "2026-10-08T11:18:42.735Z",
+  "skillActivation": {
+    "cursor": "'Used how' chip after '/how ...' + Enter",
+    "pi": "'[skill] how:1-2000' chip plus the bundled-skill delivery header (read-the-file instruction)",
+    "match": true,
+    "note": "Both sides activate the how skill from the same user action. Delivery mechanism differs (reference activates inline; candidate instructs reading the bundled file) — recorded as finding HOW-SKILL-DELIVERY-MODE."
+  },
+  "ruleUnchanged": {
+    "cursor": true,
+    "pi": true,
+    "bothDigests": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "readOnlyHeld": {
+    "cursor": true,
+    "pi": true,
+    "note": "Neither side wrote configuration; the investigation stayed read-only on both sides."
+  },
+  "workflowExecution": {
+    "cursor": "announced the Step 2b single-explainer spawn (\"per the /how workflow I\\u2019ll spawn a single explainer, role how explainer \\u2192 inherit-parent\"); ~4.7 min; 63k+ working tokens; long structured cited answer (Where Things Live / Gotchas with inference labels)",
+    "pi": "skipped the explainer step (\"without spawning explorer or explainer subagents\"); ~24 s; shorter cited answer grounded in src/setup-tool.ts and src/models.ts",
+    "match": false,
+    "finding": "HOW-WORKFLOW-EXPLAINER-STEP"
+  },
+  "modelAuthoredVariance": {
+    "note": "Answer prose, depth, and citations are model-authored and compared by rubric; both sides answered the same question correctly at the budget-line level."
+  },
+  "openFindings": [
+    "HOW-WORKFLOW-EXPLAINER-STEP",
+    "HOW-SKILL-DELIVERY-MODE"
+  ],
+  "nextActions": [
+    "Run repeated reference journeys under a declared protocol to establish whether the reference deterministically spawns the Step 2b explainer for simple questions before judging the candidate skip.",
+    "Verify the delivered skill bytes the candidate model receives (inline content vs read-the-file instruction) and whether the model actually read how/SKILL.md in the candidate run."
+  ]
+}
