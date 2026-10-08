@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -32,7 +32,8 @@ function sdkRunner({ cwd, bridge, profile, secret, port }) {
     ['wrong-capability', { capability: '0'.repeat(64), action: 'launch' }, 'GUI capability rejected'],
     ...['reply', 'window', 'path', 'png', 'success', 'selector', 'js'].map(key => [key, { capability: bridge.capability, action: 'read', [key]: '../forged' }, 'invalid GUI request']),
   ];
-  const calls = requests.map(([name, body, expected]) => ({ name, command: `${quote(process.execPath)} -e ${quote(raw(JSON.stringify(body)))}`, expected }));
+  const calls = [...requests.map(([name, body, expected]) => ({ name, command: `${quote(process.execPath)} -e ${quote(raw(JSON.stringify(body)))}`, expected })),
+    ...[['malformed-json', '{', 'invalid GUI JSON'], ['oversized-request', 'x'.repeat(2048), 'GUI request cap']].map(([name, body, expected]) => ({ name, command: `${quote(process.execPath)} -e ${quote(raw(body))}`, expected }))];
   return `import { createBashTool, createWriteTool, createReadTool } from ${JSON.stringify(pathToFileURL(sdk).href)};
 const bash = createBashTool(${JSON.stringify(cwd)}), write = createWriteTool(${JSON.stringify(cwd)}), read = createReadTool(${JSON.stringify(cwd)});
 const records=[];
@@ -48,6 +49,7 @@ await check('extra-arguments',bash,{command:${JSON.stringify(`${quote(process.ex
 await check('protected-evidence-write',write,{path:${JSON.stringify(join(bridge.cli, '..', 'blocked.json'))},content:'forbidden'},null);
 await check('protected-profile-write',write,{path:${JSON.stringify(profile)},content:${JSON.stringify(readFileSync(profile, 'utf8'))}},null);
 await check('sealed-broker-write',write,{path:${JSON.stringify(join(sourceRoot, 'broker.py'))},content:${JSON.stringify(readFileSync(join(sourceRoot, 'broker.py'), 'utf8'))}},null);
+await check('symlink-sealed-broker-write',write,{path:${JSON.stringify(join(cwd, 'sealed-broker-alias'))},content:${JSON.stringify(readFileSync(join(sourceRoot, 'broker.py'), 'utf8'))}},null);
 for(const name of ['guest.js','Image','rootfs.ext4','initramfs-fixed.gz','vm-launcher']) {
   const code='require("fs").openSync('+JSON.stringify(${JSON.stringify(sourceRoot)}+'/'+name)+',"r+")';
   await check('sealed-open-'+name,bash,{command:${JSON.stringify(quote(process.execPath))}+' -e '+"'"+code.replaceAll("'","'\\\\''")+"'",timeout:3},'EPERM');
@@ -62,6 +64,7 @@ process.stdout.write(JSON.stringify(records));
 export async function runGuiSdkNoBoot({ repoRoot, root, out }) {
   const fixture = makeLocalSession({ root, out, repoRoot, deferSession: true });
   seedRecipe('electron', fixture.cwd, 0, 'unused');
+  symlinkSync(join(sourceRoot, 'broker.py'), join(fixture.cwd, 'sealed-broker-alias'));
   const profileBefore = guiDigest(readFileSync(fixture.profile));
   const secretRoot = mkdtempSync(join(homedir(), '.f016-owned-secret-'));
   const secret = join(secretRoot, 'sentinel');

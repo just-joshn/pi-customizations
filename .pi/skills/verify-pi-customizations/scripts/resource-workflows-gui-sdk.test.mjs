@@ -13,7 +13,8 @@ test('actual SDK tools preserve the original Seatbelt and reject GUI authority f
   assert.equal(report.noBoot, true);
   assert.equal(report.profileBefore, report.profileAfter);
   assert.equal(report.sdkInvocations.every(record => record.passed), true, JSON.stringify(report.sdkInvocations));
-  assert.ok(report.sdkInvocations.length >= 12);
+  for (const name of ['symlink-sealed-broker-write', 'malformed-json', 'oversized-request']) assert.ok(report.sdkInvocations.some(record => record.name === name && record.passed), name);
+  assert.ok(report.sdkInvocations.length >= 24);
   assert.equal(report.lease.state, 'held');
   assert.deepEqual(report.lease.calls, []);
   assert.equal(JSON.parse(readFileSync(join(root, 'protected', 'gui-no-boot.json'), 'utf8')).noBoot, true);
