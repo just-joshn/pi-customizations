@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { harness } from './support/harness.ts';
 
@@ -75,7 +76,9 @@ describe('prompt injection', () => {
 describe('one-shot skills', () => {
   test.for(['commit', 'review', 'compress'])('owned bare %s leaves original bytes and images for SDK template expansion', (mode) => {
     const name = `caveman-${mode}`;
-    const h = harness('/unrelated/cwd', { resources: [{ name, source: 'prompt', description: '', sourceInfo: { path: fileURLToPath(new URL(`../prompts/${name}.md`, import.meta.url)), source: 'package', scope: 'project', origin: 'package' } }] });
+    const h = harness('/unrelated/cwd', {
+      resources: [{ name, source: 'prompt', description: '', sourceInfo: { path: fileURLToPath(new URL(`../prompts/${name}.md`, import.meta.url)), source: 'package', scope: 'project', origin: 'package' } }],
+    });
     h.emit('session_start', { reason: 'startup' });
     const text = `/${name} "two words"\n$ARGUMENTS`;
     const images = [{ type: 'image', data: 'a', mimeType: 'image/png' }];
@@ -86,17 +89,21 @@ describe('one-shot skills', () => {
 
   test.for(['commit', 'review', 'compress'])('uppercase %s falls back to its canonical skill when only the lowercase owned template exists', (mode) => {
     const name = `caveman-${mode}`;
-    const h = harness('/unrelated/cwd', { resources: [{ name, source: 'prompt', description: '', sourceInfo: { path: fileURLToPath(new URL(`../prompts/${name}.md`, import.meta.url)), source: 'package', scope: 'project', origin: 'package' } }] });
+    const h = harness('/unrelated/cwd', {
+      resources: [{ name, source: 'prompt', description: '', sourceInfo: { path: fileURLToPath(new URL(`../prompts/${name}.md`, import.meta.url)), source: 'package', scope: 'project', origin: 'package' } }],
+    });
     h.emit('session_start', { reason: 'startup' });
     expect(h.emit('input', { text: `/${name.toUpperCase()} "two words"\n$ARGUMENTS`, source: 'interactive' })).toStrictEqual([{ action: 'transform', text: `/skill:${name} "two words"\n$ARGUMENTS` }]);
     expect(h.statuses.at(-1)).toBe(`[CAVEMAN:${mode.toUpperCase()}]`);
   });
 
   test.for(['CAVEMAN-REVIEW', 'Caveman-Review'])('case-exact foreign %s template stays user-owned without a mode change', (name) => {
-    const h = harness('/unrelated/cwd', { resources: [
-      { name: 'caveman-review', source: 'prompt', description: '', sourceInfo: { path: fileURLToPath(new URL('../prompts/caveman-review.md', import.meta.url)), source: 'package', scope: 'project', origin: 'package' } },
-      { name, source: 'prompt', description: '', sourceInfo: { path: `/user/prompts/${name}.md`, source: 'user', scope: 'user', origin: 'top-level' } },
-    ] });
+    const h = harness('/unrelated/cwd', {
+      resources: [
+        { name: 'caveman-review', source: 'prompt', description: '', sourceInfo: { path: fileURLToPath(new URL('../prompts/caveman-review.md', import.meta.url)), source: 'package', scope: 'project', origin: 'package' } },
+        { name, source: 'prompt', description: '', sourceInfo: { path: `/user/prompts/${name}.md`, source: 'user', scope: 'user', origin: 'top-level' } },
+      ],
+    });
     h.emit('session_start', { reason: 'startup' });
     expect(h.emit('input', { text: `/${name} "two words"\n$ARGUMENTS`, source: 'interactive' })).toStrictEqual([{ action: 'continue' }]);
     expect(h.statuses.at(-1)).toBe('[CAVEMAN]');
