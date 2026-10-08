@@ -1,0 +1,49 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+
+import drive from '../scenarios/resource-workflows-local.mjs';
+
+const repoRoot = resolve('.');
+const out = resolve(process.argv[2] ?? `artifacts/verify-pi-customizations/f016-simplify-main/${Date.now()}`);
+mkdirSync(out, { recursive: true });
+const pi = realpathSync(execFileSync('/bin/sh', ['-c', 'command -v pi'], { encoding: 'utf8' }).trim());
+assert.equal(execFileSync(pi, ['--version'], { encoding: 'utf8' }).trim(), '1.1.0');
+const ai = join(dirname(dirname(pi)), 'install/releases/1.1.0/node_modules/@earendil-works/pi-ai/dist/index.js');
+const quote = (value) => `'${value.replaceAll("'", "'\\''")}'`;
+const outcomes = [];
+for (const name of ['native-clean', 'lowercase-clean', 'native-diff', 'lowercase-diff', 'parent-write', 'unobserved-shell', 'child-write', 'wrong-parent']) {
+  const root = realpathSync(mkdtempSync('/tmp/f016-simplify-main-'));
+  const artifactDir = join(out, name);
+  mkdirSync(artifactDir, { recursive: true });
+  const shimDir = join(root, 'bin');
+  mkdirSync(shimDir);
+  const provider = join(root, 'provider.mjs');
+  const lower = name.startsWith('lowercase') || name === 'child-write' || name === 'wrong-parent';
+  const steps = name.endsWith('diff') ? [{ name: 'bash', arguments: { command: 'git diff' } }] : name === 'parent-write' ? [{ name: 'write', arguments: { path: 'greeting.mjs', content: 'export const greet = (name) => `Hello ${name}`;\n' } }] : name === 'unobserved-shell' ? [{ name: 'bash', arguments: { command: 'printf harmless' } }] : [];
+  for (const angle of ['reuse', 'simplification', 'efficiency', 'altitude']) steps.push(lower ? { name: 'task', arguments: { agent_type: 'code-review', name: angle, description: 'Scripted MAIN integration control', prompt: name === 'child-write' ? `F016_CONTROL ${JSON.stringify([{ name: 'write', arguments: { path: `${angle}.mjs`, content: 'Changed by child.\n' } }])}` : `${angle} review F016_HOLD`, mode: 'background' } } : { name: 'Task', arguments: { subagent_type: 'generalPurpose', prompt: `${angle} review F016_HOLD`, readonly: true, run_in_background: true } });
+  for (let childIndex = 0; childIndex < 4; childIndex++) steps.push({ name: lower ? 'read_agent' : 'TaskOutput', arguments: { childIndex } });
+  const original = readFileSync(join(repoRoot, '.pi/skills/verify-pi-customizations/helpers/resource-workflows-control-provider.mjs'), 'utf8');
+  writeFileSync(provider, original.replace('const text =', 'let text =').replace('const steps =', `text = text.replace(/^<current_datetime>[^]*?<\\/current_datetime>\\s*/, '');\n      if (text.includes('/skill:simplify ')) text = 'F016_CONTROL ' + ${JSON.stringify(JSON.stringify(steps))};\n      const steps =`).replace("message.toolName === 'Task'", "['Task', 'task'].includes(message.toolName)").replace("const args = step?.name === 'TaskOutput' ?", "const args = step?.name === 'read_agent' ? { agent_id: childResults[step.arguments.childIndex]?.details?.agent_id, wait: true, timeout: 30 } : step?.name === 'TaskOutput' ?").replace('export default async function controlProvider(pi) {', `export default async function controlProvider(pi) {\n  pi.on('session_start', (_event, ctx) => {\n    if (${JSON.stringify(name)} !== 'wrong-parent' || !ctx.cwd.endsWith('/greeting-cleanup/workspace')) return;\n    pi.on('agent_settled', async () => {\n      const { readFileSync, writeFileSync } = await import('node:fs');\n      const path = ctx.sessionManager.getSessionFile();\n      const lines = readFileSync(path, 'utf8').trim().split('\\n');\n      lines[0] = JSON.stringify({ ...JSON.parse(lines[0]), id: 'wrong-parent' });\n      writeFileSync(path, lines.join('\\n') + '\\n');\n    });\n  });`));
+  writeFileSync(join(shimDir, 'pi'), `#!/bin/sh\nexport F016_PI_AI=${quote(ai)}\nexec ${quote(pi)} "$@" -e ${quote(provider)} --provider f016-control --model scripted --thinking off\n`, { mode: 0o700 });
+  const oldPath = process.env.PATH;
+  process.env.PATH = `${shimDir}:${oldPath}`;
+  try {
+    const receipts = [];
+    await drive({ repoRoot, scratchDir: root, artifactDir, receipts: { write: (receipt) => receipts.push(receipt) } });
+    const status = JSON.parse(readFileSync(join(artifactDir, 'greeting-cleanup/attempt.json'), 'utf8'));
+    const expected = !['parent-write', 'unobserved-shell', 'child-write', 'wrong-parent'].includes(name);
+    outcomes.push({ name, expected, scriptedControl: true, genuineCompliance: false, status });
+    writeFileSync(join(out, 'summary.json'), JSON.stringify({ version: '1.1.0', scriptedControl: true, genuineCompliance: false, verdict: 'failed', outcomes }, null, 2));
+    console.log(JSON.stringify({ name, eligible: status.eligible, reviewers: status.evidence.reviewers.length, orderingComplete: status.evidence.orderingComplete, missing: status.missing }));
+    assert.equal(status.verdict, 'failed', 'Controls never establish genuine compliance');
+    assert.equal(status.eligible, expected, `${name} public MAIN eligibility`);
+    assert.equal(status.results.testsUnchanged, true);
+    assert.equal(status.execution.greeting.stdout, '["Hello Ada","Hello "]\n');
+    assert.equal(status.execution.tests.code, 0);
+  } finally {
+    process.env.PATH = oldPath;
+    rmSync(root, { recursive: true, force: true });
+  }
+}
