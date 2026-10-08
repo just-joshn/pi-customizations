@@ -108,6 +108,20 @@ function recordedObservations(re, frozen, cases) {
   return records.map((record) => observation(record, re, frozen, cases));
 }
 
+function preserveReplayObservations(observations, out) {
+  const directory = join(out, 'actual-replay');
+  mkdirSync(directory, { recursive: true });
+  return observations.map((item) => {
+    const stdoutPath = join(directory, `${item.id}.stdout`);
+    const stderrPath = join(directory, `${item.id}.stderr`);
+    writeFileSync(stdoutPath, item.stdout);
+    writeFileSync(stderrPath, item.stderr);
+    const preserved = { ...item, originalStdoutPath: item.stdoutPath, originalStderrPath: item.stderrPath, stdoutPath, stderrPath };
+    writeFileSync(join(directory, `${item.id}.json`), JSON.stringify(preserved, null, 2));
+    return preserved;
+  });
+}
+
 function replay(re, frozen, cases, options) {
   const trusted = join(options.repoRoot, 'skills/reverse-engineer-cli/scripts');
   for (const name of ['probe.py', 'investigate.py']) {
@@ -120,7 +134,10 @@ function replay(re, frozen, cases, options) {
   if (!/^R-[A-Za-z0-9-]+$/.test(summary.run) || summary.status !== 'PASS' || summary.cases !== 4 || summary.failures.length || summary.unchecked_cases.length) throw new Error('Replay summary is incomplete.');
   const directory = within(join(re, 'probes/runs', summary.run), re);
   if (!sameArgs(json(join(directory, 'cases.json')), cases)) throw new Error('Replay corpus changed.');
-  const observations = recordedObservations(re, frozen, cases).filter((record) => record.corpusRun === summary.run);
+  const observations = preserveReplayObservations(
+    recordedObservations(re, frozen, cases).filter((record) => record.corpusRun === summary.run),
+    options.out,
+  );
   return { code: result.code, observations, execution: result, run: summary.run };
 }
 
@@ -218,7 +235,11 @@ export function collectReEvidence(options) {
     const actual = replay(re, frozen, cases, bound);
     const linkAudits = compareLinkedObservations(recorded, actual, cases);
     const reportsLinked = linkAudits.every((item) => item.matches) && reportLinks(re, frozen, recorded, cases);
-    const manualGaps = ['Original agent-recorded capture provenance is not authenticated.', 'Report meaning, architecture ownership, alternatives and scope honesty require independent root semantic review.'];
+    const manualGaps = [
+      'Original agent-recorded capture provenance is not authenticated.',
+      'Report meaning, architecture ownership, alternatives and scope honesty require independent root semantic review.',
+      'Archived workspace absolute target and source paths require explicit remapping before replay.',
+    ];
     const result = { ...partial, reportsLinked, sourceMatches, linkAudits, manualGaps, replayCode: actual.code, replayObservations: actual.observations, replay: actual };
     writeFileSync(join(options.out, 'report-link-audit.json'), JSON.stringify({ attemptId: frozen.attemptId, linkAudits, manualGaps }, null, 2));
     return { ...result, identityMatches: identityMatches && unchanged(frozen) && workspaceIdentity(re, frozen) };
