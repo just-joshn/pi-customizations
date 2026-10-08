@@ -7,7 +7,7 @@ argument-hint: "[task]"
 
 Answer the user's question about pstack, hand them a prompt they can send, and link the file the answer came from. For a help question, don't start the work. The user asked how, and a pstack run spends real tokens, so let them send the prompt.
 
-A message that asks for work, such as "use pstack to fix this bug", is not a help question. Read [`poteto-mode`](../poteto-mode/SKILL.md), do the work under it, and mention once that `/poteto-mode` stays on for the session until `/poteto-mode off`.
+A message that asks for work, such as "use pstack to fix this bug", is not a help question. Read [`poteto-mode`](../poteto-mode/SKILL.md), do the work under it, and mention once that plain `/poteto-mode` covers one message unless they used `/poteto-mode sticky`, which stays on until `/poteto-mode off`.
 
 This file maps questions to the skills and guide pages that hold the answers. Those files own the details. Read the file you route to before you quote it, and trust it when it disagrees with this map. The links here point into the installed plugin, which the user may not be able to open, so give the user the file's public copy: `https://github.com/cursor/plugins/blob/main/pstack/` followed by its path.
 
@@ -49,10 +49,10 @@ This is the Pi port of pstack. Its skills use the Agent Skills format. The workf
 
 Whether `/poteto-mode` stays on depends on how the user starts it:
 
-- `/poteto-mode <task>` turns the mode on for that session branch. It stays in context every turn until the user runs `/poteto-mode off`, and it stays out of casual turns.
-- `/skill:poteto-mode` loads the skill for one message. It fades as the chat moves on.
+- `/poteto-mode <task>` and `/skill:poteto-mode <task>` attach the skill for one message. They match Cursor plain Enter. They do not leave the crown sticky badge on.
+- `/poteto-mode sticky` and `/poteto-mode sticky <task>` (same with `/skill:poteto-mode sticky`) turn sticky mode on for that session branch. That is Pi's stand-in for Cursor sticky mode entry. It stays in context every turn until `/poteto-mode off`, and it stays out of casual turns.
 
-Mid-chat, "new task" makes the mode match a fresh playbook. `/poteto-mode` already uses `poteto-agent` for the subagents its playbook steps spawn. To get the same style from a subagent of your own, spawn it with `subagent_type: "poteto-agent"`.
+Mid-chat, "new task" makes sticky mode match a fresh playbook. `/poteto-mode` already uses `poteto-agent` for the subagents its playbook steps spawn. To get the same style from a subagent of your own, spawn it with `subagent_type: "poteto-agent"`.
 
 ## Pick a skill
 
@@ -126,7 +126,7 @@ Principles are one-rule skills that `/poteto-mode` reads and cites in its replie
 
 | Symptom | Fix |
 |---|---|
-| The mode stopped applying after a few turns | It was loaded with `/skill:poteto-mode`, which covers one message. Start the task with `/poteto-mode`, which stays on until `/poteto-mode off`. |
+| The mode stopped applying after a few turns | It was loaded with plain `/poteto-mode` or `/skill:poteto-mode`, which cover one message. Start again with `/poteto-mode sticky`, which stays on until `/poteto-mode off`. |
 | A question got treated as the next step of the last task | Say "new task", or say the turn doesn't need the mode. |
 | A new model choice had no effect | The rule from `/setup-pstack` applies from the next turn. Check `/pstack status` for the active rule. |
 | Runs cost more than expected | See the cost paragraph under Get set up. |

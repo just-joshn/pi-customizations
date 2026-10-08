@@ -9,8 +9,13 @@ test('the injected mode section begins with the upstream reminder and the remind
   try {
     const { session } = await f.open();
     await prompt(session, '/poteto-mode Analyze this task.');
-    expect(section(f.requests, 'pstack_mode')?.startsWith(`<pstack_mode>\n${reminder}\n\nReferences are relative to `)).toBe(true);
+    expect(section(f.requests, 'pstack_mode')).toBeNull();
     await prompt(session, 'Continue the task.');
+    expect(section(f.requests, 'pstack_mode')).toBeNull();
+
+    await prompt(session, '/poteto-mode sticky Analyze this task.');
+    expect(section(f.requests, 'pstack_mode')?.startsWith(`<pstack_mode>\n${reminder}\n\nReferences are relative to `)).toBe(true);
+    await prompt(session, 'Continue the sticky task.');
     expect(section(f.requests, 'pstack_mode')?.startsWith(`<pstack_mode>\n${reminder}`)).toBe(true);
     await prompt(session, '/poteto-mode off', { startsRun: false });
     await prompt(session, 'A casual question.');
@@ -31,6 +36,8 @@ test('the mode status shows the upstream display name, crown icon, and the warni
     await session.bindExtensions({ uiContext, mode: 'tui' });
     expect(statuses.at(-1)).toBeUndefined();
     await prompt(session, '/poteto-mode Analyze this task.');
+    expect(statuses.at(-1)).toBeUndefined();
+    await prompt(session, '/poteto-mode sticky Analyze this task.');
     expect(statuses.at(-1)).toBe('<warning>👑 Poteto Mode</warning>');
     await prompt(session, '/poteto-mode off', { startsRun: false });
     expect(statuses.at(-1)).toBeUndefined();
@@ -59,7 +66,7 @@ test('outside the TUI the mode status keeps the name and icon without reading th
       ),
     } as unknown as ExtensionUIContext;
     await session.bindExtensions({ uiContext, mode: 'rpc' });
-    await prompt(session, '/poteto-mode Analyze this task.');
+    await prompt(session, '/poteto-mode sticky Analyze this task.');
     expect(statuses.at(-1)).toBe('👑 Poteto Mode');
     expect(f.errors).toEqual([]);
   } finally {

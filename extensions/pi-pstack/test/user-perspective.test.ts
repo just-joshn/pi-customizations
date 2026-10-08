@@ -149,6 +149,10 @@ test('user-perspective: /poteto-mode on/off case-insensitivity and prompt inject
     expect(Boolean(section(f.requests, 'pstack_host')?.includes('pstack pi host contract'))).toBe(true);
 
     await prompt(session, '/poteto-mode Work on user feature');
+    expect(section(f.requests, 'pstack_mode')).toBeNull();
+    expect(JSON.stringify(lastRequest(f.requests).messages)).toMatch(/# Poteto mode/);
+
+    await prompt(session, '/poteto-mode sticky Work on user feature');
     expect(section(f.requests, 'pstack_mode') ?? '').toMatch(/# Poteto mode/);
 
     await session.prompt('/poteto-mode off');
@@ -156,6 +160,10 @@ test('user-perspective: /poteto-mode on/off case-insensitivity and prompt inject
     expect(section(f.requests, 'pstack_mode')).toBeNull();
 
     await prompt(session, '/skill:poteto-mode Investigate architecture');
+    expect(section(f.requests, 'pstack_mode')).toBeNull();
+    expect(JSON.stringify(lastRequest(f.requests).messages)).toMatch(/# Poteto mode/);
+
+    await prompt(session, '/skill:poteto-mode sticky Investigate architecture');
     expect(section(f.requests, 'pstack_mode') ?? '').toMatch(/# Poteto mode/);
 
     await session.prompt('/poteto-mode OFF');

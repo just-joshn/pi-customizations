@@ -42,7 +42,7 @@ test('/poteto-mode off and /skill:poteto-mode off give the same confirmation', a
   expect(notices).toEqual(['Poteto mode is off.', 'Poteto mode is off.']);
 });
 
-test('/poteto-mode with task and /skill:poteto-mode transform input', async () => {
+test('/poteto-mode with task and /skill:poteto-mode deliver one message without sticky mode', async () => {
   const path = '/pkg/skills/poteto-mode/SKILL.md';
   const skills = new Map([['poteto-mode', { path, body: 'Body text', description: 'Mode' }]]);
   const handlers: Record<string, (args: string, ctx: ExtensionContext) => Promise<void>> = {};
@@ -65,16 +65,59 @@ test('/poteto-mode with task and /skill:poteto-mode transform input', async () =
   const ctx = { mode: 'tui', hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
 
   await handlers['poteto-mode']?.('my task', ctx);
-  expect(store.read().enabled).toBe(true);
+  expect(store.read().enabled).toBe(false);
   expect(sent.length).toBe(1);
   expect(sent[0]?.text).toMatch(/my task/);
+  expect(sent[0]?.text).toContain('Body text');
 
   const transformed = (await input?.({ text: '/skill:poteto-mode investigate', images: [] }, ctx)) as { action: string; text: string };
   expect(transformed.action).toBe('transform');
   expect(transformed.text).toMatch(/investigate/);
+  expect(store.read().enabled).toBe(false);
 
   const bare = (await input?.({ text: '/skill:poteto-mode' }, ctx)) as { action: string; text: string };
   expect(bare.text).toMatch(/Body text\n<\/skill>$/);
+  expect(store.read().enabled).toBe(false);
+});
+
+test('/poteto-mode sticky enables sticky mode and strips the sticky token from the task', async () => {
+  const path = '/pkg/skills/poteto-mode/SKILL.md';
+  const skills = new Map([['poteto-mode', { path, body: 'Body text', description: 'Mode' }]]);
+  const handlers: Record<string, (args: string, ctx: ExtensionContext) => Promise<void>> = {};
+  let input: ((event: { text: string; images?: unknown[] }, ctx: ExtensionContext) => Promise<unknown>) | undefined;
+  const sent: Array<{ text: string; options: unknown }> = [];
+  const pi = {
+    registerCommand: (name: string, options: { handler: (args: string, ctx: ExtensionContext) => Promise<void> }) => {
+      handlers[name] = options.handler;
+    },
+    on: (_event: string, handler: typeof input) => {
+      input = handler;
+    },
+    getCommands: () => [{ source: 'skill', name: 'skill:poteto-mode', sourceInfo: { path } }],
+    sendUserMessage: (text: string, options: unknown) => sent.push({ text, options }),
+    appendEntry() {},
+  } as unknown as ExtensionAPI;
+  const store = createState(pi);
+  registerCommands(pi, skills, store);
+  registerNativeInput(pi, skills, store);
+  const ctx = { mode: 'tui', hasUI: true, ui: { setStatus() {}, setWidget() {}, notify() {} } } as unknown as ExtensionContext;
+
+  await handlers['poteto-mode']?.('sticky', ctx);
+  expect(store.read().enabled).toBe(true);
+  expect(sent.at(-1)?.text).toMatch(/Body text\n<\/skill>$/);
+
+  store.toggle(false, ctx);
+  await handlers['poteto-mode']?.('sticky fix the parser', ctx);
+  expect(store.read().enabled).toBe(true);
+  expect(sent.at(-1)?.text).toMatch(/fix the parser/);
+  expect(sent.at(-1)?.text).not.toMatch(/\bsticky\b/);
+
+  store.toggle(false, ctx);
+  const transformed = (await input?.({ text: '/skill:poteto-mode STICKY investigate' }, ctx)) as { action: string; text: string };
+  expect(transformed.action).toBe('transform');
+  expect(transformed.text).toMatch(/investigate/);
+  expect(transformed.text).not.toMatch(/\bSTICKY\b/i);
+  expect(store.read().enabled).toBe(true);
 });
 
 test('owned prompt aliases preserve attached images on transformed input', async () => {

@@ -71,6 +71,7 @@ test('performance workflows vet numbers and schema guidance validates whole valu
 test('poteto-help names the Pi install, the sticky mode, and the next-turn model rule', async () => {
   const help = await text('skills/poteto-help/SKILL.md');
   expect(help).toContain('pi install ./extensions/pi-pstack');
+  expect(help).toContain('`/poteto-mode sticky`');
   expect(help).toContain('`/poteto-mode off`');
   expect(help).toContain('The rule applies from the next turn.');
   for (const absent of ['/add-plugin', 'Custom Mode', 'Option+Enter', 'cursor.com/docs', "Reference's"]) expect(help).not.toContain(absent);

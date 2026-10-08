@@ -120,6 +120,9 @@ test('disabled native skills stay disabled while explicitly loaded extension com
     await prompt(session, '/skill:setup-pstack');
     expect(session.messages.filter((message) => message.role === 'custom' && message.customType === 'pstack-setup-error').length).toBe(0);
     await prompt(session, '/poteto-mode Analyze this task.');
+    expect(section(f.requests, 'pstack_mode')).toBeNull();
+    expect(JSON.stringify(lastRequest(f.requests).messages)).toMatch(/# Poteto mode/);
+    await prompt(session, '/poteto-mode sticky Analyze this task.');
     expect(section(f.requests, 'pstack_mode') ?? '').toMatch(/# Poteto mode/);
     expect(f.errors).toEqual([]);
   } finally {
@@ -146,7 +149,7 @@ test('Poteto mode survives session reopening and explicit off removes active mod
   const f = await fixture();
   try {
     const first = await f.open();
-    await prompt(first.session, '/poteto-mode Read this task carefully.');
+    await prompt(first.session, '/poteto-mode sticky Read this task carefully.');
     await prompt(first.session, 'Continue the task.');
     expect(section(f.requests, 'pstack_mode') ?? '').toMatch(/Poteto mode|poteto-mode/);
     const path = first.manager.getSessionFile();
@@ -202,11 +205,11 @@ test('model-issued TodoWrite and pstack_mode calls execute through Pi and retain
   }
 });
 
-test('native /skill:poteto-mode enters the same mode and /pstack reports status without inference', async () => {
+test('native /skill:poteto-mode sticky enters sticky mode and /pstack reports status without inference', async () => {
   const f = await fixture();
   try {
     const { session } = await f.open();
-    await prompt(session, '/skill:poteto-mode Analyze this task.');
+    await prompt(session, '/skill:poteto-mode sticky Analyze this task.');
     expect(section(f.requests, 'pstack_mode') ?? '').toMatch(/# Poteto mode/);
     const callsBeforeStatus = f.requests.length;
     await session.prompt('/pstack status');
@@ -277,7 +280,7 @@ test('branching before mode activation does not inherit state from the abandoned
     const anchor = first.manager.getLeafId();
     expect(Boolean(anchor)).toBe(true);
     if (!anchor) throw new Error('missing anchor');
-    await prompt(first.session, '/poteto-mode Analyze this branch.');
+    await prompt(first.session, '/poteto-mode sticky Analyze this branch.');
     expect(Boolean(section(f.requests, 'pstack_mode'))).toBe(true);
     first.session.dispose();
     first.manager.branch(anchor);
@@ -665,7 +668,8 @@ test('off is case-insensitive for /poteto-mode and /skill:poteto-mode and spends
   try {
     const { session } = await f.open();
     for (const off of ['/poteto-mode OFF', '/skill:poteto-mode Off']) {
-      await prompt(session, '/poteto-mode Analyze this task.');
+      await prompt(session, '/poteto-mode sticky Analyze this task.');
+      expect(section(f.requests, 'pstack_mode') ?? '').toMatch(/# Poteto mode/);
       const before = f.requests.length;
       await session.prompt(off);
       expect(f.requests.length).toBe(before);
