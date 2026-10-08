@@ -313,6 +313,61 @@
         "closedAt": "2026-10-08T17:55:03Z",
         "commit": "33153ac6e2e3f13d191b2e17264499bef18cac45"
       }
+    },
+    {
+      "id": "MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS",
+      "requirementId": "PSTACK-MODE-STICKY-001",
+      "status": "open",
+      "candidateRevision": "33153ac6e2e3f13d191b2e17264499bef18cac45",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/README.md",
+      "discoveredBy": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+      "expected": "Option+Enter / Alt+Enter on /poteto-mode enters Custom Mode and keeps mode across turns (reference sticky path).",
+      "actual": "cursor-agent 2026.10.01-e373342 PTY cannot enter Custom Mode: Statsig glass_custom_modes is off (no Use as Mode footer; onMetaEnter gated). Eight Meta+Enter sequences left slash menu open. --statsig-overrides no-op (Cu=false). Pi /poteto-mode sticky still works.",
+      "consequence": "PSTACK-MODE-STICKY-001 cannot reach verified-pass-paired until Cursor sticky is measured on a working host path.",
+      "acceptanceVerdict": "unverified",
+      "classification": "reference-feature-gate-off",
+      "evidence": [
+        "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+        "parity/briefs/reports/u-mode-sticky-capture-report.md",
+        "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+        "parity/evidence/mode-sticky/probes/ (attempts 6977eeec-08bd-4829-810c-11d526d9f9fb, 9857dda0-a74d-4546-b69e-1ff3528bdf3e)"
+      ],
+      "nextAction": "Operator enables Custom Modes for this account/build (or captures sticky via Agents Window / IDE path where Use as Mode works), then recapture Cursor sticky pair. Do not mark PSTACK-MODE-STICKY-001 verified until then.",
+      "piPartial": {
+        "attemptId": "96494327-f90c-470a-8e11-cf7c5b6cad89",
+        "stickyBadgeAfterSecondTurn": true
+      },
+      "rootCause": {
+        "gate": "glass_custom_modes",
+        "default": false,
+        "statsigOverridesNoOp": true,
+        "baselineAttempt": "6977eeec-08bd-4829-810c-11d526d9f9fb",
+        "overrideAttempt": "9857dda0-a74d-4546-b69e-1ff3528bdf3e",
+        "report": "parity/briefs/reports/u-cursor-custom-mode-path-report.md"
+      },
+      "updatedAt": "2026-10-08T18:03:44Z"
+    },
+    {
+      "id": "CMD-POTETO-HELP-RECOMMENDATION",
+      "requirementId": "PSTACK-CMD-POTETO-HELP-NO-WORK-001",
+      "status": "open",
+      "candidateRevision": "uncommitted-help-recommend",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/poteto-help/SKILL.md",
+      "discoveredBy": "parity/evidence/commands/pair-commands-help-cancel-1.json",
+      "expected": "Same help question yields comparable skill recommendation (same primary skill or documented host mapping).",
+      "actual": "Cursor recommended /interrogate; Pi recommended /review-and-ship (with /interrogate as alternative). Help-no-work (no skill started) matched.",
+      "consequence": "Family-03 help path is only partial; skill-routing parity not established.",
+      "acceptanceVerdict": "fail-paired-delta",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/commands/pair-commands-help-cancel-1.json",
+        "parity/briefs/reports/u-journey-family-03-report.md"
+      ],
+      "nextAction": "Triage whether Pi poteto-help mapping should prefer /interrogate for branch review, or document intentional host mapping; recapture after repair.",
+      "attemptIds": {
+        "cursor": "d20bff6f-9012-4d81-a1dc-cccd7202c4b8",
+        "pi": "e6909603-6d1f-4828-a1f2-d9f2d6d0be4c"
+      }
     }
   ]
 }

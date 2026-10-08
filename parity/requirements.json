@@ -113,7 +113,35 @@
         "mode-sticky"
       ],
       "status": "unverified",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "paired-run-partial",
+          "pair": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+          "attempts": {
+            "cursor": "9a6e00d0-b7c7-43c1-b09a-7a2db3209dc7",
+            "pi": "96494327-f90c-470a-8e11-cf7c5b6cad89"
+          },
+          "recordedAt": "2026-10-08T17:57:49Z",
+          "piVerdict": "pass-sticky-holds",
+          "cursorVerdict": "harness-limitation-no-custom-mode",
+          "note": "Pi /poteto-mode sticky crown holds across follow-up. Cursor Option+Enter sequences left slash menu open; Custom Mode not measured."
+        },
+        {
+          "type": "reference-path-probe",
+          "recordedAt": "2026-10-08T18:03:44Z",
+          "attempts": {
+            "baseline": "6977eeec-08bd-4829-810c-11d526d9f9fb",
+            "statsigOverride": "9857dda0-a74d-4546-b69e-1ff3528bdf3e"
+          },
+          "result": "exhaustive-negative",
+          "note": "glass_custom_modes off; Meta+Enter cannot select Custom Mode in this CLI build/account.",
+          "report": "parity/briefs/reports/u-cursor-custom-mode-path-report.md"
+        }
+      ],
+      "openWork": [
+        "Measure a host path that enters Cursor Custom Mode from /poteto-mode (interactive terminal or working CLI byte sequence), then recapture sticky pair.",
+        "Account/build must expose glass_custom_modes (or Agents Window Use as Mode) before Cursor sticky can be paired."
+      ]
     },
     {
       "id": "PSTACK-SETUP-MODEL-DISCOVERY-001",
@@ -274,7 +302,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-plugin-skills-register"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -312,7 +342,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-disable-model-invocation"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -353,9 +385,23 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
-      "status": "unverified",
-      "evidence": []
+      "scenarioIds": [
+        "how-investigation-simple"
+      ],
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/investigate/pair-investigate-3.json",
+          "attempts": {
+            "cursor": "c1abf807-141d-4731-a887-182cf312ad02",
+            "pi": "951a315d-ac83-4901-9342-c82fbcd235a1"
+          },
+          "closedAt": "2026-10-08T17:57:16Z",
+          "commit": "fd0b41b018130c7f2ec483ca1c29b71b59a73e32",
+          "note": "Closed HOW-WORKFLOW-EXPLAINER-STEP Method A on investigate-3"
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-SWARM-FANOUT-001",
@@ -394,7 +440,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-swarm-fanout"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -435,7 +483,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-arena-base-graft"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -477,7 +527,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-architect-ground-how"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -518,7 +570,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-interrogate-no-autoapply"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -560,7 +614,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-reflect-trigger"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -600,7 +656,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-why-motivation"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -641,9 +699,22 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
-      "status": "unverified",
-      "evidence": []
+      "scenarioIds": [
+        "cmd-poteto-help-no-work"
+      ],
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/commands/pair-commands-help-cancel-1.json",
+          "attempts": {
+            "cursor": "d20bff6f-9012-4d81-a1dc-cccd7202c4b8",
+            "pi": "e6909603-6d1f-4828-a1f2-d9f2d6d0be4c"
+          },
+          "closedAt": "2026-10-08T18:20:14Z",
+          "note": "Both sides answered help, handed a copyable prompt, did not start the recommended skill. Recommendation strings diverge (open mismatch)."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-TDD-EXPLICIT-GATE-001",
@@ -683,7 +754,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-tdd-explicit-gate"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -725,7 +798,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-create-verify-skill"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -765,7 +840,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-show-me-your-work-tsv"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -805,7 +882,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-figure-it-out-playbook-first"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -846,7 +925,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-correct-encode"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -884,7 +965,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-technical-writing-docs"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -925,7 +1008,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-no-comments-sicko"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -965,7 +1050,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-comment-sicko-first-output"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1005,7 +1092,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-poteto-agent-read-skill"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1045,7 +1134,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-benny-repro-fail-closed"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1086,7 +1177,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-setup-benny-not-slash"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1127,7 +1220,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-benny-triage-thread-only"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1167,7 +1262,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-automate-me-existing-skill"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1207,7 +1304,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-benchmark-checklist-evidence"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1247,7 +1346,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-blast-radius-run-proof"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1288,7 +1389,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-bro-restate"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1330,7 +1433,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-maintain-verify-outcomes"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1370,7 +1475,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-make-bot-ui-key-server"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1410,7 +1517,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-poteto-playbook-todo"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1451,7 +1560,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-recall-capsule"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1492,7 +1603,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-setup-write-rule"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1533,7 +1646,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-teach-how-why"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1574,7 +1689,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-typescript-paths"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1614,7 +1731,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "cmd-unslop-process"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1652,7 +1771,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-alias-always-valid"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1688,7 +1809,9 @@
       "forbiddenSideEffects": [],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-load-state"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1724,7 +1847,9 @@
       "forbiddenSideEffects": [],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-budget-apply"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1759,9 +1884,22 @@
       "forbiddenSideEffects": [],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
-      "status": "unverified",
-      "evidence": []
+      "scenarioIds": [
+        "setup-rerun-preserve"
+      ],
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+          "attempts": {
+            "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+            "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+          },
+          "closedAt": "2026-10-08T18:00:59Z",
+          "note": "Linked setup-rerun-mutate-role-1: feature/refactoring inherit-parent\u2192auto; bug-fix kept auto; 16 other roles unchanged; canary+settings digests unchanged; follow-up MODEL-ID-CHECK observed. Budget left small (not a budget-apply proof)."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-GROK-XHIGH-CAP-001",
@@ -1795,7 +1933,9 @@
       "forbiddenSideEffects": [],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-grok-xhigh-cap"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1833,7 +1973,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-role-confirm"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1869,7 +2011,9 @@
       "forbiddenSideEffects": [],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-panel-list-fanout"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1907,7 +2051,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-validate"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1943,7 +2089,9 @@
       "forbiddenSideEffects": [],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-write-rule"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -1978,9 +2126,23 @@
       "forbiddenSideEffects": [],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
-      "status": "unverified",
-      "evidence": []
+      "scenarioIds": [
+        "setup-write-card"
+      ],
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-success/pair-setup-success-write-card-2.json",
+          "attempts": {
+            "cursor": "de231068-bb59-4872-a415-cfac64ddfdfe",
+            "pi": "0d269402-43a6-48fd-bb62-c8ca90306a5c"
+          },
+          "closedAt": "2026-10-08T17:57:16Z",
+          "commit": "fd0b41b018130c7f2ec483ca1c29b71b59a73e32",
+          "note": "Closed SETUP-WRITE-CARD mismatch; write-card-v1 structured pass on linked pair"
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-CONFIRM-WRITTEN-001",
@@ -2014,9 +2176,22 @@
       "forbiddenSideEffects": [],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-confirm-written"
+      ],
       "status": "unverified",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "paired-run-partial",
+          "pair": "parity/evidence/setup-success/pair-setup-success-write-card-2.json",
+          "attempts": {
+            "cursor": "de231068-bb59-4872-a415-cfac64ddfdfe",
+            "pi": "0d269402-43a6-48fd-bb62-c8ca90306a5c"
+          },
+          "recordedAt": "2026-10-08T18:21:54Z",
+          "note": "Pi states rule written + applies to new sessions. Cursor shows Edited write-card and Writing\u2026 but screen lacks the new-session guidance sentence. Keep unverified."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-CANCEL-NO-WRITE-001",
@@ -2051,9 +2226,32 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
-      "status": "unverified",
-      "evidence": []
+      "scenarioIds": [
+        "setup-escape-cancel"
+      ],
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json",
+          "attempts": {
+            "cursor": "6193b87b-9040-4edb-a3b4-97d7ac6cb6f0",
+            "pi": "1c010fa9-b2be-44e8-a4fb-baa9febfafd3"
+          },
+          "closedAt": "2026-10-08T17:57:16Z",
+          "note": "Closed SETUP-ASKQUESTION-TRANSCRIPT-RENDERING / cancel path; Escape leaves rule unwritten"
+        },
+        {
+          "type": "paired-run-corroboration",
+          "pair": "parity/evidence/commands/pair-commands-help-cancel-1.json",
+          "attempts": {
+            "cursor": "d20bff6f-9012-4d81-a1dc-cccd7202c4b8",
+            "pi": "e6909603-6d1f-4828-a1f2-d9f2d6d0be4c"
+          },
+          "recordedAt": "2026-10-08T18:20:14Z",
+          "note": "Second cancel pair: rule digests unchanged. Cursor cancel chrome was freeform budget ask; Pi used Clarifying Questions Escape skip."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-VERIFY-OFFER-001",
@@ -2087,7 +2285,9 @@
       "forbiddenSideEffects": [],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-verify-offer"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2123,7 +2323,9 @@
       "forbiddenSideEffects": [],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-new-session-applies"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2158,9 +2360,22 @@
       "forbiddenSideEffects": [],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
-      "status": "unverified",
-      "evidence": []
+      "scenarioIds": [
+        "setup-guide-rerun-keep"
+      ],
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+          "attempts": {
+            "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+            "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+          },
+          "closedAt": "2026-10-08T18:00:59Z",
+          "note": "Linked setup-rerun-mutate-role-1: feature/refactoring inherit-parent\u2192auto; bug-fix kept auto; 16 other roles unchanged; canary+settings digests unchanged; follow-up MODEL-ID-CHECK observed. Budget left small (not a budget-apply proof)."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BENNY-NO-SECRET-001",
@@ -2196,7 +2411,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-benny-no-secret"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2235,7 +2452,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-benny-pack-merge"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2274,7 +2493,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-benny-settings-enable"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2312,7 +2533,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-benny-project-skills"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2351,7 +2574,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-benny-user-config-outside"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2391,7 +2616,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-benny-required-explicit"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2430,7 +2657,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-benny-control-fail-closed"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2469,7 +2698,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-benny-existing-no-automate"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2508,7 +2739,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-benny-creation-boundary"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2547,7 +2780,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-benny-thread-safety"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2586,7 +2821,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-create-verify-interview"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2627,7 +2864,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-create-verify-generate"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2666,7 +2905,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-create-verify-feature-map"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2705,7 +2946,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-create-verify-prove"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2743,7 +2986,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-create-verify-offer-maintain"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2782,7 +3027,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-maintain-verify-outcomes"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2821,7 +3068,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-maintain-verify-edit-scope"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2859,7 +3108,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-maintain-verify-locate"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2898,7 +3149,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-maintain-verify-source-wave"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2937,7 +3190,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-maintain-verify-live-pass"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -2977,7 +3232,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Ordering and persistence require paired journeys.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "setup-maintain-verify-ship"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3021,7 +3278,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-attack-premise"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3065,7 +3324,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-boundary"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3109,7 +3370,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-build-lever"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3153,7 +3416,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-encode-structure"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3198,7 +3463,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-exhaust-design"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3242,7 +3509,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-experience-first"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3286,7 +3555,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-explain-number"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3330,7 +3601,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-fix-root"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3374,7 +3647,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-foundational"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3418,7 +3693,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-guard-context"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3461,7 +3738,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-laziness"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3505,7 +3784,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-idempotent"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3549,7 +3830,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-migrate-delete"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3592,7 +3875,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-minimize-reader"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3636,7 +3921,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-model-domain"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3681,7 +3968,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-never-block"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3725,7 +4014,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-outcome-oriented"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3769,7 +4060,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-prove-it"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3813,7 +4106,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-redesign-first"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3858,7 +4153,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-separate-state"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3902,7 +4199,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-sequence-units"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3946,7 +4245,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-subtract-first"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -3990,7 +4291,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-test-behavior"
+      ],
       "status": "unverified",
       "evidence": []
     },
@@ -4034,7 +4337,9 @@
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
       "piBindings": [],
-      "scenarioIds": [],
+      "scenarioIds": [
+        "prin-type-discipline"
+      ],
       "status": "unverified",
       "evidence": []
     }

@@ -1,0 +1,165 @@
+{
+  "schema": 1,
+  "pairId": "commands-help-recommend-1",
+  "scenarioRef": "commands:poteto-help-branch-review-recommend",
+  "journeyFamily": "journey-family-03-commands-and-nl-triggers",
+  "requirementIds": [
+    "PSTACK-CMD-POTETO-HELP-NO-WORK-001"
+  ],
+  "mismatchIds": [
+    "CMD-POTETO-HELP-RECOMMENDATION"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "helpPrompt": "/poteto-help which skill should i use to review this branch?",
+  "steps": [
+    {
+      "send": "/poteto-help which skill should i use to review this branch?"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "help answer with primary /interrogate; no recommended skill run started"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "cc0e3b4c-3d78-416d-98d5-e71ed57d12d9",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/commands/cursor/cc0e3b4c-3d78-416d-98d5-e71ed57d12d9",
+    "screenSettled": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/commands/cursor/cc0e3b4c-3d78-416d-98d5-e71ed57d12d9/screen-03-help-settled.txt",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observations": {
+      "helpRecommended": "/interrogate",
+      "mentionsInterrogate": true,
+      "mentionsReviewAndShip": true,
+      "usedPotetoHelpChrome": false,
+      "handsPrompt": true,
+      "startedRecommendedSkillOnHelpTurn": false,
+      "screenLead": "/interrogate"
+    }
+  },
+  "pi": {
+    "attemptId": "91fa6578-cce4-4b5a-abc2-9fe1e90f2b42",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/commands/pi/91fa6578-cce4-4b5a-abc2-9fe1e90f2b42",
+    "screenSettled": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/commands/pi/91fa6578-cce4-4b5a-abc2-9fe1e90f2b42/screen-03-help-settled.txt",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observations": {
+      "helpRecommended": "/interrogate",
+      "mentionsInterrogate": true,
+      "mentionsReviewAndShip": true,
+      "usedPotetoHelpChrome": false,
+      "skillBlock": false,
+      "handsPrompt": true,
+      "startedRecommendedSkillOnHelpTurn": false,
+      "screenLead": "Use /interrogate"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "poteto-help skill recommendation",
+      "cursor": "Primary /interrogate with copyable recipe prompt; /review-and-ship named as close call only.",
+      "pi": "Primary Use /interrogate with copyable recipe prompt; /review-and-ship named only for review+commit+PR.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-commands-help-recommend.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "productEdit": "extensions/pi-pstack/scripts/resource-rows/60-help.mjs (+ generated skills/prompts/poteto-help, test)",
+    "relatedPriorPair": "parity/evidence/commands/pair-commands-help-cancel-1.json",
+    "identity": {
+      "cursor": {
+        "schema": 1,
+        "attemptId": "cc0e3b4c-3d78-416d-98d5-e71ed57d12d9",
+        "side": "cursor",
+        "scenarioRef": "commands:poteto-help-branch-review-recommend",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 36,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      },
+      "pi": {
+        "schema": 1,
+        "attemptId": "91fa6578-cce4-4b5a-abc2-9fe1e90f2b42",
+        "side": "pi",
+        "scenarioRef": "commands:poteto-help-branch-review-recommend",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 36,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  }
+}

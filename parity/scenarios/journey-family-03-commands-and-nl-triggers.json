@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-03-commands-and-nl-triggers",
+  "family": 3,
+  "familyTitle": "Invoke every command and applicable NL trigger; help, args, defaults, invalid input, cancellation",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "partial",
+  "requirementIds": [
+    "PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001",
+    "PSTACK-CMD-POTETO-HELP-NO-WORK-001",
+    "PSTACK-CMD-HOW-SIMPLE-PATH-001",
+    "PSTACK-CMD-DISABLE-MODEL-INVOCATION-001",
+    "PSTACK-SETUP-CANCEL-NO-WRITE-001"
+  ],
+  "fixtureNeeds": [
+    "Full slash-command inventory from installed package",
+    "NL trigger matrix per skill",
+    "Invalid-argument and Escape/cancel cases per command"
+  ],
+  "evidencePaths": [
+    "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json",
+    "parity/evidence/commands/pair-commands-help-cancel-1.json"
+  ],
+  "openMismatches": [],
+  "coverageNotes": "Only setup Escape cancel is paired. Family-wide command matrix has no pairs. Linked cancel evidence is supporting, not family coverage, so status stays missing.",
+  "nextAction": "Close HELP recommendation delta; expand command inventory beyond poteto-help + cancel; recapture when Cursor Clarifying Questions returns if oracle still requires panel cancel."
+}

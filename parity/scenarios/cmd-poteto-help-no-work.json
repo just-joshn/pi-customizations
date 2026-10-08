@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-poteto-help-no-work",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-POTETO-HELP-NO-WORK-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/poteto-help/SKILL.md#frontmatter and opening help-vs-work paragraphs",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "cancel then poteto-help",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Type /poteto-help which skill should i use to review this branch?. Agent answers, hands a prompt the user can send, and links the source file; it does not start the pstack run."
+    }
+  ],
+  "execution": {
+    "referenceRun": "d20bff6f-9012-4d81-a1dc-cccd7202c4b8",
+    "candidateRun": "e6909603-6d1f-4828-a1f2-d9f2d6d0be4c",
+    "pairId": "commands-help-cancel-1",
+    "pairPath": "parity/evidence/commands/pair-commands-help-cancel-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T18:20:14Z",
+    "caveat": "Help-no-work contract only; skill recommendation strings not compared here."
+  }
+}

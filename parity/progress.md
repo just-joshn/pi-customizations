@@ -692,4 +692,42 @@ Drain those units. Recapture mode-one-message after the repair. Then mode-sticky
 ## Continuation checkpoint — 2026-10-08T17:55:03Z (MODE-PLAIN-ENTER closed)
 
 Committed mode plain-enter fix `33153ac6e2e3f13d191b2e17264499bef18cac45`. Closed MODE-PLAIN-ENTER-STICKY pass-paired on pair-mode-one-message-1 (cursor 5fd487a4-cf8e-4fe4-bbc0-7de39af1a159, pi f19e11c7-b1e5-4788-9f04-bb0e5c9de559). PSTACK-MODE-ONE-MESSAGE-001 marked verified-pass-paired. Scenario artifacts written for mode-one-message, mode-sticky (awaiting pair), setup-model-discovery; setup-budget-labels pairId linked. Sticky capture still in flight. Goal remains unmet (completion gate still BLOCKED on ~90+ unverified requirements, dependency closure, acceptance freeze).
+## Continuation checkpoint — 2026-10-08T17:57:16Z (evidence remap)
+
+Mapped existing closed-pair evidence onto granular requirements: WRITE-CARD, CANCEL-NO-WRITE, HOW-SIMPLE-PATH. Verified count rises without new PTY. Goal still unmet.
+
+## Continuation checkpoint — 2026-10-08T17:57:49Z (mode-sticky drain)
+
+[Capture sticky poteto-mode pair](a07f389b-674d-42d4-9f0c-2fbe3220c8ab) partial. Pi sticky VERIFIED (`96494327-f90c-470a-8e11-cf7c5b6cad89`). Cursor Custom Mode NOT VERIFIED (harness limitation on `9a6e00d0-b7c7-43c1-b09a-7a2db3209dc7`). Linked `mode-sticky` scenario pairId; kept PSTACK-MODE-STICKY-001 unverified. Opened MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS. Goal still unmet.
+
+## Continuation checkpoint — 2026-10-08T17:58:17Z (scenario-wire merge)
+
+[Wire empty requirement scenarios](40870afa-2c18-4baf-b052-6b31e0b157dc) complete. Merged 91 draft scenarioIds into requirements.json (merged=91, already=0, emptyRemaining=0). No pair verdicts invented. SCENARIOS_EMPTY should clear; REQUIREMENT_UNVERIFIED and SCENARIO_PAIR_MISSING remain until journeys run.
+
+## Continuation checkpoint — 2026-10-08T17:59:26Z (acceptance freeze prep)
+
+[Prep acceptance freeze custody](7ef25fe4-d6ba-4d12-b8a7-662b17ae90aa) BLOCKED. Custody 2/8 pass; definition bytes absent; authorization NONE. Gate `acceptance-definition-custody` parked (default keep-parked). Did not set acceptanceDefinitionsFrozen.
+
+## Continuation checkpoint — 2026-10-08T18:00:59Z (journey-family-02 drain)
+
+[Capture setup-rerun journey pair](58ec5407-ee08-43c8-97fa-f5b73f5aa350) pass. Pair `setup-rerun-mutate-role-1` (cursor 428e113d-8047-473a-aea6-3b632f080322, pi 6769d1c3-6f00-4528-85c5-7a251f30aeff). Verified PSTACK-SETUP-RERUN-PRESERVE-001 and PSTACK-SETUP-GUIDE-RERUN-KEEP-001 only. Left BUDGET-APPLY / ROLE-CONFIRM / PANEL-LIST / NEW-SESSION unverified (not proved by this pair). Family-02 stub → paired.
+
+## Continuation checkpoint — 2026-10-08T18:01:56Z (dep-closure-wave-001 merge)
+
+[Advance dependency closure wave](0a49974f-6224-4727-b853-a515234527df) complete. Merged 13 node reads and 12 edge resolutions. Set referenceConfigurationCaptured true (working-env snapshot only). Left closureAudited and completeDependencyClosure false. Hash verify VERIFIED.
+
+## Continuation checkpoint — 2026-10-08T18:03:44Z (cursor custom-mode path)
+
+[Find Cursor Custom Mode path](ca04b2c1-edaa-4890-a400-46ebb0357bbd) exhaustive-negative. Root cause: Statsig `glass_custom_modes` off; Meta+Enter gated; overrides no-op. Updated MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS. PSTACK-MODE-STICKY-001 stays unverified. Parked operator gate for Custom Modes enablement.
+
+## Continuation checkpoint — 2026-10-08T18:20:14Z (journey-family-03 drain)
+
+[Capture commands journey pair](a8be271c-3b40-48b1-9ad8-4cc9fa094024) partial. Pair `commands-help-cancel-1`. Verified PSTACK-CMD-POTETO-HELP-NO-WORK-001 (no-work contract). Opened CMD-POTETO-HELP-RECOMMENDATION (/interrogate vs /review-and-ship). Cancel no-write corroborated; Cursor freeform vs Pi panel noted. Family-03 stub → partial.
+## Continuation checkpoint — 2026-10-08T18:21:17Z (refill wave)
+
+In-flight emptied. Spawned help-recommend-fix, journey-family-06, dep-closure-wave-002, journey-family-05-why. Goal remains unmet (completion BLOCKED).
+
+## Continuation checkpoint — 2026-10-08T18:25:14Z (dep-closure-wave-002 merge)
+
+[Dependency closure wave 002](bc158235-5f26-4300-b1cf-61680d902795) complete. Merged 15 node reads (remaining typescript platforms + full-tree hashes) and 14 edge resolutions. Left closureAudited and completeDependencyClosure false. Hash verify VERIFIED.
 
