@@ -12,7 +12,7 @@ export function checkInteraction(records, expected) {
 const quote = (value) => `'${value.replaceAll("'", "'\\''")}'`;
 const filter = (path) => `(subpath ${JSON.stringify(realpathSync(resolve(path)))})`;
 
-export function makeLocalSession({ root, out, repoRoot, packagePath = repoRoot, localPorts = [], answers = {} }) {
+export function makeLocalSession({ root, out, repoRoot, packagePath = repoRoot, localPorts = [], answers = {}, deferSession = false, persistSession = false, sessionId }) {
   const agentDir = join(root, 'home', '.pi', 'agent');
   const cwd = join(root, 'workspace');
   const tmp = join(root, 'tmp');
@@ -101,8 +101,9 @@ export function makeLocalSession({ root, out, repoRoot, packagePath = repoRoot, 
     if (/(?:KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL|AUTH)/i.test(key) || /^(?:AWS_|GOOGLE_|AZURE_|PI_)/.test(key)) env[key] = '';
   }
   Object.assign(env, { PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1' });
-  const session = createRpcSession({ packagePath, agentDir, cwd, piBin: wrapper, env, answers, capturePath: join(out, 'rpc.jsonl') });
-  return { session, cwd, agentDir, env, wrapper, profile };
+  const sessionOptions = { packagePath, agentDir, cwd, piBin: wrapper, env, answers, capturePath: join(out, 'rpc.jsonl'), persistSession, sessionId };
+  const session = deferSession ? null : createRpcSession(sessionOptions);
+  return { session, sessionOptions, cwd, agentDir, env, wrapper, profile, imagePath: pi };
 }
 
 export async function attemptPrompt(session, prompt) {

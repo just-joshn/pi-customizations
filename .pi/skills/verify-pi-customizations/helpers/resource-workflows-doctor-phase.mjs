@@ -3,6 +3,7 @@ import { cpSync, mkdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { createDoctorEvidence } from './resource-workflows-doctor-evidence.mjs';
+import { driveDoctorLeases } from './resource-workflows-doctor-lease-phase.mjs';
 import { evaluateDoctor } from './resource-workflows-doctor-outcome.mjs';
 import { attemptPrompt } from './resource-workflows-local.mjs';
 
@@ -39,7 +40,8 @@ async function boundedReview(reviewReport, input, leaseMs) {
   }
 }
 
-export async function driveDoctorReport({ doctor, repoRoot, root, reviewReport, reviewLeaseMs = 120000 }) {
+export async function driveDoctorReport({ doctor, repoRoot, root, reviewReport, reviewFinal, reviewLeaseMs = 120000, promptDeadlineMs = 120000 }) {
+  if (doctor.sessionOptions && doctor.session === null) return driveDoctorLeases({ doctor, repoRoot, root, reviewReport, reviewFinal, reviewLeaseMs, promptDeadlineMs });
   if (!Number.isInteger(reviewLeaseMs) || reviewLeaseMs < 1 || reviewLeaseMs > 120000) throw new Error('Doctor Root review lease must be bounded at 120 seconds');
   const ownedRoot = realpathSync(root);
   doctor = { ...doctor, cwd: realpathSync(doctor.cwd), agentDir: realpathSync(doctor.agentDir) };

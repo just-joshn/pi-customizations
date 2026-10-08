@@ -38,13 +38,13 @@ export default async function drive(context) {
 
   let doctor;
   const doctorDecisions = [];
-  const answers = doctorAnswers({ records: () => doctor?.session.records ?? [], onDecision: (decision) => doctorDecisions.push(decision) });
-  doctor = launch('setup', undefined, answers);
+  const answers = doctorAnswers({ records: () => doctor?.session?.records ?? [], onDecision: (decision) => doctorDecisions.push(decision) });
+  doctor = { ...makeLocalSession({ root: join(scratchDir, 'setup'), out: join(artifactDir, 'setup'), repoRoot, answers, deferSession: true }), out: join(artifactDir, 'setup') };
   try {
-    const doctorStatus = await driveDoctorReport({ doctor, repoRoot, root: join(scratchDir, 'setup'), reviewReport: context.doctorReviewReport });
+    const doctorStatus = await driveDoctorReport({ doctor, repoRoot, root: join(scratchDir, 'setup'), reviewReport: context.doctorReviewReport, reviewFinal: context.doctorReviewFinal });
     finish('RS-SKILL-1', { ...doctorStatus, doctorDecisions }, doctor.out);
   } finally {
-    await doctor.session.close();
+    await doctor.session?.close();
   }
 
   const interactions = [];
