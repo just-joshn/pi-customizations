@@ -60,15 +60,15 @@ test('a real package alias preserves literal task text in the model request', as
   }
 });
 
-test('standalone bro retains native grouping while a package alias preserves literal quotes', async () => {
+test('skill aliases deliver the skill body with arguments verbatim', async () => {
   const f = await fixture();
   try {
     const { session } = await f.open();
     await prompt(session, '/bro "hello world"');
-    expect(userRequestText(f.requests).endsWith('hello world')).toBe(true);
-    expect(userRequestText(f.requests).endsWith('"hello world"')).toBe(false);
+    expect(userRequestText(f.requests).endsWith('"hello world"')).toBe(true);
     await prompt(session, '/unslop "hello world"');
     expect(userRequestText(f.requests).endsWith('"hello world"')).toBe(true);
+    expect(userRequestText(f.requests)).toContain('# Unslop');
   } finally {
     await f.close();
   }

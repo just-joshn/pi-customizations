@@ -1,36 +1,36 @@
+ Build its prompt from references/explainer-prompt.md with every explorer's findings filled in.                        │
+                                                                                                                       │
+ Step 4. Present                                                                                                       │
+                                                                                                                       │
+ Present the explainer's output to the user. Light edits for clarity or context from the conversation are fine. Do not │
+ substantially rewrite it.                                                                                             │
+                                                                                                                       │
+ Output Format                                                                                                         │
+                                                                                                                       │
+ The explanation uses the sections defined in references/explainer-prompt.md, dropping any that do not apply:          │
+ Overview, Key Concepts, How It Works, Where Things Live, Gotchas.                                                     │
+                                                                                                                       │
+ does the pstack budget line in models.mdc change agent behavior?                                                      │
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           │
+                                                                                                                       │
+                                                                                                                       │
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack && rg -n -i "budget" --glob         │
+ '!upstream*' . | head -60 (timeout 30s)                                                                               ┃
                                                                                                                        ┃
- Read how/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.           ┃
- Follow those instructions, resolving references and supporting scripts relative to that skill directory.              ┃
- If the pstack host contract is unavailable, report that the package extension must be enabled to locate this bundled  ┃
- skill. Do not invent a path.                                                                                          ┃
+ ... (130 earlier lines, ctrl+o to expand)                                                                             ┃
+ byte-level source change. Budget labels and target efforts are fixed by upstream; Pi clamps effort to model           ┃
+ capabilities, which must be surfaced in setup rather than silently claiming identical reasoning.                      ┃
+ ./skills/poteto-mode/scripts/watch-pr/cli.ts:125:      "consecutive query-error budget",                              ┃
+ ./test/benny-parity.test.ts:35:  'Polling and effort budgets',                                                        ┃
+ ./test/tool-cards.test.ts:7:const budgetQuestion = {                                                                  ┃
                                                                                                                        ┃
- does the pstack budget line in models.mdc change agent behavior?                                                      ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
- [skill] how:1-2000 (ctrl+o to expand)                                                                                 ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
-                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
                                                                                                                        ┃
 
-── ⠋ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+── ⠙ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                         
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
-↑4 ↓140 R7.7k W15k CH34.4% $0.062 (sub) 2.3%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium
+↑4 ↓283 R7.7k W16k CH33.0% $0.067 (sub) 2.7%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

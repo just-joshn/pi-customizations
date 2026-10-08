@@ -259,24 +259,16 @@ function promptOutput(entry, generated) {
     .toString('utf8')
     .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '')
     .trim();
-  const prompt =
-    slug === 'bro'
-      ? body
-      : [
-          `Read ${slug}/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.`,
-          'Follow those instructions, resolving references and supporting scripts relative to that skill directory.',
-          'If the pstack host contract is unavailable, report that the package extension must be enabled to locate this bundled skill. Do not invent a path.',
-        ].join('\n');
   return [
     {
       source: entry.source,
       destination: `prompts/${slug}.md`,
       generated: Buffer.from(
-        `---\ndescription: ${JSON.stringify(slug === 'bro' ? 'Restate the last message in plain human language, with no jargon.' : `Invoke the bundled ${slug} workflow.`)}\nargument-hint: ${JSON.stringify(slug === 'bro' ? '[focus]' : '[task]')}\n---\n\n${prompt}\n\n$ARGUMENTS\n`,
+        `---\ndescription: ${JSON.stringify(slug === 'bro' ? 'Restate the last message in plain human language, with no jargon.' : `Invoke the bundled ${slug} workflow.`)}\nargument-hint: ${JSON.stringify(slug === 'bro' ? '[focus]' : '[task]')}\n---\n\n${body}\n\n$ARGUMENTS\n`,
       ),
       mode: 0o644,
       executable: false,
-      transformations: [slug === 'bro' ? 'Classify reusable restatement text as a Pi prompt template.' : 'Expose the skill entry point as a native Pi prompt template with user arguments.'],
+      transformations: [slug === 'bro' ? 'Classify reusable restatement text as a Pi prompt template.' : 'Attach the skill content to the invoked message inline, matching the reference one-message skill attachment.'],
     },
   ];
 }

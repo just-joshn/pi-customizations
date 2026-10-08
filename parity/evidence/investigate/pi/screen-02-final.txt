@@ -1,36 +1,36 @@
- const budgetValues = [...budgets.keys()] as [string, ...string[]];                                                    │
- const panelRoles = new Set(['arena runners', 'arena cross-judge pool', 'architect runners', 'interrogate              │
- reviewers']);                                                                                                         │
+   │ Budget    │ Cap    │                                                                                              │
+   ├───────────┼────────┤                                                                                              │
+   │ unlimited │ max    │                                                                                              │
+   ├───────────┼────────┤                                                                                              │
+   │ large     │ xhigh  │                                                                                              │
+   ├───────────┼────────┤                                                                                              │
+   │ medium    │ high   │                                                                                              │
+   ├───────────┼────────┤                                                                                              │
+   │ small     │ medium │                                                                                              │
+   └───────────┴────────┘                                                                                              │
                                                                                                                        │
- Took 0.0s                                                                                                             │
+ - When you pick a budget, applyBudget() (models.ts:106) rewrites each role's model entry to provider/id:level. It     │
+   picks the highest level at or below the cap that the model supports.                                                │
                                                                                                                        │
+ - Aliases (inherit-parent, auto) and empty values pass through unchanged, so they are not capped.                     │
                                                                                                                        │
- Mostly no. In your current config the budget line changes nothing at runtime.                                         │
+ Your current rule                                                                                                     │
+ - Every role is inherit-parent. The budget therefore had nothing to rewrite, and the small (medium) line changes      │
+   nothing about which model or effort is used.                                                                        │
+ - Those roles run on the parent chat model at the parent's thinking level. Roles set to inherit-parent don't receive  │
+   a model override on Task calls.                                                                                     │
                                                                                                                        │
- What the line is. /setup-pstack writes # budget: small (medium) as a comment (src/setup-tool.ts:57). The label        │
- (small) maps to a target thinking level (medium). The only runtime reader is currentBudget() (src/setup-tool.ts:69).  │
- It regex-matches the line so the setup tool can show the current budget on re-runs.                                   │
-                                                                                                                       │
- When it takes effect. The budget doesn't act when the rule is read. setup-pstack applies it once, at write time.      │
- applyBudget() in src/models.ts:106 caps each role's model at the target effort. It picks the highest thinking level   │
- the model supports, at or below the target, and writes a concrete provider/id:level value into that role's line. That │
- is the only way the budget changes behavior.                                                                          │
-                                                                                                                       │
- Why it does nothing for you. Every role in your models.mdc is inherit-parent. applyBudget returns aliases             │
- (inherit-parent, auto) unchanged, so nothing was capped. Those roles run on the parent chat model at the parent's     ┃
- thinking level.                                                                                                       ┃
+ How the rule reaches the agent                                                                                        │
+ - index.ts:66 and host.ts:40 read the whole rule file with readModelRule() and put it in the system prompt as the     │
+   "active rule". The model sees the budget comment as context, but nothing enforces it.                               ┃
+ - Skills read the per-role lines (feature, refactoring: …) to pick the model for each subagent.                       ┃
+ - Editing the budget comment by hand does nothing. To change effort, re-run /setup-pstack so the role values get      ┃
+   rewritten, or put explicit model:level values on the role lines.                                                    ┃
                                                                                                                        ┃
- Caveats.                                                                                                              ┃
- - I found no other runtime reader of the # budget line in src. I didn't check whether the host's prompt injection     ┃
-   uses it. The host contract prints the file contents, so the model sees the comment but gets no instruction from it. ┃
- - If you hand-edit the role lines to explicit models, the budget no longer applies to them. Re-run /setup-pstack to   ┃
-   re-clamp.                                                                                                           ┃
-                                                                                                                       ┃
- I traced this myself with grep and by reading src/setup-tool.ts and src/models.ts, without spawning explorer or       ┃
- explainer subagents.                                                                                                  ┃
+ I read the code directly instead of spawning explorers, since the question was narrow.                                ┃
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                         
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
-↑12 ↓1.3k R105k W20k CH96.1% $0.116 (sub) 2.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium
+↑8 ↓1.2k R59k W22k CH93.8% $0.113 (sub) 3.1%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

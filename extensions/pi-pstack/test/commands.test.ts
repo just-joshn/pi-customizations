@@ -109,7 +109,26 @@ test('aliases require a native prompt and preserve standalone /bro', async () =>
   registerNativeInput(pi, new Map(), createState(pi));
   const ctx = { hasUI: true, ui: { notify() {} } } as unknown as ExtensionContext;
   expect(await input?.({ text: '/how keep' }, ctx)).toEqual({ action: 'continue' });
-  expect(await input?.({ text: '/bro keep' }, ctx)).toEqual({ action: 'continue' });
+  expect(await input?.({ text: '/bro keep' }, ctx)).toEqual({ action: 'transform', text: "/bro 'keep'" });
+});
+
+test('/how with arguments delivers the skill body inline like the one-message reference attachment', async () => {
+  const path = '/pkg/skills/how/SKILL.md';
+  const skills = new Map([['how', { path, body: 'How workflow with Step 2b', description: 'How' }]]);
+  let input: ((event: { text: string }, ctx: ExtensionContext) => Promise<unknown>) | undefined;
+  const pi = {
+    on: (_event: string, handler: typeof input) => {
+      input = handler;
+    },
+    getCommands: () => [{ source: 'prompt', name: 'how', sourceInfo: { path: join(process.cwd(), 'prompts/how.md') } }],
+  } as unknown as ExtensionAPI;
+  registerNativeInput(pi, skills, createState(pi));
+  const ctx = { hasUI: true, ui: { notify() {} } } as unknown as ExtensionContext;
+  const transformed = (await input?.({ text: '/how what makes the budget change behavior' }, ctx)) as { action: string; text: string };
+  expect(transformed.action).toBe('transform');
+  expect(transformed.text).toContain('How workflow with Step 2b');
+  expect(transformed.text).toContain('what makes the budget change behavior');
+  expect(transformed.text).not.toContain('Read how/SKILL.md in full');
 });
 
 test('a same-name user prompt is not rewritten', async () => {

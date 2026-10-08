@@ -9,10 +9,10 @@
   {
     "source": "upstream/skills/architect/SKILL.md",
     "destination": "prompts/architect.md",
-    "sha256": "2eba27a9b79f54e149470890c7500b2f04dfe62c2908dfa55818d02e9451de44",
+    "sha256": "2ca10ba3296d52cc7a8203994b0a3ad13c3347fa8040267f6c81920a2b3f9d64",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -49,10 +49,10 @@
   {
     "source": "upstream/skills/arena/SKILL.md",
     "destination": "prompts/arena.md",
-    "sha256": "cc98d9bb7cf0bb95fe928fa7c4281a11551f662aa0e8ed7dfb38edeea95ee19a",
+    "sha256": "416264646366bce97f3e081c50736acf751aea88dba51a31c5bf918cf157e4ba",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -70,10 +70,10 @@
   {
     "source": "upstream/skills/automate-me/SKILL.md",
     "destination": "prompts/automate-me.md",
-    "sha256": "ed6f5d0a6253a907e1510a3e2398c1153682779f1c1f6a8b970354e1b4b3861b",
+    "sha256": "62240c79614a088d9583053e7048c3105bad710275f6e116f8ada0541fa5b81f",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -86,10 +86,10 @@
   {
     "source": "upstream/skills/benchmark-checklist/SKILL.md",
     "destination": "prompts/benchmark-checklist.md",
-    "sha256": "8f2fdb5a11d8a945379dfd6d9eaa61ee9adc731956730fecab1a67e17416cb98",
+    "sha256": "1dbd77941cd96ee97fa688632e0e3fb34a4170fc521ef55cb483df3d2f56cd2e",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -102,10 +102,10 @@
   {
     "source": "upstream/skills/blast-radius/SKILL.md",
     "destination": "prompts/blast-radius.md",
-    "sha256": "f7e3e1a4f5dcdbad40902e35c8bbf65b356eb7af47f980010642ca7fcbe49b82",
+    "sha256": "3643079465929264c983f10bf3d09f40f822e21372e2d76031eacc8b4ebfd44a",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -127,10 +127,10 @@
   {
     "source": "upstream/skills/correct/SKILL.md",
     "destination": "prompts/correct.md",
-    "sha256": "57965f999699a3245663ed8c9c1cd6a27c7f9789884ca29e8c201e2d2091002a",
+    "sha256": "7df0b342a3f04905aaeb45fc1fa6f31268324130e604fcd4975c6d859f5d404d",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -146,10 +146,10 @@
   {
     "source": "upstream/skills/create-verification-skill/SKILL.md",
     "destination": "prompts/create-verification-skill.md",
-    "sha256": "b5012faf2cc49cd441d9968731619346c8d4e6dd309c990b41f25262aae54ce3",
+    "sha256": "02086c43158a22eee10daa390e9b96f00d1889888de893d0359f23c0f8cbda73",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -183,10 +183,10 @@
   {
     "source": "upstream/skills/figure-it-out/SKILL.md",
     "destination": "prompts/figure-it-out.md",
-    "sha256": "470c08951a2cfa329a719480f4447018713220566b7a6b91863acb80bcc899ad",
+    "sha256": "15ddf7e283ba651f7f851b8a047d5b0d688f50e627b911b340738ad9f5100c82",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -201,10 +201,10 @@
   {
     "source": "upstream/skills/how/SKILL.md",
     "destination": "prompts/how.md",
-    "sha256": "4b90641cc7cf255b9e5e76fbdb8011e508986aca587a51d9acee4b4f9d96df77",
+    "sha256": "5afc069d8bf6a00c050b8144e29e0e5f93f0100847fad517e1361c1cced9b67e",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -233,10 +233,10 @@
   {
     "source": "upstream/skills/interrogate/SKILL.md",
     "destination": "prompts/interrogate.md",
-    "sha256": "aa0aa761d5af1ef1265c032732be2a2ae1d56b0fb47475e3b5ba77b9bcb2cda2",
+    "sha256": "a90af62b9fa8029da92ebc4a1b8f52773e3fbd9b23a3bafa6a94528b58d96768",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -280,10 +280,10 @@
   {
     "source": "upstream/skills/maintain-verification-skill/SKILL.md",
     "destination": "prompts/maintain-verification-skill.md",
-    "sha256": "d2342d8b820fc173fbc4ecdcfd48820e4aed8a31966bce20bb5ed6bc25ca7d72",
+    "sha256": "6e811e804394ff8d09bfaec2732a711e0f1b5a1c8c043009e29d2e46ab081721",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -298,10 +298,10 @@
   {
     "source": "upstream/skills/make-bot-ui/SKILL.md",
     "destination": "prompts/make-bot-ui.md",
-    "sha256": "bd884268b99e2a3fae5aa7f4ccb22ff5dbebd582527c00a5326eba7afa1e1e64",
+    "sha256": "ad79ea5ff00c1711bbbb0b5baccc250f17ffd025b3c91c2fe0a5e3d5d7db7d6c",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -314,10 +314,10 @@
   {
     "source": "upstream/skills/no-comments/SKILL.md",
     "destination": "prompts/no-comments.md",
-    "sha256": "f7c10cf364040ecb312bd0fda181a24d7d369362109b078f8e473a4175fbb37a",
+    "sha256": "024201007246560e860b4df077be4082c2fb66520e7d2fa5b9b926a2ae64a08e",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -336,10 +336,10 @@
   {
     "source": "upstream/skills/poteto-help/SKILL.md",
     "destination": "prompts/poteto-help.md",
-    "sha256": "9552178b2138053bcb203d10619b0b528ec86964d6f8f82a963d1f4dd77673dc",
+    "sha256": "4e8b315c5a767943d44e24f9a67f686e94522561e5f43dac8860251011163ad9",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -749,10 +749,10 @@
   {
     "source": "upstream/skills/principle-attack-the-premise/SKILL.md",
     "destination": "prompts/principle-attack-the-premise.md",
-    "sha256": "3e9966c7e8e30d7f2a46a5f80111684c70f39dba542601f4423217c63c4354de",
+    "sha256": "5c755662287fbf44513c6012ded5e784a1564b689f0c9585e16bb1325922a417",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -767,10 +767,10 @@
   {
     "source": "upstream/skills/principle-boundary-discipline/SKILL.md",
     "destination": "prompts/principle-boundary-discipline.md",
-    "sha256": "f6f46103d5ce0c892da7430462eb535439ec45f1b5ac770dcfc6053c18de97cb",
+    "sha256": "8dd9d0a64c46d159327593f0ef6f2f7254922f0e8afe3aee4533c75e40c12e87",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -785,10 +785,10 @@
   {
     "source": "upstream/skills/principle-build-the-lever/SKILL.md",
     "destination": "prompts/principle-build-the-lever.md",
-    "sha256": "a7a0d18242007d24b701c404654c56c801a0e965e03a81046429a5d2dc6653dc",
+    "sha256": "eedde0d5c7e54f5c87856b1aabb2707ae57c1b2543048d0ae97e89ad01d3fe6e",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -803,10 +803,10 @@
   {
     "source": "upstream/skills/principle-encode-lessons-in-structure/SKILL.md",
     "destination": "prompts/principle-encode-lessons-in-structure.md",
-    "sha256": "03631cf8de6c10c004de004f5337d1e81ead3f74a0fa0088dc56ddd59637316a",
+    "sha256": "734684f259b037f3ab2bc5e510d65faaccb6add355bcfb1f6f30fac00a00887d",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -821,10 +821,10 @@
   {
     "source": "upstream/skills/principle-exhaust-the-design-space/SKILL.md",
     "destination": "prompts/principle-exhaust-the-design-space.md",
-    "sha256": "1968fef44f49e177f67b96269affa91acbf52c2d6aff125b55f36addc4d5694d",
+    "sha256": "7c786e0a120a368d9c7f823ac479e6e0c56ef6ade4c1a41e2e89650cd14722a8",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -840,10 +840,10 @@
   {
     "source": "upstream/skills/principle-experience-first/SKILL.md",
     "destination": "prompts/principle-experience-first.md",
-    "sha256": "380ab267a9549432f4cb84e1f49aef9dda90ce5ba407892c3dac2a93e123ead7",
+    "sha256": "479337be7e37f683ef4261e3ffd3be2bd24c99ac834ed58f33c9449e90fb817e",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -858,10 +858,10 @@
   {
     "source": "upstream/skills/principle-explain-the-number/SKILL.md",
     "destination": "prompts/principle-explain-the-number.md",
-    "sha256": "b039a6f36121adb95e326e4cb158f7d641a859d4c8d7fa0f2dd092eb15bd4a99",
+    "sha256": "f3d2833bbc45f35c95b66df9bc4ed134b5f63fa730c3ad9e99a7003a10caa3ff",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -876,10 +876,10 @@
   {
     "source": "upstream/skills/principle-fix-root-causes/SKILL.md",
     "destination": "prompts/principle-fix-root-causes.md",
-    "sha256": "7d56494ea50bcb37a59e42d8665151d5fc26f103965c5bf2dc5fe85288d170bc",
+    "sha256": "00f949838b14be42a4def436d613f64ef9ddb2d8bacd6961f1b8579de654fb02",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -894,10 +894,10 @@
   {
     "source": "upstream/skills/principle-foundational-thinking/SKILL.md",
     "destination": "prompts/principle-foundational-thinking.md",
-    "sha256": "f7005f1fcdfd6e938aac494642070296481457a3c499cfa050a8834aa7ad1019",
+    "sha256": "8285b5f97daf83e778bf8e6b93fa500eb3249e82c1333414ecaeb066aa09f37a",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -912,10 +912,10 @@
   {
     "source": "upstream/skills/principle-guard-the-context-window/SKILL.md",
     "destination": "prompts/principle-guard-the-context-window.md",
-    "sha256": "fb024702e2d6cc227cc97f425afa9795d80e8704c485c98ded76532c00461383",
+    "sha256": "38a2e5321dd3dc5d4d933cf5ffaf94ae7933b5afb10d7fa57f02be387fb55957",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -930,10 +930,10 @@
   {
     "source": "upstream/skills/principle-laziness-protocol/SKILL.md",
     "destination": "prompts/principle-laziness-protocol.md",
-    "sha256": "0b5eaff3c2ce50961e2ba8fbd32cac89e2918b60b6dc404fa7ad0718fd835dff",
+    "sha256": "d11c3423bacc8609184e548bdbf2c6fcf3fd3549e1dc3c13666bb6a5f3418e46",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -948,10 +948,10 @@
   {
     "source": "upstream/skills/principle-make-operations-idempotent/SKILL.md",
     "destination": "prompts/principle-make-operations-idempotent.md",
-    "sha256": "81131441eae68d981077fc6c5a39960c12e21b87c0f218121ed3d11b3425d150",
+    "sha256": "592697a738010882dfe26e0c9cb296d9ec81361e5b88dfaa2fbfd10916ae2dc0",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -966,10 +966,10 @@
   {
     "source": "upstream/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
     "destination": "prompts/principle-migrate-callers-then-delete-legacy-apis.md",
-    "sha256": "2cc503056069e5619c38a2c4dd70ca02855a4cc348719c531736af517b44b9dc",
+    "sha256": "8bae9e10ad13c4c6ba960872d2cd8fb2f7cd1d3035ec2cf230f2b569d7a283b7",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -984,10 +984,10 @@
   {
     "source": "upstream/skills/principle-minimize-reader-load/SKILL.md",
     "destination": "prompts/principle-minimize-reader-load.md",
-    "sha256": "790ed3785d7fcdc1806b3d4a7398294f022aab2d8039b56053d659f365b20a20",
+    "sha256": "e935c867e7b75e52e7d77ef60439c5fc1bf9a97f1ca2c100429d0f11258b9080",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1002,10 +1002,10 @@
   {
     "source": "upstream/skills/principle-model-the-domain/SKILL.md",
     "destination": "prompts/principle-model-the-domain.md",
-    "sha256": "ab5a704c35c55d25ea432130c4279a8600c88c46c0007d949fd652dfd42ad898",
+    "sha256": "4722b85ebaf039a38b9b18db0cf69e77b57fff39e413f8de21d21f2d9092194a",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1020,10 +1020,10 @@
   {
     "source": "upstream/skills/principle-never-block-on-the-human/SKILL.md",
     "destination": "prompts/principle-never-block-on-the-human.md",
-    "sha256": "58bd7e85f8ff580918775032586a3207aca1feb3742356496e635615866839f3",
+    "sha256": "339c43b9bbbf1f1861a99371a426b2fb613522634d9118425cb2145c06f971a6",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1038,10 +1038,10 @@
   {
     "source": "upstream/skills/principle-outcome-oriented-execution/SKILL.md",
     "destination": "prompts/principle-outcome-oriented-execution.md",
-    "sha256": "08d17b591c3a666333939f3d77de67bc506586f363a8173ae9b25770ff1459fd",
+    "sha256": "944b2c219ae933b2a2d0f46e3e08df12b6dd2dc22734d3339b396369888cc3eb",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1056,10 +1056,10 @@
   {
     "source": "upstream/skills/principle-prove-it-works/SKILL.md",
     "destination": "prompts/principle-prove-it-works.md",
-    "sha256": "034d37645e993ea6f9f59357fa3e37384ce27dc6e0937c941d80be8d1795f385",
+    "sha256": "6e2f5bacf7de4582a1750b68ef4a9baca340f2d643b012ad3deb79f038bc63e7",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1074,10 +1074,10 @@
   {
     "source": "upstream/skills/principle-redesign-from-first-principles/SKILL.md",
     "destination": "prompts/principle-redesign-from-first-principles.md",
-    "sha256": "5092af6ab70d65904d83de4d0ebe414df693f7762f36a41dffa945f9b7404863",
+    "sha256": "f80393cbda165ae390e3d5edb344731aadeb19074fee28d323f580865648d8da",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1092,10 +1092,10 @@
   {
     "source": "upstream/skills/principle-separate-before-serializing-shared-state/SKILL.md",
     "destination": "prompts/principle-separate-before-serializing-shared-state.md",
-    "sha256": "cba4f182f13c23079b1f5ea0114f4d1749307513eec64a8c77fa8f22a86dbc1d",
+    "sha256": "fbb947276b2edc0b26660272543c05f72cfb4331778dbba5c5eeaa1a559b6da2",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1110,10 +1110,10 @@
   {
     "source": "upstream/skills/principle-sequence-verifiable-units/SKILL.md",
     "destination": "prompts/principle-sequence-verifiable-units.md",
-    "sha256": "ef0a7a5b37b8566df259c96b18bf598dcc2842530c298c4ea7b88dcd23f05f49",
+    "sha256": "c745d06e7c3f4d83584110d6df2f2d6115b55e694cd5926bb4a7e15495a4d809",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1128,10 +1128,10 @@
   {
     "source": "upstream/skills/principle-subtract-before-you-add/SKILL.md",
     "destination": "prompts/principle-subtract-before-you-add.md",
-    "sha256": "94800c018440e008005f191486ca54337566a4701864dc2941ffeb3964f32d43",
+    "sha256": "ad2297f37731836f3ce3c042befd21e4ef0c54ac37ac8e52bd44f5a4cb2bf33d",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1146,10 +1146,10 @@
   {
     "source": "upstream/skills/principle-test-behavior-not-implementation/SKILL.md",
     "destination": "prompts/principle-test-behavior-not-implementation.md",
-    "sha256": "dc27c9c6ea816a59baf48d4bf79c83826bcbe6fbe1ff89039472df2d874b5e6d",
+    "sha256": "04dddfe453780fe38e65e799f3dc73f111295d0a2859e3b75d8856dc3e993991",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1164,10 +1164,10 @@
   {
     "source": "upstream/skills/principle-type-system-discipline/SKILL.md",
     "destination": "prompts/principle-type-system-discipline.md",
-    "sha256": "abdc794340080f12ee1823fe3fb6915b36f44e0d63afb498bf1e3133e198f2a7",
+    "sha256": "0970cfc0bd9c1a76cb38a6cde0fc38598be41d27ea575683db98c8e77e3cdacb",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1182,10 +1182,10 @@
   {
     "source": "upstream/skills/recall/SKILL.md",
     "destination": "prompts/recall.md",
-    "sha256": "19d1723ac0705699824b100bce5c4618aa697fe96d04d661f65f3f018c70a437",
+    "sha256": "13c802b3149bb1a312967b5b2b104025abb41faa5e5072c6e43d1cf8c698ee7f",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1203,10 +1203,10 @@
   {
     "source": "upstream/skills/reflect/SKILL.md",
     "destination": "prompts/reflect.md",
-    "sha256": "52e7bbbdd3e8a5e048d1e272073c6641ae0863a187fcfe74562b74bdd51f5f56",
+    "sha256": "b76a3a4139763a453b0dc786bb271e457e76a89b20b582b5de51e1347bb7cb4f",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1268,10 +1268,10 @@
   {
     "source": "upstream/skills/show-me-your-work/SKILL.md",
     "destination": "prompts/show-me-your-work.md",
-    "sha256": "b11966e55dc20e5364ee8cadb20920b512a604385b6a3485f8a89b4797130ea9",
+    "sha256": "ba9c9aa2657640dc2827480ac83ea0f317340f8714f1150e0fe40a6a25f10bd8",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1303,10 +1303,10 @@
   {
     "source": "upstream/skills/swarm/SKILL.md",
     "destination": "prompts/swarm.md",
-    "sha256": "da36600cc59c64731bc41ac2115fbfffb83cffe712daca8aee7506785e3da72f",
+    "sha256": "337c3d0a7e3b8ef3d580fdef186c51aa69275d745b945d2b063dd7f8ed099570",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1321,10 +1321,10 @@
   {
     "source": "upstream/skills/tdd/SKILL.md",
     "destination": "prompts/tdd.md",
-    "sha256": "3972f07348bf42d150bcb1516aa836fc71836e5403919f08bf34345fa8dec857",
+    "sha256": "ecff371e3204568a72c0bf073c1df3d3991ed05df1fe25971046da9cb01f5780",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1339,10 +1339,10 @@
   {
     "source": "upstream/skills/teach/SKILL.md",
     "destination": "prompts/teach.md",
-    "sha256": "a1b0233c3c8ade582a890f3094fd6209b53b18db6edab11ea78d34539b07078f",
+    "sha256": "aa45f059dd00e63cf7305734623458ddc50b186070f4f84aeba152a3ecc546e7",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1355,10 +1355,10 @@
   {
     "source": "upstream/skills/technical-writing/SKILL.md",
     "destination": "prompts/technical-writing.md",
-    "sha256": "c6c2c2b2bcde905fb1bb6eaebebc8093a447a5e90de3414cfc373999ba1f8045",
+    "sha256": "da6c12ed1f6849ef08050ede87ab0dc6be9d83588c23ab9bd6fe2487f6fd57c0",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1374,10 +1374,10 @@
   {
     "source": "upstream/skills/typescript-best-practices/SKILL.md",
     "destination": "prompts/typescript-best-practices.md",
-    "sha256": "25c90dca40f9da5387b44ec357fe3f8ba02bb38fba672f1d727e77d4a9b8d4f6",
+    "sha256": "5d43f7db3a46ec5167b25a38f87b331cef8c096f07eead92b2f43306f4a55f14",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1400,10 +1400,10 @@
   {
     "source": "upstream/skills/unslop/SKILL.md",
     "destination": "prompts/unslop.md",
-    "sha256": "a008146e23cecaf4e588e45e3fa3933931cc6ed44b0d598ea7ba04614bc2de04",
+    "sha256": "78ed88527c7c939010ed55bea3d2e16eac404ce9f2c1baea7654fa79e44ad5f9",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1419,10 +1419,10 @@
   {
     "source": "upstream/skills/why/SKILL.md",
     "destination": "prompts/why.md",
-    "sha256": "a0160f7f42961b7876af73760e35d6fa494da7a009b5217fd9000b04790231e5",
+    "sha256": "7e9bfb82b06a3f14616722f424f4a6e390d8fee3bf8d68cad631a0cd02b016b3",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1519,10 +1519,10 @@
   {
     "source": "upstream-team-kit/skills/check-compiler-errors/SKILL.md",
     "destination": "prompts/check-compiler-errors.md",
-    "sha256": "cdd869565e6d4afca7ae48ca92a34e207b8f21810fd9a600cdbdb5ab6ddaa12d",
+    "sha256": "bf866994ce5963b932c45336e123971276551daeef5ddb463e98d1af11dbf698",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1535,10 +1535,10 @@
   {
     "source": "upstream-team-kit/skills/control-cli/SKILL.md",
     "destination": "prompts/control-cli.md",
-    "sha256": "e4d4b9532b53ce7743c10e8b474fbb9675c1db04d3f8824622fbd199b5fcf7ad",
+    "sha256": "7fa8ffbc47ab8240e938d596b8d735f3da0ac684ff83b05e7463daf84319ae94",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1551,10 +1551,10 @@
   {
     "source": "upstream-team-kit/skills/control-ui/SKILL.md",
     "destination": "prompts/control-ui.md",
-    "sha256": "3dc6cd743b59a474229ec4394be2b7861adf83827a12a25b0943cb0db6a166d0",
+    "sha256": "e65b57882cc3059ce6cf64b839eb627f8832730048ed0115c676dfcb65ace924",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1570,10 +1570,10 @@
   {
     "source": "upstream-team-kit/skills/deslop/SKILL.md",
     "destination": "prompts/deslop.md",
-    "sha256": "b61b2940359929534434acffe5013a71f298b453d0a68574f4ffd7e3b000540c",
+    "sha256": "d4c27fe28f5e685a0f7bfea3773cd1f0ff2806c398bdafda304eb0b2f07dd023",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1586,10 +1586,10 @@
   {
     "source": "upstream-team-kit/skills/fix-ci/SKILL.md",
     "destination": "prompts/fix-ci.md",
-    "sha256": "862cc8acfab8b0b3272cf9f0c9bbbeed9e630cce20a7a9de521385fc18148c3d",
+    "sha256": "f75abafd627b5c4db6204909090af10491624a134f0f6359dab30b3636912b4b",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1602,10 +1602,10 @@
   {
     "source": "upstream-team-kit/skills/fix-merge-conflicts/SKILL.md",
     "destination": "prompts/fix-merge-conflicts.md",
-    "sha256": "381487330b10b209e7bd917057e7e74d1c235a673fd03af3e3d1d62b411200df",
+    "sha256": "0aca5b3be163192b6ed5b5e73399930eb8480563dcba3a5364846ab87ae6af11",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1618,10 +1618,10 @@
   {
     "source": "upstream-team-kit/skills/get-pr-comments/SKILL.md",
     "destination": "prompts/get-pr-comments.md",
-    "sha256": "28c54bf6f492203590a36a60a873775da81c517d6782c34e75b04e46e6cd339c",
+    "sha256": "9c1a085b944ae7d13accc18ad15fa000f7427a1efc134d34746826247592e77d",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1634,10 +1634,10 @@
   {
     "source": "upstream-team-kit/skills/loop-on-ci/SKILL.md",
     "destination": "prompts/loop-on-ci.md",
-    "sha256": "2f758d18b8e12ada7e8e1c3f30177d9e1ec9476dc5ce1407b2fd588cd6017c66",
+    "sha256": "cc5a17900a932d670ad6afdb73c8d5e3e1bae6f18d2509df1590bd69e065ded4",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1650,10 +1650,10 @@
   {
     "source": "upstream-team-kit/skills/make-pr-easy-to-review/SKILL.md",
     "destination": "prompts/make-pr-easy-to-review.md",
-    "sha256": "a044f3799d2876ea2d1f47c51d2412933e7982728fa991c55675e3a2389e07c0",
+    "sha256": "95d22b9f881228b2f596bcdb6751337b0b69b117886a8bb09f4965043f4ec623",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1666,10 +1666,10 @@
   {
     "source": "upstream-team-kit/skills/new-branch-and-pr/SKILL.md",
     "destination": "prompts/new-branch-and-pr.md",
-    "sha256": "8d3ada223e0b3cede7b4e82c1f72867b5f679338a2880dff97c3ea8476cf0dc1",
+    "sha256": "762799a1cac0eb2c8ae21990e55a01d1c7e6a302868553780f8783f117e97d2a",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1685,10 +1685,10 @@
   {
     "source": "upstream-team-kit/skills/pr-review-canvas/SKILL.md",
     "destination": "prompts/pr-review-canvas.md",
-    "sha256": "16358d70e9679eaf53f292ec9669fd65ee9aae089bb5e57ce16e6d0d4a07b2d6",
+    "sha256": "21c7983dd22e80542600332af3b95e23758701f53116e3f507a99534aaef183a",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1722,10 +1722,10 @@
   {
     "source": "upstream-team-kit/skills/review-and-ship/SKILL.md",
     "destination": "prompts/review-and-ship.md",
-    "sha256": "17325c1f672845e8b5a3b0918cdf3bc774a2004d199aba9054aadc9d19eb264c",
+    "sha256": "ef5bb85c8c1f3fe83608133c2e6b4b05f2042fc659398ecc931c67d438b46c6c",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1738,10 +1738,10 @@
   {
     "source": "upstream-team-kit/skills/run-smoke-tests/SKILL.md",
     "destination": "prompts/run-smoke-tests.md",
-    "sha256": "b6388f44f8056b6d891535f7134e0af76ee9526842c4dc7c8cd1e34366e923d7",
+    "sha256": "bb50c3f4b447a572d6f6abeff92e34606a246616d74038563c73808ab18536a3",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1754,10 +1754,10 @@
   {
     "source": "upstream-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
     "destination": "prompts/thermo-nuclear-code-quality-review.md",
-    "sha256": "67467f0e78c75f93b2d9719816b89202e43889a202f07129ede60ccccc6aa5c3",
+    "sha256": "51e7ea24ce027fa482749d5c4611d78dd86462aad7a368c8a76e8930f66a8ee4",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1770,10 +1770,10 @@
   {
     "source": "upstream-team-kit/skills/verify-this/SKILL.md",
     "destination": "prompts/verify-this.md",
-    "sha256": "29ddd870d5bc0cfe0372eda0da7b4f0ed6dab613b3ebf5fa0d29b3b5e694cae1",
+    "sha256": "cd6250f72224062cf380910a5cd6043314ef2f6062db03efd64423a59228aeae",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1786,10 +1786,10 @@
   {
     "source": "upstream-team-kit/skills/weekly-review/SKILL.md",
     "destination": "prompts/weekly-review.md",
-    "sha256": "29a23c3302e15eeba6d83fcc24296173f64b949b8bdcec730908ac2f319fe31b",
+    "sha256": "f8b9fcec945a0a9f7ac28c2572c9a438ea458008a0f8c5c2d5e9b15ddba53d62",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1802,10 +1802,10 @@
   {
     "source": "upstream-team-kit/skills/what-did-i-get-done/SKILL.md",
     "destination": "prompts/what-did-i-get-done.md",
-    "sha256": "57bc8b6bd5c95fcf2486214e41bf79fac15210db2414d67db50ed270bd2160fc",
+    "sha256": "8c6f619f8d83eac3de3aa2ae3510540d4d216d7f219d03f6088eb5c86cd6e815",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   },
   {
@@ -1820,10 +1820,10 @@
   {
     "source": "upstream-team-kit/skills/workflow-from-chats/SKILL.md",
     "destination": "prompts/workflow-from-chats.md",
-    "sha256": "f598d6cd65aa14e994aea460ae2c6f558ac65d7953cfd29452aa3d2acec087d4",
+    "sha256": "d143112061182b2a638788ff59f670c1063e7835127a8611ddaaef4a0df64701",
     "executable": false,
     "transformations": [
-      "Expose the skill entry point as a native Pi prompt template with user arguments."
+      "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
     ]
   }
 ]

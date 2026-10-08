@@ -177,17 +177,17 @@ test('user-perspective: prompt templates expansion (/bro, /how, /loop, /deslop)'
 
     await prompt(session, '/how explore session persistence');
     text = JSON.stringify(lastRequest(f.requests).messages);
-    expect(text).toMatch(/Read how\/SKILL\.md in full/);
+    expect(text).toMatch(/## Step 2b\. Direct Explain/);
     expect(text).toMatch(/explore session persistence/);
 
     await prompt(session, '/loop 5s check ci');
     text = JSON.stringify(lastRequest(f.requests).messages);
-    expect(text).toMatch(/Read loop\/SKILL\.md in full under the pstack host skills directory/);
+    expect(text).toMatch(/# Loop/);
     expect(text).toMatch(/5s check ci/);
 
     await prompt(session, '/deslop clean up styles');
     text = JSON.stringify(lastRequest(f.requests).messages);
-    expect(text).toMatch(/Read deslop\/SKILL\.md in full/);
+    expect(text).toMatch(/# Remove AI code slop/);
     expect(text).toMatch(/clean up styles/);
   } finally {
     await f.close();

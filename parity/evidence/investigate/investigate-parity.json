@@ -1,13 +1,21 @@
 {
-  "schema": 1,
-  "pairId": "investigate-1",
-  "pairPath": "parity/evidence/investigate/pair-investigate-1.json",
-  "comparedAt": "2026-10-08T11:18:42.735Z",
+  "schema": 2,
+  "pairId": "investigate-2",
+  "pairPath": "parity/evidence/investigate/pair-investigate-2.json",
+  "priorPairPath": "parity/evidence/investigate/pair-investigate-1.json",
+  "comparedAt": "2026-10-08T15:47:00.000Z",
   "skillActivation": {
     "cursor": "'Used how' chip after '/how ...' + Enter",
-    "pi": "'[skill] how:1-2000' chip plus the bundled-skill delivery header (read-the-file instruction)",
+    "pi": "the transformed user message carries the full skill body; the TUI renders it as a collapsible transcript block ('... (130 earlier lines, ctrl+o to expand)'), with no '[skill]' chip",
+    "match": false,
+    "note": "Model-bound activation now matches: both sides receive the skill content inline in one user message. The visible affordance differs (reference collapses the attachment under a chip; candidate shows the body as message lines collapsed by the viewport expander) — recorded as finding HOW-SKILL-TUI-CHIP."
+  },
+  "delivery": {
+    "cursor": "skill body delivered inline in the invoking user message (template body with args substituted)",
+    "pi": "session transcript 2026-10-08T15-30-43-877Z_01a11c23: exactly one user message of 3151 chars containing the full how body ('# How', '## Step 2b. Direct Explain', Output Format section) with the question appended; zero 'Read how/SKILL.md in full' instructions; zero read calls for SKILL.md",
     "match": true,
-    "note": "Both sides activate the how skill from the same user action. Delivery mechanism differs (reference activates inline; candidate instructs reading the bundled file) — recorded as finding HOW-SKILL-DELIVERY-MODE."
+    "closedFinding": "HOW-SKILL-DELIVERY-MODE",
+    "note": "Repair: src/skills-map.ts loads every bundled and host skill; src/commands.ts branch 3 transforms '/name args' to the inline body plus args (images preserved); generated prompt templates embed the skill body instead of a read instruction. Verified in a real terminal via capture-investigate.mjs --pi-only after the repair."
   },
   "ruleUnchanged": {
     "cursor": true,
@@ -20,20 +28,24 @@
     "note": "Neither side wrote configuration; the investigation stayed read-only on both sides."
   },
   "workflowExecution": {
-    "cursor": "announced the Step 2b single-explainer spawn (\"per the /how workflow I\\u2019ll spawn a single explainer, role how explainer \\u2192 inherit-parent\"); ~4.7 min; 63k+ working tokens; long structured cited answer (Where Things Live / Gotchas with inference labels)",
-    "pi": "skipped the explainer step (\"without spawning explorer or explainer subagents\"); ~24 s; shorter cited answer grounded in src/setup-tool.ts and src/models.ts",
+    "cursor": "spawned the Step 2b explainer again (attempt 6f45e2db: announced 'one explainer subagent, no explorers', read references/explainer-prompt.md, ran Task, ~52k working tokens, structured answer with Where Things Live / Gotchas). Second consecutive reference observation (dfe89f1a, 6f45e2db)",
+    "pi": "skipped the explainer step again (attempt 03252b53: two bash rg/sed calls, direct cited answer, ~22 s)",
     "match": false,
-    "finding": "HOW-WORKFLOW-EXPLAINER-STEP"
+    "finding": "HOW-WORKFLOW-EXPLAINER-STEP",
+    "note": "With two reference runs both spawning the explainer, the reference behavior looks deterministic for simple questions. The candidate model receives the same workflow text but does not follow the spawn step."
   },
   "modelAuthoredVariance": {
     "note": "Answer prose, depth, and citations are model-authored and compared by rubric; both sides answered the same question correctly at the budget-line level."
   },
   "openFindings": [
     "HOW-WORKFLOW-EXPLAINER-STEP",
+    "HOW-SKILL-TUI-CHIP"
+  ],
+  "closedFindings": [
     "HOW-SKILL-DELIVERY-MODE"
   ],
   "nextActions": [
-    "Run repeated reference journeys under a declared protocol to establish whether the reference deterministically spawns the Step 2b explainer for simple questions before judging the candidate skip.",
-    "Verify the delivered skill bytes the candidate model receives (inline content vs read-the-file instruction) and whether the model actually read how/SKILL.md in the candidate run."
+    "Decide the workflow-finding disposition: the pi model (claude-sonnet-5-5:medium) skipping the Step 2b spawn is a model-behavior difference, not a delivery defect; consider a rubric-based behavioral parity record or a prompt-side lever, and keep the repeated-reference protocol as the comparison method.",
+    "Assess HOW-SKILL-TUI-CHIP under the TUI surface family: whether pi can render the inline skill message under a one-line chip equivalent to the reference 'Used how' chip."
   ]
 }

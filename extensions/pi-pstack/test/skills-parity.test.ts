@@ -150,7 +150,8 @@ test('prompt templates: exist for all skills, preserve arguments, and instruct r
     const content = await readFile(join(packageRoot, 'prompts', `${slug}.md`), 'utf8');
     expect(content.startsWith('---')).toBe(true);
     expect(content.includes('$ARGUMENTS')).toBe(true);
-    expect(content.includes(`Read ${slug}/SKILL.md in full`)).toBe(true);
+    const skillBody = (await readFile(join(packageRoot, 'skills', slug, 'SKILL.md'), 'utf8')).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').trim();
+    expect(content).toContain(skillBody);
   }
 
   const loopPrompt = await readFile(join(packageRoot, 'host/prompts/loop.md'), 'utf8');

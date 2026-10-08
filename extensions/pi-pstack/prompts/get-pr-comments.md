@@ -3,8 +3,23 @@ description: "Invoke the bundled get-pr-comments workflow."
 argument-hint: "[task]"
 ---
 
-Read get-pr-comments/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.
-Follow those instructions, resolving references and supporting scripts relative to that skill directory.
-If the pstack host contract is unavailable, report that the package extension must be enabled to locate this bundled skill. Do not invent a path.
+# Get PR comments
+
+## Trigger
+
+Need a concise, actionable summary of feedback on the active pull request.
+
+## Workflow
+
+1. Resolve the active PR for the current branch.
+2. Fetch review comments and discussion comments.
+3. Group feedback by severity and actionability.
+4. Return a concise action list.
+
+## Output
+
+- Grouped feedback summary
+- Action list ordered by priority
+- Open questions that still need clarification
 
 $ARGUMENTS

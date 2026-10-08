@@ -8,7 +8,10 @@ const text = (path: string) => readFile(new URL(path, root), 'utf8');
 
 test.for(['correct', 'benchmark-checklist', 'principle-explain-the-number', 'poteto-help'])('latest workflow %s has a native skill and prompt alias', async (name) => {
   expect(await text(`skills/${name}/SKILL.md`)).toContain(`name: ${name}`);
-  expect(await text(`prompts/${name}.md`)).toContain(`Read ${name}/SKILL.md in full`);
+  const template = await text(`prompts/${name}.md`);
+  const body = (await text(`skills/${name}/SKILL.md`)).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').trim();
+  expect(template).toContain(body);
+  expect(template).not.toContain(`Read ${name}/SKILL.md in full`);
 });
 
 test.for([

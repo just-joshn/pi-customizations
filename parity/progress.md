@@ -441,3 +441,33 @@ from one pair:
 Commit this journey slice, then verify the delivered skill bytes on the candidate (inline
 content vs read-the-file instruction, whether the model read how/SKILL.md), and run repeated
 reference `/how` journeys to establish the comparison method for the explainer step.
+
+### 2026-10-08 checkpoint (HOW-SKILL-DELIVERY-MODE closed)
+
+Delivery repaired and verified on a real terminal.
+
+Repair surface:
+- `src/skills-map.ts` loads every bundled and host skill.
+- `src/commands.ts` branch 3 transforms `/name args` to the skill body plus args (images kept).
+- Generated prompt templates embed the skill body; the old "Read …/SKILL.md in full" path is gone.
+- `inlineSkill()` is wrapperless so journeyTemplates still match frontmatter body + args.
+- `expand()` stays for `/skill:` and the poteto-mode / setup-pstack commands.
+
+Verification (measured):
+- `bunx vitest run`: 213 files, 2222 passed, 1 skipped.
+- `bun run typecheck`: pass.
+- `node scripts/verify-journeys.mjs . --no-workers`: 470 checks, 0 findings.
+- Pair `investigate-2` (cursor `6f45e2db`, pi `03252b53`): pi session transcript carries one
+  3151-char user message with `# How` and `## Step 2b. Direct Explain`; zero read instructions;
+  zero SKILL.md read calls.
+
+Findings update in `parity/evidence/investigate/investigate-parity.json` (schema 2):
+- Closed: HOW-SKILL-DELIVERY-MODE.
+- Still open: HOW-WORKFLOW-EXPLAINER-STEP (two cursor runs spawn Step 2b; pi still answers
+  inline after receiving the same body).
+- New open: HOW-SKILL-TUI-CHIP (reference `Used how` chip vs candidate ctrl+o expand block).
+
+### Exact next executable action
+
+Commit this delivery slice, then write a mismatch/rubric disposition for
+HOW-WORKFLOW-EXPLAINER-STEP and assess HOW-SKILL-TUI-CHIP under the TUI surface family.

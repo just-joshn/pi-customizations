@@ -14,6 +14,12 @@ function expand(skills: Skills, name: string, args: string) {
   return `<skill name="${name}" location="${skill.path}">\nReferences are relative to ${dirname(skill.path)}.\n\n${skill.body}\n</skill>${args ? `\n\n${args}` : ''}`;
 }
 
+function inlineSkill(skills: Skills, name: string, args: string) {
+  const skill = skills.get(name);
+  if (!skill) throw new Error(`Unknown pstack skill ${name}`);
+  return `${skill.body}${args ? `\n\n${args}` : ''}`;
+}
+
 const isOff = (args: string) => args.trim().toLowerCase() === 'off';
 
 function encodePromptArgument(value: string): string {
@@ -62,7 +68,6 @@ export function registerNativeInput(pi: ExtensionAPI, skills: Skills, store: Sta
       }
       return { action: 'transform', text: expand(skills, name, args), ...(event.images !== undefined ? { images: event.images } : {}) };
     }
-    if (/^\/bro(?:\s|$)/.test(event.text)) return { action: 'continue' };
     const alias = event.text.match(/^\/([\w-]+)([\s\S]*)$/);
     if (alias && alias[1] !== undefined && alias[2] !== undefined && (alias[2] === '' || /^\s/.test(alias[2]))) {
       const [, name, rawSuffix] = alias;
@@ -70,6 +75,9 @@ export function registerNativeInput(pi: ExtensionAPI, skills: Skills, store: Sta
       const prompt = pi.getCommands().find((command) => command.name === name);
       const ownedPaths = [join(root, 'prompts', `${name}.md`), join(root, 'host', 'prompts', `${name}.md`)];
       if (prompt?.source === 'prompt' && ownedPaths.includes(prompt.sourceInfo.path) && suffix !== '') {
+        if (skills.has(name)) {
+          return { action: 'transform', text: inlineSkill(skills, name, suffix), ...(event.images !== undefined ? { images: event.images } : {}) };
+        }
         return { action: 'transform', text: `/${name} ${encodePromptArgument(suffix)}`, ...(event.images !== undefined ? { images: event.images } : {}) };
       }
     }
