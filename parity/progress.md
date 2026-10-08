@@ -344,7 +344,8 @@ contamination, logged).
 
 ### Exact next executable action
 
-Commit the setup-flow slice (extension sources, tests, docs phrase, parity harness, evidence,
-ledger). Then continue the acceptance families from `parity/requirements.json`: the next family is
-the playbook user journeys (investigation and repair first), reusing the paired-capture harness
-pattern established here.
+Committed as 2f4dc0207e1a8d3c0704c8e10ecb3fc4da95c429 (extension payload digest
+sha256:115488fe64923c41dc92b950e5d09bf5e229127186ab705d6f2e14eea97e3c2e unchanged). Then continue
+the acceptance families from `parity/requirements.json`: the next family is the playbook user
+journeys (investigation and repair first), reusing the paired-capture harness pattern established
+here.
