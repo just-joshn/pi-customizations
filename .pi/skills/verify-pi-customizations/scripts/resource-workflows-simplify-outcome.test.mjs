@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+
 import { evaluateSimplify } from '../helpers/resource-workflows-simplify-outcome.mjs';
 
 const success = { code: 0, signal: null, error: null };
@@ -9,7 +10,18 @@ function facts() {
     execution: { tests: success, greeting: { ...success, stdout: '["Hello Ada","Hello "]\n', stderr: '' } },
     results: { testsUnchanged: true },
     evidence: {
-      reviewers: ['reuse', 'simplification', 'efficiency', 'altitude'].map((angle, index) => ({ id: `child-${index}`, angle, owned: true, readonly: true, successful: true, startedAt: 10 + index, endedAt: 30 + index, findingsAt: 34, findings: 'No cleanup findings.', transcript: `/owned/child-${index}.jsonl` })),
+      reviewers: ['reuse', 'simplification', 'efficiency', 'altitude'].map((angle, index) => ({
+        id: `child-${index}`,
+        angle,
+        owned: true,
+        readonly: true,
+        successful: true,
+        startedAt: 10 + index,
+        endedAt: 30 + index,
+        findingsAt: 34,
+        findings: 'No cleanup findings.',
+        transcript: `/owned/child-${index}.jsonl`,
+      })),
       firstEditAt: null,
       orderingComplete: true,
     },
@@ -36,7 +48,7 @@ test('four requests with no successful results fail closed', () => {
 test('review ownership, angles, findings and edit ordering are required', () => {
   const original = facts();
   for (const patch of [{ owned: false }, { readonly: false }, { successful: false }, { id: 'child-0' }, { angle: 'reuse' }, { findings: '' }, { findingsAt: null }]) {
-    const reviewers = original.evidence.reviewers.map((reviewer, index) => index === 3 ? { ...reviewer, ...patch } : reviewer);
+    const reviewers = original.evidence.reviewers.map((reviewer, index) => (index === 3 ? { ...reviewer, ...patch } : reviewer));
     assert.equal(evaluateSimplify({ ...original, evidence: { ...original.evidence, reviewers } }).eligible, false);
   }
   assert.equal(evaluateSimplify({ ...original, evidence: { ...original.evidence, firstEditAt: 20 } }).eligible, false);

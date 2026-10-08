@@ -1,10 +1,11 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 import { seedGreetingCli, seedLibrary, seedSimplify } from '../helpers/resource-workflows-fixtures.mjs';
 import { attemptPrompt, checkInteraction, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
+import { evaluateSimplify } from '../helpers/resource-workflows-simplify-outcome.mjs';
+import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
 
 function assistantText(session) {
   return session.records
@@ -98,29 +99,28 @@ export default async function drive(context) {
       cleanup.session,
       `/skill:simplify ${join(cleanup.cwd, 'greeting.mjs')} My project root is ${cleanup.cwd}. Clean up the changed greeting code without changing its behavior. Use the available subagent tool for the independent reviews. Run the existing checks when finished.`,
     );
-    let testsAfter;
-    try {
-      testsAfter = execFileSync('/usr/bin/sandbox-exec', ['-f', cleanup.profile, 'node', '--test', 'greeting.test.mjs'], { cwd: cleanup.cwd, env: { ...process.env, ...cleanup.env }, encoding: 'utf8', timeout: 10000, maxBuffer: 1048576 });
-    } catch (failure) {
-      testsAfter = failure.stdout?.toString() ?? failure.message;
-    }
+    const observe = (args) => {
+      const result = spawnSync('/usr/bin/sandbox-exec', ['-f', cleanup.profile, 'node', ...args], { cwd: cleanup.cwd, env: { ...process.env, ...cleanup.env }, encoding: 'utf8', timeout: 10000, maxBuffer: 1048576 });
+      return { code: result.status, signal: result.signal, error: result.error?.message ?? null, stdout: result.stdout ?? '', stderr: result.stderr ?? '' };
+    };
+    const testsAfter = observe(['--test', 'greeting.test.mjs']);
+    const greetingProgram = ['import { greet } from "./greeting.mjs";', 'const results = [greet("Ada"), greet("")];', 'process.stdout.write(JSON.stringify(results) + "\\n");'].join('\n');
+    const greeting = observe(['--input-type=module', '-e', greetingProgram]);
     writeFileSync(join(cleanup.out, 'tests-before.txt'), testsBefore);
-    writeFileSync(join(cleanup.out, 'tests-after.txt'), testsAfter);
+    writeFileSync(join(cleanup.out, 'tests-after.txt'), testsAfter.stdout);
+    writeFileSync(join(cleanup.out, 'execution.json'), JSON.stringify({ tests: testsAfter, greeting }, null, 2));
     const testsUnchanged = readFileSync(join(cleanup.cwd, 'greeting.test.mjs'), 'utf8') === testSource;
     const changed = readFileSync(join(cleanup.cwd, 'greeting.mjs'), 'utf8') !== before;
     preserve(cleanup.cwd, cleanup.out);
     cpSync(cleanup.agentDir, join(cleanup.out, 'agent'), { recursive: true });
-    finish(
-      'RS-SKILL-3',
-      {
-        verdict: error || !testsUnchanged ? 'failed' : 'inconclusive',
-        error,
-        changed,
-        testsUnchanged,
-        reason: 'A changed file or passing test cannot prove four real concurrent reviewers. Child transcripts and overlap require independent audit.',
-      },
-      cleanup.out,
-    );
+    const facts = {
+      invocation: { error },
+      execution: { tests: testsAfter, greeting },
+      evidence: { reviewers: [], orderingComplete: false, firstEditAt: null, unavailable: 'RPC capture has no authenticated owned child metadata/transcript pointers or complete edit timeline.' },
+      results: { testsUnchanged, changed },
+      rescue: { performed: false },
+    };
+    finish('RS-SKILL-3', { ...facts, ...evaluateSimplify(facts) }, cleanup.out);
   } finally {
     await cleanup.session.close();
   }
@@ -150,7 +150,7 @@ export default async function drive(context) {
           });
           replayCode = 0;
         } catch (failure) {
-          replay = failure.stdout?.toString() + '\n' + failure.stderr?.toString();
+          replay = `${failure.stdout?.toString()}\n${failure.stderr?.toString()}`;
           replayCode = failure.status;
         }
       } else replay = 'Corpus was not safe for independent replay.';
