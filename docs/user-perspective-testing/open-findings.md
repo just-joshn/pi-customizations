@@ -257,13 +257,15 @@ Setting `EXECUTION_SUBAGENT_MODEL` to an unknown value does not fail. It falls b
 
 ## F-023: two defensive guards are unreachable from a real session
 
-**Status.** fixed
+**Status.** open
 
-**Verification defect fixed.** The original static-tool experiments did not establish universal unreachability. `87eeb18` adds isolated packages with each guard registration omitted. `1a5acbc` adds real parent-child drives that exercise the production guards and those controls. With the write gate omitted, the child writes the file. With the tool policy omitted, the MCP server executes the call. The production package rejects both operations. Neither guard was deleted or weakened.
+**Remaining legacy-producer defect.** The new dynamic drive reaches both guards, but `pstack-hooks-policy.mjs` still emits unconditional `not-drivable` receipts with universal unreachability reasons for PS-EVT-30 and PS-EVT-31. Those claims contradict the dynamic observations. Closure requires a failing-before/passing-after regression on that actual producer and its replacement with the full guard checks, not just a stronger supplemental receipt.
+
+**Supplemental verification implemented.** The original static-tool experiments did not establish universal unreachability. `87eeb18` adds isolated packages with each guard registration omitted. `1a5acbc` adds real parent-child drives that exercise the production guards and those controls. With the write gate omitted, the child writes the file. With the tool policy omitted, the MCP server executes the call. The production package rejects both operations. Neither guard was deleted or weakened.
 
 **Reachable mechanisms.** The writer child starts while its parent has write permission, then waits while a companion command removes that permission from the live parent. Its subsequent write reaches the guard and receives the plan-mode refusal. The tool-policy child starts with a named tool list. A direct MCP server completes registration after the initial filter and activates its tool for a later turn. The call reaches the policy guard and receives the named-tool refusal. The production write file and MCP call marker remain absent; both omitted-guard controls produce their respective effects.
 
-**Fresh real-artifact verification.** The coordinator re-ran `control-pi drive pstack-hooks-guards` on installed Pi 1.1.0 and obtained both behavioural receipts with exit 0. The current-host log is `artifacts/user-perspective/resume-1.1.0/f023-guards.log`. Production and control child transcripts, actual provider tool declarations, and exact omitted registrations are under `artifacts/user-perspective/pstack-hooks-guards/raw/`. These observations close the coverage defect rather than claiming a new product guard was required.
+**Fresh real-artifact verification.** The coordinator re-ran `control-pi drive pstack-hooks-guards` on installed Pi 1.1.0 and obtained both behavioural receipts with exit 0. The current-host log is `artifacts/user-perspective/resume-1.1.0/f023-guards.log`. Production and control child transcripts, actual provider tool declarations, and exact omitted registrations are under `artifacts/user-perspective/pstack-hooks-guards/raw/`. These observations prove dynamic reachability. They do not close the still-incorrect legacy receipt producer.
 
 **Original finding.** Found by `PS-EVT-30` and `PS-EVT-31`. Pi rejects a call to a deactivated tool with `Tool <name> not found` before any `tool_call` hook runs, so the policy guard for that case cannot execute. An agent with a named tool list never receives the other tools, and a child whose parent lacks `write` and `edit` has them dropped from its plan, so the second guard is unreachable for the same reason.
 
