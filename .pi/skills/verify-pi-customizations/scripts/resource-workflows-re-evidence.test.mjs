@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { test } from 'node:test';
@@ -147,6 +147,33 @@ ownedTest('malformed corpus returns a gap instead of throwing', 'complete', (inp
   const evidence = collectReEvidence(input);
   assert.equal(evidence.corpusComplete, false);
   assert.equal(evidence.replayCode, null);
+});
+
+ownedTest('neighbor Python modules cannot execute during authenticated replay', 'complete', (input) => {
+  const marker = join(input.cwd, 'import-executed');
+  writeFileSync(join(input.re, 'repro/scripts/argparse.py'), `from pathlib import Path\nPath(${JSON.stringify(marker)}).write_text('unsafe import')\nraise RuntimeError('shadow module')\n`);
+  const evidence = collectReEvidence(input);
+  assert.equal(existsSync(marker), false);
+  assert.equal(evidence.replayCode, 0);
+});
+ownedTest('PATH shadowing cannot replace the frozen interpreter', 'complete', (input) => {
+  const directory = join(input.cwd, 'shadow');
+  mkdirSync(directory);
+  const marker = join(input.cwd, 'runtime-replaced');
+  writeFileSync(join(directory, 'python3'), `#!/bin/sh\nprintf shadow > '${marker}'\nexec '${input.frozen.runtime}' "$@"\n`, { mode: 0o755 });
+  const evidence = collectReEvidence({ ...input, env: { PATH: `${directory}:${process.env.PATH}` } });
+  assert.equal(existsSync(marker), false);
+  assert.equal(evidence.identityMatches, true);
+  assert.equal(evidence.replayCode, 0);
+});
+ownedTest('claim links have host-owned comparisons to actual fresh replay observations', 'complete', (input) => {
+  const evidence = collectReEvidence(input);
+  assert.equal(evidence.linkAudits.length, 4);
+  assert.equal(
+    evidence.linkAudits.every((item) => item.matches === true && item.actualRun === evidence.replay.run),
+    true,
+  );
+  assert.equal(evidence.manualGaps.includes('Original agent-recorded capture provenance is not authenticated.'), true);
 });
 
 ownedTest('unsafe argv, environment, timing and I/O controls block replay', 'complete', (input) => {
