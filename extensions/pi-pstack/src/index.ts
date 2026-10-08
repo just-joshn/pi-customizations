@@ -9,6 +9,7 @@ import { registerContext, registerStatus } from './context.ts';
 import { registerGoal } from './goal.ts';
 import { hostInstructions } from './host.ts';
 import { hostVersionNotice } from './host-version.ts';
+import { registerFigureItOutPlaybookGate } from './figure-it-out-playbook-gate.ts';
 import { registerHowSpawnGate } from './how-spawn-gate.ts';
 import { FIRST_ACTION_RULE_TYPE, firstActionRule, usesAnthropicMessages } from './mode-rule.ts';
 import { readModelRule } from './models.ts';
@@ -80,6 +81,7 @@ export default async function pstack(pi: ExtensionAPI) {
   registerWorkers(pi);
   registerHowSpawnGate(pi);
   registerWhySpawnGate(pi);
+  registerFigureItOutPlaybookGate(pi);
   registerShells(pi);
   registerGoal(pi);
   registerTimers(pi);
