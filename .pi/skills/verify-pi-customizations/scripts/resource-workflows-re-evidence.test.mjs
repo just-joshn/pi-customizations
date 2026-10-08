@@ -149,6 +149,12 @@ ownedTest('malformed corpus returns a gap instead of throwing', 'complete', (inp
   assert.equal(evidence.replayCode, null);
 });
 
+ownedTest('actual replay streams remain readable after the owned scratch workspace is removed', 'complete', (input) => {
+  const evidence = collectReEvidence(input);
+  rmSync(input.re, { recursive: true });
+  assert.deepEqual(evidence.replayObservations.map((item) => ({ args: item.args, stdout: readFileSync(item.stdoutPath, 'utf8'), stderr: readFileSync(item.stderrPath, 'utf8'), code: item.code })), expected);
+});
+
 ownedTest('neighbor Python modules cannot execute during authenticated replay', 'complete', (input) => {
   const marker = join(input.cwd, 'import-executed');
   writeFileSync(join(input.re, 'repro/scripts/argparse.py'), `from pathlib import Path\nPath(${JSON.stringify(marker)}).write_text('unsafe import')\nraise RuntimeError('shadow module')\n`);
