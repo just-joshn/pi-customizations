@@ -18,15 +18,19 @@ function preserve(cwd, out) {
   cpSync(cwd, join(out, 'workspace'), { recursive: true });
 }
 
+export function writeOutcomeReceipt({ repoRoot, receipts }, outcome) {
+  const rows = readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8').split('\n');
+  const expected = rows.find((row) => row.startsWith(`${outcome.surfaceId}\t`)).split('\t')[6];
+  return receipts.write({ ...outcome, expected });
+}
+
 export default async function drive(context) {
   const { repoRoot, scratchDir, artifactDir, receipts } = context;
-  const rows = readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8').split('\n');
   const summary = [];
-  const expected = (id) => rows.find((row) => row.startsWith(`${id}\t`)).split('\t')[6];
   const finish = (id, status, out) => {
     writeFileSync(join(out, 'attempt.json'), `${JSON.stringify(status, null, 2)}\n`);
     summary.push({ id, ...status });
-    receipts.write({ surfaceId: id, package: 'skills', expected: expected(id), observed: JSON.stringify(status), evidence: join(out, 'attempt.json'), verdict: status.verdict, reason: status.reason });
+    writeOutcomeReceipt({ repoRoot, receipts }, { surfaceId: id, package: 'skills', observed: JSON.stringify(status), evidence: join(out, 'attempt.json'), verdict: status.verdict, reason: status.reason });
   };
   const launch = (name, packagePath) => {
     const out = join(artifactDir, name);

@@ -20,6 +20,14 @@ function stopOwnedServer(cwd) {
   }
 }
 
+export function writeOutcomeReceipt({ repoRoot, receipts }, outcome) {
+  const expected = readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8')
+    .split('\n')
+    .find((line) => line.startsWith(`${outcome.surfaceId}\t`))
+    .split('\t')[6];
+  return receipts.write({ ...outcome, expected });
+}
+
 export default async function drive({ repoRoot, artifactDir, receipts }) {
   const attempts = [];
   for (const kind of ['cli', 'electron', 'library', 'playwright', 'server', 'tui']) {
@@ -75,14 +83,9 @@ export default async function drive({ repoRoot, artifactDir, receipts }) {
   mkdirSync(artifactDir, { recursive: true });
   const summary = join(artifactDir, 'summary.json');
   writeFileSync(summary, `${JSON.stringify(attempts, null, 2)}\n`);
-  const expected = readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8')
-    .split('\n')
-    .find((line) => line.startsWith('RS-SKILL-2\t'))
-    .split('\t')[6];
-  receipts.write({
+  writeOutcomeReceipt({ repoRoot, receipts }, {
     surfaceId: 'RS-SKILL-2',
     package: 'skills',
-    expected,
     observed: JSON.stringify(attempts),
     evidence: summary,
     verdict: attempts.some((attempt) => attempt.error) ? 'failed' : 'inconclusive',

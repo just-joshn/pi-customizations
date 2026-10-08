@@ -6,6 +6,14 @@ import { captureReference, comparePackaged, GREETING_CASES } from '../helpers/re
 import { seedGreetingCli } from '../helpers/resource-workflows-fixtures.mjs';
 import { attemptPrompt, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
 
+export function writeOutcomeReceipt({ repoRoot, receipts }, outcome) {
+  const expected = readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8')
+    .split('\n')
+    .find((line) => line.startsWith(`${outcome.surfaceId}\t`))
+    .split('\t')[6];
+  return receipts.write({ ...outcome, expected });
+}
+
 export default async function drive({ repoRoot, artifactDir, receipts }) {
   const root = mkdtempSync('/tmp/rw-');
   const fixture = makeLocalSession({ root, out: artifactDir, repoRoot });
@@ -60,14 +68,9 @@ export default async function drive({ repoRoot, artifactDir, receipts }) {
     const differentialRequested = toolCalls.some((call) => call.name === 'bash' && call.arguments?.command?.includes('differential.py'));
     const result = { error, referenceSha256: reference.sha, referenceCapturedBeforeInvocation: true, packagedArtifactPresent: existsSync(artifact), comparison, differentialRequested };
     writeFileSync(join(artifactDir, 'comparison.json'), JSON.stringify(result, null, 2));
-    const expected = readFileSync(join(repoRoot, 'docs/user-perspective-testing/surfaces.tsv'), 'utf8')
-      .split('\n')
-      .find((line) => line.startsWith('RS-SKILL-5\t'))
-      .split('\t')[6];
-    receipts.write({
+    writeOutcomeReceipt({ repoRoot, receipts }, {
       surfaceId: 'RS-SKILL-5',
       package: 'skills',
-      expected,
       observed: JSON.stringify(result),
       evidence: join(artifactDir, 'comparison.json'),
       verdict: error || (comparison && !comparison.allMatched) ? 'failed' : 'inconclusive',
