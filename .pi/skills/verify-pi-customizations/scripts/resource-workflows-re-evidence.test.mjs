@@ -152,7 +152,10 @@ ownedTest('malformed corpus returns a gap instead of throwing', 'complete', (inp
 ownedTest('actual replay streams remain readable after the owned scratch workspace is removed', 'complete', (input) => {
   const evidence = collectReEvidence(input);
   rmSync(input.re, { recursive: true });
-  assert.deepEqual(evidence.replayObservations.map((item) => ({ args: item.args, stdout: readFileSync(item.stdoutPath, 'utf8'), stderr: readFileSync(item.stderrPath, 'utf8'), code: item.code })), expected);
+  assert.deepEqual(
+    evidence.replayObservations.map((item) => ({ args: item.args, stdout: readFileSync(item.stdoutPath, 'utf8'), stderr: readFileSync(item.stderrPath, 'utf8'), code: item.code })),
+    expected,
+  );
 });
 
 ownedTest('neighbor Python modules cannot execute during authenticated replay', 'complete', (input) => {
