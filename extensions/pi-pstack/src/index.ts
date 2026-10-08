@@ -13,6 +13,7 @@ import { registerFigureItOutPlaybookGate } from './figure-it-out-playbook-gate.t
 import { registerHowSpawnGate } from './how-spawn-gate.ts';
 import { FIRST_ACTION_RULE_TYPE, firstActionRule, usesAnthropicMessages } from './mode-rule.ts';
 import { readModelRule } from './models.ts';
+import { registerPotetoPlaybookTodoGate } from './poteto-playbook-todo-gate.ts';
 import { registerQuestions } from './questions.ts';
 import { registerRoutines } from './routines.ts';
 import { registerSetupTool } from './setup-tool.ts';
@@ -82,6 +83,7 @@ export default async function pstack(pi: ExtensionAPI) {
   registerHowSpawnGate(pi);
   registerWhySpawnGate(pi);
   registerFigureItOutPlaybookGate(pi);
+  registerPotetoPlaybookTodoGate(pi, store);
   registerShells(pi);
   registerGoal(pi);
   registerTimers(pi);
