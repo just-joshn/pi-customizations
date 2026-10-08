@@ -350,14 +350,14 @@
     {
       "id": "CMD-POTETO-HELP-RECOMMENDATION",
       "requirementId": "PSTACK-CMD-POTETO-HELP-NO-WORK-001",
-      "status": "open",
-      "candidateRevision": "uncommitted-help-recommend",
+      "status": "closed-paired-parity",
+      "candidateRevision": "af4c2bda6a8d23ddce53040f6c1313e23ed4d02d",
       "referenceSource": "parity/reference/cursor-plugins/pstack/skills/poteto-help/SKILL.md",
       "discoveredBy": "parity/evidence/commands/pair-commands-help-cancel-1.json",
       "expected": "Same help question yields comparable skill recommendation (same primary skill or documented host mapping).",
-      "actual": "Cursor recommended /interrogate; Pi recommended /review-and-ship (with /interrogate as alternative). Help-no-work (no skill started) matched.",
+      "actual": "After resource-row encoding, both sides lead with /interrogate for branch review. /review-and-ship kept as ship-path close-call only.",
       "consequence": "Family-03 help path is only partial; skill-routing parity not established.",
-      "acceptanceVerdict": "fail-paired-delta",
+      "acceptanceVerdict": "pass-paired",
       "classification": "behavior-delta",
       "evidence": [
         "parity/evidence/commands/pair-commands-help-cancel-1.json",
@@ -367,6 +367,20 @@
       "attemptIds": {
         "cursor": "d20bff6f-9012-4d81-a1dc-cccd7202c4b8",
         "pi": "e6909603-6d1f-4828-a1f2-d9f2d6d0be4c"
+      },
+      "closure": {
+        "pairedRun": "parity/evidence/commands/pair-commands-help-recommend-1.json",
+        "attemptIds": {
+          "cursor": "cc0e3b4c-3d78-416d-98d5-e71ed57d12d9",
+          "pi": "91fa6578-cce4-4b5a-abc2-9fe1e90f2b42"
+        },
+        "evidence": [
+          "parity/evidence/commands/pair-commands-help-recommend-1.json",
+          "parity/briefs/reports/u-help-recommend-fix-report.md"
+        ],
+        "repair": "60-help.mjs named situation + close-call",
+        "closedAt": "2026-10-08T18:28:12Z",
+        "commit": "af4c2bda6a8d23ddce53040f6c1313e23ed4d02d"
       }
     }
   ]

@@ -713,6 +713,17 @@
           },
           "closedAt": "2026-10-08T18:20:14Z",
           "note": "Both sides answered help, handed a copyable prompt, did not start the recommended skill. Recommendation strings diverge (open mismatch)."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/commands/pair-commands-help-recommend-1.json",
+          "attempts": {
+            "cursor": "cc0e3b4c-3d78-416d-98d5-e71ed57d12d9",
+            "pi": "91fa6578-cce4-4b5a-abc2-9fe1e90f2b42"
+          },
+          "closedAt": "2026-10-08T18:28:18Z",
+          "commit": "af4c2bda6a8d23ddce53040f6c1313e23ed4d02d",
+          "note": "Recapture after help routing fix: both sides primary /interrogate; no skill started."
         }
       ]
     },
