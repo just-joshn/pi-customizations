@@ -1,0 +1,36 @@
+ ai/gpt-5-nano","openai/gpt-5-pro","openai/gpt-5.1","openai/gpt-5.2","openai/gpt-5.2-chat-latest","openai/gpt-5.2-pro" │
+ ,"openai/gpt-5.3-chat-latest","openai/gpt-5.3-codex","openai/gpt-5.3-codex-spark","openai/gpt-5.4","openai/gpt-5.4-mi │
+ ni","openai/gpt-5.4-nano","openai/gpt-5.4-pro","openai/gpt-5.5","openai/gpt-5.5-pro","openai/gpt-5.6-luna","openai/gp │
+ t-5.6-sol","openai/gpt-5.6-terra","openai/gpt-6-astra","openai/gpt-6-luna","openai/gpt-6-sol","openai/gpt-6.1-sol","o │
+ penai/gpt-daybreak-blue-latest","openai/gpt-daybreak-red-latest","openai/gpt-realtime-2.1","openai/o1","openai/o1-pro │
+ ","openai/o3","openai/o3-mini","openai/o3-pro","openai/o4-mini","claude-subscription/claude-fable-5","claude-subscrip │
+ tion/claude-fable-5-1","claude-subscription/claude-haiku-4-5","claude-subscription/claude-haiku-4-5-20251001","claude │
+ -subscription/claude-haiku-5-5","claude-subscription/claude-opus-4-5","claude-subscription/claude-opus-4-5-20251101", │
+ "claude-subscription/claude-opus-4-6","claude-subscription/claude-opus-4-7","claude-subscription/claude-opus-4-8","cl │
+ aude-subscription/claude-opus-5","claude-subscription/claude-opus-5-5","claude-subscription/claude-sonnet-4-5","claud │
+ e-subscription/claude-sonnet-4-5-20250929","claude-subscription/claude-sonnet-4-6","claude-subscription/claude-sonnet │
+ -5","claude-subscription/claude-sonnet-5-5","google-antigravity/gemini-3.8-flash","google-antigravity/gemini-3.7-flas │
+ h","google-antigravity/gemini-3.6-flash","google-antigravity/gemini-3.1-pro","google-antigravity/claude-opus-5-5","go │
+ ogle-antigravity/claude-sonnet-5-5","google-antigravity/gpt-oss-120b"],"history":[],"omitted":{"entries":0,"tools":0, │
+ "models":0,"history":0},"historyDiscovery":{"mode":"not-requested","completeness":"unknown"}}                         │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/why/references && ls .       │
+ sources; cat investigator-prompt.md synthesizer-prompt.md | head -150 (timeout 10s)                                   │
+                                                                                                                       │
+ ... (208 earlier lines, ctrl+o to expand)                                                                             │
+ it. Don't propagate errors.                                                                                           │
+ 6. **Don't overreach.** The user will act on your output. Better to leave an open question open than to fill it with  │
+ a confident-sounding guess.                                                                                           ┃
+                                                                                                                       ┃
+ ## Output Format                                                                                                      ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+
+── ⠙ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑4 ↓368 R7.7k W20k CH28.1% $0.084 (sub) 3.4%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

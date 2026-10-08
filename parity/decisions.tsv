@@ -89,3 +89,5 @@ ts	phase	decision	why	evidence	result
 2026-10-08T18:21:17Z	spawn	Wave: help-recommend-fix, journey-06, dep-closure-002, journey-05-why	Queue was empty; goal still BLOCKED	parity/briefs/u-help-recommend-fix.md	open
 2026-10-08T18:25:14Z	merge	Merged dep-closure-wave-002 node/edge mutations	Verified inventory hashes; kept closureAudited false	parity/research/dep-closure-wave-002/merge-proposal.json	merged
 2026-10-08T18:28:18Z	close	Closed CMD-POTETO-HELP-RECOMMENDATION after failed first ledger write	Python merge crashed before write; reapplied close	parity/mismatches.json	closed-paired-parity
+2026-10-08T18:44:43Z	drain	Verified WHY-MOTIVATION; opened WHY-INVESTIGATOR-SPAWN	Answer shape matched; investigator fan-out did not	parity/evidence/why/pair-why-1.json	partial-spawn
+2026-10-08T18:55:28Z	close	Closed WHY-INVESTIGATOR-SPAWN after 2490904 + pair-why-2	Pi Task investigators measured; prefs require commit+pair	parity/evidence/why/pair-why-2.json	closed-paired-parity

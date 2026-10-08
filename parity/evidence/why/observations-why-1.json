@@ -1,0 +1,50 @@
+{
+  "pairId": "why-1",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "digestsMatch": true,
+  "ruleUnchangedBoth": true,
+  "cursor": {
+    "attemptId": "97771f92-7d64-4ad8-9821-48701fe13881",
+    "skillAttach": {
+      "observed": "slash /why submitted; PTY later showed Spawning source-control investigators and Running subagent",
+      "usedWhyChrome": false,
+      "evidence": [
+        "screen-01-after-trigger.txt shows /why what forces led...",
+        "decoded events contain Spawning source and Running subagent",
+        "screen-02-final.txt ends with Sources Consulted shape and Confidence Summary"
+      ]
+    },
+    "investigators": {
+      "ptyRunningSubagent": true,
+      "fabricatedIds": false,
+      "note": "PTY shows Running subagent chrome; no Task agent UUID asserted beyond chrome text"
+    },
+    "completedWhyAnswer": true
+  },
+  "pi": {
+    "attemptId": "ceff7d79-2c2a-479b-b2a8-a7e529d9e8ce",
+    "skillAttach": {
+      "observed": "[skill] why chrome plus residual prompt after slash strip",
+      "residualPrompt": "what forces led pstack to use inherit-parent on role model lines in models.mdc",
+      "evidence": [
+        "screen-01-after-trigger.txt line [skill] why",
+        "session user message embeds skill name=why"
+      ]
+    },
+    "investigators": {
+      "sessionToolCalls": ["bash"],
+      "taskToolCalled": false,
+      "subagentDirPresent": false,
+      "ptyRunningSubagent": false,
+      "fabricatedIds": false,
+      "note": "Parent answered inline with bash only. Sources Consulted lists non-source-control categories as a judgment call skip, not MCP-absent."
+    },
+    "completedWhyAnswer": true
+  },
+  "attempt1Discarded": {
+    "reason": "Pi slash strip left residual 'does pstack...'; which the model treated as yes/no and skipped the why playbook",
+    "cursorAttemptId": "90041dbb-c06d-4595-a4c4-3fd83674de22",
+    "piAttemptId": "5c9a69d5-fa5e-4cbc-9fbc-71198406592b",
+    "archive": "parity/evidence/why/attempt-1-residual-yesno"
+  }
+}

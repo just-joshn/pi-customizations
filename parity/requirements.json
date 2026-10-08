@@ -659,8 +659,30 @@
       "scenarioIds": [
         "cmd-why-motivation"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/why/pair-why-1.json",
+          "attempts": {
+            "cursor": "97771f92-7d64-4ad8-9821-48701fe13881",
+            "pi": "ceff7d79-2c2a-479b-b2a8-a7e529d9e8ce"
+          },
+          "closedAt": "2026-10-08T18:44:43Z",
+          "note": "Both sides produced why-shaped motivation answers (Sources Consulted + Confidence). Pi attached [skill] why but used bash only (no Task investigators); Cursor showed Running subagent. Spawn delta tracked as WHY-INVESTIGATOR-SPAWN."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/why/pair-why-2.json",
+          "attempts": {
+            "cursor": "97771f92-7d64-4ad8-9821-48701fe13881",
+            "pi": "3a299cdd-e423-436e-b850-e58fc207c688"
+          },
+          "closedAt": "2026-10-08T18:55:28Z",
+          "commit": "2490904137e4517c08961a3e0532f388d65a864d",
+          "note": "Post why-spawn-gate: Pi Task why-source-control + why-synthesizer observed in method-a-session.json"
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-POTETO-HELP-NO-WORK-001",

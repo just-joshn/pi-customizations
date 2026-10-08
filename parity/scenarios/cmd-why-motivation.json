@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-why-motivation",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-WHY-MOTIVATION-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/why/SKILL.md## Why companion paragraphs",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "why motivation question",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Ask why a design looks the way it does.. why investigates motivation and intent; it does not substitute for how runtime behavior answers."
+    }
+  ],
+  "execution": {
+    "referenceRun": "97771f92-7d64-4ad8-9821-48701fe13881",
+    "candidateRun": "3a299cdd-e423-436e-b850-e58fc207c688",
+    "pairId": "why-2",
+    "pairPath": "parity/evidence/why/pair-why-2.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T18:55:28Z",
+    "commit": "2490904137e4517c08961a3e0532f388d65a864d"
+  },
+  "relatedPairs": [
+    "parity/evidence/why/pair-why-1.json",
+    "parity/evidence/why/pair-why-2.json"
+  ]
+}

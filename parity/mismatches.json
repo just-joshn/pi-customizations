@@ -382,6 +382,43 @@
         "closedAt": "2026-10-08T18:28:12Z",
         "commit": "af4c2bda6a8d23ddce53040f6c1313e23ed4d02d"
       }
+    },
+    {
+      "id": "WHY-INVESTIGATOR-SPAWN",
+      "requirementId": "PSTACK-CMD-WHY-MOTIVATION-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "2490904137e4517c08961a3e0532f388d65a864d",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/why/SKILL.md",
+      "discoveredBy": "parity/evidence/why/pair-why-1.json",
+      "expected": "why spawns parallel investigators (Task/subagents) before synthesizing motivation, matching Cursor Running subagent chrome.",
+      "actual": "After why-spawn-gate, Pi session spawns why-source-control and why-synthesizer Tasks (attempt 3a299cdd-e423-436e-b850-e58fc207c688). Cursor reuse 97771f92-7d64-4ad8-9821-48701fe13881 already showed Running subagent.",
+      "consequence": "Method A investigator fan-out parity for why is incomplete even though the final answer shape matched.",
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/why/pair-why-1.json",
+        "parity/briefs/reports/u-journey-family-05-why-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "97771f92-7d64-4ad8-9821-48701fe13881",
+        "pi": "ceff7d79-2c2a-479b-b2a8-a7e529d9e8ce"
+      },
+      "closure": {
+        "pairedRun": "parity/evidence/why/pair-why-2.json",
+        "attemptIds": {
+          "cursor": "97771f92-7d64-4ad8-9821-48701fe13881",
+          "pi": "3a299cdd-e423-436e-b850-e58fc207c688"
+        },
+        "evidence": [
+          "parity/evidence/why/pair-why-2.json",
+          "parity/briefs/reports/u-why-spawn-gate-report.md",
+          "parity/evidence/why/pi/3a299cdd-e423-436e-b850-e58fc207c688/method-a-session.json"
+        ],
+        "repair": "why-spawn-gate.ts: allow Step-2 tools; nudge then block until general-purpose Task",
+        "closedAt": "2026-10-08T18:55:28Z",
+        "commit": "2490904137e4517c08961a3e0532f388d65a864d"
+      }
     }
   ]
 }

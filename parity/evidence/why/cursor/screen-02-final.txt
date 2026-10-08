@@ -1,0 +1,35 @@
+  • Error / exception tracking: Not searched. No matching MCP available.
+  • Product analytics warehouse: Not searched. No matching MCP available.
+
+  Preserve / Change / Avoid / Risk (if changing this)
+
+  ┌──────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │      │                                                                                                         │
+  ├──────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Pres │ Alias → omit Task model semantics; Auto users must not need an invented Auto Task slug; real-slug       │
+  │ erve │ validation vs always-valid aliases; panel list length still counts with alias entries                   │
+  ├──────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Chan │ Only with an explicit product decision: template defaults (real slugs vs inherit), whether setup should │
+  │ ge   │ prefer all-inherit for Auto-only, or renaming auto / inherit-parent                                     │
+  ├──────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Avoi │ Prefilling live operator files from speculation; treating code that omits model as proof of new intent; │
+  │ d    │ conflating main skill defaults with one user’s all-inherit rule                                         │
+  ├──────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Risk │ All-inherit panels lose model diversity by design; inventing/remapping slugs reopens allowlist          │
+  │      │ breakage; spreading omit-model prose into every consumer again (#167 already cut that as non-governing) │
+  └──────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+  Confidence Summary
+
+  The core rationale (Auto/Auto-plan stay-on-parent via omit-model) is Direct from PR #163 and setup prose. That
+  main skill defaults are still real slugs is also Direct. Why your live file is all-inherit-parent is Unknown. Slug
+  allowlist pain is a later, secondary pressure, not the inventing force.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 32.5%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

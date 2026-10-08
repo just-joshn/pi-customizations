@@ -1,0 +1,45 @@
+{
+  "pairId": "why-2",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "digestsMatch": true,
+  "ruleUnchangedBoth": true,
+  "cursor": {
+    "attemptId": "97771f92-7d64-4ad8-9821-48701fe13881",
+    "reusedFrom": "why-1",
+    "investigators": {
+      "ptyRunningSubagent": true,
+      "fabricatedIds": false
+    },
+    "completedWhyAnswer": true
+  },
+  "pi": {
+    "attemptId": "3a299cdd-e423-436e-b850-e58fc207c688",
+    "skillAttach": {
+      "observed": "slash /why submitted; session embeds skill name=why; residual motivation prompt",
+      "evidence": [
+        "session user message embeds skill name=why",
+        "screen-02-final Sources consulted + investigator wording"
+      ]
+    },
+    "investigators": {
+      "sessionToolCalls": ["bash", "pstack_context", "bash", "bash", "task", "task"],
+      "taskToolCalled": true,
+      "taskNames": ["why-source-control", "why-synthesizer"],
+      "agentType": "general-purpose",
+      "subagentDirPresent": true,
+      "subagentIds": [
+        "2cc47f69-9825-482a-8825-c168ed0a2f9f",
+        "8b4bc428-a6bc-47c6-90d2-88326f079840"
+      ],
+      "ptyRunningSubagent": false,
+      "fabricatedIds": false,
+      "note": "Session + subagent jsonl are primary Pi evidence (Cursor chrome patterns absent). Gate settle nudge did not fire; parent Task'd after Step 2 bash."
+    },
+    "completedWhyAnswer": true
+  },
+  "why1Baseline": {
+    "piAttemptId": "ceff7d79-2c2a-479b-b2a8-a7e529d9e8ce",
+    "piTaskToolCalled": false,
+    "delta": "why-spawn-gate present on why-2 Pi run; absent on why-1 Pi run"
+  }
+}

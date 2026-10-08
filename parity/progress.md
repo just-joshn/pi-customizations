@@ -733,3 +733,12 @@ In-flight emptied. Spawned help-recommend-fix, journey-family-06, dep-closure-wa
 ## Continuation checkpoint — 2026-10-08T18:28:18Z (help-recommend closed)
 
 Closed CMD-POTETO-HELP-RECOMMENDATION on af4c2bd + pair-commands-help-recommend-1. Only MODE-STICKY harness mismatch remains open.
+
+## Continuation checkpoint — 2026-10-08T18:44:43Z (journey-family-05-why drain)
+
+[Capture why playbook journey pair](4e439a26-645a-491e-8989-2db73e5e4deb) pass for linked pair. Verified PSTACK-CMD-WHY-MOTIVATION-001 on `why-1`. Opened WHY-INVESTIGATOR-SPAWN (Pi bash-only vs Cursor subagent). Family-05 remains partial.
+
+## Continuation checkpoint — 2026-10-08T18:55:28Z (why-spawn-gate)
+
+[Add why investigator spawn gate](933f6aa5-9dfe-49b7-a0a2-03b6c603dd6f) pass. Commit . Closed WHY-INVESTIGATOR-SPAWN on pair-why-2 (pi 3a299cdd-e423-436e-b850-e58fc207c688). Open mismatches now: MODE-STICKY harness only.
+
