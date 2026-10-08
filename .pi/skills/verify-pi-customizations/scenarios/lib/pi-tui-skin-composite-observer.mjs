@@ -1,18 +1,4 @@
 #!/usr/bin/env node
-/**
- * Observer adapter for the F-014 composite drive.
- *
- * A frame cannot show a teardown: the surfaces are gone by the time the next
- * capture is taken. This wrapper is the extension entrypoint instead of the
- * production `src/index.ts`. It calls the production default export with a
- * proxy whose `ui` property records every `ctx.ui.<method>` call and delegates
- * to the real UI object, so the rendered terminal behaviour is unchanged and
- * every cleanup call is observed as it happens. Nothing on the production
- * object is mutated or replaced.
- *
- * `__ENTRY__` is replaced with the absolute path of the module under test, so
- * the same wrapper drives the live entrypoint and an isolated mutant copy.
- */
 
 export const COMPOSITE_OBSERVER_SOURCE = `import { appendFileSync } from 'node:fs';
 import tuiSkin from '__ENTRY__';

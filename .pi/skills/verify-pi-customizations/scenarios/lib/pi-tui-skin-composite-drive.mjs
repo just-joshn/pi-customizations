@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-/**
- * Mechanical primitives for the F-014 composite drive: build an isolated
- * workspace, put the observer wrapper in front of a chosen entrypoint, drive
- * one owned tmux session through the composite turn sequence, and return the
- * captures plus the observer records.
- *
- * The checks and the mutation table live in the scenario file so the scenario
- * digest binds them. This module holds no expectation about the skin.
- */
 import { spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -32,12 +23,10 @@ const COMPOSITE_SLOW_TURN = 'run slow';
 const BAND_SAMPLES = 14;
 const BAND_SAMPLE_MS = 120;
 
-/** The live production entrypoint the composite drive loads by default. */
 export function compositeEntry(repoRoot) {
   return join(repoRoot, COMPOSITE_PACKAGE, 'src', 'index.ts');
 }
 
-/** An isolated copy of the package source with `mutate` applied, returning its entrypoint. */
 export function compositeMutantEntry({ repoRoot, layout, mutate }) {
   const root = join(layout.root, 'mutant');
   mkdirSync(join(root, 'src'), { recursive: true });
@@ -73,7 +62,6 @@ function save(rawDir, name, probe, plain) {
   return file;
 }
 
-/** The editor's top band: a `▄` fill row carrying the embedded working status. */
 function bandSamples(probe) {
   const samples = [];
   for (let index = 0; index < BAND_SAMPLES; index += 1) {
@@ -103,10 +91,6 @@ function footerRow(text, pattern) {
   return text.split('\n').find((line) => pattern.test(line)) ?? '';
 }
 
-/**
- * One composite session: idle, a slow tool turn sampled for the editor band,
- * a thinking change, a model change, two reload cycles, and a quit.
- */
 export function runCompositeDrive({ repoRoot, layout, providerPath, wrapperPath, recordPath, rawDir }) {
   const probe = startProbe({ layout, piArgs: piArgs(repoRoot, wrapperPath, providerPath), size: [110, 36], env: { COMPOSITE_OBSERVER_PATH: recordPath } });
   const captures = {};

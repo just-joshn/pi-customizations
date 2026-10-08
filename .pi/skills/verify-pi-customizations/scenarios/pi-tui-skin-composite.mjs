@@ -1,17 +1,4 @@
 #!/usr/bin/env node
-/**
- * F-014 composite rows, verified as whole rows in one real-Pi session.
- *
- * F-014 recorded five rows whose receipts asserted only part of the row text.
- * This scenario adds the missing observations without narrowing the rows:
- * every surface's individual uninstall across two reload cycles, the activity
- * widget line while the agent runs, both footer repaint triggers, a nonzero
- * context percentage, and the working animation inside the custom editor.
- *
- * The checks are pure predicates over the drive observations so the mutation
- * control can evaluate all of them per mutant. The default export below drives
- * the live entrypoint and writes the receipts.
- */
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -19,7 +6,6 @@ import { join } from 'node:path';
 import { piBinary, requireTmux } from '../../../../extensions/pi-tui-skin/scripts/lib/tmux-driver.mjs';
 import { COMPOSITE_IDLE_PLACEHOLDER, COMPOSITE_MODEL, COMPOSITE_MODEL_ALT, COMPOSITE_MODEL_COMMAND, COMPOSITE_PACKAGE, COMPOSITE_THINKING_HINT, COMPOSITE_WIDGET_LINE, runCompositeSession } from './lib/pi-tui-skin-composite-drive.mjs';
 
-/** The eight cleanup calls `uninstall` issues, each with its reset argument. */
 export const COMPOSITE_CLEANUPS = [
   { method: 'setWidget', isReset: (args) => args[0] === 'tui-skin.activity' && (args.length === 1 || args[1] === null) },
   { method: 'setEditorComponent', isReset: (args) => args[0] === null },
@@ -79,10 +65,7 @@ export const COMPOSITE_MUTATIONS = [
     expectFailed: ['TS-EVT-7'],
     apply: (srcDir) =>
       mutateSource(srcDir, 'ui/footer.ts', (text) =>
-        text
-          // biome-ignore lint/security/noSecrets: mutation needles are production source text, not credentials
-          .replace('const startingLevel = readThinking(ctx)?.level;', 'const startingLevel = readThinking(ctx)?.level;\n  const startingModel = readModel(ctx);')
-          .replace('const model = readModel(ctx);', 'const model = startingModel;'),
+        text.replace(/const startingLevel = readThinking\(ctx\)\?\.level;/, '$&\n  const startingModel = readModel(ctx);').replace('const model = readModel(ctx);', 'const model = startingModel;'),
       ),
   },
   {

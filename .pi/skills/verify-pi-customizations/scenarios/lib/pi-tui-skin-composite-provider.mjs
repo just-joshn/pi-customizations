@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-/**
- * The scripted provider the F-014 composite drive loads.
- *
- * It answers one turn with a slow bash tool and a closing reply, reports a
- * fixed nonzero usage so the footer renders a deterministic context
- * percentage, and exposes a second model so a model change is observable. It
- * never touches the network: `baseUrl` points at a closed port and every
- * response comes from `streamSimple`.
- */
 
 export const COMPOSITE_USAGE = { input: 2000, output: 30, cacheRead: 0, cacheWrite: 0, totalTokens: 2030 };
 export const COMPOSITE_CONTEXT_WINDOW = 128000;

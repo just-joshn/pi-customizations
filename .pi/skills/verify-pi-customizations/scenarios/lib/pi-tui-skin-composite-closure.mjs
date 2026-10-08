@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-/**
- * The bridge from a legacy scenario to the F-014 whole-row observations.
- *
- * A legacy receipt asserts one clause of its row. This drives the composite
- * session once per scenario into a dedicated `composite/` subdirectory of the
- * raw captures, then hands each receipt the matching whole-row result so the
- * receipt can require it beside its own clause. The subdirectory keeps the
- * composite capture names from overwriting the legacy ones.
- */
 import { join } from 'node:path';
 
 import { COMPOSITE_CHECKS } from '../pi-tui-skin-composite.mjs';

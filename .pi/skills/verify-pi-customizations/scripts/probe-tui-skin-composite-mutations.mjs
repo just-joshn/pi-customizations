@@ -1,16 +1,4 @@
 #!/usr/bin/env node
-/**
- * Mutation control for the F-014 composite checks.
- *
- * Each entry in COMPOSITE_MUTATIONS breaks exactly the behaviour its target
- * row claims, in an isolated copy of the package source. The probe drives real
- * Pi against that copy and asserts that the targeted checks fail while the
- * others still pass. That is the failing-before side of the composite
- * verification: a check that no mutation can turn red observes nothing.
- *
- * It writes evidence only. It never writes a receipt, so a mutant run cannot
- * leave a `failed` receipt that would outrank the production drive.
- */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';

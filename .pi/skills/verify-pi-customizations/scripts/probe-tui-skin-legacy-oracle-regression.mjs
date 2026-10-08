@@ -1,21 +1,4 @@
 #!/usr/bin/env node
-/**
- * Regression for the F-014 legacy receipt closure.
- *
- * `pi-tui-skin-flow` and `pi-tui-skin-chrome` assert a narrowed clause of five
- * rows, so a package mutation that breaks the rest of the row leaves the old
- * receipt `verified`. This probe drives the actual old scenario under each
- * mutant in a disposable git-archive checkout and requires the exact target
- * receipt to read `failed`. Widening those receipts to the whole row is what
- * this probe pins; before that closure the target stays `verified`.
- *
- * The checkout is a `git archive` of `--ref` (HEAD by default) with the mutant
- * applied and committed, so `head_sha` is the tree the drive actually ran. The
- * probe prints the resolved pi binary and its version, and accepts `--ref=<rev>`
- * so the same control can be replayed against the pre-fix commit. Every run
- * writes receipts only inside the throwaway checkout, never into this
- * repository's artifacts.
- */
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
