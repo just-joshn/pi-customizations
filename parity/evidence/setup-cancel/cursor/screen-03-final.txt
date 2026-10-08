@@ -1,0 +1,35 @@
+  every role is an alias, the budget choice won't move any role — the table stays all-inherit-parent unless you
+  hand-pick models.
+
+    AskQuestion Clarifying Questions (2)                                                 Questions skipped by user
+    1. Which reasoning budget should pstack roles use? (Current rule records: small (medium). Since all roles are
+    `inherit-parent`, this only sets the budget label unless you also pin specific models.)
+      [ ] unlimited — max reasoning
+      [ ] large — xhigh reasoning
+      [ ] medium — high reasoning
+      [ ] small — medium reasoning
+
+    2. Keep every role on `inherit-parent` (each role runs on the parent chat model)?
+      [ ] Keep all on inherit-parent (Recommended)
+      [ ] Change specific roles to pinned models
+
+  The questions were skipped, so I'll keep the current configuration untouched — it's already valid and idempotent.
+
+  Rule left as-is at ~/.cursor/rules/pstack-models.mdc:
+  • Budget: small (medium)
+  • All 17 roles: inherit-parent (each role runs on the parent chat model; panel lists keep their fan-out counts)
+
+  It applies to new sessions; re-running /setup-pstack and answering the prompts updates it.
+
+  One optional offer: I didn't find a project-local way for agents to drive the real app and prove changes work
+  (only the generic verify-this skill). Want a project-local verification skill so agents can drive the app the way
+  a user does and prove changes work? I can generate one with /create-verification-skill.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  GLM 5.3 Flash Max · 11.2%                                                                             Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

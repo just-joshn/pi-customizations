@@ -349,3 +349,31 @@ sha256:115488fe64923c41dc92b950e5d09bf5e229127186ab705d6f2e14eea97e3c2e unchange
 the acceptance families from `parity/requirements.json`: the next family is the playbook user
 journeys (investigation and repair first), reusing the paired-capture harness pattern established
 here.
+
+### 2026-10-08 checkpoint (Escape-cancellation journey)
+
+The setup scenario's remaining action (Escape cancellation) is captured as a paired journey
+(`pair-setup-escape-cancel-1`: cursor 7e9b8432, pi 6fc991ee). Both sides: the panel renders,
+Escape clears it, and the rule stays byte-identical to the locked fixture — no forbidden write.
+Cancellation semantics match (the panel result reports empty answers with cancelled on both
+sides). Structured comparison: unexplained 0 (`cancel-parity.json`).
+
+New finding, recorded as SETUP-ASKQUESTION-TRANSCRIPT-RENDERING (fail-paired): the reference
+collapses the AskQuestion card with a human-readable 'Questions skipped by user' label and hides
+tool internals; the candidate echoes raw request/result JSON and renders the pstack_setup state
+result (full model-slug list) inline. Cancellation semantics match; presentation does not. Repair
+path: pi's extension tool-result rendering hooks, then recapture this pair.
+
+The byte comparator now bounds report samples by construction (100 per difference kind plus a
+truncation manifest); the canonical-2 report shrank from 120MB to 54KB and stays recomputable
+from the pair record. Requirements PSTACK-SETUP-BUDGET-LABELS-001 and
+PSTACK-SETUP-MODEL-DISCOVERY-001 are verified against the canonical-2 pair (the four budget
+labels match byte-for-byte; the current budget is named on both sides, in the prompt on the
+candidate and additionally as an option suffix on the reference).
+
+### Exact next executable action
+
+Repair SETUP-ASKQUESTION-TRANSCRIPT-RENDERING: inspect pi's extension tool-call/result rendering
+facilities at the locked release, make the AskQuestion card collapse to a human-readable summary
+and keep the pstack_setup state result out of the raw transcript (or compact it), verify with unit
+tests plus a fresh cancellation-pair recapture.

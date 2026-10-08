@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "pairId": "setup-escape-cancel-1",
+  "pairPath": "parity/evidence/setup-cancel/pair-setup-escape-cancel-1.json",
+  "comparedAt": "2026-10-08T11:00:00Z",
+  "ruleUnchanged": {
+    "cursor": true,
+    "pi": true,
+    "bothDigests": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "panelAppearedBeforeEscape": {
+    "cursor": true,
+    "pi": true,
+    "evidence": "screen-01-question-unanswered on both sides shows the Clarifying Questions box"
+  },
+  "panelGoneAfterEscape": {
+    "cursor": true,
+    "pi": true,
+    "evidence": "screen-02-after-escape on both sides shows no panel box"
+  },
+  "cancellationSemantics": {
+    "cursor": "collapsed AskQuestion card labeled 'Questions skipped by user'",
+    "pi": "AskQuestion request echoed as raw JSON with result [{\"id\":\"budget\",\"answers\":[],\"cancelled\":true},{\"id\":\"roles\",\"answers\":[],\"cancelled\":true}]"
+  },
+  "noWriteAfterCancel": {
+    "match": true,
+    "note": "Forbidden side effect (writing configuration before confirmation) absent on both sides"
+  },
+  "modelAuthoredContinuation": {
+    "note": "Post-escape agent text is model-authored and compared by rubric; cursor continued explaining alias semantics. The pi final screen shows the pstack_setup state tool result (full model-slug list) rendered inline.",
+    "renderingFinding": "The candidate's transcript renders extension tool calls and results as raw JSON (AskQuestion request echo, pstack_setup state dump); the reference renders collapsed human-readable cards. Recorded as mismatch SETUP-ASKQUESTION-TRANSCRIPT-RENDERING."
+  },
+  "unexplainedDifferences": 0,
+  "openFindings": [
+    "SETUP-ASKQUESTION-TRANSCRIPT-RENDERING"
+  ]
+}

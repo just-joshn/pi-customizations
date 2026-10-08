@@ -1,0 +1,33 @@
+                                                                                                                       
+
+    Read 3 files
+    Used setup-pstack
+    Used setup-pstack
+    Read ...rs/josh-desktop/.cursor/rules/pstack-models.mdc
+
+  The Cursor-adapted skill applies here. I found the existing rule and the detected models for this session:
+
+  Detected Task subagent models: claude-fable-5-1-thinking-high, claude-opus-5-5-medium, claude-sonnet-5-5-medium,
+  composer-2.5-fast, cursor-grok-4.6-high-fast, gemini-3.8-flash-high, gpt-5.6-sol-medium, grok-4.7-high,
+  muse-spark-1.3-high
+
+  Current rule (~/.cursor/rules/pstack-models.mdc): budget small (medium), all 17 roles on inherit-parent. Since
+  every role is an alias, the budget choice won't move any role — the table stays all-inherit-parent unless you
+  hand-pick models.
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ Clarifying Questions                                                                                               │
+ │                                                                                                                    │
+ │ Question 1 of 2                                                                                                    │
+ │                                                                                                                    │
+ │ 1. Which reasoning budget should pstack roles use? (Current rule records: small (medium). Since all roles are      │
+ │ `inherit-parent`, this only sets the budget label unless you also pin specific models.)                            │
+ │                                                                                                                    │
+ │   › [ ] unlimited — max reasoning                                                                                  │
+ │     [ ] large — xhigh reasoning                                                                                    │
+ │     [ ] medium — high reasoning                                                                                    │
+ │     [ ] small — medium reasoning                                                                                   │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘

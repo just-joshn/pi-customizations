@@ -101,6 +101,19 @@
         "commit": "2f4dc0207e1a8d3c0704c8e10ecb3fc4da95c429"
       },
       "nextAction": "Closed by the canonical-2 pair; the re-run keeps the existing roster exactly as the reference does."
+    },
+    {
+      "id": "SETUP-ASKQUESTION-TRANSCRIPT-RENDERING",
+      "requirementId": "PSTACK-SETUP-FLOW-001",
+      "status": "observed-candidate-divergence-unrepaired-unpaired",
+      "candidateRevision": "e423743 after 2f4dc020",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-cancel/pair-setup-escape-cancel-1.json",
+      "expected": "The reference transcript collapses the AskQuestion card ('AskQuestion Clarifying Questions (2) — Questions skipped by user') and hides tool internals; the state inspection output is not rendered as raw JSON.",
+      "actual": "The candidate transcript echoes the AskQuestion request and result as raw JSON (answers [], cancelled true) and renders the pstack_setup state result inline as a full model-slug list.",
+      "consequence": "During and after the setup journey the user sees developer-facing tool JSON where the reference shows collapsed, human-readable cards. Cancellation semantics match; the presentation does not.",
+      "acceptanceVerdict": "fail-paired",
+      "nextAction": "Investigate pi's extension tool-result rendering hooks (custom renderers or compact result forms); repair so the panel card and the state result collapse to human-readable summaries, then recapture this pair."
     }
   ]
 }
