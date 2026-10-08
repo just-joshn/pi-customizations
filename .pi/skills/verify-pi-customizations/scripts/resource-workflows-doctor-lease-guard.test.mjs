@@ -11,14 +11,14 @@ import { prepareDoctorGuard } from '../helpers/resource-workflows-doctor-lease-g
 const digest = (value) => createHash('sha256').update(value).digest('hex');
 const imagePath = realpathSync(execFileSync('/bin/sh', ['-c', 'command -v pi'], { encoding: 'utf8' }).trim());
 
-async function boundary(t, phase = 'mutation') {
+async function boundary(t, phase = 'mutation', before = 'original', after = 'approved', name = 'trust.json') {
   const root = realpathSync(mkdtempSync('/tmp/doctor-native-boundary-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const directory = join(root, 'protected');
   mkdirSync(directory);
-  const path = join(root, 'trust.json');
-  writeFileSync(path, 'original');
-  const groups = [{ id: 'trust', effect: 'edit', paths: [path], effects: [{ path, beforeSha256: digest('original'), afterSha256: digest('approved') }] }];
+  const path = join(root, name);
+  writeFileSync(path, before);
+  const groups = [{ id: 'trust', effect: 'edit', paths: [path], effects: [{ path, beforeSha256: digest(before), afterSha256: digest(after) }] }];
   const prepared = prepareDoctorGuard({ doctor: { cwd: root, imagePath }, directory, phase, groups });
   const { default: register } = await import(pathToFileURL(prepared.path));
   let tools = new Map();
@@ -43,6 +43,32 @@ test('actual SDK native write admits only the approved before-to-after bytes', a
   assert.equal(readFileSync(f.path, 'utf8'), 'approved');
   await assert.rejects(f.tools.get('write').execute('repeat', { path: f.path, content: 'approved' }), /intermediate byte transition/);
   assert.equal(readFileSync(f.path, 'utf8'), 'approved');
+});
+
+test('actual SDK edit preserves BOM and CRLF while enforcing the approved bytes', async (t) => {
+  const before = '\uFEFForiginal\r\nsecond\r\n';
+  const after = '\uFEFFapproved\r\nsecond\r\n';
+  const f = await boundary(t, 'mutation', before, after, 'settings.json');
+  await f.tools.get('edit').execute('approved-edit', { path: f.path, edits: [{ oldText: 'original\nsecond', newText: 'approved\nsecond' }] });
+  assert.deepEqual(readFileSync(f.path), Buffer.from(after));
+});
+
+test('SDK edit rejects unauthorized final normalization before any write', async (t) => {
+  const f = await boundary(t, 'mutation', '\uFEFForiginal\r\n', 'approved\n');
+  await assert.rejects(f.tools.get('edit').execute('wrong-bytes', { path: f.path, edits: [{ oldText: 'original', newText: 'approved' }] }), /intermediate byte transition/);
+  assert.deepEqual(readFileSync(f.path), Buffer.from('\uFEFForiginal\r\n'));
+});
+
+test('settings changes cannot bypass the skill edit requirement through native write', async (t) => {
+  const f = await boundary(t, 'mutation', 'original', 'approved', 'settings.json');
+  await assert.rejects(f.tools.get('write').execute('settings-write', { path: f.path, content: 'approved' }), /settings.*edit/);
+  assert.equal(readFileSync(f.path, 'utf8'), 'original');
+});
+
+test('native edit rejects relative path spelling before SDK resolution', async (t) => {
+  const f = await boundary(t);
+  await assert.rejects(f.tools.get('edit').execute('relative', { path: 'trust.json', edits: [{ oldText: 'original', newText: 'approved' }] }), /target or operation/);
+  assert.equal(readFileSync(f.path, 'utf8'), 'original');
 });
 
 test('intermediate writes and attempted reverts never change actual protected file bytes', async (t) => {
@@ -82,7 +108,7 @@ test('report native tool boundary rejects mutations even when its hook is bypass
   assert.equal(f.hook({ toolName: 'custom' }).block, true);
   assert.equal(f.hook({ toolName: 'read' }), undefined);
   await assert.rejects(f.tools.get('write').execute('write', { path: f.path, content: 'approved' }), /target or operation/);
-  await assert.rejects(f.tools.get('edit').execute('edit', { path: f.path, edits: [] }), /exact approved byte transition/);
+  await assert.rejects(f.tools.get('edit').execute('edit', { path: f.path, edits: [{ oldText: 'original', newText: 'approved' }] }), /target or operation/);
   const result = await f.tools.get('read').execute('read', { path: f.path });
   assert.deepEqual(result.content, [{ type: 'text', text: 'original' }]);
 });
