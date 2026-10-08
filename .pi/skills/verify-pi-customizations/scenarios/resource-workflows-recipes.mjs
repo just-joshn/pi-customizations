@@ -2,6 +2,7 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { join } from 'node:path';
 
 import { makeLocalSession } from '../helpers/resource-workflows-local.mjs';
+import { openGuiBridge } from '../helpers/resource-workflows-gui-bridge.mjs';
 import { reservePort, seedRecipe } from '../helpers/resource-workflows-recipes.mjs';
 import { canonicalRunCommands, collectRunEvidence, openRunRuntime, runIdentity } from '../helpers/resource-workflows-run-evidence.mjs';
 import { evaluateRun, summarizeRuns } from '../helpers/resource-workflows-run-outcome.mjs';
@@ -20,16 +21,20 @@ async function runAttempt({ kind, repoRoot, artifactDir }) {
   let fixture;
   let ownership;
   let runtime;
+  let gui;
   try {
     const port = await reservePort();
     fixture = makeLocalSession({ root, out, repoRoot, localPorts: ['server', 'playwright'].includes(kind) ? [port] : [] });
     ownership = openRunOwnership({ pid: fixture.session.pid, port: ['server', 'playwright'].includes(kind) ? port : null, socket: kind === 'tui' ? socket : null });
     seedRecipe(kind, fixture.cwd, port, socket);
+    if (['electron', 'playwright'].includes(kind)) gui = await openGuiBridge({ kind, root, out, cwd: fixture.cwd });
     const identity = runIdentity({ kind, cwd: fixture.cwd, port, socket });
     if (['server', 'tui'].includes(kind)) runtime = openRunRuntime({ identity, session: fixture.session, ownership });
     const boundedRecipe = runtime
       ? ` For this bounded fixture, choose separate bash calls from these exact launch, interaction, inspection when present, and cleanup commands. ${JSON.stringify(canonicalRunCommands(identity))} Inspect the actual result before cleanup. These commands include a short observation dwell. Do not replace them with source reading or marker files.`
-      : '';
+      : gui
+        ? ` The owned finite GUI client is ${process.execPath} ${gui.cli}. It accepts one action per call, launch, read, input, click, capture, or close. Runtime release is held. Do not replace a rejected launch with a simulated window, fabricated observation, or another app. Do not write receipts. Report the actual rejection. The seeded application must match the independently sealed guest application before Root can release this capability.`
+        : '';
     let error = null;
     try {
       await fixture.session.prompt(
@@ -39,6 +44,7 @@ async function runAttempt({ kind, repoRoot, artifactDir }) {
       error = failure.message;
     }
     await runtime?.finish();
+    if (gui) writeFileSync(join(out, 'gui-preparation.json'), `${JSON.stringify({ application: gui.application, ...gui.snapshot() }, null, 2)}\n`);
     const cleanup = await ownership.snapshot();
     const facts = collectRunEvidence({ identity, records: fixture.session.records, error, cleanup, rescue: null, out, runtime });
     const rescue = await ownership.rescue();
@@ -48,6 +54,7 @@ async function runAttempt({ kind, repoRoot, artifactDir }) {
     writeFileSync(join(out, 'attempt.json'), `${JSON.stringify({ attempt, outcome }, null, 2)}\n`);
     return attempt;
   } finally {
+    await gui?.close();
     await runtime?.close();
     ownership?.close();
     try {
