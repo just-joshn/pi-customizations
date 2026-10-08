@@ -12,7 +12,7 @@ export function checkInteraction(records, expected) {
 const quote = (value) => `'${value.replaceAll("'", "'\\''")}'`;
 const filter = (path) => `(subpath ${JSON.stringify(realpathSync(resolve(path)))})`;
 
-export function makeLocalSession({ root, out, repoRoot, packagePath = repoRoot, localPorts = [] }) {
+export function makeLocalSession({ root, out, repoRoot, packagePath = repoRoot, localPorts = [], answers = {} }) {
   const agentDir = join(root, 'home', '.pi', 'agent');
   const cwd = join(root, 'workspace');
   const tmp = join(root, 'tmp');
@@ -101,7 +101,7 @@ export function makeLocalSession({ root, out, repoRoot, packagePath = repoRoot, 
     if (/(?:KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL|AUTH)/i.test(key) || /^(?:AWS_|GOOGLE_|AZURE_|PI_)/.test(key)) env[key] = '';
   }
   Object.assign(env, { PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1' });
-  const session = createRpcSession({ packagePath, agentDir, cwd, piBin: wrapper, env, capturePath: join(out, 'rpc.jsonl') });
+  const session = createRpcSession({ packagePath, agentDir, cwd, piBin: wrapper, env, answers, capturePath: join(out, 'rpc.jsonl') });
   return { session, cwd, agentDir, env, wrapper, profile };
 }
 
