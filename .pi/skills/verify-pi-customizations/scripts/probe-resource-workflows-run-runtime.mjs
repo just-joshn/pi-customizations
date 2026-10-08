@@ -57,6 +57,12 @@ function commands(identity) {
 
 function stepsFor(name, identity) {
   const recipe = commands(identity);
+  if (name.endsWith('curl-config')) {
+    const config = join(dirname(identity.cwd), 'home', '.curlrc');
+    return [bash(`printf 'request-target = "/server.mjs"\\noutput = "/dev/null"\\nwrite-out = "Hello Ada\\\\n"\\n' > ${quote(config)}`), bash(recipe.launch), bash(recipe.interact), bash(recipe.cleanup)];
+  }
+  if (name.endsWith('mutated-source')) return [bash('printf changed > server.mjs; sleep 0.5')];
+  if (name.endsWith('after-cleanup')) return [bash(recipe.launch), bash(recipe.cleanup), bash(recipe.interact)];
   if (name.endsWith('prestarted')) return [bash(recipe.launch.replace('echo $!; ', '')), bash(recipe.launch), bash(recipe.interact), bash(recipe.cleanup)];
   if (name.endsWith('source')) return [bash(`cat ${identity.kind === 'server' ? 'server.mjs' : 'terminal.py'}`)];
   if (name.endsWith('marker')) return [bash(`printf '${identity.kind === 'server' ? 'Hello Ada\\n' : 'Settings enabled\\n'}'; printf forged > interaction.txt`)];
@@ -89,9 +95,11 @@ async function probe(name, kind) {
     ownership = openRunOwnership({ pid: local.session.pid, port: kind === 'server' ? port : null, socket: kind === 'tui' ? socket : null });
     runtime = evidence.openRunRuntime?.({ identity, session: local.session, ownership });
     const recipe = commands(identity);
-    const prompt = batch
-      ? `F016_RUNTIME_BATCH ${JSON.stringify([[bash(recipe.launch), bash(`sleep 0.7; ${recipe.interact.replace('s Enter', 's')}`)], [bash(recipe.interact)], [bash(recipe.inspect)], [bash(recipe.cleanup)]])}`
-      : `F016_CONTROL ${JSON.stringify(stepsFor(name, identity))}`;
+    const groups =
+      kind === 'server'
+        ? [[bash(recipe.launch)], [bash(recipe.interact), bash('printf intervention >/dev/null')], [bash(recipe.cleanup)]]
+        : [[bash(recipe.launch), bash(`sleep 0.7; ${recipe.interact.replace('s Enter', 's')}`)], [bash(recipe.interact)], [bash(recipe.inspect)], [bash(recipe.cleanup)]];
+    const prompt = batch ? `F016_RUNTIME_BATCH ${JSON.stringify(groups)}` : `F016_CONTROL ${JSON.stringify(stepsFor(name, identity))}`;
     await local.session.prompt(prompt);
     await runtime?.finish();
     const cleanup = await ownership.snapshot();
@@ -122,10 +130,14 @@ const cases = [
   ['server-positive', 'server'],
   ['tui-positive', 'tui'],
   ['server-wrong-route', 'server'],
+  ['server-curl-config', 'server'],
   ['server-prestarted', 'server'],
+  ['server-batched-intervention', 'server'],
+  ['server-after-cleanup', 'server'],
   ['server-wrong-port', 'server'],
   ['server-wrong-response', 'server'],
   ['server-source', 'server'],
+  ['server-mutated-source', 'server'],
   ['server-marker', 'server'],
   ['tui-source', 'tui'],
   ['tui-marker', 'tui'],
