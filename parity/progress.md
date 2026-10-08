@@ -489,3 +489,157 @@ Findings in `parity/mismatches.json`:
 Commit the chip/expand follow-up, then build the success-flow setup write-card journey
 (the open observation that reference shows `Edited pstack-models.mdc +1 -1` vs candidate
 `Wrote ...`).
+
+### 2026-10-08 checkpoint (SETUP-WRITE-CARD closed)
+
+Write-card success journey closed pass-paired on `setup-success-write-card-1`
+(cursor `c7970c07` from locked-fixture canonical-2 dump, pi `0d269402`; fixture digest
+sha256:2b6b4668..., afterDigest sha256:9146cd9f...).
+
+Repairs, tests first:
+- `setupWriteCard` emits `Edited pstack-models.mdc +N -M` (replacing `Wrote … with budget`).
+- `hostEditDiffLines` adds ▎-gutter context with the removed and added `# budget:` lines.
+- `pstack_setup` write details carry `before`/`after` rule bytes for the card.
+- `parity/scripts/compare-write-card.mjs` (write-card-v1) asserts title, no Wrote form,
+  ▎- / ▎+ budget hunk, and context. Report: `write-card-parity.json` pass.
+
+A same-session Cursor recapture in `setup-success/` stalled when the model used chat-form
+questions (`Reply with a number`) instead of AskQuestion. The capture driver now handles
+that branch. The write-card comparator uses the locked-fixture reference dump whose
+write-card chrome matches the contract. Host wrap variance retained (Cursor truncates long
+▎ lines with …; Pi wraps without ▎ on the continuation).
+
+Suite: tool-cards + setup-tool 19 pass; `bun run typecheck` clean; verify-journeys
+`--no-workers` 538 checks, 0 findings. Orch gate `cursor-usage` resolved (Pro+). Stale
+units u-host-import / u-recorder-a / u-recorder-b / u-accept-symlink marked done.
+
+### 2026-10-08 checkpoint (HOW explainer method locked)
+
+Independent disposition `parity/reviews/how-explainer-disposition.md` recommends Method A
+(deterministic spawn required for `how:investigation-question`). Skill Step 2b is
+imperative; reference 2/2 spawns; candidate Task exists and still skips after skill-body
+delivery. No further reference runs required before adopting Method A. Optional N=3
+cursor-only confidence run remains available if a later skip appears.
+
+### 2026-10-08 checkpoint (trail review follow-up)
+
+[Cross-model trail review] demoted SETUP-WRITE-CARD from pass-paired to provisional-structured.
+Same-session Cursor write-card capture restarted under the chat-form-aware driver. Full vitest
+after write-card changes: 213 files, 2223 passed, 1 skipped. Method A N=3 stop rule remains
+deferred and is now explicit on the mismatch row.
+
+### Exact next executable action
+
+Drain the same-session Cursor write-card capture, re-run write-card-v1 against linked attempt
+IDs, and drain the Method A explainer repair. Do not re-close SETUP-WRITE-CARD without a commit
+hash and a linked pair.
+
+## Continuation checkpoint — 2026-10-08T17:20Z (orchestrate resume + Goal)
+
+Playbook. Orchestrate (standing coordinator). Goal created and set active for 100% Pi pstack parity.
+
+### Frame (countable)
+
+Done predicate. Every row in `parity/requirements.json` has a paired Cursor+Pi journey pass against the shipped package digest; `mismatches.json` has zero open items; the executable completion gate writes `parity/completion.json` with verdict pass.
+
+Current ledger (measured, not coverage).
+- Requirements. 4 rows (2 `verified-pass-paired`, 2 `unverified` mode entries). Denominator incomplete. 193 tracked plugin source items still need disposition mapping. Coverage percent is undefined.
+- Open mismatches. `SETUP-WRITE-CARD` (structured pass pending commit), `HOW-WORKFLOW-EXPLAINER-STEP` (Method A locked; pi-only 3ebef40f partial).
+- Closed this program so far (prior sessions). Setup panel flow, cancel card, skill delivery, skill chip host-equivalent, budget labels, model discovery.
+- Orch store. `~/.claude/projects/-Users-josh-desktop-src-personal-pi-pstack-parity-again/pstack/orchestrate/pi-pstack-parity`. Units 6; in-progress 2. Gate open. `setup-write-card-commit` (default wait for operator commit ask).
+
+Tracks.
+1. research. Finish dependency closure and expand the requirement denominator from locked sources.
+2. verification. Recorder, pair runner, comparator custody, completion gate.
+3. product. Vertical slices with real paired journeys (current focus).
+4. acceptance. Independent freeze and external custody of definitions.
+
+Wall-clock. Multi-session program. One agent cannot finish the full denominator inside one context budget.
+
+### In flight
+
+- u-write-card-verify (agent 63621cd3). Re-run write-card-v1 on linked de231068 / 0d269402.
+- u-how-pair (agent 9fde7e26). Linked Cursor+Pi `/how` pair under Method A with how-spawn-gate live.
+
+Standing orders deduped. Workers may not edit `mismatches.json`, `requirements.json`, or `progress.md`.
+
+### Exact next executable action
+
+Drain u-write-card-verify and u-how-pair. Merge their reports into the ledgers. Close SETUP-WRITE-CARD only after an operator-requested commit hash. Close HOW-WORKFLOW-EXPLAINER-STEP only on a Method A pass from a linked pair. Then queue the next product units (`PSTACK-MODE-ONE-MESSAGE-001`, `PSTACK-MODE-STICKY-001`) and a research unit that expands the requirement denominator from the inventory.
+
+## Continuation checkpoint — 2026-10-08T17:23Z (partial drain)
+
+### Drained
+
+`u-write-card-verify` (63621cd3) done. Fresh `write-card-v1` pass on linked screens de231068 / 0d269402. Report byte-identical to prior linked report. `mismatches.json` records `verifyRerun`. Close still blocked by gate `setup-write-card-commit`.
+
+### Still in flight
+
+- `u-how-pair` (9fde7e26). Live `capture-investigate.mjs --both` (pid observed). Cursor attempt `c1abf807` recording. Pi agent dir packages point at checkout `extensions/pi-pstack` with `registerHowSpawnGate`. Gate unit tests were 6 pass before capture.
+- `u-req-denominator-slice` (22c3eb6b). Research track. Own paths under `parity/research/requirement-slices/slice-commands-001/`.
+
+### Queued pending
+
+`u-mode-one-message` (holds PTY; start only after HOW capture frees hosts). Briefs ready for `u-mode-sticky` and `u-req-slice-setup`.
+
+### Orch status (measured)
+
+units=8; done=5; in-progress=2; pending=1; gates open=1 (`setup-write-card-commit`).
+
+### Exact next executable action
+
+Drain `u-how-pair` when `pair-investigate-3.json` and the worker report land. Score Method A from both attempt transcripts. Then start `u-mode-one-message`. Merge the commands denominator slice when it reports.
+
+## Continuation checkpoint — 2026-10-08T17:25Z (scale while capture runs)
+
+Cursor HOW attempt `c1abf807` still settling (~36k tokens). `Running subagent` observed in PTY output. Pi side not started yet (`capture-investigate --both` still on cursor).
+
+Spawned in parallel (owned paths, no PTY conflict):
+- `u-req-slice-setup` (87675601)
+- `u-how-method-a-scorer` (new) to script Method A scoring for the drain
+
+`u-mode-one-message` still pending until HOW frees hosts.
+
+### Exact next executable action
+
+Drain HOW pair + research slices + Method A scorer as each lands. Score the new pair with the scorer. Then start `u-mode-one-message`.
+
+## Continuation checkpoint — 2026-10-08T17:27Z (Method A scorer drained)
+
+`u-how-method-a-scorer` (f311c8cb) done. Coordinator re-ran `parity/scripts/score-how-method-a.mjs`:
+- cursor `6f45e2db` exit 0
+- pi `8ad2dbc5` exit 1
+- live cursor `c1abf807` exit 0 (Method A pass)
+- live pi `951a315d` exit 1 (Method A fail; screen-01 shows gate block text, no Running subagent / Task signal in events)
+
+Capture process exited. Screens exist for both sides. `pair-investigate-3.json` and `u-how-pair-report.md` not written yet. HOW worker still owns that assembly. Do not close HOW-WORKFLOW-EXPLAINER-STEP.
+
+### Exact next executable action
+
+Drain `u-how-pair` when its report lands. Treat live pi `951a315d` Method A fail as the candidate result unless the worker finds Task evidence the scorer missed. Then decide the next repair unit.
+
+Correction after drain. Pi session for the live capture contains a `task` tool call and a subagent transcript (`01a11c8b…/subagents/agent-1ca875a7…`). Method A may pass on session evidence even though the PTY scorer returned fail. Queued `u-how-method-a-scorer-pi-session` (pending) to close that host gap. Do not treat the PTY-only fail as final for HOW-WORKFLOW-EXPLAINER-STEP.
+
+## Continuation checkpoint — 2026-10-08T17:28Z (commands slice drained)
+
+`u-req-denominator-slice` (22c3eb6b) done. 17 `draft-proposal` records under `parity/research/requirement-slices/slice-commands-001/`. Hash verification claimed PASS by worker. Not merged into `parity/requirements.json` (denominator still incomplete; merge needs coordinator review). 41 topic leftovers queued as pending `u-req-slice-commands-002`.
+
+## Continuation checkpoint — 2026-10-08T17:29Z (HOW pair + setup slice drained)
+
+- `u-how-pair` (9fde7e26) done. Linked pair investigate-3: cursor c1abf807, pi 951a315d. Method A pass both sides (Pi via session Task-before-answer). Mismatch HOW-WORKFLOW-EXPLAINER-STEP now `pass-method-a-pending-commit`. New open HOW-TASK-AGENT-TYPE (explore vs generalPurpose).
+- `u-req-slice-setup` (87675601) done. 15 proposals; coordinator hash check ok. Not merged into requirements.json. Leftovers queued as `u-req-slice-setup-002`.
+- Spawned `u-mode-one-message` (3797beb8) and `u-how-method-a-scorer-pi-session` (b0dee735).
+
+### Exact next executable action
+
+Drain mode-one-message and scorer-pi-session. Close HOW/write-card only after operator commit-now. Decide HOW-TASK-AGENT-TYPE repair.
+
+## Continuation checkpoint — 2026-10-08T17:30Z (scale refill)
+
+In flight: u-mode-one-message (3797beb8), u-how-method-a-scorer-pi-session (b0dee735), u-req-slice-commands-002, u-req-slice-setup-002, u-how-task-agent-type.
+Commit gate unchanged (operator has not said commit-now).
+
+### Exact next executable action
+
+Drain each as it lands. Keep mode-sticky pending until mode-one-message finishes.
+

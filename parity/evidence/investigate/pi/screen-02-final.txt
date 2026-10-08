@@ -1,36 +1,36 @@
                                                                                                                        │
- $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack && rg -n -i "budget" src | head     │
- -40; rg -n -i "budget" skills/setup-pstack/SKILL.md | head -20 (timeout 30s)                                          │
+ - **Budget line:** `# budget: small (medium)`. It is syntactically a comment and is ignored by the generic role       │
+ parser.                                                                                                               │
+ - **Role lines:** For example, `bug-fix: inherit-parent` or `arena runners: ...`. These are parsed and consumed by    │
+ skills/prompts to select Task models and panel fan-out.                                                               │
+ ... (87 more lines, ctrl+o to expand)                                                                                 │
                                                                                                                        │
- ... (53 earlier lines, ctrl+o to expand)                                                                              │
- name the current budget when the rule records one. With no rule, say that `large` matches the skill defaults.         │
- 41:Write `~/.pi/agent/pstack/models.mdc` with `alwaysApply: true`, a `# budget` line with the chosen label and its    │
- target effort, and one line per role, using the same labels poteto-mode uses. Overwrite the whole file so re-runs     │
- stay idempotent. Shape:                                                                                               │
- 50:# budget: large (xhigh)                                                                                            │
                                                                                                                        │
- Took 0.0s                                                                                                             │
+ No. The # budget: small (medium) line doesn't change runtime agent behavior. It's a comment that records the choice   │
+ made during setup. All paths below are under extensions/pi-pstack/.                                                   │
                                                                                                                        │
+ - Setup writes and reads it. src/setup-tool.ts:13-18 maps the budget labels to thinking levels, so small maps to      │
+   medium. Line 55-59 writes the comment. Lines 93-104 read it back so setup can show the current choice.              │
+ - The runtime parser skips it. readModelRule() in src/models.ts:41-68 ignores comments, and only the role lines are   │
+   used.                                                                                                               │
+ - Role lines do change behavior. resolveModel() (src/models.ts:72-104) uses them to pick a Task model. Examples are   │
+   arena runners, swarm workers and bug-fix. A model value can carry a :high-style suffix, and that suffix sets the    ┃
+   effort level.                                                                                                       ┃
+ - The budget helper is never called. applyBudget() (src/models.ts:106-119) would turn a budget into a reasoning       ┃
+   level, but nothing calls it.                                                                                        ┃
+ - The rule text is only shown to the agent. src/index.ts:67 injects the rule into the prompt. No code turns the       ┃
+   budget line into a setting.                                                                                         ┃
                                                                                                                        ┃
- No. The budget line doesn't change agent behavior at runtime. I traced it through the code and skills.                ┃
+ What this means for your file. Every role is inherit-parent, so each role runs on the parent chat model at the        ┃
+ parent's effort level. The small (medium) budget has no effect.                                                       ┃
                                                                                                                        ┃
- - It's a comment. The line is # budget: small (medium), and the rule's role lines are written without a #. The skills ┃
-   only read the per-role lines, such as how explorer: inherit-parent, to choose a Task model. Nothing in them reads   ┃
-   the budget line.                                                                                                    ┃
- - The only runtime code that reads it is for display. currentBudget() in extensions/pi-pstack/src/setup-tool.ts:69-70 ┃
-    matches ^# budget: (.+)$. It does this only in pstack_setup's state and write actions. The result is shown as      ┃
-   "current budget" in the setup UI and in Wrote … with budget …. No Task spawn or model choice calls it.              ┃
- - It already took effect when the file was written. /setup-pstack maps each budget to a target effort. The labels are ┃
-   small → medium and large → xhigh, and an unlimited budget exists too. applyBudget() (models.ts:106) then applies    ┃
-   that effort to each role's model slug, and writeConfiguration (setup-tool.ts:55-57) records the label in the        ┃
-   comment. The effect is baked into the role values.                                                                  ┃
- - In your rule, the budget has nothing left to affect. Every role is inherit-parent, so no slug carries an effort     ┃
-   suffix. Editing the line by hand changes nothing until you rerun setup.                                             ┃
-                                                                                                                       ┃
- I did this with a few greps instead of spawning explainer agents, since the question was narrow.                      ┃
+ Docs and code disagree. skills/setup-pstack/SKILL.md:27-29 says picking small rewrites model IDs to medium-effort     ┃
+ variants. The current writeAction() (src/setup-tool.ts:110-123) passes role values through unchanged and only writes  ┃
+ the comment. To get a real effect today, put the effort in the role values yourself, for example bug-fix:             ┃
+ <model>:medium.                                                                                                       ┃
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                         
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
-↑8 ↓916 R52k W31k CH93.2% $0.142 (sub) 3.1%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium
+↑43k ↓3.4k R118k W20k CH90.3% $0.118 (sub) 2.9%/1.0M (auto)             (claude-subscription) claude-sonnet-5-5 • medium

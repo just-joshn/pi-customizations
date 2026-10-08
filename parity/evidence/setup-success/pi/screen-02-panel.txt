@@ -1,27 +1,17 @@
-[Skill conflicts]                                                                                                      ┃
-  "tdd" collision:                                                                                                     ┃
-    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
-    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
                                                                                                                        ┃
-                                                                                                                       ┃
- [skill] how (ctrl+o to expand)                                                                                        ┃
+ [skill] setup-pstack (ctrl+o to expand)                                                                               ┃
                                                                                                                        ┃
                                                                                                                        ┃
                                                                                                                        ┃
- does the pstack budget line in models.mdc change agent behavior?                                                      ┃
                                                                                                                        ┃
                                                                                                                        ┃
                                                                                                                        ┃
- read ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/how/references/explainer-prompt.md:1-200       ┃
-                                                                                                                       ┃
- The how skill is active. Spawn one readonly Task (subagent_type generalPurpose, how explainer role) before direct     ┃
- exploration or the final answer (Step 2b / Step 2a).                                                                  ┃
                                                                                                                        ┃
                                                                                                                        ┃
- Thinking...                                                                                                           ┃
                                                                                                                        ┃
                                                                                                                        ┃
- task agent_type="explore" name="how-explainer" description="Explain budget line behavior" prompt="Read...             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
                                                                                                                        ┃
                                                                                                                        ┃
                                                                                                                        ┃
@@ -29,8 +19,18 @@
                                                                                                                        ┃
                                                                                                                        ┃
 
-── ⠙ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
-                                                                                                                        
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ pstack setup                                                                                                       │
+ │                                                                                                                    │
+ │ Question 2 of 2                                                                                                    │
+ │                                                                                                                    │
+ │ 2. Roles: keep all as inherit-parent, or change specific ones?                                                     │
+ │                                                                                                                    │
+ │   › [ ] Accept as-is (all inherit-parent)                                                                          │
+ │     [ ] Change specific roles                                                                                      │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
-↑4 ↓144 R7.7k W17k CH30.7% $0.073 (sub) 2.5%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium
+↑6 ↓349 R33k W18k CH94.6% $0.084 (sub) 2.7%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

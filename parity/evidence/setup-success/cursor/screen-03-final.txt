@@ -1,0 +1,34 @@
+                                                                                                                       
+
+  Writing the accepted mapping to the rule file.
+
+    Edited pstack-models.mdc +1 -1
+
+    ▎  ---
+    ▎  # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+    ▎  # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias
+    ▎  entries  ...
+    ▎- # budget: small (medium)
+    ▎+ # budget: unlimited (max)
+    ▎  feature, refactoring: inherit-parent
+    ▎  bug-fix: inherit-parent
+    ▎  perf-issue: inherit-parent
+
+    Globbed 2 globs
+    Globbed "**/verify-*/SKILL.md" in ...osh-desktop/src/personal/pi-pstack-parity-again
+    Globbed "**/create-verification-skill/SKILL.md" in ...osh-desktop/src/personal/pi-pstack-parity-again
+
+  Wrote ~/.cursor/rules/pstack-models.mdc with budget unlimited (max) and every role as inherit-parent. It applies
+  to new sessions; re-run /setup-pstack to update it.
+
+  No project-local verify-* skill found. Want one so agents can drive the app the way a user does and prove changes
+  work? I can generate it with /create-verification-skill.
+
+
+
+                                                                                                                       
+  → unlimited — max reasoningaccept                                                                                    
+                                                                                                                       
+
+  Auto · 9.2% · 1 file edited                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

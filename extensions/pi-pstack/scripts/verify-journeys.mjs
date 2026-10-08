@@ -375,7 +375,7 @@ async function journeySetup(ctx) {
   const results = await setupResults();
   check(
     'setup: the write result confirms the written path',
-    results.some((message) => JSON.stringify(message).includes(`Wrote ${rulePath}`)),
+    results.some((message) => /Edited pstack-models\.mdc \+\d+ -\d+/.test(JSON.stringify(message))),
     JSON.stringify(results.at(-1)).slice(-300),
   );
   const nextPrompt = systemText(await ctx.turn('journey probe'));

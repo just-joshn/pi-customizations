@@ -51,13 +51,51 @@ export interface SetupState {
   readonly availableModels: readonly string[];
 }
 
-export interface SetupState {
-  readonly rulePath: string;
-  readonly budget: string | null;
-  readonly roles: Readonly<Record<string, readonly string[]>>;
-  readonly availableModels: readonly string[];
+export interface SetupWriteCardInput {
+  readonly added: number;
+  readonly removed: number;
+  readonly before: string;
+  readonly after: string;
 }
 
-export function setupWriteCard(written: { readonly rulePath: string; readonly budget: string | null }, _theme: Titled): Text {
-  return new Text(`Wrote ${written.rulePath} with budget ${written.budget}.`, 0, 0);
+/** Reference host edit card: title plus ▎-gutter context around the first changed hunk. */
+export function hostEditDiffLines(before: string, after: string, contextLines = 3): string[] {
+  const previous = before.split(/\r?\n/);
+  const next = after.split(/\r?\n/);
+  let start = 0;
+  while (start < previous.length && start < next.length && previous[start] === next[start]) start += 1;
+  let endPrev = previous.length - 1;
+  let endNext = next.length - 1;
+  while (endPrev >= start && endNext >= start && previous[endPrev] === next[endNext]) {
+    endPrev -= 1;
+    endNext -= 1;
+  }
+  if (start > endPrev && start > endNext) return [];
+  const contextStart = Math.max(0, start - contextLines);
+  const contextEndPrev = Math.min(previous.length - 1, endPrev + contextLines);
+  const contextEndNext = Math.min(next.length - 1, endNext + contextLines);
+  const lines: string[] = [];
+  for (let index = contextStart; index < start; index += 1) lines.push(`▎  ${previous[index] ?? ''}`);
+  for (let index = start; index <= endPrev; index += 1) lines.push(`▎- ${previous[index] ?? ''}`);
+  for (let index = start; index <= endNext; index += 1) lines.push(`▎+ ${next[index] ?? ''}`);
+  const trailingStart = endPrev + 1;
+  const trailingCount = contextEndPrev - endPrev;
+  for (let offset = 0; offset < trailingCount; offset += 1) {
+    const index = trailingStart + offset;
+    if (index > contextEndPrev) break;
+    lines.push(`▎  ${previous[index] ?? ''}`);
+  }
+  if (trailingCount === 0) {
+    for (let index = endNext + 1; index <= contextEndNext; index += 1) lines.push(`▎  ${next[index] ?? ''}`);
+  }
+  return lines;
+}
+
+export function setupWriteCard(written: SetupWriteCardInput, _theme: Titled): Container {
+  // Reference host labels the rule pstack-models.mdc even when the Pi path is …/pstack/models.mdc.
+  const component = new Container();
+  component.addChild(new Text(`Edited pstack-models.mdc +${written.added} -${written.removed}`, 0, 0));
+  const diff = hostEditDiffLines(written.before, written.after);
+  if (diff.length > 0) component.addChild(new Text(`\n${diff.join('\n')}`, 0, 0));
+  return component;
 }

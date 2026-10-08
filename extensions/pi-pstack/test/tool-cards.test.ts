@@ -84,9 +84,19 @@ test('an Other answer renders as a checked Other row with the typed value', () =
   expect(trimmed(askQuestionResultCard(args, answers, theme))[2]).toBe('  [x] Other: medium — high reasoning');
 });
 
-test('the write card reports the written rule', () => {
-  const written = { written: true, rulePath: '/tmp/pi-ref-agent/pstack/models.mdc', budget: 'unlimited (max)', roles: {}, dropped: [] };
-  expect(trimmed(setupWriteCard(written, theme))).toEqual([
-    'Wrote /tmp/pi-ref-agent/pstack/models.mdc with budget unlimited (max).',
-  ]);
+test('the write card reports the edited rule basename and line stats', () => {
+  const before = ['# budget: small (medium)', 'feature, refactoring: inherit-parent', 'bug-fix: inherit-parent'].join('\n');
+  const after = before.replace('small (medium)', 'unlimited (max)');
+  const written = { written: true, rulePath: '/tmp/pi-ref-agent/pstack/models.mdc', budget: 'unlimited (max)', added: 1, removed: 1, before, after, roles: {}, dropped: [] };
+  const lines = trimmed(setupWriteCard(written, theme));
+  expect(lines[0]).toBe('Edited pstack-models.mdc +1 -1');
+  expect(lines).toContain('▎- # budget: small (medium)');
+  expect(lines).toContain('▎+ # budget: unlimited (max)');
+  expect(lines).toContain('▎  feature, refactoring: inherit-parent');
+});
+
+test('an unchanged write card omits the diff body', () => {
+  const text = '# budget: unlimited (max)\nfeature, refactoring: inherit-parent\n';
+  const written = { added: 0, removed: 0, before: text, after: text };
+  expect(trimmed(setupWriteCard(written, theme))).toEqual(['Edited pstack-models.mdc +0 -0']);
 });

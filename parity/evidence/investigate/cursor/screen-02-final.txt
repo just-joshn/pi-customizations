@@ -1,29 +1,29 @@
-    real slugs
-  • ~/.claude/skills/setup-pstack/SKILL.md + ~/.claude/rules/pstack-models.md — the separate Claude-flavor pair
-    (tier-ladder budgets, no parenthetical)
+  4. Runtime consumption. The always-applied rule lands in session context. Skills (how, why, arena, swarm, etc.)
+  set model from the role line — not from # budget. No runtime code reads the budget comment.
+
+  5. Model resolution in Pi. resolveModel in src/models.ts resolves aliases to the parent, exact IDs, or id:<level>.
+  A budget only reaches a Pi subagent if some role value carries a :level suffix or names a model whose levels
+  differ.
+
+  Where Things Live
+
+  • extensions/pi-pstack/src/setup-tool.ts — budget label → effort map, rule rendering, write
+  • extensions/pi-pstack/src/models.ts — skillDefaultTable, readModelRule, resolveModel, unused applyBudget
+  • extensions/pi-pstack/src/host.ts / src/index.ts — system-prompt injection
+  • Host setup skills under Cursor / Claude / Pi setup-pstack
+  • Skills that read role lines: how, why, arena, swarm, architect, interrogate, reflect
 
   Gotchas
 
-  • It's a comment line. # budget: … starts with #, so every parser (roleLines() in models.ts, readTable() in
-    setup-tool.ts) deliberately skips it. It can never override or interact with role parsing; it's metadata about
-    the last setup choice.
-  • Budget never changes fan-out. List length sets panel size; aliases count as entries. If your panels feel
-    small, that's the role lines, not the budget.
-  • Your current file makes the budget a no-op. Every role is inherit-parent, and aliases are exempt from budget
-    rewriting in all flavors. On a setup re-run, your inherit-parent choices would all be preserved while only the
-    budget line itself updates.
-  • Two rule files, two flavors, don't cross-read. The ~/.claude/skills workflow skills read
-    ~/.claude/rules/pstack-models.md (yours: # budget: unlimited with tier slugs) — not the .cursor file. "The
-    budget" means different things depending on which host you're asking.
-  • The label and target decouple from reality once you hand-edit. Nothing validates that role values still match
-    the recorded budget. small (medium) above a table of xhigh slugs would go unnoticed — the line is a record,
-    not an invariant.
-  • applyBudget() in src/models.ts has zero callers in shipped code — it's vestigial; the effort rewrite happens
-    in the LLM-driven setup step, with the tool only validating slugs.
-
-  One open question: budget application correctness ultimately rests on the setup skill's prose being followed (both
-  flavors are prompt-driven), which is exactly what the still-draft setup-budget-labels.json parity scenario is
-  meant to verify end-to-end.
+  • In Pi the budget doesn't rewrite roles by itself. writeAction only stamps # budget: X (effort); the agent must
+    send effort-adjusted values as roleOverrides. applyBudget exists but nothing calls it.
+  • Your current Cursor rule shows the budget doing nothing. # budget: small (medium) with every role
+    inherit-parent means every subagent inherits the parent — aliases are exempt.
+  • A project rule can't change the budget. readModelRule skips # lines from the project overlay; the user rule's
+    budget comment wins.
+  • Labels must match exactly (including the em dash form in the picker).
+  • Claude Code's large equals unlimited for role rewriting.
+  • Rule changes take effect in new sessions.
 
 
 
@@ -31,5 +31,5 @@
   → Add a follow-up                                                                                                    
                                                                                                                        
 
-  GLM 5.3 Flash Max · 14.3%                                                                             Run Everything
+  Auto · 12.5%                                                                                          Run Everything
   ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

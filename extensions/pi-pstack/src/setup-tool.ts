@@ -52,9 +52,33 @@ function validateRole(role: string, values: string[], ctx: ExtensionToolContext)
   }
 }
 
-async function writeConfiguration(working: ModelTable, budget: string, target: ThinkingLevel): Promise<void> {
+function ruleText(working: ModelTable, budget: string, target: ThinkingLevel): string {
   const name = budget.split(' — ')[0];
-  const text = `---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# \`inherit-parent\` or \`auto\` as a value: the role runs on the parent chat model (omit Task \`model\`). Alias entries in a panel list still count toward its fan-out.\n# budget: ${name} (${target})\n${[...working].map(([role, values]) => `${role}: ${values.join(', ')}`).join('\n')}\n`;
+  return `---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# \`inherit-parent\` or \`auto\` as a value: the role runs on the parent chat model (omit Task \`model\`). Alias entries in a panel list still count toward its fan-out.\n# budget: ${name} (${target})\n${[...working].map(([role, values]) => `${role}: ${values.join(', ')}`).join('\n')}\n`;
+}
+
+function lineEditStats(before: string, after: string): { added: number; removed: number } {
+  const count = (text: string) => {
+    const bag = new Map<string, number>();
+    for (const line of text.split(/\r?\n/)) bag.set(line, (bag.get(line) ?? 0) + 1);
+    return bag;
+  };
+  const previous = count(before);
+  const next = count(after);
+  let removed = 0;
+  let added = 0;
+  for (const [line, total] of previous) {
+    const keep = next.get(line) ?? 0;
+    if (total > keep) removed += total - keep;
+  }
+  for (const [line, total] of next) {
+    const keep = previous.get(line) ?? 0;
+    if (total > keep) added += total - keep;
+  }
+  return { added, removed };
+}
+
+async function writeConfiguration(text: string): Promise<void> {
   const destination = modelConfigPath();
   await mkdir(dirname(destination), { recursive: true });
   const temporary = `${destination}.${randomUUID()}.tmp`;
@@ -94,8 +118,20 @@ async function writeAction(budget: string, roleOverrides: readonly { role: strin
     ]);
   }
   for (const [role, values] of next) validateRole(role, values, ctx);
-  await writeConfiguration(next, budget, target);
-  return { written: true, rulePath: modelConfigPath(), budget: currentBudget(await readModelRule()) ?? null, roles: tableRecord(next), dropped };
+  const text = ruleText(next, budget, target);
+  const { added, removed } = lineEditStats(current, text);
+  await writeConfiguration(text);
+  return {
+    written: true,
+    rulePath: modelConfigPath(),
+    budget: currentBudget(await readModelRule()) ?? null,
+    added,
+    removed,
+    before: current,
+    after: text,
+    roles: tableRecord(next),
+    dropped,
+  };
 }
 
 export function registerSetupTool(pi: ExtensionAPI): void {
@@ -121,7 +157,10 @@ export function registerSetupTool(pi: ExtensionAPI): void {
     renderResult(result, _options, theme, context) {
       const component = (context.lastComponent as Container | undefined) ?? new Container();
       component.clear();
-      if (context.args.action === 'write') component.addChild(setupWriteCard(result.details as { rulePath: string; budget: string | null }, theme));
+      if (context.args.action === 'write') {
+        const details = result.details as { added: number; removed: number; before: string; after: string };
+        return setupWriteCard(details, theme);
+      }
       return component;
     },
     async execute(_id, params, _signal, _update, ctx) {
@@ -130,7 +169,7 @@ export function registerSetupTool(pi: ExtensionAPI): void {
         return { content: [{ type: 'text', text: JSON.stringify(state) }], details: state, structuredContent: state };
       }
       const written = await writeAction(params.budget ?? '', params.roleOverrides, ctx);
-      const summary = `Wrote ${written.rulePath} with budget ${written.budget}.`;
+      const summary = `Edited pstack-models.mdc +${written.added} -${written.removed}`;
       return { content: [{ type: 'text', text: summary }], details: written, structuredContent: written };
     },
   });

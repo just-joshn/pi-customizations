@@ -133,7 +133,7 @@ test('the write action applies role overrides literally after validating availab
     expect(result).toMatch(/^# budget: unlimited \(max\)$/m);
     expect(result).toContain(`interrogate reviewers: ${model.provider}/${model.id}, inherit-parent`);
     expect(written.details).toMatchObject({ written: true, budget: 'unlimited (max)' });
-    expect(written.content[0]?.text).toContain(`Wrote ${modelConfigPath()} with budget unlimited (max).`);
+    expect(written.content[0]?.text).toMatch(/^Edited pstack-models\.mdc \+\d+ -\d+$/);
   } finally {
     await f.close();
   }

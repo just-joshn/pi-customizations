@@ -1,0 +1,27 @@
+{
+  "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/2026-10-08T17-24-35-337Z_01a11c8b-a189-76b0-9d35-1779fd21420c.jsonl",
+  "subagent": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/01a11c8b-a189-76b0-9d35-1779fd21420c/subagents/agent-1ca875a7-0d83-4fa4-a029-7f823f2ee06d.jsonl",
+  "parentToolSequence": [
+    {
+      "tool": "read",
+      "path": ".../how/references/explainer-prompt.md",
+      "outcome": "blocked",
+      "blockReason": "The how skill is active. Spawn one readonly Task (subagent_type generalPurpose, how explainer role) before direct exploration or the final answer (Step 2b / Step 2a)."
+    },
+    {
+      "tool": "task",
+      "agent_type": "explore",
+      "name": "how-explainer",
+      "promptStartsWith": "Readonly task:",
+      "outcome": "ran",
+      "subagentId": "1ca875a7-0d83-4fa4-a029-7f823f2ee06d"
+    },
+    {
+      "tool": null,
+      "outcome": "final_answer_after_task_result"
+    }
+  ],
+  "methodADisposition": "pass",
+  "methodANotes": "Parent Task (subagent.started) before final answer. Gate blocked first read. Task shape used agent_type=explore not generalPurpose; explainerTaskStarted would still return false for this call.",
+  "ptyScorerHowMethodAv1": "fail-false-negative (patterns are Cursor chrome only)"
+}
