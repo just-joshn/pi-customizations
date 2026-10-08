@@ -57,14 +57,14 @@ export function doctorAnswers({ records = () => [], onDecision = () => {} } = {}
 function observe(targets, root, records, onEvent, onError) {
   const directories = [...new Set(targets.map((target) => (existsSync(target) && lstatSync(target).isDirectory() ? target : dirname(target))))];
   if (directories.some((directory) => !within(realpathSync(directory), root))) throw new Error('Doctor observer must remain inside its owned root');
-  return directories.map((directory) => {
-    const watcher = watch(directory, { recursive: true }, (kind, name) => {
+  return directories.flatMap((directory) => [false, true].map((recursive) => {
+    const watcher = watch(directory, { recursive }, (kind, name) => {
       const path = name === null ? null : join(directory, name.toString());
       if (path === null || targets.some((target) => within(path, target))) onEvent({ path, kind, index: records().length, actor: 'unattributed-notification' });
     });
     watcher.on('error', (error) => onError(error.message));
     return watcher;
-  });
+  }));
 }
 
 function captureStage({ root, cwd, paths, out, initial, previous, records, text, name, events, errors }) {
@@ -98,6 +98,8 @@ export function createDoctorEvidence({ root, cwd = root, targets, out, records =
   let events = [];
   let errors = [];
   let stages = [];
+  let pending = new Set();
+  let closed = false;
   const initial = snapshot(paths, ownedRoot);
   const watchers = observe(
     paths,
@@ -105,12 +107,33 @@ export function createDoctorEvidence({ root, cwd = root, targets, out, records =
     records,
     (event) => {
       events = [...events, event];
+      for (const waiter of pending) if (waiter.path === event.path) waiter.finish(null, event);
     },
     (error) => {
       errors = [...errors, error];
+      for (const waiter of pending) waiter.finish(new Error(error));
     },
   );
   return {
+    async waitForNotification(path, timeoutMs) {
+      if (closed) throw new Error('Doctor observer is closed');
+      if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 5000) throw new Error('Doctor notification wait must be bounded at 5 seconds');
+      if (!paths.some((target) => within(path, target))) throw new Error('Doctor notification wait requires an owned target');
+      if (errors.length) throw new Error(errors.at(-1));
+      return new Promise((resolve, reject) => {
+        const waiter = {
+          path,
+          finish(error, event) {
+            clearTimeout(timer);
+            pending = new Set([...pending].filter((item) => item !== waiter));
+            if (error) reject(error);
+            else resolve(event);
+          },
+        };
+        const timer = setTimeout(() => waiter.finish(new Error('Doctor notification deadline expired')), timeoutMs);
+        pending = new Set([...pending, waiter]);
+      });
+    },
     checkpoint(name, text = '') {
       if (!['report', 'final'].includes(name) || stages.some((stage) => stage.name === name)) throw new Error('Doctor evidence checkpoints are report and final, each once');
       const stage = captureStage({ root: ownedRoot, cwd, paths, out, initial, previous: stages.at(-1)?.identities ?? initial, records: records(), text, name, events, errors });
@@ -118,6 +141,8 @@ export function createDoctorEvidence({ root, cwd = root, targets, out, records =
       return stage;
     },
     close() {
+      closed = true;
+      for (const waiter of pending) waiter.finish(new Error('Doctor observer is closed'));
       for (const watcher of watchers) watcher.close();
     },
   };

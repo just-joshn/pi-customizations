@@ -100,8 +100,8 @@ test('notification wait is bounded and rejects closure instead of inventing an e
   const local = fixture(t);
   const observer = createDoctorEvidence(local);
   t.after(() => observer.close());
-  await assert.rejects(observer.waitForNotification(local.settings, 5), /deadline/);
-  const pending = observer.waitForNotification(local.settings, 5000);
+  await assert.rejects(observer.waitForNotification(join(local.root, 'missing.json'), 5), /deadline/);
+  const pending = observer.waitForNotification(join(local.root, 'missing.json'), 5000);
   observer.close();
   await assert.rejects(pending, /closed/);
   await assert.rejects(observer.waitForNotification(local.settings, 5), /closed/);
