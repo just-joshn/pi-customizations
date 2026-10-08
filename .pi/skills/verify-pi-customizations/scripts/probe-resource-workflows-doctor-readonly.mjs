@@ -26,7 +26,7 @@ writeFileSync(provider, `export default async function(pi) {
   const print=last.content.some(part=>part.type==='text'&&part.text==='Reply OK only. Do not use tools.');
   if(print&&process.env.F016_READONLY_CASE==='child-failure') throw new Error('Scripted readonly loader child failure');
   const stream=createAssistantMessageEventStream();
-  if(print&&process.env.F016_READONLY_CASE==='deadline') return stream;
+  if(print&&['deadline','empty-loader-output'].includes(process.env.F016_READONLY_CASE)) return stream;
   const mutation=users.length>1;
   const index=context.messages.findLastIndex(m=>m.role==='user');
   const done=context.messages.slice(index+1).filter(m=>m.role==='toolResult').length;
@@ -40,7 +40,7 @@ writeFileSync(provider, `export default async function(pi) {
 }
 `, { mode: 0o400 });
 
-const names = process.env.F016_READONLY_CONTROLS?.split(',') ?? ['production-report-gather', 'positive-gather', 'positive-afterVerify', 'unapproved-operation', 'extra-input', 'forged-origin', 'forged-evidence', 'wrong-loader', 'wrong-target-settings', 'child-failure', 'deadline', 'ownership-gap', 'no-op-self-assertion', 'stale-loader'];
+const names = process.env.F016_READONLY_CONTROLS?.split(',') ?? ['production-report-gather', 'positive-gather', 'positive-afterVerify', 'unapproved-operation', 'extra-input', 'forged-origin', 'forged-evidence', 'wrong-loader', 'wrong-target-settings', 'child-failure', 'empty-loader-output', 'deadline', 'ownership-gap', 'no-op-self-assertion', 'stale-loader'];
 let summaries = [];
 let previousFreshSession = null;
 for (const name of names) {
@@ -120,7 +120,7 @@ for (const name of names) {
     assert.ok(Object.keys(verified.receipt.execution.evidence.toolDeclarations).length > 0, 'no fake all-tools-disabled absence');
   }
   if (['forged-origin', 'forged-evidence', 'wrong-loader', 'ownership-gap'].includes(name)) assert.equal(call?.correlated, false);
-  if (name === 'child-failure') assert.equal(call?.receipt?.succeeded, false);
+  if (['child-failure', 'empty-loader-output'].includes(name)) assert.equal(call?.receipt?.succeeded, false);
   if (name === 'deadline') {
     assert.equal(call?.receipt?.rescued, true);
     assert.equal(call?.receipt?.succeeded, false);

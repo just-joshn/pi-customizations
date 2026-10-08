@@ -6,7 +6,7 @@ import test from 'node:test';
 
 import { readonlyDigest } from '../helpers/resource-workflows-doctor-readonly.mjs';
 
-const controls = ['production-report-gather', 'positive-gather', 'positive-afterVerify', 'unapproved-operation', 'extra-input', 'forged-origin', 'forged-evidence', 'wrong-loader', 'wrong-target-settings', 'child-failure', 'deadline', 'ownership-gap', 'no-op-self-assertion', 'stale-loader'];
+const controls = ['production-report-gather', 'positive-gather', 'positive-afterVerify', 'unapproved-operation', 'extra-input', 'forged-origin', 'forged-evidence', 'wrong-loader', 'wrong-target-settings', 'child-failure', 'empty-loader-output', 'deadline', 'ownership-gap', 'no-op-self-assertion', 'stale-loader'];
 
 test('actual Pi scripted readonly controls preserve real loader resources and fail closed on incomplete ownership', { timeout: 180000 }, (t) => {
   const out = realpathSync(mkdtempSync('/tmp/doctor-readonly-runtime-evidence-'));
