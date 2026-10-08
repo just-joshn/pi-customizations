@@ -290,24 +290,37 @@ test('branching before mode activation does not inherit state from the abandoned
   }
 });
 
-test('native and alias setup fail closed without UI and never fall through to inference', async () => {
+test('native setup fails closed without UI and never falls through to inference', async () => {
   const f = await fixture();
   try {
     const { session } = await f.open();
     await session.prompt('/setup-pstack');
-    await session.prompt('/skill:setup-pstack');
     expect(f.requests.length).toBe(0);
     const errors = session.messages.filter((message) => message.role === 'custom' && message.customType === 'pstack-setup-error');
-    expect(errors.length).toBe(2);
-    for (const message of errors) {
-      if (message.role === 'custom') expect(String(message.content)).toMatch(/requires Pi interactive or RPC dialog UI/);
-    }
+    expect(errors.map((message) => message.role === 'custom' ? message.content : undefined)).toEqual(['/setup-pstack requires Pi interactive or RPC dialog UI. Start interactive Pi and run /setup-pstack; no configuration was written.']);
     expect(f.errors).toEqual([]);
   } finally {
     await f.close();
   }
 });
-
+test('canonical setup skill expands its routing instructions into an SDK request without native UI', async () => {
+  const f = await fixture();
+  try {
+    const { session } = await f.open();
+    await prompt(session, '/skill:setup-pstack');
+    expect(f.requests.length).toBe(1);
+    const users = lastRequest(f.requests).messages.filter((message) => message.role === 'user');
+    expect(users.length).toBe(1);
+    const text = users.map((message) => typeof message.content === 'string' ? message.content : message.content.filter((block) => block.type === 'text').map((block) => block.text).join('\n')).join('\n');
+    expect(text).toContain(`<skill name="setup-pstack" location="${join(packageRoot, 'skills/setup-pstack/SKILL.md')}">`);
+    expect(text).toContain('# Setup pstack\n\nCall `pstack_setup` to perform these steps through native Pi dialogs and validated writes. This skill may be selected when the user asks to configure models. Do not bypass the confirmation by manually writing the rule. The steps below document the contract owned by that tool; /setup-pstack and /skill:setup-pstack use the same implementation.');
+    expect(text).toContain('</skill>');
+    expect(session.messages.filter((message) => message.role === 'custom' && message.customType === 'pstack-setup-error')).toEqual([]);
+    expect(f.errors).toEqual([]);
+  } finally {
+    await f.close();
+  }
+});
 test('setup command saves confirmed role choices and offers project verification only once', async () => {
   const f = await fixture();
   try {
