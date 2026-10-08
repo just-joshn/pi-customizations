@@ -26,7 +26,7 @@ writeFileSync(provider, `export default async function(pi) {
   const print=last.content.some(part=>part.type==='text'&&part.text==='Reply OK only. Do not use tools.');
   if(print&&process.env.F016_READONLY_CASE==='child-failure') throw new Error('Scripted readonly loader child failure');
   const stream=createAssistantMessageEventStream();
-  if(print&&['deadline','empty-loader-output'].includes(process.env.F016_READONLY_CASE)) return stream;
+  if(print&&process.env.F016_READONLY_CASE==='deadline'){setInterval(()=>{},1000);return stream;}\n  if(print&&process.env.F016_READONLY_CASE==='empty-loader-output') return stream;
   const mutation=users.length>1;
   const index=context.messages.findLastIndex(m=>m.role==='user');
   const done=context.messages.slice(index+1).filter(m=>m.role==='toolResult').length;

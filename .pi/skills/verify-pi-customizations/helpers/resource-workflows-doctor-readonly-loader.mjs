@@ -148,7 +148,8 @@ export function prepareDoctorReadonlyOperations({ doctor, repoRoot, root, direct
       let evidence = null;
       let evidenceError = null;
       let inventoryWindow = null;
-      if (loader.code === 0 && loader.signal === null && !loader.error && !loader.rescued) {
+      if (loader.code === 0 && loader.stdout.trim() !== 'OK') evidenceError = 'Doctor fresh loader did not produce the actual requested OK reply';
+      if (loader.code === 0 && loader.signal === null && !loader.error && !loader.rescued && !evidenceError) {
         scanResult = await runDoctorReadonlyChild(scan, context);
         children.push(scanResult);
         if (scanResult.code === 0 && !scanResult.error && scanResult.signal === null) {
