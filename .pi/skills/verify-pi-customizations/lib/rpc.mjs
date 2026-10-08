@@ -100,6 +100,7 @@ export function createRpcSession(options = {}) {
       return;
     }
     records.push(record);
+    if (options.onRecord) options.onRecord(record);
     receive(record);
   }
 
@@ -152,9 +153,10 @@ export function createRpcSession(options = {}) {
     const spawned = spawn(piBin, spawnArgs(), {
       cwd,
       env: { ...process.env, ...env, PI_CODING_AGENT_DIR: agentDir },
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: options.onChannel ? ['pipe', 'pipe', 'pipe', 'pipe'] : ['pipe', 'pipe', 'pipe'],
     });
     child = spawned;
+    if (options.onChannel) options.onChannel(spawned.stdio[3]);
     spawned.stdin.on('error', (error) => failPending(error));
     spawned.stdout.setEncoding('utf8');
     spawned.stdout.on('data', onData);

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { mkdtempSync, mkdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -7,6 +7,31 @@ import { pathToFileURL } from 'node:url';
 
 import { registerDoctorNativeBoundary } from '../helpers/resource-workflows-doctor-native-boundary.mjs';
 import { createRpcSession } from '../lib/rpc.mjs';
+import { attachDoctorReadonlyChannel } from '../helpers/resource-workflows-doctor-readonly-channel.mjs';
+import { createDoctorReadonlyAuthority } from '../helpers/resource-workflows-doctor-readonly.mjs';
+
+test('duplex fd3 client authenticates a correlated request and receives the exact parent receipt', async () => {
+  const execution = { code: 0, signal: null, streamsClosed: true, children: [{ pid: 123, code: 0, signal: null, streamsClosed: true }] };
+  const a = createDoctorReadonlyAuthority({ deadline: performance.now() + 5000, operations: Object.freeze({ gather: async () => execution, afterVerify: async () => execution }) });
+  const transport = attachDoctorReadonlyChannel(a);
+  transport.onRecord({ type: 'tool_execution_start', toolName: 'doctor_readonly', toolCallId: 'unit-call', args: { operation: 'gather' } });
+  const module = new URL('../helpers/resource-workflows-doctor-readonly-channel.mjs', import.meta.url).href;
+  const child = spawn(process.execPath, ['--input-type=module', '-e', `import {createDoctorReadonlyClient} from ${JSON.stringify(module)};const keep=setInterval(()=>{},1000);const c=createDoctorReadonlyClient();const receipt=await c.request('unit-call','gather');process.stdout.write(JSON.stringify(receipt));c.close();clearInterval(keep);`], { stdio: ['ignore', 'pipe', 'pipe', 'pipe'] });
+  let stdout = '';
+  let stderr = '';
+  child.stdout.on('data', (chunk) => { stdout += chunk; });
+  child.stderr.on('data', (chunk) => { stderr += chunk; });
+  transport.onChannel(child.stdio[3]);
+  try {
+    const code = await new Promise((resolve) => child.once('close', resolve));
+    assert.equal(code, 0, stderr);
+    const receipt = JSON.parse(stdout);
+    assert.equal(receipt.origin, 'parent-authenticated-readonly-broker');
+    assert.equal(receipt.succeeded, true);
+    assert.equal(receipt.complete, false);
+    assert.deepEqual(receipt, a.snapshot().calls[0].receipt);
+  } finally { child.kill('SIGKILL'); transport.close(); }
+});
 
 const pi = realpathSync(execFileSync('/bin/sh', ['-c', 'command -v pi'], { encoding: 'utf8' }).trim());
 const sdk = pathToFileURL(join(pi, '../../install/releases/1.1.0/node_modules/@earendil-works/pi-coding-agent/dist/index.js')).href;

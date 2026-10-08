@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 import { createDoctorEvidence, doctorAnswers } from './resource-workflows-doctor-evidence.mjs';
 import { doctorApprovedPaths, doctorDigest, doctorLeaseJournal, drainDoctorLease, openDoctorLease, prepareDoctorLease } from './resource-workflows-doctor-lease.mjs';
 import { evaluateDoctor } from './resource-workflows-doctor-outcome.mjs';
+import { driveDoctorReadonlyReport } from './resource-workflows-doctor-readonly-phase.mjs';
 
 const nonempty = (value) => typeof value === 'string' && value.trim().length > 0;
 const textSince = (records, start) =>
@@ -280,6 +281,7 @@ async function captureMutation({ doctor, root, targets, report, authorized, prom
 }
 
 export async function driveDoctorLeases({ doctor, repoRoot, root, reviewReport, reviewFinal, reviewLeaseMs = 120000, promptDeadlineMs = 120000 }) {
+  if (doctor.readonlyBroker === true) return driveDoctorReadonlyReport({ doctor, repoRoot, root, promptDeadlineMs });
   if (!Number.isInteger(reviewLeaseMs) || reviewLeaseMs < 1 || reviewLeaseMs > 120000 || !Number.isInteger(promptDeadlineMs) || promptDeadlineMs < 1 || promptDeadlineMs > 120000)
     throw new Error('Doctor deadlines must be bounded at 120 seconds');
   const owned = realpathSync(root);

@@ -56,7 +56,7 @@ export function doctorLeasePolicy({ doctor, root, protectedTargets, runtimeWrite
   return `${lines.slice(0, -1).join('\n')}\n(deny process-fork)\n(allow file-write* ${runtime.join(' ')} ${sdkLock ? `(literal ${JSON.stringify(sdkLock)})` : ''} (literal "/dev/null"))\n${paths.length ? `(allow file-write-data ${[...new Set(paths)].map((path) => `(literal ${JSON.stringify(path)})`).join(' ')})\n` : ''}`;
 }
 
-function writeDoctorLeaseImage({ doctor, directory, policy, phase, approvedGroups }) {
+function writeDoctorLeaseImage({ doctor, directory, policy, phase, approvedGroups, readonly }) {
   const profile = join(directory, 'boundary.sb');
   const wrapper = join(directory, 'pi');
   const source = readFileSync(doctor.wrapper, 'utf8');
@@ -65,11 +65,11 @@ function writeDoctorLeaseImage({ doctor, directory, policy, phase, approvedGroup
   writeFileSync(profile, policy, { flag: 'wx', mode: 0o400 });
   writeFileSync(wrapper, source.replace(oldProfile, `-f ${quote(profile)}`), { flag: 'wx', mode: 0o500 });
   writeFileSync(join(directory, 'rpc.jsonl'), '', { flag: 'wx', mode: 0o600 });
-  const nativeBoundary = prepareDoctorGuard({ doctor, directory, phase, groups: approvedGroups });
+  const nativeBoundary = prepareDoctorGuard({ doctor, directory, phase, groups: approvedGroups, readonly });
   return { profile, wrapper, nativeBoundary };
 }
 
-export function prepareDoctorLease({ doctor, root, protectedTargets, phase, sessionId, approvedGroups = [], rootState = null }) {
+export function prepareDoctorLease({ doctor, root, protectedTargets, phase, sessionId, approvedGroups = [], rootState = null, readonly = false }) {
   if (!doctor.sessionOptions || doctor.session) throw new Error('Doctor requires deferred fixture preparation before the first SUT launch');
   const owned = realpathSync(root);
   const out = realpathSync(doctor.out);
@@ -82,7 +82,7 @@ export function prepareDoctorLease({ doctor, root, protectedTargets, phase, sess
   if (!existsSync(auth)) writeFileSync(auth, '{}', { flag: 'wx', mode: 0o600 });
   const sdkLock = `${auth}.lock`;
   const policy = doctorLeasePolicy({ doctor, root: owned, protectedTargets, runtimeWrites: [sessionDir, tmp], phase, approvedGroups, sdkLock });
-  const { profile, wrapper, nativeBoundary } = writeDoctorLeaseImage({ doctor, directory, policy, phase, approvedGroups });
+  const { profile, wrapper, nativeBoundary } = writeDoctorLeaseImage({ doctor, directory, policy, phase, approvedGroups, readonly });
   const record = freeze({
     id: dirname(profile),
     phase,
@@ -125,6 +125,7 @@ export function openDoctorLease(prepared) {
   if (doctorDigest(readFileSync(prepared.record.nativeBoundary.runtime.path)) !== prepared.record.nativeBoundary.runtime.sha256) throw new Error('Doctor protected native boundary runtime changed');
   if (doctorDigest(readFileSync(prepared.record.nativeBoundary.path)) !== prepared.record.nativeBoundary.sha256) throw new Error('Doctor protected native boundary image changed');
   if (doctorDigest(readFileSync(prepared.record.profile)) !== prepared.record.profileSha256 || doctorDigest(readFileSync(prepared.record.wrapper)) !== prepared.record.imageSha256) throw new Error('Doctor immutable lease image changed');
+  for (const dependency of prepared.record.nativeBoundary.dependencies ?? []) if (doctorDigest(readFileSync(dependency.path)) !== dependency.sha256) throw new Error('Doctor protected native boundary dependency changed');
   const session = createRpcSession(prepared.options);
   return { session, record: freeze({ ...prepared.record, pid: session.pid, startedAt: new Date().toISOString() }) };
 }
@@ -150,15 +151,19 @@ export function doctorLeaseJournal(records, lease, { offset = 0, reportIndex = n
     const matches = ends.get(record.toolCallId) ?? [];
     const end = matches.length === 1 && matches[0].index > index && starts.get(record.toolCallId).length === 1 ? matches[0].record : null;
     const path = typeof record.args?.path === 'string' ? resolve(lease.cwd ?? lease.root, record.args.path) : null;
-    return [{ index: offset + index, toolCallId: record.toolCallId, kind: record.toolName, path, succeeded: end?.isError === false, ended: Boolean(end), actor: 'doctor' }];
+    const operation = record.toolName === 'doctor_readonly' ? record.args?.operation : null;
+    const parentCall = lease.readonlyBroker?.calls?.find((call) => call.toolCallId === record.toolCallId && call.operation === operation && call.correlated === true);
+    const readonlyKnown = Boolean(parentCall && end?.result?.details?.doctorReadonly && doctorDigest(JSON.stringify(parentCall.receipt)) === doctorDigest(JSON.stringify(end.result?.details?.doctorReadonly)));
+    return [{ index: offset + index, toolCallId: record.toolCallId, kind: record.toolName, path, succeeded: end?.isError === false, ended: Boolean(end), actor: 'doctor', ...(record.toolName === 'doctor_readonly' ? { operation, readonlyKnown } : {}) }];
   });
   const writes = calls.filter((call) => ['write', 'edit'].includes(call.kind));
-  const unknownCalls = calls.filter((call) => !['read', 'write', 'edit'].includes(call.kind) || !call.ended).map((call) => call.toolCallId);
+  const unknownCalls = calls.filter((call) => (!['read', 'write', 'edit'].includes(call.kind) && !call.readonlyKnown) || !call.ended).map((call) => call.toolCallId);
   const attempts = writes.filter((call) => lease.phase === 'report' || !call.succeeded || !approvedGroups.some((group) => group.paths.includes(call.path)));
   const entries = writes.map((call) => {
     const group = approvedGroups.find((item) => item.paths.includes(call.path));
     return { ...call, attemptedGroupId: group?.id ?? null, groupId: call.succeeded ? (group?.id ?? null) : null, effect: group?.effect ?? null };
   });
-  const complete = lease.drained === true && lease.shutdownErrors.length === 0 && unknownCalls.length === 0;
-  return { complete, proof: { kind: 'immutable-kernel-capability-and-native-tool-contract', leaseId: lease.id, profileSha256: lease.profileSha256, syscallTrace: false, reportIndex }, entries, calls, unknownCalls, violations: attempts };
+  const readonlyDomainComplete = lease.readonlyBroker ? lease.readonlyBroker.complete === true && lease.nativeDomain?.complete === true : null;
+  const complete = lease.drained === true && lease.shutdownErrors.length === 0 && unknownCalls.length === 0 && readonlyDomainComplete !== false;
+  return { complete, proof: { kind: 'immutable-kernel-capability-and-native-tool-contract', leaseId: lease.id, profileSha256: lease.profileSha256, syscallTrace: false, reportIndex, ...(lease.readonlyBroker ? { readonlyDomainComplete } : {}) }, entries, calls, unknownCalls, violations: attempts };
 }

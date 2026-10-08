@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 import { lstatSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+import { validateDoctorReadonlyInput } from './resource-workflows-doctor-readonly.mjs';
+
 const digest = (value) => createHash('sha256').update(value).digest('hex');
 
 function approvedEffect(policy, path) {
@@ -55,7 +57,18 @@ export async function registerDoctorNativeBoundary(pi, policy, sdk) {
       return edit.execute(...args);
     },
   });
+  if (policy.readonly) pi.registerTool({
+    name: 'doctor_readonly', label: 'Doctor fixed readonly operation',
+    description: 'Gather readonly Doctor inventory or verify the actual target with a fresh loader and inventory. No paths, commands, or environment inputs are accepted.',
+    parameters: { type: 'object', properties: { operation: { type: 'string', enum: ['gather', 'afterVerify'] } }, required: ['operation'], additionalProperties: false },
+    async execute(toolCallId, input) {
+      const { operation } = validateDoctorReadonlyInput(input);
+      const receipt = await policy.readonly.request(toolCallId, operation);
+      return { content: [{ type: 'text', text: JSON.stringify(receipt) }], details: { doctorReadonly: receipt } };
+    },
+  });
   pi.on('tool_call', (event) => {
+    if (policy.readonly && event.toolName === 'doctor_readonly') return;
     if (!['read', 'write', 'edit'].includes(event.toolName)) return { block: true, reason: 'Doctor lease rejects shell and custom-tool execution' };
     if (policy.phase === 'report' && event.toolName !== 'read') return { block: true, reason: 'Doctor report lease rejects every mutation attempt' };
   });

@@ -145,6 +145,9 @@ function loading(facts) {
 
 export function evaluateDoctor(facts) {
   const initial = reportChecks(facts);
+  if (facts?.leases?.some((lease) => lease.nativeDomain?.authority === 'parent-source-bound-main-nofork-policy')) {
+    initial.push(['source-bound readonly capability domain', facts.journal?.complete === true && facts.leases.every((lease) => lease.nativeDomain?.complete === true && lease.readonlyBroker?.complete === true)]);
+  }
   const reportReady = initial.every(([, passed]) => passed);
   const checks = [
     ...initial,
