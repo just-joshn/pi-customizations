@@ -2,20 +2,13 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { doctorAnswers } from '../helpers/resource-workflows-doctor-evidence.mjs';
+import { driveDoctorReport } from '../helpers/resource-workflows-doctor-phase.mjs';
 import { seedGreetingCli, seedLibrary, seedSimplify } from '../helpers/resource-workflows-fixtures.mjs';
 import { attemptPrompt, checkInteraction, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
 import { collectSimplifyEvidence } from '../helpers/resource-workflows-simplify-evidence.mjs';
 import { evaluateSimplify } from '../helpers/resource-workflows-simplify-outcome.mjs';
 import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
-
-function assistantText(session) {
-  return session.records
-    .filter((record) => record.type === 'message_end' && record.message?.role === 'assistant')
-    .flatMap((record) => record.message.content ?? [])
-    .filter((part) => part.type === 'text')
-    .map((part) => part.text)
-    .join('\n');
-}
 
 function preserve(cwd, out) {
   cpSync(cwd, join(out, 'workspace'), { recursive: true });
@@ -34,40 +27,19 @@ export default async function drive(context) {
     summary.push({ id, ...status });
     writeOutcomeReceipt({ repoRoot, receipts }, { surfaceId: id, package: 'skills', observed: JSON.stringify(status), evidence: join(out, 'attempt.json'), verdict: status.verdict, reason: status.reason });
   };
-  const launch = (name, packagePath) => {
+  const launch = (name, packagePath, answers) => {
     const out = join(artifactDir, name);
     const root = join(scratchDir, name);
-    return { ...makeLocalSession({ root, out, repoRoot, packagePath }), out };
+    return { ...makeLocalSession({ root, out, repoRoot, packagePath, answers }), out };
   };
 
-  const doctor = launch('setup');
+  let doctor;
+  const doctorDecisions = [];
+  const answers = doctorAnswers({ records: () => doctor?.session.records ?? [], onDecision: (decision) => doctorDecisions.push(decision) });
+  doctor = launch('setup', undefined, answers);
   try {
-    const trust = join(doctor.agentDir, 'trust.json');
-    const stale = join(doctor.cwd, 'gone');
-    writeFileSync(trust, JSON.stringify({ [stale]: 'trusted' }));
-    const before = readFileSync(trust, 'utf8');
-    const firstError = await attemptPrompt(doctor.session, `/skill:doctor Check my Pi setup at ${doctor.agentDir} for the project ${doctor.cwd}. It is offline. Present your complete health report before changing anything.`);
-    const report = assistantText(doctor.session);
-    const unchanged = readFileSync(trust, 'utf8') === before;
-    const reported = report.includes('Component') && report.includes('Clean up everything') && report.includes('Let me pick') && report.includes('No, keep everything');
-    writeFileSync(join(doctor.out, 'before-approval.json'), JSON.stringify({ firstError, unchanged, reported, report }, null, 2));
-    let approvalError = null;
-    if (!firstError && unchanged && reported) approvalError = await attemptPrompt(doctor.session, 'Clean up everything (recommended). Apply the proposed fixes to my fixture setup.');
-    const removed = !Object.hasOwn(JSON.parse(readFileSync(trust, 'utf8')), stale);
-    cpSync(doctor.agentDir, join(doctor.out, 'agent'), { recursive: true });
-    finish(
-      'RS-SKILL-1',
-      {
-        verdict: firstError || approvalError || !unchanged || !reported || !removed ? 'failed' : 'inconclusive',
-        firstError,
-        approvalError,
-        unchangedBeforeApproval: unchanged,
-        actualReport: reported,
-        confirmedStaleTrustRemoval: removed,
-        reason: 'Report and trust-file ordering are recorded. Full pre-approval filesystem edits and post-fix inventory verification require transcript audit.',
-      },
-      doctor.out,
-    );
+    const doctorStatus = await driveDoctorReport({ doctor, repoRoot, root: join(scratchDir, 'setup'), reviewReport: context.doctorReviewReport });
+    finish('RS-SKILL-1', { ...doctorStatus, doctorDecisions }, doctor.out);
   } finally {
     await doctor.session.close();
   }

@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
 import test from 'node:test';
+import { pathToFileURL } from 'node:url';
 
 const base = resolve('.pi/skills/verify-pi-customizations');
 
 test('public scenario does not send approval for four keywords without independent Root review', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'doctor-main-'));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'doctor-main-')));
   const out = join(root, 'evidence');
   const scratch = join(root, 'scratch');
   const prompts = [];
@@ -21,14 +21,21 @@ test('public scenario does not send approval for four keywords without independe
       const agentDir = join(owned, 'agent');
       for (const path of [cwd, agentDir, artifacts]) mkdirSync(path, { recursive: true });
       writeFileSync(join(agentDir, 'settings.json'), '{}');
-      return { cwd, agentDir, env: {}, profile: '/nonexistent', session: {
-        records: [], dialogs: [],
-        async prompt(text) {
-          prompts.push(text);
-          this.records.push({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text: 'Component Clean up everything Let me pick No, keep everything' }] } });
+      return {
+        cwd,
+        agentDir,
+        env: {},
+        profile: '/nonexistent',
+        session: {
+          records: [],
+          dialogs: [],
+          async prompt(text) {
+            prompts.push(text);
+            this.records.push({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text: 'Component Clean up everything Let me pick No, keep everything' }] } });
+          },
+          async close() {},
         },
-        async close() {},
-      } };
+      };
     },
   };
   try {
