@@ -102,6 +102,8 @@ for (const name of names) {
   const call = ended.readonlyBroker.calls[0];
   if (name === 'positive-gather' || name === 'positive-afterVerify') {
     assert.equal(call?.correlated, true);
+    assert.match(ended.nativeBoundary.contract, /authenticated-fixed-readonly/);
+    assert.ok(ended.nativeBoundary.dependencies.some((item) => item.path.endsWith('resource-workflows-doctor-readonly-channel.mjs')));
     assert.equal(JSON.parse(call.receipt.execution.children[1].stdout).install.version, '1.1.0', 'original inventory pi --version semantics remain confined and successful');
     assert.equal(call.receipt.succeeded, true, JSON.stringify(call.receipt.execution));
     assert.equal(call.receipt.execution.inventoryWindow.days, 30, 'agent gather retains actual target usage window');
