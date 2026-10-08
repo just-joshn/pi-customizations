@@ -3,6 +3,8 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
+delete process.env.NODE_TEST_CONTEXT;
+delete process.env.NODE_V8_COVERAGE;
 const { default: drive } = await import(process.argv[3] ?? '../scenarios/resource-workflows-local.mjs');
 
 const repoRoot = resolve('.');
@@ -13,7 +15,8 @@ assert.equal(execFileSync(pi, ['--version'], { encoding: 'utf8' }).trim(), '1.1.
 const ai = join(dirname(dirname(pi)), 'install/releases/1.1.0/node_modules/@earendil-works/pi-ai/dist/index.js');
 const quote = (value) => `'${value.replaceAll("'", "'\\''")}'`;
 const outcomes = [];
-for (const name of ['native-clean', 'lowercase-clean', 'native-diff', 'lowercase-diff', 'parent-write', 'unobserved-shell', 'child-write', 'wrong-parent', 'capability-unreadable', 'forged-observation', 'changed-config', 'source-symlink']) {
+const names = ['native-clean', 'lowercase-clean', 'native-diff', 'lowercase-diff', 'parent-write', 'unobserved-shell', 'child-write', 'wrong-parent', 'capability-unreadable', 'forged-observation', 'changed-config', 'source-symlink'];
+for (const name of names.filter((name) => !process.argv[4] || name === process.argv[4])) {
   const root = realpathSync(mkdtempSync('/tmp/f016-simplify-main-'));
   const artifactDir = join(out, name);
   mkdirSync(artifactDir, { recursive: true });

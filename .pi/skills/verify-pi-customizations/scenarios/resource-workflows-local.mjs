@@ -8,6 +8,7 @@ import { seedGreetingCli, seedLibrary, seedSimplify } from '../helpers/resource-
 import { attemptPrompt, checkInteraction, makeLocalSession } from '../helpers/resource-workflows-local.mjs';
 import { collectSimplifyEvidence } from '../helpers/resource-workflows-simplify-evidence.mjs';
 import { evaluateSimplify } from '../helpers/resource-workflows-simplify-outcome.mjs';
+import { recordSimplifySession } from '../helpers/resource-workflows-simplify-recording.mjs';
 import { collectReEvidence, freezeReTarget } from '../helpers/resource-workflows-re-evidence.mjs';
 import { evaluateRe } from '../helpers/resource-workflows-re-outcome.mjs';
 import { surfaceContract } from '../helpers/resource-workflows-surfaces.mjs';
@@ -65,14 +66,16 @@ export default async function drive(context) {
   finish('RS-SKILL-2', { verdict: 'inconclusive', interactions, reason: 'CLI and library attempts do not prove the full row. Electron, Playwright, server and TUI interaction remain unresolved.' }, runOut);
 
   const cleanup = launch('greeting-cleanup', join(repoRoot, 'extensions/pi-pstack'));
+  let recording;
   try {
     seedSimplify(cleanup.cwd);
     const testsBefore = execFileSync('node', ['--test', 'greeting.test.mjs'], { cwd: cleanup.cwd, encoding: 'utf8' });
     const testSource = readFileSync(join(cleanup.cwd, 'greeting.test.mjs'), 'utf8');
     const before = readFileSync(join(cleanup.cwd, 'greeting.mjs'), 'utf8');
-    const parentSessionId = (await cleanup.session.state()).sessionId;
+    recording = await recordSimplifySession({ cleanup, root: join(scratchDir, 'greeting-cleanup'), packagePath: join(repoRoot, 'extensions/pi-pstack') });
+    const { sessionId: parentSessionId, sessionFile: parentSessionFile } = recording.state;
     const error = await attemptPrompt(
-      cleanup.session,
+      recording.session,
       `/skill:simplify ${join(cleanup.cwd, 'greeting.mjs')} My project root is ${cleanup.cwd}. Clean up the changed greeting code without changing its behavior. Use the available subagent tool for the independent reviews. Run the existing checks when finished.`,
     );
     const observe = (args) => {
@@ -89,16 +92,19 @@ export default async function drive(context) {
     const changed = readFileSync(join(cleanup.cwd, 'greeting.mjs'), 'utf8') !== before;
     preserve(cleanup.cwd, cleanup.out);
     cpSync(cleanup.agentDir, join(cleanup.out, 'agent'), { recursive: true });
+    const parentToolObservations = recording.observations();
+    writeFileSync(join(cleanup.out, 'parent-recording.json'), JSON.stringify({ parentSessionId, parentSessionFile, parentToolObservations }, null, 2));
     const facts = {
       invocation: { error },
       execution: { tests: testsAfter, greeting },
-      evidence: collectSimplifyEvidence({ records: cleanup.session.records, root: join(scratchDir, 'greeting-cleanup'), cwd: cleanup.cwd, parentSessionId, out: cleanup.out }),
+      evidence: collectSimplifyEvidence({ records: recording.session.records, root: join(scratchDir, 'greeting-cleanup'), cwd: cleanup.cwd, parentSessionId, parentSessionFile, parentToolObservations, out: cleanup.out }),
       results: { testsUnchanged, changed },
       rescue: { performed: false },
     };
     finish('RS-SKILL-3', { ...facts, ...evaluateSimplify(facts) }, cleanup.out);
   } finally {
-    await cleanup.session.close();
+    if (recording) await recording.close();
+    else await cleanup.session.close();
   }
 
   const reverse = launch('greeting-command');
