@@ -25,7 +25,7 @@ export interface Harness {
   readonly record: (entry: unknown) => void;
 }
 
-export function harness(cwd: string = process.cwd(), { hasUI = true }: { readonly hasUI?: boolean } = {}): Harness {
+export function harness(cwd: string = process.cwd(), { hasUI = true, resources = [] }: { readonly hasUI?: boolean; readonly resources?: ReturnType<ExtensionAPI['getCommands']> } = {}): Harness {
   const handlers = new Map<string, Handler[]>();
   const commands = new Map<string, Command>();
   const tools = new Map<string, ToolDefinition>();
@@ -35,6 +35,7 @@ export function harness(cwd: string = process.cwd(), { hasUI = true }: { readonl
   const statuses: (string | undefined)[] = [];
   const notices: string[] = [];
   const pi = {
+    getCommands: () => resources,
     on: (name: string, handler: Handler) => handlers.set(name, [...(handlers.get(name) ?? []), handler]),
     registerCommand: (name: string, command: Command) => commands.set(name, command),
     registerTool: (tool: ToolDefinition) => tools.set(tool.name, tool),

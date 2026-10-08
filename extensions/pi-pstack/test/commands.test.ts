@@ -128,7 +128,7 @@ test('a same-name user prompt is not rewritten', async () => {
   expect(await input?.({ text: '/how "keep me"' }, ctx)).toEqual({ action: 'continue' });
 });
 
-test('/setup-pstack and /skill:setup-pstack handle errors without UI', async () => {
+test('/setup-pstack handles errors without UI while its canonical skill continues to SDK expansion', async () => {
   const path = '/pkg/skills/setup-pstack/SKILL.md';
   const skills = new Map([['setup-pstack', { path, body: 'Body', description: 'Setup' }]]);
   const handlers: Record<string, (args: string, ctx: ExtensionContext) => Promise<void>> = {};
@@ -156,8 +156,9 @@ test('/setup-pstack and /skill:setup-pstack handle errors without UI', async () 
   expect(errors[0] ?? '').toMatch(/\/setup-pstack requires Pi interactive or RPC dialog UI/);
 
   const res = await input?.({ text: '/skill:setup-pstack' }, ctx);
-  expect(res).toEqual({ action: 'handled' });
-  expect(errors.length).toBe(2);
+  expect(res).toEqual({ action: 'continue' });
+  expect(errors.length).toBe(1);
+  expect(messages).toEqual([]);
 });
 
 test('native input ignores unrelated input or mismatched skill path', async () => {

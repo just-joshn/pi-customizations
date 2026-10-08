@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { harness } from './support/harness.ts';
 
@@ -72,6 +73,24 @@ describe('prompt injection', () => {
 });
 
 describe('one-shot skills', () => {
+  test.for(['commit', 'review', 'compress'])('owned bare %s leaves original bytes and images for SDK template expansion', (mode) => {
+    const name = `caveman-${mode}`;
+    const h = harness('/unrelated/cwd', { resources: [{ name, source: 'prompt', description: '', sourceInfo: { path: fileURLToPath(new URL(`../prompts/${name}.md`, import.meta.url)), source: 'package', scope: 'local' } }] });
+    h.emit('session_start', { reason: 'startup' });
+    const text = `/${name} "two words"\n$ARGUMENTS`;
+    const images = [{ type: 'image', data: 'a', mimeType: 'image/png' }];
+    expect(h.emit('input', { text, images, source: 'interactive' })).toStrictEqual([{ action: 'continue' }]);
+    expect(h.statuses.at(-1)).toBe(`[CAVEMAN:${mode.toUpperCase()}]`);
+    expect(h.emit('input', { text: `/caveman:${name} "two words"\n$ARGUMENTS`, images, source: 'interactive' })).toStrictEqual([{ action: 'transform', text: `/skill:${name} "two words"\n$ARGUMENTS` }]);
+  });
+
+  test('foreign bare template continues without changing mode or recording a one-shot', () => {
+    const h = harness('/unrelated/cwd', { resources: [{ name: 'caveman-commit', source: 'prompt', description: '', sourceInfo: { path: '/user/prompts/caveman-commit.md', source: 'user', scope: 'user' } }] });
+    h.emit('session_start', { reason: 'startup' });
+    expect(h.emit('input', { text: '/caveman-commit fix parser', source: 'interactive' })).toStrictEqual([{ action: 'continue' }]);
+    expect(h.statuses.at(-1)).toBe('[CAVEMAN]');
+    expect(h.entries).toHaveLength(1);
+  });
   test('/caveman-commit is rewritten to its skill', () => {
     expect(started().emit('input', { text: '/caveman-commit fix parser', source: 'interactive' })).toStrictEqual([{ action: 'transform', text: '/skill:caveman-commit fix parser' }]);
   });
