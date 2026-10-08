@@ -1,0 +1,36 @@
+                                                                                                                       ┃
+ Wrote /tmp/pi-ref-agent/pstack/models.mdc. Applies from the next prompt; re-run /setup-pstack to update it.           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ The user completed /setup-pstack and confirmed the model configuration. Only its optional verification step remains.  ┃
+ Inspect this project for an existing verification skill or a harness that drives the real app. A globally installed   ┃
+ verify skill does not establish project coverage.                                                                     ┃
+ If there is no such project capability, offer once: "want a project-local verification skill, so agents can drive the ┃
+ app the way a user does and prove changes work? I can generate one with /create-verification-skill."                  ┃
+ Wait for the user to accept before invoking                                                                           ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/create-verification-skill/SKILL.m ┃
+ d. If a harness exists or the user declines, finish setup without creating one.                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠙ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+$0.000 (sub) 1.4%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

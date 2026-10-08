@@ -1,0 +1,32 @@
+{
+  "parity/research/cursor-host/services/retrievals/docs_cloud-agent_capabilities.md": {
+    "preserved_path": "preserved/docs_cloud-agent_capabilities.md",
+    "sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+    "scope": "Original quote provenance retained unchanged; this map supplies a workspace-independent recovery path."
+  },
+  "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/hooks.md": {
+    "preserved_path": "preserved/snapshot-hooks.md",
+    "sha256": "7294a2d63b19d79a5283c948afe174cba8b06a7585563d34a2c41b90f5df0d39",
+    "scope": "Original quote provenance retained unchanged; this map supplies a workspace-independent recovery path."
+  },
+  "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md": {
+    "preserved_path": "preserved/snapshot-mcp.md",
+    "sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+    "scope": "Original quote provenance retained unchanged; this map supplies a workspace-independent recovery path."
+  },
+  "parity/research/cursor-host/customization/sources/plugin-reference.md": {
+    "preserved_path": "preserved/plugin-reference.md",
+    "sha256": "5d087ad7c3ae1d48ea3f28f69a6cc67d8a2410e06908e1669ff3f20b2eb5c0ad",
+    "scope": "Original quote provenance retained unchanged; this map supplies a workspace-independent recovery path."
+  },
+  "parity/research/cursor-host/customization/sources/mcp-install-links.md": {
+    "preserved_path": "preserved/mcp-install-links.md",
+    "sha256": "426de167d81dae9474ded2f6a2a8156070641ecd32e041130284eae56e4742af",
+    "scope": "Original quote provenance retained unchanged; this map supplies a workspace-independent recovery path."
+  },
+  "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_endpoints.md": {
+    "preserved_path": "preserved/docs_cloud-agent_api_endpoints.md",
+    "sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+    "scope": "Original quote provenance retained unchanged; this map supplies a workspace-independent recovery path."
+  }
+}

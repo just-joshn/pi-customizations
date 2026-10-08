@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "status": "discovery-in-progress",
+  "items": [
+    {
+      "id": "SETUP-BUDGET-UNLIMITED-LABEL",
+      "requirementId": "PSTACK-SETUP-BUDGET-LABELS-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "78dd5a04279436ebf6dde44853bacdab88ca9ae0",
+      "candidatePayloadSha256": "sha256:115488fe64923c41dc92b950e5d09bf5e229127186ab705d6f2e14eea97e3c2e",
+      "candidatePackageSha256": "54cdddcddbeb75dab1ed75c79be217a1d0ab2467670212ef43584949090f5832",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "sourceLocator": "Step 3(a), exact budget labels",
+      "expected": "unlimited — max reasoning",
+      "actual": "unlimited — keep max",
+      "candidateRecording": "parity/evidence/candidate-baseline/terminal.raw",
+      "candidateScreen": "parity/evidence/candidate-baseline/02-setup-selected.txt",
+      "cursorPairedRun": null,
+      "consequence": "The setup selector uses a different stable option label. Source inspection also shows unlimited leaves existing effort unchanged rather than applying max with supported-family fallback.",
+      "acceptanceVerdict": "pass-paired",
+      "nextAction": "Closed by the canonical-2 pair. One reference run (affc057f) again omitted '(max)'; retained as model-authored variance, not a candidate defect.",
+      "repairNote": "Candidate 0.15.15-pi.1 source uses the label unlimited — max reasoning and raises each entry to its highest supported level. The 2026-10-08 exploration recordings show both the Cursor and Pi selectors with this label. Not a paired run.",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+        "attemptIds": { "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207", "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125" },
+        "evidence": [
+          "parity/evidence/setup-prepair/panel-parity.json (chrome match true, inputs match true, unexplained 0)",
+          "parity/evidence/setup-prepair/pair-report-canonical-2.json (inputDifferences 0; outcomeDifference is the harness SIGINT cleanup exit code, cursor 143 vs pi 0, classified harness-cleanup)"
+        ],
+        "writtenRule": "both sides byte-identical, sha256:9146cd9fe687813f13618724c14da1ced71a72151a9be4ae6ae166ae23218aaa, budget line '# budget: unlimited (max)' on both sides",
+        "closedAt": "2026-10-08T11:05:00Z"
+      },
+      "cursorExploration": "parity/evidence/cursor-setup-explore/c1629450-3dc6-4e58-8332-89c25be4043e",
+      "piExploration": "parity/evidence/pi-setup-explore/3bfd286b-f017-4ec4-8d6b-53ed663fca92"
+    },
+    {
+      "id": "SETUP-FLOW-ASK-QUESTION-UI",
+      "requirementId": "PSTACK-SETUP-FLOW-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "working-tree-after-78dd5a0",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "cursorPairedRun": null,
+      "acceptanceVerdict": "not-established",
+      "cursorExploration": "parity/evidence/cursor-setup-explore/c1629450-3dc6-4e58-8332-89c25be4043e",
+      "piExploration": "parity/evidence/pi-setup-explore/3bfd286b-f017-4ec4-8d6b-53ed663fca92",
+      "expected": "Cursor shows a Clarifying Questions panel (Question 1 of 2) with checkbox options, the current rule summarized in the question text, and keys: up/down option, left/right question, Space select, Enter next/submit, Esc skip.",
+      "actual": "Pi shows a native single-choice selector titled pstack reasoning budget (up/down navigate, enter select, escape cancel), with no question counter, no current-rule summary and no Space-select. After the budget it shows a model picker with filter and a roster of roles marked needs a choice.",
+      "consequence": "Different interaction count, controls, wording and defaults for the same setup task.",
+      "caveat": "Fixtures were not equal. The Cursor run had an existing rule with every role inherit-parent. The Pi run used an isolated agent dir with no rule. The Cursor run also typed a stray a before the command. Must be re-captured as a proper pair before it is a verdict.",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+        "attemptIds": { "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207", "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125" },
+        "evidence": [
+          "parity/evidence/setup-prepair/panel-parity.json (normalized panel chrome equal, 7 identical inputs, unexplained 0)",
+          "parity/evidence/setup-prepair/pair-report-canonical-2.json",
+          "raw output differences are model-authored chat bytes; the single outcome difference is the harness SIGINT cleanup exit code (cursor 143, pi 0), classified harness-cleanup per canonical-1"
+        ],
+        "repairs": [
+          "agent-driven AskQuestion panel replaces the native dialog flow (space toggles, enter advances/submits, escape submits answered and skips)",
+          "panel rows aligned to the captured geometry (' │ ' + content padded to 114 + ' │'); found by the paired chrome comparison",
+          "space in open text entry appends a literal space (regression test added)",
+          "optional AskQuestion title rendered as the panel header, default 'Clarifying Questions'"
+        ],
+        "closedAt": "2026-10-08T11:05:00Z"
+      },
+      "acceptanceVerdict": "pass-paired",
+      "nextAction": "Closed by the canonical-2 pair. Remaining flow work continues under the acceptance families in parity/progress.md."
+    },
+    {
+      "id": "SETUP-ROLE-ROSTER-DEFAULTS",
+      "requirementId": "PSTACK-SETUP-FLOW-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "working-tree-after-78dd5a0",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "cursorPairedRun": null,
+      "acceptanceVerdict": "not-established",
+      "cursorExploration": "parity/evidence/cursor-setup-explore/c1629450-3dc6-4e58-8332-89c25be4043e",
+      "piExploration": "parity/evidence/pi-setup-explore/3bfd286b-f017-4ec4-8d6b-53ed663fca92",
+      "expected": "Roles shown with the current rule state (every role inherit-parent in the reference configuration, kept on a re-run).",
+      "actual": "Pi lists 17 roles as grok-4.7-xhigh-fast or claude-opus-5-5-xhigh with needs a choice, with a model list of 72 entries from the user providers.",
+      "consequence": "A user re-running setup would see a different starting state and would have to pick models the Cursor flow keeps.",
+      "caveat": "Same fixture caveat as SETUP-FLOW-ASK-QUESTION-UI.",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+        "attemptIds": { "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207", "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125" },
+        "evidence": [
+          "both sides' written rules byte-identical (sha256:9146cd9fe687813f13618724c14da1ced71a72151a9be4ae6ae166ae23218aaa) with every role inherit-parent (18 occurrences including the comment header) and '# budget: unlimited (max)'",
+          "parity/evidence/setup-prepair/panel-parity.json (rule match true)"
+        ],
+        "closedAt": "2026-10-08T11:05:00Z"
+      },
+      "acceptanceVerdict": "pass-paired",
+      "nextAction": "Closed by the canonical-2 pair; the re-run keeps the existing roster exactly as the reference does."
+    }
+  ]
+}

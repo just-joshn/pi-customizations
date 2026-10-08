@@ -1,0 +1,66 @@
+[
+  {
+    "id": "transport-scope",
+    "classification": "unresolved-documentation-conflict",
+    "evidence": ["cloud-mcp-sse-prohibition", "api-mcp-type-defaults", "schema-remote", "pool-mcp-routing"],
+    "hypotheses": ["The prohibition applies only to saved personal/team configuration while v1 inline definitions allow SSE.", "The docs describe different rollout or deployment states.", "At least one documentation statement is stale or wrong."],
+    "decision": "No hypothesis selected. The capabilities section has UI-management context but does not explicitly say its ban is UI-only. Pool documentation also names HTTP/SSE backend routing. Schema admissibility does not prove live acceptance, negotiation or tool execution.",
+    "candidate_scenarios": ["MCP-01", "MCP-02", "MCP-03"]
+  },
+  {
+    "id": "mcp-remote-is-not-enum",
+    "classification": "unresolved-program-versus-transport-policy",
+    "evidence": ["cloud-mcp-sse-prohibition", "schema-stdio"],
+    "hypotheses": ["A stdio launch of mcp-remote may be prohibited separately from transport validation."],
+    "decision": "The schema's free command string cannot establish permission to run a named program explicitly excluded by capabilities. Do not install or invoke it in this task.",
+    "candidate_scenarios": ["MCP-04"]
+  },
+  {
+    "id": "http-naming",
+    "classification": "unresolved-protocol-mapping",
+    "evidence": ["general-mcp-transports", "api-mcp-type-defaults", "schema-remote"],
+    "hypotheses": ["The cloud http identifier means Streamable HTTP.", "The identifier has fallback or negotiated behavior not specified by these captures."],
+    "decision": "An example URL ending in /sse is not protocol proof. SSE used for run streams or pool watches is not evidence of MCP transport support.",
+    "candidate_scenarios": ["MCP-02", "MCP-03"]
+  },
+  {
+    "id": "inline-followup-persistence",
+    "classification": "unresolved-later-run-semantics",
+    "evidence": ["api-inline-followup", "schema-run-mcp"],
+    "hypotheses": ["An inline replacement affects only its run.", "A replacement becomes the current configuration for later omitted definitions."],
+    "decision": "Prose says replace create-time definitions for this run and omit to keep current configuration. It does not conclusively define the run after a replacement. Empty array and omission are separate candidates.",
+    "candidate_scenarios": ["MCP-05"]
+  },
+  {
+    "id": "agent-idle",
+    "classification": "same-v1-prose-schema-conflict",
+    "evidence": ["api-status-idle", "schema-agent-status"],
+    "hypotheses": ["The schema enum omits a live IDLE state.", "The prose describes an unavailable rollout or is stale."],
+    "decision": "Both captures describe v1. This is not explained by v0 versus v1. No chronological precedence or live state established.",
+    "candidate_scenarios": ["LIFECYCLE-01"]
+  },
+  {
+    "id": "inherit-oneof-overlap",
+    "classification": "static-schema-overlap-not-runtime-defect",
+    "evidence": ["schema-custom-model"],
+    "hypotheses": ["Published schema tooling rejects inherit because it matches two oneOf string branches.", "Backend accepts inherit using a different validator or internal schema."],
+    "decision": "Under standard oneOf semantics inherit satisfies the enum string branch and the nonempty explicit-ID string branch. No backend rejection was demonstrated. No schema validator was installed or executed.",
+    "candidate_scenarios": ["MODEL-01"]
+  },
+  {
+    "id": "schema-expressiveness",
+    "classification": "published-schema-versus-prose-distinction",
+    "evidence": ["schema-remote", "schema-create-mcp", "schema-oauth", "api-mcp-remote-url"],
+    "hypotheses": ["Runtime enforces stricter constraints documented only in prose."],
+    "decision": "Transport defaults occur in descriptions, not default keywords. Unique server names are described, not structurally enforced by uniqueItems. Remote url format uri does not itself encode HTTP/HTTPS-only or forbidden userinfo. Both headers and auth are structurally permitted together; prose says or without an explicit exclusive schema. Do not infer runtime enforcement or precedence.",
+    "candidate_scenarios": ["MCP-06"]
+  },
+  {
+    "id": "schema-coverage",
+    "classification": "missing-public-schema-not-feature-absence",
+    "evidence": ["pool-auth", "pending-sse-context", "claim-atomic", "release-using-worker"],
+    "hypotheses": ["Worker endpoints have a separate schema not followed here."],
+    "decision": "The complete preserved OpenAPI has no /v0/private-workers paths while current endpoint prose documents them. This is a schema discovery gap, not proof that the APIs are missing. The v0 linked OpenAPI remains queued. RepoConfig descriptions also say GitHub while v1 creation prose names additional providers; do not narrow provider coverage.",
+    "candidate_scenarios": []
+  }
+]

@@ -2,6 +2,15 @@
 
 Revisions follow the pinned upstream pstack version, then `-pi.N` for this package's own releases.
 
+## 0.15.15-pi.1
+
+- Tracks upstream pstack commit `ccb5507cec1546dc88135c1139c811e6c59115ba`. The team-kit pin is unchanged because its source has no delta.
+- Adds `/poteto-help` as a native skill and prompt template, with host rows that name the Pi install command, the sticky `/poteto-mode` session mode, and the next-turn model rule.
+- Moves default model panels to Claude and Grok, drops GPT from the arena, architect, interrogate, and reflect defaults, and uses `xhigh` as the default Claude effort.
+- Renames the unlimited budget to `unlimited — max reasoning`. It now raises each entry to `max` where the model supports it, and a model without `max` keeps its highest level.
+- Adds `scripts/refresh-pstack-snapshot.mjs` and a shared `scripts/source-normalize.mjs`, so a pin refresh and the pin check use one normalization.
+- Preserves 164 pstack source files, 193 total source files, 215 generated resources, 72 discoverable skills, and 70 prompt templates.
+
 ## 0.15.9-pi.1
 
 - Tracks upstream pstack commit `e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a` with the existing source-name normalization.

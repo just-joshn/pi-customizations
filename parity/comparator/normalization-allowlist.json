@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "rules": [
+    {
+      "id": "attempt-id",
+      "source": "identity.attemptId",
+      "replacement": "<ATTEMPT_ID>",
+      "reason": "The recorder generates a fresh UUID for each attempt."
+    },
+    {
+      "id": "process-id",
+      "source": "events[kind=process_started].pid",
+      "replacement": "<PROCESS_ID>",
+      "reason": "The operating system assigns a fresh process identifier to each launched attempt."
+    },
+    {
+      "id": "recorder-utc-timestamp",
+      "source": "events[*].utc",
+      "replacement": "<RECORDER_UTC_SEQ_{seq}>",
+      "reason": "The recorder stamps each event with its capture instant; the event sequence remains encoded in the replacement."
+    },
+    {
+      "id": "recorder-monotonic-timestamp",
+      "source": "events[*].monoNs",
+      "replacement": "<RECORDER_MONO_NS_SEQ_{seq}>",
+      "reason": "The recorder samples the local monotonic clock for each event; the event sequence remains encoded in the replacement."
+    },
+    {
+      "id": "equivalent-fixture-path",
+      "source": "identity.fixtureRef.path",
+      "replacement": "<FIXTURE_PATH>",
+      "reason": "Only paths whose fixture digests are equal on both sides identify equivalent fixture locations."
+    }
+  ]
+}

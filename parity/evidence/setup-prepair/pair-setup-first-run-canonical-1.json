@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "pairId": "setup-first-run-canonical-1",
+  "scenarioRef": "setup-pstack:first-run-clarifying-questions",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "steps": [
+    {
+      "send": "/setup-pstack"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "send": " "
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "send": " "
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "4be402e0-b9a8-49ce-95fa-07480ad1afb2",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-prepair/cursor/4be402e0-b9a8-49ce-95fa-07480ad1afb2",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "pi": {
+    "attemptId": "6919ce91-18a3-4df9-a8e9-011d7aa5cd06",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-prepair/pi/6919ce91-18a3-4df9-a8e9-011d7aa5cd06",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  }
+}

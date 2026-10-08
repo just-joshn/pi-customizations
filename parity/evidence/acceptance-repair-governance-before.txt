@@ -1,0 +1,2 @@
+80f7372884628fb6a4c3854e96cdade3793cff818fe9aac1feac534d949be72a  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/acceptance-repair-governance.eLw6oT/MANIFEST.sha256
+77d65cd249feb0e8cb85c81e92d69d2f4b7af40c653bb7ffc5651028eafa9fa8  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/acceptance-repair-governance.eLw6oT/setup-pstack/record-hashes.json

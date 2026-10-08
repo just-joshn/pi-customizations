@@ -1,0 +1,164 @@
+{
+  "status": "discovery-only; read receipt and findings, no parity claim, nothing frozen",
+  "source": "preserved/pool.md",
+  "sha256": "b67e7f5ed22ce48d371e451c5c457d6630357b33d3d5e32ce1c9f6423b7bc41f",
+  "line_convention": "UTF-8 text split on LF, inclusive 1-based spans. The final newline does not create a 902nd line.",
+  "total_lines": 901,
+  "reader": "poteto-agent subagent",
+  "method": "Read tool on [1,364], [410,650] and [650,899]. The Read tool printed 'line not shown' for line 901, so line 901 was read with awk (NR==901) and returned '[Overview of all docs pages](/llms.txt)'.",
+  "inclusive_ranges_read": [[1, 364], [410, 901]],
+  "inclusive_ranges_previously_read_not_reread": [[365, 409]],
+  "covered_lines_this_receipt": 455,
+  "complete_for_assigned_spans": true,
+  "limitations": [
+    "Lines 365-409 were not read by this receipt. The MCP routing table at 387-396 lives there, so MCP routing statements below come only from the FAQ pointer at 863-866 and from rg line hits (393, 394, 396) used to cross-check the audit pointer. Those hits are not a read of 365-409.",
+    "Tool events establish order only. No authenticated read timestamps.",
+    "Findings summarize what the document says. None are runtime-verified."
+  ],
+  "findings_count": 62,
+  "spans": [
+    {
+      "span": [1, 23],
+      "findings": [
+        {"id": "P-001", "topic": "self-hosted pool", "lines": [3, 3], "finding": "A pool is a named routing target. Requests wait in it until an available worker claims them."},
+        {"id": "P-002", "topic": "continuation", "lines": [5, 7], "finding": "The agent loop (inference, planning) stays in Cursor's cloud. The worker only executes tool calls (terminal, file edits, browser). Pools change infrastructure ownership, not where the loop runs."},
+        {"id": "P-003", "topic": "auth", "lines": [5, 5], "finding": "Team Pools are scoped to Enterprise teams."},
+        {"id": "P-004", "topic": "auth", "lines": [18, 20], "finding": "Pool use cases include service account authentication instead of individual browser logins, and labels that route work by environment, team, repo or hardware."},
+        {"id": "P-005", "topic": "routing", "lines": [9, 12], "finding": "Cursor-managed Cloud Agents are recommended for most teams, including those needing private network access, before taking on a worker fleet."}
+      ]
+    },
+    {
+      "span": [24, 47],
+      "findings": [
+        {"id": "P-006", "topic": "transport", "lines": [26, 26], "finding": "A worker opens one long-lived outbound HTTPS connection to Cursor's cloud. Tool calls are sent to the worker over that connection."},
+        {"id": "P-007", "topic": "transport", "lines": [26, 32], "finding": "No inbound ports, public IPs or VPN tunnels are required. Artifacts (screenshots, videos) upload to Cursor."},
+        {"id": "P-008", "topic": "worker lifecycle", "lines": [34, 34], "finding": "Documented capacity limit is 200 workers per user and 1000 per team."},
+        {"id": "P-009", "topic": "routing", "lines": [38, 40], "finding": "Admin dashboard toggles: Allow Self-Hosted Machines (opt in per run) and Require Self-Hosted Machines (routes every Cloud Agent run to self-hosted workers)."},
+        {"id": "P-010", "topic": "auth", "lines": [41, 41], "finding": "Pool workers need a service account API key."},
+        {"id": "P-011", "topic": "worker lifecycle", "lines": [42, 46], "finding": "Worker prerequisites are the agent CLI, git on PATH (needed for git remotes or --clone-git-repos), a workspace directory, and access to build tools and secrets."}
+      ]
+    },
+    {
+      "span": [48, 107],
+      "findings": [
+        {"id": "P-012", "topic": "auth", "lines": [66, 70], "finding": "Pool workers authenticate with a service account API key or a per-claim session token minted from it. User, personal, team and organization API keys cannot start pool workers."},
+        {"id": "P-013", "topic": "auth", "lines": [72, 78], "finding": "The key can be passed as CURSOR_API_KEY or --api-key."},
+        {"id": "P-014", "topic": "routing", "lines": [80, 89], "finding": "agent worker --pool [name] start registers for pool assignment. The name defaults to 'default'. Each Cloud Agent session claims one worker at a time."},
+        {"id": "P-015", "topic": "worker lifecycle", "lines": [91, 97], "finding": "--idle-release-timeout keeps the worker alive after a session ends to handle follow-up messages. Default is 3600 seconds."},
+        {"id": "P-016", "topic": "worker lifecycle", "lines": [99, 105], "finding": "--computer-use lets claimed agents click, type and screenshot. On macOS the first start installs a Cursor Computer Use helper that needs Accessibility and Screen Recording grants."}
+      ]
+    },
+    {
+      "span": [108, 174],
+      "findings": [
+        {"id": "P-017", "topic": "routing", "lines": [110, 114], "finding": "--worker-dir is repeatable up to 20 paths. The first root is the primary repo for assignment identity and dashboard display. Extra roots add no repositories to a request."},
+        {"id": "P-018", "topic": "auth", "lines": [112, 112], "finding": "Git in extra roots uses credentials already on the worker. A minted GitHub token covers only the repos in the request."},
+        {"id": "P-019", "topic": "routing", "lines": [112, 112], "finding": "Create An Agent takes one repo for the default pool or a repo-backed pool. Several repos go to an any-repo pool whose workers run --clone-git-repos."},
+        {"id": "P-020", "topic": "worker lifecycle", "lines": [131, 151], "finding": "'agent worker ... debug --json' is a preflight. Worker options go before start or debug."},
+        {"id": "P-021", "topic": "routing", "lines": [165, 168], "finding": "The dashboard shows a worker under its primary repo only. No named multi-repo environment object exists in the portal. Verbose logs (workspacePaths, x-repository-urls) are the source of truth."},
+        {"id": "P-022", "topic": "worker lifecycle", "lines": [172, 172], "finding": "Pool mode allows one Cloud Agent claim at a time. Without --pool, shared assignment is allowed. --management-addr exposes /healthz, /readyz and /metrics."}
+      ]
+    },
+    {
+      "span": [175, 239],
+      "findings": [
+        {"id": "P-023", "topic": "routing", "lines": [177, 177], "finding": "Repo-backed pools carry a repo=<owner/repo> label. Any-repo pools match on pool name only and appear under 'Any repo'."},
+        {"id": "P-024", "topic": "worker lifecycle", "lines": [182, 207], "finding": "Any-repo workers need no git remote. A .cursor/rules/*.mdc with alwaysApply under the --worker-dir gives per-request repo instructions."},
+        {"id": "P-025", "topic": "auth", "lines": [211, 219], "finding": "--clone-git-repos is opt-in, implies --mint-github-token, and needs team-admin enablement and git on PATH. It is valid only on any-repo named pools (not default, no repo= or name= binding, not My Machines)."},
+        {"id": "P-026", "topic": "worker lifecycle", "lines": [221, 232], "finding": "Clean checkouts of a claimed repo are reused when origin matches (git 2.26+). Otherwise the worker clones beside it. Cloned repos are deleted when the claim ends. Reused checkouts are kept."},
+        {"id": "P-027", "topic": "worker lifecycle", "lines": [234, 234], "finding": "A failed clone leaves the request in the queue. Operators see a generic failure."},
+        {"id": "P-028", "topic": "auth", "lines": [236, 236], "finding": "--clone-git-repos, --mint-github-token and --sync-dashboard-secrets assume one worker per container or OS user."},
+        {"id": "P-029", "topic": "routing", "lines": [238, 238], "finding": "Agents start against any-repo pools with env.type 'pool' and env.name set to the pool name. repos can be omitted. Repos do not narrow worker selection. A Slack team or channel default any-repo pool lets @Cursor start without a resolved repo."}
+      ]
+    },
+    {
+      "span": [240, 308],
+      "findings": [
+        {"id": "P-030", "topic": "routing", "lines": [243, 249], "finding": "Pools are durable. They persist after the last worker disconnects, so capacity can scale to zero. A new --pool name creates the pool implicitly. Pools are managed through POST, GET and DELETE on /v0/private-workers/pools. DELETE is a soft delete and does not affect connected machines."},
+        {"id": "P-031", "topic": "routing", "lines": [249, 249], "finding": "List Pools and pending requests are the intended signals for scale-up decisions."},
+        {"id": "P-032", "topic": "routing", "lines": [253, 272], "finding": "--pool takes a name. CURSOR_WORKER_POOL_NAME sets it from the environment. --pool-name is a deprecated alias. Workers started without --pool are multi-use and belong to no pool. Sessions route only to workers registered with the selected pool name."},
+        {"id": "P-033", "topic": "routing", "lines": [280, 288], "finding": "Pool requests match on labels: repo=<owner/repo> when a repo is given, pool=<name> for named pools. Pool workers handle Require-Self-Hosted runs (except worker=/machine= targets), self_hosted=true or sh=1, pool=<name>, and repo selection from trigger surfaces."},
+        {"id": "P-034", "topic": "routing", "lines": [292, 297], "finding": "Slack, GitHub and Linear triggers use key=value options (self_hosted, sh, pool, worker, machine). Options inside code blocks are ignored. Invalid or valueless options stay in the prompt as text. Linear also supports pool labels for delegated issues. A pool= in the comment beats a label."},
+        {"id": "P-035", "topic": "auth", "lines": [301, 304], "finding": "Policy differs by surface. Slack rejects opt-in when Allow is off. GitHub honors only repo OWNER and COLLABORATOR commenters. Linear posts an agent activity error when Allow is off."},
+        {"id": "P-036", "topic": "background/cloud agent continuation", "lines": [308, 308], "finding": "The Cloud Agent API uses the same resolver with usePrivateWorker and labels fields."}
+      ]
+    },
+    {
+      "span": [309, 364],
+      "findings": [
+        {"id": "P-037", "topic": "worker lifecycle", "lines": [312, 318], "finding": "Self-hosted workers run command-based hooks from the workspace .cursor/hooks.json, and on Enterprise from dashboard-managed hooks. --on-session-start and --on-session-end add commands without editing hooks.json."},
+        {"id": "P-038", "topic": "worker lifecycle", "lines": [320, 325], "finding": "Prompt-based hooks, Tab hooks and workspaceOpen do not run on workers. sessionStart and sessionEnd fire on claim and release and are skipped on Cursor-managed Cloud Agents."},
+        {"id": "P-039", "topic": "worker lifecycle", "lines": [327, 327], "finding": "sessionStart input lists repo_urls and repos (repo_url, primary, optional ref) so a hook can check out refs or repos the worker lacks."},
+        {"id": "P-040", "topic": "routing", "lines": [330, 364], "finding": "Labels are key-value worker descriptors set by --label flags, a JSON file or a TOML file (starts at 362). The shown span ends before the TOML example. Lines 365-409 were read by a prior reader."}
+      ]
+    },
+    {
+      "span": [410, 439],
+      "findings": [
+        {"id": "P-041", "topic": "transport", "lines": [410, 412], "finding": "Required outbound hosts include api2.cursor.sh and api2direct.cursor.sh for the agent session, downloads.cursor.com for CLI updates and Computer Use install, and cloud-agent-artifacts.s3.us-east-1.amazonaws.com for artifacts."},
+        {"id": "P-042", "topic": "transport", "lines": [418, 418], "finding": "HTTPS_PROXY or https_proxy configures proxy use."},
+        {"id": "P-043", "topic": "transport", "lines": [422, 425], "finding": "Blocking api2 hosts stops the worker from starting or continuing a session. Blocking the artifact bucket only breaks artifact surfaces."},
+        {"id": "P-044", "topic": "worker lifecycle", "lines": [431, 438], "finding": "The Kubernetes operator and WorkerDeployment chart are deprecated. The recommended path is anysphere/k8s-workers, with the worker controller using --spawn and optionally --warm-idle. No CRD is required. Other hosts and partner platforms are listed under Integrations."}
+      ]
+    },
+    {
+      "span": [440, 540],
+      "findings": [
+        {"id": "P-045", "topic": "worker lifecycle", "lines": [442, 457], "finding": "'agent worker controller --spawn <path>' runs a hook once after a claim, or once per missing warm worker. Flags: --api-key, --pool (repeatable), --all-pools, --warm-idle, --session-token, --repository, --endpoint."},
+        {"id": "P-046", "topic": "worker lifecycle", "lines": [494, 512], "finding": "Claim-then-spawn is the default mode. It lists pending requests, watches the SSE stream and claims each request. Warm mode keeps N idle workers per pool, never claims, and reconciles against GET /v0/private-workers/pools every 60 seconds. There is no spawn lease, so concurrent warm controllers can over-spawn."},
+        {"id": "P-047", "topic": "auth", "lines": [514, 539], "finding": "With --session-token the hook receives a per-claim session token (CURSOR_AUTH_TOKEN, expiry in CURSOR_AUTH_TOKEN_EXPIRES_AT) instead of the API key. It serves one claim, ends with the claim or on key deletion or expiry (7-day backstop), and can be replaced through Create A Session Token. Warm workers still receive the API key."}
+      ]
+    },
+    {
+      "span": [541, 596],
+      "findings": [
+        {"id": "P-048", "topic": "background/cloud agent continuation", "lines": [543, 549], "finding": "After a session ends the worker stays connected for --idle-release-timeout (default 1 hour, env CURSOR_WORKER_IDLE_RELEASE_TIMEOUT) waiting for follow-ups. A follow-up resets the timer. On timeout the CLI exits with code 0. 0 disables idle release. The Release-a-claim API frees the worker at once and is refused while a turn is using it."},
+        {"id": "P-049", "topic": "background/cloud agent continuation", "lines": [551, 551], "finding": "After a timeout Cursor marks the worker freed. A restarted chat reconnects to a fresh machine and does not keep workspace state unless the pool uses hibernation."},
+        {"id": "P-050", "topic": "background/cloud agent continuation", "lines": [553, 594], "finding": "Hibernation uses a pool-level workerReadyTimeoutSeconds (default 0, set via POST /v0/private-workers/pools). A follow-up for an offline claimed machine is advertised as a claimed_offline entry carrying claimedWorkerId and wakeTimeoutMs. The controller restores a snapshot and starts a worker with the same CURSOR_AGENT_WORKER_ID. If it cannot, it releases the claim. Otherwise the claim lapses and a fresh created entry is advertised. Snapshot timing keys off worker exit code 0 or Get An Agent status IDLE."}
+      ]
+    },
+    {
+      "span": [597, 751],
+      "findings": [
+        {"id": "P-051", "topic": "transport", "lines": [600, 625], "finding": "A custom controller watches the queue, claims and starts workers. It authenticates only with the pool service account key (Basic or Bearer). Queue monitoring is a list plus an SSE stream (GET /v0/private-workers/pending-requests and /stream) with streamCursor. Cursors expire after 5 minutes and the stream returns 410 Gone. Events (created, claimed_offline, claimed, expired) are hints. The list is the source of truth."},
+        {"id": "P-052", "topic": "worker lifecycle", "lines": [627, 751], "finding": "Additional endpoints: list workers (status and scope filters, limit 1-100), list pools (connectedWorkerCount, inUseWorkerCount, isStale), worker summary, get worker, POST claim (with optional sessionToken true), POST tokens, POST claims/{id}/release (HTTP 400 'Worker in use' during a turn, and a second claim is rejected while a live claim exists), and POST claims/{id}/fail (message up to 500 chars, valid only while the agent is ACTIVE and a turn is waiting)."}
+      ]
+    },
+    {
+      "span": [752, 841],
+      "findings": [
+        {"id": "P-053", "topic": "worker lifecycle", "lines": [754, 797], "finding": "A management server (--management-addr) exposes /metrics, /healthz and /readyz. Gauges: connected, session_active, last_activity. Counters: connect_attempts, connect_retry, session_ends with reason (stream_end, stream_error, session_closed, session_error, connection_timeout, session_aborted). The reasons mention HTTP/2 sessions."},
+        {"id": "P-054", "topic": "transport", "lines": [800, 804], "finding": "Only model file chunks and artifacts leave the network. Workers connect outbound over HTTPS. Privacy Mode is respected. Each agent session gets a dedicated worker."},
+        {"id": "P-055", "topic": "auth", "lines": [806, 810], "finding": "Other API key types are rejected. Admins see all workers. Members see only their assigned workers."},
+        {"id": "P-056", "topic": "auth", "lines": [812, 841], "finding": "CLI reference flags: --worker-dir, --label, --labels-file, --idle-release-timeout, --computer-use, --display, --share-desktop, --pool, --single-use (legacy), --pool-name, --api-key, --auth-token, --auth-token-file (re-read on reconnect so a controller can rotate tokens), --clone-git-repos, --mint-github-token, --sync-dashboard-secrets (team-admin Secret sync), --on-session-start/end, --identity-socket (per-claim OIDC token socket, CURSOR_AGENT_SOCKET), --worker-id (env CURSOR_AGENT_WORKER_ID) and -e/--endpoint (default https://api2.cursor.sh)."}
+      ]
+    },
+    {
+      "span": [842, 901],
+      "findings": [
+        {"id": "P-057", "topic": "worker lifecycle", "lines": [846, 851], "finding": "Worker sizing follows CI runner or devbox sizing for the served repo. No fixed spec exists."},
+        {"id": "P-058", "topic": "worker lifecycle", "lines": [853, 861], "finding": "Project-level skills in .cursor/skills/ or .agents/skills/ load automatically on workers. Personal skill sync applies to managed Cloud Agents, not self-hosted workers."},
+        {"id": "P-059", "topic": "MCP transports", "lines": [863, 866], "finding": "The FAQ says MCP servers work on self-hosted workers, are configured through the Cloud Agents dashboard, and are routed by transport type. The routing table itself sits at 387-396, outside the spans read here. This span names no specific transport."},
+        {"id": "P-060", "topic": "worker lifecycle", "lines": [868, 876], "finding": "Workers run project and enterprise hooks. A pool worker serves one agent at a time."},
+        {"id": "P-061", "topic": "worker lifecycle", "lines": [878, 886], "finding": "Mac pool workers can run computer use via --computer-use. Screen Recording cannot be granted by MDM silently, so approve it once on the template image."},
+        {"id": "P-062", "topic": "worker lifecycle", "lines": [890, 898], "finding": "Next-step links point to anysphere/k8s-workers, Integrations, the deprecated operator, Computer use and the workers-and-pools API reference. Lines 899-901 are the sitemap trailer (llms.txt link)."}
+      ]
+    }
+  ],
+  "transport_scope_conflict_check": {
+    "audit_pointer": "reviews/host-continuation-import-audit.json:981-1050",
+    "audit_item_touching_pool": {
+      "context": "self-hosted-routing",
+      "audit_pointer": "preserved/pool.md:387-396",
+      "audit_lines": [1016, 1023],
+      "status_in_audit": "unresolved; no hypothesis selected (audit line 982)"
+    },
+    "new_conflicts_found_in_spans_read": [],
+    "notes": [
+      "Spans 1-364 and 410-901 contain no sentence naming Streamable HTTP, mcp-remote, 'sse' or 'stdio' as MCP transports. rg over the whole file puts every MCP transport word at pool.md:393, 394 and 396, inside the already-read span 365-409. The only MCP statement in my spans is the FAQ pointer at 863-866 (P-059).",
+      "FAQ 863-866 defers to 387-396 and so neither confirms nor contradicts the audit's transport_scope_conflicts evidence entries. It depends on the same 'HTTP / SSE (url)' row that the audit lists as the self-hosted-routing item.",
+      "The word 'SSE' also appears at pool.md:506 and 606 for the pending-requests Server-Sent Events stream. That is a queue stream, not an MCP transport. A reader grepping 'sse' should not conflate them. No interpretation was applied.",
+      "'HTTP/2 session' at 790-793 describes the worker-to-Cursor connection, not an MCP transport."
+    ]
+  }
+}

@@ -1,0 +1,319 @@
+{
+  "status": "source-reading-only",
+  "receipts": [
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs-static_cloud-agents-openapi.yaml",
+      "source_url": "https://cursor.com/docs-static/cloud-agents-openapi.yaml",
+      "sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "readRanges": [],
+      "totalLines": 2994,
+      "reading": "unread",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs-static_cloud-agents-openapi.yaml.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_agent_security_run-modes.md",
+      "source_url": "https://cursor.com/docs/agent/security/run-modes.md",
+      "sha256": "7373592c3e2e6f57a6acce95ace7979226568e7191b1059ae96c46425639d561",
+      "readRanges": [
+        [
+          1,
+          390
+        ]
+      ],
+      "totalLines": 390,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_agent_security_run-modes.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_agent_tools_browser.md",
+      "source_url": "https://cursor.com/docs/agent/tools/browser.md",
+      "sha256": "bdd6f305af999c703e11598552d6e05b882513e0ec78475dc312900f38dbe2b6",
+      "readRanges": [
+        [
+          1,
+          199
+        ]
+      ],
+      "totalLines": 199,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_agent_tools_browser.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_endpoints.md",
+      "source_url": "https://cursor.com/docs/cloud-agent/api/endpoints.md",
+      "sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "readRanges": [
+        [
+          1,
+          800
+        ],
+        [
+          2880,
+          3012
+        ]
+      ],
+      "totalLines": 3011,
+      "reading": "partial",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_endpoints.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_webhooks.md",
+      "source_url": "https://cursor.com/docs/cloud-agent/api/webhooks.md",
+      "sha256": "ac1de6fe77d750240651d849f26974af43c2ce378cf4f73afc1eb369b049d6d1",
+      "readRanges": [
+        [
+          1,
+          88
+        ]
+      ],
+      "totalLines": 88,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_webhooks.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_automations.md",
+      "source_url": "https://cursor.com/docs/cloud-agent/automations.md",
+      "sha256": "3190fac04bb8ffd01b4921acc32a55e3589a919a46aa1d7e84c03fc638ffcf88",
+      "readRanges": [
+        [
+          1,
+          297
+        ]
+      ],
+      "totalLines": 297,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_automations.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_capabilities.md",
+      "source_url": "https://cursor.com/docs/cloud-agent/capabilities.md",
+      "sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "readRanges": [
+        [
+          1,
+          185
+        ]
+      ],
+      "totalLines": 185,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_capabilities.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_metadata.md",
+      "source_url": "https://cursor.com/docs/cloud-agent/metadata.md",
+      "sha256": "c3aa314c702e8b6e34347856c034eeb88aa60c719ea5f5ba928b366d9f5158bf",
+      "readRanges": [
+        [
+          1,
+          217
+        ]
+      ],
+      "totalLines": 217,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_metadata.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_grok-bot_security.md",
+      "source_url": "https://cursor.com/docs/grok-bot/security.md",
+      "sha256": "d1736bc1dbfc19b149c005c3555573a9351e78cff3b5cbd5a51f3ea24566226d",
+      "readRanges": [
+        [
+          1,
+          149
+        ]
+      ],
+      "totalLines": 149,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_grok-bot_security.md.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_grok-bot_settings.md",
+      "source_url": "https://cursor.com/docs/grok-bot/settings.md",
+      "sha256": "637fdcdf6744493bee31bd26f7119c962a345e83430bac03d5834955131f783f",
+      "readRanges": [
+        [
+          1,
+          79
+        ]
+      ],
+      "totalLines": 79,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_grok-bot_settings.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_grok-bot_work.md",
+      "source_url": "https://cursor.com/docs/grok-bot/work.md",
+      "sha256": "b5e8bcd38244d78120d078d550ec2b276933d3993d1d54564e35bdf36c025d70",
+      "readRanges": [
+        [
+          1,
+          203
+        ]
+      ],
+      "totalLines": 203,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_grok-bot_work.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_integrations_linear.md",
+      "source_url": "https://cursor.com/docs/integrations/linear.md",
+      "sha256": "7dbb3617f056d268af6ca9c2931fe41e490706a6825535ed537d3eef7008e33c",
+      "readRanges": [
+        [
+          1,
+          135
+        ]
+      ],
+      "totalLines": 135,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_integrations_linear.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_integrations_notion.md",
+      "source_url": "https://cursor.com/docs/integrations/notion.md",
+      "sha256": "04018a44c8ce31d1af27f5c445a8d2f5d0103ef0e51692163fff959868d5f701",
+      "readRanges": [
+        [
+          1,
+          110
+        ]
+      ],
+      "totalLines": 110,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_integrations_notion.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_integrations_slack.md",
+      "source_url": "https://cursor.com/docs/integrations/slack.md",
+      "sha256": "c00d78a024279036104eb7d86f70c2985367117b28bc01db5de42d35c3b16573",
+      "readRanges": [
+        [
+          1,
+          351
+        ]
+      ],
+      "totalLines": 351,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_integrations_slack.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_models-and-pricing.md",
+      "source_url": "https://cursor.com/docs/models-and-pricing.md",
+      "sha256": "bb6ceef2705dfbe0b2b1e716a83c7fecb26e3ddeb4e441eda35c7bfc0bb2a8fb",
+      "readRanges": [
+        [
+          1,
+          177
+        ]
+      ],
+      "totalLines": 177,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_models-and-pricing.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_reference_sandbox.md",
+      "source_url": "https://cursor.com/docs/reference/sandbox.md",
+      "sha256": "4cc935fb60a41ff947218159b90dc472fe433e021292b8410156fcacc4612b61",
+      "readRanges": [
+        [
+          1,
+          169
+        ]
+      ],
+      "totalLines": 169,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/docs_reference_sandbox.md.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/help_ai-features_automations.md",
+      "source_url": "https://cursor.com/help/ai-features/automations.md",
+      "sha256": "1a929a2de6b32a586314a9e1d91c018a5780f2c952673958dc34139a3242942d",
+      "readRanges": [
+        [
+          1,
+          119
+        ]
+      ],
+      "totalLines": 119,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/help_ai-features_automations.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/help_ai-features_shared-transcripts.md",
+      "source_url": "https://cursor.com/help/ai-features/shared-transcripts.md",
+      "sha256": "33c4cdfe78922d1e1e4098068d3b9d92bc4d2b0d772cc4eacfba77d8620bd84a",
+      "readRanges": [
+        [
+          1,
+          51
+        ]
+      ],
+      "totalLines": 51,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/help_ai-features_shared-transcripts.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/help_grok-bot_connect-plugins.md",
+      "source_url": "https://cursor.com/help/grok-bot/connect-plugins.md",
+      "sha256": "a6ea5b48ec0c2083d5f4c74de0318cf4862caa0095fb8b4281fd50eb71311cda",
+      "readRanges": [
+        [
+          1,
+          100
+        ]
+      ],
+      "totalLines": 100,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/help_grok-bot_connect-plugins.md.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/help_grok-bot_routines.md",
+      "source_url": "https://cursor.com/help/grok-bot/routines.md",
+      "sha256": "5bca6548fb08af3de1403b2a93433333e3ffeb7572fa0619728bf70af2e9c745",
+      "readRanges": [
+        [
+          1,
+          104
+        ]
+      ],
+      "totalLines": 104,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/help_grok-bot_routines.metadata.json"
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/help_grok-bot_secrets.md",
+      "source_url": "https://cursor.com/help/grok-bot/secrets.md",
+      "sha256": "c035f367bb4dc062597ec7a9bd5e3b0e0f79c3fb13ae46d8b8ee6161cfdb4844",
+      "readRanges": [
+        [
+          1,
+          53
+        ]
+      ],
+      "totalLines": 53,
+      "reading": "full",
+      "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+      "retrieval_metadata": "parity/research/cursor-host/services/retrievals/help_grok-bot_secrets.metadata.json"
+    }
+  ]
+}

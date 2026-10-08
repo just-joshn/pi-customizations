@@ -1,0 +1,549 @@
+{
+  "status": "open",
+  "entries": [
+    {
+      "url": "https://agent-plugins.org",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/plugins.md",
+      "line_span": [
+        5,
+        5
+      ],
+      "source_sha256": "cf4ca6bb6ab24ba3f933a4e711881612060a50c013311279b58120aa6403693b",
+      "verbatim_quote": "Cursor supports the [Agent Plugins](https://agent-plugins.org) open standard alongside its own plugin format. Install and manage them from the [Customize](https://cursor.com/docs/customize-cursor.md) page or browse official plugins in the [Cursor Marketplace](/marketplace). For community plugins and MCP servers, browse [cursor.directory](https://cursor.directory). You can also [build your own](https://cursor.com/docs/plugins.md#creating-plugins) to share with other developers.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://agent-plugins.org",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/plugins.md",
+      "line_span": [
+        22,
+        22
+      ],
+      "source_sha256": "cf4ca6bb6ab24ba3f933a4e711881612060a50c013311279b58120aa6403693b",
+      "verbatim_quote": "Plugins bundle reusable components an agent can use. [Agent Plugins](https://agent-plugins.org)",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://agent-plugins.org",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/plugins.md",
+      "line_span": [
+        32,
+        32
+      ],
+      "source_sha256": "cf4ca6bb6ab24ba3f933a4e711881612060a50c013311279b58120aa6403693b",
+      "verbatim_quote": "Learn more at [agent-plugins.org](https://agent-plugins.org) or read the [specification on GitHub](https://github.com/agentplugins/agent-plugins-spec).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://github.com/agentplugins/agent-plugins-spec",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/plugins.md",
+      "line_span": [
+        32,
+        32
+      ],
+      "source_sha256": "cf4ca6bb6ab24ba3f933a4e711881612060a50c013311279b58120aa6403693b",
+      "verbatim_quote": "Learn more at [agent-plugins.org](https://agent-plugins.org) or read the [specification on GitHub](https://github.com/agentplugins/agent-plugins-spec).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/enterprise/organization-groups.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/plugins.md",
+      "line_span": [
+        88,
+        88
+      ],
+      "source_sha256": "cf4ca6bb6ab24ba3f933a4e711881612060a50c013311279b58120aa6403693b",
+      "verbatim_quote": "Team marketplaces are available to everyone in their team by default. Under **Marketplace Settings -> Marketplace Access**, admins can restrict a marketplace to selected [Organization Groups](https://cursor.com/docs/enterprise/organization-groups.md). Only members of the marketplace's team who belong to a selected group receive access. Team admins retain access.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/account/teams/scim.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/plugins.md",
+      "line_span": [
+        92,
+        92
+      ],
+      "source_sha256": "cf4ca6bb6ab24ba3f933a4e711881612060a50c013311279b58120aa6403693b",
+      "verbatim_quote": "Organization Groups can sync membership from your identity provider through [SCIM](https://cursor.com/docs/account/teams/scim.md). Manage membership in your identity provider, and Cursor syncs those updates to the Organization Group.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/integrations/github.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/plugins.md",
+      "line_span": [
+        142,
+        142
+      ],
+      "source_sha256": "cf4ca6bb6ab24ba3f933a4e711881612060a50c013311279b58120aa6403693b",
+      "verbatim_quote": "- **Automatically**: On GitHub imports, turn on **Enable Auto Refresh** to update plugins whenever changes are pushed to the branch the marketplace tracks. This requires the [Cursor GitHub App](https://cursor.com/docs/integrations/github.md) installed on the repository. Cursor re-indexes a marketplace at most once every 10 minutes, batching rapid pushes to the latest commit.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://agent-plugins.org/plugin-authors",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/plugins.md",
+      "line_span": [
+        292,
+        292
+      ],
+      "source_sha256": "cf4ca6bb6ab24ba3f933a4e711881612060a50c013311279b58120aa6403693b",
+      "verbatim_quote": "or read the [Agent Plugins authoring guide](https://agent-plugins.org/plugin-authors)",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://agent-plugins.org",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/plugins.md",
+      "line_span": [
+        344,
+        344
+      ],
+      "source_sha256": "cf4ca6bb6ab24ba3f933a4e711881612060a50c013311279b58120aa6403693b",
+      "verbatim_quote": "[Agent Plugins](https://agent-plugins.org) is an open, vendor-neutral specification for packaging skills and MCP servers into portable plugins. Cursor supports the standard, so spec-conformant plugins load in Cursor. Cursor does not expand the standard's `${PLUGIN_ROOT}` and `${PLUGIN_DATA}` variables in `mcp.json`; use `${CURSOR_PLUGIN_ROOT}` for the plugin root. Cursor Plugins are developed in parallel and add Cursor-specific components like rules, agents, commands, hooks, and variables.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/skills.md",
+      "line_span": [
+        75,
+        75
+      ],
+      "source_sha256": "5ccb25304f16e82a7f58c0241a0a16a072adb33f7697e43c5704c46738e002ac",
+      "verbatim_quote": "workers](https://cursor.com/docs/cloud-agent/self-hosted/pool.md). On self-hosted workers, use",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/cloud-agent.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/skills.md",
+      "line_span": [
+        278,
+        278
+      ],
+      "source_sha256": "5ccb25304f16e82a7f58c0241a0a16a072adb33f7697e43c5704c46738e002ac",
+      "verbatim_quote": "Personal skills in `~/.cursor/skills/` run on your local machine. Turn on **Sync Skills for Cloud Agents** to use those same skills with [Cloud Agents](https://cursor.com/docs/cloud-agent.md).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://agentskills.io",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/skills.md",
+      "line_span": [
+        331,
+        331
+      ],
+      "source_sha256": "5ccb25304f16e82a7f58c0241a0a16a072adb33f7697e43c5704c46738e002ac",
+      "verbatim_quote": "Agent Skills is an open standard. Learn more at [agentskills.io](https://agentskills.io).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/choose-runtime.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/skills.md",
+      "line_span": [
+        337,
+        337
+      ],
+      "source_sha256": "5ccb25304f16e82a7f58c0241a0a16a072adb33f7697e43c5704c46738e002ac",
+      "verbatim_quote": "- [Self-Hosted Machines](https://cursor.com/docs/cloud-agent/self-hosted/choose-runtime.md)",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/cloud-agent.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "line_span": [
+        5,
+        5
+      ],
+      "source_sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "verbatim_quote": "You can use subagents in the editor, CLI, and [Cloud Agents](https://cursor.com/docs/cloud-agent.md).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/models-and-pricing.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "line_span": [
+        138,
+        138
+      ],
+      "source_sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "verbatim_quote": "| A specific model ID | Uses the exact model you specify, such as `composer-2` or `gpt-5.6-sol`. See the [models reference](https://cursor.com/docs/models-and-pricing.md) for available IDs. |",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/sdk/typescript.md#model-parameters",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "line_span": [
+        154,
+        154
+      ],
+      "source_sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "verbatim_quote": "Available options depend on the model, and use the same `id=value` pairs as the SDK's [model parameters](https://cursor.com/docs/sdk/typescript.md#model-parameters).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/models-and-pricing.md#other-models",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "line_span": [
+        214,
+        214
+      ],
+      "source_sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "verbatim_quote": "Each request bills at the list price of the model that ran. A named third-party model draws from the [Other Models](https://cursor.com/docs/models-and-pricing.md#other-models) pool, including when the parent chat is on Auto, Grok, or Composer. On Teams and Enterprise, third-party requests also incur the [Cursor Token Rate](https://cursor.com/docs/models-and-pricing.md#cursor-token-rate).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/models-and-pricing.md#cursor-token-rate",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "line_span": [
+        214,
+        214
+      ],
+      "source_sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "verbatim_quote": "Each request bills at the list price of the model that ran. A named third-party model draws from the [Other Models](https://cursor.com/docs/models-and-pricing.md#other-models) pool, including when the parent chat is on Auto, Grok, or Composer. On Teams and Enterprise, third-party requests also incur the [Cursor Token Rate](https://cursor.com/docs/models-and-pricing.md#cursor-token-rate).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/enterprise/model-and-integration-management.md#model-access-control",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "line_span": [
+        218,
+        218
+      ],
+      "source_sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "verbatim_quote": "Team admins can block models for the team from [Team Settings > Models](https://cursor.com/dashboard/team-settings/models). See [model access control](https://cursor.com/docs/enterprise/model-and-integration-management.md#model-access-control).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/configuration/worktrees.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "line_span": [
+        270,
+        270
+      ],
+      "source_sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "verbatim_quote": "This is subagent-level isolation within one session. To isolate a whole agent instead, run it in a [worktree](https://cursor.com/docs/configuration/worktrees.md), or hand the task to a [cloud subagent](https://cursor.com/docs/subagents.md#cloud-subagents).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/agent/agents-window.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "line_span": [
+        274,
+        274
+      ],
+      "source_sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "verbatim_quote": "From a local agent session, you can hand off work to a cloud subagent that runs on its own VM and branch. Your local workspace stays clean and responsive while long-running or parallel work happens in the cloud. The parent agent keeps running locally or in the cloud without interruption. Cloud subagents run from the [Agents Window](https://cursor.com/docs/agent/agents-window.md) in the Cursor desktop app.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/cloud-agent/setup.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "line_span": [
+        286,
+        286
+      ],
+      "source_sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "verbatim_quote": "Cloud subagents use the [environment](https://cursor.com/docs/cloud-agent/setup.md) configured for your repo and follow the same model and capability rules as other [Cloud Agents](https://cursor.com/docs/cloud-agent.md). Because they run on a cloud VM, their [MCP servers](https://cursor.com/docs/cloud-agent/capabilities.md#mcp-tools) come from your team's configuration at [cursor.com/agents](https://cursor.com/agents), not from your local session.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/cloud-agent.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "line_span": [
+        286,
+        286
+      ],
+      "source_sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "verbatim_quote": "Cloud subagents use the [environment](https://cursor.com/docs/cloud-agent/setup.md) configured for your repo and follow the same model and capability rules as other [Cloud Agents](https://cursor.com/docs/cloud-agent.md). Because they run on a cloud VM, their [MCP servers](https://cursor.com/docs/cloud-agent/capabilities.md#mcp-tools) come from your team's configuration at [cursor.com/agents](https://cursor.com/agents), not from your local session.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/cloud-agent/capabilities.md#mcp-tools",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "line_span": [
+        286,
+        286
+      ],
+      "source_sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "verbatim_quote": "Cloud subagents use the [environment](https://cursor.com/docs/cloud-agent/setup.md) configured for your repo and follow the same model and capability rules as other [Cloud Agents](https://cursor.com/docs/cloud-agent.md). Because they run on a cloud VM, their [MCP servers](https://cursor.com/docs/cloud-agent/capabilities.md#mcp-tools) come from your team's configuration at [cursor.com/agents](https://cursor.com/agents), not from your local session.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/enterprise.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/rules.md",
+      "line_span": [
+        17,
+        17
+      ],
+      "source_sha256": "884c67ca161142c2f3f0e4ef66a732dd48119cb08bd0dc2ff73e693721546bc8",
+      "verbatim_quote": "Team-wide rules managed from the dashboard. Available on Team and [Enterprise](https://cursor.com/docs/enterprise.md) plans.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/enterprise.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/rules.md",
+      "line_span": [
+        281,
+        281
+      ],
+      "source_sha256": "884c67ca161142c2f3f0e4ef66a732dd48119cb08bd0dc2ff73e693721546bc8",
+      "verbatim_quote": "Team and [Enterprise](https://cursor.com/docs/enterprise.md) plans can create and enforce rules across their entire organization from the [Cursor dashboard](https://cursor.com/dashboard/team-content). Admins can configure whether or not each rule is required for team members.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/hooks.md",
+      "line_span": [
+        99,
+        99
+      ],
+      "source_sha256": "7294a2d63b19d79a5283c948afe174cba8b06a7585563d34a2c41b90f5df0d39",
+      "verbatim_quote": "[Self-Hosted Machines](https://cursor.com/docs/cloud-agent/self-hosted.md) workers (Pools and My Machines) run the same command-based project hooks, and on Enterprise also run team and enterprise-managed hooks. On those workers, `sessionStart` and `sessionEnd` fire when a session claims the worker and when that claim is released. See [Hooks on Pools](https://cursor.com/docs/cloud-agent/self-hosted/pool.md#hooks).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md#hooks",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/hooks.md",
+      "line_span": [
+        99,
+        99
+      ],
+      "source_sha256": "7294a2d63b19d79a5283c948afe174cba8b06a7585563d34a2c41b90f5df0d39",
+      "verbatim_quote": "[Self-Hosted Machines](https://cursor.com/docs/cloud-agent/self-hosted.md) workers (Pools and My Machines) run the same command-based project hooks, and on Enterprise also run team and enterprise-managed hooks. On those workers, `sessionStart` and `sessionEnd` fire when a session claims the worker and when that claim is released. See [Hooks on Pools](https://cursor.com/docs/cloud-agent/self-hosted/pool.md#hooks).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://modelcontextprotocol.io/introduction",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "line_span": [
+        5,
+        5
+      ],
+      "source_sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "verbatim_quote": "[Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) enables Cursor to connect to external tools and data sources. Install and manage MCP servers from the [Customize](https://cursor.com/docs/customize-cursor.md) page or configure them in `mcp.json`.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://modelcontextprotocol.io/extensions/apps/overview",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "line_span": [
+        42,
+        42
+      ],
+      "source_sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "verbatim_quote": "Cursor supports the [MCP Apps extension](https://modelcontextprotocol.io/extensions/apps/overview). MCP tools can return interactive UI along with standard tool output.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/agent/plan-mode.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "line_span": [
+        284,
+        284
+      ],
+      "source_sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "verbatim_quote": "Cursor automatically uses MCP tools listed under `Available Tools` when relevant. This includes [Plan Mode](https://cursor.com/docs/agent/plan-mode.md). Ask for a specific tool by name or describe what you need. Enable or disable MCP servers from **Customize** in the sidebar.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/agent/security/run-modes.md#run-mode",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "line_span": [
+        294,
+        294
+      ],
+      "source_sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "verbatim_quote": "MCP [follows the same Run Modes as terminal commands](https://cursor.com/docs/agent/security/run-modes.md#run-mode). For example, in **Auto-review** mode, allowlisted MCP tools run immediately and everything else is routed through the classifier.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/integrations/xcode.md",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "line_span": [
+        340,
+        340
+      ],
+      "source_sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "verbatim_quote": "- **[Xcode integration](https://cursor.com/docs/integrations/xcode.md)** — Connect Cursor to Xcode 26.3+ for builds, tests, SwiftUI previews, and Apple documentation search",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://agent-plugins.org",
+      "source_file": "parity/research/cursor-host/customization/sources/plugin-reference.md",
+      "line_span": [
+        13,
+        13
+      ],
+      "source_sha256": "5d087ad7c3ae1d48ea3f28f69a6cc67d8a2410e06908e1669ff3f20b2eb5c0ad",
+      "verbatim_quote": "| [Agent Plugins](https://agent-plugins.org) (open standard) | `plugin.json` at the plugin root | Skills, MCP servers                                            |",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://github.com/agentplugins/agent-plugins-spec",
+      "source_file": "parity/research/cursor-host/customization/sources/plugin-reference.md",
+      "line_span": [
+        16,
+        16
+      ],
+      "source_sha256": "5d087ad7c3ae1d48ea3f28f69a6cc67d8a2410e06908e1669ff3f20b2eb5c0ad",
+      "verbatim_quote": "A plugin that conforms to the [Agent Plugins specification](https://github.com/agentplugins/agent-plugins-spec) loads in Cursor. Cursor does not expand the standard's `${PLUGIN_ROOT}` and `${PLUGIN_DATA}` variables in `mcp.json`; see [MCP servers](https://cursor.com/docs/reference/plugins.md#mcp-servers). The rest of this reference documents the Cursor plugin format, which is developed in parallel with the standard and supports the full set of Cursor components.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://agent-plugins.org/plugin-authors",
+      "source_file": "parity/research/cursor-host/customization/sources/plugin-reference.md",
+      "line_span": [
+        34,
+        34
+      ],
+      "source_sha256": "5d087ad7c3ae1d48ea3f28f69a6cc67d8a2410e06908e1669ff3f20b2eb5c0ad",
+      "verbatim_quote": "[Agent Plugins authoring guide](https://agent-plugins.org/plugin-authors) for",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://agent-plugins.org/plugin-authors/manifest",
+      "source_file": "parity/research/cursor-host/customization/sources/plugin-reference.md",
+      "line_span": [
+        68,
+        68
+      ],
+      "source_sha256": "5d087ad7c3ae1d48ea3f28f69a6cc67d8a2410e06908e1669ff3f20b2eb5c0ad",
+      "verbatim_quote": "[standard's manifest reference](https://agent-plugins.org/plugin-authors/manifest).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://agent-plugins.org/plugin-authors/mcp-servers",
+      "source_file": "parity/research/cursor-host/customization/sources/plugin-reference.md",
+      "line_span": [
+        351,
+        351
+      ],
+      "source_sha256": "5d087ad7c3ae1d48ea3f28f69a6cc67d8a2410e06908e1669ff3f20b2eb5c0ad",
+      "verbatim_quote": "See the [Agent Plugins MCP reference](https://agent-plugins.org/plugin-authors/mcp-servers)",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://agent-plugins.org/schemas",
+      "source_file": "parity/research/cursor-host/customization/sources/plugin-reference.md",
+      "line_span": [
+        516,
+        516
+      ],
+      "source_sha256": "5d087ad7c3ae1d48ea3f28f69a6cc67d8a2410e06908e1669ff3f20b2eb5c0ad",
+      "verbatim_quote": "- Agent Plugins conform to the [Agent Plugins schemas](https://agent-plugins.org/schemas)",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/agent/agents-window.md",
+      "source_file": "parity/research/cursor-host/customization/sources/prompting.md",
+      "line_span": [
+        25,
+        25
+      ],
+      "source_sha256": "438f77bf7295d28002c81ce0658134ce7debe6dfa76bae926058b918ed378410",
+      "verbatim_quote": "Custom Modes are available in the [Agents Window](https://cursor.com/docs/agent/agents-window.md) and the [CLI](https://cursor.com/docs/cli/overview.md). Any skill with a valid frontmatter block can back a mode, and the optional `icon` and `color` frontmatter fields style the mode's badge. See [Using a skill as a Custom Mode](https://cursor.com/docs/skills.md#using-a-skill-as-a-custom-mode).",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/models-and-pricing.md",
+      "source_file": "parity/research/cursor-host/customization/sources/prompting.md",
+      "line_span": [
+        64,
+        64
+      ],
+      "source_sha256": "438f77bf7295d28002c81ce0658134ce7debe6dfa76bae926058b918ed378410",
+      "verbatim_quote": "You can switch models mid-conversation, for example when a faster model handled exploration but you need deeper reasoning for implementation. See [Models & Pricing](https://cursor.com/docs/models-and-pricing.md) for the full list.",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/get-started/quickstart",
+      "source_file": "parity/research/cursor-host/customization/sources/mcp-extension-api.md",
+      "line_span": [
+        6,
+        6
+      ],
+      "source_sha256": "4f98eb063d1914a3100f2c7e6bab3a449877d33da375eb3c05edc3a61e78afb1",
+      "verbatim_quote": "- [Quickstart](https://cursor.com/docs/get-started/quickstart)",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/agent/overview",
+      "source_file": "parity/research/cursor-host/customization/sources/mcp-extension-api.md",
+      "line_span": [
+        7,
+        7
+      ],
+      "source_sha256": "4f98eb063d1914a3100f2c7e6bab3a449877d33da375eb3c05edc3a61e78afb1",
+      "verbatim_quote": "- [Agent overview](https://cursor.com/docs/agent/overview)",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/api",
+      "source_file": "parity/research/cursor-host/customization/sources/mcp-extension-api.md",
+      "line_span": [
+        8,
+        8
+      ],
+      "source_sha256": "4f98eb063d1914a3100f2c7e6bab3a449877d33da375eb3c05edc3a61e78afb1",
+      "verbatim_quote": "- [API reference](https://cursor.com/docs/api)",
+      "status": "unread",
+      "reason": "Relevant linked schema, permission, model, cloud, integration or authoring contract. Read-only source discovery next."
+    },
+    {
+      "url": "https://cursor.com/docs/mcp/extension-api.md",
+      "status": "unresolved",
+      "reason": "Guessed path retrieved a Page not found body; resolve actual Extension API reference link from official index. This is a missing located public contract, not evidence of missing service."
+    },
+    {
+      "url": "https://cursor.com/docs/agent/security/run-modes.md",
+      "status": "unread",
+      "local_file": "parity/research/cursor-host/customization/sources/run-modes.md",
+      "reason": "Read preserved current response before proposing Run Mode policy edges."
+    },
+    {
+      "dependency": "Cursor managed built-in skill bodies and runtime Task schemas",
+      "status": "unresolved",
+      "reason": "Official skills table establishes availability, not complete implementations. Closed-source builtins remain required. No runtime observations authorized in this partition."
+    }
+  ]
+}

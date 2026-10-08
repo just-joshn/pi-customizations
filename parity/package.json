@@ -1,0 +1,21 @@
+{
+  "name": "pstack-parity-verification",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Supporting parity diagnostics and acceptance infrastructure, outside the runtime payload.",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "preflight": "node scripts/check-preflight.mjs"
+  },
+  "devDependencies": {
+    "@lydell/node-pty": "^1.2.0-beta.15",
+    "@vitest/coverage-v8": "5.0.2",
+    "@xterm/headless": "^6.0.0",
+    "vitest": "5.0.2"
+  }
+}

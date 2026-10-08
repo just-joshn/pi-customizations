@@ -1,0 +1,9 @@
+{
+  "scope": "Structural source, quotation, graph and receipt integrity only. Not semantic audit, runtime proof, closure or acceptance.",
+  "sources_checked": 8,
+  "quotation_edges_checked": 61,
+  "prior_edges_checked": 12,
+  "errors": [
+    "evidence-general-mcp-transports quotation span mismatch"
+  ]
+}

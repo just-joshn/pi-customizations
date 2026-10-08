@@ -175,7 +175,56 @@ function assistantBackgroundCalls(context: Context): PlannedCall[] {
   return [];
 }
 
+function setupCalls(context: Context): PlannedCall[] {
+  const lastUser = context.messages.map((message, index) => (message.role === 'user' ? index : -1)).filter((index) => index >= 0).at(-1) ?? -1;
+  const results = toolResults(context).filter((message) => context.messages.indexOf(message) > lastUser);
+  const written = results.some((message) => message.toolName === 'pstack_setup' && JSON.stringify(message).includes('"written":true'));
+  if (written) return [];
+  if (!results.some((message) => message.toolName === 'pstack_setup')) return [{ name: 'pstack_setup', arguments: { action: 'state' } }];
+    if (!results.some((message) => message.toolName === 'AskQuestion'))
+    return [
+      {
+        name: 'AskQuestion',
+        arguments: {
+          questions: [
+            { id: 'budget', prompt: 'Which reasoning budget should pstack use?', options: [{ id: 'unlimited — max reasoning', label: 'unlimited — max reasoning' }] },
+            { id: 'roles', prompt: 'Accept the role table as shown?', options: [{ id: 'Accept as-is', label: 'Accept as-is' }] },
+          ],
+        },
+      },
+    ];
+  return [
+    {
+      name: 'pstack_setup',
+      arguments: {
+        action: 'write',
+        budget: 'unlimited — max reasoning',
+        roleOverrides: [
+          'feature, refactoring',
+          'bug-fix',
+          'perf-issue',
+          'hillclimb',
+          'judgment and prose',
+          'hardest tasks',
+          'how explorer',
+          'how explainer',
+          'why investigators',
+          'why synthesizer',
+          'reflect tooling',
+          'reflect judgment, divergent, synthesizer',
+          'arena runners',
+          'arena cross-judge pool',
+          'swarm workers',
+          'architect runners',
+          'interrogate reviewers',
+        ].map((role) => ({ role, value: 'inherit-parent' })),
+      },
+    },
+  ];
+}
+
 function dispatch(requested: string, context: Context): { calls: PlannedCall[] | undefined; sequenced: boolean } {
+  if (requested.includes('skill name="setup-pstack"')) return { calls: setupCalls(context), sequenced: true };
   if (requested === 'JOURNEY:progress-child') return { calls: progressChildCalls(context), sequenced: true };
   if (requested.startsWith('Goal still active. Objective:\nProve automatic goal continuation')) {
     return { calls: [{ name: 'UpdateGoal', arguments: { status: 'complete' } }], sequenced: false };

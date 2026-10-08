@@ -1,0 +1,27 @@
+$ vitest run
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity
+
+ ❯ test/preflight.test.mjs (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/preflight.test.mjs [ test/preflight.test.mjs ]
+Error: Cannot find module '../scripts/preflight.mjs' imported from /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/test/preflight.test.mjs
+ ❯ test/preflight.test.mjs:6:1
+      4| import { promisify } from 'node:util';
+      5| import { expect, test } from 'vitest';
+      6| import { inspectParity } from '../scripts/preflight.mjs';
+       | ^
+      7| import { documents, fixture, snapshot } from './preflight-fixture.mjs';
+      8|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  20:44:47
+   Duration  98ms (worker 97%, environment 3%)
+
+error: script "test" exited with code 1

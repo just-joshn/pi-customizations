@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import { parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
+import { roleNames } from '../src/models.ts';
 import { fixture, lastRequest, packageRoot, prompt, section } from './session-fixture.ts';
 
 type ToolResult = {
@@ -39,8 +40,8 @@ test('user-perspective: loaded skills and prompt templates expose descriptions',
     const { loader } = await f.open();
     const skills = loader.getSkills().skills;
     const prompts = loader.getPrompts().prompts;
-    expect(skills.length).toBe(71);
-    expect(prompts.length).toBe(69);
+    expect(skills.length).toBe(72);
+    expect(prompts.length).toBe(70);
 
     for (const skill of skills) {
       expect(Boolean(skill.description && skill.description.trim().length > 0)).toBe(true);
@@ -84,8 +85,8 @@ test('user-perspective: /pstack default, status, and invalid arguments', async (
     await session.prompt('/pstack');
     let msgs = customMessagesOf(session, 'pstack-status');
     expect(msgs.length).toBe(1);
-    expect(String(msgs[0]?.content)).toMatch(/pstack 0\.15\.9 with team-kit 1\.2\.0/);
-    expect(String(msgs[0]?.content)).toMatch(/71 skills, 69 prompt templates/);
+    expect(String(msgs[0]?.content)).toMatch(/pstack 0\.15\.15 with team-kit 1\.2\.0/);
+    expect(String(msgs[0]?.content)).toMatch(/72 skills, 70 prompt templates/);
     expect(String(msgs[0]?.content)).toContain('Cloud Tasks require a configured independent VM.');
     expect(String(msgs[0]?.content)).not.toContain('Cloud Tasks run in local git worktrees.');
     expect(String(msgs[0]?.content)).toMatch(/Poteto mode off/);
@@ -331,7 +332,7 @@ test('user-perspective: installed CLI loads the package declared in settings', a
       .map((l) => JSON.parse(l));
     const statusMsg = lines.find((l) => l.message?.customType === 'pstack-status');
     expect(Boolean(statusMsg)).toBe(true);
-    expect(statusMsg.message.content).toMatch(/pstack 0\.15\.9 with team-kit 1\.2\.0/);
+    expect(statusMsg.message.content).toMatch(/pstack 0\.15\.15 with team-kit 1\.2\.0/);
 
     const modeOff = await runCli(['--mode', 'json', '-p', '--no-session', '/poteto-mode off'], { cwd: workspace, agentDir });
     expect(modeOff.code).toBe(0);
@@ -458,14 +459,50 @@ test('user-perspective: BackgroundShell start, list, and stop', async () => {
   }
 });
 
-test('user-perspective: /setup-pstack headless fails closed', async () => {
+test('user-perspective: /setup-pstack runs as an agent turn and the written rule applies from the next prompt', async () => {
   const f = await fixture();
   try {
     const { session } = await f.open();
-    await session.prompt('/setup-pstack');
-    const errors = customMessagesOf(session, 'pstack-setup-error');
-    expect(errors.length).toBe(1);
-    expect(String(errors[0]?.content)).toMatch(/\/setup-pstack requires Pi interactive or RPC dialog UI/);
+    session.extensionRunner.setUIContext(
+      {
+        ...session.extensionRunner.createContext().ui,
+        select: async (_title: string, options: string[]) => options[0],
+      },
+      'rpc',
+    );
+    f.calls.push(
+      { type: 'toolCall', id: 'up-state', name: 'pstack_setup', arguments: { action: 'state' } },
+      {
+        type: 'toolCall',
+        id: 'up-ask',
+        name: 'AskQuestion',
+        arguments: {
+          questions: [
+            { id: 'budget', prompt: 'Which reasoning budget?', options: [{ id: 'unlimited — max reasoning', label: 'unlimited — max reasoning' }] },
+            { id: 'roles', prompt: 'Accept the role table?', options: [{ id: 'Accept as-is', label: 'Accept as-is' }] },
+          ],
+        },
+      },
+      {
+        type: 'toolCall',
+        id: 'up-write',
+        name: 'pstack_setup',
+        arguments: {
+          action: 'write',
+          budget: 'unlimited — max reasoning',
+          roleOverrides: roleNames.map((role) => ({ role, value: 'inherit-parent' })),
+        },
+      },
+    );
+    await prompt(session, '/setup-pstack');
+    const results = toolResultsOf(session, 'pstack_setup');
+    expect(results.length).toBe(2);
+    expect(results[0]?.isError).toBe(false);
+    expect(results[1]?.isError).toBe(false);
+    expect(results[1]?.details).toMatchObject({ written: true, budget: 'unlimited (max)' });
+    expect(await readFile(join(f.root, 'agent/pstack/models.mdc'), 'utf8')).toMatch(/^# budget: unlimited \(max\)$/m);
+    await prompt(session, 'journey probe');
+    expect(section(f.requests, 'pstack_host')).toMatch(/interrogate reviewers: inherit-parent/);
   } finally {
     await f.close();
   }

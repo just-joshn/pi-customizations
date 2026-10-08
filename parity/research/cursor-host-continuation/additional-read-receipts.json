@@ -1,0 +1,112 @@
+{
+  "coordinator_selected_edge_read": {
+    "source_file": "prior-mcp-proposals.json",
+    "source_sha256": "250e0f3872ab8bf6d161ca076130bf05b8734b1bbff5e259345af23353980beb",
+    "selected_edge_ids": [
+      "cursor.services.docs_cloud-agent_capabilities.37",
+      "cursor.customization.hooks.1042",
+      "cursor.customization.hooks.1107",
+      "cursor.customization.mcp.15",
+      "cursor.customization.mcp.54",
+      "cursor.customization.mcp.165",
+      "cursor.customization.mcp.257",
+      "cursor.customization.mcp.391",
+      "cursor.customization.plugin-reference.328",
+      "cursor.customization.mcp-install-links.1",
+      "cursor.services.docs_cloud-agent_api_endpoints.35",
+      "cursor.services.docs_cloud-agent_api_endpoints.420"
+    ],
+    "method": "Read selected extraction completely in bounded read calls and inspect extracted API edges. Original proposal files parsed for selection, not semantically read in full.",
+    "complete_selected_extraction": true,
+    "complete_original_proposal_files": false
+  },
+  "delegate_self_report": {
+    "role": "readonly how explainer, inherit-parent",
+    "reported_reads": [
+      {
+        "path": "../cursor-host/services/report.md",
+        "ranges": [
+          [
+            1,
+            59
+          ]
+        ]
+      },
+      {
+        "path": "../cursor-host/services/retrievals/docs_cloud-agent_capabilities.md",
+        "ranges": [
+          [
+            1,
+            90
+          ]
+        ]
+      },
+      {
+        "path": "../cursor-host/services/retrievals/docs_cloud-agent_api_endpoints.md",
+        "ranges": [
+          [
+            1,
+            180
+          ]
+        ]
+      },
+      {
+        "path": "../cursor-host/customization/sources/snapshot-mcp.md",
+        "ranges": [
+          [
+            1,
+            85
+          ]
+        ]
+      },
+      {
+        "path": "../cursor-host/services/proposals.json",
+        "ranges": [
+          [
+            5760,
+            5810
+          ],
+          [
+            4469,
+            4484
+          ]
+        ]
+      },
+      {
+        "path": "../cursor-host/customization/proposals.json",
+        "ranges": [
+          [
+            4171,
+            4188
+          ]
+        ]
+      },
+      {
+        "path": "../cursor-host/artifact-digests.sha256",
+        "ranges": [
+          [
+            1,
+            197
+          ]
+        ]
+      }
+    ],
+    "authority": "Delegated self-report only; not substituted for coordinator receipts or LF quotation verification. Some reported quotation spans were inaccurate and not promoted.",
+    "findings": "Three separate MCP contexts. Cloud capabilities versus inline v1 remains unresolved. No runtime claims.",
+    "status": "settled"
+  },
+  "critic_disposition": {
+    "role": "synchronous rubber-duck plan critique",
+    "adopted": [
+      "Include hook HTTP/SSE vocabulary and pool routing context.",
+      "Preserve portable recovery mapping for original absolute provenance paths.",
+      "Distinguish same-v1 IDLE conflict and static inherit overlap from runtime behavior."
+    ],
+    "not_adopted": "Definitive UI-only interpretation of capabilities prohibition. UI management context is explicit; scope exception to the subsequent prohibition is not."
+  },
+  "limitations": [
+    "Timestamps available through tool events are not independently authenticated read attestations.",
+    "Reading an embedded quotation is not a complete read of its source file.",
+    "Structural artifact checks cannot establish semantic understanding or observed runtime behavior."
+  ]
+}

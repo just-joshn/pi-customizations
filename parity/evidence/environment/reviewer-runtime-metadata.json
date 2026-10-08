@@ -1,0 +1,45 @@
+{
+  "recordedAt": "2026-10-08T04:14:23.130Z",
+  "scope": "Runtime metadata only. Physical provider identity is not independently authenticated.",
+  "parentEnvironment": {
+    "provider": "openai",
+    "model": "gpt-6.1-sol",
+    "reasoning": "low"
+  },
+  "sessions": [
+    {
+      "taskId": "1d341afc-aa3c-4b55-ac52-baf3dc684719",
+      "transcript": "/Users/josh-desktop/.pi/agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again--/01a11979-8b23-7065-ade8-744aa1cb1bcb/subagents/agent-1d341afc-aa3c-4b55-ac52-baf3dc684719.jsonl",
+      "observations": [
+        {
+          "type": "model_change",
+          "provider": "claude-subscription",
+          "modelId": "claude-opus-5-5"
+        },
+        {
+          "type": "assistant-metadata",
+          "provider": "claude-subscription",
+          "model": "claude-opus-5-5",
+          "api": "anthropic-messages"
+        }
+      ]
+    },
+    {
+      "taskId": "d4095df9-e1a1-4b47-afbe-55804a0d60d8",
+      "transcript": "/Users/josh-desktop/.pi/agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again--/01a11979-8b23-7065-ade8-744aa1cb1bcb/subagents/agent-d4095df9-e1a1-4b47-afbe-55804a0d60d8.jsonl",
+      "observations": [
+        {
+          "type": "model_change",
+          "provider": "claude-subscription",
+          "modelId": "claude-opus-5-5"
+        },
+        {
+          "type": "assistant-metadata",
+          "provider": "claude-subscription",
+          "model": "claude-opus-5-5",
+          "api": "anthropic-messages"
+        }
+      ]
+    }
+  ]
+}

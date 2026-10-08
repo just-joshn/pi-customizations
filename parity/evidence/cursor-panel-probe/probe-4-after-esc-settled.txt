@@ -1,0 +1,35 @@
+  Current state — two rule files, and they disagree:
+  • ~/.cursor/rules/pstack-models.mdc — the rule actually loaded in this Cursor session: budget small (medium)
+    (nonstandard label), all 17 roles pinned to inherit-parent
+  • ~/.claude/rules/pstack-models.md — the path the skill names (Claude Code): budget small, all roles pinned to
+    sonnet
+
+  Since every role is hand-pinned in both files, the skill's re-run rules keep those pins regardless of budget — the
+  budget line is the only thing a re-run would change unless you un-pin.
+
+    AskQuestion Clarifying Questions (3)                                                   Questions skipped by user
+    1. Which reasoning budget should pstack record? (Currently the Claude rule says `small`, the Cursor rule says
+    `small (medium)`.)
+      [ ] unlimited — keep defaults
+      [ ] large — no effect beyond unlimited here; the harness sets effort per skill or subagent, not per Task call
+      [ ] medium — selective step-down
+      [ ] small — nothing preserved
+
+    2. Which rule file should I write? The skill names ~/.claude/rules/pstack-models.md, but this session is Cursor
+    and loads ~/.cursor/rules/pstack-models.mdc as an always-applied rule.
+      [ ] ~/.cursor/rules/pstack-models.mdc (Recommended) — the rule loaded in this Cursor session
+      [ ] ~/.claude/rules/pstack-models.md — the path the skill names (Claude Code)
+      [ ] Both files
+
+    3. Keep the hand-pinned role values, or let the budget govern?
+      [ ] Keep pins (Recommended) — Cursor file stays all-inherit-parent, Claude file stays all-sonnet
+      [ ] Reset to defaults — drop the pins and write the skill-default table with the chosen budget applied
+
+ ⠠⠜ Thinking  10.31k tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  GLM 5.3 Flash Max · 13.1%                                                                             Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

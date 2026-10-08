@@ -1,0 +1,10 @@
+cursor-team-kit/LICENSE
+cursor-team-kit/assets/avatar.png
+pstack/LICENSE
+pstack/assets/logo.png
+pstack/docs/guide/images/design.jpg
+pstack/docs/guide/images/overnight.jpg
+pstack/docs/guide/images/recipes.jpg
+pstack/docs/guide/images/router.jpg
+pstack/docs/guide/images/understanding.jpg
+pstack/docs/guide/images/verification.jpg

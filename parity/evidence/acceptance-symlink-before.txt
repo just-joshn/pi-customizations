@@ -1,0 +1,1 @@
+316702cf096a735c29533d926da8a2e89f12ac096ce598dce8c3c5a0c3cd8ba6  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/acceptance-symlink-audit.1YIshs/canary.txt

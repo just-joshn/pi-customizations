@@ -4,6 +4,8 @@ import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { normalizeSource, relativeSourcePath } from './source-normalize.mjs';
+
 const root = fileURLToPath(new URL('../', import.meta.url));
 try {
   const args = process.argv.slice(2).filter((arg) => arg !== '--current');
@@ -21,17 +23,12 @@ try {
   const inventory = JSON.parse(await readFile(join(root, 'docs/source-inventory.json'), 'utf8'));
   const expected = new Set(inventory.map((entry) => entry.path));
   let findings = [];
-  const sourcePaths = new Set(paths.map((path) => path.slice('pstack/'.length).replace('.cursor-plugin/', 'plugin-metadata/')));
-  const legacyLowercase = new Set(['automations/benny/FOR_AGENTS.md', 'automations/benny/README.md']);
+  const sourcePaths = new Set(paths.map(relativeSourcePath));
   for (const path of paths) {
-    const relative = path.slice('pstack/'.length).replace('.cursor-plugin/', 'plugin-metadata/');
+    const relative = relativeSourcePath(path);
     if (!expected.has(relative)) findings = [...findings, `Source is not inventoried: ${relative}`];
     const source = execFileSync('git', ['-C', repo, 'show', `${pstack.commit}:${path}`]);
-    const text = source.toString('utf8');
-    const generic = text.replaceAll('Cursor', 'Reference').replaceAll('cursor-team-kit', 'team-kit').replaceAll('.cursor', '.upstream').replaceAll('@cursor-skill', '@upstream-skill');
-    const legacy = legacyLowercase.has(relative) ? generic.replace(/\bcursor\b/g, 'reference') : generic;
-    const corrected = relative.startsWith('skills/poteto-mode/scripts/watch-pr/') ? legacy.replaceAll('endReference', 'endCursor') : legacy;
-    const normalized = Buffer.from(text).equals(source) ? Buffer.from(corrected) : source;
+    const normalized = normalizeSource(relative, source);
     const snapshot = await readFile(join(root, 'upstream', relative));
     if (!normalized.equals(snapshot)) findings = [...findings, `Normalized source differs: ${relative}`];
   }

@@ -61,7 +61,7 @@ export default async function pstack(pi: ExtensionAPI) {
   const store = createState(pi, badge);
   registerCommands(pi, skills, store);
   registerNativeInput(pi, skills, store);
-  registerSetupTool(pi, store);
+  registerSetupTool(pi);
   const notice = hostVersionNotice(VERSION, testedVersion);
   pi.on('session_start', (_event, ctx) => {
     store.restore(ctx);

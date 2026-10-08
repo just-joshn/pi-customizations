@@ -68,7 +68,7 @@ test('official resource loader separates skills, prompt aliases, and runtime com
   try {
     const { session, loader } = await f.open();
     const { skills, diagnostics } = loader.getSkills();
-    expect(skills.length).toBe(71);
+    expect(skills.length).toBe(72);
     expect(diagnostics).toEqual([]);
     const directories = async (path: string) => (await readdir(path, { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
     const expected = [...(await directories(join(packageRoot, 'skills'))), ...(await directories(join(packageRoot, 'host/skills')))].sort();
@@ -77,7 +77,7 @@ test('official resource loader separates skills, prompt aliases, and runtime com
     const commands = new Set(session.extensionRunner.getRegisteredCommands().map((command) => command.name));
     expect([...commands].sort()).toEqual(['factories', 'fleet', 'goal', 'poteto-mode', 'pstack', 'rubber-duck', 'setup-pstack', 'subagents', 'tasks', 'workflows']);
     const templates = loader.getPrompts().prompts;
-    expect(templates.length).toBe(69);
+    expect(templates.length).toBe(70);
     const aliases = new Set(templates.map((template) => template.name));
     for (const name of [...expected, 'bro']) expect(commands.has(name) || aliases.has(name)).toBe(true);
     expect(skills.some((skill) => skill.name === 'bro')).toBe(false);
@@ -213,7 +213,7 @@ test('native /skill:poteto-mode enters the same mode and /pstack reports status 
     expect(f.requests.length).toBe(callsBeforeStatus);
     const status = session.messages.findLast((message) => message.role === 'custom' && message.customType === 'pstack-status');
     expect(Boolean(status)).toBe(true);
-    expect(JSON.stringify(status)).toMatch(/71 skills, 69 prompt templates/);
+    expect(JSON.stringify(status)).toMatch(/72 skills, 70 prompt templates/);
     expect(JSON.stringify(status)).toMatch(/team-kit 1.2.0/);
     expect(JSON.stringify(status)).toMatch(/Poteto mode on/);
     await prompt(session, '/poteto-mode off', { startsRun: false });
@@ -290,58 +290,11 @@ test('branching before mode activation does not inherit state from the abandoned
   }
 });
 
-test('native and alias setup fail closed without UI and never fall through to inference', async () => {
-  const f = await fixture();
-  try {
-    const { session } = await f.open();
-    await session.prompt('/setup-pstack');
-    await session.prompt('/skill:setup-pstack');
-    expect(f.requests.length).toBe(0);
-    const errors = session.messages.filter((message) => message.role === 'custom' && message.customType === 'pstack-setup-error');
-    expect(errors.length).toBe(2);
-    for (const message of errors) {
-      if (message.role === 'custom') expect(String(message.content)).toMatch(/requires Pi interactive or RPC dialog UI/);
-    }
-    expect(f.errors).toEqual([]);
-  } finally {
-    await f.close();
-  }
-});
-
-test('setup command saves confirmed role choices and offers project verification only once', async () => {
-  const f = await fixture();
-  try {
-    const { session } = await f.open();
-    session.extensionRunner.setUIContext(
-      {
-        ...session.extensionRunner.createContext().ui,
-        select: async (title) => (title.startsWith('pstack reasoning budget') ? 'small — medium reasoning' : title.startsWith('Accept model table') ? 'Accept as-is' : 'inherit-parent'),
-        input: async () => 'inherit-parent, auto',
-        confirm: async () => true,
-      },
-      'rpc',
-    );
-    await prompt(session, '/setup-pstack');
-    const configuration = await readFile(join(f.root, 'agent/pstack/models.mdc'), 'utf8');
-    expect(configuration).toMatch(/feature, refactoring: inherit-parent/);
-    expect(configuration).toMatch(/arena runners: inherit-parent, auto/);
-    const request = JSON.stringify(lastRequest(f.requests).messages);
-    expect(request).toMatch(/want a project-local verification skill/);
-    expect(Boolean(request.includes(join(packageRoot, 'skills/create-verification-skill/SKILL.md')))).toBe(true);
-    const calls = f.requests.length;
-    await session.prompt('/setup-pstack');
-    expect(f.requests.length).toBe(calls);
-    expect(f.errors).toEqual([]);
-  } finally {
-    await f.close();
-  }
-});
-
 test('team-kit templates request skill reading and native skills expand complete instructions', async () => {
   const f = await fixture();
   try {
     const { session, loader } = await f.open();
-    expect(loader.getSkills().skills.length).toBe(71);
+    expect(loader.getSkills().skills.length).toBe(72);
     const names = new Set(loader.getSkills().skills.map((skill) => skill.name));
     for (const name of KIT_SKILL_NAMES) expect(names.has(name)).toBe(true);
     for (const name of ['pr-review-canvas', 'thermo-nuclear-code-quality-review']) {

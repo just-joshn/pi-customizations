@@ -1,0 +1,7 @@
+Only in parity/reference/cursor-plugins/cursor-team-kit: .cursor-plugin
+Files parity/reference/cursor-plugins/cursor-team-kit/LICENSE and extensions/pi-pstack/upstream-team-kit/LICENSE differ
+Files parity/reference/cursor-plugins/cursor-team-kit/README.md and extensions/pi-pstack/upstream-team-kit/README.md differ
+Files parity/reference/cursor-plugins/cursor-team-kit/agents/thermo-nuclear-code-quality-review.md and extensions/pi-pstack/upstream-team-kit/agents/thermo-nuclear-code-quality-review.md differ
+Only in extensions/pi-pstack/upstream-team-kit: plugin-metadata
+Files parity/reference/cursor-plugins/cursor-team-kit/skills/pr-review-canvas/styles.css and extensions/pi-pstack/upstream-team-kit/skills/pr-review-canvas/styles.css differ
+Files parity/reference/cursor-plugins/cursor-team-kit/skills/workflow-from-chats/SKILL.md and extensions/pi-pstack/upstream-team-kit/skills/workflow-from-chats/SKILL.md differ

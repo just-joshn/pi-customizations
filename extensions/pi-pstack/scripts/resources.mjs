@@ -217,9 +217,9 @@ function markdown(entry) {
     if (slug === 'setup-pstack') {
       text = text.replace(
         '# Setup pstack',
-        '# Setup pstack\n\nCall `pstack_setup` to perform these steps through native Pi dialogs and validated writes. This skill may be selected when the user asks to configure models. Do not bypass the confirmation by manually writing the rule. The steps below document the contract owned by that tool; /setup-pstack and /skill:setup-pstack use the same implementation.',
+        '# Setup pstack\n\nCall `pstack_setup` with action "state" to detect models and load current choices, ask the budget and role questions with AskQuestion exactly as these steps describe, then call `pstack_setup` with action "write" and the confirmed choices to validate and write the rule atomically. Do not write the rule file by hand. This skill may be selected when the user asks to configure models; /setup-pstack and /skill:setup-pstack use the same implementation.',
       );
-      transformations = [...transformations, 'Preserve ambient setup invocation and route it through the same native validated dialogs as the slash entry points.'];
+      transformations = [...transformations, 'Preserve ambient setup invocation and route detection, questions, and the validated write through the pstack_setup tool and AskQuestion.'];
     }
   }
   const mapped = mapHostPaths(entry, text);

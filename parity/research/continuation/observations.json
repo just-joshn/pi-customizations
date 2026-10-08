@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "status": "research-only",
+  "owner": "implementation-coordinator",
+  "observedAt": "2026-10-08T06:17:27Z",
+  "upstreamRefresh": {
+    "cursorPluginsHead": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "piLatestRelease": "v1.1.0",
+    "piPublishedAt": "2026-10-07T22:26:31Z",
+    "installedPiVersion": "1.1.0",
+    "installedCursorAgentVersion": "2026.10.01-e373342",
+    "cursorLatestReleaseRechecked": false
+  },
+  "documents": [
+    {
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/computer-use.md",
+      "artifact": "parity/research/continuation/computer-use.md",
+      "headers": "parity/research/continuation/computer-use.headers",
+      "sha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+      "linesRead": [1, 245],
+      "versionApplicability": "unresolved; current documentation is not proof of locked CLI behavior"
+    },
+    {
+      "url": "https://cursor.com/docs/enterprise/model-and-integration-management.md",
+      "artifact": "parity/research/continuation/model-management.md",
+      "headers": "parity/research/continuation/model-management.headers",
+      "sha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+      "linesRead": [1, 208],
+      "versionApplicability": "unresolved; IDE, enterprise and CLI scopes require reconciliation"
+    }
+  ],
+  "supportingExecutions": [
+    {
+      "command": "./.pi/skills/verify-pi-customizations/bin/control-pi doctor",
+      "exitCode": 0,
+      "scope": "environment and real RPC readiness only"
+    },
+    {
+      "command": "node parity/scripts/check-preflight.mjs",
+      "exitCode": 2,
+      "artifact": "parity/evidence/preflight-continuation.json",
+      "scope": "BLOCKED diagnostic; not the full acceptance gate"
+    },
+    {
+      "command": "cd parity && npm test",
+      "exitCode": 0,
+      "testFilesPassed": 1,
+      "testsPassed": 70,
+      "scope": "supporting preflight tests; not parity acceptance"
+    },
+    {
+      "command": "./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-status --out parity/evidence/continuation-pstack-status",
+      "exitCode": 0,
+      "artifactDirectory": "parity/evidence/continuation-pstack-status",
+      "scope": "Pi-only RPC status and empty todos; not PTY, clean install or paired parity"
+    }
+  ],
+  "observedCandidate": {
+    "pstackVersion": "0.15.9",
+    "teamKitVersion": "1.2.0",
+    "skills": 71,
+    "promptTemplates": 69,
+    "mode": "off",
+    "upstreamResourceAudit": "open"
+  },
+  "acceptedParityRequirements": 0,
+  "externalActionsRequired": [
+    "Account owner must restore permitted Cursor Agent usage using account billing controls or wait for the recorded October 12 reset. No billing change was made. The prior usage-limit observation has not been re-tested in this continuation.",
+    "macOS computer-control acceptance requires a signed-in GUI user to grant Accessibility and Screen Recording to the actual candidate helper identity. No permission grant was attempted."
+  ]
+}

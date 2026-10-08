@@ -1,0 +1,301 @@
+FAIL partition claims status FROZEN and frozen true but no authenticated freeze transition exists
+FAIL partition is frozen with an incomplete denominator
+FAIL ACC-SETUP-001 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-001 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-001 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-001 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-001 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-001 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-002 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-002 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-002 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-002 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-002 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-002 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-003 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-003 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-003 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-003 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-003 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-003 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-004 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-004 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-004 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-004 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-004 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-004 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-010 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-010 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-010 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-010 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-010 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-010 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-011 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-011 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-011 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-011 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-011 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-011 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-012 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-012 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-012 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-012 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-012 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-012 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-013 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-013 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-013 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-013 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-013 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-013 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-020 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-020 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-020 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-020 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-020 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-020 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-021 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-021 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-021 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-021 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-021 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-021 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-022 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-022 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-022 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-022 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-022 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-022 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-023 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-023 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-023 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-023 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-023 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-023 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-024 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-024 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-024 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-024 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-024 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-024 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-030 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-030 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-030 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-030 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-030 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-030 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-031 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-031 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-031 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-031 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-031 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-031 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-032 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-032 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-032 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-032 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-032 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-032 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-033 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-033 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-033 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-033 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-033 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-033 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-034 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-034 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-034 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-034 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-034 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-034 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-040 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-040 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-040 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-040 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-040 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-040 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-041 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-041 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-041 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-041 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-041 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-041 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-042 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-042 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-042 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-042 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-042 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-042 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-043 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-043 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-043 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-043 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-043 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-043 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-044 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-044 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-044 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-044 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-044 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-044 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-045 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-045 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-045 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-045 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-045 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-045 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-050 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-050 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-050 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-050 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-050 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-050 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-051 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-051 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-051 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-051 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-051 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-051 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-052 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-052 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-052 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-052 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-052 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-052 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-053 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-053 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-053 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-053 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-053 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-053 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-054 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-054 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-054 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-054 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-054 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-054 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-055 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-055 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-055 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-055 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-055 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-055 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-060 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-060 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-060 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-060 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-060 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-060 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-061 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-061 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-061 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-061 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-061 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-061 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-070 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-070 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-070 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-070 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-070 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-070 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-071 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-071 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-071 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-071 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-071 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-071 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-072 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-072 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-072 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-072 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-072 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-072 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-073 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-073 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-073 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-073 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-073 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-073 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-074 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-074 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-074 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-074 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-074 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-074 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-075 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-075 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-075 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-075 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-075 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-075 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-080 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-080 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-080 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-080 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-080 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-080 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-090 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-090 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-090 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-090 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-090 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-090 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-091 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-091 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-091 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-091 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-091 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-091 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-092 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-092 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-092 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-092 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-092 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-092 is FROZEN while the partition denominator is incomplete
+FAIL ACC-SETUP-093 declares FROZEN with review metadata but no authenticated review or freeze transition exists; declared metadata is not approval
+FAIL ACC-SETUP-093 names 1 reviewer; two reviewers on distinct model families are required
+FAIL ACC-SETUP-093 reviewer implementation-owner is the implementation owner
+FAIL ACC-SETUP-093 reviewer family openai is the implementation owner family
+FAIL ACC-SETUP-093 reference run nonexistent-reference-run is not in an authenticated reference-run registry; none exists
+FAIL ACC-SETUP-093 is FROZEN while the partition denominator is incomplete
+FAIL partition metadata changed since hashes were recorded
+FAIL configuration metadata changed since hashes were recorded
+FAIL configuration rule/rule.none changed since hashes were recorded
+FAIL configuration rule/rule.default-shape changed since hashes were recorded
+FAIL configuration rule/rule.installed-user changed since hashes were recorded
+FAIL configuration rule/rule.retired-line changed since hashes were recorded
+FAIL configuration rule/rule.missing-lines changed since hashes were recorded
+FAIL configuration rule/rule.no-budget-line changed since hashes were recorded
+FAIL configuration catalog/catalog.full-ladder changed since hashes were recorded
+FAIL configuration catalog/catalog.installed-user-families changed since hashes were recorded
+FAIL configuration catalog/catalog.no-grok changed since hashes were recorded
+FAIL configuration catalog/catalog.high-only changed since hashes were recorded
+FAIL configuration catalog/catalog.empty changed since hashes were recorded
+FAIL configuration budget/budget.unlimited changed since hashes were recorded
+FAIL configuration budget/budget.large changed since hashes were recorded
+FAIL configuration budget/budget.medium changed since hashes were recorded
+FAIL configuration budget/budget.small changed since hashes were recorded
+FAIL configuration project/project.no-verification changed since hashes were recorded
+FAIL configuration project/project.verify-skill changed since hashes were recorded
+FAIL configuration project/project.harness changed since hashes were recorded
+FAIL configuration parent/parent.auto changed since hashes were recorded
+FAIL configuration parent/parent.explicit changed since hashes were recorded
+FAIL configuration surface/surface.interactive-tui changed since hashes were recorded
+FAIL configuration surface/surface.no-structured-question changed since hashes were recorded
+FAIL configuration usage/usage.available changed since hashes were recorded
+FAIL configuration usage/usage.included-exhausted changed since hashes were recorded
+FAIL configuration platform/platform.darwin-arm64 changed since hashes were recorded
+FAIL configuration platform/platform.linux changed since hashes were recorded
+FAIL configuration platform/platform.windows changed since hashes were recorded
+FAIL configuration answer/answer.accept-as-is changed since hashes were recorded
+FAIL configuration answer/answer.change-role-alias changed since hashes were recorded
+FAIL configuration answer/answer.change-panel-length changed since hashes were recorded
+FAIL configuration answer/answer.change-undetected changed since hashes were recorded
+FAIL configuration answer/answer.cancel changed since hashes were recorded
+FAIL configuration answer/answer.offer-yes changed since hashes were recorded
+FAIL configuration answer/answer.offer-no changed since hashes were recorded
+FAIL configuration utterance/configure pstack models changed since hashes were recorded
+FAIL configuration utterance/pstack budget changed since hashes were recorded
+FAIL configuration utterance/change pstack's model choices changed since hashes were recorded
+FAIL governance changed since hashes were recorded
+FAIL acceptance manifest does not match current files

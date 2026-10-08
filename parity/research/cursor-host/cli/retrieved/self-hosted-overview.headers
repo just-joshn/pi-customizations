@@ -1,0 +1,14 @@
+HTTP/2 404 
+age: 0
+cache-control: public, max-age=0, must-revalidate
+content-type: text/markdown; charset=utf-8
+date: Thu, 08 Oct 2026 04:42:54 GMT
+link: </llms.txt>; rel="describedby"; type="text/plain"; title="llms.txt", </docs/sitemap.xml>; rel="sitemap"; type="application/xml"
+server: Vercel
+strict-transport-security: max-age=63072000
+vary: Accept
+x-matched-path: /api/raw
+x-robots-tag: noindex
+x-vercel-cache: MISS
+x-vercel-id: pdx1::iad1::mvpfc-1791434574458-1b1e1b8f67e6
+

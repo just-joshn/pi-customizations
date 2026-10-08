@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "pairId": "setup-first-run-canonical-2",
+  "pairPath": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+  "rule": {
+    "match": true,
+    "digests": {
+      "cursor": "sha256:9146cd9fe687813f13618724c14da1ced71a72151a9be4ae6ae166ae23218aaa",
+      "pi": "sha256:9146cd9fe687813f13618724c14da1ced71a72151a9be4ae6ae166ae23218aaa"
+    }
+  },
+  "chrome": {
+    "match": true,
+    "firstDifference": null,
+    "blocks": {
+      "cursor": [
+        " ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐",
+        " │ <TEXT>│",
+        " │                                                                                                                    │",
+        " │ Question <N> of <M>                                                                                                    │",
+        " │                                                                                                                    │",
+        " │ <PROMPT>│",
+        " │                                                                                                                    │",
+        " │   › [ ] <OPTION>│",
+        " │     [ ] <OPTION>│",
+        " │     [ ] <OPTION>│",
+        " │     [ ] <OPTION>│",
+        " │     [ ] Other: (type to answer)                                                                                    │",
+        " │                                                                                                                    │",
+        " │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │",
+        " └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘"
+      ],
+      "pi": [
+        " ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐",
+        " │ <TEXT>│",
+        " │                                                                                                                    │",
+        " │ Question <N> of <M>                                                                                                    │",
+        " │                                                                                                                    │",
+        " │ <PROMPT>│",
+        " │                                                                                                                    │",
+        " │   › [ ] <OPTION>│",
+        " │     [ ] <OPTION>│",
+        " │     [ ] <OPTION>│",
+        " │     [ ] <OPTION>│",
+        " │     [ ] Other: (type to answer)                                                                                    │",
+        " │                                                                                                                    │",
+        " │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │",
+        " └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘"
+      ]
+    },
+    "rubric": {
+      "batching": {
+        "cursor": [
+          1
+        ],
+        "pi": [
+          2
+        ]
+      },
+      "panelSeq": {
+        "cursor": 138,
+        "pi": 142
+      }
+    }
+  },
+  "inputs": {
+    "match": true,
+    "digests": {
+      "cursor": "sha256:0c75faabc6447ee3e5b57687be4009cb5773649906a22fad44e506be1dad32e8",
+      "pi": "sha256:0c75faabc6447ee3e5b57687be4009cb5773649906a22fad44e506be1dad32e8"
+    },
+    "actions": {
+      "cursor": [
+        "L3NldHVwLXBzdGFjaw==",
+        "DQ==",
+        "DQ==",
+        "IA==",
+        "DQ==",
+        "IA==",
+        "DQ=="
+      ],
+      "pi": [
+        "L3NldHVwLXBzdGFjaw==",
+        "DQ==",
+        "DQ==",
+        "IA==",
+        "DQ==",
+        "IA==",
+        "DQ=="
+      ]
+    }
+  },
+  "modelAuthored": {
+    "note": "Normalized here and compared by rubric per parity/designs/setup-parity-panel.md, never deleted from evidence.",
+    "screens": {
+      "cursor": [
+        " ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐",
+        " │ Clarifying Questions                                                                                               │",
+        " │                                                                                                                    │",
+        " │ Question 1 of 1                                                                                                    │",
+        " │                                                                                                                    │",
+        " │ 1. What reasoning budget should pstack target? Your current rule records `small — medium reasoning`.               │",
+        " │                                                                                                                    │",
+        " │   › [ ] unlimited — max reasoning                                                                                  │",
+        " │     [ ] large — xhigh reasoning                                                                                    │",
+        " │     [ ] medium — high reasoning                                                                                    │",
+        " │     [ ] small — medium reasoning (current)                                                                         │",
+        " │     [ ] Other: (type to answer)                                                                                    │",
+        " │                                                                                                                    │",
+        " │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │",
+        " └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘"
+      ],
+      "pi": [
+        " ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐",
+        " │ Clarifying Questions                                                                                               │",
+        " │                                                                                                                    │",
+        " │ Question 1 of 2                                                                                                    │",
+        " │                                                                                                                    │",
+        " │ 1. Current budget is small (medium); all roles are inherit-parent. Pick a budget:                                  │",
+        " │                                                                                                                    │",
+        " │   › [ ] unlimited — max reasoning                                                                                  │",
+        " │     [ ] large — xhigh reasoning                                                                                    │",
+        " │     [ ] medium — high reasoning                                                                                    │",
+        " │     [ ] small — medium reasoning                                                                                   │",
+        " │     [ ] Other: (type to answer)                                                                                    │",
+        " │                                                                                                                    │",
+        " │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │",
+        " └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘"
+      ]
+    }
+  },
+  "unexplainedDifferences": 0
+}

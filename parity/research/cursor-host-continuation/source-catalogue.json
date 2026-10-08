@@ -1,0 +1,166 @@
+[
+  {
+    "id": "api-v1",
+    "original_path": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_endpoints.md",
+    "preserved_path": "preserved/docs_cloud-agent_api_endpoints.md",
+    "sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+    "newline_delimited_line_count": 3011,
+    "retrieval": {
+      "requestedUrl": "https://cursor.com/docs/cloud-agent/api/endpoints.md",
+      "retrievalStartedAt": "2026-10-08T04:42:18.367399+00:00",
+      "retrievalFinishedAt": "2026-10-08T04:42:18.620131+00:00",
+      "curlExitCode": 0,
+      "bodySha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "headersSha256": "4eae9c3f8c99367e16dbed74c6ad2c0cf46d5112c196be9efc71a6d87025c121",
+      "response": {
+        "url_effective": "https://cursor.com/docs/cloud-agent/api/endpoints.md",
+        "http_code": 200,
+        "content_type": "text/markdown; charset=utf-8",
+        "num_redirects": 0,
+        "ssl_verify_result": 0
+      }
+    }
+  },
+  {
+    "id": "openapi-v1",
+    "original_path": "parity/research/cursor-host/services/retrievals/docs-static_cloud-agents-openapi.yaml",
+    "preserved_path": "preserved/docs-static_cloud-agents-openapi.yaml",
+    "sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+    "newline_delimited_line_count": 2994,
+    "retrieval": {
+      "requestedUrl": "https://cursor.com/docs-static/cloud-agents-openapi.yaml",
+      "retrievalStartedAt": "2026-10-08T04:43:20.327011+00:00",
+      "retrievalFinishedAt": "2026-10-08T04:43:20.421148+00:00",
+      "curlExitCode": 0,
+      "bodySha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "headersSha256": "ea31759493c3e3ab6f5567906bbec1e34f752779e0b4f0d0217076c10b8f9310",
+      "response": {
+        "url_effective": "https://cursor.com/docs-static/cloud-agents-openapi.yaml",
+        "http_code": 200,
+        "content_type": "text/yaml; charset=utf-8",
+        "num_redirects": 0,
+        "ssl_verify_result": 0
+      }
+    }
+  },
+  {
+    "id": "capabilities",
+    "original_path": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_capabilities.md",
+    "preserved_path": "preserved/docs_cloud-agent_capabilities.md",
+    "sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+    "newline_delimited_line_count": 185,
+    "retrieval": {
+      "requestedUrl": "https://cursor.com/docs/cloud-agent/capabilities.md",
+      "retrievalStartedAt": "2026-10-08T04:42:18.737555+00:00",
+      "retrievalFinishedAt": "2026-10-08T04:42:18.914240+00:00",
+      "curlExitCode": 0,
+      "bodySha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "headersSha256": "e1e671a44771d4383e5281b3e88899c79501702dff194f5666bb035bac08e6d5",
+      "response": {
+        "url_effective": "https://cursor.com/docs/cloud-agent/capabilities.md",
+        "http_code": 200,
+        "content_type": "text/markdown; charset=utf-8",
+        "num_redirects": 0,
+        "ssl_verify_result": 0
+      }
+    }
+  },
+  {
+    "id": "mcp",
+    "original_path": "parity/research/cursor-host/customization/sources/snapshot-mcp.md",
+    "preserved_path": "preserved/snapshot-mcp.md",
+    "sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+    "newline_delimited_line_count": 410,
+    "retrieval": {
+      "limitation": "Old snapshot has no per-file authenticated network retrieval envelope. See prior source-catalogue.json. No time inferred from mtime."
+    }
+  },
+  {
+    "id": "pool",
+    "original_path": "parity/research/cursor-host/cli/retrieved/pool.md",
+    "preserved_path": "preserved/pool.md",
+    "sha256": "b67e7f5ed22ce48d371e451c5c457d6630357b33d3d5e32ce1c9f6423b7bc41f",
+    "newline_delimited_line_count": 901,
+    "retrieval": {
+      "requestedUrl": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md",
+      "retrievalStartedAt": "2026-10-08T04:42:54.591671+00:00",
+      "retrievalFinishedAt": "2026-10-08T04:42:54.907234+00:00",
+      "curlExitCode": 0,
+      "bodySha256": "b67e7f5ed22ce48d371e451c5c457d6630357b33d3d5e32ce1c9f6423b7bc41f",
+      "headersSha256": null,
+      "response": {
+        "url_effective": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md",
+        "http_code": 200,
+        "content_type": "text/markdown; charset=utf-8",
+        "num_redirects": 0,
+        "ssl_verify_result": 0
+      }
+    }
+  },
+  {
+    "id": "api-overview",
+    "original_path": "parity/research/cursor-host-continuation/retrievals/api-overview.md",
+    "preserved_path": "retrievals/api-overview.md",
+    "sha256": "ed3a3eb7e1f33dd6409f4c2ed283208cb6f952e16ff5ca73ed1ba7896e4fb033",
+    "newline_delimited_line_count": 349,
+    "retrieval": {
+      "requestedUrl": "https://cursor.com/docs/api.md",
+      "retrievalStartedAt": "2026-10-08T05:50:14.083380+00:00",
+      "retrievalFinishedAt": "2026-10-08T05:50:14.272169+00:00",
+      "curlExitCode": 0,
+      "bodySha256": "ed3a3eb7e1f33dd6409f4c2ed283208cb6f952e16ff5ca73ed1ba7896e4fb033",
+      "headersSha256": "af5125108bba4812968dfedb354484a1d84bc72321042acbfa2580427766618b",
+      "response": {
+        "url_effective": "https://cursor.com/docs/api.md",
+        "http_code": 200,
+        "content_type": "text/markdown; charset=utf-8",
+        "num_redirects": 0,
+        "ssl_verify_result": 0
+      }
+    }
+  },
+  {
+    "id": "api-v0",
+    "original_path": "parity/research/cursor-host-continuation/retrievals/api-v0.md",
+    "preserved_path": "retrievals/api-v0.md",
+    "sha256": "c753c4ee18e097015309f9d0cfd20f59a28a54bdf54179fa5236e6e2cf0c14b2",
+    "newline_delimited_line_count": 722,
+    "retrieval": {
+      "requestedUrl": "https://cursor.com/docs/cloud-agent/api/v0.md",
+      "retrievalStartedAt": "2026-10-08T05:50:14.274423+00:00",
+      "retrievalFinishedAt": "2026-10-08T05:50:14.463686+00:00",
+      "curlExitCode": 0,
+      "bodySha256": "c753c4ee18e097015309f9d0cfd20f59a28a54bdf54179fa5236e6e2cf0c14b2",
+      "headersSha256": "159bbb91b1af9b2876c30147aaceba7ff2c87097f64da56980b821c19da00145",
+      "response": {
+        "url_effective": "https://cursor.com/docs/cloud-agent/api/v0.md",
+        "http_code": 200,
+        "content_type": "text/markdown; charset=utf-8",
+        "num_redirects": 0,
+        "ssl_verify_result": 0
+      }
+    }
+  },
+  {
+    "id": "self-hosted",
+    "original_path": "parity/research/cursor-host-continuation/retrievals/self-hosted.md",
+    "preserved_path": "retrievals/self-hosted.md",
+    "sha256": "093350a12e9a87fbb32a331eecd6721461ff593dc260e48e7bb415de43c77e2a",
+    "newline_delimited_line_count": 176,
+    "retrieval": {
+      "requestedUrl": "https://cursor.com/docs/cloud-agent/self-hosted.md",
+      "retrievalStartedAt": "2026-10-08T05:50:14.465132+00:00",
+      "retrievalFinishedAt": "2026-10-08T05:50:14.628792+00:00",
+      "curlExitCode": 0,
+      "bodySha256": "093350a12e9a87fbb32a331eecd6721461ff593dc260e48e7bb415de43c77e2a",
+      "headersSha256": "f0d6807ddc93f01f03509d8367c87ee274f8382905a3780b4dfcd65772f5be74",
+      "response": {
+        "url_effective": "https://cursor.com/docs/cloud-agent/self-hosted.md",
+        "http_code": 200,
+        "content_type": "text/markdown; charset=utf-8",
+        "num_redirects": 0,
+        "ssl_verify_result": 0
+      }
+    }
+  }
+]

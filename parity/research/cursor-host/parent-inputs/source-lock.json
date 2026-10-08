@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "status": "incomplete",
+  "executionStartedAt": "2026-10-08T03:05:58.308Z",
+  "lastObservedAt": "2026-10-08T03:25:54Z",
+  "cursorPlugins": {
+    "repository": "https://github.com/cursor/plugins",
+    "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "checkout": "parity/reference/cursor-plugins",
+    "retrievedAt": "2026-10-08T03:07:35Z",
+    "pstack": {
+      "version": "0.15.15",
+      "manifest": "pstack/.cursor-plugin/plugin.json",
+      "manifestSha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e",
+      "trackedFileCount": 164
+    },
+    "cursorTeamKit": {
+      "manifest": "cursor-team-kit/.cursor-plugin/plugin.json",
+      "manifestSha256": "9c8622d0577205959b6469a5454cbe2787ad3c6412439759328e92dc0115584d",
+      "trackedFileCount": 29,
+      "version": "1.2.0"
+    },
+    "inventory": "parity/reference/distribution-inventory.txt",
+    "inventorySha256": "d4c5cda5fa994f654782af04b027741c1e5ec061bfc0229b827fe511b36a7568",
+    "fileHashes": "parity/reference/distribution-sha256.txt",
+    "fileHashesSha256": "ea5304a45d311b7bde624e7108fa6563cb8217a3bdd6e855e853367ffd040d6b",
+    "completeDependencyClosure": false
+  },
+  "pi": {
+    "repository": "https://github.com/earendil-works/pi",
+    "release": "v1.1.0",
+    "revision": "abe508e1b89912adde45528136c3221eb69acdd7",
+    "publishedAt": "2026-10-07T22:26:31Z",
+    "checkout": "parity/reference/pi-v1.1.0",
+    "package": "@earendil-works/pi-coding-agent",
+    "version": "1.1.0",
+    "packageTarball": "https://registry.npmjs.org/@earendil-works/pi-coding-agent/-/pi-coding-agent-1.1.0.tgz",
+    "registryIntegrity": "sha512-SeEi/4hdcHNgA9UWlefZl7ZZpm3dzi2OoxNjDHsBJ9o298LNOtbL4DGKgitlEj6uCTccvtw6f2hlCkTPVJ2RXg==",
+    "tarballIntegrityVerified": true,
+    "tarballIntegrityEvidence": "parity/evidence/environment/pi-tarball-sha512-base64.txt",
+    "installedVersionObserved": "1.1.0"
+  },
+  "cursorCli": {
+    "versionBeforeUpdate": "2026.09.28-64d2043",
+    "version": "2026.10.01-e373342",
+    "latestResolution": "Official cursor-agent update reported this latest version and installed it successfully.",
+    "installedDirectory": "/Users/josh-desktop/.local/share/cursor-agent/versions/2026.10.01-e373342",
+    "launcherSha256": "2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233",
+    "indexJsSha256": "f6bd8dece34b56431ee74f1ac827e032d054381085e7da7088e85abdd1008330",
+    "distributionFileHashes": "parity/reference/cursor-cli-distribution-sha256.txt",
+    "distributionFileCount": 448,
+    "fullDistributionManifestSha256": "0882671bcc81811716c34b43d96539ff63824e9f15695e8fe58b579559f3ea53",
+    "overviewUrl": "https://cursor.com/docs/cli/overview",
+    "overviewSnapshot": "parity/reference/cursor-cli-overview.html",
+    "overviewSha256": "984529dcf39054c2b1b8e5bb68fc138c30b576419715902dabc5a664616edb70",
+    "referenceConfigurationCaptured": false
+  },
+  "implementationBaseline": {
+    "revision": "78dd5a04279436ebf6dde44853bacdab88ca9ae0",
+    "packagePath": "extensions/pi-pstack",
+    "acceptedParityEvidence": false
+  },
+  "openWork": [
+    "Hash every distributed source item and runtime dependency.",
+    "Read and audit complete dependency closure.",
+    "Capture reference configuration and working optional integrations.",
+    "Resolve and verify the complete Pi runtime dependency lock.",
+    "Verify release support and configuration against current official CLI Markdown contracts.",
+    "Have independent acceptance owner review and freeze source lock."
+  ]
+}

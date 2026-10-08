@@ -1,0 +1,134 @@
+{
+  "status": "discovery-only; proposals are unverified, not parity claims, nothing frozen",
+  "source": {
+    "id": "pool",
+    "file": "preserved/pool.md",
+    "sha256": "b67e7f5ed22ce48d371e451c5c457d6630357b33d3d5e32ce1c9f6423b7bc41f",
+    "line_convention": "LF-delimited inclusive 1-based spans"
+  },
+  "relation_to_existing": "Separate from dependency-proposals.json, which was not edited and not checked for duplicates. Entries here cite only spans personally read for this receipt (1-364 and 410-901). Matching read receipts: read-receipts-pool-continuation.json.",
+  "proposals": [
+    {
+      "id": "pool-service-account-auth",
+      "status": "proposal-unverified",
+      "owned_behavior": "Pool workers authenticate only with a service account API key or a per-claim session token. Other key types are rejected.",
+      "depends_on": ["Cursor Enterprise plan", "service account API key"],
+      "line_span": [66, 70],
+      "also": [[514, 539], [806, 810]],
+      "receipt_findings": ["P-003", "P-012", "P-047", "P-055"]
+    },
+    {
+      "id": "pool-outbound-https-transport",
+      "status": "proposal-unverified",
+      "owned_behavior": "Worker holds one outbound HTTPS connection to Cursor's cloud, and the agent loop stays in the cloud.",
+      "depends_on": ["api2.cursor.sh", "api2direct.cursor.sh"],
+      "line_span": [26, 32],
+      "also": [[410, 427], [800, 804]],
+      "receipt_findings": ["P-002", "P-006", "P-007", "P-041", "P-043", "P-054"]
+    },
+    {
+      "id": "pool-label-and-trigger-routing",
+      "status": "proposal-unverified",
+      "owned_behavior": "Requests match workers by repo=, pool=, worker= and machine= labels, with trigger options from Slack, GitHub, Linear and the API (usePrivateWorker, labels).",
+      "depends_on": ["Cloud Agents dashboard Allow/Require Self-Hosted toggles", "Slack integration", "GitHub integration", "Linear integration"],
+      "line_span": [274, 308],
+      "also": [[175, 239]],
+      "receipt_findings": ["P-009", "P-023", "P-029", "P-033", "P-034", "P-035", "P-036"]
+    },
+    {
+      "id": "pool-queue-claim-api",
+      "status": "proposal-unverified",
+      "owned_behavior": "Pending requests are listed, streamed over SSE, claimed, released or failed through /v0/private-workers endpoints. The list is the source of truth and events are hints.",
+      "depends_on": ["Cloud Agents API workers-and-pools endpoints"],
+      "line_span": [598, 751],
+      "also": [[494, 508]],
+      "receipt_findings": ["P-046", "P-051", "P-052"]
+    },
+    {
+      "id": "pool-worker-lifecycle-idle-release",
+      "status": "proposal-unverified",
+      "owned_behavior": "After a session ends the worker idles for a configured window to accept follow-ups, then exits 0. A restarted chat gets a fresh machine without workspace state.",
+      "depends_on": ["agent CLI worker", "external process supervisor"],
+      "line_span": [541, 551],
+      "also": [[91, 97]],
+      "receipt_findings": ["P-015", "P-048", "P-049"]
+    },
+    {
+      "id": "pool-hibernation-continuation",
+      "status": "proposal-unverified",
+      "owned_behavior": "A claimed offline machine can be revived with the same worker id inside workerReadyTimeoutSeconds, so a follow-up resumes with its workspace. Otherwise the claim is released or lapses.",
+      "depends_on": ["pool workerReadyTimeoutSeconds setting", "machine snapshot and restore provided by the operator", "claimed_offline event or pending-request fields claimedWorkerId and wakeTimeoutMs", "session token re-mint endpoint"],
+      "line_span": [553, 596],
+      "also": [[702, 720]],
+      "receipt_findings": ["P-050", "P-047"]
+    },
+    {
+      "id": "pool-worker-controller-spawn",
+      "status": "proposal-unverified",
+      "owned_behavior": "agent worker controller starts workers through a --spawn hook in claim-then-spawn or warm-idle mode.",
+      "depends_on": ["anysphere/k8s-workers template (external GitHub repo, not read)", "agent CLI", "operator-provided spawn script"],
+      "line_span": [429, 540],
+      "receipt_findings": ["P-044", "P-045", "P-046"]
+    },
+    {
+      "id": "pool-git-checkout-and-token-minting",
+      "status": "proposal-unverified",
+      "owned_behavior": "--clone-git-repos checks out request repos on any-repo named pools, using a minted short-lived GitHub token, and removes its own clones on claim end.",
+      "depends_on": ["git on PATH (2.26+ for checkout reuse)", "team-admin GitHub token minting", "HTTPS GitHub remotes"],
+      "line_span": [207, 239],
+      "receipt_findings": ["P-025", "P-026", "P-027", "P-028"]
+    },
+    {
+      "id": "pool-secret-sync",
+      "status": "proposal-unverified",
+      "owned_behavior": "--sync-dashboard-secrets delivers dashboard secrets and API envVars to a pool worker as environment variables during claimed runs.",
+      "depends_on": ["team-admin Secret sync setting"],
+      "line_span": [812, 841],
+      "receipt_findings": ["P-028", "P-056"]
+    },
+    {
+      "id": "pool-hooks-on-workers",
+      "status": "proposal-unverified",
+      "owned_behavior": "Workers run command-based project and enterprise hooks, plus sessionStart and sessionEnd on claim and release. Those two events are skipped on Cursor-managed Cloud Agents.",
+      "depends_on": ["hooks reference", ".cursor/hooks.json in the worker workspace", "Enterprise dashboard hooks"],
+      "line_span": [309, 329],
+      "also": [[812, 841]],
+      "receipt_findings": ["P-037", "P-038", "P-039", "P-060"]
+    },
+    {
+      "id": "pool-mcp-routing-pointer",
+      "status": "proposal-unverified",
+      "owned_behavior": "FAQ says MCP servers work on self-hosted workers, are configured in the dashboard, and are routed by transport type. The routing table is at 387-396.",
+      "depends_on": ["Cloud Agents dashboard MCP configuration", "pool.md:387-396 (outside spans read here)"],
+      "line_span": [863, 866],
+      "receipt_findings": ["P-059"],
+      "unresolved": "Transport scope stays unresolved per reviews/host-continuation-import-audit.json:981-1050. This entry selects no hypothesis."
+    },
+    {
+      "id": "pool-computer-use",
+      "status": "proposal-unverified",
+      "owned_behavior": "--computer-use lets claimed agents drive the worker desktop.",
+      "depends_on": ["Cursor Computer Use helper (downloads.cursor.com)", "macOS Accessibility and Screen Recording grants", "Linux desktop packages or X11 display"],
+      "line_span": [99, 107],
+      "also": [[878, 886], [812, 841]],
+      "receipt_findings": ["P-016", "P-061"]
+    },
+    {
+      "id": "pool-artifact-upload",
+      "status": "proposal-unverified",
+      "owned_behavior": "Artifacts upload to Cursor-managed storage. Blocking the bucket breaks artifact surfaces only.",
+      "depends_on": ["cloud-agent-artifacts.s3.us-east-1.amazonaws.com"],
+      "line_span": [410, 427],
+      "also": [[800, 804]],
+      "receipt_findings": ["P-043", "P-054"]
+    },
+    {
+      "id": "pool-monitoring-surface",
+      "status": "proposal-unverified",
+      "owned_behavior": "A management server exposes health, readiness and Prometheus-style metrics, including session end reasons.",
+      "depends_on": ["--management-addr", "operator metrics scraper"],
+      "line_span": [752, 797],
+      "receipt_findings": ["P-053"]
+    }
+  ]
+}

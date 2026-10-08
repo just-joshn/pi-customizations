@@ -1,0 +1,24 @@
+{
+  "status": "coordinator-judgment-unverified",
+  "basis": "owned_behavior text of dependency-proposals-pool.json compared with the 61 nodes of dependency-proposals.json. Judgment by the coordinator, not independently reviewed. No proposal enters the denominator.",
+  "classification": {
+    "pool-service-account-auth": { "relation": "refines", "existing": ["worker-token-auth", "pool-auth"] },
+    "pool-outbound-https-transport": { "relation": "refines", "existing": ["self-hosted-execution"] },
+    "pool-label-and-trigger-routing": { "relation": "new", "existing": [] },
+    "pool-queue-claim-api": {
+      "relation": "refines",
+      "existing": ["pending-filter-cursor", "pending-stream-cursor", "pending-sse-context", "claim-atomic", "claim-session-token", "release-using-worker", "release-no-retry-404", "fail-claim-race", "fail-claim-message"]
+    },
+    "pool-worker-lifecycle-idle-release": { "relation": "partial-overlap", "existing": ["pool-register-timeout"] },
+    "pool-hibernation-continuation": { "relation": "refines", "existing": ["pool-register-timeout"] },
+    "pool-worker-controller-spawn": { "relation": "new", "existing": [] },
+    "pool-git-checkout-and-token-minting": { "relation": "new", "existing": [] },
+    "pool-secret-sync": { "relation": "partial-overlap", "existing": ["secret-values-never-response", "self-hosted-environment-limits"] },
+    "pool-hooks-on-workers": { "relation": "new", "existing": [] },
+    "pool-mcp-routing-pointer": { "relation": "duplicate", "existing": ["pool-mcp-routing"] },
+    "pool-computer-use": { "relation": "new", "existing": [] },
+    "pool-artifact-upload": { "relation": "partial-overlap", "existing": ["artifact-scope"] },
+    "pool-monitoring-surface": { "relation": "new", "existing": [] }
+  },
+  "counts": { "new": 6, "refines": 4, "partial-overlap": 3, "duplicate": 1 }
+}

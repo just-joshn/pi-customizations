@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "incomplete",
+  "acceptanceDefinitionOwner": null,
+  "configurations": [
+    { "id": "default", "description": "Official skill defaults with no pstack role override rule.", "status": "required-unverified", "platforms": [] },
+    { "id": "installed-user", "description": "Established user configuration observed at execution start.", "status": "partially-captured-unverified", "platform": "darwin-arm64", "cursorRoleRuleSnapshot": "parity/evidence/environment/cursor-pstack-models-initial.mdc", "cursorBudget": "small (medium)", "piBudget": "unlimited (max)", "comparisonNote": "Existing Cursor and Pi role configurations differ. Paired model-backed comparisons require explicit matching configurations and actual model identity evidence, not role labels." },
+    { "id": "windows", "description": "Supported Windows mode keyboard behavior explicitly named by the official pstack README.", "status": "required-unverified", "environment": null }
+  ],
+  "accountOwnerPrerequisites": [
+    {
+      "id": "cursor-included-usage",
+      "observedAt": "parity/evidence/cursor-first-run/04-setup-running.txt",
+      "service": "Cursor Agent",
+      "condition": "Reference model-backed /setup-pstack returned an included_usage limit.",
+      "requiredOwnerAction": "Restore permitted Cursor Agent usage through the account billing controls, or wait for the displayed October 12, 2026 reset. No spending configuration was changed by the implementation owner.",
+      "blocks": ["Successful model-backed Cursor reference journeys and paired acceptance for those journeys."],
+      "doesNotBlock": ["Official source reading", "Static dependency discovery", "Native design and implementation", "Non-model terminal interaction capture", "Supporting unit and integration verification"],
+      "status": "open"
+    }
+  ],
+  "openWork": ["Enumerate every supported platform from official host contracts.", "Enumerate all overrides, optional activation paths and live integrations from complete dependency closure.", "Capture settings without secrets and establish matched paired environments.", "Keep unavailable-service negative cases separate from working service coverage."]
+}

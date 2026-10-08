@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-budget-labels",
+  "status": "draft-awaiting-independent-definition-review",
+  "requirements": ["PSTACK-SETUP-BUDGET-LABELS-001"],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#3-budget-map-and-confirm",
+  "configurationIds": ["default", "installed-user"],
+  "fixture": {
+    "description": "Target fixture requires a dedicated workspace and private host settings with controlled initial role rule and live authenticated model catalogs in both environments. It has not been established.",
+    "digest": null,
+    "approvedHostTranslations": null
+  },
+  "actions": [
+    { "kind": "type", "literal": "/setup-pstack", "expect": "Command appears in autocomplete with its official skill description." },
+    { "kind": "key", "literal": "Enter", "expect": "Record actual autocomplete acceptance or submission behavior. Do not silently insert an extra action to reconcile a host difference." },
+    { "kind": "observe", "expect": "Setup detects available model slugs and reads current configuration before presenting budget choices." },
+    { "kind": "observe", "expect": "Budget selector shows exactly the four options in expectedBudgetOptions. Existing budget is named. When there is no rule, large is described as matching skill defaults." },
+    { "kind": "key", "literal": "Escape", "expect": "Record cancellation behavior and resulting configuration state. Reference cancellation oracle remains to be captured." }
+  ],
+  "expectedBudgetOptions": [
+    "unlimited — max reasoning",
+    "large — xhigh reasoning",
+    "medium — high reasoning",
+    "small — medium reasoning"
+  ],
+  "forbiddenEffects": ["Configuration written before confirmation.", "Unconfirmed unavailable real model slug written."],
+  "comparison": {
+    "stableStrings": "exact",
+    "normalizationAllowlist": [],
+    "rawDifferencesRetained": true,
+    "oracleFrozen": false,
+    "owner": null
+  },
+  "execution": {
+    "referenceRun": null,
+    "candidateRun": null,
+    "pairId": null,
+    "verdict": "unverified"
+  },
+  "openWork": ["Freeze literal per-host control sequence using successful Cursor reference.", "Establish equivalent fixture digest and model/catalog configuration.", "Independent review and acceptance-definition hashes.", "Timestamped recordings and execution provenance from shipped runner."]
+}

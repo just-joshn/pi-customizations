@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "kind": "discovery-structural-audit",
+  "recordedAt": "2026-10-08T05:42:17.237Z",
+  "artifactCount": 161,
+  "nodeCount": 1076,
+  "edgeCount": 1102,
+  "sourceCount": 58,
+  "failures": [],
+  "authorization": "NONE",
+  "closureAudited": false,
+  "acceptancePassed": false
+}

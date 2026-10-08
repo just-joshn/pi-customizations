@@ -1,0 +1,17 @@
+HTTP/2 200 
+accept-ranges: bytes
+access-control-allow-origin: *
+age: 8560
+cache-control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="cloud-agents-openapi.yaml"
+content-type: text/yaml; charset=utf-8
+date: Thu, 08 Oct 2026 04:43:20 GMT
+etag: "3714e9cd153dc6fa1093617cdde3d29f"
+last-modified: Thu, 08 Oct 2026 02:20:39 GMT
+server: Vercel
+strict-transport-security: max-age=63072000
+x-matched-path: /docs-static/cloud-agents-openapi.yaml
+x-vercel-cache: HIT
+x-vercel-id: pdx1::fq59j-1791434600377-cbe11c339d66
+content-length: 106245
+

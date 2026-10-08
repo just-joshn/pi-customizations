@@ -147,7 +147,7 @@ async function journeyStatus(ctx) {
   await ctx.run('/pstack tones');
   const statuses = (await ctx.messages()).slice(before).filter((message) => message.customType === 'pstack-status');
   checkEqual('status: each accepted form publishes one status message', statuses.length, 2);
-  check('status: reports the discovered skill and template counts', /71 skills, 69 prompt templates/.test(String(statuses[0]?.content)), String(statuses[0]?.content).slice(0, 200));
+  check('status: reports the discovered skill and template counts', /72 skills, 70 prompt templates/.test(String(statuses[0]?.content)), String(statuses[0]?.content).slice(0, 200));
   const notifications = ctx.ui.filter((request) => request.method === 'notify').map((request) => request.message ?? '');
   check(
     'status: an unknown argument notifies the accepted forms',
@@ -344,7 +344,7 @@ async function journeySetup(ctx) {
   check('setup: no model rule exists before setup', !(await exists(rulePath)));
   await ctx.run('/setup-pstack');
   const rule = await readFile(rulePath, 'utf8').catch(() => '');
-  check('setup: writes the model rule', rule.includes('pstack model configuration'), rule.slice(0, 120));
+  check('setup: writes the model rule', rule.includes('pstack model configuration. One line per role'), rule.slice(0, 160));
   const roles = [
     'feature, refactoring',
     'bug-fix',
@@ -369,20 +369,21 @@ async function journeySetup(ctx) {
     roles.every((role) => rule.includes(`${role}:`)),
     roles.filter((role) => !rule.includes(`${role}:`)).join(', '),
   );
-  check('setup: records the confirmed budget', /^# budget: unlimited/m.test(rule), rule.split('\n').find((line) => line.startsWith('# budget')) ?? 'none');
-  const notifications = ctx.ui.filter((request) => request.method === 'notify').map((request) => request.message ?? '');
+  check('setup: records the confirmed budget', /^# budget: unlimited \(max\)$/m.test(rule), rule.split('\n').find((line) => line.startsWith('# budget')) ?? 'none');
+  const setupResults = () => (async () => (await ctx.messages()).filter((message) => message.role === 'toolResult' && message.toolName === 'pstack_setup'))();
+  const results = await setupResults();
   check(
-    'setup: confirms the written path',
-    notifications.some((text) => text.includes(`Wrote ${rulePath}`)),
-    notifications.slice(-2).join(' | '),
+    'setup: the write result confirms the written path',
+    results.some((message) => JSON.stringify(message).includes(`Wrote ${rulePath}`)),
+    JSON.stringify(results.at(-1)).slice(-300),
   );
-  const offered = (await ctx.messages()).filter((m) => m.role === 'user' && JSON.stringify(m.content).includes('want a project-local verification skill'));
-  checkEqual('setup: offers project verification exactly once', offered.length, 1);
   const nextPrompt = systemText(await ctx.turn('journey probe'));
-  check('setup: the saved rule applies from the next prompt', nextPrompt.includes('interrogate reviewers: journey-test/recorder'), nextPrompt.slice(-400));
-  const before = ctx.ui.length;
+  check('setup: the saved rule applies from the next prompt', nextPrompt.includes('interrogate reviewers: inherit-parent'), nextPrompt.slice(-400));
+  const before = (await setupResults()).length;
   await ctx.run('/skill:setup-pstack');
-  check('setup: /skill:setup-pstack runs the same validated dialogs', ctx.ui.length > before);
+  const after = (await setupResults()).length;
+  check('setup: /skill:setup-pstack runs the same state-question-write flow', after > before, `${before} -> ${after}`);
+  return {};
 }
 
 async function journeySkillCreation(ctx) {

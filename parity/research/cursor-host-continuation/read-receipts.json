@@ -1,0 +1,189 @@
+{
+  "line_convention": "UTF-8 decoded text split on LF. A final newline does not create an additional source line.",
+  "receipts": [
+    {
+      "source_id": "api-v1",
+      "sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "reader": "continuation-coordinator",
+      "method": "read tool, personally inspected returned text",
+      "inclusive_ranges": [
+        [
+          1,
+          400
+        ],
+        [
+          401,
+          800
+        ],
+        [
+          801,
+          1200
+        ],
+        [
+          1201,
+          1600
+        ],
+        [
+          1601,
+          2000
+        ],
+        [
+          2001,
+          2400
+        ],
+        [
+          2401,
+          2800
+        ],
+        [
+          2801,
+          3011
+        ]
+      ],
+      "complete": true,
+      "covered_lines": 3011,
+      "total_lines": 3011,
+      "read_time_limitation": "Tool events establish order. No independently authenticated read timestamps. Range receipts do not imply semantic audit or execution."
+    },
+    {
+      "source_id": "openapi-v1",
+      "sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "reader": "continuation-coordinator",
+      "method": "read tool, personally inspected returned text",
+      "inclusive_ranges": [
+        [
+          1,
+          500
+        ],
+        [
+          501,
+          1000
+        ],
+        [
+          1001,
+          1500
+        ],
+        [
+          1501,
+          2000
+        ],
+        [
+          2001,
+          2500
+        ],
+        [
+          2501,
+          2994
+        ]
+      ],
+      "complete": true,
+      "covered_lines": 2994,
+      "total_lines": 2994,
+      "read_time_limitation": "Tool events establish order. No independently authenticated read timestamps. Range receipts do not imply semantic audit or execution."
+    },
+    {
+      "source_id": "capabilities",
+      "sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "reader": "continuation-coordinator",
+      "method": "read tool, personally inspected returned text",
+      "inclusive_ranges": [
+        [
+          1,
+          185
+        ]
+      ],
+      "complete": true,
+      "covered_lines": 185,
+      "total_lines": 185,
+      "read_time_limitation": "Tool events establish order. No independently authenticated read timestamps. Range receipts do not imply semantic audit or execution."
+    },
+    {
+      "source_id": "mcp",
+      "sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "reader": "continuation-coordinator",
+      "method": "read tool, personally inspected returned text",
+      "inclusive_ranges": [
+        [
+          1,
+          220
+        ],
+        [
+          221,
+          410
+        ]
+      ],
+      "complete": true,
+      "covered_lines": 410,
+      "total_lines": 410,
+      "read_time_limitation": "Tool events establish order. No independently authenticated read timestamps. Range receipts do not imply semantic audit or execution."
+    },
+    {
+      "source_id": "pool",
+      "sha256": "b67e7f5ed22ce48d371e451c5c457d6630357b33d3d5e32ce1c9f6423b7bc41f",
+      "reader": "continuation-coordinator",
+      "method": "read tool, personally inspected returned text",
+      "inclusive_ranges": [
+        [
+          365,
+          409
+        ]
+      ],
+      "complete": false,
+      "covered_lines": 45,
+      "total_lines": 901,
+      "read_time_limitation": "Tool events establish order. No independently authenticated read timestamps. Range receipts do not imply semantic audit or execution."
+    },
+    {
+      "source_id": "api-overview",
+      "sha256": "ed3a3eb7e1f33dd6409f4c2ed283208cb6f952e16ff5ca73ed1ba7896e4fb033",
+      "reader": "continuation-coordinator",
+      "method": "read tool, personally inspected returned text",
+      "inclusive_ranges": [
+        [
+          1,
+          349
+        ]
+      ],
+      "complete": true,
+      "covered_lines": 349,
+      "total_lines": 349,
+      "read_time_limitation": "Tool events establish order. No independently authenticated read timestamps. Range receipts do not imply semantic audit or execution."
+    },
+    {
+      "source_id": "api-v0",
+      "sha256": "c753c4ee18e097015309f9d0cfd20f59a28a54bdf54179fa5236e6e2cf0c14b2",
+      "reader": "continuation-coordinator",
+      "method": "read tool, personally inspected returned text",
+      "inclusive_ranges": [
+        [
+          1,
+          400
+        ],
+        [
+          401,
+          722
+        ]
+      ],
+      "complete": true,
+      "covered_lines": 722,
+      "total_lines": 722,
+      "read_time_limitation": "Tool events establish order. No independently authenticated read timestamps. Range receipts do not imply semantic audit or execution."
+    },
+    {
+      "source_id": "self-hosted",
+      "sha256": "093350a12e9a87fbb32a331eecd6721461ff593dc260e48e7bb415de43c77e2a",
+      "reader": "continuation-coordinator",
+      "method": "read tool, personally inspected returned text",
+      "inclusive_ranges": [
+        [
+          1,
+          176
+        ]
+      ],
+      "complete": true,
+      "covered_lines": 176,
+      "total_lines": 176,
+      "read_time_limitation": "Tool events establish order. No independently authenticated read timestamps. Range receipts do not imply semantic audit or execution."
+    }
+  ]
+}

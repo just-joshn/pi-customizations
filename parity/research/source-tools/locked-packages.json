@@ -1,0 +1,835 @@
+{
+  "schemaVersion": 1,
+  "status": "discovery-in-progress",
+  "closureAudited": false,
+  "recordedAt": "2026-10-08T05:32:13.756Z",
+  "sourceFiles": [
+    {
+      "path": "pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+      "readingComplete": true
+    },
+    {
+      "path": "pstack/skills/poteto-mode/scripts/package.json",
+      "sha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "readingComplete": true
+    },
+    {
+      "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+      "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+      "readingComplete": true
+    },
+    {
+      "path": "pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+      "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4",
+      "readingComplete": true
+    }
+  ],
+  "parserNote": "Known inspected JSONC lock converted by removing trailing commas; no script or dependency installer executed.",
+  "runtime": {
+    "name": "Bun",
+    "version": null,
+    "source": {
+      "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+      "path": "pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+      "locator": "line 1"
+    },
+    "resolution": "open"
+  },
+  "nodes": [
+    {
+      "id": "npm:@types/node@26.1.2",
+      "type": "npm-package",
+      "name": "@types/node",
+      "version": "26.1.2",
+      "integrity": "sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==",
+      "lockMetadata": {
+        "dependencies": {
+          "undici-types": "~8.3.0"
+        }
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@types/node\"]"
+      },
+      "dependencies": [
+        "npm:undici-types@8.3.0"
+      ]
+    },
+    {
+      "id": "npm:@typescript/typescript-aix-ppc64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-aix-ppc64",
+      "version": "7.0.2",
+      "integrity": "sha512-MTKKkWB7p/0E9xi1d1tHtZ5PiLkGEMIq88pK2CubZjOsLtYTLqhgIgi6zepFa+9GHZ6h05NMCkQxGKiPXMxXtQ==",
+      "lockMetadata": {
+        "os": "aix",
+        "cpu": "ppc64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-aix-ppc64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-darwin-arm64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-darwin-arm64",
+      "version": "7.0.2",
+      "integrity": "sha512-gowzar9MwS/aRWp6f3a4KUqzRjAZjOsmGNCM6LcTgXum+dBfgsBVMN+AgvOCCbguXyick6LJhpBszxMebJ8syA==",
+      "lockMetadata": {
+        "os": "darwin",
+        "cpu": "arm64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-darwin-arm64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-darwin-x64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-darwin-x64",
+      "version": "7.0.2",
+      "integrity": "sha512-SZ9xZInqApNlNGc9s0W1VSsktYSOe9cFqNOIqmN1Gs8SmkjKZYFt017G4VwPxASInODuAdbTW7sXiFUf893RgA==",
+      "lockMetadata": {
+        "os": "darwin",
+        "cpu": "x64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-darwin-x64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-freebsd-arm64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-freebsd-arm64",
+      "version": "7.0.2",
+      "integrity": "sha512-W5NH4y/J0plIIS5b2xvTEkU7JFxyqdMAOgf+Ilhl0vHQXKO5dZoxd+C/jEtq56c4F3wk71RB4BMRQ2XdI+bwYQ==",
+      "lockMetadata": {
+        "os": "freebsd",
+        "cpu": "arm64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-freebsd-arm64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-freebsd-x64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-freebsd-x64",
+      "version": "7.0.2",
+      "integrity": "sha512-UMGDx5sTpzNw3WiPebH7l90IWfJggEd+egHt/q6p7/Cm3zqoV7VxkGXt+3DxPIw8CcmvAB0j3sVVfbhX+M4Tpw==",
+      "lockMetadata": {
+        "os": "freebsd",
+        "cpu": "x64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-freebsd-x64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-arm@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-linux-arm",
+      "version": "7.0.2",
+      "integrity": "sha512-gffT3xPz9sR7j/YJExkyPntrI0P2EP9XbOyWzth2/Gs0RstK+90RBcO0ncXoXy/beYll1SXw846Nf2zdnEz0QQ==",
+      "lockMetadata": {
+        "os": "linux",
+        "cpu": "arm"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-linux-arm\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-arm64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-linux-arm64",
+      "version": "7.0.2",
+      "integrity": "sha512-Qh4eU4/y3yDjnfjjyPYihMj5/ODIlmt+Bzu17OI+fiSRDW57QmU5SiN63exPRNJPKUzcc1INa1NXdrJ+MqHjUQ==",
+      "lockMetadata": {
+        "os": "linux",
+        "cpu": "arm64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-linux-arm64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-loong64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-linux-loong64",
+      "version": "7.0.2",
+      "integrity": "sha512-uEHck9i8hoAzXPiYRib1O7miOnz23SxIeVl6F4LXox+qov1K35jHcEW6VHKvZI+pyvl7fZEP4MCU5LYvIq1GuQ==",
+      "lockMetadata": {
+        "os": "linux",
+        "cpu": "none"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-linux-loong64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-mips64el@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-linux-mips64el",
+      "version": "7.0.2",
+      "integrity": "sha512-R4KvAMnE43W5Qeqb0Ly56O3mWMWIAgsMyz36DCaycd5nbg/9kzm0liw3JocfRqyJY0KPmzFjbswozXyW0DnIYA==",
+      "lockMetadata": {
+        "os": "linux",
+        "cpu": "none"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-linux-mips64el\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-ppc64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-linux-ppc64",
+      "version": "7.0.2",
+      "integrity": "sha512-DORx5b3sd/4S7eayxm4FQv+A7CrkUIGRaHiwI8oiHTAI1fAPWhF4J0vAlkC8biAlHSVVwxMQ3tjZ2/DVbnQiiA==",
+      "lockMetadata": {
+        "os": "linux",
+        "cpu": "ppc64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-linux-ppc64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-riscv64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-linux-riscv64",
+      "version": "7.0.2",
+      "integrity": "sha512-wf0jqEDOjrPRnKwYRyyJDRo11KMbvMFrU+q4zqKyChODBzvlkbhNQfKvLxQCcwTpdDaXSHZTVuh0JoCrKCUMHQ==",
+      "lockMetadata": {
+        "os": "linux",
+        "cpu": "none"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-linux-riscv64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-s390x@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-linux-s390x",
+      "version": "7.0.2",
+      "integrity": "sha512-IkwJc3L7yhytWd/ewjyxNDfOmswCm9GWMJT/ue/dU4aZNbwZeYAetq42VyLmsmSjvoX7z74X6ZaYCtzAr0EuGw==",
+      "lockMetadata": {
+        "os": "linux",
+        "cpu": "s390x"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-linux-s390x\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-x64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-linux-x64",
+      "version": "7.0.2",
+      "integrity": "sha512-EYdf2cNg7rgCWJnxCdJ+F3V39O8ihb37eHAu1LK8oAFizgTQbPOK7zHHXbPt8rX24COqODXeI3sIf0fCXG7H/A==",
+      "lockMetadata": {
+        "os": "linux",
+        "cpu": "x64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-linux-x64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-netbsd-arm64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-netbsd-arm64",
+      "version": "7.0.2",
+      "integrity": "sha512-+polYF4MF04aPpO5FTkHran9yUQDSXqy5GiSDKpsll5jy3l3+g9QLhpf39T+ePtefhXLOGrLl0QIjkQP6VnelA==",
+      "lockMetadata": {
+        "os": "none",
+        "cpu": "arm64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-netbsd-arm64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-netbsd-x64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-netbsd-x64",
+      "version": "7.0.2",
+      "integrity": "sha512-8YIT0EHM/3dq10ZOVF/A7pc/YSMtbcecct4rWtexrnSCHOPcpC2KTLXfTCR6vDpnSiY12heNb1GiN/wu+T/FyA==",
+      "lockMetadata": {
+        "os": "none",
+        "cpu": "x64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-netbsd-x64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-openbsd-arm64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-openbsd-arm64",
+      "version": "7.0.2",
+      "integrity": "sha512-APT8+ClYnuYm1u9+kgGXoMj2VzWzcymwh2gNSQVySHfkRDGOTVkoWLjCmOQSaO+PoqQ57B0flRp9SA+7GnnkzQ==",
+      "lockMetadata": {
+        "os": "openbsd",
+        "cpu": "arm64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-openbsd-arm64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-openbsd-x64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-openbsd-x64",
+      "version": "7.0.2",
+      "integrity": "sha512-yX7s+Q0Dln0Dt9tEzZsAjXXR/+ytBM7AlglaqyeMPxQszJ1JhlJdZ6jLA+IzldHtflX81em7lDao1xXu+aRRkg==",
+      "lockMetadata": {
+        "os": "openbsd",
+        "cpu": "x64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-openbsd-x64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-sunos-x64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-sunos-x64",
+      "version": "7.0.2",
+      "integrity": "sha512-dLJDGaLZ1D4HPQn62u1n8mBDkJREwMsAkCdkwd4Ieqw+x3TUyTsqY0YiBCtE6H6OzzgGk3iuZ3vFWRS+E8/d1g==",
+      "lockMetadata": {
+        "os": "sunos",
+        "cpu": "x64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-sunos-x64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-win32-arm64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-win32-arm64",
+      "version": "7.0.2",
+      "integrity": "sha512-Gyl1Vy6OsWesLzmq+EP0Fb7b4Nid5232AvcA2SFcdYreldpNtYFFofPjnt62y9hQy7VTaZp65ICJjuAQRaVcIQ==",
+      "lockMetadata": {
+        "os": "win32",
+        "cpu": "arm64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-win32-arm64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:@typescript/typescript-win32-x64@7.0.2",
+      "type": "npm-package",
+      "name": "@typescript/typescript-win32-x64",
+      "version": "7.0.2",
+      "integrity": "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g==",
+      "lockMetadata": {
+        "os": "win32",
+        "cpu": "x64"
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@typescript/typescript-win32-x64\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:bun-types@1.3.14",
+      "type": "npm-package",
+      "name": "bun-types",
+      "version": "1.3.14",
+      "integrity": "sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==",
+      "lockMetadata": {
+        "dependencies": {
+          "@types/node": "*"
+        }
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"bun-types\"]"
+      },
+      "dependencies": [
+        "npm:@types/node@26.1.2"
+      ]
+    },
+    {
+      "id": "npm:commander@14.0.0",
+      "type": "npm-package",
+      "name": "commander",
+      "version": "14.0.0",
+      "integrity": "sha512-2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA==",
+      "lockMetadata": {},
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"commander\"]"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "npm:typescript@7.0.2",
+      "type": "npm-package",
+      "name": "typescript",
+      "version": "7.0.2",
+      "integrity": "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
+      "lockMetadata": {
+        "optionalDependencies": {
+          "@typescript/typescript-aix-ppc64": "7.0.2",
+          "@typescript/typescript-darwin-arm64": "7.0.2",
+          "@typescript/typescript-darwin-x64": "7.0.2",
+          "@typescript/typescript-freebsd-arm64": "7.0.2",
+          "@typescript/typescript-freebsd-x64": "7.0.2",
+          "@typescript/typescript-linux-arm": "7.0.2",
+          "@typescript/typescript-linux-arm64": "7.0.2",
+          "@typescript/typescript-linux-loong64": "7.0.2",
+          "@typescript/typescript-linux-mips64el": "7.0.2",
+          "@typescript/typescript-linux-ppc64": "7.0.2",
+          "@typescript/typescript-linux-riscv64": "7.0.2",
+          "@typescript/typescript-linux-s390x": "7.0.2",
+          "@typescript/typescript-linux-x64": "7.0.2",
+          "@typescript/typescript-netbsd-arm64": "7.0.2",
+          "@typescript/typescript-netbsd-x64": "7.0.2",
+          "@typescript/typescript-openbsd-arm64": "7.0.2",
+          "@typescript/typescript-openbsd-x64": "7.0.2",
+          "@typescript/typescript-sunos-x64": "7.0.2",
+          "@typescript/typescript-win32-arm64": "7.0.2",
+          "@typescript/typescript-win32-x64": "7.0.2"
+        },
+        "bin": {
+          "tsc": "bin/tsc"
+        }
+      },
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "dependencies": [
+        "npm:@typescript/typescript-aix-ppc64@7.0.2",
+        "npm:@typescript/typescript-darwin-arm64@7.0.2",
+        "npm:@typescript/typescript-darwin-x64@7.0.2",
+        "npm:@typescript/typescript-freebsd-arm64@7.0.2",
+        "npm:@typescript/typescript-freebsd-x64@7.0.2",
+        "npm:@typescript/typescript-linux-arm@7.0.2",
+        "npm:@typescript/typescript-linux-arm64@7.0.2",
+        "npm:@typescript/typescript-linux-loong64@7.0.2",
+        "npm:@typescript/typescript-linux-mips64el@7.0.2",
+        "npm:@typescript/typescript-linux-ppc64@7.0.2",
+        "npm:@typescript/typescript-linux-riscv64@7.0.2",
+        "npm:@typescript/typescript-linux-s390x@7.0.2",
+        "npm:@typescript/typescript-linux-x64@7.0.2",
+        "npm:@typescript/typescript-netbsd-arm64@7.0.2",
+        "npm:@typescript/typescript-netbsd-x64@7.0.2",
+        "npm:@typescript/typescript-openbsd-arm64@7.0.2",
+        "npm:@typescript/typescript-openbsd-x64@7.0.2",
+        "npm:@typescript/typescript-sunos-x64@7.0.2",
+        "npm:@typescript/typescript-win32-arm64@7.0.2",
+        "npm:@typescript/typescript-win32-x64@7.0.2"
+      ]
+    },
+    {
+      "id": "npm:undici-types@8.3.0",
+      "type": "npm-package",
+      "name": "undici-types",
+      "version": "8.3.0",
+      "integrity": "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==",
+      "lockMetadata": {},
+      "resolution": "open",
+      "readingComplete": false,
+      "dependenciesEnumerated": false,
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"undici-types\"]"
+      },
+      "dependencies": []
+    }
+  ],
+  "edges": [
+    {
+      "from": "npm:@types/node@26.1.2",
+      "to": "npm:undici-types@8.3.0",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"@types/node\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:bun-types@1.3.14",
+      "to": "npm:@types/node@26.1.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"bun-types\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-aix-ppc64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-darwin-arm64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-darwin-x64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-freebsd-arm64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-freebsd-x64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-linux-arm@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-linux-arm64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-linux-loong64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-linux-mips64el@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-linux-ppc64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-linux-riscv64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-linux-s390x@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-linux-x64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-netbsd-arm64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-netbsd-x64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-openbsd-arm64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-openbsd-x64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-sunos-x64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-win32-arm64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    },
+    {
+      "from": "npm:typescript@7.0.2",
+      "to": "npm:@typescript/typescript-win32-x64@7.0.2",
+      "status": "unresolved",
+      "foundAt": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "path": "pstack/skills/poteto-mode/scripts/bun.lock",
+        "locator": "packages[\"typescript\"]"
+      },
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+    }
+  ],
+  "unresolvedReferences": [
+    "Fetch exact registry metadata and tarballs, verify integrity and licenses, inspect relevant contracts and transitive dependencies.",
+    "Determine runtime/platform prerequisites from official Bun and package contracts.",
+    "Audit all platform-conditional branches, including literal cpu/os none entries in this lock.",
+    "Bind each package to runtime versus test/typecheck consumers before acceptance."
+  ]
+}

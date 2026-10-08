@@ -1,0 +1,36 @@
+swarm, tdd, teach, technical-writing, thermo-nuclear-code-quality-review, typescript-best-practices, unslop,
+verify-this, weekly-review, what-did-i-get-done, why, workflow-from-chats
+
+[Prompts]
+  /architect, /arena, /automate-me, /benchmark-checklist, /blast-radius, /bro, /check-compiler-errors, /control-cli,
+/control-ui, /correct, /create-skill, /create-verification-skill, /deslop, /figure-it-out, /fix-ci,
+/fix-merge-conflicts, /get-pr-comments, /how, /interrogate, /loop, /loop-on-ci, /maintain-verification-skill,
+/make-bot-ui, /make-pr-easy-to-review, /new-branch-and-pr, /no-comments, /origin, /pr-review-canvas,
+/principle-attack-the-premise, /principle-boundary-discipline, /principle-build-the-lever,
+/principle-encode-lessons-in-structure, /principle-exhaust-the-design-space, /principle-experience-first,
+/principle-explain-the-number, /principle-fix-root-causes, /principle-foundational-thinking,
+/principle-guard-the-context-window, /principle-laziness-protocol, /principle-make-operations-idempotent,
+/principle-migrate-callers-then-delete-legacy-apis, /principle-minimize-reader-load, /principle-model-the-domain,
+/principle-never-block-on-the-human, /principle-outcome-oriented-execution, /principle-prove-it-works,
+/principle-redesign-from-first-principles, /principle-separate-before-serializing-shared-state,
+/principle-sequence-verifiable-units, /principle-subtract-before-you-add, /principle-test-behavior-not-implementation,
+/principle-type-system-discipline, /recall, /reflect, /review-and-ship, /run-smoke-tests, /show-me-your-work, /swarm,
+/tdd, /teach, /technical-writing, /thermo-nuclear-code-quality-review, /typescript-best-practices, /unslop,
+/verify-this, /weekly-review, /what-did-i-get-done, /why, /workflow-from-chats
+
+[Extensions]
+  src
+
+
+ Warning: No models available. Use /login to log into a provider via OAuth or API key. See:
+   /Users/josh-desktop/.pi/agent/install/releases/1.1.0/node_modules/@earendil-works/pi-coding-agent/docs/providers.md
+   /Users/josh-desktop/.pi/agent/install/releases/1.1.0/node_modules/@earendil-works/pi-coding-agent/docs/models.md
+
+ Warning: tmux extended-keys is off. Modified Enter keys may not work. Add `set -g extended-keys on` to ~/.tmux.conf
+ and restart tmux.
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/candidate-baseline (refactor/pi-pstack-parity-again)
+0.0%/0 (auto)                                                                                                    unknown

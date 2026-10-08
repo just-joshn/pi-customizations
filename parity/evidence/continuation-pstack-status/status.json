@@ -1,0 +1,11 @@
+{
+  "role": "custom",
+  "customType": "pstack-status",
+  "content": "pstack 0.15.9 with team-kit 1.2.0 for Pi 1.1.0. 71 skills, 69 prompt templates. Poteto mode off.\nModel configuration: /var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/control-pi-status-pDr88g/pstack/models.mdc\nCompatibility report: /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/docs/parity.md\nCloud Tasks require a configured independent VM. Hosted services and exact model entitlements remain environment-dependent. See the compatibility report for verified mappings and limits.",
+  "display": true,
+  "details": {
+    "enabled": false,
+    "todos": []
+  },
+  "timestamp": 1791440206931
+}

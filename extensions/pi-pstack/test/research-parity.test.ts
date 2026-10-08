@@ -109,7 +109,7 @@ test('setup keeps the documented 17 roles and four budget labels', async () => {
 test('setup documents all four reasoning budgets', async () => {
   expect.hasAssertions();
   const setup = await read('skills/setup-pstack/SKILL.md');
-  for (const label of ['unlimited — keep max', 'large — xhigh reasoning', 'medium — high reasoning', 'small — medium reasoning']) expect(setup).toContain(`\`${label}\``);
+  for (const label of ['unlimited — max reasoning', 'large — xhigh reasoning', 'medium — high reasoning', 'small — medium reasoning']) expect(setup).toContain(`\`${label}\``);
 });
 
 test('documented agents, team-kit skills, helper scripts, and Benny pack are shipped', async () => {

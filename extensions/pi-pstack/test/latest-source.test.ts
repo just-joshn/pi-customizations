@@ -27,7 +27,7 @@ const sourceTest = test.extend<{ source: { directory: string; repo: string; chec
       await writeFile(join(directory, 'docs/source-inventory.json'), JSON.stringify([{ path: 'README.md' }, { path: 'image.png' }, { path: 'skills/poteto-mode/scripts/watch-pr/github.ts' }]));
       await writeFile(join(directory, 'upstream/README.md'), 'Reference team-kit .upstream\n');
       await copyFile(join(repo, 'pstack/image.png'), join(directory, 'upstream/image.png'));
-      await copyFile(new URL('../scripts/check-latest-source.mjs', import.meta.url), join(directory, 'scripts/check-latest-source.mjs'));
+      for (const script of ['check-latest-source.mjs', 'source-normalize.mjs']) await copyFile(new URL(`../scripts/${script}`, import.meta.url), join(directory, 'scripts', script));
       await use({ directory, repo, check: () => execFileSync(process.execPath, [join(directory, 'scripts/check-latest-source.mjs'), repo], { encoding: 'utf8', stdio: 'pipe' }) });
     } finally {
       await rm(directory, { recursive: true, force: true });

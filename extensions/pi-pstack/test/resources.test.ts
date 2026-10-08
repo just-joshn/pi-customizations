@@ -75,9 +75,9 @@ test('resource generation is reproducible across both source bundles', async () 
   const f = await fixture();
   try {
     const before = await readFile(join(f.directory, 'docs/resource-map.json'));
-    expect(f.run('--write')).toMatch(/190 upstream files and 211 generated resources/);
+    expect(f.run('--write')).toMatch(/193 upstream files and 215 generated resources/);
     expect(await readFile(join(f.directory, 'docs/resource-map.json'))).toEqual(before);
-    expect(f.run()).toMatch(/190 upstream files and 211 generated resources/);
+    expect(f.run()).toMatch(/193 upstream files and 215 generated resources/);
   } finally {
     await f.close();
   }
@@ -87,8 +87,8 @@ test('generation separates reusable prompts from procedural skills and Reference
   const f = await fixture();
   try {
     f.run('--write');
-    expect((await readdir(join(f.directory, 'prompts'))).length).toBe(66);
-    expect((await readdir(join(f.directory, 'skills'), { withFileTypes: true })).filter((entry) => entry.isDirectory()).length).toBe(67);
+    expect((await readdir(join(f.directory, 'prompts'))).length).toBe(67);
+    expect((await readdir(join(f.directory, 'skills'), { withFileTypes: true })).filter((entry) => entry.isDirectory()).length).toBe(68);
     await expect(readFile(join(f.directory, 'skills/bro/SKILL.md'))).rejects.toMatchObject({ code: 'ENOENT' });
     expect(await readFile(join(f.directory, 'prompts/bro.md'), 'utf8')).toMatch(/Restate your last message/);
     expect(await readFile(join(f.directory, 'prompts/architect.md'), 'utf8')).toMatch(/architect\/SKILL\.md/);

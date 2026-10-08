@@ -1,0 +1,66 @@
+[
+  {
+    "source_file": "preserved/parent-contract.md",
+    "source_sha256": "ffb66225c10486e861d79f60415138fd79cc2fa8e6794825b2124998924c4f6f",
+    "original_path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/contract.md",
+    "inclusive_ranges": [
+      [
+        1,
+        387
+      ],
+      [
+        388,
+        437
+      ]
+    ],
+    "total_lines": 436,
+    "complete": true,
+    "reader": "continuation-coordinator",
+    "method": "read tool"
+  },
+  {
+    "source_file": "preserved/prior-report.md",
+    "source_sha256": "a15460c9b76c37036bf64c254a68673564a4e9e0ab94a93a99eece8452d4d5fa",
+    "original_path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/cursor-host/report.md",
+    "inclusive_ranges": [
+      [
+        1,
+        90
+      ]
+    ],
+    "total_lines": 90,
+    "complete": true,
+    "reader": "continuation-coordinator",
+    "method": "read tool"
+  },
+  {
+    "source_file": "preserved/services-report.md",
+    "source_sha256": "304d02347fb878462ac97eb835b9a71bcd5f5f17d6c14f1cd687e6fc1d8778ed",
+    "original_path": "parity/research/cursor-host/services/report.md",
+    "inclusive_ranges": [
+      [
+        1,
+        48
+      ]
+    ],
+    "total_lines": 48,
+    "complete": true,
+    "reader": "continuation-coordinator",
+    "method": "read tool"
+  },
+  {
+    "source_file": "preserved/source-lock.json",
+    "source_sha256": "3f5b0d1eaa76d2102c0b55c346a8c3d525a066e06defbb1e6afdbd86ef989f74",
+    "original_path": "parity/research/cursor-host/parent-inputs/source-lock.json",
+    "inclusive_ranges": [
+      [
+        1,
+        71
+      ]
+    ],
+    "total_lines": 71,
+    "complete": true,
+    "reader": "continuation-coordinator",
+    "method": "read tool"
+  }
+]

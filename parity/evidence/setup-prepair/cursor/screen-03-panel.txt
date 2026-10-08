@@ -1,0 +1,33 @@
+  │ reflect judgment, divergent, synthesizer │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ arena runners                            │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ arena cross-judge pool                   │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ swarm workers                            │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ architect runners                        │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ interrogate reviewers                    │ inherit-parent │
+  └──────────────────────────────────────────┴────────────────┘
+
+  One thing to flag: with every role on inherit-parent, the unlimited budget line is mostly a marker — it only
+  matters if you later reset roles to the default mapping. If your intent with "unlimited — keep defaults" was to
+  actually restore the default tier table, that means dropping the inherit-parent hand-picks and mapping the
+  defaults to this session's detected slugs (opus → claude-opus-5-5-medium, sonnet → claude-sonnet-5-5-medium, fable
+  → claude-fable-5-1-thinking-high).
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ Clarifying Questions                                                                                               │
+ │                                                                                                                    │
+ │ Question 1 of 1                                                                                                    │
+ │                                                                                                                    │
+ │ 1. Write the table above as-is, or change something?                                                               │
+ │                                                                                                                    │
+ │   › [ ] Accept as-is (Recommended)                                                                                 │
+ │     [ ] Reset roles to the unlimited default mapping                                                               │
+ │     [ ] Change specific roles (tell me which)                                                                      │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘

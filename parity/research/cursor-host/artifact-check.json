@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-10-08T04:54:55.269424+00:00",
+  "status": "structural-evidence-check-only",
+  "nodeCount": 1076,
+  "edgeCount": 1102,
+  "newRetrievalCount": 36,
+  "originalSnapshotReadCount": 16,
+  "originalSnapshotNewlineCount": 4851,
+  "checked": [
+    "Every normalized edge source digest and exact quote against preserved bytes.",
+    "Every normalized edge endpoint exists.",
+    "Every new retrieval body, headers and metadata hash and local time envelope.",
+    "Sixteen original docs reading-receipt coverage.",
+    "Working-tree changed/untracked paths restricted to owned directory."
+  ],
+  "diagnostics": [],
+  "limits": "Self-check of research artifact structure only. Does not establish source closure, behavior verification, independent audit, authenticated provider identity, frozen acceptance or any passing requirement.",
+  "recheckedAt": "2026-10-08T04:56:15.842012+00:00",
+  "normalizedGraphSha256": "8603b73d27a2275a7e7736217b810e22842402307bad97bfdc005532831192d4"
+}

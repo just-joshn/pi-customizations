@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "status": "discovery-in-progress",
+  "sourceLock": "parity/source-lock.json",
+  "closureAudited": false,
+  "nodes": [
+    {
+      "id": "cursor-pstack",
+      "type": "plugin",
+      "source": { "repository": "https://github.com/cursor/plugins", "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba", "path": "pstack" },
+      "ownedBehavior": "Complete official pstack distribution, including dormant automation pack and supporting resources.",
+      "dependencies": ["cursor-team-kit", "cursor-cli-host", "cursor-create-skill"],
+      "inventory": "parity/reference/distribution-inventory.txt",
+      "fileHashes": "parity/reference/distribution-sha256.txt",
+      "readingComplete": true,
+      "readingEvidence": ["parity/reviews/source-discovery.md", "parity/reviews/source-read-calls.jsonl", "parity/reviews/source-read-results.jsonl"],
+      "readingNote": "183 tracked text files have delegated read receipts without error or truncation. The parent additionally inspected both licenses and eight image assets. This is source inspection, not verified behavioral closure."
+    },
+    {
+      "id": "cursor-team-kit",
+      "type": "plugin",
+      "source": { "repository": "https://github.com/cursor/plugins", "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba", "path": "cursor-team-kit" },
+      "ownedBehavior": "Complete official cursor-team-kit distribution, not only skills directly named by pstack.",
+      "dependencies": [],
+      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "readingEvidence": ["parity/reviews/source-discovery.md", "parity/reviews/source-read-calls.jsonl", "parity/reviews/source-read-results.jsonl"],
+      "readingNote": "Delegated receipts cover 27 tracked text files. The parent directly inspected the license and avatar. Recursive external closure remains open."
+    },
+    {
+      "id": "cursor-cli-host",
+      "type": "host",
+      "source": { "version": "2026.10.01-e373342", "location": "https://cursor.com/docs/cli/overview", "lock": "parity/source-lock.json" },
+      "ownedBehavior": "Reference host discovery, mode selection, tools, workers, permissions and lifecycle contracts.",
+      "dependencies": [],
+      "dependenciesEnumerated": false,
+      "readingComplete": false
+    },
+    {
+      "id": "cursor-create-skill",
+      "type": "host-built-in",
+      "source": { "version": "2026.10.01-e373342", "exactResource": null },
+      "ownedBehavior": "Skill creation and its complete subordinate workflows.",
+      "dependencies": [],
+      "resolution": "open",
+      "dependenciesEnumerated": false,
+      "readingComplete": false
+    }
+  ],
+  "edges": [
+    {
+      "from": "cursor-pstack",
+      "to": "cursor-team-kit",
+      "foundAt": { "file": "pstack/README.md", "locator": "## not shipped here", "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba" },
+      "contract": "Install cursor-team-kit alongside pstack for the full skill set.",
+      "piResolution": "Existing translated resources require complete source and journey audit.",
+      "status": "unverified"
+    },
+    {
+      "from": "cursor-pstack",
+      "to": "cursor-create-skill",
+      "foundAt": { "file": "pstack/README.md", "locator": "## not shipped here", "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba" },
+      "contract": "/create-skill is a Cursor built-in.",
+      "piResolution": "Existing host skill requires reference capture and audit.",
+      "status": "unresolved"
+    },
+    {
+      "from": "cursor-pstack",
+      "to": "cursor-cli-host",
+      "foundAt": { "file": "pstack/README.md", "locator": "### just use /poteto-mode, paragraph on option+enter and alt+enter", "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba" },
+      "contract": "Plain Enter attaches a skill to one message. Option+Enter or Alt+Enter selects a persistent custom mode.",
+      "piResolution": "Native command and editor integration must reproduce both actions and subsequent-turn behavior.",
+      "status": "unverified"
+    }
+  ],
+  "unresolvedReferences": [
+    "Entire recursive closure remains to be extracted from unread source files.",
+    "Cursor built-in create-skill exact distributed resource and subordinate contracts.",
+    "Required live integrations, cloud services, automation editor, models and supporting tools."
+  ],
+  "openReadingOwners": [
+    { "owner": "implementation-parent", "readFiles": ["pstack/.cursor-plugin/plugin.json", "pstack/README.md", "pstack/skills/setup-pstack/SKILL.md"] },
+    { "owner": "560a48a4-c087-43fe-955b-ca71a63114ef", "scope": ["pstack", "cursor-team-kit"], "readCoverage": "183 tracked text files reconciled to read receipts; parent inspected remaining 10 resources", "report": "parity/reviews/source-discovery.md" }
+  ]
+}
