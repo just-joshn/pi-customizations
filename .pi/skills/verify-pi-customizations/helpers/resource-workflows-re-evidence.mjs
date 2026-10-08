@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, realpathSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 
 import { reContracts } from './resource-workflows-re-outcome.mjs';
@@ -20,14 +20,16 @@ export function freezeReTarget({ target, env = {}, attemptId = randomUUID() }) {
   const result = spawnSync('/bin/sh', ['-c', 'command -v python3'], { env: { ...process.env, ...env }, encoding: 'utf8', timeout: 5000 });
   if (result.status !== 0) throw new Error('Python runtime identity unavailable.');
   const runtime = realpathSync(result.stdout.trim());
-  return Object.freeze({ attemptId, path, source, sha256: sha(readFileSync(path)), runtime, runtimeSha256: sha(readFileSync(runtime)) });
+  const version = spawnSync(runtime, ['-I', '-c', "import sys; print(sys.version); print(hasattr(sys.flags, 'safe_path'))"], { encoding: 'utf8', timeout: 5000 });
+  if (version.status !== 0 || !version.stdout.trim().endsWith('True')) throw new Error('Bounded replay requires Python safe-path support.');
+  return Object.freeze({ attemptId, path, source, sha256: sha(readFileSync(path)), runtime, runtimeSha256: sha(readFileSync(runtime)), runtimeVersion: version.stdout.split('\n')[0] });
 }
 
 function execute(command, args, options) {
   const prefix = options.profile ? ['/usr/bin/sandbox-exec', '-f', options.profile, command] : [command];
   const result = spawnSync(prefix[0], [...prefix.slice(1), ...args], {
     cwd: options.cwd,
-    env: { ...process.env, ...options.env },
+    env: { ...process.env, ...options.env, PYTHONSAFEPATH: '1', PYTHONNOUSERSITE: '1', PYTHONPATH: '', PYTHONHOME: '' },
     encoding: 'utf8',
     timeout: 30000,
     maxBuffer: 1048576,
@@ -111,7 +113,7 @@ function replay(re, frozen, cases, options) {
   for (const name of ['probe.py', 'investigate.py']) {
     if (sha(readFileSync(within(join(re, 'repro/scripts', name), re))) !== sha(readFileSync(join(trusted, name)))) throw new Error('Copied replay helper differs from trusted source.');
   }
-  const result = execute(frozen.runtime, [join(trusted, 'investigate.py'), 'run', '--workspace', re], options);
+  const result = execute(frozen.runtime, ['-I', join(trusted, 'investigate.py'), 'run', '--workspace', re], options);
   writeFileSync(join(options.out, 'replay.txt'), `${result.stdout}\n${result.stderr}`);
   if (result.code !== 0 || result.error || result.signal) return { code: result.code, observations: [], execution: result };
   const summary = JSON.parse(result.stdout);
@@ -177,6 +179,21 @@ function sourceEvidence(re, frozen, cases) {
   return entryMatches && syntax && frozen.source.startsWith('#!/usr/bin/env python3\n') && !/Status:\s*NOT INVESTIGATED/i.test(text) && localLinks(text, report, re, frozen).includes(frozen.path);
 }
 
+function bindRuntime(frozen, options) {
+  const directory = join(options.out, `runtime-${randomUUID()}`);
+  mkdirSync(directory, { recursive: true });
+  symlinkSync(frozen.runtime, join(directory, 'python3'));
+  return { ...options, env: { ...options.env, PATH: `${directory}:${options.env?.PATH ?? process.env.PATH}` } };
+}
+
+function compareLinkedObservations(recorded, actual, cases) {
+  return cases.map((item) => {
+    const observed = actual.observations.find((entry) => sameArgs(entry.args, item.args));
+    const reported = recorded.findLast((entry) => entry.id === item.id && observed && entry.stdout === observed.stdout && entry.stderr === observed.stderr && entry.code === observed.code);
+    return { caseId: item.id, args: item.args, reported, observed, actualRun: actual.run, matches: Boolean(reported && observed) };
+  });
+}
+
 export function collectReEvidence(options) {
   const { frozen } = options;
   const re = join(options.cwd, '.re');
@@ -186,7 +203,8 @@ export function collectReEvidence(options) {
   try {
     within(frozen.path, options.cwd);
     if (!unchanged(frozen)) return { ...initial, issues: ['Frozen target or runtime changed before audit.'] };
-    const observations = independentlyObserve(frozen, options);
+    const bound = bindRuntime(frozen, options);
+    const observations = independentlyObserve(frozen, bound);
     evidence = { ...initial, observations };
     within(re, options.cwd);
     const identityMatches = workspaceIdentity(re, frozen);
@@ -195,11 +213,14 @@ export function collectReEvidence(options) {
     evidence = partial;
     if (!identityMatches || !cases) return { ...partial, issues: ['Workspace identity or reviewed bounded corpus incomplete.'] };
     const recorded = recordedObservations(re, frozen, cases);
-    const reportsLinked = reportLinks(re, frozen, recorded, cases);
     const sourceMatches = sourceEvidence(re, frozen, cases);
-    evidence = { ...partial, reportsLinked, sourceMatches };
-    const actual = replay(re, frozen, cases, options);
-    const result = { ...partial, reportsLinked, sourceMatches, replayCode: actual.code, replayObservations: actual.observations, replay: actual };
+    evidence = { ...partial, sourceMatches };
+    const actual = replay(re, frozen, cases, bound);
+    const linkAudits = compareLinkedObservations(recorded, actual, cases);
+    const reportsLinked = linkAudits.every((item) => item.matches) && reportLinks(re, frozen, recorded, cases);
+    const manualGaps = ['Original agent-recorded capture provenance is not authenticated.', 'Report meaning, architecture ownership, alternatives and scope honesty require independent root semantic review.'];
+    const result = { ...partial, reportsLinked, sourceMatches, linkAudits, manualGaps, replayCode: actual.code, replayObservations: actual.observations, replay: actual };
+    writeFileSync(join(options.out, 'report-link-audit.json'), JSON.stringify({ attemptId: frozen.attemptId, linkAudits, manualGaps }, null, 2));
     return { ...result, identityMatches: identityMatches && unchanged(frozen) && workspaceIdentity(re, frozen) };
   } catch (error) {
     return { ...evidence, issues: [error.message] };
