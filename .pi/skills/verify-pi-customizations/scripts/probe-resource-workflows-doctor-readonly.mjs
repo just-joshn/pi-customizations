@@ -103,6 +103,9 @@ for (const name of names) {
   if (name === 'positive-gather' || name === 'positive-afterVerify') {
     assert.equal(call?.correlated, true);
     assert.equal(call.receipt.succeeded, true, JSON.stringify(call.receipt.execution));
+    assert.equal(call.receipt.execution.inventoryWindow.days, 30, 'agent gather retains actual target usage window');
+    assert.equal(call.receipt.execution.children[2].source.argv.at(-1), '30');
+    assert.ok(call.receipt.execution.children[2].source.argv.includes(join(doctor.agentDir, 'sessions')));
     assert.ok(call.receipt.execution.evidence?.toolDeclarations.actual_target_resource, 'actual target extensions loaded in fresh readonly loader');
     previousFreshSession = call.receipt.execution.evidence.session;
   }
