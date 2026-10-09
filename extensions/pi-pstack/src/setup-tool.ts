@@ -97,11 +97,30 @@ function currentBudget(current: string): string | undefined {
 const tableRecord = (working: ModelTable): Record<string, string> =>
   Object.fromEntries([...working].map(([role, values]) => [role, values.join(', ')]));
 
+function roleConfirmPrompt(roles: Record<string, string>, dropped: readonly string[]): string {
+  const lines = Object.entries(roles).map(([role, value]) => `${role}: ${value}`);
+  const droppedBlock = dropped.length === 0 ? 'Dropped retired roles: none.' : `Dropped retired roles:\n${dropped.join('\n')}`;
+  return [
+    'Current roles (one line per role; do not summarize):',
+    ...lines,
+    droppedBlock,
+    'Accept as-is, or change specific roles?',
+  ].join('\n');
+}
+
 async function stateAction(ctx: ExtensionToolContext) {
   const current = await readModelRule();
   const { working, dropped } = readTable(current);
   const availableModels = ctx.modelRegistry.getAvailable().map((model) => `${model.provider}/${model.id}`);
-  return { rulePath: modelConfigPath(), budget: currentBudget(current) ?? null, roles: tableRecord(working), dropped, availableModels };
+  const roles = tableRecord(working);
+  return {
+    rulePath: modelConfigPath(),
+    budget: currentBudget(current) ?? null,
+    roles,
+    dropped,
+    availableModels,
+    roleConfirmPrompt: roleConfirmPrompt(roles, dropped),
+  };
 }
 
 async function writeAction(budget: string, roleOverrides: readonly { role: string; value: string }[] | undefined, ctx: ExtensionToolContext) {
@@ -139,7 +158,7 @@ export function registerSetupTool(pi: ExtensionAPI): void {
     name: 'pstack_setup',
     label: 'Configure pstack models',
     description:
-      'Read pstack model state or write the validated pstack model rule. Call with action "state" to load the current budget, role values, dropped retired lines and detected models. Ask the user the budget and role questions with AskQuestion, then call with action "write" and the chosen budget (and any role overrides) to validate and write the rule atomically.',
+      'Read pstack model state or write the validated pstack model rule. Call with action "state" to load the current budget, role values, dropped retired lines, detected models, and roleConfirmPrompt. Paste roleConfirmPrompt as the AskQuestion prompt verbatim for role confirm (do not summarize). Then call with action "write" and the chosen budget (and any role overrides) to validate and write the rule atomically.',
     parameters: Type.Object({
       action: Type.Union([Type.Literal('state'), Type.Literal('write')]),
       budget: Type.Optional(Type.String({ description: 'One of the exact budget labels from the state action' })),

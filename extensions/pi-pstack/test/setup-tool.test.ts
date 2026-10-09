@@ -71,15 +71,25 @@ test('the state action reports the rule path, current budget, working roles, dro
     const definition = toolDefinition();
     const state = await ruleResult(definition, { action: 'state' }, toolContext());
     const defaults = Object.fromEntries([...skillDefaultTable].map(([role, values]) => [role, values.join(', ')]));
+    const roles = { ...defaults, 'swarm workers': 'inherit-parent' };
+    const roleConfirmPrompt = state.details['roleConfirmPrompt'] as string;
     expect(state.details).toEqual({
       rulePath: modelConfigPath(),
       budget: 'small (medium)',
-      roles: { ...defaults, 'swarm workers': 'inherit-parent' },
+      roles,
       dropped: ['retired-role: gone'],
       availableModels: [`anthropic/${model.id}`],
+      roleConfirmPrompt,
     });
     expect(state.structuredContent).toEqual(state.details);
     expect(JSON.parse(state.content[0]?.text ?? '{}')).toEqual(state.details);
+    for (const [role, value] of Object.entries(roles)) {
+      expect(roleConfirmPrompt).toContain(`${role}: ${value}`);
+    }
+    expect(roleConfirmPrompt).toContain('retired-role: gone');
+    expect(roleConfirmPrompt).toMatch(/Accept as-is/i);
+    expect(roleConfirmPrompt).toMatch(/Change specific roles/i);
+    expect(roleConfirmPrompt).not.toMatch(/All \d+ roles are currently/i);
   } finally {
     await f.close();
   }

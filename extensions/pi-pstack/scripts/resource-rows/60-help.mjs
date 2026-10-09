@@ -39,7 +39,7 @@ export default [
   [
     help,
     "- Enter on `/poteto-mode` attaches the skill to one message. It fades as the chat moves on.\n- Option+Enter on Mac or Alt+Enter on Windows, or Use as Mode from the skill entry, makes it a Custom Mode. It stays in context every turn until the user exits the mode, and it stays out of casual turns.\n- Reference's docs list Custom Modes in the Agents Window and the CLI. Elsewhere, start each new task with `/poteto-mode`.\n\nLink [Reference's skills docs](https://cursor.com/docs/skills) when this comes up. Mid-chat, \"new task\" makes the mode match a fresh playbook.",
-    '- `/poteto-mode <task>` and `/skill:poteto-mode <task>` attach the skill for one message. They match Cursor plain Enter. They do not leave the crown sticky badge on.\n- `/poteto-mode sticky` and `/poteto-mode sticky <task>` (same with `/skill:poteto-mode sticky`) turn sticky mode on for that session branch. That is Pi\'s stand-in for Cursor sticky mode entry. It stays in context every turn until `/poteto-mode off`, and it stays out of casual turns.\n\nMid-chat, "new task" makes sticky mode match a fresh playbook.',
+    '- `/poteto-mode <task>` and `/skill:poteto-mode <task>` attach the skill for one message. They do not leave the crown sticky badge on.\n- `/poteto-mode sticky` and `/poteto-mode sticky <task>` (same with `/skill:poteto-mode sticky`) turn sticky mode on for that session branch. It stays in context every turn until `/poteto-mode off`, and it stays out of casual turns.\n\nMid-chat, "new task" makes sticky mode match a fresh playbook.',
     install,
   ],
   [help, '| Hear the last reply again in plain words | [`/bro`](../bro/SKILL.md) |', '| Hear the last reply again in plain words | `/bro` |', 'Name the standalone /bro prompt template, since Pi ships no bro skill file.'],
@@ -55,7 +55,13 @@ export default [
     '- `/interrogate` reviews the diff. For "which skill should I use to review this branch?" or "which skill reviews a PR?", recommend `/interrogate` as the primary skill and hand its recipe prompt. `/review-and-ship` (team-kit) reviews then commits and opens a PR; do not lead with it for a review-only ask. `/blast-radius` looks for breakage outside the diff and proves the one fact that makes the change safe.',
     branchReview,
   ],
-  [help, '- `/loop` and `/create-skill` are Reference built-ins.', '- `/loop` and `/create-skill` are host skills that this package supplies.', identity],
+  [
+    help,
+    '| Build a page whose buttons wake a Grok Bot over a webhook | [`/make-bot-ui`](../make-bot-ui/SKILL.md) |',
+    '| Build a page whose buttons wake a Grok Bot over a webhook | [`/make-bot-ui`](../make-bot-ui/SKILL.md) |\n| Create a first-time automation draft through the Automations editor (creation only) | `/automate` |',
+    identity,
+  ],
+  [help, '- `/loop` and `/create-skill` are Reference built-ins.', '- `/loop`, `/create-skill`, and `/automate` are host skills that this package supplies.', identity],
   [help, "can start Reference's own skill for the same job instead.", 'can start a different skill for the same job instead.', identity],
   [help, "Reference's Plan Mode works alongside it.", 'Pi has no built-in plan mode.', identity],
   [

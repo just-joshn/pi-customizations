@@ -49,10 +49,14 @@ test('setup bans guessed model slugs and a carried-over private default', async 
   expect(await setupText()).toContain("Use only provider/model identities shown in Pi's available model registry. Do not guess a slug and do not carry over a private default.");
 });
 
-test('setup runs unslop on routine names, descriptions, and prompt shims', async () => {
+test('setup runs unslop on automation names before AutomationPrepare', async () => {
   const text = await setupText();
-  expect(text).toContain('Run the `unslop` skill on the final routine names, descriptions, and prompt shims before calling `RoutinePrepare`.');
-  expect(text.indexOf('Run the `unslop` skill')).toBeLessThan(text.indexOf('Call `RoutinePrepare` for `benny-triage`'));
+  expect(text).toContain(
+    'Run the `unslop` skill on the final automation names, descriptions, and prompt shims before calling `AutomationPrepare`.',
+  );
+  expect(text.indexOf('Run the `unslop` skill')).toBeLessThan(text.indexOf('AutomationPrepare'));
+  expect(text).toContain('host `/automate` skill');
+  expect(text).not.toMatch(/Call `Routine(?:Prepare|Enable)`/);
 });
 
 test('install creates project settings that load the pi-pstack package', async () => {

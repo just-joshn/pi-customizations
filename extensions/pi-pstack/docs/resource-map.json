@@ -323,7 +323,7 @@
   {
     "source": "upstream/skills/poteto-help/SKILL.md",
     "destination": "skills/poteto-help/SKILL.md",
-    "sha256": "6d11672ffc7e26387d166aad06f6e679da26538f2f9164c8316c96b7105707f3",
+    "sha256": "c227101e0f3c808e2dd635adbbfee76422d366c128491b5a7cae606fbf93cf64",
     "executable": false,
     "transformations": [
       "Map model rule location to Pi agent configuration.",
@@ -337,7 +337,7 @@
   {
     "source": "upstream/skills/poteto-help/SKILL.md",
     "destination": "prompts/poteto-help.md",
-    "sha256": "4423eedc00da3ee95f24da2230d466f680b3497ea3e587f8f3dd3bb8bd03703a",
+    "sha256": "e5c8e598eaa80f22a93cf4018f0879c9ad0589be01e98501c3965986e5131fc5",
     "executable": false,
     "transformations": [
       "Attach the skill content to the invoked message inline, matching the reference one-message skill attachment."
@@ -1249,10 +1249,11 @@
   {
     "source": "upstream/skills/setup-pstack/SKILL.md",
     "destination": "skills/setup-pstack/SKILL.md",
-    "sha256": "dbbba3896f85403b65a5bdf7b21872ee22dc719c5bde4dc6902b7f94e996e0ba",
+    "sha256": "bd9b122cedc96941dcec7168b15ea9a60332b061e4c2b31cf3c6f7f4c084d210",
     "executable": false,
     "transformations": [
       "Preserve ambient setup invocation and route detection, questions, and the validated write through the pstack_setup tool and AskQuestion.",
+      "Require AskQuestion role confirm to paste roleConfirmPrompt from pstack_setup state verbatim so every role lists with its model.",
       "Map model rule location to Pi agent configuration.",
       "Replace a Reference-only noun with its Pi equivalent."
     ]
@@ -1365,11 +1366,10 @@
   {
     "source": "upstream/skills/typescript-best-practices/SKILL.md",
     "destination": "skills/typescript-best-practices/SKILL.md",
-    "sha256": "a40da091ebac92080cf0ed142051d2bef35e56358084511d599f1097c58f5c73",
+    "sha256": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
     "executable": false,
     "transformations": [
-      "Remove Reference-only frontmatter; Pi runtime behavior belongs to the extension.",
-      "Pi has no file-path skill trigger. Keep the skill hidden from model selection, and the host contract requires reading it before editing matching files."
+      "Retain paths metadata for skill-file parity. Pi has no file-path skill trigger, so the host contract still requires reading the skill before editing matching files."
     ]
   },
   {

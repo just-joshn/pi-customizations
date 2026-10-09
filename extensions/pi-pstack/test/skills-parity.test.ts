@@ -45,7 +45,7 @@ test('skills inventory: all pstack, team-kit, and loop skills are accounted for'
   }
 
   expect(piHostSkills.includes('loop')).toBe(true);
-  expect(piSkills.length + piHostSkills.length).toBe(72);
+  expect(piSkills.length + piHostSkills.length).toBe(73);
 });
 
 test('reference built-in facilities: host mappings are verified', async () => {
@@ -112,20 +112,24 @@ async function validateSkillMetadata(skill: { name: string; description: string;
   expect(fmMatch).toBeDefined();
   const fm = fmMatch?.[1] ?? '';
 
-  for (const forbidden of ['mode:', 'icon:', 'color:', 'reminder:', 'paths:']) {
+  for (const forbidden of ['mode:', 'icon:', 'color:', 'reminder:']) {
     expect(new RegExp(`^${forbidden}`, 'm').test(fm)).toBe(false);
   }
 
   const nameMatch = fm.match(/^name:\s*(.+)$/m);
   expect(expectDefined(nameMatch?.[1]).trim()).toBe(skill.name);
+
+  if (skill.name === 'typescript-best-practices') {
+    expect(fm).toMatch(/^paths:\s*\["\*\*\/\*\.ts",\s*"\*\*\/\*\.tsx"\]\s*$/m);
+  }
 }
 
-test('skills loader: all 72 skills discover cleanly with valid metadata and frontmatter', async () => {
+test('skills loader: all 73 skills discover cleanly with valid metadata and frontmatter', async () => {
   const f = await fixture();
   try {
     const { loader } = await f.open();
     const skills = loader.getSkills().skills;
-    expect(skills.length).toBe(72);
+    expect(skills.length).toBe(73);
 
     for (const skill of skills) {
       await validateSkillMetadata(skill);

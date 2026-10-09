@@ -27,8 +27,8 @@ test('cloud resource arguments and the real idle Pi CLI exclude Origin without l
     const args = cloudWorkerArguments({ dir: join(f.root, 'sessions'), selected: { model: { ...model, provider: 'journey-test', id: 'recorder' }, thinkingLevel: 'off' }, loader, readonly: false }, systemFile);
     expect(args).not.toContain(join(packageRoot, 'host/skills/origin/SKILL.md'));
     expect(args).not.toContain(join(packageRoot, 'host/prompts/origin.md'));
-    expect(await readFile(systemFile, 'utf8')).not.toContain('create-skill, goal, loop, origin');
-    expect(await skillCatalog(packageRoot, 'local')).toContain('create-skill, goal, loop, origin');
+    expect(await readFile(systemFile, 'utf8')).not.toContain('automate, create-skill, goal, loop, origin');
+    expect(await skillCatalog(packageRoot, 'local')).toContain('automate, create-skill, goal, loop, origin');
     const handle = await startDetachedRpc({ directory: f.root, cwd: f.cwd, agentDir: join(f.root, 'cli-agent'), args: [...args, '-e', join(packageRoot, 'test/journey-provider.ts')] });
     try {
       const commands = await handle.send({ type: 'get_commands' });

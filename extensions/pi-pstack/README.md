@@ -1,6 +1,6 @@
 # pstack for pi
 
-This Pi package ports pstack 0.15.15 and team-kit 1.2.0 workflows to Pi 1.1.0. It preserves 193 source files and all 69 upstream workflow entry points through 68 generated skills and 67 prompt templates. Pi-authored host resources bring discovery to 72 skills and 70 templates. Run `bun run check:resources` to verify generated counts and `bun run check:cli` to verify installed discovery. Its extension supplies executable behavior. The extension maps supported host facilities to Pi-native behavior. Live external services and proprietary host facilities remain subject to the documented limits. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
+This Pi package ports pstack 0.15.15 and team-kit 1.2.0 workflows to Pi 1.1.0. It preserves 193 source files and all 69 upstream workflow entry points through 68 generated skills and 67 prompt templates. Pi-authored host resources bring discovery to 73 skills and 71 templates. Run `bun run check:resources` to verify generated counts and `bun run check:cli` to verify installed discovery. Its extension supplies executable behavior. The extension maps supported host facilities to Pi-native behavior. Live external services and proprietary host facilities remain subject to the documented limits. The [compatibility report](docs/parity.md) lists each mapping and the differences that remain.
 
 ## Install
 
@@ -136,7 +136,7 @@ CLI and UI workflows use the project's existing terminal or browser tools. Bundl
 
 ## Goals
 
-`/goal <objective>` arms a goal that Pi pursues across turns. `CreateGoal`, `GetGoal`, and `UpdateGoal` are model-callable, so a playbook that says to arm a `/goal` does so itself. The goal lives on the session branch. While it is active, each finished turn queues a continuation until `UpdateGoal` marks it complete after a completion audit. An aborted or failed turn does not continue. `/goal clear` drops it. A leading time limit is rejected with a notice. The host skills `goal`, `create-skill` (targets Pi's skill format and paths), and `origin` (origin CLI setup and repair) are Pi ports of the Reference built-ins.
+`/goal <objective>` arms a goal that Pi pursues across turns. `CreateGoal`, `GetGoal`, and `UpdateGoal` are model-callable, so a playbook that says to arm a `/goal` does so itself. The goal lives on the session branch. While it is active, each finished turn queues a continuation until `UpdateGoal` marks it complete after a completion audit. An aborted or failed turn does not continue. `/goal clear` drops it. A leading time limit is rejected with a notice. The host skills `goal`, `create-skill` (targets Pi's skill format and paths), `origin` (origin CLI setup and repair), `loop`, and `automate` (first-time Automations editor handoff; creation only) are Pi ports of the Reference built-ins or Pi-native equivalents.
 
 ## Local agents
 

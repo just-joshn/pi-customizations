@@ -10,7 +10,7 @@ const provider = join(packageRoot, 'test', 'journey-provider.ts');
 const progressFixture = join(packageRoot, 'test', 'fixtures', 'task-progress-sentinel.txt');
 const session = `progress-${process.pid}`;
 const socket = `pstack-progress-${process.pid}`;
-const STATUS_CENSUS = '72 skills, 70 prompt templates';
+const STATUS_CENSUS = '73 skills, 71 prompt templates';
 const checks = [];
 let directory;
 let panePid;

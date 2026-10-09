@@ -210,16 +210,26 @@ function markdown(entry) {
     if (text !== updated) transformations = [...transformations, 'Normalize skill name to its directory slug for Pi discovery.'];
     text = updated;
     const pathTriggered = /^---\r?\n[\s\S]*?^paths:/m.test(text);
-    const portable = text.replace(/^(---\r?\n)([\s\S]*?)(\r?\n---)/, (_match, start, frontmatter, end) => start + frontmatter.replace(/^(?:mode|icon|color|reminder|paths):[^\n]*(?:\n|$)/gm, '') + end);
+    const portable = text.replace(/^(---\r?\n)([\s\S]*?)(\r?\n---)/, (_match, start, frontmatter, end) => start + frontmatter.replace(/^(?:mode|icon|color|reminder):[^\n]*(?:\n|$)/gm, '') + end);
     if (text !== portable) transformations = [...transformations, 'Remove Reference-only frontmatter; Pi runtime behavior belongs to the extension.'];
     text = portable;
-    if (pathTriggered) transformations = [...transformations, 'Pi has no file-path skill trigger. Keep the skill hidden from model selection, and the host contract requires reading it before editing matching files.'];
+    if (pathTriggered) transformations = [...transformations, 'Retain paths metadata for skill-file parity. Pi has no file-path skill trigger, so the host contract still requires reading the skill before editing matching files.'];
     if (slug === 'setup-pstack') {
       text = text.replace(
         '# Setup pstack',
-        '# Setup pstack\n\nCall `pstack_setup` with action "state" to detect models and load current choices, ask the budget and role questions with AskQuestion exactly as these steps describe, then call `pstack_setup` with action "write" and the confirmed choices to validate and write the rule atomically. Do not write the rule file by hand. This skill may be selected when the user asks to configure models; /setup-pstack and /skill:setup-pstack use the same implementation.',
+        '# Setup pstack\n\nCall `pstack_setup` with action "state" to detect models and load current choices (including `roleConfirmPrompt`), ask the budget and role questions with AskQuestion exactly as these steps describe, then call `pstack_setup` with action "write" and the confirmed choices to validate and write the rule atomically. Do not write the rule file by hand. This skill may be selected when the user asks to configure models; /setup-pstack and /skill:setup-pstack use the same implementation.',
       );
-      transformations = [...transformations, 'Preserve ambient setup invocation and route detection, questions, and the validated write through the pstack_setup tool and AskQuestion.'];
+      const roleConfirmFrom =
+        '**(c) Show the roles and confirm.** Show every role with its model, marking any real slug not in the detected set as needing a choice. Also list each line step 2 dropped. Ask whether to accept as-is or change specific roles, offering the detected models plus `inherit-parent` and `auto` (both mean: this role runs on the parent chat model, which is how Auto users stay on Auto) as the options. Prefer AskQuestion over free text.';
+      const roleConfirmTo =
+        '**(c) Show the roles and confirm.** Paste `roleConfirmPrompt` from the state action as the AskQuestion prompt verbatim. Do not rewrite it, summarize it, or collapse identical values into one sentence (for example "All 17 roles are currently inherit-parent"). Mark any real slug not in the detected set as needing a choice by editing that role\'s line only after the user picks Change specific roles. Options must be `Accept as-is` and `Change specific roles`. Offer the detected models plus `inherit-parent` and `auto` (both mean: this role runs on the parent chat model, which is how Auto users stay on Auto) when changing. Prefer AskQuestion over free text.';
+      if (!text.includes(roleConfirmFrom)) throw new Error('setup-pstack role-confirm paragraph missing from upstream text');
+      text = text.replace(roleConfirmFrom, roleConfirmTo);
+      transformations = [
+        ...transformations,
+        'Preserve ambient setup invocation and route detection, questions, and the validated write through the pstack_setup tool and AskQuestion.',
+        'Require AskQuestion role confirm to paste roleConfirmPrompt from pstack_setup state verbatim so every role lists with its model.',
+      ];
     }
   }
   const mapped = mapHostPaths(entry, text);

@@ -58,6 +58,31 @@ test('renders the second question after advancing and keeps per-question cursors
   expect(lines[7]).toContain('› [ ] Accept as-is (Recommended)');
 });
 
+test('preserves newline-separated role:model lines in the AskQuestion prompt', () => {
+  const listing = [
+    'Current roles (one line per role; do not summarize):',
+    'feature, refactoring: inherit-parent',
+    'bug-fix: inherit-parent',
+    'reflect judgment, divergent, synthesizer: inherit-parent',
+    'Dropped retired roles: none.',
+    'Accept as-is, or change specific roles?',
+  ].join('\n');
+  const question: PanelQuestion = {
+    id: 'roles',
+    prompt: listing,
+    options: [
+      { id: 'accept', label: 'Accept as-is' },
+      { id: 'change', label: 'Change specific roles' },
+    ],
+    allowMultiple: false,
+  };
+  const text = renderPanel(initialPanelState([question]), 120).join('\n');
+  expect(text).toContain('feature, refactoring: inherit-parent');
+  expect(text).toContain('bug-fix: inherit-parent');
+  expect(text).toContain('reflect judgment, divergent, synthesizer: inherit-parent');
+  expect(text).toContain('Accept as-is, or change specific roles?');
+});
+
 test('space toggles the checkbox and toggling again clears it', () => {
   const checked = reducePanel(initialPanelState(twoQuestions), { char: ' ' });
   expect(renderPanel(checked, 120)[7]).toContain('› [x] unlimited — max reasoning');

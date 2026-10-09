@@ -15,6 +15,7 @@ import { FIRST_ACTION_RULE_TYPE, firstActionRule, usesAnthropicMessages } from '
 import { readModelRule } from './models.ts';
 import { registerPotetoPlaybookTodoGate } from './poteto-playbook-todo-gate.ts';
 import { registerQuestions } from './questions.ts';
+import { registerAutomations } from './automations.ts';
 import { registerRoutines } from './routines.ts';
 import { registerSetupTool } from './setup-tool.ts';
 import { registerShells } from './shells.ts';
@@ -88,4 +89,5 @@ export default async function pstack(pi: ExtensionAPI) {
   registerGoal(pi);
   registerTimers(pi);
   registerRoutines(pi);
+  registerAutomations(pi);
 }

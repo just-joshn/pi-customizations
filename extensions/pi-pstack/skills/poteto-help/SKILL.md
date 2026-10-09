@@ -50,8 +50,8 @@ This is the Pi port of pstack. Its skills use the Agent Skills format. The workf
 
 Whether `/poteto-mode` stays on depends on how the user starts it:
 
-- `/poteto-mode <task>` and `/skill:poteto-mode <task>` attach the skill for one message. They match Cursor plain Enter. They do not leave the crown sticky badge on.
-- `/poteto-mode sticky` and `/poteto-mode sticky <task>` (same with `/skill:poteto-mode sticky`) turn sticky mode on for that session branch. That is Pi's stand-in for Cursor sticky mode entry. It stays in context every turn until `/poteto-mode off`, and it stays out of casual turns.
+- `/poteto-mode <task>` and `/skill:poteto-mode <task>` attach the skill for one message. They do not leave the crown sticky badge on.
+- `/poteto-mode sticky` and `/poteto-mode sticky <task>` (same with `/skill:poteto-mode sticky`) turn sticky mode on for that session branch. It stays in context every turn until `/poteto-mode off`, and it stays out of casual turns.
 
 Mid-chat, "new task" makes sticky mode match a fresh playbook. `/poteto-mode` already uses `poteto-agent` for the subagents its playbook steps spawn. To get the same style from a subagent of your own, spawn it with `subagent_type: "poteto-agent"`.
 
@@ -88,6 +88,7 @@ The default answer is `/poteto-mode`, which runs most of the others when its ste
 | Turn what a finished task taught into skill edits | [`/reflect`](../reflect/SKILL.md) |
 | Stop agents from repeating the same mistakes in this repo | [`/correct`](../correct/SKILL.md) |
 | Build a page whose buttons wake a Grok Bot over a webhook | [`/make-bot-ui`](../make-bot-ui/SKILL.md) |
+| Create a first-time automation draft through the Automations editor (creation only) | `/automate` |
 | Find their way around pstack | `/poteto-help` |
 
 If a skill directory next to this one is missing from the table, read its frontmatter and route by its description. The `principle-*` directories are covered under principles below.
@@ -104,7 +105,7 @@ Close calls:
 Not in pstack:
 
 - `/deslop`, `control-cli`, and `control-ui` ship in the `team-kit` plugin.
-- `/loop` and `/create-skill` are host skills that this package supplies.
+- `/loop`, `/create-skill`, and `/automate` are host skills that this package supplies.
 - pstack has no `/orchestrate` skill. Orchestrate is a `/poteto-mode` playbook. If the slash menu shows `/orchestrate`, another plugin provides it.
 
 ## Playbooks and principles

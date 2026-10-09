@@ -34,7 +34,7 @@ test('every name the shipped catalog lists resolves to an existing file', async 
   expect(skills).toContain('how');
   expect(skills).toContain('principle-prove-it-works');
   expect(skills).toContain('deslop');
-  expect(host).toEqual(['create-skill', 'goal', 'loop', 'origin']);
+  expect(host).toEqual(['automate', 'create-skill', 'goal', 'loop', 'origin']);
   expect(playbooks).toHaveLength(23);
   for (const name of skills ?? []) expect(existsSync(join(root, 'skills', name, 'SKILL.md'))).toBe(true);
   for (const name of host ?? []) expect(existsSync(join(root, 'host/skills', name, 'SKILL.md'))).toBe(true);

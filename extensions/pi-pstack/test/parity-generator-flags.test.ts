@@ -40,10 +40,10 @@ test('setup-pstack is the only pstack skill the model may invoke on its own', as
   expect(ambient).toEqual(['setup-pstack']);
 });
 
-test('typescript-best-practices stays hidden from the model and keeps no Reference path trigger', async () => {
+test('typescript-best-practices stays hidden from the model and retains paths metadata', async () => {
   expect(await hiddenFlag('skills/typescript-best-practices')).toBe(true);
   const text = await readFile(join(root, 'skills/typescript-best-practices/SKILL.md'), 'utf8');
-  expect(text).not.toMatch(/^paths:/m);
+  expect(text).toMatch(/^paths:\s*\["\*\*\/\*\.ts",\s*"\*\*\/\*\.tsx"\]\s*$/m);
 });
 
 test('the Pi skill loader reports every hidden skill as disabled and leaves it out of the model prompt', async () => {

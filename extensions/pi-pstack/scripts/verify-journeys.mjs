@@ -123,10 +123,10 @@ async function journeyHostContract(ctx) {
 
 async function journeyMode(ctx) {
   await ctx.send({ type: 'new_session' });
-  await ctx.run('/poteto-mode journey');
+  await ctx.run('/poteto-mode sticky journey');
   const modeOn = systemText(await ctx.turn('journey probe'));
   const body = frontmatterBody(await readFile(join(ctx.root, 'skills', 'poteto-mode', 'SKILL.md'), 'utf8'));
-  check('mode: /poteto-mode injects the complete mode instructions', modeOn.includes(body));
+  check('mode: /poteto-mode sticky injects the complete mode instructions', modeOn.includes(body));
   check('mode: injected mode names its own reference directory', modeOn.includes(join(ctx.root, 'skills', 'poteto-mode')));
   await ctx.run('/poteto-mode OFF');
   const modeOff = systemText(await ctx.turn('journey probe'));
@@ -148,7 +148,7 @@ async function journeyStatus(ctx) {
   await ctx.run('/pstack tones');
   const statuses = (await ctx.messages()).slice(before).filter((message) => message.customType === 'pstack-status');
   checkEqual('status: each accepted form publishes one status message', statuses.length, 2);
-  check('status: reports the discovered skill and template counts', /72 skills, 70 prompt templates/.test(String(statuses[0]?.content)), String(statuses[0]?.content).slice(0, 200));
+  check('status: reports the discovered skill and template counts', /73 skills, 71 prompt templates/.test(String(statuses[0]?.content)), String(statuses[0]?.content).slice(0, 200));
   const notifications = ctx.ui.filter((request) => request.method === 'notify').map((request) => request.message ?? '');
   check(
     'status: an unknown argument notifies the accepted forms',
@@ -234,7 +234,9 @@ async function journeyTask(ctx) {
   const refused = (await ctx.callTool('JOURNEY:reference-assistant-unknown')).find((message) => message.toolName === 'task');
   check(
     'RPC: an unknown agent_type is a tool error that lists the valid types',
-    refused?.isError === true && JSON.stringify(refused).includes('Unknown agent_type: not-a-type. Valid types are: code-review, explore, general-purpose, research, rubber-duck, security-review, task'),
+    refused?.isError === true &&
+      JSON.stringify(refused).includes('Unknown agent_type: not-a-type. Valid types are:') &&
+      JSON.stringify(refused).includes('Comment Sicko'),
     JSON.stringify(refused).slice(0, 300),
   );
 }
@@ -642,7 +644,7 @@ async function journeyResume(ctx) {
   try {
     await first.send({ type: 'set_model', provider: 'journey-test', modelId: 'recorder' });
     sessionFile = (await first.send({ type: 'get_state' })).sessionFile;
-    await first.run('/poteto-mode');
+    await first.run('/poteto-mode sticky');
     await first.run('JOURNEY:todowrite');
     await first.run('JOURNEY:goalcycle');
   } finally {

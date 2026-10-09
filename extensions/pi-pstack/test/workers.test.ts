@@ -260,7 +260,7 @@ workerTest('readonly workers inherit extension providers without enabling write 
     return prompts;
   });
   await call('Task', { prompt: '/bro Rewrite this plainly.', model: 'worker-test/deterministic', run_in_background: false });
-  expect(childPrompts.find((loader) => !loader.readonly)?.names.length).toBe(70);
+  expect(childPrompts.find((loader) => !loader.readonly)?.names.length).toBe(71);
   expect(childPrompts.find((loader) => !loader.readonly)?.names.includes('loop')).toBe(true);
   const childInput = await readFile(join(dir, 'child-input.txt'), 'utf8');
   expect(childInput).toMatch(/Stop using jargon and speak coherently/);
@@ -269,7 +269,7 @@ workerTest('readonly workers inherit extension providers without enabling write 
   expect(JSON.stringify(readonlyReview.content)).toMatch(/settled/);
   expect(JSON.parse(await readFile(join(dir, 'child-tools.txt'), 'utf8')).sort()).toEqual(['find', 'grep', 'ls', 'read']);
   observer.mockRestore();
-  expect(childPrompts.find((loader) => loader.readonly)?.names.length).toBe(70);
+  expect(childPrompts.find((loader) => loader.readonly)?.names.length).toBe(71);
   expect(childPrompts.find((loader) => loader.readonly)?.names.includes('loop')).toBe(true);
   const childPrompt = appended.flat().join('\n');
   expect(childPrompt).toMatch(/You are a \*\*Task subagent\*\*/);

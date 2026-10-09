@@ -98,9 +98,14 @@ test('generation separates reusable prompts from procedural skills and Reference
     expect(architectTemplate).toMatch(/\$ARGUMENTS/);
     await expect(readFile(join(f.directory, 'prompts/poteto-mode.md'))).rejects.toMatchObject({ code: 'ENOENT' });
     await expect(readFile(join(f.directory, 'prompts/setup-pstack.md'))).rejects.toMatchObject({ code: 'ENOENT' });
-    for (const name of ['poteto-mode', 'typescript-best-practices']) {
-      const text = await readFile(join(f.directory, `skills/${name}/SKILL.md`), 'utf8');
+    {
+      const text = await readFile(join(f.directory, 'skills/poteto-mode/SKILL.md'), 'utf8');
       expect(text).not.toMatch(/^(mode|icon|color|reminder|paths):/m);
+    }
+    {
+      const text = await readFile(join(f.directory, 'skills/typescript-best-practices/SKILL.md'), 'utf8');
+      expect(text).not.toMatch(/^(mode|icon|color|reminder):/m);
+      expect(text).toMatch(/^paths:\s*\["\*\*\/\*\.ts",\s*"\*\*\/\*\.tsx"\]\s*$/m);
     }
   } finally {
     await f.close();

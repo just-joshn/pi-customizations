@@ -157,8 +157,8 @@ export function panelResult(state: PanelState): PanelResult {
 
 const padInner = (text: string, innerWidth: number): string => `${text}${' '.repeat(Math.max(0, innerWidth - text.length))}`;
 const row = (text: string, innerWidth: number): string => ` │ ${padInner(text, innerWidth)} │`;
-const wrap = (text: string, width: number): string[] => {
-  const words = text.split(' ');
+const wrapParagraph = (text: string, width: number): string[] => {
+  const words = text.split(' ').filter((word) => word.length > 0);
   const lines: string[] = [];
   let current = '';
   for (const word of words) {
@@ -173,6 +173,8 @@ const wrap = (text: string, width: number): string[] => {
   if (current) lines.push(current);
   return lines.length > 0 ? lines : [''];
 };
+const wrap = (text: string, width: number): string[] =>
+  text.split(/\r?\n/).flatMap((paragraph) => (paragraph.length === 0 ? [''] : wrapParagraph(paragraph, width)));
 
 export function renderPanel(state: PanelState, width: number): string[] {
   const boxWidth = Math.max(20, width - 2);

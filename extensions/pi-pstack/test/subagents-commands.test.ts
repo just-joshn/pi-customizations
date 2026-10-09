@@ -178,7 +178,7 @@ test('selecting a custom agent emits selected, setPrompt works and general-purpo
     expect((await rpc(fixture, 'session.agent.deselect')).ok).toBe(true);
     expect(seen).toContain('subagent.deselected');
     expect((await rpc(fixture, 'session.agent.select', { name: 'ghost' })).error).toBe('Unknown agent: ghost');
-    expect(((await rpc(fixture, 'session.agent.list')).result as unknown[]).length).toBe(7);
+    expect(((await rpc(fixture, 'session.agent.list')).result as unknown[]).length).toBe(12);
   } finally {
     await fixture.close();
   }
