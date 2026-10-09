@@ -1,0 +1,40 @@
+
+  Checking whether this host exposes update_state / RoutinePrepare, and what's already in the fixture.
+
+    Explored available MCP tools
+
+    Read, globbed 1 file, 1 glob
+    Read README.md
+    Globbed "**/make-bot-ui/**/*" in ...<redacted len=47>
+
+    Explored available MCP tools cursor
+
+  This host has no update_state or RoutinePrepare, so webhook routine creation isn't available. Writing the status
+  file and stopping.
+
+  $ mkdir -p /<redacted len=101> &&
+    printf '%s\n' 'STATUS=host-blocked reason=missing update_state/RoutinePrepare' >
+    /<redacted len=106>.txt &&
+    cat
+    /<redacted len=106>.txt
+    675ms
+    STATUS=host-blocked reason=missing update_state/RoutinePrepare
+
+  Blocked: this host cannot create webhook routines.
+
+  Make Bot UI requires update_state (routine create with webhook trigger) and the SendToUser secret-request path for
+  the sender key. Neither update_state nor RoutinePrepare is available here, so I did not invent a key, build a
+  page, or wire a webhook.
+
+  Wrote:
+  STATUS=host-blocked reason=missing update_state/RoutinePrepare
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 15%                                                                                            Run Everything
+  ~/<redacted len=75> · refactor/pi-pstack-parity-again
+

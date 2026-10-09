@@ -1,0 +1,39 @@
+{
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/how/SKILL.md",
+    "ok": true,
+    "name": "how",
+    "disableModelInvocation": true
+  },
+  "howHostAttached": false,
+  "howInAvailableSkills": false,
+  "voluntaryHowRead": false,
+  "promptHasSlashHow": false,
+  "answered": true,
+  "contractHeld": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/disable-model/fixture-out/cursor/done.txt",
+    "line": "answered=yes"
+  },
+  "answerExists": true,
+  "answerPreview": "# store.js ↔ api.js at runtime\n\n`api.js` is the HTTP-shaped entrypoint. Callers invoke `handle(req)`; it matches method/path, then calls into `store.js`:\n\n- `GET /tickets` → `listTickets()`\n- `GET /tickets/:id` → `getTicket(id)` (404 if missing)\n- `POST /tickets` → `createTicket(body)` (400 on validation throw)\n\n`store.js` holds the in-memory `Map`, allocates ids, and returns copies of ticket reco",
+  "screen": {
+    "usedHow": false,
+    "skillBracketHow": false,
+    "skillXmlHow": false,
+    "slashHowCommand": false,
+    "howExplainerChrome": false,
+    "hostAttached": false
+  },
+  "pty": {
+    "usedHow": false,
+    "skillBracketHow": false,
+    "skillXmlHow": false,
+    "slashHowCommand": false,
+    "howExplainerChrome": false,
+    "hostAttached": false
+  },
+  "session": null,
+  "scorerNote": "hostAttached from Used how / [skill] how / <skill name=\"how\"> / how explainer; voluntary read of how/SKILL.md is noted and not a fail"
+}

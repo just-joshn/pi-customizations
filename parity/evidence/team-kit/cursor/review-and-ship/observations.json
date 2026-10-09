@@ -1,0 +1,46 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": false,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "pty": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": true,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/review-and-ship/done.txt",
+    "line": "STATUS=verified reason=pr-open-ci-green",
+    "status": "verified"
+  },
+  "post": {
+    "artifactHasMarker": true,
+    "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/4",
+    "prExists": true,
+    "artifactBytes": 645
+  },
+  "sideCtx": {},
+  "seededSkill": null,
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "artifactOk": true,
+    "post": {
+      "artifactHasMarker": true,
+      "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/4",
+      "prExists": true,
+      "artifactBytes": 645
+    },
+    "closed": true,
+    "honestBlocker": false
+  }
+}

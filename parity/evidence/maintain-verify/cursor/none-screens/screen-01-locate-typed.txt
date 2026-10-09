@@ -1,0 +1,19 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /config to customize Cursor settings and behavior.
+
+
+
+                                                                                                                       
+  → /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor/locate  
+    .txt and stop:                                                                                                     
+    LOCATED=none                                                                                                       
+    CREATE_OFFERED=yes                                                                                                 
+    Do not run index hygiene, source wave, live pass, triage, or ship. Do not edit any other files. Do not edit        
+    ledgers or parity/.                                                                                                
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app · refactor/pi-pstack-parity-again

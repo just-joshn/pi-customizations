@@ -1,0 +1,40 @@
+                                                                                                                       │
+ ## Informational (none required)                                                                                      │
+ - Copilot review: unable to review (requester quota limit). No findings.                                              │
+                                                                                                                       │
+ ## Inline review comments                                                                                             │
+ - None.                                                                                                               │
+                                                                                                                       │
+ ## Action list                                                                                                        │
+ 1. Rename label fixture-alpha -> fixture-beta.                                                                        │
+                                                                                                                       │
+ ## Open questions                                                                                                     │
+ - None. (Copilot review should be re-requested if automated review is wanted.)                                        │
+ E                                                                                                                     │
+ echo "STATUS=verified reason=comment fetched and summarized" > $d/done.txt (timeout 20s)                              │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ I fetched the PR comments and wrote the summary and status files. I found FIXTURE_REVIEW_COMMENT and included it in   ┃
+ the summary.                                                                                                          ┃
+                                                                                                                       ┃
+ - Action item: rename label fixture-alpha to fixture-beta before merge. This came from a discussion comment by        ┃
+   just-joshn.                                                                                                         ┃
+ - Copilot review: it couldn't review the PR because the requester hit a quota limit, so it gave no findings.          ┃
+ - Inline review comments: none.                                                                                       ┃
+                                                                                                                       ┃
+ done.txt contains STATUS=verified reason=comment fetched and summarized.                                              ┃
+                                                                                                                       ┃
+ Files are in                                                                                                          ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/get-pr-comments:      ┃
+ - summary.md                                                                                                          ┃
+ - done.txt                                                                                                            ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (fixture/pr-comments-seed)
+↑8 ↓853 R59k W18k CH98.5% $0.092 (sub) 2.6%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

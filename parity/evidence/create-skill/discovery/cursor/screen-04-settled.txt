@@ -1,0 +1,39 @@
+
+  Reply with answers (short bullets fine). After that I’ll write requirements.md and the one-line done.txt only.
+
+                                                                                                                       
+  Answers for Phase 1 only. 1) Purpose: teach the agent to echo CREATE-SKILL-PROBE-MARKER when the user says           
+  "run the create-skill probe". 2) Location: project skill (parity-create-skill-probe). 3) Triggers: "run the          
+  create-skill probe", "parity-create-skill-probe", "create-skill probe". 4) Constraints: under 80 lines, no           
+  scripts, body must include exact marker CREATE-SKILL-PROBE-MARKER on its own line. 5) Patterns: follow               
+  create-skill SKILL.md structure. Write the gathered requirements to the requirements.md path from the first          
+  message. Write STATUS=discovered to the done path. Do not write SKILL.md. Do not start Design or                     
+  Implementation. Stop.                                                                                                
+                                                                                                                       
+
+  Writing discovery artifacts only — requirements.md and done.txt.
+
+  $ mkdir -p
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/discovery/cursor
+    && cat > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/discover
+    y/cursor/requirements.md <<'EOF'
+    # Phase 1 Discovery — create-skill probe 736ms
+    … 27 input + 31 output lines hidden · ctrl+o to expand
+    Follow the create-skill `SKILL.md` structure (YAML frontmatter with `name` / `description`, then markdown body wi…
+
+  Phase 1 Discovery is done.
+
+  • Wrote parity/evidence/create-skill/fixture-out/discovery/cursor/requirements.md (Purpose, Location, Triggers,
+    Constraints, Patterns)
+  • Wrote done.txt as STATUS=discovered
+
+  No SKILL.md, no Design/Implementation.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 10.7%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app · refactor/pi-pstack-parity-again

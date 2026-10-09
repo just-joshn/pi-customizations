@@ -1,0 +1,86 @@
+{
+  "ready": {
+    "skillsSeen": [],
+    "agentsSeen": [],
+    "skillCountFromNeedles": 0,
+    "agentCountFromNeedles": 0,
+    "hasSkillsDirCue": false,
+    "hasAgentsDirCue": false,
+    "statusSkillCount": null,
+    "mentionsPstackStatus": false,
+    "slashMenuOpen": false,
+    "working": false
+  },
+  "slashRoot": {
+    "skillsSeen": [],
+    "agentsSeen": [],
+    "skillCountFromNeedles": 0,
+    "agentCountFromNeedles": 0,
+    "hasSkillsDirCue": false,
+    "hasAgentsDirCue": false,
+    "statusSkillCount": null,
+    "mentionsPstackStatus": false,
+    "slashMenuOpen": true,
+    "working": false
+  },
+  "slashHow": {
+    "skillsSeen": [
+      "/how"
+    ],
+    "agentsSeen": [],
+    "skillCountFromNeedles": 1,
+    "agentCountFromNeedles": 0,
+    "hasSkillsDirCue": false,
+    "hasAgentsDirCue": false,
+    "statusSkillCount": null,
+    "mentionsPstackStatus": false,
+    "slashMenuOpen": true,
+    "working": false
+  },
+  "slashAgents": {
+    "skillsSeen": [
+      "/poteto-mode"
+    ],
+    "agentsSeen": [
+      "/subagent-poteto-agent"
+    ],
+    "skillCountFromNeedles": 1,
+    "agentCountFromNeedles": 1,
+    "hasSkillsDirCue": false,
+    "hasAgentsDirCue": true,
+    "statusSkillCount": null,
+    "mentionsPstackStatus": false,
+    "slashMenuOpen": true,
+    "working": false
+  },
+  "slashPoteto": {
+    "skillsSeen": [
+      "/poteto-mode",
+      "/poteto-help"
+    ],
+    "agentsSeen": [
+      "/subagent-poteto-agent"
+    ],
+    "skillCountFromNeedles": 2,
+    "agentCountFromNeedles": 1,
+    "hasSkillsDirCue": false,
+    "hasAgentsDirCue": true,
+    "statusSkillCount": null,
+    "mentionsPstackStatus": false,
+    "slashMenuOpen": true,
+    "working": false
+  },
+  "merged": {
+    "skillsSeen": [
+      "/how",
+      "/poteto-mode",
+      "/poteto-help"
+    ],
+    "agentsSeen": [
+      "/subagent-poteto-agent"
+    ],
+    "skillsRegistered": true,
+    "agentsRegistered": true,
+    "bothRegistered": true
+  }
+}

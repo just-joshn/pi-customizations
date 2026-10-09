@@ -1,0 +1,234 @@
+{
+  "scenario": "setup-pstack:verify-offer",
+  "scenarioId": "setup-verify-offer",
+  "requirementIds": [
+    "PSTACK-SETUP-VERIFY-OFFER-001"
+  ],
+  "branch": "no",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "lockedFixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "restoredLockedDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-verify-offer/fixture-app",
+  "isolation": {
+    "sharedRuleLockPath": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc.parity-lock",
+    "peersAtStart": [],
+    "peersAtEnd": []
+  },
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-verify-offer/cursor/b12de787-9406-4de1-8993-bd3b818bb912",
+      "attemptId": "b12de787-9406-4de1-8993-bd3b818bb912",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "branch": "no",
+      "observations": {
+        "side": "cursor",
+        "branch": "no",
+        "screens": {
+          "writeCard": {
+            "writeCard": true,
+            "askQuestion": false,
+            "chatForm": false,
+            "offerHit": "verify-*",
+            "offered": true,
+            "createAttached": false,
+            "declinedLanguage": false,
+            "working": true
+          },
+          "offer": {
+            "writeCard": true,
+            "askQuestion": false,
+            "chatForm": false,
+            "offerHit": "create-verification-skill",
+            "offered": true,
+            "createAttached": false,
+            "declinedLanguage": false,
+            "working": false,
+            "createAttachedFalsePositive": "offer text + find SKILL.md glob matched loose detector"
+          },
+          "branchSettled": {
+            "writeCard": true,
+            "askQuestion": false,
+            "chatForm": false,
+            "offerHit": "create-verification-skill",
+            "offered": true,
+            "createAttached": false,
+            "declinedLanguage": true,
+            "working": false,
+            "skippedPhrase": "Understood — skipping the verification skill. Setup is done."
+          }
+        },
+        "pathNotes": [
+          "budget=chatform-budget",
+          "confirm=timeout",
+          "accept=chatform-accept",
+          "answer=chatform-offer"
+        ],
+        "budgetPath": "chatform-budget",
+        "confirmKind": "timeout",
+        "acceptPath": "chatform-accept",
+        "writeCardSeen": true,
+        "offerKind": "offer",
+        "offeredOnce": true,
+        "offerHit": "create-verification-skill",
+        "answerPath": "chatform-offer",
+        "createVerifyInvoked": false,
+        "skillWritten": false,
+        "continuedWithoutPush": true,
+        "branchOk": true,
+        "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+        "wroteBytesChanged": false,
+        "offerOnceReRead": true,
+        "oraclePatch": "createAttached false-positive corrected from screen-06-branch-timeout.txt"
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "b12de787-9406-4de1-8993-bd3b818bb912",
+        "side": "cursor",
+        "scenarioRef": "setup-pstack:verify-offer",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-verify-offer/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-verify-offer/pi/27567808-9734-4516-b6e2-629dfb650d68",
+      "attemptId": "27567808-9734-4516-b6e2-629dfb650d68",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "branch": "no",
+      "observations": {
+        "side": "pi",
+        "branch": "no",
+        "screens": {
+          "writeCard": {
+            "writeCard": true,
+            "askQuestion": false,
+            "chatForm": false,
+            "offerHit": null,
+            "offered": false,
+            "createAttached": false,
+            "declinedLanguage": false,
+            "working": true
+          },
+          "offer": {
+            "writeCard": true,
+            "askQuestion": false,
+            "chatForm": false,
+            "offerHit": "create-verification-skill",
+            "offered": true,
+            "createAttached": false,
+            "declinedLanguage": false,
+            "working": false
+          },
+          "branchSettled": {
+            "writeCard": true,
+            "askQuestion": false,
+            "chatForm": false,
+            "offerHit": "create-verification-skill",
+            "offered": true,
+            "createAttached": false,
+            "declinedLanguage": false,
+            "working": false
+          }
+        },
+        "pathNotes": [
+          "budget=askquestion-budget",
+          "confirm=role-confirm",
+          "accept=askquestion-accept",
+          "answer=chatform-offer"
+        ],
+        "budgetPath": "askquestion-budget",
+        "confirmKind": "role-confirm",
+        "acceptPath": "askquestion-accept",
+        "writeCardSeen": true,
+        "offerKind": "offer",
+        "offeredOnce": true,
+        "offerHit": "create-verification-skill",
+        "answerPath": "chatform-offer",
+        "createVerifyInvoked": false,
+        "skillWritten": false,
+        "continuedWithoutPush": true,
+        "branchOk": true,
+        "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+        "wroteBytesChanged": false
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "27567808-9734-4516-b6e2-629dfb650d68",
+        "side": "pi",
+        "scenarioRef": "setup-pstack:verify-offer",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-verify-offer/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

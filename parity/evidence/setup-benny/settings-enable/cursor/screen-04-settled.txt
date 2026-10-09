@@ -1,0 +1,39 @@
+    diff=0
+    {"editor.fontSize":14,"files.exclude":{"**/.git":true},"plugins":{"other-plugin":{"enabled":true,"version":"1.0.0…
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-enable/fixtu
+    re-out/cursor && printf 'STATUS=settings-ok reason=pstack enabled with comments and other plugins preserved\n' >
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-enable/fixture-out/cu
+    rsor/done.txt && cat /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-
+    enable/fixture-out/cursor/done.txt 243ms
+    STATUS=settings-ok reason=pstack enabled with comments and other plugins preserved
+
+  pstack is now enabled in .cursor/settings.json: plugins.pstack.enabled went from false to true, and nothing else
+  in the file changed.
+
+  • Pack copy: I'm treating this as done. .cursor/automations/benny/ matches .upstream/automations/benny/ exactly,
+    with no differences found. It has FOR_AGENTS.md, skills/setup-benny/SKILL.md, both operational skill files and
+    the templates.
+  • Validation: After removing the comment, the file parses as valid JSON. The // fixture-marker: 
+    keep-this-comment line, editor.fontSize, files.exclude and the other-plugin entry are all unchanged.
+  • Status file: I wrote STATUS=settings-ok reason=pstack enabled with comments and other plugins preserved to
+    fixture-out/cursor/done.txt.
+
+  Not done:
+  • Skill check: Setup-benny also asks for a fresh agent in this repo to confirm that how, why, tdd, unslop and
+    the principle skills load from the project settings. I didn't run that check.
+  • Automations: I didn't create or update any.
+  • Off-limits files: I didn't touch the parity ledgers or src/app.js.
+
+  .cursor/settings.json, .cursor/automations/benny/ and any secret-free Benny configuration you reference must be
+  committed before you turn on either automation. I haven't committed anything.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium · 14.7% · 1 file edited                                                   Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-enable/fixture-app · 
+  refactor/pi-pstack-parity-again

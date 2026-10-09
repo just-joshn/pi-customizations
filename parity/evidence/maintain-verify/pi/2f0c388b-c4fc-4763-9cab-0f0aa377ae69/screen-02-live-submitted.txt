@@ -1,0 +1,40 @@
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass/.pi/ski │
+ lls/verify-hello-cli/SKILL.md. The seeded skill already matches ./hello.sh (source looks clean). Still run a full     │
+ maintain pass including Pass step 4 Live pass. Only edit that skill directory. Never edit product code (hello.sh,     │
+ README.md). Never edit parity/ ledgers or ~/.cursor/rules/pstack-models.mdc. Live-pass rules you must follow and      │
+ report: run live even when source is clean; coordinator owns all driving (do not hand live driving to source-wave     │
+ children); exercise every feature at least once; doctor before first drive and before each fresh CLI session; keep    │
+ evidence at its named location through cleanup; clean leftover residue from drives; if doctor fails from skill drift, ┃
+ fix under edit scope and retry once before blocked; verified-unreachable only with concrete prerequisite plus         ┃
+ attempted route; re-drive harness fixes live before ship; final teardown after the last drive while leaving named     ┃
+ evidence files. Prefer OUTCOME=clean when live coverage passes with no skill edits. After the live pass finishes,     ┃
+ write exactly these lines to                                                                                          ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/live-pass/pi/live ┃
+ -pass-marker.txt and stop:                                                                                            ┃
+ LIVE_PASS_RAN=<yes|no>                                                                                                ┃
+ SOURCE_LOOKED_CLEAN=<yes|no>                                                                                          ┃
+ COORDINATOR_OWNED_DRIVING=<yes|no>                                                                                    ┃
+ FEATURES_EXERCISED=<integer>                                                                                          ┃
+ DOCTOR_BEFORE_DRIVE=<yes|no>                                                                                          ┃
+ EVIDENCE_SURVIVES_CLEANUP=<yes|no>                                                                                    ┃
+ NO_LEFTOVER_RESIDUE=<yes|no>                                                                                          ┃
+ DOCTOR_DRIFT_RETRY=<na|yes|no>                                                                                        ┃
+ VERIFIED_UNREACHABLE=<na|yes|no>                                                                                      ┃
+ HARNESS_REDRIVE=<na|yes|no>                                                                                           ┃
+ FINAL_TEARDOWN=<yes|no>                                                                                               ┃
+ EVIDENCE_REMAINS=<yes|no>                                                                                             ┃
+ EVIDENCE_PATH=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-liv ┃
+ e-pass/.pi/evidence/verify-hello-cli                                                                                  ┃
+ OUTCOME=<clean|changed|blocked>                                                                                       ┃
+ BLOCKER=<none|short reason>                                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] maintain-verification-skill:1 (ctrl+o to expand)                                                              ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass (refactor/pi-pstack-parit...
+$0.000 (sub) 1.7%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

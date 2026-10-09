@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "pairId": "bro-restate-1",
+  "scenarioRef": "cmd-bro-restate",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-BRO-RESTATE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "turn1 jargon-only Node event-loop explain (no files); turn2 /bro plain restate plus side-specific restate.md and done.txt",
+  "steps": [
+    { "send": "jargon explain (no files, no tools)" },
+    { "send": "\r" },
+    { "settle": true },
+    { "send": "/bro Restate your last message... write restate.md + done.txt" },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "7ee333ca-e68a-4ddf-a8dd-447d0299b524",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/cursor/7ee333ca-e68a-4ddf-a8dd-447d0299b524",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "broSkill": true,
+      "skillSource": "slash /bro via plugin-dir pstack skill (prompt retained on screen)",
+      "jargonDensePrior": true,
+      "jargonHitsTurn1": [
+        "event loop",
+        "microtask",
+        "libuv",
+        "thread pool",
+        "macrotask",
+        "I/O completion",
+        "phase"
+      ],
+      "outcome": "restate_plain",
+      "restatedPlain": true,
+      "continuedPriorTask": false,
+      "productFilesTouched": [],
+      "restateDigest": "6d6cc52eddd4a9218319bab3e14476e3a292864f797e283c38396fc498e83c8f",
+      "restatePath": "parity/evidence/bro/cursor/restate-after.md",
+      "doneMarkerWritten": true,
+      "doneLine": "bro=yes",
+      "ordering": "screen-03 jargon settled before screen-04/05 /bro; markers written after /bro"
+    }
+  },
+  "pi": {
+    "attemptId": "245dd8fa-b145-4258-9c81-cdc0101caf61",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/pi/245dd8fa-b145-4258-9c81-cdc0101caf61",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-bro-fixture-app--/2026-10-08T21-36-56-665Z_01a11d72-ab59-7385-a63d-7e2f6b9e5ec5.jsonl",
+    "observations": {
+      "broSkill": true,
+      "skillSource": "extensions/pi-pstack/prompts/bro.md (session prompt/skill injection; residual after slash strip)",
+      "jargonDensePrior": true,
+      "jargonHitsTurn1": [
+        "event loop",
+        "microtask",
+        "libuv",
+        "thread pool",
+        "epoll",
+        "kqueue",
+        "macrotask",
+        "tick",
+        "phase"
+      ],
+      "outcome": "restate_plain",
+      "restatedPlain": true,
+      "continuedPriorTask": false,
+      "productFilesTouched": [],
+      "toolOrder": ["write", "write"],
+      "restateDigest": "e2885f359ba60312bb20c9487bb0f3d4a08e757eca64fd996ced13d6840ad636",
+      "restatePath": "parity/evidence/bro/pi/restate-after.md",
+      "doneMarkerWritten": true,
+      "doneLine": "bro=yes",
+      "ordering": "screen-03 jargon settled before screen-04/05 /bro; write tools only for marker paths"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "skill / prompt activation",
+      "cursor": "PTY keeps /bro with the full prompt; working line then marker writes.",
+      "pi": "Slash residual drops /bro chrome; session injects bro prompt/skill text; tool writes for markers.",
+      "reconciled": true
+    },
+    {
+      "topic": "plain restatement",
+      "cursor": "restate.md digest 6d6cc52e…. Zero listed jargon terms. done.txt bro=yes.",
+      "pi": "restate.md digest e2885f35…. Zero listed jargon terms. done.txt bro=yes. Longer prose than Cursor.",
+      "reconciled": true
+    },
+    {
+      "topic": "product continuation",
+      "cursor": "No product files under fixture cwd. Only marker writes.",
+      "pi": "toolOrder write,write for restate.md and done.txt only. No product files.",
+      "reconciled": true
+    },
+    {
+      "topic": "screenScore continuedPrior false positive",
+      "cursor": "screenScore.continuedPrior false.",
+      "pi": "screenScore.continuedPrior true from residual prompt text containing create/product wording; fileScore and productFilesTouched clear it to restate_plain.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    },
+    {
+      "topic": "brief vs requirement wording",
+      "cursor": "Captured per PSTACK-CMD-BRO-RESTATE-001 (restate last agent message), not brief phrase restates the ask.",
+      "pi": "Same oracle.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-bro-restate.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/bro/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/bro/.audit/u-journey-cmd-bro.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/bro/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/bro/fixture-app"
+  }
+}

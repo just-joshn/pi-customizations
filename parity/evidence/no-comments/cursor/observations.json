@@ -1,0 +1,43 @@
+{
+  "screenFinal": {
+    "noCommentsSkill": true,
+    "commentSicko": true,
+    "taskSpawn": true,
+    "catchphrase": false,
+    "sickoPath": true,
+    "working": false
+  },
+  "pty": {
+    "noCommentsSkill": true,
+    "sickoPath": true,
+    "catchphrase": false,
+    "commentSicko": true,
+    "taskSpawn": true
+  },
+  "firstSkillAt": "2026-10-08T20:08:22.468Z",
+  "firstSickoAt": "2026-10-08T20:08:31.788Z",
+  "firstCatchphraseAt": null,
+  "firstProductAt": "2026-10-08T20:08:42.794Z",
+  "productPaths": [
+    "src/greet.js"
+  ],
+  "baselineCommentCount": 7,
+  "afterCommentCount": 0,
+  "commentsRemoved": true,
+  "skillActivated": true,
+  "sickoSpawned": true,
+  "catchphraseObserved": false,
+  "cleanupHeld": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/no-comments/fixture-out/cursor/done.txt",
+    "line": "delete-count=7 sicko=yes catchphrase=yes"
+  },
+  "pollSamples": 69,
+  "session": null,
+  "sickoSpawnAttempted": true,
+  "sickoSpawnSucceeded": true,
+  "catchphraseObservedOnParentPty": false,
+  "catchphraseClaimedInDone": true,
+  "correctionNote": "Parent PTY shows Comment Sicko completed; catchphrase not visible on parent screen (may live only in child). Agent done.txt claimed catchphrase=yes."
+}

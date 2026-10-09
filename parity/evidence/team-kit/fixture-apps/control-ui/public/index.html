@@ -1,0 +1,9 @@
+<!doctype html><html><head><title>UI Probe</title></head>
+<body><main><h1>UI Probe</h1>
+<button id="go">Go</button>
+<p id="out" data-testid="out">idle</p>
+<script>
+document.getElementById('go').addEventListener('click', () => {
+  document.getElementById('out').textContent = 'UI_PROBE_OK';
+});
+</script></body></html>

@@ -1,0 +1,82 @@
+{
+  "expectedRoleCount": 17,
+  "rolesListedAnyForm": 0,
+  "rolesListedWithModel": 0,
+  "rolesMissing": [
+    {
+      "role": "feature, refactoring",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "bug-fix",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "perf-issue",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "hillclimb",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "judgment and prose",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "hardest tasks",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "how explorer",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "how explainer",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "why investigators",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "why synthesizer",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "reflect tooling",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "reflect judgment, divergent, synthesizer",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "arena runners",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "arena cross-judge pool",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "swarm workers",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "architect runners",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "interrogate reviewers",
+      "model": "inherit-parent"
+    }
+  ],
+  "acceptOrChangePrompt": true,
+  "acceptPrompt": true,
+  "changePrompt": true,
+  "summaryOnly": true,
+  "askQuestion": true,
+  "writeCardOnSameScreen": false,
+  "everyRoleShownWithModel": false
+}

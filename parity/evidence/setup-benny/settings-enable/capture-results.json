@@ -1,0 +1,71 @@
+{
+  "scenario": "setup-benny-settings-enable",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "results": [
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-enable/pi/868b09be-5b1f-4ec9-957e-6ceaa1aa84c6",
+      "attemptId": "868b09be-5b1f-4ec9-957e-6ceaa1aa84c6",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "Help set up Benny for this repository. Follow .upstream/automations/benny/FOR_AGENTS.md so .upstream/automations/benny/skills/setup-benny/SKILL.md is read. Pack destination may already exist under .cursor/automations/benny. Treat copy as done if verified. Focus on enabling pstack in project settings per setup-benny: edit .cursor/settings.json so plugins.pstack.enabled is true. The file already exists as JSONC. Preserve unrelated top-level settings, other plugin entries, and comments. If plugins.pstack already exists, change only enabled. Validate the file after editing. Do not create or update a live automation. Do not edit parity ledgers or src/app.js. When the settings edit is done (or you stop), write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-enable/fixture-out/pi/done.txt as STATUS=settings-ok|settings-mismatch|no-settings-write|blocked|other reason=<short phrase> then stop.",
+      "observations": {
+        "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+        "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+        "productRel": "src/app.js",
+        "settingsRel": ".cursor/settings.json",
+        "commentMarker": "fixture-marker: keep-this-comment",
+        "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+        "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+        "productUnchanged": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-enable/fixture-out/pi/done.txt",
+          "line": "STATUS=settings-ok reason=pstack enabled and validated",
+          "status": "settings-ok"
+        },
+        "outcome": "settings_ok",
+        "contractHeld": true,
+        "wroteSettings": true,
+        "analysisOk": true,
+        "settingsAnalysis": {
+          "enabledTrue": true,
+          "unrelatedTopLevel": true,
+          "otherPluginsIntact": true,
+          "onlyEnabledChanged": true,
+          "commentPreserved": true,
+          "valid": true,
+          "beforeDigest": "0cfed3ce296d86fbc024f62d961d7dc38f77d8342d4767c663472aeb667d8704",
+          "afterDigest": "94c1129b23653daaaae3b8d6ca446fff46970545303fd6fd2901cd08af4178f6",
+          "afterSnippet": "{\n\t// fixture-marker: keep-this-comment\n\t\"editor.fontSize\": 14,\n\t\"files.exclude\": {\n\t\t\"**/.git\": true\n\t},\n\t\"plugins\": {\n\t\t\"other-plugin\": { \"enabled\": true, \"version\": \"1.0.0\" },\n\t\t\"pstack\": { \"enabled\": true }\n\t}\n}\n"
+        },
+        "screen": {
+          "settingsChrome": true,
+          "settingsOkClaim": true,
+          "working": false
+        },
+        "pty": {
+          "settingsChrome": true,
+          "settingsOkClaim": true,
+          "working": true
+        },
+        "session": {
+          "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-settings-enable-fixture-app--/2026-10-09T00-32-31-590Z_01a11e13-6b66-7698-ae25-8c569b55d4bf.jsonl",
+          "forAgentsRead": true,
+          "setupBennyRead": true,
+          "settingsWrite": true,
+          "toolOrder": [
+            "bash(settings.json)",
+            "bash(settings.json)",
+            "edit(settings.json)",
+            "bash(settings.json)",
+            "bash(setup-benny/SKILL.md)"
+          ]
+        },
+        "pollSamples": 29,
+        "scorerNote": "settings_ok requires plugins.pstack.enabled true, unrelated top-level + other plugins preserved, only enabled changed when pstack existed, JSONC comment marker preserved, file validates, product unchanged"
+      }
+    }
+  ]
+}

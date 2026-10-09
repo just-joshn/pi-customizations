@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/poteto-mode The three modules under src/ still export TAG with an OLD_ prefix. Migrate them so TAG is NEW_ plus the    
+stem (NEW_alpha, NEW_beta, NEW_gamma). Change one module at a time. After each module, run node scripts/verify.mjs and  
+only start the next module once that check shows the current unit green under evidence/. Keep verify output under       
+evidence/ (verify.mjs already writes evidence/verify-out.txt and appends evidence/verify-log.jsonl). For any            
+poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the  
+poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this   
+cwd except the named done path. When SEQUENCE-OK is on disk, write exactly one line to                                  
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-out/pi/done.t 
+xt as verified=yes|no, then stop.                                                                                       
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-app (refactor/pi-pstack-parit...
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

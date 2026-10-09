@@ -1,0 +1,1851 @@
+[
+  {
+    "ts": "2026-10-09T00:40:59.052Z",
+    "product": [],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:59.453Z",
+    "product": [],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:59.855Z",
+    "product": [],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:00.256Z",
+    "product": [],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:00.657Z",
+    "product": [],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:01.057Z",
+    "product": [],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:01.458Z",
+    "product": [],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:01.859Z",
+    "product": [],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:02.260Z",
+    "product": [],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:02.661Z",
+    "product": [
+      "src/alpha.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:03.062Z",
+    "product": [
+      "src/alpha.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:03.463Z",
+    "product": [
+      "src/alpha.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:03.864Z",
+    "product": [
+      "src/alpha.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:04.266Z",
+    "product": [
+      "src/alpha.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:04.668Z",
+    "product": [
+      "src/alpha.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:05.069Z",
+    "product": [
+      "src/alpha.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:05.470Z",
+    "product": [
+      "src/alpha.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:05.873Z",
+    "product": [
+      "src/alpha.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:06.274Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:06.675Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:07.077Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:07.478Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:07.880Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:08.281Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:08.682Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:09.082Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:09.482Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:09.884Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:10.285Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:10.685Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:11.085Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:11.486Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:11.886Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:12.288Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:12.689Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:13.091Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:13.493Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:13.893Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:14.294Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:14.696Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:15.096Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:15.498Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:15.900Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:16.301Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:16.702Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:17.103Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:17.504Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:17.905Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:18.306Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:18.707Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:19.110Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:19.510Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:19.912Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:20.313Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:20.714Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:21.115Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:21.517Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:21.918Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:22.320Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:22.722Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:23.123Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:23.524Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:23.926Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:24.327Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:24.728Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:25.130Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:25.531Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:25.931Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:26.334Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:26.736Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:27.137Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:27.538Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:27.938Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:28.339Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:28.741Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:29.141Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:29.542Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:29.943Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:30.345Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:30.746Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:31.146Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:31.547Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:31.948Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:32.350Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:32.752Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:33.152Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:33.553Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:33.954Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:34.354Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:34.754Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:35.154Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:35.555Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:35.956Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:36.357Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:36.759Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:37.161Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:37.563Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:37.966Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:38.367Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:38.768Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:39.168Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "log": [
+      "evidence/verify-log.jsonl"
+    ],
+    "units": [
+      "evidence/units/alpha.txt",
+      "evidence/units/beta.txt",
+      "evidence/units/gamma.txt"
+    ]
+  }
+]

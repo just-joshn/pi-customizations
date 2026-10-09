@@ -1,0 +1,52 @@
+Automations > New Automation
+7 New Chat
+Search
+• Automations
+Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+A No Repo
+• Cursor automation setup
+• Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+/automate
+/automate
+7h
+Untitled
+Active
+Select repository V
+Triggers
++
+Add Trigger
+A Add a trigger before saving.
+Agent Instructions
+Type @ for tools, / for commands....
+6h
+7h
+7h
+7h
+7h
+8h
+8h
+8h
+3/3 O
+Grok 4.7 High Fast
+A
+Enter instructions for the agent before saving.
+Tools
+* Memories
++
+Add Tool or MCP
+Getting Started
+* Connect Slack
+Joshua Humphrey
+Create
+...
+IDE A
+Manage

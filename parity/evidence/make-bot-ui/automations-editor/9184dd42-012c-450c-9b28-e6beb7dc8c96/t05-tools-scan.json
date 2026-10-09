@@ -1,0 +1,14 @@
+{
+  "markers": {
+    "secret": false,
+    "credential": false,
+    "mcp": true,
+    "webhook": false,
+    "memory": true,
+    "browser": false,
+    "shell": false
+  },
+  "interesting": [
+    "Tools"
+  ]
+}

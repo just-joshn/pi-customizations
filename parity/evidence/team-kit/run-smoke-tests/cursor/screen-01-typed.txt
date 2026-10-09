@@ -1,0 +1,15 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to plan execution and reach the right outcome faster.
+
+
+
+                                                                                                                       
+  → [Pasted text #1 +1 lines]                                                                                          
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/run-smoke-tests · 
+  refactor/pi-pstack-parity-again

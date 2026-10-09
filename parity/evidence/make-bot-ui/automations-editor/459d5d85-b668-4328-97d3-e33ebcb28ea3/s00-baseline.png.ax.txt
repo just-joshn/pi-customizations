@@ -1,0 +1,1 @@
+{"screenshotScale":1,"app":{"isActive":true,"name":"Google Chrome","isRunning":true,"pid":62999,"bundleIdentifier":"com.google.Chrome"}}

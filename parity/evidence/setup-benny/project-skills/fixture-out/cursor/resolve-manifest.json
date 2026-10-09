@@ -1,0 +1,64 @@
+{
+  "skills": [
+    {
+      "name": "how",
+      "path": "/Users/josh-desktop/.claude/skills/how/SKILL.md",
+      "scope": "user",
+      "notes": "Offered from ~/.claude/skills; no project-repo pstack SKILL.md. Not counted."
+    },
+    {
+      "name": "why",
+      "path": "/Users/josh-desktop/.claude/skills/why/SKILL.md",
+      "scope": "user",
+      "notes": "Offered from ~/.claude/skills; no project-repo pstack SKILL.md. Not counted."
+    },
+    {
+      "name": "tdd",
+      "path": "/Users/josh-desktop/.claude/skills/tdd/SKILL.md",
+      "scope": "user",
+      "notes": "Offered from ~/.claude/skills; no project-repo pstack SKILL.md. Not counted."
+    },
+    {
+      "name": "unslop",
+      "path": "/Users/josh-desktop/.claude/skills/unslop/SKILL.md",
+      "scope": "user",
+      "notes": "Offered from ~/.claude/skills; no project-repo pstack SKILL.md. Not counted."
+    },
+    {
+      "name": "principle-separate-before-serializing-shared-state",
+      "path": "/Users/josh-desktop/.claude/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "scope": "user",
+      "notes": "Offered from ~/.claude/skills; no project-repo pstack SKILL.md. Not counted."
+    },
+    {
+      "name": "principle-minimize-reader-load",
+      "path": "/Users/josh-desktop/.claude/skills/principle-minimize-reader-load/SKILL.md",
+      "scope": "user",
+      "notes": "Offered from ~/.claude/skills; no project-repo pstack SKILL.md. Not counted."
+    },
+    {
+      "name": "principle-guard-the-context-window",
+      "path": "/Users/josh-desktop/.claude/skills/principle-guard-the-context-window/SKILL.md",
+      "scope": "user",
+      "notes": "Offered from ~/.claude/skills; no project-repo pstack SKILL.md. Not counted."
+    },
+    {
+      "name": "principle-sequence-verifiable-units",
+      "path": "/Users/josh-desktop/.claude/skills/principle-sequence-verifiable-units/SKILL.md",
+      "scope": "user",
+      "notes": "Offered from ~/.claude/skills; no project-repo pstack SKILL.md. Not counted."
+    },
+    {
+      "name": "principle-fix-root-causes",
+      "path": "/Users/josh-desktop/.claude/skills/principle-fix-root-causes/SKILL.md",
+      "scope": "user",
+      "notes": "Offered from ~/.claude/skills; no project-repo pstack SKILL.md. Not counted."
+    },
+    {
+      "name": "principle-prove-it-works",
+      "path": "/Users/josh-desktop/.claude/skills/principle-prove-it-works/SKILL.md",
+      "scope": "user",
+      "notes": "Offered from ~/.claude/skills; no project-repo pstack SKILL.md. Not counted."
+    }
+  ]
+}

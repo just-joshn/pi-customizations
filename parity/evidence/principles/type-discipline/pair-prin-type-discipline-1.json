@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "pairId": "prin-type-discipline-1",
+  "scenarioRef": "prin-type-discipline",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-TYPE-DISCIPLINE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode The ticket model in src/ticket.ts uses a completed boolean plus optional completedAt, and describe() casts completedAt. node scripts/verify.mjs fails on the completed-without-timestamp case. Redesign the types so illegal states cannot be represented (or parse raw input at a boundary), then make verify print TYPE-OK. Prefer a typed model over casts and bags of optionals. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When the fix is verified against the real artifact, write exactly one line to .../type-discipline/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode redesign ticket types; illegal states unrepresentable or parse at boundary; leaf SKILL.md for applied principles; TYPE-OK; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with TYPE-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "33d927a2-8d1d-471f-8d0b-f6284c67b21b",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/type-discipline/cursor/33d927a2-8d1d-471f-8d0b-f6284c67b21b",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/a1ec29cf-e7f3-4bab-a8bf-d9830b48a865/a1ec29cf-e7f3-4bab-a8bf-d9830b48a865.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/type-discipline/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-type-system-discipline/SKILL.md",
+      "illegalUnrepresentable": true,
+      "soleCastBag": false,
+      "hasStatusUnion": true,
+      "hasKindUnion": false,
+      "keptVerifyOk": true,
+      "verifyLine": "TYPE-OK value=\"open:a|done:b@2026-10-08\"",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "not observed in PTY settled screen",
+      "oracleNote": "Transcript Read of principle-type-system-discipline/SKILL.md. Product is status open|done discriminated union with completedAt only on done. No as-string cast. TYPE-OK kept. Oracle initially missed status discriminant; widened to status|kind and re-scored fixture-after on disk."
+    }
+  },
+  "pi": {
+    "attemptId": "9cae5688-2cb4-4719-8c5f-fa1c908a983e",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/type-discipline/pi/9cae5688-2cb4-4719-8c5f-fa1c908a983e",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-type-discipline-fixture-app--/2026-10-09T00-51-20-862Z_01a11e24-a69d-73a5-a11b-2d41a3864e32.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/type-discipline/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-type-system-discipline/SKILL.md",
+      "illegalUnrepresentable": true,
+      "soleCastBag": false,
+      "hasStatusUnion": false,
+      "hasKindUnion": true,
+      "hasParseBoundary": true,
+      "keptVerifyOk": true,
+      "verifyLine": "TYPE-OK value=\"open:a|done:b@2026-10-08\"",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "oracleNote": "Session tool order includes bash(verify.mjs) and read(type-discipline-leaf) before product edit. kind open|done union plus parseTicket at boundary dropping illegal raw case. TYPE-OK kept."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-type-system-discipline/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-type-system-discipline/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "discriminant field name",
+      "cursor": "status: 'open' | 'done'",
+      "pi": "kind: 'open' | 'done' plus parseTicket",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "not observed in PTY settled screen",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "type-discipline outcome",
+      "cursor": "contractHeld. Leaf Read + status sum type + TYPE-OK. No sole cast bag.",
+      "pi": "contractHeld. Leaf Read + kind sum type + parseTicket + TYPE-OK. No sole cast bag.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-type-discipline.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/type-discipline/fixture-app",
+    "decisionLog": "parity/evidence/principles/type-discipline/.audit/u-journey-prin-type-discipline.tsv",
+    "notes": "PSTACK-PRIN-TYPE-DISCIPLINE-001. Dedicated type-discipline/ fixture. Bag-of-optionals + as-string cast baseline. Oracle widened post-capture to accept status|kind discriminants; re-scored fixture-after without re-running PTY. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both."
+  }
+}

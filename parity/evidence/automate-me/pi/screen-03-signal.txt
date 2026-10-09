@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] automate-me (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ update my existing parity-fixture-mode skill at .pi/skills/parity-fixture-mode/SKILL.md. I already chose update, not  ┃
+ start fresh. Skip AskQuestion and any update-versus-fresh confirm. Skip transcript mining and skip further interview  ┃
+ questions. Edit .pi/skills/parity-fixture-mode/SKILL.md in place only. Preserve the PARITY-FIXTURE-MODE-SEED marker.  ┃
+ Under ## Response style add exactly this bullet: "- Prefer one short paragraph." Do not create any other *-mode       ┃
+ skill. Do not invent a parallel skill path. Work only inside this fixture cwd for skill files. Do not edit ledgers or ┃
+ parity ledgers. When finished, write exactly one line to                                                              ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/automate-me/fixture-out/pi/done.txt:          ┃
+ UPDATED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/automate-me/fixture-app/.pi/skills/pa ┃
+ rity-fixture-mode/SKILL.md then stop.                                                                                 ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/automate-me/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 1.8%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

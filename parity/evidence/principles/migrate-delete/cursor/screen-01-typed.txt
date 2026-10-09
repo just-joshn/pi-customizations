@@ -1,0 +1,20 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to plan execution and reach the right outcome faster.
+
+
+
+                                                                                                                       
+  → prints MIGRATE-OK. Do not leave a permanent compatibility shim. For any poteto-mode principle you apply before     
+    declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index).     
+    Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done   
+    path. When MIGRATE-OK is on disk, write exactly one line to                                                        
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-out/cur  
+    sor/done.txt as verified=yes|no, then stop.                                                                        
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-app · 
+  refactor/pi-pstack-parity-again

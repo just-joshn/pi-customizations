@@ -1,0 +1,39 @@
+  ├──────────────────────────────────────────┼────────────────┤
+  │ how explorer                             │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ how explainer                            │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ why investigators                        │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ why synthesizer                          │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ reflect tooling                          │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ reflect judgment, divergent, synthesizer │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ arena runners                            │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ arena cross-judge pool                   │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ swarm workers                            │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ architect runners                        │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ interrogate reviewers                    │ inherit-parent │
+  └──────────────────────────────────────────┴────────────────┘
+
+  Dropped retired roles: none.
+
+  Accept this as-is, or say which roles to change? Options for any role: the detected slugs above, plus
+  inherit-parent and auto. For panel roles (arena runners, architect runners, interrogate reviewers, arena 
+  cross-judge pool) you can give a comma-separated list — list length sets fan-out.
+
+
+
+                                                                                                                       
+  → small — medium reasoning                                                                                           
+                                                                                                                       
+
+  Auto · 9.6%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-verify-offer/fixture-app · 
+  refactor/pi-pstack-parity-again

@@ -1,0 +1,222 @@
+{
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "summaries": [
+    {
+      "phase": "verification",
+      "pairPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/pair-create-skill-verification-1.json",
+      "results": [
+        {
+          "side": "cursor",
+          "phaseId": "verification",
+          "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/verification/cursor/2583528f-dc6d-4a1a-a518-e835dba21866",
+          "attemptId": "2583528f-dc6d-4a1a-a518-e835dba21866",
+          "ruleUnchanged": true,
+          "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+          "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+          "prompt": "/create-skill Phase 4 Verification only for the existing skill at .cursor/skills/parity-create-skill-probe/SKILL.md. Do not rewrite the skill unless a check fails critically. 1) Verify SKILL.md is under 500 lines, description has trigger terms, terminology is consistent, file refs are one level deep. Write those check results to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/cursor/verify.md. 2) Then wait. On the next user message that says exactly: run the create-skill probe discover and apply the skill, and reply with CREATE-SKILL-PROBE-MARKER on its own line. 3) Append a line APPLIED=CREATE-SKILL-PROBE-MARKER to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/cursor/verify.md and write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/cursor/done.txt as STATUS=verified|env-blocked|other reason=<short>. Do not edit parity ledgers, parity/mismatches.json, parity/requirements.json, or parity/progress.md.",
+          "observations": {
+            "screenFinal": {
+              "createSkillMention": true,
+              "skillPathMention": true,
+              "markerMention": true,
+              "askMention": true,
+              "envBlocked": false,
+              "working": false
+            },
+            "pty": {
+              "createSkillMention": true,
+              "skillPathMention": true,
+              "markerMention": true,
+              "askMention": true,
+              "envBlocked": false,
+              "working": true
+            },
+            "artifact": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/cursor/verify.md",
+              "text": "# Phase 4 Verification — parity-create-skill-probe\n\nSkill path: `.cursor/skills/parity-create-skill-probe/SKILL.md`\n\n## Checks\n\n| Check | Result | Notes |\n|-------|--------|-------|\n| SKILL.md under 500 lines | PASS | 12 lines |\n| Description has trigger terms | PASS | Includes \"create-skill probe\", \"parity-create-skill-probe\", and when-to-use wording |\n| Terminology consistent | PASS | Uses \"create-skill probe\" / \"marker\" consistently; no conflicting aliases |\n| File refs one level deep | PASS | No supporting-file links in SKILL.md (N/A; nothing nested) |\n\n## Critical rewrite\n\nNo critical failures. Skill not rewritten.\n\n## Discovery / apply\n\nDeferred: waiting for next user message exactly: `run the create-skill probe`\n\nAPPLIED=CREATE-SKILL-PROBE-MARKER\n",
+              "byteLength": 766,
+              "sha256": "sha256:90a7ff106f9589bde8b5901fc5546da4821d1a8ce65176ac3d839cf0d6640ed7",
+              "ok": true
+            },
+            "done": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/cursor/done.txt",
+              "line": "STATUS=verified reason=probe-applied",
+              "status": "verified"
+            },
+            "skill": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.cursor/skills/parity-create-skill-probe/SKILL.md",
+              "nameOk": true,
+              "hasMarker": true,
+              "byteLength": 332,
+              "sha256": "sha256:c5a3793642d9c279bbf69b4f068944f676b9dc7d03dbea17b19102b94557b309",
+              "ok": true,
+              "text": "---\nname: parity-create-skill-probe\ndescription: >-\n  Echoes the create-skill probe marker when the user runs the create-skill\n  probe or invokes parity-create-skill-probe.\n---\n\n# Parity Create-Skill Probe\n\nWhen the user says to run the create-skill probe, reply with exactly this marker on its own line:\n\nCREATE-SKILL-PROBE-MARKER\n"
+            },
+            "discoveryAnswersSent": false,
+            "verifyTriggerSent": true,
+            "askUiDrives": 0,
+            "score": {
+              "artifactOk": true,
+              "createPath": true,
+              "envBlocked": false,
+              "doneStatus": "verified",
+              "applied": true,
+              "phaseClosed": true,
+              "honestBlocker": false
+            }
+          },
+          "identity": {
+            "schema": 1,
+            "attemptId": "2583528f-dc6d-4a1a-a518-e835dba21866",
+            "side": "cursor",
+            "scenarioRef": "create-skill:phase-4-verification",
+            "fixtureRef": {
+              "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+              "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+            },
+            "executable": {
+              "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+              "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+            },
+            "artifacts": [],
+            "launch": {
+              "argv": [
+                "/Users/josh-desktop/.local/bin/cursor-agent",
+                "--plugin-dir",
+                "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+                "--plugin-dir",
+                "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+              ],
+              "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app",
+              "envNames": [
+                "HOME",
+                "PATH",
+                "TERM"
+              ],
+              "publicEnv": {
+                "TERM": "xterm-256color"
+              }
+            },
+            "geometry": {
+              "rows": 40,
+              "cols": 120
+            },
+            "observedEnv": {
+              "platform": "darwin",
+              "node": "v24.21.0",
+              "TERM": "xterm-256color"
+            }
+          }
+        },
+        {
+          "side": "pi",
+          "phaseId": "verification",
+          "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/verification/pi/88066a9a-edc8-4dc9-bb4a-3b567c4e87a4",
+          "attemptId": "88066a9a-edc8-4dc9-bb4a-3b567c4e87a4",
+          "ruleUnchanged": true,
+          "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+          "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+          "prompt": "/create-skill Phase 4 Verification only for the existing skill at .pi/skills/parity-create-skill-probe/SKILL.md. Do not rewrite the skill unless a check fails critically. 1) Verify SKILL.md is under 500 lines, description has trigger terms, terminology is consistent, file refs are one level deep. Write those check results to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/pi/verify.md. 2) Then wait. On the next user message that says exactly: run the create-skill probe discover and apply the skill, and reply with CREATE-SKILL-PROBE-MARKER on its own line. 3) Append a line APPLIED=CREATE-SKILL-PROBE-MARKER to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/pi/verify.md and write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/pi/done.txt as STATUS=verified|env-blocked|other reason=<short>. Do not edit parity ledgers, parity/mismatches.json, parity/requirements.json, or parity/progress.md.",
+          "observations": {
+            "screenFinal": {
+              "createSkillMention": true,
+              "skillPathMention": true,
+              "markerMention": true,
+              "askMention": true,
+              "envBlocked": false,
+              "working": false
+            },
+            "pty": {
+              "createSkillMention": true,
+              "skillPathMention": true,
+              "markerMention": true,
+              "askMention": true,
+              "envBlocked": true,
+              "working": true
+            },
+            "artifact": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/pi/verify.md",
+              "text": "# Phase 4 verification: parity-create-skill-probe\n- Line count: 13 (<500) PASS\n- Description has trigger terms (\"run the create-skill probe\", \"parity-create-skill-probe skill\"), third person: PASS\n- Terminology consistent (probe / marker): PASS\n- File refs one level deep: no references, only SKILL.md: PASS\nAPPLIED=CREATE-SKILL-PROBE-MARKER\n",
+              "byteLength": 342,
+              "sha256": "sha256:92fae05d62e2c159d76e1dc7a0d05ff5dc4505a75d101b6d37e12f576be21150",
+              "ok": true
+            },
+            "done": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/pi/done.txt",
+              "line": "STATUS=verified reason=checks passed and marker applied",
+              "status": "verified"
+            },
+            "skill": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.pi/skills/parity-create-skill-probe/SKILL.md",
+              "nameOk": true,
+              "hasMarker": true,
+              "byteLength": 450,
+              "sha256": "sha256:2ea35e992d7a32834b19e7c70e3c631fe60fb22cf41414a54a6dbebe6e9c7995",
+              "ok": true,
+              "text": "---\nname: parity-create-skill-probe\ndescription: Echoes the probe marker for the parity create-skill probe. Use when the user says \"run the create-skill probe\" or asks for the parity-create-skill-probe skill.\ndisable-model-invocation: true\n---\n\n# Parity Create-Skill Probe\n\n## Instructions\n\nWhen the user says \"run the create-skill probe\", reply with the marker below exactly as written, on its own line, and nothing else:\n\nCREATE-SKILL-PROBE-MARKER\n"
+            },
+            "discoveryAnswersSent": false,
+            "verifyTriggerSent": true,
+            "askUiDrives": 0,
+            "score": {
+              "artifactOk": true,
+              "createPath": true,
+              "envBlocked": false,
+              "doneStatus": "verified",
+              "applied": true,
+              "phaseClosed": true,
+              "honestBlocker": false
+            }
+          },
+          "identity": {
+            "schema": 1,
+            "attemptId": "88066a9a-edc8-4dc9-bb4a-3b567c4e87a4",
+            "side": "pi",
+            "scenarioRef": "create-skill:phase-4-verification",
+            "fixtureRef": {
+              "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+              "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+            },
+            "executable": {
+              "path": "/Users/josh-desktop/.local/bin/pi",
+              "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+            },
+            "artifacts": [],
+            "launch": {
+              "argv": [
+                "/Users/josh-desktop/.local/bin/pi",
+                "--model",
+                "claude-subscription/claude-sonnet-5-5:medium"
+              ],
+              "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app",
+              "envNames": [
+                "HOME",
+                "PATH",
+                "PI_CODING_AGENT_DIR",
+                "TERM"
+              ],
+              "publicEnv": {
+                "TERM": "xterm-256color"
+              }
+            },
+            "geometry": {
+              "rows": 40,
+              "cols": 120
+            },
+            "observedEnv": {
+              "platform": "darwin",
+              "node": "v24.21.0",
+              "TERM": "xterm-256color"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

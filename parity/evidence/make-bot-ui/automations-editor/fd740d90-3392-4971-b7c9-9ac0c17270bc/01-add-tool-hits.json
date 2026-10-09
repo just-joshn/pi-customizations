@@ -1,0 +1,20 @@
+[
+  {
+    "index": "109",
+    "role": "AXPopUpButton",
+    "title": "Add Tool or MCP",
+    "description": null,
+    "value": null,
+    "actions": [
+      "AXShowMenu",
+      "AXScrollToVisible"
+    ],
+    "frame": {
+      "x": 461,
+      "width": 856,
+      "height": 40,
+      "y": 770
+    },
+    "enabled": true
+  }
+]

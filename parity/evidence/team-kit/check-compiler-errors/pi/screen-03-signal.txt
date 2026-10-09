@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "check-compiler-errors" collision:                                                                                   ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/check-compiler-errors/.pi/skills/check-comp┃
+iler-errors/SKILL.md                                                                                                   ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/check-compiler-errors/SKILL.md (skipped)       ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] check-compiler-errors (ctrl+o to expand)                                                                      ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Do not ask questions. Follow the check-compiler-errors skill. Workspace is                                            ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/check-compiler-errors.  ┃
+ Run npm run typecheck. Fix src/broken.js so typecheck passes (VALUE must be the number 7). Re-run until clean. Write  ┃
+ a short error/fix summary to                                                                                          ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/check-compiler-errors ┃
+ /summary.md. Then write exactly one line to                                                                           ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/check-compiler-errors ┃
+ /done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay     ┃
+ under                                                                                                                 ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/check-compiler-errors ┃
+ . Do not edit parity ledgers. Do not commit.                                                                          ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ npm run typecheck 2>&1 | tail -20; cat src/broken.js; cat package.json (timeout 120s)                               ┃
+                                                                                                                       ┃
+ Elapsed 0.0s                                                                                                          ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/check-compiler-errors (refactor/pi-pstack...
+↑4 ↓102 R8.2k W17k CH32.3% $0.071 (sub) 2.5%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

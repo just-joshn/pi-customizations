@@ -1,0 +1,40 @@
+ my addition, and a missing priority counts as 0. The only job fields verify.mjs checks are id, title and ageMs. If    │
+ relay jobs use a different completion field, the filter in src/picker.js needs changing.                              │
+                                                                                                                       │
+ Sketches. The three approaches under prototypes/ have distinct shapes, and DECISION.md compares them:                 │
+                                                                                                                       │
+ ┌────────────────────┬───────────────────────────────┬───────────────────────────────────────────────────┐            │
+ │ id                 │ shape                         │ tradeoff                                          │            │
+ ├────────────────────┼───────────────────────────────┼───────────────────────────────────────────────────┤            │
+ │ sort-oldest        │ filter, then full sort by age │ simple, no tie-break                              │            │
+ ├────────────────────┼───────────────────────────────┼───────────────────────────────────────────────────┤            │
+ │ single-pass-reduce │ one-pass fold                 │ O(n), no allocation, ties and priority hard-coded │            │
+ ├────────────────────┼───────────────────────────────┼───────────────────────────────────────────────────┤            │
+ │ rule-table         │ ordered table of comparators  │ extensible, slightly heavier                      │            │
+ └────────────────────┴───────────────────────────────┴───────────────────────────────────────────────────┘            │
+                                                                                                                       │
+ I chose rule-table. Ties are deterministic, and adding a rule later means adding one comparator to the table.         │
+                                                                                                                       │
+ Principles. I read principle-exhaust-the-design-space. It is why there are three competing sketches before the pick.  │
+ Its index entry, principle-model-the-domain, shaped the choice of rule-table, but I did not read that skill's leaf    │
+ file this session, so I can't cite it as read.                                                                        │
+                                                                                                                       │
+ Playbook steps. I skipped how, architect, delegation, interrogate, commits and the PR step. The fixture is tiny, and  │
+ no commit or PR was asked for.                                                                                        ┃
+                                                                                                                       ┃
+ The prototype files start with a block comment because verify.mjs only accepts APPROACH: at the start of a line.      ┃
+
+... 1 earlier
+[x] `architect` for parallel design exploration. skip: replaced by 3 sketches under prototypes/ per task (completed)
+[x] Write the throughput checkpoint as four todo items. n/a: single owner, few small files, no shared state (completed)
+[>] Delegate code-writing to a subagent... skip: owning the diff directly, tiny fixture (in_progress)
+[ ] Verify on the matching surface. node scripts/verify.mjs (pending)
+[ ] Rebase into small, ordered commits. skip: no commit requested (pending)
+[ ] If the design is contested, `interrogate` before shipping. skip: not contested (pending)
+[ ] Run Opening a PR. skip: no PR requested (pending)
+[ ] Write done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-app (refactor/pi-pstack-parit...
+↑18 ↓3.6k R259k W32k CH99.0% $0.214 (sub) 4.0%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

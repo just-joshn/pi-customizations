@@ -1,0 +1,1 @@
+STATUS=secret-ok reason=config written from example with env name only, placeholders unfilled

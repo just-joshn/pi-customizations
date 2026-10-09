@@ -1,0 +1,40 @@
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ node scripts/verify.mjs now prints PREMISE-OK, and done.txt contains verified=yes.                                    │
+                                                                                                                       │
+ Root cause. pickLeader() returned alpha on every round. Both earlier fixes assumed alpha was undersized and gave it   │
+ more resources. Neither touched the assignment.                                                                       │
+                                                                                                                       │
+ Premise. It is written to evidence/premise.txt.                                                                       │
+                                                                                                                       │
+ Census. scripts/census.mjs counts the hot role per actor over 30 rounds and is rerunnable. Before the fix it printed  │
+ alpha=30 beta=0 gamma=0, so alpha held all of the imbalance. After the fix it prints alpha=10 beta=10 gamma=10.       │
+                                                                                                                       │
+ Fix. src/assign.js now rotates the role with actors[round % actors.length]. I added no capacity, buffer or alpha      │
+ queue.                                                                                                                │
+                                                                                                                       │
+ Principles applied:                                                                                                   │
+ - Attack the Premise. It made me write the premise and run the census before touching the code.                       │
+ - Laziness Protocol. I read this leaf SKILL.md only in the end-to-end sense of cited by Attack the Premise, not in    │
+   full. Take its influence as a one-line fix rather than another compensatory layer.                                  │
+ - Build the Lever. The census is a script, not a one-off count. I also did not read this leaf SKILL.md, so treat that ┃
+   as a loose mention.                                                                                                 ┃
+                                                                                                                       ┃
+ I skipped the commit-staging, PR and subagent-delegation steps. The fixture is tiny and you didn't ask for commits or ┃
+ a PR.                                                                                                                 ┃
+
+[>] 1. Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or in...
+[ ] 2. Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. (pending)
+[ ] 3. Plan the fix. If it crosses a function boundary, architect first. Delegate implementation with a specific scop...
+[ ] 4. Verify on the same surface. The original repro now passes. (pending)
+[ ] 5. Stage the commits so the failing repro lands before the fix in git history. skip: fixture, no commits requeste...
+[ ] 6. Run Opening a PR. skip: no PR requested (pending)
+[ ] Write premise + rerunnable census, read src, fix by removing asymmetry, write done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/fixture-app (refactor/pi-pstack-parit...
+↑16 ↓2.8k R220k W31k CH99.6% $0.196 (sub) 4.0%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

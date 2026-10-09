@@ -1,0 +1,20 @@
+diff --git a/src/ttl.js b/src/ttl.js
+index 1111111..2222222 100644
+--- a/src/ttl.js
++++ b/src/ttl.js
+@@ -1,10 +1,10 @@
+ /**
+  * Session TTL helpers.
+- * Contract: ttl === 0 means never expire (immortal session).
++ * Contract: ttl === 0 means already dead (zero remaining life).
+  * Positive ttl is milliseconds after createdAt.
+  */
+ export function isExpired(entry, now) {
+-  if (entry.ttl === 0) return false;
++  if (entry.ttl === 0) return true;
+   return entry.createdAt + entry.ttl <= now;
+ }
+ 
+ export function purge(entries, now) {
+   return entries.filter((entry) => !isExpired(entry, now));
+ }

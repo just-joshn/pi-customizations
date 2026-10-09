@@ -1,0 +1,124 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": false,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "illegalUnrepresentable": true,
+    "soleCastBag": false,
+    "keptVerifyOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "failMention": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "failMention": false,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:50:50.221Z",
+  "firstVerifyAt": "2026-10-09T00:50:31.776Z",
+  "productPaths": [
+    "src/ticket.ts"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/type-discipline/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/type-discipline/fixture-app/evidence/verify-out.txt",
+    "line": "TYPE-OK value=\"open:a|done:b@2026-10-08\"",
+    "ok": true
+  },
+  "productOk": true,
+  "productAnalysis": {
+    "stillBagOptional": false,
+    "hasKindUnion": false,
+    "hasStatusUnion": true,
+    "hasDiscriminatedUnion": true,
+    "derivedTimestamp": false,
+    "hasParseBoundary": false,
+    "primaryCast": false,
+    "illegalUnrepresentable": true,
+    "soleCastBag": false
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-type-system-discipline/SKILL.md",
+    "ok": true,
+    "name": "principle-type-system-discipline",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/a1ec29cf-e7f3-4bab-a8bf-d9830b48a865/a1ec29cf-e7f3-4bab-a8bf-d9830b48a865.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:51:20.562Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T00:51:20.562Z",
+    "firstProductWriteAt": "2026-10-09T00:51:20.562Z",
+    "sawFailBeforeWrite": true,
+    "toolOrder": [
+      "Read",
+      "Read",
+      "GetDynamicTools",
+      "Glob",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read(type-discipline-leaf)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Shell(verify.mjs)",
+      "blob-mention(type-discipline-leaf)",
+      "Read",
+      "CallDynamicTool",
+      "Write(product)",
+      "Shell(verify.mjs)",
+      "Read",
+      "Shell",
+      "CallDynamicTool"
+    ],
+    "failMention": false,
+    "mtimeMs": 1791507066203.1042
+  },
+  "pollSamples": 119,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "failMention": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "failMention": false,
+    "verifyMention": true,
+    "working": true
+  }
+}

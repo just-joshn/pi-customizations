@@ -1,0 +1,1 @@
+SEPARATE-OK separated=yes indexer=state/indexer.json metrics=state/metrics.json lastIndexed=idx-5 lastMetrics=met-5

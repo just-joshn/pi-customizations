@@ -1,0 +1,150 @@
+{
+  "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+  "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+  "productRel": "src/app.js",
+  "settingsRel": ".cursor/settings.json",
+  "requiredSkills": [
+    "how",
+    "why",
+    "tdd",
+    "unslop",
+    "principle-separate-before-serializing-shared-state",
+    "principle-minimize-reader-load",
+    "principle-guard-the-context-window",
+    "principle-sequence-verifiable-units",
+    "principle-fix-root-causes",
+    "principle-prove-it-works"
+  ],
+  "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productUnchanged": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixture-out/pi/done.txt",
+    "line": "STATUS=stop-explain reason=no project-scoped pi package; pstack only via user-level settings",
+    "status": "stop-explain"
+  },
+  "manifest": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixture-out/pi/resolve-manifest.json",
+    "error": null,
+    "skillCount": 10
+  },
+  "outcome": "stop_explain",
+  "contractHeld": true,
+  "usedPluginDir": false,
+  "analysis": {
+    "skills": [
+      {
+        "name": "how",
+        "claimedPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/how/SKILL.md",
+        "claimedScope": "package",
+        "independentScope": "package",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "why",
+        "claimedPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/why/SKILL.md",
+        "claimedScope": "package",
+        "independentScope": "package",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "tdd",
+        "claimedPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md",
+        "claimedScope": "package",
+        "independentScope": "package",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "unslop",
+        "claimedPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/unslop/SKILL.md",
+        "claimedScope": "package",
+        "independentScope": "package",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-separate-before-serializing-shared-state",
+        "claimedPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+        "claimedScope": "package",
+        "independentScope": "package",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-minimize-reader-load",
+        "claimedPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-minimize-reader-load/SKILL.md",
+        "claimedScope": "package",
+        "independentScope": "package",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-guard-the-context-window",
+        "claimedPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-guard-the-context-window/SKILL.md",
+        "claimedScope": "package",
+        "independentScope": "package",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-sequence-verifiable-units",
+        "claimedPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+        "claimedScope": "package",
+        "independentScope": "package",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-fix-root-causes",
+        "claimedPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-fix-root-causes/SKILL.md",
+        "claimedScope": "package",
+        "independentScope": "package",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-prove-it-works",
+        "claimedPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md",
+        "claimedScope": "package",
+        "independentScope": "package",
+        "projectScoped": false,
+        "present": true
+      }
+    ],
+    "allPresent": true,
+    "allProject": false,
+    "anyUserOrSession": false,
+    "missing": []
+  },
+  "screen": {
+    "resolveChrome": true,
+    "stopExplainClaim": true,
+    "resolveOkClaim": false,
+    "working": false
+  },
+  "pty": {
+    "resolveChrome": true,
+    "stopExplainClaim": true,
+    "resolveOkClaim": true,
+    "working": true
+  },
+  "settingsEnabledTrue": true,
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-project-skills-fixture-app--/2026-10-09T00-51-51-374Z_01a11e25-1dce-706e-9c8a-0a65b6dc3af5.jsonl",
+    "forAgentsRead": true,
+    "setupBennyRead": true,
+    "manifestWrite": true,
+    "toolOrder": [
+      "bash(FOR_AGENTS.md)",
+      "bash(setup-benny/SKILL.md)",
+      "bash(resolve-manifest.json)"
+    ]
+  },
+  "pollSamples": 27,
+  "scorerNote": "resolve_ok requires all ten skills independently classified project under the fixture with no --plugin-dir; stop_explain is also contractHeld when setup honestly refuses user/session/missing scope"
+}

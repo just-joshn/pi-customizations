@@ -1,0 +1,151 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "subagentRouted": true,
+    "keptVerifyOk": true,
+    "summaryOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "subagentChrome": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "subagentChrome": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstSummaryAt": "2026-10-09T01:28:14.727Z",
+  "firstVerifyAt": "2026-10-09T01:28:15.127Z",
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/fixture-app/evidence/verify-out.txt",
+    "line": "GUARD-OK markers=8",
+    "ok": true
+  },
+  "summary": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/fixture-app/out/summary.json",
+    "line": "{\n  \"markers\": [\n    \"MARKER-ALPHA\",\n    \"MARKER-BRAVO\",\n    \"MARKER-CHARLIE\",\n    \"MARKER-DELTA\",\n    \"MARKER-ECHO\",\n    \"MARKER-FOXTROT\",\n    \"MARKER-GOLF\",\n    \"MARKER-HOTEL\"\n  ]\n}",
+    "ok": true,
+    "markers": [
+      "MARKER-ALPHA",
+      "MARKER-BRAVO",
+      "MARKER-CHARLIE",
+      "MARKER-DELTA",
+      "MARKER-ECHO",
+      "MARKER-FOXTROT",
+      "MARKER-GOLF",
+      "MARKER-HOTEL"
+    ]
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-guard-the-context-window/SKILL.md",
+    "ok": true,
+    "name": "principle-guard-the-context-window",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/b1d3842f-6395-4894-85d2-a43a586bc4c2/b1d3842f-6395-4894-85d2-a43a586bc4c2.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:28:57.496Z",
+    "ranVerifyScript": true,
+    "subagentRouted": true,
+    "subagentRoutedAt": "2026-10-09T01:28:57.496Z",
+    "parentCorpusReads": 0,
+    "toolOrder": [
+      "Read",
+      "GetDynamicTools",
+      "Read",
+      "GetDynamicTools",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Glob",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool(subagent)",
+      "CallDynamicTool",
+      "Read",
+      "CallDynamicTool",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "Read(guard-leaf)",
+      "Read",
+      "Read",
+      "CallDynamicTool(subagent)",
+      "CallDynamicTool(subagent)",
+      "blob-mention(guard-leaf)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Glob",
+      "GetDynamicTools",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "GetDynamicTools",
+      "CallDynamicTool",
+      "CallDynamicTool(subagent)",
+      "Write",
+      "CallDynamicTool",
+      "CallDynamicTool(subagent)",
+      "CallDynamicTool",
+      "Glob",
+      "Shell(verify.mjs)",
+      "Read",
+      "Read",
+      "Shell",
+      "CallDynamicTool"
+    ],
+    "mtimeMs": 1791509320153.445
+  },
+  "pollSamples": 98,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "subagentChrome": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "subagentChrome": true,
+    "verifyMention": true,
+    "working": true
+  },
+  "baseline": {
+    "src/markers.json": "0020b9a076a8c60fa6a5316fd8a0e80e08efa98eac206b9a67a29e2d5a16c72e"
+  }
+}

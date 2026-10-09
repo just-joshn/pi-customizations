@@ -1,0 +1,25 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /mcp to connect Cursor to your tools and data sources.
+
+                                                                                                                       
+  /poteto-mode Make node scripts/verify.mjs print FLAT-OK for this fixture. src/greet.js currently routes              
+  through FormatPipeline in src/pipeline.js. NOTES.md describes the failure and some possible approaches. For          
+  any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first         
+  (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/,        
+  or files outside this cwd except the named done path. When FLAT-OK is on disk, write exactly one line to             
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-out/cursor       
+  /done.txt as verified=yes|no, then stop.                                                                             
+                                                                                                                       
+
+ ⠀⠞ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-app · 
+  refactor/pi-pstack-parity-again

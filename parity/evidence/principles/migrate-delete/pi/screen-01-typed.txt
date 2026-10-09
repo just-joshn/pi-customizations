@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/poteto-mode Introduce the formatName API described in NOTES.md. greet.js and banner.js still call formatNameLegacy.    
+Migrate those callers and remove the old API in the same change so node scripts/verify.mjs prints MIGRATE-OK. Do not    
+leave a permanent compatibility shim. For any poteto-mode principle you apply before declaring done, read that          
+principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture      
+cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When MIGRATE-OK is on disk,    
+write exactly one line to                                                                                               
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-out/pi/done.t 
+xt as verified=yes|no, then stop.                                                                                       
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-app (refactor/pi-pstack-parit...
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

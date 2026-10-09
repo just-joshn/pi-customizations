@@ -1,0 +1,105 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "convergeOk": true,
+    "convergentFix": true,
+    "stillIncrementsRun": false,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "failMention": true,
+      "verifyMention": true,
+      "crashMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "failMention": true,
+      "verifyMention": true,
+      "crashMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:05:57.988Z",
+  "firstVerifyAt": "2026-10-09T01:05:54.780Z",
+  "productPaths": [
+    "src/apply.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-app/evidence/verify-out.txt",
+    "line": "APPLY-OK converge=yes digest=4937429a2af37562d35881f93fb984223786dde868d71f2aab621b5980487659",
+    "ok": true
+  },
+  "productOk": true,
+  "productAnalysis": {
+    "stillIncrementsRun": false,
+    "fixedToken": true,
+    "writesFinal": true,
+    "keepsCrashHook": true,
+    "convergent": true
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-make-operations-idempotent/SKILL.md",
+    "ok": true,
+    "name": "principle-make-operations-idempotent",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-idempotent-fixture-app--/2026-10-09T01-05-41-464Z_01a11e31-c857-74af-9e53-c39401b6383f.jsonl",
+    "hostAttached": false,
+    "failMention": true,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:05:47.159Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T01:05:47.159Z",
+    "firstProductWriteAt": null,
+    "ranCrashProof": false,
+    "toolOrder": [
+      "bash(verify.mjs)",
+      "read(idempotent-leaf)",
+      "blob-mention(idempotent-leaf)",
+      "bash(verify.mjs)",
+      "read",
+      "TodoWrite(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 43,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "failMention": true,
+    "verifyMention": true,
+    "crashMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "failMention": true,
+    "verifyMention": true,
+    "crashMention": true,
+    "working": true
+  }
+}

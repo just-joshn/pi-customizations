@@ -1,0 +1,29 @@
+{
+  "attemptId": "521ce15e-a8f8-4f74-8fec-208ceddb7603",
+  "surface": "Cursor Agents Window",
+  "method": "agent-helper MCP keyboard drive (get_app_state + type_text + key)",
+  "customModeReached": true,
+  "customModeStickyAcrossFollowup": true,
+  "useAsModeFooterSeen": true,
+  "optionEnterEquivalent": "alt+Return",
+  "modeBadgeLabel": "poteto-mode",
+  "modeBadgeIcon": "crown",
+  "firstReply": "sticky mode on",
+  "secondReply": "7",
+  "screens": {
+    "slashUseAsMode": "screen-01-slash-use-as-mode.png",
+    "customModeBadge": "screen-02-custom-mode-badge.png",
+    "firstTaskTyped": "screen-03-first-task-typed.png",
+    "afterFirstTurnSticky": "screen-04-after-first-turn-sticky.png",
+    "followupTypedSticky": "screen-05-followup-typed-sticky.png",
+    "afterSecondTurnSticky": "screen-06-after-second-turn-sticky.png"
+  },
+  "notes": [
+    "Agents Window exposed Use as Mode footer on /poteto-mode slash entry (measured).",
+    "alt+Return engaged Custom Mode; crown poteto-mode pill appeared in composer.",
+    "After first assistant reply, poteto-mode pill remained in Send follow-up composer.",
+    "After second assistant reply (digit 7), poteto-mode pill still present.",
+    "Helper get_app_state screenshot bounds are 1280x800; coordinate clicks outside that fail. Keyboard path succeeded.",
+    "Transient Alacritty TCC dialogs appeared during parallel CU exercise; cleared before drive."
+  ]
+}

@@ -1,0 +1,36 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] setup-pstack (ctrl+o to expand)                                                                               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ AskQuestion Clarifying Questions (2)       Questions skipped by user                                                  ┃
+ 1. Current budget is small (medium). Choose a budget:                                                                 ┃
+   [ ] unlimited — max reasoning                                                                                       ┃
+   [ ] large — xhigh reasoning                                                                                         ┃
+   [ ] medium — high reasoning                                                                                         ┃
+   [ ] small — medium reasoning                                                                                        ┃
+                                                                                                                       ┃
+ 2. All 17 roles are currently inherit-parent (none dropped). Accept as-is?                                            ┃
+   [ ] Accept as-is                                                                                                    ┃
+   [ ] Change specific roles                                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠏ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑6 ↓310 R34k W20k CH94.9% $0.090 (sub) 2.8%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

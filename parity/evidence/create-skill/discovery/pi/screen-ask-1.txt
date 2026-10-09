@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ /create-skill. Complete ONLY Phase 1 Discovery from the create-skill skill. Sparse request: I want a small project    ┃
+ skill for a create-skill probe in this repo. Ask your discovery questions now (AskQuestion if available, otherwise    ┃
+ conversational). Do not draft a name/description outline yet. Do not write SKILL.md. After you have answers, write    ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/discovery/pi/require ┃
+ ments.md covering Purpose, Location, Triggers, Constraints, Patterns. Then write exactly one line to                  ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/discovery/pi/done.tx ┃
+ t as STATUS=discovered|env-blocked|other reason=<short>. Do not edit parity ledgers, parity/mismatches.json,          ┃
+ parity/requirements.json, or parity/progress.md.                                                                      ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] create-skill:1-120 (ctrl+o to expand)                                                                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ create-skill discovery                                                                                             │
+ │                                                                                                                    │
+ │ Question 3 of 4                                                                                                    │
+ │                                                                                                                    │
+ │ 3. When should it trigger?                                                                                         │
+ │                                                                                                                    │
+ │   › [ ] Only when named explicitly (disable-model-invocation)                                                      │
+ │     [ ] Auto-invoke from ambient context                                                                           │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app (refactor/pi-pstack-parity-again)
+↑6 ↓584 R33k W19k CH92.7% $0.087 (sub) 2.7%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

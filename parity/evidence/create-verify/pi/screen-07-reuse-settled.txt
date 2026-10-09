@@ -1,0 +1,40 @@
+                                                                                                                       │
+ - /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify │
+   -hello-cli/SKILL.md                                                                                                 │
+ - /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify │
+   -hello-cli/features/README.md                                                                                       │
+ - /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify │
+   -hello-cli/features/hello-print.md                                                                                  │
+                                                                                                                       │
+ SKILL.md has Launch, Doctor, Drive, Evidence, Cleanup and Helpers as ## headings, and Helpers is None. Cleanup never  │
+ kills by process name and keeps the proof files in .pi/evidence/verify-hello-cli/.                                    │
+                                                                                                                       │
+                                                                                                                       │
+ Second turn reuse. Discover the verify-hello-cli skill you just generated at                                          │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify-h │
+ ello-cli/SKILL.md. Do not regenerate it. Read its Launch or Doctor section, then write exactly one line to            │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/pi/reuse.txt:       │
+ REUSED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/v │
+ erify-hello-cli/SKILL.md. Stop after that write.                                                                      │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ [skill] verify-hello-cli:1-30 (ctrl+o to expand)                                                                      │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ write ~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/pi/reuse.txt                    │
+                                                                                                                       │
+ REUSED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/v │
+ erify-hello-cli/SKILL.md                                                                                              ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ I read the Launch and Doctor sections of the existing verify-hello-cli skill and didn't regenerate it. Then I wrote   ┃
+ the one REUSED= line, pointing at that SKILL.md, to                                                                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/pi/reuse.txt.       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app (refactor/pi-pstack-parity-again)
+↑14 ↓2.7k R119k W23k CH96.7% $0.141 (sub) 3.0%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

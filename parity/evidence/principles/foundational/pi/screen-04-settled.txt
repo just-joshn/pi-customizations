@@ -1,0 +1,40 @@
+ E                                                                                                                     │
+ node scripts/verify.mjs && mkdir -p ../fixture-out/pi && echo "verified=yes" > ../fixture-out/pi/done.txt; cat        │
+ ../fixture-out/pi/done.txt (timeout 30s)                                                                              │
+                                                                                                                       │
+ BOARD-OK jobs=2                                                                                                       │
+ verified=yes                                                                                                          │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The job board is implemented and node scripts/verify.mjs prints BOARD-OK jobs=2. I wrote verified=yes to              │
+ fixture-out/pi/done.txt.                                                                                              │
+                                                                                                                       │
+ - Job shape. src/types.js defines Job as { id, status: 'pending' | 'done', payload }, plus a frozen JOB_STATUS        │
+   constant. I wrote it before any board logic (principle-foundational-thinking, whose SKILL.md I read in full).       │
+ - Board. src/board.js keeps jobs in a Map and tracks claimed ids in a separate set.                                   │
+     - enqueue returns a new job-N id.                                                                                 │
+     - claim takes the first pending, unclaimed job and returns null when none is left. It runs synchronously, so two  │
+       claimers never get the same job.                                                                                │
+     - complete marks a claimed job done and throws if the job is unknown or was never claimed.                        │
+ - Claim state. I kept claim state out of status because the spec limits status to pending or done, and verify.mjs     │
+   expects a claimed job to still read pending. This is a tradeoff: the claimed set is a second source of truth next   ┃
+   to the job record.                                                                                                  ┃
+ - Playbook. I followed the Feature playbook. I skipped how, architect, the nested subagent, interrogate and the PR    ┃
+   step as not worth it for one small module, and I made no commits.                                                   ┃
+
+... 1 earlier
+[x] `architect` for parallel design exploration. skip: single small module (completed)
+[x] Write the throughput checkpoint. n/a: single file, no fan-out, serial (completed)
+[>] Delegate code-writing to a subagent. skip: owning diff directly, no nested agents (in_progress)
+[ ] Verify on the matching surface: node scripts/verify.mjs prints BOARD-OK (pending)
+[ ] Rebase into small commits. skip: no commits requested (pending)
+[ ] interrogate. skip: not contested (pending)
+[ ] Opening a PR. skip: not requested (pending)
+[ ] Write done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/foundational/fixture-app (refactor/pi-pstack-parity-...
+↑12 ↓2.3k R147k W29k CH97.8% $0.168 (sub) 3.8%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

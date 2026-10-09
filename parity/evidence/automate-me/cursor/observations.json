@@ -1,0 +1,38 @@
+{
+  "screenFinal": {
+    "automateMeSkill": true,
+    "existingSkillMention": true,
+    "parallelMention": false,
+    "working": false
+  },
+  "firstChangeAt": "2026-10-08T20:52:01.544Z",
+  "before": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/automate-me/fixture-app/.cursor/skills/parity-fixture-mode/SKILL.md",
+    "rel": ".cursor/skills/parity-fixture-mode/SKILL.md",
+    "digest": "e30091ea9749321c18dd7b590745f2fc24a3c25f2567632be10f110caf9d9852",
+    "hasSeed": true,
+    "hasRefresh": false
+  },
+  "after": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/automate-me/fixture-app/.cursor/skills/parity-fixture-mode/SKILL.md",
+    "rel": ".cursor/skills/parity-fixture-mode/SKILL.md",
+    "digest": "a99d167cde6fa5211b40bdba00fc64f61f419561c036c2c02281b99bd3abe158",
+    "hasSeed": true,
+    "hasRefresh": true
+  },
+  "modeSkills": [
+    ".cursor/skills/parity-fixture-mode/SKILL.md",
+    ".pi/skills/parity-fixture-mode/SKILL.md"
+  ],
+  "parallelModeSkills": [],
+  "existingPathReused": true,
+  "updatedInPlace": true,
+  "outcome": "refreshed_in_place",
+  "automateMeSkill": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/automate-me/fixture-out/cursor/done.txt",
+    "line": "UPDATED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/automate-me/fixture-app/.cursor/skills/parity-fixture-mode/SKILL.md"
+  },
+  "pollSamples": 21
+}

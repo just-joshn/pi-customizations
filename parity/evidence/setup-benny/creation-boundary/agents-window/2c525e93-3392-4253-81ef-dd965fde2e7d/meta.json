@@ -1,0 +1,39 @@
+{
+  "attemptId": "2c525e93-3392-4253-81ef-dd965fde2e7d",
+  "mode": "reverify-collateral-editor-title",
+  "sourceAttemptId": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+  "liveOpenDraftAttemptId": "fdd603d5-ab1e-4b75-89a1-fa8165b18b51",
+  "editorTitleWitnessed": true,
+  "oracle": {
+    "sourceAttemptId": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+    "verifyAttemptId": "2c525e93-3392-4253-81ef-dd965fde2e7d",
+    "liveOpenDraftAttemptId": "fdd603d5-ab1e-4b75-89a1-fa8165b18b51",
+    "ocrChars": 925,
+    "ocrBreadcrumb": true,
+    "ocrSnippet": "Automations > benny-triage\nSave\nD Test\nIDE 7\nV New Chat\nSearch\nAutomations\nCustomize\nProjects\n+ New Project\nPinned\n\u2022 /make-bot-ui|",
+    "axHasAddTrigger": true,
+    "axHasInactive": true,
+    "axHasAgentInstructions": true,
+    "axHasBennyTriage": true,
+    "sameFrameEditorTitleWitnessed": true,
+    "draftName": "benny-triage",
+    "titleOk": true,
+    "chromeOk": true,
+    "editorTitleWitnessed": true,
+    "markers": {
+      "hasInactive": true,
+      "hasAddTrigger": true,
+      "hasAgentInstructions": true,
+      "hasUntitled": false,
+      "hasSave": true
+    },
+    "ocrHasBreadcrumb": true,
+    "saved": false,
+    "activated": false,
+    "slack": false
+  },
+  "saved": false,
+  "activated": false,
+  "slack": false,
+  "ledgersEdited": false
+}

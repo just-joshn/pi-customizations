@@ -1,0 +1,26 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to plan execution and reach the right outcome faster.
+
+                                                                                                                       
+  /poteto-mode Introduce the formatName API described in NOTES.md. greet.js and banner.js still call                   
+  formatNameLegacy. Migrate those callers and remove the old API in the same change so node scripts/verify.mjs         
+  prints MIGRATE-OK. Do not leave a permanent compatibility shim. For any poteto-mode principle you apply before       
+  declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index).       
+  Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named          
+  done path. When MIGRATE-OK is on disk, write exactly one line to                                                     
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-out/       
+  cursor/done.txt as verified=yes|no, then stop.                                                                       
+                                                                                                                       
+
+ ⠠⠛ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-app · 
+  refactor/pi-pstack-parity-again

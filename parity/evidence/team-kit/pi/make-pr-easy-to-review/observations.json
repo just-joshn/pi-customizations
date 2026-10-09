@@ -1,0 +1,46 @@
+{
+  "screenFinal": {
+    "skillMention": false,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": false,
+    "fixtureComment": false,
+    "fixtureGuidance": true
+  },
+  "pty": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": true,
+    "working": true,
+    "fixtureComment": false,
+    "fixtureGuidance": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/make-pr-easy-to-review/done.txt",
+    "line": "STATUS=verified reason=PR body has TL;DR and marker; notes written",
+    "status": "verified"
+  },
+  "post": {
+    "artifactHasMarker": true,
+    "prBodyHasMarker": true,
+    "artifactBytes": 950
+  },
+  "seededSkill": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/make-pr-easy-to-review/SKILL.md",
+    "sha256": "e8da0d4a85b7c04823698f539251617389f827fd9137100ef7eaea5dcc992fe7"
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "artifactOk": true,
+    "post": {
+      "artifactHasMarker": true,
+      "prBodyHasMarker": true,
+      "artifactBytes": 950
+    },
+    "closed": true,
+    "honestBlocker": false
+  }
+}

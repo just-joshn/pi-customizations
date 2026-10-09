@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "pairId": "maintain-verify-source-wave-1",
+  "scenarioRef": "setup-maintain-verify-source-wave",
+  "requirementIds": [
+    "PSTACK-SETUP-MAINTAIN-VERIFY-SOURCE-WAVE-001"
+  ],
+  "fixtureDigest": "sha256:3613d9f7b15efe06324fd0c198b23a7c84124d93cd73911a3af9a8a96044c0a6",
+  "promptTemplateSourceWave": "Run /maintain-verification-skill against verify-hello-cli. Complete Pass steps 0–2 only. After index hygiene, launch one read-only subagent per feature file concurrently (hello-print.md and exit-zero.md). Each child returns feature summary, source entry points, likely drift or none, and one live-verification recipe. Children never drive the app and never edit files. Write child returns under fixture-out/source-wave/<side>/children/ and SOURCE_WAVE marker lines, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/maintain-verification-skill source-wave prompt"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "fixture-out/source-wave/<side>/source-wave.txt with SOURCE_WAVE=done and children/*.md"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "7d0f9dfd-9f01-4199-b783-64ac80d7552f",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/cursor/7d0f9dfd-9f01-4199-b783-64ac80d7552f",
+    "afterDigest": "sha256:3613d9f7b15efe06324fd0c198b23a7c84124d93cd73911a3af9a8a96044c0a6",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-source-wave/.cursor/skills/verify-hello-cli/SKILL.md",
+    "markerPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/cursor/source-wave.txt",
+    "childrenDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/cursor/children",
+    "observations": {
+      "maintainRan": true,
+      "markerOk": true,
+      "bothChildrenOnDisk": true,
+      "bothChildrenFieldsOk": true,
+      "concurrentClaimed": true,
+      "childrenDroveNo": true,
+      "childrenEditedNo": true,
+      "noEvidenceDirWritten": true,
+      "ptyRunningSubagent": true,
+      "ptyTaskToolChrome": true,
+      "sourceWavePassCandidate": true,
+      "modelChrome": "Claude Opus 5.5 300K Medium"
+    }
+  },
+  "pi": {
+    "attemptId": "e3203616-b69f-4113-a036-8e664cfaca64",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/pi/e3203616-b69f-4113-a036-8e664cfaca64",
+    "afterDigest": "sha256:3613d9f7b15efe06324fd0c198b23a7c84124d93cd73911a3af9a8a96044c0a6",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "sessionNote": "PI_CODING_AGENT_DIR=/tmp/pi-ref-agent",
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-maintain-verify-fixture-app-source-wave--/2026-10-09T00-34-17-545Z_01a11e15-0949-7094-8b8c-8b31dabd15ae.jsonl",
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-source-wave/.pi/skills/verify-hello-cli/SKILL.md",
+    "markerPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/pi/source-wave.txt",
+    "childrenDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/pi/children",
+    "childAgentIds": [
+      "52ae0128-1ff3-4b24-a134-076d90130109",
+      "c0dba4ac-e97b-4bc2-865c-6f03c11b1ff7"
+    ],
+    "observations": {
+      "maintainRan": true,
+      "markerOk": true,
+      "bothChildrenOnDisk": true,
+      "bothChildrenFieldsOk": true,
+      "concurrentClaimed": true,
+      "childrenDroveNo": true,
+      "childrenEditedNo": true,
+      "noEvidenceDirWritten": true,
+      "sessionSubagentStartedCount": 2,
+      "sessionAgentStartsMsApart": 111,
+      "ptyTaskExploreChrome": true,
+      "sourceWavePassCandidate": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "source wave concurrency",
+      "cursor": "Decoded PTY shows Running subagent and cursor · Task chrome. Settled screen says two read-only explore subagents at the same time. Child returns on disk for both features.",
+      "pi": "Session has two subagent.started events 111ms apart (hello-print 52ae0128, exit-zero c0dba4ac). PTY shows task agent_type=explore for both names. Child returns on disk.",
+      "reconciled": true
+    },
+    {
+      "topic": "required return fields",
+      "cursor": "Both children/*.md contain summary, entry points, drift/none, and a live-verification recipe.",
+      "pi": "Both children/*.md contain the same four sections.",
+      "reconciled": true
+    },
+    {
+      "topic": "children never drive or edit",
+      "cursor": "Marker CHILDREN_DROVE=no CHILDREN_EDITED=no. No .cursor/evidence under fixture. Settled screen reports no app drive.",
+      "pi": "Marker same. No .pi/evidence under fixture. Child recipes say do not run live now. Session explore children used for source read.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Claude Opus 5.5 300K Medium.",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription.",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-maintain-verify-source-wave.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-source-wave",
+    "decisionLog": "parity/evidence/maintain-verify/.audit/u-journey-setup-maintain-verify-source-wave.tsv",
+    "notes": "Dedicated fixture-app-source-wave avoids racing fixture-app / fixture-app-live-pass. Two feature files force concurrent source-wave children. Ledgers not edited. No commit."
+  }
+}

@@ -1,0 +1,40 @@
+                                                                                                                       │
+                                                                                                                       │
+ $ npm run typecheck 2>&1 | tail -20; cat src/broken.js; cat package.json (timeout 120s)                               │
+                                                                                                                       │
+ ... (11 earlier lines, ctrl+o to expand)                                                                              │
+   "type": "module",                                                                                                   │
+   "scripts": {                                                                                                        │
+     "typecheck": "node scripts/typecheck.mjs"                                                                         │
+   }                                                                                                                   │
+ }                                                                                                                     │
+                                                                                                                       │
+ Took 0.2s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ echo 'export const VALUE = 7;' > src/broken.js; npm run typecheck 2>&1 | tail -3                                    ┃
+ O=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/check-compiler-erro ┃
+ rs; mkdir -p $O                                                                                                       ┃
+ printf '# Summary\n\n- Error: src/broken.js: VALUE must be a number, found null (type error)\n- Fix: set VALUE = 7\n- ┃
+ Re-run: npm run typecheck passes\n' > $O/summary.md                                                                   ┃
+ echo 'STATUS=verified reason=typecheck passes after fix' > $O/done.txt (timeout 60s)                                  ┃
+                                                                                                                       ┃
+ > node scripts/typecheck.mjs                                                                                          ┃
+                                                                                                                       ┃
+ typecheck ok                                                                                                          ┃
+                                                                                                                       ┃
+ Took 0.2s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ npm run typecheck now passes. I changed src/broken.js from export const VALUE = null; to export const VALUE = 7;. The ┃
+ failure was "VALUE must be a number, found null", and I re-ran the check once after the fix.                          ┃
+                                                                                                                       ┃
+ I wrote the summary to fixture-out/pi/check-compiler-errors/summary.md. done.txt in the same folder contains          ┃
+ STATUS=verified reason=typecheck passes after fix. I didn't edit the parity ledgers or commit.                        ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/check-compiler-errors (refactor/pi-pstack...
+↑8 ↓564 R59k W18k CH98.8% $0.088 (sub) 2.6%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

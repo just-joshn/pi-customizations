@@ -1,0 +1,24 @@
+{
+  "attemptId": "e5eaace1-aff8-4185-a3be-983618edacb2",
+  "mode": "neweditor",
+  "method": "agent-helper MCP keyboard/click drive of Cursor Agents Window",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/e5eaace1-aff8-4185-a3be-983618edacb2",
+  "probe": "automations-new-editor",
+  "editorChromeWitnessed": false,
+  "newAutomationButtons": [],
+  "clickLog": [],
+  "finalStillOnList": true,
+  "pathsTried": [
+    "cmd+n New Chat",
+    "cmd+shift+p Open Automations",
+    "fresh get_app_state + click element_index New Automation",
+    "Tab/Shift+Tab focus cycle + Return/Space"
+  ],
+  "didNot": [
+    "save automation",
+    "enable Benny",
+    "post to Slack",
+    "mint Cloud Agent",
+    "edit ledgers"
+  ]
+}

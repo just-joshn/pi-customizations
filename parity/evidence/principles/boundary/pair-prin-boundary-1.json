@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "pairId": "prin-boundary-1",
+  "scenarioRef": "prin-boundary",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-BOUNDARY-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Make node scripts/verify.mjs print BOUNDARY-OK for this fixture. config/app.json is external input. src/load-config.js is the config boundary; src/core.js is business logic. NOTES.md describes the failure and some possible approaches. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When BOUNDARY-OK is on disk, write exactly one line to .../boundary/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode BOUNDARY-OK; config boundary vs business re-validation; leaf SKILL.md for applied principles; verify; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with BOUNDARY-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "f9bbb2d6-e5b4-47e2-b4f0-91b03291f4b9",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/boundary/cursor/f9bbb2d6-e5b4-47e2-b4f0-91b03291f4b9",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/0db379c5-2f10-4434-a31a-ee617d02927d/0db379c5-2f10-4434-a31a-ee617d02927d.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/boundary/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-boundary-discipline/SKILL.md",
+      "boundaryValidated": true,
+      "businessRevalidates": false,
+      "midChainOnlyFix": false,
+      "keptVerifyOk": true,
+      "verifyLine": "BOUNDARY-OK value=\"hello, WORLD\"",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "Auto",
+      "oracleNote": "Transcript Read of principle-boundary-discipline/SKILL.md. loadConfig validates displayName and returns { name }. formatGreeting only uppercases cfg.name. No mid-chain re-validation."
+    }
+  },
+  "pi": {
+    "attemptId": "d8c69f86-0236-4851-a2c0-1a911175877e",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/boundary/pi/d8c69f86-0236-4851-a2c0-1a911175877e",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-boundary-fixture-app--/2026-10-09T00-54-45-148Z_01a11e27-c49b-7422-ac96-8f46847becc6.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/boundary/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-boundary-discipline/SKILL.md",
+      "boundaryValidated": true,
+      "businessRevalidates": false,
+      "midChainOnlyFix": false,
+      "keptVerifyOk": true,
+      "verifyLine": "BOUNDARY-OK value=\"hello, WORLD\"",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "oracleNote": "Session tool order: bash(verify.mjs) then read(boundary-leaf). Same boundary map to { name } and pure formatGreeting. BOUNDARY-OK."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-boundary-discipline/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-boundary-discipline/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "boundary outcome",
+      "cursor": "contractHeld. Leaf Read + boundaryValidated + no businessRevalidates + BOUNDARY-OK.",
+      "pi": "contractHeld. Leaf Read + boundaryValidated + no businessRevalidates + BOUNDARY-OK.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-boundary.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/boundary/fixture-app",
+    "decisionLog": "parity/evidence/principles/boundary/.audit/u-journey-prin-boundary.tsv",
+    "notes": "PSTACK-PRIN-BOUNDARY-001. Dedicated boundary/ fixture. External config/app.json; validation moved to loadConfig; core free of re-validation. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both."
+  }
+}

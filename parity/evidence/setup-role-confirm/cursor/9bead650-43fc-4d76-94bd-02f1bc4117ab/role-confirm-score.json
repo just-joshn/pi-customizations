@@ -1,0 +1,38 @@
+{
+  "expectedRoleCount": 17,
+  "rolesListedAnyForm": 11,
+  "rolesListedWithModel": 0,
+  "rolesMissing": [
+    {
+      "role": "feature, refactoring",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "bug-fix",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "perf-issue",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "hillclimb",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "judgment and prose",
+      "model": "inherit-parent"
+    },
+    {
+      "role": "hardest tasks",
+      "model": "inherit-parent"
+    }
+  ],
+  "acceptOrChangePrompt": true,
+  "acceptPrompt": true,
+  "changePrompt": false,
+  "summaryOnly": false,
+  "askQuestion": false,
+  "writeCardOnSameScreen": false,
+  "everyRoleShownWithModel": false
+}

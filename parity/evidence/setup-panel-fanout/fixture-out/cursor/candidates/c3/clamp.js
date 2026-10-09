@@ -1,0 +1,7 @@
+'use strict';
+
+function clamp(n, lo, hi) {
+  return Math.min(hi, Math.max(lo, n));
+}
+
+module.exports = { clamp };

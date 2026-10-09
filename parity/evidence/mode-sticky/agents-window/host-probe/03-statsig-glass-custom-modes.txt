@@ -1,0 +1,3 @@
+exists: true
+size: 904780
+glass_custom_modes_present_in_cache_text: false

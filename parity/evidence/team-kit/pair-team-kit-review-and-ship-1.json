@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "pairId": "team-kit-review-and-ship-1",
+  "scenarioRef": "team-kit:review-and-ship",
+  "journeyFamily": "cursor-team-kit",
+  "skillId": "review-and-ship",
+  "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/review-and-ship/SKILL.md",
+  "skillMdSha256": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "fixturePrUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/1",
+  "fixtureRepo": "https://github.com/just-joshn/team-kit-gh-fixture",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/review-and-ship ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "STATUS=verified with skill artifact oracle, or STATUS=env-blocked"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "c2cfa27a-0cbb-490e-b69f-a08ed7cd8693",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/cursor/review-and-ship/c2cfa27a-0cbb-490e-b69f-a08ed7cd8693",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/review-and-ship/done.txt",
+    "artifactPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/review-and-ship/ship-notes.md",
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "artifactOk": true,
+      "post": {
+        "artifactHasMarker": true,
+        "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/4",
+        "prExists": true,
+        "artifactBytes": 645
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  },
+  "pi": {
+    "attemptId": "39499099-9f3e-4685-b7ed-b3bbaac00702",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pi/review-and-ship/39499099-9f3e-4685-b7ed-b3bbaac00702",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship/done.txt",
+    "artifactPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship/ship-notes.md",
+    "seededSkill": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/review-and-ship/SKILL.md",
+      "sha256": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1"
+    },
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "artifactOk": true,
+      "post": {
+        "artifactHasMarker": true,
+        "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/5",
+        "prExists": true,
+        "artifactBytes": 258
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  },
+  "skillClosure": {
+    "review-and-ship": "closed_by_this_pair"
+  },
+  "note": "Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/. Fixture is disposable just-joshn/team-kit-gh-fixture. Full 18-skill closure is not claimed by this pair alone.",
+  "verdict": "pass"
+}

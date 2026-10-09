@@ -1,0 +1,42 @@
+{
+  "screenFinal": {
+    "todoTool": false,
+    "checklist": false,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "playbookStepsVisible": true,
+    "todoVisible": true,
+    "potetoMode": false,
+    "working": false
+  },
+  "pty": {
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "potetoMode": true
+  },
+  "firstTodoAt": "2026-10-08T19:52:26.654Z",
+  "firstPlaybookTodoAt": "2026-10-08T19:52:44.637Z",
+  "firstProductAt": "2026-10-08T19:53:32.719Z",
+  "productPaths": [
+    "src/inc.js"
+  ],
+  "playbookSignalsSeen": [
+    "bug_fix",
+    "feature"
+  ],
+  "ordering": "todo_before_product",
+  "todoBeforeProduct": true,
+  "playbookTodosBeforeProduct": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/fixture-out/cursor/done.txt",
+    "line": "Bug fix"
+  },
+  "pollSamples": 98,
+  "session": null
+}

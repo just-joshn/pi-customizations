@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "attemptId": "cc8d4964-b8dd-4727-9ccc-59028ce8278a",
+  "side": "cursor",
+  "scenarioRef": "setup-pstack:budget-apply-small",
+  "fixtureRef": {
+    "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+    "digest": "sha256:b2b3b39bd7d7934a54914c90e64c187c93396c5791fd153b7d9c4a48fcf8864f"
+  },
+  "executable": {
+    "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+    "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+  },
+  "artifacts": [],
+  "launch": {
+    "argv": [
+      "/Users/josh-desktop/.local/bin/cursor-agent",
+      "--plugin-dir",
+      "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+      "--plugin-dir",
+      "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+    ],
+    "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run",
+    "envNames": [
+      "HOME",
+      "PATH",
+      "TERM"
+    ],
+    "publicEnv": {
+      "TERM": "xterm-256color"
+    }
+  },
+  "geometry": {
+    "rows": 36,
+    "cols": 120
+  },
+  "observedEnv": {
+    "platform": "darwin",
+    "node": "v24.21.0",
+    "TERM": "xterm-256color"
+  }
+}

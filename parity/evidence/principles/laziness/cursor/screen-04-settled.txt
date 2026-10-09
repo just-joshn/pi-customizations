@@ -1,0 +1,39 @@
+
+  node scripts/verify.mjs now prints FLAT-OK path=delete files=core.js,greet.js and exits 0. That line is also saved
+  in evidence/verify-out.txt. done.txt contains verified=yes.
+
+  What changed. I deleted src/pipeline.js. greet() now returns message() from src/core.js directly. Callers get the
+  plain string hello, world back where they used to get a thrown error. Whoever maintains this next has one less
+  file to read, and a call goes through two layers where it used to go through three.
+
+  Principles applied. I read each of these leaf SKILL.md files in full.
+  • Laziness Protocol settled the fork in NOTES.md. I took approach 2 and deleted the layer. I did not add a
+    FormatStrategy registry. The diff is one deleted file and a two-line edit.
+  • Subtract Before You Add meant removing the dead pass-through, including its unused _unused helper, rather than
+    building anything on top of it.
+  • Prove It Works meant checking the real artifact. The verifier failed before the change (FLAT-FAIL greet=false 
+    pipelineGone=false) and passed after it. That is measured. A search showed no remaining references to the
+    pipeline outside the verifier's own checks.
+
+  Playbook steps.
+  1. Pin the behavior contract. done. The pin is the verify.mjs baseline run. I skipped the how skill because the
+     subsystem is three tiny files I read directly.
+  2. Name the missing structure. skip: no structure is missing. The code just needed a layer removed.
+  3. Name the target shape. done. The target is greet.js calling core.js. No architect run, since no new function
+     boundary was designed.
+  4. Subtract before you add. done. I deleted pipeline.js.
+  5. Small behavior-preserving steps. done in one step. skip delegation: a two-line edit isn't worth a subagent.
+  6. Prove it on the real artifact. done. The verifier printed FLAT-OK.
+  7. Confirm reader load went down. done. One file and one layer fewer.
+  8. Commits and PR. skip: you scoped the work to this fixture and asked me to stop once done.txt was written.
+  9. Write done.txt. done.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium · 16.3% · 1 file edited                                                   Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-app · 
+  refactor/pi-pstack-parity-again

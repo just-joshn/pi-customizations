@@ -1,0 +1,307 @@
+{
+  "scenario": "setup-benny-pack-merge",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/cursor/d9e476af-9b22-46f2-90fd-1d42cc2e068b",
+      "attemptId": "d9e476af-9b22-46f2-90fd-1d42cc2e068b",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "Help set up Benny for this repository by completing the pack-merge step only. Follow .upstream/automations/benny/FOR_AGENTS.md / setup-benny merge rules. This repository is the target. The source pack is .upstream/automations/benny (contains FOR_AGENTS.md). Merge the entire source pack into .cursor/automations/benny, creating missing paths. Preserve destination-only file .cursor/automations/benny/DESTINATION_ONLY.md (PACK-MERGE-DEST-ONLY-MARKER). The destination README already has a local edit marked PACK-MERGE-LOCAL-EDIT-MARKER; merge without discarding that local edit, or stop and ask if ownership is ambiguous. Never overwrite user-owned files under .cursor/benny/ (configuration.yaml, feature-map.md, routing.md). Verify required pack files exist afterward (FOR_AGENTS.md, setup-benny, both operational skills with references, templates). Do not create or update a live automation. Do not edit parity ledgers or src/app.js. When the merge step is done (or you stop), write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/fixture-out/cursor/done.txt as STATUS=merge-ok|merge-mismatch|no-merge|blocked|other reason=<short phrase> then stop.",
+      "observations": {
+        "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+        "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+        "productRel": "src/app.js",
+        "before": {
+          "sourceRels": [
+            "FOR_AGENTS.md",
+            "README.md",
+            "skills/reproduce-and-fix-issues/SKILL.md",
+            "skills/reproduce-and-fix-issues/references/control-adapter.md",
+            "skills/reproduce-and-fix-issues/references/feature-map.example.md",
+            "skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+            "skills/setup-benny/SKILL.md",
+            "skills/triage-issue-reports/SKILL.md",
+            "skills/triage-issue-reports/references/routing.example.md",
+            "templates/configuration.example.yaml",
+            "templates/reproduce-automation-prompt.md",
+            "templates/triage-automation-prompt.md"
+          ],
+          "destPresent": [],
+          "missingRequired": [
+            "FOR_AGENTS.md",
+            "skills/setup-benny/SKILL.md",
+            "skills/reproduce-and-fix-issues/SKILL.md",
+            "skills/reproduce-and-fix-issues/references/control-adapter.md",
+            "skills/reproduce-and-fix-issues/references/feature-map.example.md",
+            "skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+            "skills/triage-issue-reports/SKILL.md",
+            "skills/triage-issue-reports/references/routing.example.md",
+            "templates/configuration.example.yaml",
+            "templates/reproduce-automation-prompt.md",
+            "templates/triage-automation-prompt.md"
+          ],
+          "missingSourceCopies": [
+            "FOR_AGENTS.md",
+            "skills/reproduce-and-fix-issues/SKILL.md",
+            "skills/reproduce-and-fix-issues/references/control-adapter.md",
+            "skills/reproduce-and-fix-issues/references/feature-map.example.md",
+            "skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+            "skills/setup-benny/SKILL.md",
+            "skills/triage-issue-reports/SKILL.md",
+            "skills/triage-issue-reports/references/routing.example.md",
+            "templates/configuration.example.yaml",
+            "templates/reproduce-automation-prompt.md",
+            "templates/triage-automation-prompt.md"
+          ],
+          "destOnlyPreserved": true,
+          "localEditPreserved": true,
+          "digests": {
+            ".cursor/automations/benny/DESTINATION_ONLY.md": "sha256:3d48854a350499edfe3e82dd6aa87d2226d31158b1021e13205481fb473ef4fb",
+            ".cursor/automations/benny/README.md": "sha256:f8ba1b7ca1b9ac98c7fe1b8e02a99d6255d100568f84537cc4ab3abef0d263fb",
+            "src/app.js": "sha256:a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+            ".cursor/benny/configuration.yaml": "sha256:42dfc14a301ba91eec6fe9d6be78748a1525f77f754c34cc5d7c2462b1077d38",
+            ".cursor/benny/feature-map.md": "sha256:02ab1d9462873f9a5566d46e3f7da8bc158b68afe96c53395e7abadf7fda5d09",
+            ".cursor/benny/routing.md": "sha256:66245d0a373a793ef9ed7b763394e474a3d3190fd599023de3298374c237c23e"
+          },
+          "userOwnedTexts": {
+            ".cursor/benny/configuration.yaml": "schema: 1\nPACK-MERGE-USER-OWNED-CONFIG-MARKER: do-not-overwrite\nslack:\n  source_channel_id: C-FIXTURE\n",
+            ".cursor/benny/feature-map.md": "# Feature map\n\nPACK-MERGE-USER-OWNED-FEATURE-MAP-MARKER\n- login flow\n",
+            ".cursor/benny/routing.md": "# Routing\n\nPACK-MERGE-USER-OWNED-ROUTING-MARKER\n- default: triage\n"
+          },
+          "destOnlyText": "# Destination-only file\n\nPACK-MERGE-DEST-ONLY-MARKER\nThis file exists only in the destination and must survive pack merge.\n",
+          "readmeText": "# benny\n\nbenny gives you two cursor automations for slack issue reports. one triages each report. the other reproduces confirmed bugs and may prepare a small draft fix.\n\nthe files in this directory are dormant setup and automation sources. they do not appear as slash skills.\n\n## set it up\n\n1. point cursor at [`FOR_AGENTS.md`](./FOR_AGENTS.md) and name the target repository.\n2. let setup merge this whole directory into the target at `.cursor/automations/benny/`. it must preserve destination-only files and review conflicts instead of overwriting local edits.\n3. let setup enable pstack in the target repository's `.cursor/settings.json` for shared dependencies:\n\n```json\n{\n\t\"plugins\": {\n\t\t\"pstack\": { \"enabled\": true }\n\t}\n}\n```\n\n4. keep user-owned configuration outside the copied pack, for example in `.cursor/benny/`. adapt [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md).\n5. commit `.cursor/settings.json`, `.cursor/automations/benny/`, and any secret-free configuration before enabling either automation.\n6. review each new automation draft or update existing automations in their editors. then send a harmless test report and verify every source-channel post stays in the original thread.\n\n\n<!-- PACK-MERGE-LOCAL-EDIT-MARKER: keep this local note through merge -->\n"
+        },
+        "after": {
+          "sourceRels": [
+            "FOR_AGENTS.md",
+            "README.md",
+            "skills/reproduce-and-fix-issues/SKILL.md",
+            "skills/reproduce-and-fix-issues/references/control-adapter.md",
+            "skills/reproduce-and-fix-issues/references/feature-map.example.md",
+            "skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+            "skills/setup-benny/SKILL.md",
+            "skills/triage-issue-reports/SKILL.md",
+            "skills/triage-issue-reports/references/routing.example.md",
+            "templates/configuration.example.yaml",
+            "templates/reproduce-automation-prompt.md",
+            "templates/triage-automation-prompt.md"
+          ],
+          "destPresent": [
+            "FOR_AGENTS.md",
+            "skills/setup-benny/SKILL.md",
+            "skills/reproduce-and-fix-issues/SKILL.md",
+            "skills/reproduce-and-fix-issues/references/control-adapter.md",
+            "skills/reproduce-and-fix-issues/references/feature-map.example.md",
+            "skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+            "skills/triage-issue-reports/SKILL.md",
+            "skills/triage-issue-reports/references/routing.example.md",
+            "templates/configuration.example.yaml",
+            "templates/reproduce-automation-prompt.md",
+            "templates/triage-automation-prompt.md"
+          ],
+          "missingRequired": [],
+          "missingSourceCopies": [],
+          "destOnlyPreserved": true,
+          "localEditPreserved": true,
+          "digests": {
+            ".cursor/automations/benny/DESTINATION_ONLY.md": "sha256:3d48854a350499edfe3e82dd6aa87d2226d31158b1021e13205481fb473ef4fb",
+            ".cursor/automations/benny/README.md": "sha256:f8ba1b7ca1b9ac98c7fe1b8e02a99d6255d100568f84537cc4ab3abef0d263fb",
+            "src/app.js": "sha256:a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+            ".cursor/benny/configuration.yaml": "sha256:42dfc14a301ba91eec6fe9d6be78748a1525f77f754c34cc5d7c2462b1077d38",
+            ".cursor/benny/feature-map.md": "sha256:02ab1d9462873f9a5566d46e3f7da8bc158b68afe96c53395e7abadf7fda5d09",
+            ".cursor/benny/routing.md": "sha256:66245d0a373a793ef9ed7b763394e474a3d3190fd599023de3298374c237c23e"
+          },
+          "userOwnedTexts": {
+            ".cursor/benny/configuration.yaml": "schema: 1\nPACK-MERGE-USER-OWNED-CONFIG-MARKER: do-not-overwrite\nslack:\n  source_channel_id: C-FIXTURE\n",
+            ".cursor/benny/feature-map.md": "# Feature map\n\nPACK-MERGE-USER-OWNED-FEATURE-MAP-MARKER\n- login flow\n",
+            ".cursor/benny/routing.md": "# Routing\n\nPACK-MERGE-USER-OWNED-ROUTING-MARKER\n- default: triage\n"
+          },
+          "destOnlyText": "# Destination-only file\n\nPACK-MERGE-DEST-ONLY-MARKER\nThis file exists only in the destination and must survive pack merge.\n",
+          "readmeText": "# benny\n\nbenny gives you two cursor automations for slack issue reports. one triages each report. the other reproduces confirmed bugs and may prepare a small draft fix.\n\nthe files in this directory are dormant setup and automation sources. they do not appear as slash skills.\n\n## set it up\n\n1. point cursor at [`FOR_AGENTS.md`](./FOR_AGENTS.md) and name the target repository.\n2. let setup merge this whole directory into the target at `.cursor/automations/benny/`. it must preserve destination-only files and review conflicts instead of overwriting local edits.\n3. let setup enable pstack in the target repository's `.cursor/settings.json` for shared dependencies:\n\n```json\n{\n\t\"plugins\": {\n\t\t\"pstack\": { \"enabled\": true }\n\t}\n}\n```\n\n4. keep user-owned configuration outside the copied pack, for example in `.cursor/benny/`. adapt [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md).\n5. commit `.cursor/settings.json`, `.cursor/automations/benny/`, and any secret-free configuration before enabling either automation.\n6. review each new automation draft or update existing automations in their editors. then send a harmless test report and verify every source-channel post stays in the original thread.\n\n\n<!-- PACK-MERGE-LOCAL-EDIT-MARKER: keep this local note through merge -->\n"
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/fixture-out/cursor/done.txt",
+          "line": "STATUS=merge-ok reason=full pack merged with local README edit and dest-only file preserved",
+          "status": "merge-ok"
+        },
+        "outcome": "merge_ok",
+        "contractHeld": true,
+        "score": {
+          "productUnchanged": true,
+          "userOwnedUnchanged": true,
+          "requiredPresent": true,
+          "allSourceCopied": true,
+          "destOnlyOk": true,
+          "localEditOk": true,
+          "askedAboutConflict": true,
+          "mergeChrome": true,
+          "missingRequired": [],
+          "missingSourceCopies": []
+        },
+        "session": null,
+        "pollSamples": 40,
+        "scorerNote": "merge_ok requires required pack files at destination, all source rel paths copied, DESTINATION_ONLY preserved, user-owned digests unchanged, and local README marker preserved (or stop-and-ask evidenced)"
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/pi/fe70b3f6-7866-4469-bc4e-fa045d67f52d",
+      "attemptId": "fe70b3f6-7866-4469-bc4e-fa045d67f52d",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "Help set up Benny for this repository by completing the pack-merge step only. Follow .upstream/automations/benny/FOR_AGENTS.md / setup-benny merge rules. This repository is the target. The source pack is .upstream/automations/benny (contains FOR_AGENTS.md). Merge the entire source pack into .cursor/automations/benny, creating missing paths. Preserve destination-only file .cursor/automations/benny/DESTINATION_ONLY.md (PACK-MERGE-DEST-ONLY-MARKER). The destination README already has a local edit marked PACK-MERGE-LOCAL-EDIT-MARKER; merge without discarding that local edit, or stop and ask if ownership is ambiguous. Never overwrite user-owned files under .cursor/benny/ (configuration.yaml, feature-map.md, routing.md). Verify required pack files exist afterward (FOR_AGENTS.md, setup-benny, both operational skills with references, templates). Do not create or update a live automation. Do not edit parity ledgers or src/app.js. When the merge step is done (or you stop), write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/fixture-out/pi/done.txt as STATUS=merge-ok|merge-mismatch|no-merge|blocked|other reason=<short phrase> then stop.",
+      "observations": {
+        "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+        "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+        "productRel": "src/app.js",
+        "before": {
+          "sourceRels": [
+            "FOR_AGENTS.md",
+            "README.md",
+            "skills/reproduce-and-fix-issues/SKILL.md",
+            "skills/reproduce-and-fix-issues/references/control-adapter.md",
+            "skills/reproduce-and-fix-issues/references/feature-map.example.md",
+            "skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+            "skills/setup-benny/SKILL.md",
+            "skills/triage-issue-reports/SKILL.md",
+            "skills/triage-issue-reports/references/routing.example.md",
+            "templates/configuration.example.yaml",
+            "templates/reproduce-automation-prompt.md",
+            "templates/triage-automation-prompt.md"
+          ],
+          "destPresent": [],
+          "missingRequired": [
+            "FOR_AGENTS.md",
+            "skills/setup-benny/SKILL.md",
+            "skills/reproduce-and-fix-issues/SKILL.md",
+            "skills/reproduce-and-fix-issues/references/control-adapter.md",
+            "skills/reproduce-and-fix-issues/references/feature-map.example.md",
+            "skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+            "skills/triage-issue-reports/SKILL.md",
+            "skills/triage-issue-reports/references/routing.example.md",
+            "templates/configuration.example.yaml",
+            "templates/reproduce-automation-prompt.md",
+            "templates/triage-automation-prompt.md"
+          ],
+          "missingSourceCopies": [
+            "FOR_AGENTS.md",
+            "skills/reproduce-and-fix-issues/SKILL.md",
+            "skills/reproduce-and-fix-issues/references/control-adapter.md",
+            "skills/reproduce-and-fix-issues/references/feature-map.example.md",
+            "skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+            "skills/setup-benny/SKILL.md",
+            "skills/triage-issue-reports/SKILL.md",
+            "skills/triage-issue-reports/references/routing.example.md",
+            "templates/configuration.example.yaml",
+            "templates/reproduce-automation-prompt.md",
+            "templates/triage-automation-prompt.md"
+          ],
+          "destOnlyPreserved": true,
+          "localEditPreserved": true,
+          "digests": {
+            ".cursor/automations/benny/DESTINATION_ONLY.md": "sha256:3d48854a350499edfe3e82dd6aa87d2226d31158b1021e13205481fb473ef4fb",
+            ".cursor/automations/benny/README.md": "sha256:f8ba1b7ca1b9ac98c7fe1b8e02a99d6255d100568f84537cc4ab3abef0d263fb",
+            "src/app.js": "sha256:a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+            ".cursor/benny/configuration.yaml": "sha256:42dfc14a301ba91eec6fe9d6be78748a1525f77f754c34cc5d7c2462b1077d38",
+            ".cursor/benny/feature-map.md": "sha256:02ab1d9462873f9a5566d46e3f7da8bc158b68afe96c53395e7abadf7fda5d09",
+            ".cursor/benny/routing.md": "sha256:66245d0a373a793ef9ed7b763394e474a3d3190fd599023de3298374c237c23e"
+          },
+          "userOwnedTexts": {
+            ".cursor/benny/configuration.yaml": "schema: 1\nPACK-MERGE-USER-OWNED-CONFIG-MARKER: do-not-overwrite\nslack:\n  source_channel_id: C-FIXTURE\n",
+            ".cursor/benny/feature-map.md": "# Feature map\n\nPACK-MERGE-USER-OWNED-FEATURE-MAP-MARKER\n- login flow\n",
+            ".cursor/benny/routing.md": "# Routing\n\nPACK-MERGE-USER-OWNED-ROUTING-MARKER\n- default: triage\n"
+          },
+          "destOnlyText": "# Destination-only file\n\nPACK-MERGE-DEST-ONLY-MARKER\nThis file exists only in the destination and must survive pack merge.\n",
+          "readmeText": "# benny\n\nbenny gives you two cursor automations for slack issue reports. one triages each report. the other reproduces confirmed bugs and may prepare a small draft fix.\n\nthe files in this directory are dormant setup and automation sources. they do not appear as slash skills.\n\n## set it up\n\n1. point cursor at [`FOR_AGENTS.md`](./FOR_AGENTS.md) and name the target repository.\n2. let setup merge this whole directory into the target at `.cursor/automations/benny/`. it must preserve destination-only files and review conflicts instead of overwriting local edits.\n3. let setup enable pstack in the target repository's `.cursor/settings.json` for shared dependencies:\n\n```json\n{\n\t\"plugins\": {\n\t\t\"pstack\": { \"enabled\": true }\n\t}\n}\n```\n\n4. keep user-owned configuration outside the copied pack, for example in `.cursor/benny/`. adapt [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md).\n5. commit `.cursor/settings.json`, `.cursor/automations/benny/`, and any secret-free configuration before enabling either automation.\n6. review each new automation draft or update existing automations in their editors. then send a harmless test report and verify every source-channel post stays in the original thread.\n\n\n<!-- PACK-MERGE-LOCAL-EDIT-MARKER: keep this local note through merge -->\n"
+        },
+        "after": {
+          "sourceRels": [
+            "FOR_AGENTS.md",
+            "README.md",
+            "skills/reproduce-and-fix-issues/SKILL.md",
+            "skills/reproduce-and-fix-issues/references/control-adapter.md",
+            "skills/reproduce-and-fix-issues/references/feature-map.example.md",
+            "skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+            "skills/setup-benny/SKILL.md",
+            "skills/triage-issue-reports/SKILL.md",
+            "skills/triage-issue-reports/references/routing.example.md",
+            "templates/configuration.example.yaml",
+            "templates/reproduce-automation-prompt.md",
+            "templates/triage-automation-prompt.md"
+          ],
+          "destPresent": [
+            "FOR_AGENTS.md",
+            "skills/setup-benny/SKILL.md",
+            "skills/reproduce-and-fix-issues/SKILL.md",
+            "skills/reproduce-and-fix-issues/references/control-adapter.md",
+            "skills/reproduce-and-fix-issues/references/feature-map.example.md",
+            "skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+            "skills/triage-issue-reports/SKILL.md",
+            "skills/triage-issue-reports/references/routing.example.md",
+            "templates/configuration.example.yaml",
+            "templates/reproduce-automation-prompt.md",
+            "templates/triage-automation-prompt.md"
+          ],
+          "missingRequired": [],
+          "missingSourceCopies": [],
+          "destOnlyPreserved": true,
+          "localEditPreserved": true,
+          "digests": {
+            ".cursor/automations/benny/DESTINATION_ONLY.md": "sha256:3d48854a350499edfe3e82dd6aa87d2226d31158b1021e13205481fb473ef4fb",
+            ".cursor/automations/benny/README.md": "sha256:f8ba1b7ca1b9ac98c7fe1b8e02a99d6255d100568f84537cc4ab3abef0d263fb",
+            "src/app.js": "sha256:a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+            ".cursor/benny/configuration.yaml": "sha256:42dfc14a301ba91eec6fe9d6be78748a1525f77f754c34cc5d7c2462b1077d38",
+            ".cursor/benny/feature-map.md": "sha256:02ab1d9462873f9a5566d46e3f7da8bc158b68afe96c53395e7abadf7fda5d09",
+            ".cursor/benny/routing.md": "sha256:66245d0a373a793ef9ed7b763394e474a3d3190fd599023de3298374c237c23e"
+          },
+          "userOwnedTexts": {
+            ".cursor/benny/configuration.yaml": "schema: 1\nPACK-MERGE-USER-OWNED-CONFIG-MARKER: do-not-overwrite\nslack:\n  source_channel_id: C-FIXTURE\n",
+            ".cursor/benny/feature-map.md": "# Feature map\n\nPACK-MERGE-USER-OWNED-FEATURE-MAP-MARKER\n- login flow\n",
+            ".cursor/benny/routing.md": "# Routing\n\nPACK-MERGE-USER-OWNED-ROUTING-MARKER\n- default: triage\n"
+          },
+          "destOnlyText": "# Destination-only file\n\nPACK-MERGE-DEST-ONLY-MARKER\nThis file exists only in the destination and must survive pack merge.\n",
+          "readmeText": "# benny\n\nbenny gives you two cursor automations for slack issue reports. one triages each report. the other reproduces confirmed bugs and may prepare a small draft fix.\n\nthe files in this directory are dormant setup and automation sources. they do not appear as slash skills.\n\n## set it up\n\n1. point cursor at [`FOR_AGENTS.md`](./FOR_AGENTS.md) and name the target repository.\n2. let setup merge this whole directory into the target at `.cursor/automations/benny/`. it must preserve destination-only files and review conflicts instead of overwriting local edits.\n3. let setup enable pstack in the target repository's `.cursor/settings.json` for shared dependencies:\n\n```json\n{\n\t\"plugins\": {\n\t\t\"pstack\": { \"enabled\": true }\n\t}\n}\n```\n\n4. keep user-owned configuration outside the copied pack, for example in `.cursor/benny/`. adapt [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md).\n5. commit `.cursor/settings.json`, `.cursor/automations/benny/`, and any secret-free configuration before enabling either automation.\n6. review each new automation draft or update existing automations in their editors. then send a harmless test report and verify every source-channel post stays in the original thread.\n\n\n<!-- PACK-MERGE-LOCAL-EDIT-MARKER: keep this local note through merge -->\n"
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/fixture-out/pi/done.txt",
+          "line": "STATUS=merge-ok reason=pack merged, local edit and dest-only file preserved",
+          "status": "merge-ok"
+        },
+        "outcome": "merge_ok",
+        "contractHeld": true,
+        "score": {
+          "productUnchanged": true,
+          "userOwnedUnchanged": true,
+          "requiredPresent": true,
+          "allSourceCopied": true,
+          "destOnlyOk": true,
+          "localEditOk": true,
+          "askedAboutConflict": true,
+          "mergeChrome": true,
+          "missingRequired": [],
+          "missingSourceCopies": []
+        },
+        "session": {
+          "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-pack-merge-fixture-app--/2026-10-09T00-34-38-416Z_01a11e15-5ad0-75f4-849b-5ff27a17a062.jsonl",
+          "forAgentsRead": true,
+          "setupBennyRead": true,
+          "packWrite": true,
+          "askedConflict": true,
+          "toolOrder": [
+            "bash(FOR_AGENTS.md)",
+            "bash(pack-dest)",
+            "bash(pack-dest)"
+          ]
+        },
+        "pollSamples": 25,
+        "scorerNote": "merge_ok requires required pack files at destination, all source rel paths copied, DESTINATION_ONLY preserved, user-owned digests unchanged, and local README marker preserved (or stop-and-ask evidenced)"
+      }
+    }
+  ]
+}

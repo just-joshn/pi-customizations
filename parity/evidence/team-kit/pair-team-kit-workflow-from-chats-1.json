@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "pairId": "team-kit-workflow-from-chats-1",
+  "scenarioRef": "team-kit:workflow-from-chats",
+  "journeyFamily": "cursor-team-kit",
+  "skillId": "workflow-from-chats",
+  "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/workflow-from-chats/SKILL.md",
+  "skillMdSha256": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/workflow-from-chats ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "STATUS=verified with skill oracle, or STATUS=env-blocked"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "bb7ebe78-d734-4624-8170-ac22f99a59cc",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/workflow-from-chats/cursor/bb7ebe78-d734-4624-8170-ac22f99a59cc",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats/done.txt",
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "summaryExists": true,
+        "ruleExists": true,
+        "markerOk": true,
+        "testPref": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats/done.txt",
+          "line": "STATUS=verified reason=prefs encoded from synthetic parent-alpha",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "pi": {
+    "attemptId": "3dd29e6b-1e1a-4214-be65-f6d2dd587d7d",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/workflow-from-chats/pi/3dd29e6b-1e1a-4214-be65-f6d2dd587d7d",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/done.txt",
+    "seededSkill": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats/.pi/skills/workflow-from-chats/SKILL.md",
+      "sha256": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16"
+    },
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "summaryExists": true,
+        "ruleExists": true,
+        "markerOk": true,
+        "testPref": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/done.txt",
+          "line": "STATUS=verified reason=artifacts written from synthetic corpus",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "skillClosure": {
+    "workflow-from-chats": "closed_by_this_pair"
+  },
+  "note": "Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/.",
+  "verdict": "pass"
+}

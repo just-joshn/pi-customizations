@@ -1,0 +1,40 @@
+                                                                                                                       │
+ ### Reviewers                                                                                                         │
+                                                                                                                       │
+ - Reviewer A: parent model (interrogate reviewers: inherit-parent, so one reviewer), 5 findings.                      │
+                                                                                                                       │
+ ### Act On                                                                                                            │
+                                                                                                                       │
+ - Input mutation (items.push({ price: 0 }), Reviewer A, critical). Each call appends a dummy item to the caller's     │
+   array. That corrupts counts and persisted data, breaks idempotency, and throws on a frozen array. Delete the line.  │
+ - No boundary validation or type safety (sum += item.price, Reviewer A, warning). total([{}]) returns NaN, and        │
+   total(null) throws. total([{price:"5"},{price:1}]) returns the string "051", and a null price is silently treated   │
+   as 0. Pick a contract: throw on non-numeric prices, or coerce explicitly.                                           │
+                                                                                                                       │
+ ### Consider                                                                                                          │
+                                                                                                                       │
+ - Float rounding (Reviewer A, warning). 0.1 + 0.2 gives 0.30000000000000004. Using integer cents would fix it, but it │
+   depends on what the callers' price units are.                                                                       │
+                                                                                                                       │
+ ### Noted                                                                                                             │
+                                                                                                                       │
+ - No tests exist. A non-mutation test would have caught the critical finding.                                         │
+ - The reduce rewrite is a style preference only.                                                                      │
+                                                                                                                       │
+ ### Dismissed                                                                                                         ┃
+                                                                                                                       ┃
+ - The header comment calling the defects "intentional" (nit). It is fixture scaffolding, not shipped code.            ┃
+                                                                                                                       ┃
+ ### Agreement Map                                                                                                     ┃
+                                                                                                                       ┃
+ There was only one reviewer, so there is no cross-model consensus or disagreement to weigh. I checked the code        ┃
+ directly and agree with the two Act On items. The mutation and the unvalidated price access are the defects the       ┃
+ fixture comment lists. Treat the lone-reviewer float and testing points as lower confidence.                          ┃
+                                                                                                                       ┃
+ I wrote findings=yes to fixture-out/pi/done.txt.                                                                      ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/interrogate/fixture-app (refactor/pi-pstack-parity-again)
+↑16 ↓2.6k R123k W35k CH99.4% $0.190 (sub) 3.2%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

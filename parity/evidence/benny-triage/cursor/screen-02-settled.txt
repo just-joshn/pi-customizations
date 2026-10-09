@@ -1,0 +1,39 @@
+
+    Explored available MCP tools cursor · TodoWrite
+
+    Globbed, grepped, read 3 globs, 1 grep, 2 files
+    … 3 earlier items hidden
+    Read ...ions/benny/skills/triage-issue-reports/SKILL.md
+    Read ...y/evidence/benny-triage/cursor/once-runner.json
+    Globbed ".../benny-triage/fixture-out/cursor/**/*" in .
+
+    To-do Working on 2 to-dos
+    ◐ Read triage-issue-reports skill + once-runner evidence
+    ○ Confirm thread-only verdict; write done.txt; stop
+
+  Harness contract holds (oneThreadReply, [benny:bug], noNewRoot). Writing the done marker and stopping—no Slack
+  post, no reproduce.
+
+  $ mkdir -p parity/evidence/benny-triage/fixture-out/cursor && printf '%s\n' 'STATUS=proceeded reason=valid-config
+    thread-only verdict' > parity/evidence/benny-triage/fixture-out/cursor/done.txt && wc -l
+    parity/evidence/benny-triage/fixture-out/cursor/done.txt && cat
+    parity/evidence/benny-triage/fixture-out/cursor/done.txt 1.2s
+    1 parity/evidence/benny-triage/fixture-out/cursor/done.txt
+    STATUS=proceeded reason=valid-config thread-only verdict
+
+    To-do All done
+    ✔ Read triage-issue-reports skill + once-runner evidence
+    ✔ Confirm thread-only verdict; write done.txt; stop
+
+  Confirmed: once-runner.json has exit 0 with oneThreadReply=true, marker=[benny:bug], noNewRoot=true — that is the
+  valid-config thread-only verdict. Wrote parity/evidence/benny-triage/fixture-out/cursor/done.txt. Stopped; no
+  Slack post, no reproduce.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11.7%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again · refactor/pi-pstack-parity-again

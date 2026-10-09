@@ -1,0 +1,40 @@
+                                                                                                                       │
+ createServer(async (req, res) => {                                                                                    │
+   if (req.method === 'GET' && req.url === '/') {                                                                      │
+     res.writeHead(200, { 'Content-Type': 'text/html' });                                                              │
+     return res.end(PAGE);                                                                                             │
+   }                                                                                                                   │
+   if (req.method === 'POST' && req.url === '/wake') {                                                                 │
+     try {                                                                                                             │
+       const chunks = [];                                                                                              │
+       for await (const c of req) chunks.push(c);                                                                      │
+       const { kind, note } = JSON.parse(Buffer.concat(chunks).toString());                                            │
+       const result = await relayEvent(ROUTINE_DIR, { kind: String(kind), note: String(note) });                       │
+       res.writeHead(result.accepted ? 200 : 202);                                                                     │
+       return res.end(JSON.stringify(result));                                                                         │
+     } catch {                                                                                                         │
+       res.writeHead(400);                                                                                             │
+       return res.end('{"accepted":false}');                                                                           │
+     }                                                                                                                 │
+   }                                                                                                                   │
+   res.writeHead(404);                                                                                                 │
+   res.end();                                                                                                          │
+ }).listen(PORT, '0.0.0.0');                                                                                           │
+ EOF                                                                                                                   │
+ node --check server.mjs && mkdir -p ../fixture-out/pi && echo "STATUS=incomplete reason=awaiting user to run          ┃
+ sender-key initializer in own terminal; routine disabled, no probe" > ../fixture-out/pi/done.txt (timeout 10s)        ┃
+                                                                                                                       ┃
+ (no output)                                                                                                           ┃
+                                                                                                                       ┃
+ Took 0.1s                                                                                                             ┃
+                                                                                                                       ┃
+
+── ⠋ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+Operator finished the hidden terminal initializer in a separate terminal (echo off). The sender key is initialized on   
+the routine. Do not ask for the key, print it, or put it in chat, tool args, env, browser, or logs. Call RoutineEnable  
+with the exact routineId and revision from RoutinePrepare. When the native Yes/No confirm appears, wait for operator    
+approval. Then start the page server if needed, run the harmless probe through the server/relay, verify HTTP 200 and    
+the ignored payload in the real routine transcript, and write the STATUS= line to the done path from the first message. 
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/fixture-app (refactor/pi-pstack-parity-again)
+↑12 ↓1.7k R126k W24k CH96.5% $0.137 (sub) 3.3%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

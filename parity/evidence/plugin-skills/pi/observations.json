@@ -1,0 +1,80 @@
+{
+  "ready": {
+    "skillsSeen": [],
+    "agentsSeen": [],
+    "skillCountFromNeedles": 0,
+    "agentCountFromNeedles": 0,
+    "hasSkillsDirCue": true,
+    "hasAgentsDirCue": false,
+    "packageSkillsPath": "pi-pstack/skills/tdd/SKILL.md",
+    "howAsTask": false,
+    "statusSkillCount": null,
+    "mentionsPstackStatus": false,
+    "slashMenuOpen": false,
+    "working": false
+  },
+  "readySkillsPath": "pi-pstack/skills/tdd/SKILL.md",
+  "pstackStatus": {
+    "skillsSeen": [],
+    "agentsSeen": [],
+    "skillCountFromNeedles": 0,
+    "agentCountFromNeedles": 0,
+    "hasSkillsDirCue": true,
+    "hasAgentsDirCue": false,
+    "packageSkillsPath": "pi-pstack/skills/tdd/SKILL.md",
+    "howAsTask": false,
+    "statusSkillCount": null,
+    "mentionsPstackStatus": false,
+    "slashMenuOpen": false,
+    "working": false
+  },
+  "slashHow": {
+    "skillsSeen": [
+      "/how"
+    ],
+    "agentsSeen": [],
+    "skillCountFromNeedles": 1,
+    "agentCountFromNeedles": 0,
+    "hasSkillsDirCue": true,
+    "hasAgentsDirCue": false,
+    "packageSkillsPath": "pi-pstack/skills/tdd/SKILL.md",
+    "howAsTask": true,
+    "statusSkillCount": null,
+    "mentionsPstackStatus": false,
+    "slashMenuOpen": true,
+    "working": false
+  },
+  "subagentsList": {
+    "skillsSeen": [],
+    "agentsSeen": [
+      "poteto-agent",
+      "comment-sicko"
+    ],
+    "skillCountFromNeedles": 0,
+    "agentCountFromNeedles": 2,
+    "hasSkillsDirCue": true,
+    "hasAgentsDirCue": true,
+    "packageSkillsPath": "pi-pstack/skills/tdd/SKILL.md",
+    "howAsTask": false,
+    "statusSkillCount": null,
+    "mentionsPstackStatus": false,
+    "slashMenuOpen": false,
+    "working": false
+  },
+  "merged": {
+    "skillsRegistered": true,
+    "agentsRegistered": true,
+    "statusSkillCount": null,
+    "packageSkillsPath": "pi-pstack/skills/tdd/SKILL.md",
+    "skillsSeen": [
+      "/how"
+    ],
+    "agentsSeen": [
+      "poteto-agent",
+      "comment-sicko"
+    ],
+    "howAsTask": true,
+    "bothRegistered": true,
+    "bindingNote": "Pi binds skills via package.json pi.skills (./skills, ./host/skills) and agents via extension persona-agents from upstream/agents/, not via Cursor plugin.json skills/agents keys."
+  }
+}

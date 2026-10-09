@@ -1,0 +1,40 @@
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/new-branch-and-pr/SKILL.md                │
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/new-branch-and-pr/SKILL.md (skipped)           │
+  "pr-review-canvas" collision:                                                                                        │
+    ✓ auto (project)                                                                                                   │
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/pr-review-canvas/SKILL.md                 │
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/pr-review-canvas/SKILL.md (skipped)            │
+  "review-and-ship" collision:                                                                                         │
+    ✓ auto (project)                                                                                                   │
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/review-and-ship/SKILL.md                  │
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/review-and-ship/SKILL.md (skipped)             │
+  "tdd" collision:                                                                                                     │
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] loop-on-ci (ctrl+o to expand)                                                                                 ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Do not ask questions. Follow the loop-on-ci skill. Active PR is                                                       ┃
+ https://github.com/just-joshn/team-kit-gh-fixture/pull/10. Use gh pr checks as source of truth. If failed, fix and    ┃
+ push; if pending, watch. Loop until green or STATUS=env-blocked with measured blocker. Write loop notes to            ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/loop-on-ci/ci-loop-no ┃
+ tes.md including marker FIXTURE_CI_LOOP. Then write exactly one line to                                               ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/loop-on-ci/done.txt   ┃
+ as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under         ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/loop-on-ci. Do not    ┃
+ edit parity ledgers. Do not force-push. Do not fabricate CI.                                                          ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh; gh pr view 10 --json        ┃
+ number,url,headRefName 2>&1; gh pr checks 10 --json name,buc                                                          ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (fixture/fail-ci-pi-mv0eub1z)
+$0.000 (sub) 1.7%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

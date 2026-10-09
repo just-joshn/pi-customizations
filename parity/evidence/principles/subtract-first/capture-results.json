@@ -1,0 +1,41 @@
+{
+  "scenario": "prin-subtract-first",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "frontmatter": {
+    "cursor": {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-subtract-before-you-add/SKILL.md",
+      "ok": true,
+      "name": "principle-subtract-before-you-add",
+      "disableModelInvocation": true
+    },
+    "pi": {
+      "path": "extensions/pi-pstack/skills/principle-subtract-before-you-add/SKILL.md",
+      "ok": true,
+      "name": "principle-subtract-before-you-add",
+      "disableModelInvocation": true
+    }
+  },
+  "results": [
+    {
+      "side": "cursor",
+      "attemptId": "8ff2e73a-52d1-4d2c-a601-bed33a6bec3d",
+      "contractHeld": true,
+      "leafSkillRead": true,
+      "deadWeightGone": true,
+      "capabilityAdded": true,
+      "removedBeforeAdd": true,
+      "verifiedDone": true
+    },
+    {
+      "side": "pi",
+      "attemptId": "949c5a02-da60-4b0d-8838-d6ccf3b7914a",
+      "contractHeld": true,
+      "leafSkillRead": true,
+      "deadWeightGone": true,
+      "capabilityAdded": true,
+      "removedBeforeAdd": true,
+      "verifiedDone": true
+    }
+  ],
+  "priorCursorPartialAttemptId": "5d1c2b8e-2a0d-4232-83bb-e9fb208a9090"
+}

@@ -1,0 +1,39 @@
+
+  Shipped pickNext as stalest-first after three concrete sketches. evidence/verify-out.txt reads EXHAUST-OK 
+  prototypes=3 chosen=stalest-first. Done marker is verified=yes.
+
+  Variants. Throwaway under prototypes/.
+  • stalest-first picks max ageMs → b on the sample
+  • menu-index picks operator slot 0 → a
+  • title-scan picks earliest title → a
+
+  Tradeoffs. Menu needs an index pickNext(jobs) does not take. Title order ignores wait time. Age matches incomplete
+  relay resume.
+
+  Choice. CHOSEN: stalest-first in DECISION.md. Product code is src/picker.js. Prototypes stay throwaway.
+
+  Principles that changed a choice.
+  • Exhaust the design space. Compared three whole shapes before writing src/picker.js.
+  • Never block on the human. Picked stalest-first from the observed outputs, no ask.
+  • Model the domain. Next action is max-ageMs over the jobs list, not menu or title branches.
+  • Prove it works. Ran node scripts/verify.mjs and read evidence/verify-out.txt.
+  • Laziness protocol. No fourth switcher file under prototypes/ (verify caps at 3). Compared with side-by-side
+    runs.
+
+  Playbook steps.
+  1. done
+  2. skip: direction set by NOTES/README (Node pickNext API, behavioral not visual)
+  3. done
+  4. skip: PROTO-COUNT caps prototypes/ at 3 files; compared via side-by-side node runs
+  5. done
+  6. done
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 19.2% · 6 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-app · 
+  refactor/pi-pstack-parity-again

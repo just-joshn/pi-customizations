@@ -1,0 +1,8 @@
+{
+  "name": "team-kit-check-compiler-errors-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "node scripts/typecheck.mjs"
+  }
+}

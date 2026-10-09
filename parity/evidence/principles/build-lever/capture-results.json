@@ -1,0 +1,23 @@
+{
+  "scenario": "prin-build-lever",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "pairId": "prin-build-lever-1",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptId": "ae01feb5-b373-4d64-9b2d-8d5b0b67c080",
+      "contractHeld": true,
+      "leafSkillRead": true,
+      "leverPresent": true,
+      "productFixed": true
+    },
+    {
+      "side": "pi",
+      "attemptId": "889c66cf-151f-48ba-9a4d-d80f1201fa80",
+      "contractHeld": true,
+      "leafSkillRead": true,
+      "leverPresent": true,
+      "productFixed": true
+    }
+  ]
+}

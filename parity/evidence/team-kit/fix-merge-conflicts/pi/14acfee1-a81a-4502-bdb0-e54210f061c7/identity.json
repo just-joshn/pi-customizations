@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "attemptId": "14acfee1-a81a-4502-bdb0-e54210f061c7",
+  "side": "pi",
+  "scenarioRef": "team-kit:fix-merge-conflicts",
+  "fixtureRef": {
+    "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "executable": {
+    "path": "/Users/josh-desktop/.local/bin/pi",
+    "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+  },
+  "artifacts": [],
+  "launch": {
+    "argv": [
+      "/Users/josh-desktop/.local/bin/pi",
+      "--model",
+      "claude-subscription/claude-sonnet-5-5:medium"
+    ],
+    "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/fix-merge-conflicts",
+    "envNames": [
+      "HOME",
+      "PATH",
+      "PI_CODING_AGENT_DIR",
+      "TERM"
+    ],
+    "publicEnv": {
+      "TERM": "xterm-256color"
+    }
+  },
+  "geometry": {
+    "rows": 40,
+    "cols": 120
+  },
+  "observedEnv": {
+    "platform": "darwin",
+    "node": "v24.21.0",
+    "TERM": "xterm-256color"
+  }
+}

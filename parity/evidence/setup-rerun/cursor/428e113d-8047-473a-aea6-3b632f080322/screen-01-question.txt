@@ -1,0 +1,35 @@
+    Read /Users/josh-desktop/.claude/rules/pstack-models.md
+    Globbed "**/AskUserQuestion*" in .
+    Read ...sor-plugins/pstack/skills/setup-pstack/SKILL.md
+
+  Using the Cursor setup-pstack flow. Loading the current rule and asking for a budget.
+
+    Read /Users/josh-desktop/.cursor/rules/pstack-models.mdc
+
+    Explored available MCP tools pattern AskQuestion|ask.*question
+
+    Globbed "**/setup-pstack/SKILL.md" in ...ktop/.cursor/plugins/cache/cursor-public/pstack
+    Found 0 files
+
+    Explored available MCP tools pattern SwitchMode|Ask
+
+  Current budget is small (medium). Almost every role is already inherit-parent or auto.
+
+  Pick a budget:
+
+  1. unlimited — max reasoning
+  2. large — xhigh reasoning
+  3. medium — high reasoning
+  4. small — medium reasoning
+
+  Aliases (inherit-parent / auto) stay as-is when the budget changes; only real model slugs get their effort token
+  adjusted.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 10.6%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

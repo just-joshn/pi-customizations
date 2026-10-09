@@ -1,0 +1,344 @@
+{
+  "scenario": "prin-laziness",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "frontmatter": {
+    "cursor": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-laziness-protocol/SKILL.md",
+      "ok": true,
+      "name": "principle-laziness-protocol",
+      "disableModelInvocation": true
+    },
+    "pi": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-laziness-protocol/SKILL.md",
+      "ok": true,
+      "name": "principle-laziness-protocol",
+      "disableModelInvocation": true
+    }
+  },
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/cursor/f3a6669a-3e76-4ae3-9f8e-50ce94f2fc2a",
+      "attemptId": "f3a6669a-3e76-4ae3-9f8e-50ce94f2fc2a",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode Make node scripts/verify.mjs print FLAT-OK for this fixture. src/greet.js currently routes through FormatPipeline in src/pipeline.js. NOTES.md describes the failure and some possible approaches. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When FLAT-OK is on disk, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-out/cursor/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": true,
+          "modelAutoInvoke": false,
+          "keptVerifyOk": true,
+          "preferredDeletion": true,
+          "addedLayer": false,
+          "productOk": true,
+          "verifiedDone": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "askPhrase": false,
+            "irreversibleMention": false,
+            "verifyMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": false,
+            "hostAttached": true,
+            "askPhrase": false,
+            "irreversibleMention": false,
+            "verifyMention": true,
+            "working": true
+          }
+        },
+        "firstProductAt": "2026-10-09T00:40:21.362Z",
+        "firstVerifyAt": "2026-10-09T00:40:18.147Z",
+        "firstDeletedAt": "2026-10-09T00:40:22.167Z",
+        "productPaths": [
+          "src/greet.js",
+          "deleted:src/pipeline.js"
+        ],
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-out/cursor/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-app/evidence/verify-out.txt",
+          "line": "FLAT-OK path=delete files=core.js,greet.js",
+          "ok": true
+        },
+        "oracle": {
+          "greetOk": true,
+          "pipelineGone": true,
+          "noStrategies": true,
+          "layeredName": false,
+          "preferredDeletion": true,
+          "addedLayer": false,
+          "productOk": true,
+          "srcFiles": [
+            "core.js",
+            "greet.js"
+          ]
+        },
+        "productOk": true,
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-laziness-protocol/SKILL.md",
+          "ok": true,
+          "name": "principle-laziness-protocol",
+          "disableModelInvocation": true
+        },
+        "session": null,
+        "transcript": {
+          "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/32e37b5c-967c-45b2-8442-8d2b9830d953/32e37b5c-967c-45b2-8442-8d2b9830d953.jsonl",
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T00:40:42.786Z",
+          "ranVerifyScript": true,
+          "askTool": false,
+          "irreversibleTool": false,
+          "toolOrder": [
+            "Read",
+            "Shell(verify.mjs)",
+            "Read",
+            "Read(lazy-leaf)",
+            "Read",
+            "Read",
+            "blob-mention(lazy-leaf)",
+            "Shell(verify.mjs)",
+            "Write",
+            "Shell(verify.mjs)",
+            "Shell"
+          ],
+          "askPhrase": false,
+          "mtimeMs": 1791506435073.8228
+        },
+        "pollSamples": 60,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "askPhrase": false,
+          "irreversibleMention": false,
+          "verifyMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": false,
+          "hostAttached": true,
+          "askPhrase": false,
+          "irreversibleMention": false,
+          "verifyMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "f3a6669a-3e76-4ae3-9f8e-50ce94f2fc2a",
+        "side": "cursor",
+        "scenarioRef": "prin-laziness",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/pi/7e4c208d-60c8-4529-9849-1e70eed051fa",
+      "attemptId": "7e4c208d-60c8-4529-9849-1e70eed051fa",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode Make node scripts/verify.mjs print FLAT-OK for this fixture. src/greet.js currently routes through FormatPipeline in src/pipeline.js. NOTES.md describes the failure and some possible approaches. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When FLAT-OK is on disk, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-out/pi/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": true,
+          "modelAutoInvoke": false,
+          "keptVerifyOk": true,
+          "preferredDeletion": true,
+          "addedLayer": false,
+          "productOk": true,
+          "verifiedDone": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "askPhrase": false,
+            "irreversibleMention": false,
+            "verifyMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": false,
+            "hostAttached": true,
+            "askPhrase": false,
+            "irreversibleMention": true,
+            "verifyMention": true,
+            "working": true
+          }
+        },
+        "firstProductAt": "2026-10-09T00:40:58.014Z",
+        "firstVerifyAt": "2026-10-09T00:40:56.008Z",
+        "firstDeletedAt": "2026-10-09T00:40:58.014Z",
+        "productPaths": [
+          "src/greet.js",
+          "deleted:src/pipeline.js"
+        ],
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-out/pi/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-app/evidence/verify-out.txt",
+          "line": "FLAT-OK path=delete files=core.js,greet.js",
+          "ok": true
+        },
+        "oracle": {
+          "greetOk": true,
+          "pipelineGone": true,
+          "noStrategies": true,
+          "layeredName": false,
+          "preferredDeletion": true,
+          "addedLayer": false,
+          "productOk": true,
+          "srcFiles": [
+            "core.js",
+            "greet.js"
+          ]
+        },
+        "productOk": true,
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-laziness-protocol/SKILL.md",
+          "ok": true,
+          "name": "principle-laziness-protocol",
+          "disableModelInvocation": true
+        },
+        "session": {
+          "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-laziness-fixture-app--/2026-10-09T00-40-43-072Z_01a11e1a-eb40-7314-8313-7ca44d283e23.jsonl",
+          "hostAttached": false,
+          "askPhrase": true,
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T00:40:51.183Z",
+          "ranVerifyScript": true,
+          "askTool": false,
+          "irreversibleTool": false,
+          "toolOrder": [
+            "bash(verify.mjs)",
+            "read(lazy-leaf)",
+            "read",
+            "blob-mention(lazy-leaf)",
+            "TodoWrite",
+            "bash(verify.mjs)",
+            "bash(verify.mjs)",
+            "bash"
+          ]
+        },
+        "transcript": null,
+        "pollSamples": 39,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "askPhrase": false,
+          "irreversibleMention": false,
+          "verifyMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": false,
+          "hostAttached": true,
+          "askPhrase": false,
+          "irreversibleMention": true,
+          "verifyMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "7e4c208d-60c8-4529-9849-1e70eed051fa",
+        "side": "pi",
+        "scenarioRef": "prin-laziness",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

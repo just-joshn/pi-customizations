@@ -1,0 +1,40 @@
+ - c2 per-case branching; c1 regex/URLSearchParams ideas untouched.                                                    │
+                                                                                                                       │
+ Verification: node script compared synthesized vs c2 and c1 on 12 inputs (mixed query, partial-valid runs,            │
+ overlong/surrogate bytes, truncated sequences, empty/null/'?'/'&&', `__proto__`). Synthesized matched c2 on all 12;   │
+ differs from c1 only on the 3 partial-run cases (intended). Result has null prototype, `__proto__` is an ordinary     │
+ key. No test suite was added.                                                                                         │
+ EOF                                                                                                                   │
+ echo "fanout=yes base=yes graft=yes verify=yes candidates=2" > done.txt (timeout 10s)                                 │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The arena finished: I picked c1 as the base, grafted one behavior from c2, and verified the result.                   │
+                                                                                                                       │
+ - Fan-out: Both candidates completed, with no dropouts. c1 uses split/map/reduce. c2 uses a single-pass scanner with  │
+   a hand-written UTF-8 decoder.                                                                                       │
+ - Base: c1, because it is about 30 lines against roughly 90 for c2. Both handled the basic requirements.              │
+ - Graft: c2 decodes valid %XX escapes even when an invalid sequence sits next to them. For example, %41%E0%A4 gives   │
+   A%E0%A4, where c1 left the whole run literal. I ported that into c1's structure as a piecewise decodeRun rather     │
+   than copying c2's decoder.                                                                                          │
+ - Rejected: c2's scanner and manual code-point assembly. They give the same behavior with far more code.              │
+ - Cross-judge: I skipped it and scored the rubric myself. The synthesis note says so.                                 │
+ - Verification: I ran a node script over 12 inputs. The synthesized module matched c2 on all 12. It differs from c1   │
+   only on the 3 partial-run cases, which is the intended change. The result has a null prototype, and __proto__ is an │
+   ordinary key. I did not add a test suite.                                                                           │
+                                                                                                                       │
+ done.txt reads fanout=yes base=yes graft=yes verify=yes candidates=2.                                                 │
+                                                                                                                       │
+ Files are in parity/evidence/arena/fixture-out/pi/:                                                                   ┃
+ - synthesized/parseQuery.js                                                                                           ┃
+ - synthesis.md                                                                                                        ┃
+ - done.txt                                                                                                            ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-app (refactor/pi-pstack-parity-again)
+↑18 ↓4.9k R218k W28k CH97.8% $0.205 (sub) 3.7%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

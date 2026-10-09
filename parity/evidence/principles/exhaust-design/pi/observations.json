@@ -1,0 +1,125 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "exhaustOk": true,
+    "productOk": true,
+    "prototypesPresent": true,
+    "prototypesBeforeProduct": true,
+    "decisionExists": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "protoMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "protoMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:19:13.612Z",
+  "firstVerifyAt": "2026-10-09T01:19:13.612Z",
+  "firstProtoAt": "2026-10-09T01:19:13.612Z",
+  "firstDecisionAt": "2026-10-09T01:19:13.612Z",
+  "productPaths": [
+    "src/picker.js"
+  ],
+  "prototypeArtifacts": [
+    "prototypes/rule-table.js",
+    "prototypes/single-pass-reduce.js",
+    "prototypes/sort-oldest.js"
+  ],
+  "prototypeAnalysis": {
+    "count": 3,
+    "approaches": [
+      {
+        "rel": "prototypes/rule-table.js",
+        "id": "rule-table"
+      },
+      {
+        "rel": "prototypes/single-pass-reduce.js",
+        "id": "single-pass-reduce"
+      },
+      {
+        "rel": "prototypes/sort-oldest.js",
+        "id": "sort-oldest"
+      }
+    ],
+    "distinctApproaches": 3,
+    "okCount": true,
+    "okDistinct": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-app/evidence/verify-out.txt",
+    "line": "EXHAUST-OK prototypes=3 chosen=rule-table",
+    "ok": true
+  },
+  "productOk": true,
+  "decisionExists": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+    "ok": true,
+    "name": "principle-exhaust-the-design-space",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-exhaust-design-fixture-app--/2026-10-09T01-18-45-743Z_01a11e3d-bfee-7088-bfca-95de224e6078.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:18:50.630Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T01:18:50.630Z",
+    "firstProtoWriteAt": null,
+    "firstProductWriteAt": null,
+    "wroteDecision": false,
+    "toolOrder": [
+      "bash(verify.mjs)",
+      "read(exhaust-leaf)",
+      "blob-mention(exhaust-leaf)",
+      "bash(verify.mjs)",
+      "read",
+      "read(verify.mjs)",
+      "read(verify.mjs)",
+      "bash",
+      "TodoWrite(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash(verify.mjs)"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 47,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "protoMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "protoMention": true,
+    "working": true
+  }
+}

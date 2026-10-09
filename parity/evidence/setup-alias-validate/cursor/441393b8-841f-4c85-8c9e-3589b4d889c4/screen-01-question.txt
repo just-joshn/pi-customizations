@@ -1,0 +1,35 @@
+    Globbed "**/pstack-models.*" in /Users/josh-desktop/.cursor
+
+  We're in Cursor, so I'll use the Cursor setup-pstack flow and load the existing rule plus AskQuestion.
+
+    Read /Users/josh-desktop/.cursor/rules/pstack-models.mdc
+
+    Explored available MCP tools cursor
+
+    Explored available MCP tools pattern AskQuestion|ask
+
+  Current budget is small (medium effort). Every role is set to inherit-parent.
+
+  Detected Task models this session:
+  claude-fable-5-1-thinking-high, claude-opus-5-5-medium, claude-sonnet-5-5-medium, composer-2.5-fast,
+  cursor-grok-4.6-high-fast, gemini-3.8-flash-high, gpt-5.6-sol-medium, grok-4.7-high, muse-spark-1.3-high
+  (plus always-valid aliases inherit-parent / auto)
+
+  Pick a budget:
+
+  1. unlimited — max reasoning
+  2. large — xhigh reasoning
+  3. medium — high reasoning
+  4. small — medium reasoning
+
+  Reply with the number or label. After that I’ll show the role map (keeping your inherit-parent overrides) for
+  confirmation before writing ~/.cursor/rules/pstack-models.mdc.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 13.3%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

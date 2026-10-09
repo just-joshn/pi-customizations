@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "pairId": "prin-build-lever-1",
+  "scenarioRef": "prin-build-lever",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-BUILD-LEVER-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode The three modules under src/ still export TAG with a LEGACY_ prefix. Rewrite them so TAG is APP_ plus the stem (APP_alpha, APP_beta, APP_gamma). Prefer a small script a reviewer can re-run over hand-editing each file by itself. Keep verify output under evidence/ (scripts/verify.mjs already writes evidence/verify-out.txt). For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When PREFIX-OK is on disk, write exactly one line to <side done path> as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode multi-unit LEGACY_ to APP_ rewrite via rerunnable script; read leaf SKILL.md for applied principles; PREFIX-OK; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with PREFIX-OK units=3"
+    },
+    {
+      "wait": "scripts/rewrite-prefix.mjs present as lever"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "ae01feb5-b373-4d64-9b2d-8d5b0b67c080",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/cursor/ae01feb5-b373-4d64-9b2d-8d5b0b67c080",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/8180c89c-6511-4392-8f21-01120528d326/8180c89c-6511-4392-8f21-01120528d326.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-out/cursor/evidence/verify-out.txt",
+    "leverCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-out/cursor/scripts/rewrite-prefix.mjs",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-build-the-lever/SKILL.md",
+      "leverPresent": true,
+      "leverArtifacts": [
+        "scripts/rewrite-prefix.mjs"
+      ],
+      "keptVerifyOk": true,
+      "verifyLine": "PREFIX-OK units=3",
+      "productFixed": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "wroteLever": true,
+      "modelChrome": "Auto"
+    }
+  },
+  "pi": {
+    "attemptId": "889c66cf-151f-48ba-9a4d-d80f1201fa80",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/pi/889c66cf-151f-48ba-9a4d-d80f1201fa80",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-build-lever-fixture-app--/2026-10-09T00-33-20-300Z_01a11e14-29ac-768b-8b7d-51faf2e1ced4.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-out/pi/evidence/verify-out.txt",
+    "leverCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-out/pi/scripts/rewrite-prefix.mjs",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-build-the-lever/SKILL.md",
+      "leverPresent": true,
+      "leverArtifacts": [
+        "scripts/rewrite-prefix.mjs"
+      ],
+      "keptVerifyOk": true,
+      "verifyLine": "PREFIX-OK units=3",
+      "productFixed": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "wroteLeverViaBashHeredoc": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-build-the-lever/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-build-the-lever/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "lever write mechanism",
+      "cursor": "Write tool created scripts/rewrite-prefix.mjs then Shell-ran it",
+      "pi": "bash heredoc (cat > scripts/rewrite-prefix.mjs) then ran rewrite + verify",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "build-lever outcome",
+      "cursor": "contractHeld. Leaf Read + rewrite-prefix.mjs + PREFIX-OK.",
+      "pi": "contractHeld. Leaf Read + rewrite-prefix.mjs + PREFIX-OK.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-build-lever.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-app",
+    "decisionLog": "parity/evidence/principles/build-lever/.audit/u-journey-prin-build-lever.tsv",
+    "notes": "PSTACK-PRIN-BUILD-LEVER-001. Adjacent principle ids not claimed. Ledgers untouched. Package leaves have disable-model-invocation true; modelAutoInvoke false on both. Worker re-ran both durable levers against restored baseline and got PREFIX-OK."
+  }
+}

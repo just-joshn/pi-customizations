@@ -1,0 +1,349 @@
+{
+  "scenario": "prin-encode-structure",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "frontmatter": {
+    "cursor": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "ok": true,
+      "name": "principle-encode-lessons-in-structure",
+      "disableModelInvocation": true
+    },
+    "pi": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "ok": true,
+      "name": "principle-encode-lessons-in-structure",
+      "disableModelInvocation": true
+    }
+  },
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/cursor/28d00da4-064a-466a-ae71-2d1f249fb6cd",
+      "attemptId": "28d00da4-064a-466a-ae71-2d1f249fb6cd",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode Make node scripts/verify.mjs print ENCODE-OK for this fixture. NOTES.md already states the ALLOW_DEBUG rule. REVIEW.md asks to paste that same reminder into CONTRIBUTING.md again. Prefer a lasting lint or check over a second prose copy of the same instruction, and turn debug off in src/config.js. Keep verify output under evidence/ (scripts/verify.mjs already writes evidence/verify-out.txt). For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When ENCODE-OK is on disk, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-out/cursor/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": true,
+          "modelAutoInvoke": false,
+          "keptVerifyOk": true,
+          "mechanismPresent": true,
+          "mechanismArtifacts": [
+            "scripts/check-allow-debug.mjs"
+          ],
+          "productFixed": true,
+          "noSecondProse": true,
+          "verifiedDone": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "verifyMention": true,
+            "mechanismMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": false,
+            "hostAttached": true,
+            "verifyMention": true,
+            "mechanismMention": true,
+            "working": true
+          }
+        },
+        "firstProductAt": "2026-10-09T01:04:55.051Z",
+        "firstVerifyAt": "2026-10-09T01:05:06.691Z",
+        "firstMechanismAt": "2026-10-09T01:04:58.661Z",
+        "productPaths": [
+          "src/config.js"
+        ],
+        "mechanismArtifacts": [
+          "scripts/check-allow-debug.mjs"
+        ],
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-out/cursor/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-app/evidence/verify-out.txt",
+          "line": "ENCODE-OK",
+          "ok": true
+        },
+        "productFixed": true,
+        "prose": {
+          "ok": true,
+          "hits": [
+            "NOTES.md"
+          ]
+        },
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+          "ok": true,
+          "name": "principle-encode-lessons-in-structure",
+          "disableModelInvocation": true
+        },
+        "session": null,
+        "transcript": {
+          "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/9d7f4ff3-1a2e-401c-9690-1690796f8904/9d7f4ff3-1a2e-401c-9690-1690796f8904.jsonl",
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T01:06:05.693Z",
+          "ranVerifyScript": true,
+          "wroteMechanism": false,
+          "toolOrder": [
+            "GetDynamicTools",
+            "Read(lever-leaf)",
+            "Read",
+            "Glob",
+            "blob-mention(lever-leaf)",
+            "CallDynamicTool(verify.mjs)",
+            "Read(verify.mjs)",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "GetDynamicTools",
+            "Read",
+            "CallDynamicTool",
+            "CallDynamicTool(verify.mjs)",
+            "Read",
+            "Read",
+            "Shell(verify.mjs)",
+            "Shell",
+            "CallDynamicTool"
+          ],
+          "mtimeMs": 1791507942916.4902
+        },
+        "pollSamples": 170,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "verifyMention": true,
+          "mechanismMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": false,
+          "hostAttached": true,
+          "verifyMention": true,
+          "mechanismMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "28d00da4-064a-466a-ae71-2d1f249fb6cd",
+        "side": "cursor",
+        "scenarioRef": "prin-encode-structure",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/pi/fa41db21-da46-4503-b8dc-35d69586e835",
+      "attemptId": "fa41db21-da46-4503-b8dc-35d69586e835",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode Make node scripts/verify.mjs print ENCODE-OK for this fixture. NOTES.md already states the ALLOW_DEBUG rule. REVIEW.md asks to paste that same reminder into CONTRIBUTING.md again. Prefer a lasting lint or check over a second prose copy of the same instruction, and turn debug off in src/config.js. Keep verify output under evidence/ (scripts/verify.mjs already writes evidence/verify-out.txt). For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When ENCODE-OK is on disk, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-out/pi/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": true,
+          "modelAutoInvoke": false,
+          "keptVerifyOk": true,
+          "mechanismPresent": true,
+          "mechanismArtifacts": [
+            "scripts/check-debug.mjs"
+          ],
+          "productFixed": true,
+          "noSecondProse": true,
+          "verifiedDone": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "verifyMention": true,
+            "mechanismMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": false,
+            "hostAttached": true,
+            "verifyMention": true,
+            "mechanismMention": true,
+            "working": true
+          }
+        },
+        "firstProductAt": "2026-10-09T01:06:24.991Z",
+        "firstVerifyAt": "2026-10-09T01:06:27.005Z",
+        "firstMechanismAt": "2026-10-09T01:06:22.577Z",
+        "productPaths": [
+          "src/config.js"
+        ],
+        "mechanismArtifacts": [
+          "scripts/check-debug.mjs"
+        ],
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-out/pi/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-app/evidence/verify-out.txt",
+          "line": "ENCODE-OK",
+          "ok": true
+        },
+        "productFixed": true,
+        "prose": {
+          "ok": true,
+          "hits": [
+            "NOTES.md"
+          ]
+        },
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+          "ok": true,
+          "name": "principle-encode-lessons-in-structure",
+          "disableModelInvocation": true
+        },
+        "session": {
+          "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-encode-structure-fixture-app--/2026-10-09T01-06-06-015Z_01a11e32-283e-7056-904f-6f638dbcdd9d.jsonl",
+          "hostAttached": false,
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T01:06:11.311Z",
+          "ranVerifyScript": true,
+          "wroteMechanism": false,
+          "toolOrder": [
+            "bash(verify.mjs)",
+            "read(lever-leaf)",
+            "read",
+            "blob-mention(lever-leaf)",
+            "TodoWrite(verify.mjs)",
+            "bash(verify.mjs)",
+            "bash(verify.mjs)",
+            "edit",
+            "bash(verify.mjs)",
+            "bash"
+          ]
+        },
+        "transcript": null,
+        "pollSamples": 43,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "verifyMention": true,
+          "mechanismMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": false,
+          "hostAttached": true,
+          "verifyMention": true,
+          "mechanismMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "fa41db21-da46-4503-b8dc-35d69586e835",
+        "side": "pi",
+        "scenarioRef": "prin-encode-structure",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

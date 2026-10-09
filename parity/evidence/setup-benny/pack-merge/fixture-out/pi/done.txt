@@ -1,0 +1,1 @@
+STATUS=merge-ok reason=pack merged, local edit and dest-only file preserved

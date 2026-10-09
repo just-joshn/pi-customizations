@@ -1,0 +1,46 @@
+{
+  "screenFinal": {
+    "todoTool": false,
+    "checklist": false,
+    "playbookSignals": [],
+    "playbookStepsVisible": false,
+    "todoVisible": false,
+    "potetoMode": false,
+    "working": false
+  },
+  "pty": {
+    "todoVisible": false,
+    "playbookSignals": [],
+    "potetoMode": true
+  },
+  "firstTodoAt": null,
+  "firstPlaybookTodoAt": null,
+  "firstProductAt": "2026-10-08T19:54:45.616Z",
+  "productPaths": [
+    "src/inc.js"
+  ],
+  "playbookSignalsSeen": [],
+  "ordering": "product_only",
+  "todoBeforeProduct": false,
+  "playbookTodosBeforeProduct": false,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/fixture-out/pi/done.txt",
+    "line": "bug-fix"
+  },
+  "pollSamples": 13,
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-poteto-playbook-fixture-app--/2026-10-08T19-54-35-455Z_01a11d14-f63e-779d-9413-caa4f50466e7.jsonl",
+    "firstTodoWriteAt": null,
+    "firstProductWriteAt": "2026-10-08T19:54:39.835Z",
+    "firstTodoContents": [],
+    "toolOrder": [
+      "read",
+      "bash",
+      "bash",
+      "edit",
+      "bash"
+    ],
+    "playbookStepsInFirstTodos": false
+  }
+}

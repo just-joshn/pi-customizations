@@ -1,0 +1,53 @@
+{
+  "side": "pi",
+  "path": "askquestion-wrote",
+  "screens": {
+    "ready": {
+      "writeCard": false,
+      "askQuestion": false,
+      "chatForm": false,
+      "modelIdCheck": false,
+      "statusModel": "claude-sonnet-5-5",
+      "working": false
+    },
+    "writeCard": {
+      "writeCard": true,
+      "askQuestion": false,
+      "chatForm": false,
+      "modelIdCheck": false,
+      "statusModel": "claude-subscription",
+      "working": false
+    },
+    "followup": {
+      "writeCard": false,
+      "askQuestion": false,
+      "chatForm": false,
+      "modelIdCheck": true,
+      "statusModel": "claude-subscription",
+      "working": false
+    }
+  },
+  "roleDiff": {
+    "budgetBefore": "small (medium)",
+    "budgetAfter": "small (medium)",
+    "changed": [
+      {
+        "role": "feature, refactoring",
+        "from": "inherit-parent",
+        "to": "auto"
+      }
+    ],
+    "unchangedCount": 16,
+    "keepRolePreserved": true,
+    "mutateRoleApplied": true,
+    "mutateRoleFinal": "auto"
+  },
+  "unrelated": {
+    "canaryUnchanged": true,
+    "canaryDigestBefore": "sha256:cf5fbc82bde2ac51d5ef4044df686c33458b90be84c2df83565c617c596e7e3b",
+    "canaryDigestAfter": "sha256:cf5fbc82bde2ac51d5ef4044df686c33458b90be84c2df83565c617c596e7e3b",
+    "piSettingsUnchanged": true,
+    "piSettingsDigestBefore": "sha256:f91ec6fbe81818e17179c725a410517f21faf98c47dda671c28ab4db4d635dd8",
+    "piSettingsDigestAfter": "sha256:f91ec6fbe81818e17179c725a410517f21faf98c47dda671c28ab4db4d635dd8"
+  }
+}

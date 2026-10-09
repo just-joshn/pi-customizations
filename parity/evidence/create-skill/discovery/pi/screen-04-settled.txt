@@ -1,0 +1,40 @@
+ ## Location                                                                                                           │
+ Project skill: .pi/skills/<skill-name>/ in this repo.                                                                 │
+                                                                                                                       │
+ ## Triggers                                                                                                           │
+ Explicit only; set `disable-model-invocation: true` (no ambient auto-invoke).                                         │
+                                                                                                                       │
+ ## Constraints                                                                                                        │
+ Minimal; single SKILL.md, no scripts or extra files. No verbatim user text supplied.                                  │
+                                                                                                                       │
+ ## Patterns                                                                                                           │
+ None required; no existing conventions to follow.                                                                     │
+ E                                                                                                                     │
+ echo "STATUS=discovered reason=answers collected via AskQuestion" > $d/done.txt (timeout 10s)                         │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Phase 1 discovery is done. I asked four questions with AskQuestion and wrote both files. I didn't draft a name or     │
+ description outline, and I didn't write SKILL.md.                                                                     │
+                                                                                                                       ┃
+ Your answers:                                                                                                         ┃
+ - Purpose: a trivial no-op/echo workflow, just to exercise create-skill.                                              ┃
+ - Location: project skill, .pi/skills/.                                                                               ┃
+ - Triggers: explicit only, with disable-model-invocation: true.                                                       ┃
+ - Constraints and patterns: keep it minimal, a single SKILL.md, and no existing conventions to follow.                ┃
+                                                                                                                       ┃
+ Files written in                                                                                                      ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/discovery/pi/:       ┃
+ - requirements.md covers Purpose, Location, Triggers, Constraints and Patterns.                                       ┃
+ - done.txt contains STATUS=discovered reason=answers collected via AskQuestion.                                       ┃
+                                                                                                                       ┃
+ I didn't touch the parity ledgers, parity/mismatches.json, parity/requirements.json or parity/progress.md.            ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app (refactor/pi-pstack-parity-again)
+↑10 ↓1.3k R87k W20k CH98.6% $0.109 (sub) 2.8%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

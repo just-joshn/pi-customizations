@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "control-ui" collision:                                                                                              ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/control-ui/.pi/skills/control-ui/SKILL.md  ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/control-ui/SKILL.md (skipped)                  ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+─────────────────────────────────────────────────────── ↑ 2 more ───────────────────────────────────────────────────────
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/control-ui/serve.mjs if   
+needed. Use a local browser/CDP harness (Chrome headless is fine; do not add Playwright as a project dependency) to     
+open http://127.0.0.1:8765, click the Go button, confirm #out becomes UI_PROBE_OK, and save a screenshot to             
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/control-ui/ui-harness-a 
+fter.png. Write harness notes to                                                                                        
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/control-ui/summary.md   
+including the marker UI_PROBE. Then write exactly one line to                                                           
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/control-ui/done.txt as  
+STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. If the host cannot drive a        
+browser, STATUS=env-blocked with the measured blocker. Artifacts stay under                                             
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/control-ui. Do not      
+edit parity ledgers.                                                                                                    
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/control-ui (refactor/pi-pstack-parity-again)
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,57 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "skillMention": true,
+    "envBlocked": true,
+    "working": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/thermo-nuclear-code-quality-review/done.txt",
+    "line": "STATUS=verified reason=review written with nested-conditional findings and code-judo proposal",
+    "status": "verified"
+  },
+  "summaryExists": true,
+  "seededSkill": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/thermo-nuclear-code-quality-review/.pi/skills/thermo-nuclear-code-quality-review/SKILL.md",
+    "sha256": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f"
+  },
+  "oracle": {
+    "summaryExists": true,
+    "mentionsNest": true,
+    "proposesSimplify": true,
+    "done": {
+      "exists": true,
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/thermo-nuclear-code-quality-review/done.txt",
+      "line": "STATUS=verified reason=review written with nested-conditional findings and code-judo proposal",
+      "status": "verified"
+    },
+    "closed": true,
+    "honestBlocker": false
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "oracleClosed": true,
+    "closed": true,
+    "honestBlocker": false,
+    "oracle": {
+      "summaryExists": true,
+      "mentionsNest": true,
+      "proposesSimplify": true,
+      "done": {
+        "exists": true,
+        "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/thermo-nuclear-code-quality-review/done.txt",
+        "line": "STATUS=verified reason=review written with nested-conditional findings and code-judo proposal",
+        "status": "verified"
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  }
+}

@@ -1,0 +1,14 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to iterate on an implementation plan before code changes.
+
+
+
+                                                                                                                       
+  → Plan, search, build anything                                                                                       
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-app · refactor/pi-pstack-parity-again

@@ -1,0 +1,292 @@
+[
+  {
+    "ts": "2026-10-09T00:32:32.595Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": false,
+    "doneExists": false,
+    "doneStatus": null,
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:33.131Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": false,
+    "doneStatus": null,
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:33.679Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": false,
+    "doneStatus": null,
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:34.236Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": false,
+    "doneStatus": null,
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:34.800Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": false,
+    "doneStatus": null,
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:35.377Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": false,
+    "doneStatus": null,
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:35.970Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": false,
+    "doneStatus": null,
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:36.569Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": false,
+    "doneStatus": null,
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:37.190Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": false,
+    "doneStatus": null,
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:37.834Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": false,
+    "doneStatus": null,
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:38.529Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:39.259Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:40.005Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:40.778Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:41.589Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:42.444Z",
+    "settingsChrome": true,
+    "settingsOkClaim": false,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:43.329Z",
+    "settingsChrome": true,
+    "settingsOkClaim": false,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:44.244Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:45.219Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:46.234Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:47.264Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:48.317Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:49.365Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:50.417Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:51.452Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:52.492Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:53.537Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:54.585Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:32:55.628Z",
+    "settingsChrome": true,
+    "settingsOkClaim": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "settings-ok",
+    "settingsExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  }
+]

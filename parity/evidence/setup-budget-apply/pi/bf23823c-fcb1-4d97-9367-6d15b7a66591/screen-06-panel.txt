@@ -1,0 +1,36 @@
+ ▎                                                                                                                     │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ Call pstack_setup action state (or read $PI_CODING_AGENT_DIR/pstack/models.mdc) before answering. Do not invent the   │
+ current table. Budget choice: large — xhigh reasoning. The current rule already has real model values at medium       │
+ effort plus bug-fix: auto and how explorer: inherit-parent. Apply effort mapping only: every real value becomes       │
+ provider/id:xhigh (panel list entries included). Pass those remapped values as roleOverrides on pstack_setup write.   │
+ The write tool does not remap for you. Do not replace real model values with inherit-parent or auto. Keep bug-fix as  │
+ auto and how explorer as inherit-parent exactly. The fixture uses only claude-subscription Claude models already in   │
+ availableModels. Remap those to :xhigh and write. Do not stop to ask which option. Accept that remapped table and     │
+ write the rule. Decline any verification skill offer.                                                                 │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           │
+                                                                                                                       │
+                                                                                                                       │
+ Edited pstack-models.mdc +1 -1                                                                                        │
+                                                                                                                       │
+ ▎  # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries │
+ in a panel list still count toward its fan-out.                                                                       │
+ ▎  # budget: large (xhigh)                                                                                            ┃
+ ▎  feature, refactoring: claude-subscription/claude-sonnet-5-5:xhigh                                                  ┃
+ ▎- bug-fix: inherit-parent                                                                                            ┃
+ ▎+ bug-fix: auto                                                                                                      ┃
+ ▎  perf-issue: claude-subscription/claude-sonnet-5-5:xhigh                                                            ┃
+ ▎  hillclimb: claude-subscription/claude-sonnet-5-5:xhigh                                                             ┃
+ ▎  judgment and prose: claude-subscription/claude-opus-5-5:xhigh                                                      ┃
+                                                                                                                       ┃
+
+── ⠴ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑14 ↓1.6k R125k W25k CH94.7% $0.140 (sub) 3.3%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

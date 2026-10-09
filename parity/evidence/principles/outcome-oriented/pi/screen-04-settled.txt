@@ -1,0 +1,40 @@
+ \`pay:\${priceFor('mug')}\`;\n}\n" > src/checkout.js                                                                  │
+ node scripts/verify.mjs && echo "verified=yes" >                                                                      │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/outcome-oriented/fixture-out/pi/do │
+ ne.txt; cat                                                                                                           │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/outcome-oriented/fixture-out/pi/do │
+ ne.txt (timeout 30s)                                                                                                  │
+                                                                                                                       │
+ OUTCOME-OK cart="cart:5" checkout="pay:5" files=cart.js,checkout.js,pricing.js                                        │
+ verified=yes                                                                                                          │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The pricing rewrite is finished. node scripts/verify.mjs prints OUTCOME-OK with cart:5 and pay:5, and done.txt        │
+ contains verified=yes.                                                                                                │
+                                                                                                                       │
+ - What changed. src/pricing.js now exports priceFor(sku). src/cart.js and src/checkout.js import only that.           │
+   src/pricingV1.js is deleted, so there is no dual path or bridge.                                                    │
+ - Reader load. One pricing module replaces the old one, so src/ has three files.                                      │
+ - Principle applied. I read principle-outcome-oriented-execution in full. It made me move callers and delete the old  │
+   module in a single wave rather than keep a compatibility layer.                                                     │
+ - How I checked it. scripts/verify.mjs served as the pin, since it already asserts both outputs and checks that no    ┃
+   priceV1 symbol is left. I wrote no extra tests. The first sed attempt failed on macOS, so I rewrote cart.js and     ┃
+   checkout.js directly.                                                                                               ┃
+ - Skipped. I did not commit or open a PR, since neither was requested.                                                ┃
+
+[>] Pin the behavior contract first. Run the how skill over the affected subsystem to learn the contract, then write ...
+[ ] Name the structure the code is missing per principle-model-the-domain. (pending)
+[ ] Name the target shape. (pending)
+[ ] Subtract before you add. (pending)
+[ ] Move in small behavior-preserving steps; migrate every caller and delete the old API in the same wave. No shims. ...
+[ ] Prove behavior is unchanged on the real artifact (node scripts/verify.mjs). (pending)
+[ ] Confirm the change is worth keeping (reader load). (pending)
+[ ] Rebase into small ordered commits / Opening a PR. skip: fixture, no commits requested (pending)
+... 1 more
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/outcome-oriented/fixture-app (refactor/pi-pstack-par...
+↑16 ↓2.7k R221k W31k CH98.9% $0.194 (sub) 3.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

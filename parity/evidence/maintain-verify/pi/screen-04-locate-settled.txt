@@ -1,0 +1,40 @@
+ -hello-cli/SKILL.md). When you have located it, write exactly one line to                                             │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/pi/locate.txt:    │
+ LOCATED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.pi/skill │
+ s/verify-hello-cli/SKILL.md Then stop. Do not run index hygiene, source wave, live pass, triage, or ship. Do not      │
+ invent a different target. Do not edit the skill. Do not edit ledgers or parity/.                                     │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       ┃
+ [skill] maintain-verification-skill:1-80 (ctrl+o to expand)                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] verify-hello-cli:1-80 (ctrl+o to expand)                                                                      ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Thinking...                                                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ d=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify; mkdir -p                 ┃
+ $d/fixture-out/pi && printf 'LOCATED=%s\n' $d/fixture-app/.pi/skills/verify-hello-cli/SKILL.md >                      ┃
+ $d/fixture-out/pi/locate.txt && cat $d/fixture-out/pi/locate.txt (timeout 10s)                                        ┃
+                                                                                                                       ┃
+ LOCATED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.pi/skill ┃
+ s/verify-hello-cli/SKILL.md                                                                                           ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Step 0 is done. The target is .pi/skills/verify-hello-cli/SKILL.md in the fixture app, and I wrote the LOCATED= line  ┃
+ to fixture-out/pi/locate.txt.                                                                                         ┃
+                                                                                                                       ┃
+ The skill has Launch, Doctor, Drive, Evidence, Cleanup and Helpers sections. It has no explicit feature map or        ┃
+ features/ directory, so the later index-hygiene step will have little to work with. It is the only candidate I looked ┃
+ at, and I did not search for others. I stopped there, as you asked.                                                   ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app (refactor/pi-pstack-parity-again)
+↑8 ↓760 R61k W20k CH98.7% $0.100 (sub) 2.8%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

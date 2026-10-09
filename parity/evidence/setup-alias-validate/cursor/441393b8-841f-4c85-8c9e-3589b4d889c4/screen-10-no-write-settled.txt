@@ -1,0 +1,35 @@
+
+                                                                                                                       
+  Keep budget small — medium reasoning. Keep "feature, refactoring" as inherit-parent. Keep "perf-issue" as            
+  auto. Set only "bug-fix" to the real slug parity-unavailable-model-zzz. Then accept and write if validation          
+  allows. If parity-unavailable-model-zzz is not in the detected set, stop the write and ask again. Do not             
+  invent detected models. Decline any verification skill offer.                                                        
+                                                                                                                       
+
+  Stopped — no write. parity-unavailable-model-zzz is not in the detected set for this session.
+
+  Detected real slugs:
+  claude-fable-5-1-thinking-high, claude-opus-5-5-medium, claude-sonnet-5-5-medium, composer-2.5-fast,
+  cursor-grok-4.6-high-fast, gemini-3.8-flash-high, gpt-5.6-sol-medium, grok-4.7-high, muse-spark-1.3-high
+
+  Aliases that always pass: inherit-parent, auto
+
+  Held as requested (not written yet):
+  • budget: small (medium)
+  • feature, refactoring: inherit-parent
+  • perf-issue: auto
+  • bug-fix: needs a valid choice
+
+  Pick a detected slug (or inherit-parent / auto) for bug-fix and I’ll write the rule.
+
+
+
+                                                                                                                       
+  → Keep budget small — medium reasoning. Keep "feature, refactoring" as inherit-parent. Keep "perf-issue" as auto.    
+    Set only "bug-fix" to the real slug parity-unavailable-model-zzz. Then accept and write if validation allows. If   
+    parity-unavailable-model-zzz is not in the detected set, stop the write and ask again. Do not invent detected      
+    models. Decline any verification skill offer.                                                                      
+                                                                                                                       
+
+  Auto · 13.6%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

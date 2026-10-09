@@ -1,0 +1,277 @@
+[
+  {
+    "ts": "2026-10-09T00:40:42.565Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:43.548Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:44.546Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:45.552Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:46.579Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:47.618Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 1,
+    "preferredPresent": [
+      true,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:48.684Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 1,
+    "preferredPresent": [
+      true,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:49.787Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 2,
+    "preferredPresent": [
+      true,
+      true,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:50.891Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:52.005Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:53.144Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:54.282Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:55.483Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:56.682Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:57.897Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:40:59.131Z",
+    "doneExists": true,
+    "doneStatus": "adapt-mismatch",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:00.396Z",
+    "doneExists": true,
+    "doneStatus": "adapt-mismatch",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:01.693Z",
+    "doneExists": true,
+    "doneStatus": "adapt-mismatch",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:03.011Z",
+    "doneExists": true,
+    "doneStatus": "adapt-mismatch",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:04.398Z",
+    "doneExists": true,
+    "doneStatus": "adapt-mismatch",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:05.725Z",
+    "doneExists": true,
+    "doneStatus": "adapt-mismatch",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:07.040Z",
+    "doneExists": true,
+    "doneStatus": "adapt-mismatch",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:08.363Z",
+    "doneExists": true,
+    "doneStatus": "adapt-mismatch",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:09.677Z",
+    "doneExists": true,
+    "doneStatus": "adapt-mismatch",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:11.003Z",
+    "doneExists": true,
+    "doneStatus": "adapt-mismatch",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  }
+]

@@ -1,0 +1,86 @@
+{
+  "attemptId": "f24f4aa6-a9a4-4cc9-b257-0a885926030b",
+  "mode": "neweditor",
+  "method": "agent-helper MCP keyboard/click drive of Cursor Agents Window",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/f24f4aa6-a9a4-4cc9-b257-0a885926030b",
+  "probe": "automations-new-editor",
+  "editorChromeWitnessed": false,
+  "newAutomationButtons": [
+    {
+      "index": "171",
+      "role": "AXButton",
+      "title": "New Automation",
+      "actions": [
+        "AXPress",
+        "AXShowMenu",
+        "AXScrollToVisible"
+      ],
+      "frame": {
+        "width": 126,
+        "x": 1178,
+        "height": 28,
+        "y": 195
+      },
+      "enabled": true
+    },
+    {
+      "index": "197",
+      "role": "AXButton",
+      "title": "New Automation",
+      "actions": [
+        "AXPress",
+        "AXShowMenu",
+        "AXScrollToVisible"
+      ],
+      "frame": {
+        "width": 122,
+        "x": 819,
+        "height": 24,
+        "y": 828
+      },
+      "enabled": true
+    }
+  ],
+  "clickLog": [
+    {
+      "index": "171",
+      "frame": {
+        "width": 126,
+        "x": 1178,
+        "height": 28,
+        "y": 195
+      },
+      "clickOk": true,
+      "clickError": null,
+      "editorChromeByAx": false,
+      "stillOnList": true
+    },
+    {
+      "index": "197",
+      "frame": {
+        "width": 122,
+        "x": 819,
+        "height": 24,
+        "y": 828
+      },
+      "clickOk": true,
+      "clickError": null,
+      "editorChromeByAx": false,
+      "stillOnList": true
+    }
+  ],
+  "finalStillOnList": true,
+  "pathsTried": [
+    "cmd+n New Chat",
+    "cmd+shift+p Open Automations",
+    "fresh get_app_state + click element_index New Automation",
+    "Tab/Shift+Tab focus cycle + Return/Space"
+  ],
+  "didNot": [
+    "save automation",
+    "enable Benny",
+    "post to Slack",
+    "mint Cloud Agent",
+    "edit ledgers"
+  ]
+}

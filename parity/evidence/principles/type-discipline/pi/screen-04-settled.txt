@@ -1,0 +1,40 @@
+ TYPE-OK value="open:a|done:b@2026-10-08"                                                                              │
+ 0                                                                                                                     │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ node scripts/verify.mjs now prints TYPE-OK value="open:a|done:b@2026-10-08", and I wrote verified=yes to done.txt. I  │
+ didn't run tsc, so the type changes are only checked by Node's type stripping.                                        │
+                                                                                                                       │
+ What was broken. describe() cast completedAt as string. Ticket c was completed: true with no timestamp, so .slice     │
+ threw on undefined. The Ticket type allowed that combination.                                                         │
+                                                                                                                       │
+ Fix. I changed Ticket in src/ticket.ts to a discriminated union: {kind:'open'} or {kind:'done', completedAt: string}. │
+ A done ticket now always carries a timestamp, so the cast is gone. describe() switches on kind and ends with a never  │
+ check, so a new variant won't compile until it's handled.                                                             │
+                                                                                                                       │
+ Boundary. I added parseTicket(raw: unknown), which turns raw input into a Ticket or returns null. loadCases() parses  │
+ its raw records through it. Ticket c is malformed, so it is dropped. That is my choice; I didn't try rejecting the    │
+ whole load instead. As a result loadCases() now returns two tickets, not three.                                       │
+                                                                                                                       │
+ Verification. I reproduced the failure first: TYPE-FAIL ... Cannot read properties of undefined (reading 'slice')     │
+ count=3. After the change, the real verify script passes.                                                             ┃
+                                                                                                                       ┃
+ Principles. I read principle-type-system-discipline and the TypeScript best-practices skill in full. They led to the  ┃
+ sum type in place of the optional-field bag, parsing at the boundary, and the exhaustive match.                       ┃
+                                                                                                                       ┃
+ Skipped. I skipped delegation, commits and the PR because this is a small fixture.                                    ┃
+
+[>] Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or instr...
+[ ] Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. (pending)
+[ ] Plan the fix. If it crosses a function boundary, architect first. Delegate implementation to a subagent using you...
+[ ] Verify on the same surface. The original repro now passes. (pending)
+[ ] Stage the commits so the failing repro lands before the fix in git history. (skip: fixture, no commits) (pending)
+[ ] Run Opening a PR. (skip: fixture, no PR) (pending)
+[ ] Write done.txt verified=yes|no (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/type-discipline/fixture-app (refactor/pi-pstack-pari...
+↑12 ↓2.6k R156k W32k CH99.5% $0.183 (sub) 4.0%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

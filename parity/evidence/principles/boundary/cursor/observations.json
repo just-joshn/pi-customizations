@@ -1,0 +1,139 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": false,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "boundaryValidated": true,
+    "businessRevalidates": false,
+    "midChainOnlyFix": false,
+    "keptVerifyOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "failMention": true,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": false,
+      "failMention": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:53:56.479Z",
+  "firstVerifyAt": "2026-10-09T00:51:32.163Z",
+  "productPaths": [
+    "src/load-config.js",
+    "src/core.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/boundary/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/boundary/fixture-app/evidence/verify-out.txt",
+    "line": "BOUNDARY-OK value=\"hello, WORLD\"",
+    "ok": true
+  },
+  "productOk": true,
+  "productAnalysis": {
+    "boundaryValidated": true,
+    "businessRevalidates": false,
+    "businessUsesDomain": true,
+    "midChainOnlyFix": false
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-boundary-discipline/SKILL.md",
+    "ok": true,
+    "name": "principle-boundary-discipline",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/0db379c5-2f10-4434-a31a-ee617d02927d/0db379c5-2f10-4434-a31a-ee617d02927d.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:54:44.816Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T00:54:44.816Z",
+    "firstProductWriteAt": "2026-10-09T00:54:44.816Z",
+    "sawFailBeforeWrite": true,
+    "toolOrder": [
+      "Read",
+      "Glob",
+      "GetDynamicTools",
+      "Read",
+      "CallDynamicTool",
+      "Shell(verify.mjs)",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read(boundary-leaf)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "blob-mention(boundary-leaf)",
+      "Read",
+      "Read",
+      "Shell(verify.mjs)",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "Shell(verify.mjs)",
+      "CallDynamicTool(verify.mjs)",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "Write(product)",
+      "Write(product)",
+      "CallDynamicTool",
+      "Shell(verify.mjs)",
+      "Shell",
+      "CallDynamicTool"
+    ],
+    "failMention": true,
+    "mtimeMs": 1791507261144.142
+  },
+  "pollSamples": 474,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "failMention": true,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": false,
+    "failMention": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

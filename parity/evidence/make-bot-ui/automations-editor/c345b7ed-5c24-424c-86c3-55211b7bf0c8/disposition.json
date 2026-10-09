@@ -1,0 +1,26 @@
+{
+  "attemptId": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+  "profile": "webhook-witness",
+  "automateHandoffWitnessed": true,
+  "editorChromeWitnessed": true,
+  "draftName": "parity-webhook-witness",
+  "webhookTriggerInDraftTable": true,
+  "webhookTriggerInEditor": true,
+  "webhookUrlWitnessed": true,
+  "webhookUrlHost": "api2.cursor.sh",
+  "generateAuthHeaderControlWitnessed": true,
+  "savedByHarness": false,
+  "activatedByHarness": false,
+  "senderKeyInChatOrEvidence": false,
+  "secretRequestCardWitnessed": false,
+  "updateStateUsed": false,
+  "leakScanFindings": [
+    {
+      "file": "screen-07-poll-6.png.ax.txt",
+      "role": "AXButton",
+      "value": "Generate auth header"
+    }
+  ],
+  "sourceEvidence": "parity/evidence/setup-benny/creation-boundary/agents-window/c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+  "copiedEvidence": "parity/evidence/make-bot-ui/automations-editor/c345b7ed-5c24-424c-86c3-55211b7bf0c8"
+}

@@ -1,0 +1,40 @@
+ tracker:                                                                                                              │
+   adapter_skill_name: "issue-tracker-adapter-placeholder"                                                             │
+ control:                                                                                                              │
+   skill_name: "control-target-app"                                                                                    │
+   feature_map_path: ".cursor/benny/feature-map.md"                                                                    │
+ models:                                                                                                               │
+   triage: ""                                                                                                          │
+   reproduce: ""                                                                                                       │
+   code: ""                                                                                                            │
+   media_review: ""                                                                                                    │
+ EOF                                                                                                                   │
+ mkdir -p ../fixture-out/pi && echo "STATUS=fail-closed reason=source channel id unknown and model slugs unconfirmed"  │
+ > ../fixture-out/pi/done.txt; cat ../fixture-out/pi/done.txt (timeout 10s)                                            │
+                                                                                                                       │
+ STATUS=fail-closed reason=source channel id unknown and model slugs unconfirmed                                       │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           │
+                                                                                                                       │
+ Setup failed closed. The source Slack channel ID is unknown, and you haven't confirmed any model slugs, so I stopped  ┃
+ before creating or updating any automation.                                                                           ┃
+                                                                                                                       ┃
+ - Draft: I wrote a partial draft at .cursor/benny/configuration.pi.yaml. It holds the values you confirmed:           ┃
+   repository URL and branch, triage user ID U012FIXTURETRIAGE, tracker adapter skill, control skill and feature-map   ┃
+   path. source_channel_id and the four model slugs are left empty, and I did not use SOURCE_CHANNEL_ID or guess any   ┃
+   slug.                                                                                                               ┃
+ - Not done: I did not write the other required values from setup-benny section 3 (operations channel, tracker team    ┃
+   and labels, status emoji, budgets). I did not edit src/app.js or any parity ledger.                                 ┃
+ - Status file: parity/evidence/setup-benny/required-explicit/fixture-out/pi/done.txt contains STATUS=fail-closed      ┃
+   reason=source channel id unknown and model slugs unconfirmed.                                                       ┃
+                                                                                                                       ┃
+ To continue I need the real source channel ID and the model slugs shown in your model picker.                         ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/required-explicit/fixture-app (refactor/pi-pstack-p...
+↑10 ↓1.3k R99k W26k CH98.5% $0.137 (sub) 3.5%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

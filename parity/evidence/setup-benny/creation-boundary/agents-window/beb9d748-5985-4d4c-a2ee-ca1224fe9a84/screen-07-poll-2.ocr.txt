@@ -1,0 +1,56 @@
+Cursor automation setup E
+IDE A ...
++ Browser
++
+Search or enter URL
+V New Chat
+Search
+Automations
+Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+G No Repo
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+/automate
+/automate
+/automate PARITY_TOKEN=webhook-witness-handoff-001.
+Create a Cursor Automation named parity-webhook-witness.
+Trigger must be an incoming HTTP webhook (not cron, not
+the POST body as
+settings
+To finish in
+editor
+or git scope)
+Webhook URL and auth after you save in
+the UI; leave the automation disabled (do
+not Save or Activate from chat)
+Q Search or enter URL...
+Recents
+• Cursor Changelog cursor.com/changelog
+• Cursor Docs cursor.com/docs
+57m
+Does this look correct?
+4 9 0 Y Just now
+Getting Started
+1m
+6m
+18m
+20m
+29m
+59m
+1h
+1h
+3/3 O
+* Connect Slack
+Joshua Humphrey
++ Send follow-up
+• This Mac V
+Auto v

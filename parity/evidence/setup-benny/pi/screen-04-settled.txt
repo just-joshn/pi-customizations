@@ -1,0 +1,40 @@
+ values into plugin files, prompts, or committed configuration. Do not edit parity ledgers or src/app.js. After you    │
+ have confirmed entry via pack bootstrap to the destination setup-benny path and either asked the first required setup │
+ question or verified the pack copy is present, stop. When you stop for any reason, write exactly one line to          │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/fixture-out/pi/done.txt as        │
+ STATUS=not-slash|slash-invoked|automation-created|blocked|other reason=<short phrase> then stop.                      │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ read .upstream/automations/benny/FOR_AGENTS.md:1-200                                                                  ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Step 1: ask which repository. Let me write the status and ask.                                                        ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/fixture-out/pi && echo ┃
+ "STATUS=not-slash reason=asked first setup question (target repository)" >                                            ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/fixture-out/pi/done.txt (timeout  ┃
+ 10s)                                                                                                                  ┃
+                                                                                                                       ┃
+ (no output)                                                                                                           ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ I read .upstream/automations/benny/FOR_AGENTS.md and stopped at its first step. I haven't copied the pack or read the ┃
+ destination setup-benny/SKILL.md yet, because both depend on the target repository.                                   ┃
+                                                                                                                       ┃
+ Which repository will run the two Benny automations? Give me its path or name.                                        ┃
+                                                                                                                       ┃
+ Once you answer, I'll treat the directory containing FOR_AGENTS.md as the source pack. I'll merge it into             ┃
+ <target>/.cursor/automations/benny/ without overwriting your own files, then read the copied setup-benny/SKILL.md     ┃
+ directly. I'm not invoking any slash skill, and I won't create an automation this turn.                               ┃
+                                                                                                                       ┃
+ I wrote STATUS=not-slash reason=asked first setup question (target repository) to fixture-out/pi/done.txt.            ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/fixture-app (refactor/pi-pstack-parity-again)
+↑8 ↓606 R60k W19k CH99.1% $0.096 (sub) 2.8%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

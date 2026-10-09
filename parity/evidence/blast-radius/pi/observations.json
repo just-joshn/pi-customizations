@@ -1,0 +1,42 @@
+{
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/fixture-out/pi/done.txt",
+    "line": "PROOF=step4 certainty=4 fact=sessionStore.retainLive relies on isExpired(ttl:0)=false for immortal sessions; change purges them (UNSAFE)",
+    "proof": "step4",
+    "certainty": "4",
+    "fact": "sessionStore.retainLive relies on isExpired(ttl:0)=false for immortal sessions; change purges them (UNSAFE)"
+  },
+  "proofArtifacts": [],
+  "outcome": "run_proof",
+  "contractHeld": true,
+  "engaged": true,
+  "runEvidence": true,
+  "certaintyStated": true,
+  "screen": {
+    "ranCode": true,
+    "certaintyNamed": true,
+    "writeupOnlySmell": false,
+    "skillChrome": true,
+    "working": false
+  },
+  "pty": {
+    "ranCode": true,
+    "certaintyNamed": true,
+    "writeupOnlySmell": false,
+    "skillChrome": true,
+    "working": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-blast-radius-fixture-app--/2026-10-09T00-02-07-208Z_01a11df7-94e8-74d7-ac8b-a11d5660280a.jsonl",
+    "skillRead": true,
+    "ranCodeTools": true,
+    "toolOrder": [
+      "bash",
+      "bash",
+      "bash(run-code)"
+    ]
+  },
+  "pollSamples": 28,
+  "scorerNote": "run_proof requires engagement plus step4/step5 (or observed code run) with certainty; cheaper_stop requires named cheaper stop + certainty; writeup_only is a contract miss"
+}

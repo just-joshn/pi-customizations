@@ -1,0 +1,15 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /debug to instrument and debug complex problems.
+
+
+
+                                                                                                                       
+  → Plan, search, build anything                                                                                       
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass · 
+  refactor/pi-pstack-parity-again

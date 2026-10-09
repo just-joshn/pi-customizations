@@ -1,0 +1,40 @@
+                                                                                                                       │
+                                                                                                                       │
+ $ mkdir -p                                                                                                            │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/control-fail-closed/fixture-out/p │
+ i && echo "STATUS=fail-closed reason=control adapter stub implements no required capabilities" >                      │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/control-fail-closed/fixture-out/p │
+ i/done.txt (timeout 10s)                                                                                              │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           │
+                                                                                                                       │
+ Step 6 failed, so the repro automation stays disabled (fail closed). I didn't create or enable any automation, and I  │
+ didn't touch the parity ledgers or src/app.js.                                                                        │
+                                                                                                                       │
+ .cursor/skills/control-target-app/SKILL.md is an explicit stub, and it lists every capability as "not implemented":   │
+ - bring up the app                                                                                                    │
+ - drive the real UI                                                                                                   ┃
+ - drive mapped features and states                                                                                    ┃
+ - inspect state                                                                                                       ┃
+ - screenshot                                                                                                          ┃
+ - recording start/stop                                                                                                ┃
+ - cleanup                                                                                                             ┃
+                                                                                                                       ┃
+ The feature map at .cursor/benny/feature-map.md is complete, with login and settings sections. The adapter can't      ┃
+ navigate either one, and it can't run the nine-step setup check.                                                      ┃
+                                                                                                                       ┃
+ I wrote one line to parity/evidence/setup-benny/control-fail-closed/fixture-out/pi/done.txt:                          ┃
+ STATUS=fail-closed reason=control adapter stub implements no required capabilities                                    ┃
+                                                                                                                       ┃
+ I stopped after step 6, so steps 7 and 8 were not run.                                                                ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/control-fail-closed/fixture-app (refactor/pi-pstack...
+↑10 ↓882 R101k W28k CH99.3% $0.139 (sub) 3.6%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

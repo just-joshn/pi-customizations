@@ -1,0 +1,1 @@
+MIGRATE-OK greet="hello, WORLD" banner="BANNER:TEAM" files=banner.js,format.js,greet.js

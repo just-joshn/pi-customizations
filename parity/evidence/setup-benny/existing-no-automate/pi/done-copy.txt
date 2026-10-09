@@ -1,0 +1,1 @@
+STATUS=checklist-ok reason=checklist given; editor not openable in CLI PTY, user edits both existing automations

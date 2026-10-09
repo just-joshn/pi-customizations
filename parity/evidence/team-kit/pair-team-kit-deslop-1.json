@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "pairId": "team-kit-deslop-1",
+  "scenarioRef": "team-kit:deslop",
+  "journeyFamily": "cursor-team-kit",
+  "skillId": "deslop",
+  "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/deslop/SKILL.md",
+  "skillMdSha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/deslop ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "STATUS=verified with skill oracle, or STATUS=env-blocked"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "92e79e5f-df73-40f1-be36-52840ea161ea",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/deslop/cursor/92e79e5f-df73-40f1-be36-52840ea161ea",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop/done.txt",
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "slopGone": true,
+        "keepsBehavior": true,
+        "summaryExists": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop/done.txt",
+          "line": "STATUS=verified reason=restored minimal double(n)",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "pi": {
+    "attemptId": "c973eadd-a5cc-4893-8344-c25382e7ac82",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/deslop/pi/c973eadd-a5cc-4893-8344-c25382e7ac82",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/deslop/done.txt",
+    "seededSkill": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/deslop/.pi/skills/deslop/SKILL.md",
+      "sha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810"
+    },
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "slopGone": true,
+        "keepsBehavior": true,
+        "summaryExists": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/deslop/done.txt",
+          "line": "STATUS=verified reason=diff against main is empty for util.js",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "skillClosure": {
+    "deslop": "closed_by_this_pair"
+  },
+  "note": "Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/.",
+  "verdict": "pass"
+}

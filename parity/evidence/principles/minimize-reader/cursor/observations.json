@@ -1,0 +1,124 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "wrappersCollapsed": true,
+    "addedLayer": false,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:53:28.428Z",
+  "firstVerifyAt": "2026-10-09T00:53:00.330Z",
+  "firstDeletedAt": "2026-10-09T00:53:29.630Z",
+  "productPaths": [
+    "src/greet.js",
+    "deleted:src/greeting-loader.js",
+    "deleted:src/greeting-fetch.js",
+    "deleted:src/greeting-resolve.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/fixture-app/evidence/verify-out.txt",
+    "line": "TRACE-OK path=collapse files=core.js,greet.js",
+    "ok": true
+  },
+  "oracle": {
+    "greetOk": true,
+    "wrapperGone": {
+      "src/greeting-loader.js": true,
+      "src/greeting-fetch.js": true,
+      "src/greeting-resolve.js": true
+    },
+    "allWrappersGone": true,
+    "noFacade": true,
+    "layeredName": false,
+    "wrappersCollapsed": true,
+    "addedLayer": false,
+    "productOk": true,
+    "srcFiles": [
+      "core.js",
+      "greet.js"
+    ]
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-minimize-reader-load/SKILL.md",
+    "ok": true,
+    "name": "principle-minimize-reader-load",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/809cc0f3-c53d-4b4c-a293-b4b101571ab2/809cc0f3-c53d-4b4c-a293-b4b101571ab2.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:53:55.794Z",
+    "ranVerifyScript": true,
+    "toolOrder": [
+      "GetDynamicTools",
+      "Read",
+      "Read",
+      "Glob",
+      "CallDynamicTool",
+      "Read(minimize-reader-leaf)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Shell(verify.mjs)",
+      "blob-mention(minimize-reader-leaf)",
+      "CallDynamicTool",
+      "GetDynamicTools",
+      "Read",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Shell(verify.mjs)",
+      "Shell",
+      "CallDynamicTool"
+    ],
+    "mtimeMs": 1791507225034.9512
+  },
+  "pollSamples": 136,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

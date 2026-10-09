@@ -1,0 +1,76 @@
+{
+  "screenFinal": {
+    "potetoMode": false,
+    "potetoAgent": true,
+    "generalPurpose": false,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "principlesChrome": false,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": true,
+    "generalPurpose": true
+  },
+  "firstSpawnAt": "2026-10-08T21:46:33.487Z",
+  "firstSkillChromeAt": "2026-10-08T21:46:33.906Z",
+  "marker": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-out/pi/marker.txt",
+    "line": "HELLO",
+    "ok": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-out/pi/done.txt",
+    "line": "poteto-agent"
+  },
+  "potetoAgentSpawned": true,
+  "generalPurposeSubstituted": false,
+  "unknownAgentType": false,
+  "skillBeforeWork": true,
+  "principlesCovered": true,
+  "verdict": "skill_before_work",
+  "passShaped": true,
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-poteto-agent-fixture-app--/2026-10-08T21-46-32-881Z_01a11d7b-7631-76f4-a40d-02c96db3f2cd.jsonl",
+    "toolOrder": [
+      "read",
+      "TodoWrite",
+      "task",
+      "bash"
+    ],
+    "potetoTask": true,
+    "generalPurposeTask": false,
+    "unknownAgent": false,
+    "firstTaskAt": "2026-10-08T21:46:46.176Z",
+    "taskArgs": [
+      {
+        "name": "task",
+        "kind": "poteto-agent",
+        "ts": "2026-10-08T21:46:46.176Z"
+      }
+    ],
+    "childPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-poteto-agent-fixture-app--/01a11d7b-7631-76f4-a40d-02c96db3f2cd/subagents/agent-afc76f98-c9b7-4e10-a511-58c475143615.jsonl",
+    "child": null
+  },
+  "cursorChildren": [],
+  "bestChild": {
+    "path": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-poteto-agent-fixture-app--/01a11d7b-7631-76f4-a40d-02c96db3f2cd/subagents/agent-afc76f98-c9b7-4e10-a511-58c475143615.jsonl",
+    "ordering": "skill_before_work",
+    "skillBeforeWork": true,
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/poteto-mode/SKILL.md",
+    "firstSkillReadAt": "2026-10-08T21:46:49.224Z",
+    "firstOtherWorkAt": "2026-10-08T21:46:51.348Z",
+    "principlesIndexCovered": true,
+    "toolOrder": [
+      "read",
+      "bash"
+    ]
+  },
+  "pollSamples": 47,
+  "correctionNote": "Child lived under <uuid>/subagents/; scored manually then script patched."
+}

@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+  "weekly-review" collision:                                                                                           ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/weekly-review/.pi/skills/weekly-review/SKIL┃
+L.md                                                                                                                   ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/weekly-review/SKILL.md (skipped)               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/weekly-review Do not ask questions. Follow the weekly-review skill. Workspace is                                       
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/weekly-review. Produce    
+the weekly recap for authored commits. Write it to                                                                      
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/weekly-review/summary.m 
+d. Include 2-5 bullets and a short classification paragraph covering bug fixes, tech debt, and net-new work. Mention    
+ALPHA. Then write exactly one line to                                                                                   
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/weekly-review/done.txt  
+as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under           
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/weekly-review. Do not   
+edit parity ledgers.                                                                                                    
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/weekly-review (main)
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

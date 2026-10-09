@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "pairId": "maintain-verify-locate-1",
+  "scenarioRef": "setup-maintain-verify-locate",
+  "requirementIds": [
+    "PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001"
+  ],
+  "fixtureDigest": "sha256:50d81673998406581c10f69f7924c91835b99a6ca2c453e551ea9dcd92786b4b",
+  "promptTemplateLocateOne": "Run /maintain-verification-skill now. Complete only Pass step 0 Locate the target. Find the project-local verification skill with launch/drive sections and a feature map (expected at <host-skill-path>). When you have located it, write exactly one line to fixture-out/<side>/locate.txt: LOCATED=<host-skill-path> Then stop. Do not run index hygiene, source wave, live pass, triage, or ship.",
+  "promptTemplateLocateNone": "Run /maintain-verification-skill now. Complete only Pass step 0 Locate the target. This project has no verify-* skill. Do not invent a verification skill target. Stop and point at /create-verification-skill. Write LOCATED=none and CREATE_OFFERED=yes to fixture-out/<side>/locate.txt and stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/maintain-verification-skill locate-only prompt"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "fixture-out/<side>/locate.txt with LOCATED=... (one) or LOCATED=none + CREATE_OFFERED=yes (none)"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "66944536-aadc-4b80-9be0-d3bd924e4057",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/cursor/66944536-aadc-4b80-9be0-d3bd924e4057",
+    "mode": "one",
+    "afterDigest": "sha256:50d81673998406581c10f69f7924c91835b99a6ca2c453e551ea9dcd92786b4b",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+    "locateMarkerPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor/one/locate.txt",
+    "observations": {
+      "maintainInvoked": true,
+      "locateOk": true,
+      "located": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+      "hasLaunchDriveFeatureMap": true,
+      "inventedTarget": false,
+      "modelChrome": "Auto"
+    },
+    "noneBranch": {
+      "attemptId": "f8ea88ab-9875-4370-875e-a2771c5d3753",
+      "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/cursor/f8ea88ab-9875-4370-875e-a2771c5d3753",
+      "locateMarkerPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor/none/locate.txt",
+      "observations": {
+        "maintainInvoked": true,
+        "locateOk": true,
+        "located": "none",
+        "createOffered": true,
+        "inventedTarget": false
+      }
+    }
+  },
+  "pi": {
+    "attemptId": "073160f6-9e82-49fc-9bd0-9c1539341f50",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/pi/073160f6-9e82-49fc-9bd0-9c1539341f50",
+    "mode": "one",
+    "afterDigest": "sha256:50d81673998406581c10f69f7924c91835b99a6ca2c453e551ea9dcd92786b4b",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "sessionNote": "PI_CODING_AGENT_DIR=/tmp/pi-ref-agent",
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.pi/skills/verify-hello-cli/SKILL.md",
+    "locateMarkerPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/pi/one/locate.txt",
+    "observations": {
+      "maintainInvoked": true,
+      "locateOk": true,
+      "located": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.pi/skills/verify-hello-cli/SKILL.md",
+      "hasLaunchDriveFeatureMap": true,
+      "inventedTarget": false,
+      "screenClaimedMissingFeatureMap": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium"
+    },
+    "noneBranch": {
+      "attemptId": "ab0b1495-90e3-482c-b195-93600c824b5f",
+      "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/pi/ab0b1495-90e3-482c-b195-93600c824b5f",
+      "locateMarkerPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/pi/none/locate.txt",
+      "observations": {
+        "maintainInvoked": true,
+        "locateOk": true,
+        "located": "none",
+        "createOffered": true,
+        "inventedTarget": false,
+        "inventingOracleFalsePositive": "Regex matched negation I didn't invent; patched in observations.json"
+      }
+    }
+  },
+  "deltas": [
+    {
+      "topic": "skill root",
+      "cursor": "Locates under .cursor/skills/verify-hello-cli/.",
+      "pi": "Locates under .pi/skills/verify-hello-cli/.",
+      "reconciled": true
+    },
+    {
+      "topic": "one-skill locate",
+      "cursor": "Confirmed Launch/Drive + feature map; wrote LOCATED= absolute SKILL.md path; stopped after step 0.",
+      "pi": "Wrote LOCATED= absolute SKILL.md path and stopped. Screen wrongly said no features/ directory; on-disk features/README.md and hello-print.md were present.",
+      "reconciled": true
+    },
+    {
+      "topic": "none locate",
+      "cursor": "LOCATED=none CREATE_OFFERED=yes; pointed at /create-verification-skill; did not invent.",
+      "pi": "LOCATED=none CREATE_OFFERED=yes; pointed at /create-verification-skill; did not invent.",
+      "reconciled": true
+    },
+    {
+      "topic": "several-candidates ask",
+      "cursor": "Not captured in this pair.",
+      "pi": "Not captured in this pair.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Status chrome Auto.",
+      "pi": "Status chrome claude-sonnet-5-5 medium via claude-subscription.",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-maintain-verify-locate.mjs --one then --none, --cursor-only / --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app",
+    "decisionLog": "parity/evidence/maintain-verify/.audit/u-journey-setup-maintain-verify-locate.tsv",
+    "notes": "Did not touch ~/.cursor/rules/pstack-models.mdc (setup-grok held the shared lock). Primary pair attempts are the one-skill branch. None branch attempts are linked under cursor.noneBranch / pi.noneBranch. Several-candidates branch not paired. Ledgers not edited. Sibling SOURCE-WAVE / LIVE-PASS / EDIT-SCOPE not claimed."
+  }
+}

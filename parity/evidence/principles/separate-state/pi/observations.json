@@ -1,0 +1,110 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "separateOk": true,
+    "separatedFix": true,
+    "stillShared": false,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "failMention": true,
+      "verifyMention": true,
+      "shareMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "failMention": true,
+      "verifyMention": true,
+      "shareMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:31:52.667Z",
+  "firstVerifyAt": "2026-10-09T01:31:48.653Z",
+  "productPaths": [
+    "src/workers.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/fixture-app/evidence/verify-out.txt",
+    "line": "SEPARATE-OK separated=yes indexer=state/indexer-state.json metrics=state/metrics-state.json lastIndexed=idx-5 lastMetrics=met-5",
+    "ok": true
+  },
+  "productOk": true,
+  "productAnalysis": {
+    "stillShared": false,
+    "separated": true,
+    "reportMerges": true,
+    "indexerFiles": [
+      "state/indexer-state.json"
+    ],
+    "metricsFiles": [
+      "state/metrics-state.json"
+    ]
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+    "ok": true,
+    "name": "principle-separate-before-serializing-shared-state",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-separate-state-fixture-app--/2026-10-09T01-31-37-724Z_01a11e49-877b-751a-94f4-d993e3c1ee87.jsonl",
+    "hostAttached": false,
+    "failMention": true,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:31:41.966Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T01:31:41.966Z",
+    "firstProductWriteAt": null,
+    "ranConcurrentProof": false,
+    "toolOrder": [
+      "bash(verify.mjs)",
+      "read(separate-state-leaf)",
+      "blob-mention(separate-state-leaf)",
+      "read",
+      "bash(verify.mjs)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 55,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "failMention": true,
+    "verifyMention": true,
+    "shareMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "failMention": true,
+    "verifyMention": true,
+    "shareMention": true,
+    "working": true
+  }
+}

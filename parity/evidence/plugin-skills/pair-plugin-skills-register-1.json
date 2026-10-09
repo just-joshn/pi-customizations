@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "pairId": "plugin-skills-register-1",
+  "scenarioRef": "cmd-plugin-skills-register",
+  "journeyFamily": "journey-family-03-commands-and-nl-triggers",
+  "requirementIds": [
+    "PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001"
+  ],
+  "mismatchIds": [],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "manifest": {
+    "pluginJsonPath": "parity/reference/cursor-plugins/pstack/.cursor-plugin/plugin.json",
+    "pluginJsonDigest": "sha256:7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e",
+    "skills": "./skills/",
+    "agents": "./agents/",
+    "skillDirCount": 51,
+    "agentFiles": [
+      "comment-sicko.md",
+      "poteto-agent.md"
+    ]
+  },
+  "steps": [
+    {
+      "observe": "Load locked plugin or package, then inspect host registration surfaces for skills and agents directories"
+    }
+  ],
+  "cursor": {
+    "attemptId": "ca0f3e61-9af8-434c-b2f2-a98d9823725f",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/plugin-skills/cursor/ca0f3e61-9af8-434c-b2f2-a98d9823725f",
+    "screens": {
+      "ready": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/plugin-skills/cursor/screen-00-ready.txt",
+      "slashHow": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/plugin-skills/cursor/screen-02-slash-how.txt",
+      "slashAgents": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/plugin-skills/cursor/screen-03-slash-agents.txt",
+      "slashPoteto": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/plugin-skills/cursor/screen-04-slash-poteto.txt"
+    },
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observations": {
+      "skillsRegistered": true,
+      "agentsRegistered": true,
+      "bothRegistered": true,
+      "skillsSeen": [
+        "/how",
+        "/poteto-mode",
+        "/poteto-help"
+      ],
+      "agentsSeen": [
+        "/subagent-poteto-agent"
+      ],
+      "binding": "Cursor plugin.json skills=./skills/ and agents=./agents/ via --plugin-dir locked pstack"
+    }
+  },
+  "pi": {
+    "attemptId": "11c4b783-86f3-426a-a1eb-e2048792071e",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/plugin-skills/pi/11c4b783-86f3-426a-a1eb-e2048792071e",
+    "screens": {
+      "ready": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/plugin-skills/pi/screen-00-ready.txt",
+      "slashHow": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/plugin-skills/pi/screen-02-slash-how.txt",
+      "subagentsList": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/plugin-skills/pi/screen-03-subagents-list.txt"
+    },
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observations": {
+      "skillsRegistered": true,
+      "agentsRegistered": true,
+      "bothRegistered": true,
+      "packageSkillsPath": "pi-pstack/skills/tdd/SKILL.md",
+      "skillsSeen": [
+        "/how"
+      ],
+      "howAsTask": true,
+      "agentsSeen": [
+        "poteto-agent",
+        "comment-sicko"
+      ],
+      "statusSkillCount": null,
+      "binding": "package.json pi.skills [./skills, ./host/skills]; persona-agents from upstream/agents/; not Cursor plugin.json keys"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "manifest binding",
+      "cursor": "Reads .cursor-plugin/plugin.json keys skills=./skills/ and agents=./agents/ when loaded with --plugin-dir.",
+      "pi": "Reads package.json pi.skills for skill dirs. Agents come from extension persona-agents (upstream/agents/), not plugin.json.",
+      "reconciled": false,
+      "note": "Honest Pi binding delta. Requirement piBindings remains empty."
+    },
+    {
+      "topic": "skills registration surface",
+      "cursor": "Slash autocomplete lists /how, /poteto-mode, /poteto-help from the plugin skills directory.",
+      "pi": "Skill-conflict panel cites extensions/pi-pstack/skills/tdd/SKILL.md. /how appears as a [task] autocomplete entry.",
+      "reconciled": true
+    },
+    {
+      "topic": "agents registration surface",
+      "cursor": "Slash autocomplete lists /subagent-poteto-agent (and Comment Sicko) from the plugin agents directory.",
+      "pi": "/subagents preferences list shows poteto-agent and comment-sicko. No /subagent-* slash aliases.",
+      "reconciled": true
+    }
+  ],
+  "verdict": "pass-with-pi-binding-delta",
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-plugin-skills-register.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "lockedPluginPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+    "lockedPluginRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "productEdit": null,
+    "identity": {
+      "cursor": {
+        "schema": 1,
+        "attemptId": "ca0f3e61-9af8-434c-b2f2-a98d9823725f",
+        "side": "cursor",
+        "scenarioRef": "cmd-plugin-skills-register",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 36,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      },
+      "pi": {
+        "schema": 1,
+        "attemptId": "11c4b783-86f3-426a-a1eb-e2048792071e",
+        "side": "pi",
+        "scenarioRef": "cmd-plugin-skills-register",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 36,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  }
+}

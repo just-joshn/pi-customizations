@@ -1,0 +1,39 @@
+    … 1 output lines hidden · ctrl+o to expand
+    exit=0
+    GREET-OK value="hello, WORLD"
+
+  Verify now prints GREET-OK. I'll write the done file, since the user named that path explicitly.
+
+  $ ls -la
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/fixture-out/cursor/
+    2>&1; cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/fixture-app
+    && git diff --stat -- . 2>/dev/null; cat src/config.js 250ms
+    … 4 output lines hidden · ctrl+o to expand
+      return cfg.displayName;
+    }
+
+    Edited done.txt +1
+
+    ▎    1 + verified=yes
+
+  The crash was a typo, not a missing name. src/config.js read cfg.displayNam, which returned undefined, and greet()
+  then called .toUpperCase() on it. I fixed the property name to cfg.displayName.
+
+  node scripts/verify.mjs now prints GREET-OK value="hello, WORLD" and exits 0. I also grepped the fixture for
+  displayNam and found no other instances.
+
+  I wrote verified=yes to the done path and stopped.
+
+  Principle applied: Fix Root Causes. I reproduced the failure first, traced it to the bad property name, and fixed
+  it there. I did not add a fallback like name ?? 'world', which would have hidden the config bug that NOTES.md
+  warns about.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Haiku 5.5 300K High · 15.1% · 2 files edited                                                   Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/fixture-app · 
+  refactor/pi-pstack-parity-again

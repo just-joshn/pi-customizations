@@ -1,0 +1,2 @@
+{"role": "user", "content": "We tried shipping a prove wrapper yesterday; it got reverted after flaky exit codes.", "timestamp": "2026-10-06T15:00:00.000Z"}
+{"role": "assistant", "content": "Noted. Reverted PR #41 (prove wrapper). Keep symptom: prove step reports green while stdout missing HELLO-FAMILY-13. Open follow-up as PR #42 draft.", "timestamp": "2026-10-06T15:10:00.000Z"}

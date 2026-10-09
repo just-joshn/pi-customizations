@@ -1,0 +1,99 @@
+{
+  "attemptId": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+  "mode": "automate-handoff",
+  "method": "agent-helper MCP keyboard/click drive of Cursor Agents Window",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+  "probe": "automate-handoff",
+  "profile": "webhook-witness",
+  "draftName": "parity-webhook-witness",
+  "slashMenuShowedAutomate": true,
+  "automateHandoffWitnessed": true,
+  "editorChromeWitnessed": true,
+  "draftNameWitnessed": true,
+  "composerFocus": {
+    "label": "screen-03b-composer-focus",
+    "clicked": true,
+    "elementIndex": "224",
+    "role": "AXTextArea"
+  },
+  "saved": false,
+  "activated": false,
+  "slack": false,
+  "axNote": "Strong AX markers often missing when editor is AXWebArea; confirm Inactive/Add Trigger/Agent Instructions/draft name on PNGs.",
+  "pollLog": [
+    {
+      "poll": 0,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false
+    },
+    {
+      "poll": 1,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false
+    },
+    {
+      "poll": 2,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false
+    },
+    {
+      "poll": 3,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false
+    },
+    {
+      "poll": 4,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false
+    },
+    {
+      "poll": 5,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false
+    },
+    {
+      "poll": 6,
+      "editorChromeByAx": true,
+      "hasInactive": true,
+      "hasAddTrigger": true,
+      "hasAgentInstructions": true,
+      "draftNameInEditor": true
+    }
+  ],
+  "pathsTried": [
+    "cmd+shift+p Open Agents Window",
+    "cmd+n New Chat",
+    "focus chat composer",
+    "/automate + Tab skill chip",
+    "send webhook-witness no-Save prompt",
+    "poll AX for Automations editor chrome + draft name",
+    "yes replies if draft/readiness asked",
+    "dismiss permission sheets that steal focus"
+  ],
+  "didNot": [
+    "press Save",
+    "toggle Inactive/Activate",
+    "enable Benny",
+    "post to Slack",
+    "edit ledgers",
+    "mint Cloud Agent"
+  ]
+}

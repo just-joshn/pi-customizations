@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "pairId": "prin-explain-number-1",
+  "scenarioRef": "prin-explain-number",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-EXPLAIN-NUMBER-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode RESULTS.md claims a bare 4.8x speedup. Before trusting or shipping that number, apply principle-explain-the-number: read its leaf SKILL.md in full first (not only the poteto-mode Principles index). Use data/trials.json and data/profile-notes.txt. Write evidence/explain-report.md that reports the measured speedup with a named limiter plus run count and spread (or a link to the trials artifact), not the bare number alone. Then run node scripts/verify.mjs so evidence/verify-out.txt contains EXPLAIN-OK. Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When EXPLAIN-OK is on disk, write exactly one line to .../explain-number/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode explain the 4.8x with leaf Read, named limiter, run count, spread; EXPLAIN-OK; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/explain-report.md with limiter + runs + spread"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with EXPLAIN-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "0adb3d89-a142-4c2a-9487-4209954140ef",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/cursor/0adb3d89-a142-4c2a-9487-4209954140ef",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/0015e749-445a-4faf-beae-1c7f8086ad89/0015e749-445a-4faf-beae-1c7f8086ad89.jsonl",
+    "proofCopyPath": "parity/evidence/principles/explain-number/fixture-out/cursor/evidence/verify-out.txt",
+    "reportCopyPath": "parity/evidence/principles/explain-number/fixture-out/cursor/evidence/explain-report.md",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-explain-the-number/SKILL.md",
+      "namedLimiter": true,
+      "limiter": "single-threaded parse loop in src/parse.js (one CPU core)",
+      "runCountPresent": true,
+      "runCount": "n=5 warm trials per side",
+      "spreadPresent": true,
+      "spread": "baseline 408-421ms; optimized 84-91ms; linked data/trials.json",
+      "keptVerifyOk": true,
+      "verifyLine": "EXPLAIN-OK",
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "unobserved on ready/settled screen dumps",
+      "oracleNote": "Leaf Read + named limiter (single-threaded parse loop / one CPU core) + n=5 + min/max spread; EXPLAIN-OK; verified=yes."
+    }
+  },
+  "pi": {
+    "attemptId": "029fedbc-568d-499e-ba31-1da197a2d866",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/pi/029fedbc-568d-499e-ba31-1da197a2d866",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-explain-number-fixture-app--/2026-10-09T01-22-25-596Z_01a11e41-1abc-72ef-b20b-abb36494fbae.jsonl",
+    "proofCopyPath": "parity/evidence/principles/explain-number/fixture-out/pi/evidence/verify-out.txt",
+    "reportCopyPath": "parity/evidence/principles/explain-number/fixture-out/pi/evidence/explain-report.md",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-explain-the-number/SKILL.md",
+      "namedLimiter": true,
+      "limiter": "single-threaded parse loop in src/parse.js (one CPU core)",
+      "runCountPresent": true,
+      "runCount": "n=5 warm runs per side",
+      "spreadPresent": true,
+      "spread": "baseline 408-421ms; optimized 84-91ms; ratio range 4.48x-5.01x; linked data/trials.json",
+      "keptVerifyOk": true,
+      "verifyLine": "EXPLAIN-OK",
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "oracleNote": "Leaf Read + named limiter (single-threaded parse loop / one CPU core) + n=5 + min/max spread; EXPLAIN-OK; verified=yes."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read extensions/pi-pstack/skills/principle-explain-the-number/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-explain-the-number/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "reported speedup wording",
+      "cursor": "4.72x ratio of means; RESULTS.md rounds to 4.8x",
+      "pi": "4.7x (4.72x means); RESULTS.md rounds up to 4.8x",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "unobserved on screen dumps",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "explain-number outcome",
+      "cursor": "contractHeld. Leaf Read + named limiter + run count + spread + EXPLAIN-OK.",
+      "pi": "contractHeld. Leaf Read + named limiter + run count + spread + EXPLAIN-OK.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-explain-number.mjs --both",
+    "capturedAt": "2026-10-09T01:23:05Z",
+    "shellTaskId": "576861",
+    "brief": "parity/briefs/u-journey-prin-explain-number.md"
+  }
+}

@@ -1,0 +1,3 @@
+During the five warm runs, one CPU core stayed near 100% while other cores were idle.
+Wall time tracked the single-threaded parse loop in src/parse.js (not disk, not network, not the load generator).
+Cold-cache first runs were discarded and are not in data/trials.json.

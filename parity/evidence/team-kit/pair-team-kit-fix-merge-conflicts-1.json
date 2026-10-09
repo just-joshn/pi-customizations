@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "pairId": "team-kit-fix-merge-conflicts-1",
+  "scenarioRef": "team-kit:fix-merge-conflicts",
+  "journeyFamily": "cursor-team-kit",
+  "skillId": "fix-merge-conflicts",
+  "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/fix-merge-conflicts/SKILL.md",
+  "skillMdSha256": "738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/fix-merge-conflicts ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "STATUS=verified with skill oracle, or STATUS=env-blocked"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "408a751a-3ca8-4940-aaf7-db30cf44a072",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fix-merge-conflicts/cursor/408a751a-3ca8-4940-aaf7-db30cf44a072",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/fix-merge-conflicts/done.txt",
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "markersGone": true,
+        "exact": true,
+        "summaryExists": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/fix-merge-conflicts/done.txt",
+          "line": "STATUS=verified reason=value.txt exact one-line resolved-value",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "pi": {
+    "attemptId": "14acfee1-a81a-4502-bdb0-e54210f061c7",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fix-merge-conflicts/pi/14acfee1-a81a-4502-bdb0-e54210f061c7",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-merge-conflicts/done.txt",
+    "seededSkill": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/fix-merge-conflicts/.pi/skills/fix-merge-conflicts/SKILL.md",
+      "sha256": "738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76"
+    },
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "markersGone": true,
+        "exact": true,
+        "summaryExists": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-merge-conflicts/done.txt",
+          "line": "STATUS=verified reason=markers removed and file staged",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "skillClosure": {
+    "fix-merge-conflicts": "closed_by_this_pair"
+  },
+  "note": "Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/.",
+  "verdict": "pass"
+}

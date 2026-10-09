@@ -1,0 +1,39 @@
+    Read, globbed 7 files, 1 glob
+    … 5 earlier items hidden
+    Globbed "**/*" in ...nce/team-kit/thermo-nuclear-code-quality-review
+    Read ...k/prompts/thermo-nuclear-code-quality-review.md
+    Read .../capture-thermo-nuclear-code-quality-review.log
+
+  Gathered the diff and file contents. Invoking the thermo-nuclear review subagent with that material.
+
+    1 agent completed
+    Thermo-nuclear CQ review
+    ✓ Done
+
+  Writing the review and status artifacts.
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/therm
+    o-nuclear-code-quality-review && cat > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/tea
+    m-kit/fixture-out/cursor/thermo-nuclear-code-quality-review/summary.md << 'EOF'
+    # Thermo-Nuclear Code Quality Review — `src/process.js` 280ms
+    … 126 input + 10 output lines hidden · ctrl+o to expand
+     src/process.js | 22 +++++++++++++++++++++-
+     1 file changed, 21 insertions(+), 1 deletion(-)
+
+  Review written to summary.md; done.txt is STATUS=verified. Source untouched.
+
+  Finished Locate thermo-nuclear skill file
+
+  Thermo-nuclear review of src/process.js vs main is done: do not approve — nested spaghetti conditionals; proposed
+  code-judo is a kind → delta table. Artifacts are under fixture-out/cursor/thermo-nuclear-code-quality-review/
+  (summary.md, done.txt = verified).
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 13.4%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/thermo-nuclear-code-quality-review · 
+  messy

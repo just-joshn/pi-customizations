@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "pairId": "prin-sequence-units-1",
+  "scenarioRef": "prin-sequence-units",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-SEQUENCE-UNITS-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode The three modules under src/ still export TAG with an OLD_ prefix. Migrate them so TAG is NEW_ plus the stem (NEW_alpha, NEW_beta, NEW_gamma). Change one module at a time. After each module, run node scripts/verify.mjs and only start the next module once that check shows the current unit green under evidence/. Keep verify output under evidence/ (verify.mjs already writes evidence/verify-out.txt and appends evidence/verify-log.jsonl). For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When SEQUENCE-OK is on disk, write exactly one line to .../fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode migrate OLD_ to NEW_ one module at a time; leaf SKILL.md for applied principles; verify after each; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with SEQUENCE-OK"
+    },
+    {
+      "wait": "progressive evidence/verify-log.jsonl and unit markers"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "a25ac05b-fb4c-4d6c-a195-2a2e13a0b2cf",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/cursor/a25ac05b-fb4c-4d6c-a195-2a2e13a0b2cf",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/00b58d68-3690-416b-a0c5-17de6ec977ac/00b58d68-3690-416b-a0c5-17de6ec977ac.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-out/cursor/evidence/verify-out.txt",
+    "verifyLogCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-out/cursor/evidence/verify-log.jsonl",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-sequence-verifiable-units/SKILL.md",
+      "perUnitVerify": true,
+      "progressiveLog": true,
+      "interleavedOk": true,
+      "batchedOnce": false,
+      "verifyLogGreenCounts": [0, 1, 2, 3],
+      "keptVerifyOk": true,
+      "verifyLine": "SEQUENCE-OK units=3",
+      "unitMarkersOk": true,
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "verifyRuns": 7,
+      "modelChrome": "Claude Haiku 5.5 300K High"
+    }
+  },
+  "pi": {
+    "attemptId": "1b0ebd6e-1254-4932-9f79-5765a701c913",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/pi/1b0ebd6e-1254-4932-9f79-5765a701c913",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-sequence-units-fixture-app--/2026-10-09T00-41-41-092Z_01a11e1b-cde4-770e-86c4-f27c1fab4ac3.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-out/pi/evidence/verify-out.txt",
+    "verifyLogCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-out/pi/evidence/verify-log.jsonl",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+      "perUnitVerify": true,
+      "progressiveLog": true,
+      "interleavedOk": true,
+      "batchedOnce": false,
+      "verifyLogGreenCounts": [1, 2, 3],
+      "keptVerifyOk": true,
+      "verifyLine": "SEQUENCE-OK units=3",
+      "unitMarkersOk": true,
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "verifyRuns": 8,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 medium"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-sequence-verifiable-units/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Claude Haiku 5.5 300K High",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "baseline verify before first edit",
+      "cursor": "verify-log starts at greenCount=0 then 1,2,3",
+      "pi": "verify-log starts at greenCount=1 then 2,3 (no captured all-fail row)",
+      "reconciled": true
+    },
+    {
+      "topic": "sequence-units outcome",
+      "cursor": "contractHeld. Leaf Read + progressive verify-log + interleaved edit/verify + SEQUENCE-OK.",
+      "pi": "contractHeld. Leaf Read + progressive verify-log + interleaved edit/verify + SEQUENCE-OK.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-sequence-units.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-app",
+    "decisionLog": "parity/evidence/principles/sequence-units/.audit/u-journey-prin-sequence-units.tsv",
+    "notes": "PSTACK-PRIN-SEQUENCE-UNITS-001. Dedicated sequence-units/ fixture. Progressive verify-log and unit markers kept under fixture-out/<side>/. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both."
+  }
+}

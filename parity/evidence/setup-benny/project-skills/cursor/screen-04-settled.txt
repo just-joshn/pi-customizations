@@ -1,0 +1,39 @@
+    -rw-r--r-- 1 josh-desktop staff 1371 Oct  7 23:18 /Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/…
+    ls: cannot access '/Users/josh-desktop/.cursor/skills/principle-prove-it-works/SKILL.md': No such file or directo…
+
+  Skills in this session only resolve from ~/.claude/skills (user scope); nothing under the fixture repo. Writing
+  the manifest and stopping with stop-explain.
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixtur
+    e-out/cursor
+    python3 <<'PY' 259ms
+    … 34 input + 65 output lines hidden · ctrl+o to expand
+    STATUS=stop-explain reason=skills only resolve from user scope, not project pstack
+
+  Stopped after the project-scoped resolve check.
+
+  Failure: All 10 listed skills resolve only from user scope (~/.claude/skills/...). This fresh agent did not
+  receive them from a path under this repository via project-enabled pstack.
+
+  Evidence:
+  • .cursor/settings.json already has plugins.pstack.enabled: true
+  • Benny pack is present at .cursor/automations/benny/ (including setup-benny/SKILL.md)
+  • No project-local pstack skill tree under the fixture (no .cursor/plugins, no in-repo skills/ for those names)
+  • Session skill list points every listed skill at ~/.claude/skills/..., which must not count
+
+  Wrote:
+  • parity/evidence/setup-benny/project-skills/fixture-out/cursor/resolve-manifest.json (all scope: "user")
+  • parity/evidence/setup-benny/project-skills/fixture-out/cursor/done.txt → STATUS=stop-explain reason=skills 
+    only resolve from user scope, not project pstack
+
+  No live automation created; no parity ledgers or src/app.js edited.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 16.1%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixture-app · 
+  refactor/pi-pstack-parity-again

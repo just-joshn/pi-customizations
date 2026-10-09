@@ -1,0 +1,1174 @@
+[
+  {
+    "ts": "2026-10-09T00:59:28.161Z",
+    "product": [],
+    "verify": [],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": []
+  },
+  {
+    "ts": "2026-10-09T00:59:28.563Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:28.967Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:29.369Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:29.770Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:30.171Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:30.572Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:30.973Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:31.377Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:31.781Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:32.182Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:32.583Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:32.985Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:33.388Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:33.790Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:34.193Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:34.596Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:34.997Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:35.398Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:35.799Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:36.201Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:36.603Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:37.003Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:37.404Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:37.804Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:38.206Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:38.606Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:39.008Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:39.410Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:39.811Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:40.212Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:40.613Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:41.013Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:41.414Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:41.818Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:42.220Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:42.622Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:43.022Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:43.423Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:43.825Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:44.228Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:44.630Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:45.031Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:45.434Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:45.836Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:46.237Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:46.639Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:47.040Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:47.442Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:47.843Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:48.244Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:48.646Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:49.047Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:49.448Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:49.849Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:50.250Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:50.651Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:51.052Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:51.455Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:51.856Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:52.257Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:52.658Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:53.058Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:53.460Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:53.863Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:54.267Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:54.669Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:55.070Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:55.472Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:55.874Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:56.276Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:56.678Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:57.078Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:59:57.480Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyValidate.js",
+      "src/stubRefs.js"
+    ],
+    "capability": [
+      "src/greet.js"
+    ]
+  }
+]

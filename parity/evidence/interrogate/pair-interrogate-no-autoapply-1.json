@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "pairId": "interrogate-no-autoapply-1",
+  "scenarioRef": "cmd-interrogate-no-autoapply",
+  "journeyFamily": "journey-family-06-multiworker-designs-reviews",
+  "requirementIds": [
+    "PSTACK-CMD-INTERROGATE-NO-AUTOAPPLY-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "productDigest": "d79612f5fcc31ae51500259caa1f1ec988db986622f38620f6e496387f47aae7",
+  "promptSharedShape": "/interrogate adversarially review src/total.js; present synthesized verdict; write findings=yes|no to fixture-out/<side>/done.txt; stop",
+  "steps": [
+    { "send": "/interrogate adversarially review src/total.js in this fixture cwd only. ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "e94a4325-4950-4d13-839c-d51aa452ec28",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrogate/cursor/e94a4325-4950-4d13-839c-d51aa452ec28",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "interrogateSkill": true,
+      "skillSource": "slash /interrogate via plugin-dir pstack skill",
+      "findingsReported": true,
+      "productUnchanged": true,
+      "autoApplied": false,
+      "beforeDigest": "d79612f5fcc31ae51500259caa1f1ec988db986622f38620f6e496387f47aae7",
+      "afterDigest": "d79612f5fcc31ae51500259caa1f1ec988db986622f38620f6e496387f47aae7",
+      "doneLine": "findings=yes",
+      "reviewerSpawnSignal": true,
+      "sectionHitsBest": 7,
+      "scorerNote": "PTY score has all 7 verdict sections; settled screen scrolled Intent off but kept Act On through Agreement Map"
+    }
+  },
+  "pi": {
+    "attemptId": "f23257ca-3195-4872-bc76-a41553e0c3da",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrogate/pi/f23257ca-3195-4872-bc76-a41553e0c3da",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-interrogate-fixture-app--/2026-10-08T21-15-39-155Z_01a11d5f-2d13-741a-bf66-bec048031df4.jsonl",
+    "observations": {
+      "interrogateSkill": true,
+      "skillSource": "session injects extensions/pi-pstack/skills/interrogate/SKILL.md",
+      "findingsReported": true,
+      "productUnchanged": true,
+      "autoApplied": false,
+      "beforeDigest": "d79612f5fcc31ae51500259caa1f1ec988db986622f38620f6e496387f47aae7",
+      "afterDigest": "d79612f5fcc31ae51500259caa1f1ec988db986622f38620f6e496387f47aae7",
+      "doneLine": "findings=yes",
+      "sessionWroteProduct": false,
+      "sessionToolOrder": ["bash", "task", "bash"],
+      "reviewerSpawnSignal": true,
+      "sectionHitsBest": 7,
+      "settledScreenShowsVerdictSections": true
+    }
+  },
+  "deltas": [
+    {
+      "topic": "findings reported without product rewrite",
+      "cursor": "findings=yes; product digest unchanged d79612f5…; Act On includes mutation and null-unsafe price.",
+      "pi": "findings=yes; product digest unchanged d79612f5…; session wroteProduct false; Act On includes mutation and unvalidated price.",
+      "reconciled": true
+    },
+    {
+      "topic": "reviewer fan-out under locked models.mdc",
+      "cursor": "Reviewer A only (interrogate reviewers: inherit-parent is a one-entry list).",
+      "pi": "Reviewer A only; session toolOrder bash, task, bash.",
+      "reconciled": true
+    },
+    {
+      "topic": "settled screen Intent heading",
+      "cursor": "Intent present in full PTY stream; scrolled off settled screen.",
+      "pi": "Intent present in session/PTY; settled screen starts at Reviewers.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto / parent chat chrome on PTY.",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription).",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-interrogate-no-autoapply.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/interrogate/PLAYBOOK.md",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/interrogate/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/interrogate/fixture-app (src/total.js contested product)",
+    "auditTrail": "parity/evidence/interrogate/.audit/u-journey-cmd-interrogate.tsv"
+  }
+}

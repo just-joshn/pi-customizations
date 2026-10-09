@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] interrogate (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ adversarially review src/total.js in this fixture cwd only. State intent, run the configured interrogate reviewers,   ┃
+ and present the synthesized verdict (Intent, Reviewers, Act On, Consider, Noted, Dismissed, Agreement Map). Work only ┃
+ inside this fixture cwd. Do not edit ledgers or parity/ outside this cwd. When the verdict is complete, write exactly ┃
+ one line to                                                                                                           ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrogate/fixture-out/pi/done.txt as        ┃
+ findings=yes|no then stop.                                                                                            ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/interrogate/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 1.7%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,1 @@
+Restored src/util.js to the minimal double(n) returning n * 2, removing the try/catch, the any cast, and the explanatory comments. 1 file; comments 3, defensive checks 1, any casts 1, nesting 0, other 0.

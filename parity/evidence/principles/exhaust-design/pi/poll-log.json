@@ -1,0 +1,801 @@
+[
+  {
+    "ts": "2026-10-09T01:19:13.612Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:14.013Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:14.416Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:14.820Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:15.226Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:15.628Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:16.030Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:16.433Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:16.834Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:17.234Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:17.635Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:18.038Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:18.440Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:18.844Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:19.247Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:19.648Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:20.051Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:20.455Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:20.858Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:21.260Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:21.661Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:22.066Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:22.468Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:22.872Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:23.275Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:23.677Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:24.081Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:24.484Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:24.886Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:25.289Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:25.691Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:26.095Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:26.497Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:26.898Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:27.298Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:27.700Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:28.102Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:28.505Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:28.906Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:29.309Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:29.712Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:30.114Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:30.516Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:30.918Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:31.318Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:31.719Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:19:32.124Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/rule-table.js",
+      "prototypes/single-pass-reduce.js",
+      "prototypes/sort-oldest.js"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  }
+]

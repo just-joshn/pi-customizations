@@ -1,0 +1,39 @@
+    ▎    3 + Hello print is the only user-facing behavior of hello-cli: run `./hello.sh` and see the fixed greeting 
+    ▎        line on stdo ...
+    ▎    4 + 
+    ▎    5 + ## Sub-features
+    ▎    6 + 
+    ▎    7 + - `hello-run` invokes `./hello.sh` from the fixture root.
+    ▎    8 + - `hello-stdout` prints exactly `HELLO-FAMILY-13` followed by a newline.
+    ▎    9 + - `hello-exit` returns exit code `0` with empty stderr.
+    ▎   10 + 
+    ▎   11 + ## How to get to it (user POV)
+    ▎   12 + 
+    ▎   13  … truncated (23 more lines) · ctrl+r to review
+
+  $ ls -la \
+      /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/intervi
+    ew.json \ 323ms
+    … 4 input + 3 output lines hidden · ctrl+o to expand
+    -rw-r--r-- 1 josh-desktop staff 1113 Oct  8 15:41 /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/…
+    interview.json ok
+
+  Artifacts on disk:
+
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/inter
+    view.json
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/SKILL.md
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/features/README.md
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/features/hello-print.md
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 12.8% · 4 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app · refactor/pi-pstack-parity-again

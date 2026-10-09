@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "pairId": "setup-benny-existing-no-automate-1",
+  "scenarioRef": "setup-benny-existing-no-automate",
+  "journeyFamily": "journey-family-11-benny-and-automations",
+  "requirementIds": [
+    "PSTACK-SETUP-BENNY-EXISTING-NO-AUTOMATE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "Follow FOR_AGENTS.md / setup-benny section 7 Existing automations; inventory stub lists benny-triage and benny-reproduce already present; update path not create; no /automate; give editor checklist; ask user to edit in Automations editor; no replacements/duplicates; do not fabricate editor UI in CLI PTY; STATUS= marker",
+  "existingInventory": ".cursor/benny/existing-live-automations.json",
+  "steps": [
+    { "send": "Help set up Benny... existing automations... STATUS=checklist-ok|..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "7f533016-def9-48db-9e2b-9f53ce47c127",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/existing-no-automate/cursor/7f533016-def9-48db-9e2b-9f53ce47c127",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/b968478e-2912-4177-991b-10dee619e8b0/b968478e-2912-4177-991b-10dee619e8b0.jsonl",
+    "observations": {
+      "outcome": "checklist_no_automate",
+      "contractHeld": true,
+      "productBeforeDigest": "e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e",
+      "productAfterDigest": "e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e",
+      "productUnchanged": true,
+      "inventoryIntact": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=checklist-ok reason=gave editor checklist without automate",
+      "automateHit": false,
+      "checklist": true,
+      "askEditor": true,
+      "duplicateCreated": [],
+      "setupBennyRead": true,
+      "inventoryRead": true
+    }
+  },
+  "pi": {
+    "attemptId": "0564c7c5-740d-48f0-b4ad-011d9422e558",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/existing-no-automate/pi/0564c7c5-740d-48f0-b4ad-011d9422e558",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-existing-no-automate-fixture-app--/2026-10-09T00-52-37-429Z_01a11e25-d1b5-76f8-ad96-4a8e34545626.jsonl",
+    "observations": {
+      "outcome": "checklist_no_automate",
+      "contractHeld": true,
+      "productBeforeDigest": "e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e",
+      "productAfterDigest": "e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e",
+      "productUnchanged": true,
+      "inventoryIntact": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=checklist-ok reason=checklist given; editor not openable in CLI PTY, user edits both existing automations",
+      "automateHit": false,
+      "checklist": true,
+      "askEditor": true,
+      "duplicateCreated": [],
+      "forAgentsRead": true,
+      "setupBennyRead": true,
+      "inventoryRead": true,
+      "sessionToolOrder": [
+        "bash(existing-live-automations.json)",
+        "bash",
+        "bash",
+        "bash"
+      ]
+    }
+  },
+  "deltas": [
+    {
+      "topic": "no /automate on existing update path",
+      "cursor": "STATUS=checklist-ok. Transcript setupBennyRead + inventoryRead. automateUsed false. Settled screen gives editor checklists and refuses fabricating Automations editor UI.",
+      "pi": "STATUS=checklist-ok. Session inventory + setup-benny engagement; automateUsed false. Checklist for both existing automations; editor not openable in CLI noted in STATUS reason.",
+      "reconciled": true
+    },
+    {
+      "topic": "editor checklist without duplicates",
+      "cursor": "Screen shows Editor checklist for benny-triage and benny-reproduce; ask to update in real Automations editor. duplicateCreated=[]. Inventory stub IDs unchanged.",
+      "pi": "Screen asks to edit benny-triage and benny-reproduce by stub IDs in Automations editor. duplicateCreated=[]. Inventory intact.",
+      "reconciled": true
+    },
+    {
+      "topic": "Automations editor UI in PTY",
+      "cursor": "Honestly refused to open editor in CLI PTY; handed checklist to human. No fabricated editor UI.",
+      "pi": "Same. STATUS reason names editor not openable in CLI PTY.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-benny-existing-no-automate.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/setup-benny/PLAYBOOK-existing-no-automate.md",
+    "decisionTrail": "parity/evidence/setup-benny/.audit/u-journey-setup-benny-existing-no-automate.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "heldOutFixture": "parity/evidence/setup-benny/existing-no-automate/fixture-app",
+    "markerRoot": "parity/evidence/setup-benny/existing-no-automate/fixture-out/{cursor,pi}/",
+    "evidenceRoot": "parity/evidence/setup-benny/existing-no-automate/",
+    "scorerNote": "checklist_no_automate = checklist + ask-editor chrome, no /automate update path, inventory intact, no duplicate creates, product unchanged",
+    "siblingClaim": "none; other SETUP-BENNY-* ids not claimed",
+    "pathChoice": "existing-update checklist path preferred over first-time /automate creation; editor UI left to human because CLI PTY cannot open it"
+  }
+}

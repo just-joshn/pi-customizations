@@ -1,0 +1,34 @@
+[
+  {
+    "index": "96",
+    "role": "AXButton",
+    "title": "New Automation",
+    "actions": [
+      "AXShowMenu",
+      "AXScrollToVisible"
+    ],
+    "frame": {
+      "height": 24,
+      "x": 828,
+      "width": 121,
+      "y": 893
+    },
+    "enabled": true
+  },
+  {
+    "index": "67",
+    "role": "AXButton",
+    "title": "New Automation",
+    "actions": [
+      "AXShowMenu",
+      "AXScrollToVisible"
+    ],
+    "frame": {
+      "height": 28,
+      "x": 1293,
+      "width": 116,
+      "y": 218
+    },
+    "enabled": true
+  }
+]

@@ -1,0 +1,957 @@
+{
+  "scenario": "setup-pstack:budget-apply-unlimited",
+  "scenarioId": "setup-budget-apply",
+  "requirementIds": [
+    "PSTACK-SETUP-BUDGET-APPLY-001"
+  ],
+  "targetBudget": "unlimited",
+  "targetEffort": "max",
+  "cursorFixturePath": "fixture-cursor-claude-medium.mdc",
+  "piFixturePath": "fixture-pi.mdc",
+  "cursorFixtureDigest": "sha256:7a45a664ea4b64fdcaf14f237da5231fadedeeafd7578af2bb282f1576654d35",
+  "piFixtureDigest": "sha256:7730fa20076154d85fe522cc685975982ca7ee1008213ae45a300bffbb448843",
+  "lockedFixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "restoredLockedDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-budget-apply/cursor/f1a6ea10-e71e-4edf-806b-b246331fef0f",
+      "attemptId": "f1a6ea10-e71e-4edf-806b-b246331fef0f",
+      "fixtureDigest": "sha256:7a45a664ea4b64fdcaf14f237da5231fadedeeafd7578af2bb282f1576654d35",
+      "afterDigest": "sha256:54d24978f827b5ec4420e29d86b3a370642309c257e12124c7893bef89b449c3",
+      "wrote": true,
+      "score": {
+        "budgetBefore": "small (medium)",
+        "budgetAfter": "unlimited (max)",
+        "budgetOk": true,
+        "realEntries": [
+          {
+            "role": "architect runners",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "architect runners",
+            "index": 1,
+            "from": "claude-sonnet-5-5-medium",
+            "to": "claude-sonnet-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "arena cross-judge pool",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "arena cross-judge pool",
+            "index": 1,
+            "from": "claude-sonnet-5-5-medium",
+            "to": "claude-sonnet-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "arena runners",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "arena runners",
+            "index": 1,
+            "from": "claude-sonnet-5-5-medium",
+            "to": "claude-sonnet-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "feature, refactoring",
+            "index": 0,
+            "from": "claude-sonnet-5-5-medium",
+            "to": "claude-sonnet-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "hardest tasks",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "hillclimb",
+            "index": 0,
+            "from": "claude-sonnet-5-5-medium",
+            "to": "claude-sonnet-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "how explainer",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "interrogate reviewers",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "interrogate reviewers",
+            "index": 1,
+            "from": "claude-sonnet-5-5-medium",
+            "to": "claude-sonnet-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "judgment and prose",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "perf-issue",
+            "index": 0,
+            "from": "claude-sonnet-5-5-medium",
+            "to": "claude-sonnet-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "reflect judgment, divergent, synthesizer",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "reflect tooling",
+            "index": 0,
+            "from": "claude-sonnet-5-5-medium",
+            "to": "claude-sonnet-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "swarm workers",
+            "index": 0,
+            "from": "claude-sonnet-5-5-medium",
+            "to": "claude-sonnet-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "why investigators",
+            "index": 0,
+            "from": "claude-sonnet-5-5-medium",
+            "to": "claude-sonnet-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "why synthesizer",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          }
+        ],
+        "aliasEntries": [
+          {
+            "role": "bug-fix",
+            "index": 0,
+            "from": "auto",
+            "to": "auto",
+            "preserved": true
+          },
+          {
+            "role": "how explorer",
+            "index": 0,
+            "from": "inherit-parent",
+            "to": "inherit-parent",
+            "preserved": true
+          }
+        ],
+        "realMappedCount": 19,
+        "realTotal": 19,
+        "aliasesPreserved": true,
+        "panelMapped": true,
+        "pass": true,
+        "failures": []
+      },
+      "observations": {
+        "side": "cursor",
+        "path": "chatform",
+        "screens": {
+          "ready": {
+            "writeCard": false,
+            "askQuestion": false,
+            "chatForm": false,
+            "working": false
+          },
+          "writeCard": {
+            "writeCard": true,
+            "askQuestion": false,
+            "chatForm": false,
+            "working": true
+          }
+        },
+        "targetBudget": "unlimited",
+        "targetEffort": "max",
+        "score": {
+          "budgetBefore": "small (medium)",
+          "budgetAfter": "unlimited (max)",
+          "budgetOk": true,
+          "realEntries": [
+            {
+              "role": "architect runners",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "architect runners",
+              "index": 1,
+              "from": "claude-sonnet-5-5-medium",
+              "to": "claude-sonnet-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "arena cross-judge pool",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "arena cross-judge pool",
+              "index": 1,
+              "from": "claude-sonnet-5-5-medium",
+              "to": "claude-sonnet-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "arena runners",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "arena runners",
+              "index": 1,
+              "from": "claude-sonnet-5-5-medium",
+              "to": "claude-sonnet-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "feature, refactoring",
+              "index": 0,
+              "from": "claude-sonnet-5-5-medium",
+              "to": "claude-sonnet-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "hardest tasks",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "hillclimb",
+              "index": 0,
+              "from": "claude-sonnet-5-5-medium",
+              "to": "claude-sonnet-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "how explainer",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "interrogate reviewers",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "interrogate reviewers",
+              "index": 1,
+              "from": "claude-sonnet-5-5-medium",
+              "to": "claude-sonnet-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "judgment and prose",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "perf-issue",
+              "index": 0,
+              "from": "claude-sonnet-5-5-medium",
+              "to": "claude-sonnet-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "reflect judgment, divergent, synthesizer",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "reflect tooling",
+              "index": 0,
+              "from": "claude-sonnet-5-5-medium",
+              "to": "claude-sonnet-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "swarm workers",
+              "index": 0,
+              "from": "claude-sonnet-5-5-medium",
+              "to": "claude-sonnet-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "why investigators",
+              "index": 0,
+              "from": "claude-sonnet-5-5-medium",
+              "to": "claude-sonnet-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "why synthesizer",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            }
+          ],
+          "aliasEntries": [
+            {
+              "role": "bug-fix",
+              "index": 0,
+              "from": "auto",
+              "to": "auto",
+              "preserved": true
+            },
+            {
+              "role": "how explorer",
+              "index": 0,
+              "from": "inherit-parent",
+              "to": "inherit-parent",
+              "preserved": true
+            }
+          ],
+          "realMappedCount": 19,
+          "realTotal": 19,
+          "aliasesPreserved": true,
+          "panelMapped": true,
+          "pass": true,
+          "failures": []
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "f1a6ea10-e71e-4edf-806b-b246331fef0f",
+        "side": "cursor",
+        "scenarioRef": "setup-pstack:budget-apply-unlimited",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:7a45a664ea4b64fdcaf14f237da5231fadedeeafd7578af2bb282f1576654d35"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 36,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-budget-apply/pi/b6d37ee7-3912-48f0-988a-e4f6e5de23ed",
+      "attemptId": "b6d37ee7-3912-48f0-988a-e4f6e5de23ed",
+      "fixtureDigest": "sha256:7730fa20076154d85fe522cc685975982ca7ee1008213ae45a300bffbb448843",
+      "afterDigest": "sha256:723bc0180840c02c6ce79145268bbb032ff77989893abe44747932faf7c2f6c5",
+      "wrote": true,
+      "score": {
+        "budgetBefore": "small (medium)",
+        "budgetAfter": "unlimited (max)",
+        "budgetOk": true,
+        "realEntries": [
+          {
+            "role": "architect runners",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "architect runners",
+            "index": 1,
+            "from": "claude-subscription/claude-sonnet-5-5:medium",
+            "to": "claude-subscription/claude-sonnet-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "arena cross-judge pool",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "arena cross-judge pool",
+            "index": 1,
+            "from": "claude-subscription/claude-sonnet-5-5:medium",
+            "to": "claude-subscription/claude-sonnet-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "arena runners",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "arena runners",
+            "index": 1,
+            "from": "claude-subscription/claude-sonnet-5-5:medium",
+            "to": "claude-subscription/claude-sonnet-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "feature, refactoring",
+            "index": 0,
+            "from": "claude-subscription/claude-sonnet-5-5:medium",
+            "to": "claude-subscription/claude-sonnet-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "hardest tasks",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "hillclimb",
+            "index": 0,
+            "from": "claude-subscription/claude-sonnet-5-5:medium",
+            "to": "claude-subscription/claude-sonnet-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "how explainer",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "interrogate reviewers",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "interrogate reviewers",
+            "index": 1,
+            "from": "claude-subscription/claude-sonnet-5-5:medium",
+            "to": "claude-subscription/claude-sonnet-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "judgment and prose",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "perf-issue",
+            "index": 0,
+            "from": "claude-subscription/claude-sonnet-5-5:medium",
+            "to": "claude-subscription/claude-sonnet-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "reflect judgment, divergent, synthesizer",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "reflect tooling",
+            "index": 0,
+            "from": "claude-subscription/claude-sonnet-5-5:medium",
+            "to": "claude-subscription/claude-sonnet-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "swarm workers",
+            "index": 0,
+            "from": "claude-subscription/claude-sonnet-5-5:medium",
+            "to": "claude-subscription/claude-sonnet-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "why investigators",
+            "index": 0,
+            "from": "claude-subscription/claude-sonnet-5-5:medium",
+            "to": "claude-subscription/claude-sonnet-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          },
+          {
+            "role": "why synthesizer",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mapped": true
+          }
+        ],
+        "aliasEntries": [
+          {
+            "role": "bug-fix",
+            "index": 0,
+            "from": "auto",
+            "to": "auto",
+            "preserved": true
+          },
+          {
+            "role": "how explorer",
+            "index": 0,
+            "from": "inherit-parent",
+            "to": "inherit-parent",
+            "preserved": true
+          }
+        ],
+        "realMappedCount": 19,
+        "realTotal": 19,
+        "aliasesPreserved": true,
+        "panelMapped": true,
+        "pass": true,
+        "failures": []
+      },
+      "observations": {
+        "side": "pi",
+        "path": "askquestion-driven",
+        "screens": {
+          "ready": {
+            "writeCard": false,
+            "askQuestion": false,
+            "chatForm": false,
+            "working": false
+          },
+          "writeCard": {
+            "writeCard": false,
+            "askQuestion": false,
+            "chatForm": false,
+            "working": false
+          }
+        },
+        "targetBudget": "unlimited",
+        "targetEffort": "max",
+        "score": {
+          "budgetBefore": "small (medium)",
+          "budgetAfter": "unlimited (max)",
+          "budgetOk": true,
+          "realEntries": [
+            {
+              "role": "architect runners",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "architect runners",
+              "index": 1,
+              "from": "claude-subscription/claude-sonnet-5-5:medium",
+              "to": "claude-subscription/claude-sonnet-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "arena cross-judge pool",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "arena cross-judge pool",
+              "index": 1,
+              "from": "claude-subscription/claude-sonnet-5-5:medium",
+              "to": "claude-subscription/claude-sonnet-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "arena runners",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "arena runners",
+              "index": 1,
+              "from": "claude-subscription/claude-sonnet-5-5:medium",
+              "to": "claude-subscription/claude-sonnet-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "feature, refactoring",
+              "index": 0,
+              "from": "claude-subscription/claude-sonnet-5-5:medium",
+              "to": "claude-subscription/claude-sonnet-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "hardest tasks",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "hillclimb",
+              "index": 0,
+              "from": "claude-subscription/claude-sonnet-5-5:medium",
+              "to": "claude-subscription/claude-sonnet-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "how explainer",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "interrogate reviewers",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "interrogate reviewers",
+              "index": 1,
+              "from": "claude-subscription/claude-sonnet-5-5:medium",
+              "to": "claude-subscription/claude-sonnet-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "judgment and prose",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "perf-issue",
+              "index": 0,
+              "from": "claude-subscription/claude-sonnet-5-5:medium",
+              "to": "claude-subscription/claude-sonnet-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "reflect judgment, divergent, synthesizer",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "reflect tooling",
+              "index": 0,
+              "from": "claude-subscription/claude-sonnet-5-5:medium",
+              "to": "claude-subscription/claude-sonnet-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "swarm workers",
+              "index": 0,
+              "from": "claude-subscription/claude-sonnet-5-5:medium",
+              "to": "claude-subscription/claude-sonnet-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "why investigators",
+              "index": 0,
+              "from": "claude-subscription/claude-sonnet-5-5:medium",
+              "to": "claude-subscription/claude-sonnet-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            },
+            {
+              "role": "why synthesizer",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mapped": true
+            }
+          ],
+          "aliasEntries": [
+            {
+              "role": "bug-fix",
+              "index": 0,
+              "from": "auto",
+              "to": "auto",
+              "preserved": true
+            },
+            {
+              "role": "how explorer",
+              "index": 0,
+              "from": "inherit-parent",
+              "to": "inherit-parent",
+              "preserved": true
+            }
+          ],
+          "realMappedCount": 19,
+          "realTotal": 19,
+          "aliasesPreserved": true,
+          "panelMapped": true,
+          "pass": true,
+          "failures": []
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "b6d37ee7-3912-48f0-988a-e4f6e5de23ed",
+        "side": "pi",
+        "scenarioRef": "setup-pstack:budget-apply-unlimited",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:7730fa20076154d85fe522cc685975982ca7ee1008213ae45a300bffbb448843"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 36,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ],
+  "pairPath": "parity/evidence/setup-budget-apply/pair-setup-budget-apply-unlimited-1.json"
+}

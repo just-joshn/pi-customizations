@@ -1,0 +1,35 @@
+{
+  "screenFinal": {
+    "figureItOutSkill": true,
+    "playbookMention": true,
+    "productMention": true,
+    "working": false
+  },
+  "firstPlaybookAt": "2026-10-08T19:14:06.421Z",
+  "firstProductAt": "2026-10-08T19:14:35.506Z",
+  "playbookPaths": [
+    "decisions.tsv"
+  ],
+  "productPaths": [
+    "src/store.js",
+    "src/format.js",
+    "src/cli.js",
+    "notes.json"
+  ],
+  "playbookDetails": [
+    {
+      "path": "decisions.tsv",
+      "structured": true,
+      "preview": "ts\tphase\tdecision\twhy\tevidence\tresult\n2026-10-08T19:14:06Z\tframe\tfalsifiable done: notes.json holds seed notes; formatNote lines match ISO stamp; cli loads file then prints one stamped line per seed note\thuman steps away so predicate must be checkable without trust\tREADME.md; baseline node src/cli.js -> '- alpha' / '- beta'\tframed\n2026-10-08T19:14:06Z\tframe\trigor medium; skip architect and fan-out"
+    }
+  ],
+  "structuredPlaybook": true,
+  "ordering": "playbook_before_product",
+  "playbookBeforeProduct": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/figure-it-out/fixture-out/cursor/done.txt",
+    "line": "DONE iff notes.json holds seed notes on disk, every cli line matches /^- \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z /, and node src/cli.js loads that file then prints one such line for alpha and beta (verify.mjs PASS)."
+  },
+  "pollSamples": 247
+}

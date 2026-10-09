@@ -1,0 +1,55 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "skillMention": true,
+    "envBlocked": true,
+    "working": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/control-cli/done.txt",
+    "line": "STATUS=verified reason=READY then PONG captured via PTY",
+    "status": "verified"
+  },
+  "summaryExists": true,
+  "seededSkill": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/control-cli/.pi/skills/control-cli/SKILL.md",
+    "sha256": "13ac93e595bbda2000849bdb815d5f2ca03f7c2ca63788c8335f9212b9b422a2"
+  },
+  "oracle": {
+    "transcriptOk": true,
+    "summaryExists": true,
+    "done": {
+      "exists": true,
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/control-cli/done.txt",
+      "line": "STATUS=verified reason=READY then PONG captured via PTY",
+      "status": "verified"
+    },
+    "closed": true,
+    "honestBlocker": false
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "oracleClosed": true,
+    "closed": true,
+    "honestBlocker": false,
+    "oracle": {
+      "transcriptOk": true,
+      "summaryExists": true,
+      "done": {
+        "exists": true,
+        "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/control-cli/done.txt",
+        "line": "STATUS=verified reason=READY then PONG captured via PTY",
+        "status": "verified"
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  }
+}

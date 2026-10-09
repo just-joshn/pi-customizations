@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "pairId": "commands-help-cancel-1",
+  "scenarioRef": "commands:setup-escape-cancel-then-poteto-help",
+  "journeyFamily": "journey-family-03-commands-and-nl-triggers",
+  "requirementIds": [
+    "PSTACK-CMD-POTETO-HELP-NO-WORK-001",
+    "PSTACK-SETUP-CANCEL-NO-WRITE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "helpPrompt": "/poteto-help which skill should i use to review this branch?",
+  "steps": [
+    { "send": "/setup-pstack", "note": "open setup command" },
+    { "send": "\r", "note": "submit / confirm slash entry" },
+    { "send": "\r", "note": "second Enter as in prior setup-cancel harness" },
+    { "wait": "Clarifying Questions › [ (Pi) or freeform Pick a budget (Cursor)" },
+    { "send": "\u001b", "note": "Escape cancel / skip without answering" },
+    { "wait": "rule unchanged; panel skipped or freeform left unanswered" },
+    { "send": "/poteto-help which skill should i use to review this branch?" },
+    { "send": "\r" },
+    { "wait": "help answer with copyable prompt; no recommended skill run started" },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "d20bff6f-9012-4d81-a1dc-cccd7202c4b8",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/commands/cursor/d20bff6f-9012-4d81-a1dc-cccd7202c4b8",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "cancelChrome": "freeformBudgetAsk",
+      "clarifyingPanel": false,
+      "beforeCancelFreeformBudgetAsk": true,
+      "afterCancelFreeformBudgetAskStillVisible": true,
+      "ruleUnchanged": true,
+      "helpRecommended": "/interrogate",
+      "usedPotetoHelpChrome": false,
+      "handsPrompt": true,
+      "startedRecommendedSkillOnHelpTurn": false
+    },
+    "discardedAttempts": [
+      {
+        "attemptId": "886d7088-e56d-4533-bf9d-88be00dfccba",
+        "reason": "help-first ordering; setup after help never reached Clarifying Questions or matched budget needles within timeout"
+      },
+      {
+        "attemptId": "94b23b30-a55c-4513-95d3-150105eefcf7",
+        "reason": "waited only for Clarifying Questions; Cursor used freeform budget ask"
+      },
+      {
+        "attemptId": "6fbe605c-9003-470a-ba94-4bb8e55c57da",
+        "reason": "budget prompt wording was Pick a budget not Pick a reasoning budget; needle miss at 300s"
+      }
+    ]
+  },
+  "pi": {
+    "attemptId": "e6909603-6d1f-4828-a1f2-d9f2d6d0be4c",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/commands/pi/e6909603-6d1f-4828-a1f2-d9f2d6d0be4c",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/2026-10-08T18-16-18-619Z_01a11cba-fbba-73ba-be07-db629cab5412.jsonl",
+    "observations": {
+      "cancelChrome": "clarifyingQuestionsPanel",
+      "clarifyingPanel": true,
+      "questionPromptBeforeEscape": true,
+      "questionsSkippedByUser": true,
+      "ruleUnchanged": true,
+      "agentSaidDidNotWrite": true,
+      "helpSkillBlock": true,
+      "helpRecommended": "/review-and-ship",
+      "handsPrompt": true,
+      "startedRecommendedSkillOnHelpTurn": false
+    }
+  },
+  "deltas": [
+    {
+      "topic": "setup cancel chrome",
+      "cursor": "Freeform chat budget ask (Pick a reasoning budget / numbered options). AskQuestion MCP explored but Clarifying Questions panel not shown.",
+      "pi": "Native Clarifying Questions panel with › [ options and Esc to skip.",
+      "reconciled": false
+    },
+    {
+      "topic": "Escape after unanswered budget",
+      "cursor": "Escape left the freeform budget question visible in history; rule digest unchanged.",
+      "pi": "Escape marked Questions skipped by user; agent stated I didn't write anything; rule digest unchanged.",
+      "reconciled": false
+    },
+    {
+      "topic": "poteto-help skill recommendation",
+      "cursor": "Recommended /interrogate with copyable prompt and GitHub source link.",
+      "pi": "Recommended /review-and-ship with /interrogate and /blast-radius as narrower alternatives; [skill] poteto-help block shown.",
+      "reconciled": false
+    },
+    {
+      "topic": "Used poteto-help chrome",
+      "cursor": "No Used poteto-help badge on settled help screen.",
+      "pi": "[skill] poteto-help block present; no Used poteto-help string.",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-commands-help-cancel.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "relatedPriorCancelPair": "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json"
+  }
+}

@@ -1,0 +1,246 @@
+[
+  {
+    "ts": "2026-10-08T20:20:00.146Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:20:00.661Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:20:01.188Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:20:01.729Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:20:02.279Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:20:02.855Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:20:03.430Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:20:04.030Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:20:04.631Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:20:05.236Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:20:05.852Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:06.477Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:07.112Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:07.757Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:08.410Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:09.080Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:09.761Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:10.456Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:11.161Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:11.872Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:12.600Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:13.371Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:14.160Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:14.958Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:15.766Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:16.585Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:17.447Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:18.290Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:19.133Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:19.970Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:20.816Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:21.665Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:20:22.510Z",
+    "sickoPath": true,
+    "catchphrase": false,
+    "product": [
+      "src/greet.js"
+    ]
+  }
+]

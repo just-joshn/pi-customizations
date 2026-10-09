@@ -1,0 +1,55 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "skillMention": true,
+    "envBlocked": true,
+    "working": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/check-compiler-errors/done.txt",
+    "line": "STATUS=verified reason=typecheck passes after fix",
+    "status": "verified"
+  },
+  "summaryExists": true,
+  "seededSkill": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/check-compiler-errors/.pi/skills/check-compiler-errors/SKILL.md",
+    "sha256": "1ad76beccd581fc285199334709e0a37cdc2f76e5d0d33c90e1dc21905518004"
+  },
+  "oracle": {
+    "typecheckOk": true,
+    "summaryExists": true,
+    "done": {
+      "exists": true,
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/check-compiler-errors/done.txt",
+      "line": "STATUS=verified reason=typecheck passes after fix",
+      "status": "verified"
+    },
+    "closed": true,
+    "honestBlocker": false
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "oracleClosed": true,
+    "closed": true,
+    "honestBlocker": false,
+    "oracle": {
+      "typecheckOk": true,
+      "summaryExists": true,
+      "done": {
+        "exists": true,
+        "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/check-compiler-errors/done.txt",
+        "line": "STATUS=verified reason=typecheck passes after fix",
+        "status": "verified"
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  }
+}

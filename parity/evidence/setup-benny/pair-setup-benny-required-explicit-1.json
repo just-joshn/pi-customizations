@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "pairId": "setup-benny-required-explicit-1",
+  "scenarioRef": "setup-benny-required-explicit",
+  "journeyFamily": "journey-family-11-benny-and-automations",
+  "requirementIds": [
+    "PSTACK-SETUP-BENNY-REQUIRED-EXPLICIT-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "Follow FOR_AGENTS.md / setup-benny section 3; supply explicit repository, triage identity, tracker adapter, control skill, feature map; leave source Slack channel ID unknown/TBD; model slugs only from available picker/list; fail closed; optional partial .cursor/benny/configuration.{side}.yaml with empty source_channel_id; no live automation; STATUS= marker",
+  "ambiguousField": "source_channel_id",
+  "steps": [
+    { "send": "Help set up Benny... channel unknown/TBD... STATUS=fail-closed|..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "a3944805-df12-4454-9a0c-7a06d1757fb6",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/required-explicit/cursor/a3944805-df12-4454-9a0c-7a06d1757fb6",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "outcome": "fail_closed",
+      "contractHeld": true,
+      "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=fail-closed reason=source-slack-channel-id-unknown",
+      "wroteConfig": true,
+      "configPath": ".cursor/benny/configuration.cursor.yaml",
+      "sourceChannelValue": "",
+      "inventedChannel": false,
+      "liveAutomationCreated": [],
+      "guessedModelSlug": false
+    }
+  },
+  "pi": {
+    "attemptId": "c8714d86-a05e-40e7-a1d3-e2a816efb52b",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/required-explicit/pi/c8714d86-a05e-40e7-a1d3-e2a816efb52b",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-required-explicit-fixture-app--/2026-10-09T00-40-56-848Z_01a11e1b-2110-7652-adaf-01005c6173ed.jsonl",
+    "observations": {
+      "outcome": "fail_closed",
+      "contractHeld": true,
+      "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=fail-closed reason=source channel id unknown and model slugs unconfirmed",
+      "wroteConfig": true,
+      "configPath": ".cursor/benny/configuration.pi.yaml",
+      "sourceChannelValue": "",
+      "inventedChannel": false,
+      "liveAutomationCreated": [],
+      "guessedModelSlug": false,
+      "forAgentsRead": true,
+      "setupBennyRead": true,
+      "sessionToolOrder": [
+        "read(FOR_AGENTS.md)",
+        "read(setup-benny/SKILL.md)",
+        "bash",
+        "bash(benny-config)"
+      ]
+    }
+  },
+  "deltas": [
+    {
+      "topic": "fail closed on ambiguous source channel",
+      "cursor": "STATUS=fail-closed reason=source-slack-channel-id-unknown. Partial config with source_channel_id empty. No live automation. Product unchanged.",
+      "pi": "STATUS=fail-closed reason=source channel id unknown and model slugs unconfirmed. Partial config with empty source_channel_id and empty model slugs. Session read FOR_AGENTS + setup-benny then config write. No live automation.",
+      "reconciled": true
+    },
+    {
+      "topic": "explicit required fields retained in draft",
+      "cursor": "Draft kept repository, triage U012FIXTURETRIAGE, tracker adapter, control skill, feature-map path.",
+      "pi": "Same explicit fields retained; models left empty rather than guessed.",
+      "reconciled": true
+    },
+    {
+      "topic": "model slug availability check",
+      "cursor": "Did not write model slugs. Comment notes picker confirmation still needed. Did not prove a live model-picker enumeration.",
+      "pi": "Wrote empty model fields and named unconfirmed slugs in STATUS reason. Same gap on picker enumeration.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-benny-required-explicit.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/setup-benny/PLAYBOOK-required-explicit.md",
+    "decisionTrail": "parity/evidence/setup-benny/.audit/u-journey-setup-benny-required-explicit.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "heldOutFixture": "parity/evidence/setup-benny/required-explicit/fixture-app",
+    "markerRoot": "parity/evidence/setup-benny/required-explicit/fixture-out/{cursor,pi}/",
+    "evidenceRoot": "parity/evidence/setup-benny/required-explicit/",
+    "scorerNote": "fail_closed = STATUS=fail-closed + no invented source_channel_id + no live automation create + product unchanged + no guessed private model slug",
+    "siblingClaim": "none; other SETUP-BENNY-* ids not claimed",
+    "pathChoice": "fail-closed ambiguous source channel preferred over happy-path that would need live Slack"
+  }
+}

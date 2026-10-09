@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "pairId": "consumer-orch-help-1",
+  "scenarioRef": "consumer:orch-help-commander",
+  "matrixJourney": {
+    "packageId": "npm:commander@14.0.0",
+    "activation": "runtime",
+    "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+    "acceptanceJourney": "Paired Cursor+Pi journey exercising npm:commander@14.0.0 via parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts"
+  },
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "In this cwd, run exactly: bun run orch/orch.ts --help; write EXIT=0 to side-specific done path",
+  "steps": [
+    {
+      "send": "bun run orch/orch.ts --help \u2026 EXIT=0 \u2026"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "076e12b0-fbfa-4ce8-be13-bc846be2c7cb",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/cursor/076e12b0-fbfa-4ce8-be13-bc846be2c7cb",
+    "screenSettled": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/cursor/076e12b0-fbfa-4ce8-be13-bc846be2c7cb/screen-03-settled.txt",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "afterHelp": {
+        "usageOrch": true,
+        "commandsHeader": true,
+        "cmdInit": true,
+        "cmdUnit": true,
+        "cmdStanding": true,
+        "helpFlag": false,
+        "working": false
+      },
+      "helpChromeOk": true,
+      "doneMarkerOk": true,
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "consumerSha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+      "consumerMatchesLocked": true,
+      "journeyClosed": true,
+      "rejudgedFrom": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/cursor/076e12b0-fbfa-4ce8-be13-bc846be2c7cb/screen-03-settled.txt"
+    }
+  },
+  "pi": {
+    "attemptId": "18ec805b-5b5c-4fbe-ae62-a3894eefedde",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/pi/18ec805b-5b5c-4fbe-ae62-a3894eefedde",
+    "screenSettled": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/pi/18ec805b-5b5c-4fbe-ae62-a3894eefedde/screen-03-settled.txt",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "afterHelp": {
+        "usageOrch": true,
+        "commandsHeader": true,
+        "cmdInit": true,
+        "cmdUnit": true,
+        "cmdStanding": true,
+        "helpFlag": false,
+        "working": false
+      },
+      "helpChromeOk": true,
+      "doneMarkerOk": true,
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "consumerSha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+      "consumerMatchesLocked": true,
+      "journeyClosed": true,
+      "rejudgedFrom": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/pi/18ec805b-5b5c-4fbe-ae62-a3894eefedde/screen-03-settled.txt"
+    }
+  },
+  "pairClosed": true,
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-consumer-orch-help.mjs --both",
+    "toolsCwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "lockedConsumerSha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+    "rejudgedWith": "parity/scripts/rejudge-consumer-orch-help.mjs"
+  },
+  "verdict": "pass",
+  "closedAt": "2026-10-09T02:15:00Z",
+  "matrixRowClosed": "npm:commander@14.0.0 via orch/orch.ts"
+}

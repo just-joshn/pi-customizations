@@ -1,0 +1,64 @@
+{
+  "skills": [
+    {
+      "name": "how",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/how/SKILL.md",
+      "scope": "package",
+      "notes": "from user-level ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or .pi/skills; not project-scoped"
+    },
+    {
+      "name": "why",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/why/SKILL.md",
+      "scope": "package",
+      "notes": "from user-level ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or .pi/skills; not project-scoped"
+    },
+    {
+      "name": "tdd",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md",
+      "scope": "package",
+      "notes": "from user-level ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or .pi/skills; not project-scoped"
+    },
+    {
+      "name": "unslop",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/unslop/SKILL.md",
+      "scope": "package",
+      "notes": "from user-level ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or .pi/skills; not project-scoped"
+    },
+    {
+      "name": "principle-separate-before-serializing-shared-state",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "scope": "package",
+      "notes": "from user-level ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or .pi/skills; not project-scoped"
+    },
+    {
+      "name": "principle-minimize-reader-load",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "scope": "package",
+      "notes": "from user-level ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or .pi/skills; not project-scoped"
+    },
+    {
+      "name": "principle-guard-the-context-window",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-guard-the-context-window/SKILL.md",
+      "scope": "package",
+      "notes": "from user-level ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or .pi/skills; not project-scoped"
+    },
+    {
+      "name": "principle-sequence-verifiable-units",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+      "scope": "package",
+      "notes": "from user-level ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or .pi/skills; not project-scoped"
+    },
+    {
+      "name": "principle-fix-root-causes",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-fix-root-causes/SKILL.md",
+      "scope": "package",
+      "notes": "from user-level ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or .pi/skills; not project-scoped"
+    },
+    {
+      "name": "principle-prove-it-works",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md",
+      "scope": "package",
+      "notes": "from user-level ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or .pi/skills; not project-scoped"
+    }
+  ]
+}

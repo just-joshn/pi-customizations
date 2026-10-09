@@ -1,0 +1,39 @@
+{
+  "screenFinal": {
+    "typescriptSkill": false,
+    "typeSystemDisciplineMention": false,
+    "working": false
+  },
+  "skillFile": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/typescript-best-practices/SKILL.md",
+    "digest": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+    "matchesLockedDigest": true,
+    "frontmatterRaw": "name: typescript-best-practices\ndescription: TypeScript best practices. Use when reading or editing any .ts or .tsx file.\npaths: [\"**/*.ts\", \"**/*.tsx\"]\ndisable-model-invocation: true",
+    "pathsField": "[\"**/*.ts\", \"**/*.tsx\"]",
+    "hasPathsTs": true,
+    "hasPathsTsx": true,
+    "pathsOk": true,
+    "disableModelInvocation": true,
+    "typeSystemDisciplineFirst": true,
+    "firstBodyLine": "Apply the **type-system-discipline** principle skill first.",
+    "contractOk": true
+  },
+  "firstEditAt": "2026-10-08T21:44:45.350Z",
+  "editedPaths": [
+    "src/id.ts",
+    "src/Badge.tsx"
+  ],
+  "typescriptSkill": true,
+  "typeSystemDisciplineMention": false,
+  "pathsOk": true,
+  "disableModelInvocation": true,
+  "typeSystemDisciplineFirst": true,
+  "contractOk": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/typescript/fixture-out/cursor/done.txt",
+    "line": "src/id.ts src/Badge.tsx"
+  },
+  "pollSamples": 22,
+  "attachmentEvidence": "slash retained on screen-01-typed and screen-02-submitted"
+}

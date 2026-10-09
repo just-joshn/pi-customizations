@@ -1,0 +1,695 @@
+[
+  {
+    "ts": "2026-10-09T00:56:33.405Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:33.806Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:34.208Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:34.609Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:35.011Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:35.412Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:35.813Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:36.213Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:36.615Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:37.015Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:37.416Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:37.818Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:38.220Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:38.621Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:39.023Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:39.424Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:39.826Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:40.228Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:40.629Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:41.032Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:41.434Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:41.835Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:42.236Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:42.637Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:43.040Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:43.440Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:43.841Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:44.244Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:44.652Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:45.055Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:45.458Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:45.860Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:56:46.260Z",
+    "product": [
+      "src/greet.js",
+      "src/banner.js",
+      "src/format.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/legacyFormat.js"
+    ],
+    "callers": [
+      "src/greet.js",
+      "src/banner.js"
+    ],
+    "format": [
+      "src/format.js"
+    ]
+  }
+]

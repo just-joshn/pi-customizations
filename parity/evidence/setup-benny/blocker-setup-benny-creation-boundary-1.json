@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-benny-creation-boundary-1",
+  "scenarioRef": "setup-benny-creation-boundary",
+  "requirements": [
+    "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001"
+  ],
+  "path": "first-time-automate-editor-handoff",
+  "verdict": "env-resolved",
+  "attemptIds": {
+    "cursorPty": "d6992fb0-3759-474f-b1da-dafa9e13fde8",
+    "cursorDesktopSlashAutomate": "be874194-d680-4f9f-8a88-5ee1b4858a0f",
+    "cursorDesktopOpenAutomations": "16a11cc9-c257-412c-bc71-fa8fd00ec609",
+    "cursorDesktopNewAutomationProbe": "d540ea19-389f-4d6c-a713-3d5b63a10883",
+    "pi": "cd378e36-ef2e-4810-ae5d-74a5169f204c",
+    "cursorDesktopUrlEditor": "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+    "cursorDesktopAutomateHandoff": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+    "cursorDesktopSlashOnlyNegative": "8ab451a4-1988-4e55-bcfc-1d3f9359b277"
+  },
+  "pairPath": "parity/evidence/setup-benny/pair-setup-benny-creation-boundary-1.json",
+  "probe": "parity/evidence/setup-benny/creation-boundary/host-env-probe.json",
+  "probeScript": "parity/scripts/probe-setup-benny-creation-boundary-host.mjs",
+  "captureScript": "parity/scripts/capture-setup-benny-creation-boundary.mjs",
+  "desktopLever": "parity/scripts/capture-automations-desktop-agents-window.py",
+  "desktopUnit": "u-automations-desktop-001",
+  "whyBlocked": [
+    "Requirement expected observation: new automations finish only through built-in /automate reviewed Automations editor handoff; neither automation enabled until thread-safety after editor save.",
+    "PTY cursor-agent still lacks /automate / Automations editor (d6992fb0 STATUS=env-blocked).",
+    "Desktop Agents Window (u-automations-desktop-001) now reaches built-in /automate slash skill (be874194) and Open Automations list UI with New Automation CTA and empty Mine list (16a11cc9).",
+    "Helper drive of New Automation (AX index and screenshot-relative clicks, d540ea19) did not open an Automations editor draft. No reviewed editor save was witnessed. No Benny automation was enabled.",
+    "Pi remains env-blocked (cd378e36). No built-in /automate editor handoff on Pi.",
+    "Paired creation-boundary pass still unpaid. Do not fabricate editor save."
+  ],
+  "whatWouldUnblock": [
+    "Operator or improved harness completes New Automation / /automate reviewed draft → approval → readiness → editor save for Benny triage then repro, without enable before thread-safety.",
+    "Pi equivalent editor handoff or oracle freeze for Pi cell.",
+    "Recapture both halves with editor-save proof; keep no deep-link / backend finish."
+  ],
+  "honestGaps": [
+    "Desktop Automations list host path is real; Automations editor save still unpaid.",
+    "Thread-safety-before-enable half unpaid (depends on editor save).",
+    "Pi half still env_blocked.",
+    "New Automation button visible but helper clicks did not enter editor chrome."
+  ],
+  "attemptedSteps": [
+    "Prior PTY capture d6992fb0 / cd378e36 env-blocked.",
+    "u-automations-desktop-001: desktop Ready recheck; Agents Window drive via agent-helper.",
+    "Slash /automate shows built-in automate skill (be874194).",
+    "cmd+shift+p Open Automations → Automations list (16a11cc9).",
+    "New Automation click probes without save/enable (d540ea19 and siblings).",
+    "No Slack posts; no Benny enable; no fabricated save."
+  ],
+  "noFabrication": [
+    "No Automations editor save was claimed or faked.",
+    "No cursor:// deep link or draft-field browser URL was opened to finish creation.",
+    "No live cloud automation ID was invented.",
+    "No automation was enabled.",
+    "No real Slack secrets were used."
+  ],
+  "mergeRecommendation": "Do not close SETUP-BENNY-CREATION-BOUNDARY-ENV or PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001. Desktop host list + /automate skill are progress; editor-save handoff unpaid. Ledgers untouched by this unit.",
+  "envResolvedAt": "2026-10-09T07:18:30Z",
+  "envResolvedNote": "SETUP-BENNY-CREATION-BOUNDARY-ENV closed-env-resolved. Requirement still unverified."
+}

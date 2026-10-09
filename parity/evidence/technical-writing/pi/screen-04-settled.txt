@@ -1,0 +1,40 @@
+ - The command ignores every argument after `process.argv[2]`.                                                         │
+ - The command has no flags. A value that starts with `-`, such as `--help`, is used as `name`.                        │
+                                                                                                                       │
+ ## Output                                                                                                             │
+                                                                                                                       │
+ | Input | Standard output |                                                                                           │
+ | --- | --- |                                                                                                         │
+ | (no arguments) | `hello, world` |                                                                                   │
+ | `Ada` | `hello, Ada` |                                                                                              │
+ | `"Ada Lovelace"` | `hello, Ada Lovelace` |                                                                          │
+ | `Ada Lovelace` (unquoted) | `hello, Ada` |                                                                          │
+                                                                                                                       │
+ ## Exit status                                                                                                        │
+                                                                                                                       │
+ The command always exits with status `0`. It does not validate `name`.                                                │
+ EOF                                                                                                                   │
+ echo "README.md (how-to) and docs/reference.md (reference) written in fixture-app." > ../fixture-out/pi/done.txt; cat │
+ ../fixture-out/pi/done.txt (timeout 10s)                                                                              │
+                                                                                                                       │
+ README.md (how-to) and docs/reference.md (reference) written in fixture-app.                                          │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ I rewrote README.md as a how-to and added docs/reference.md as the argv reference. I didn't run greet. The reference  │
+ and the examples come from reading src/greet.js.                                                                      │
+                                                                                                                       │
+ - README.md: covers how to greet the world, greet a person, quote a name that has spaces, and run the file without    ┃
+   npm. It links to the reference for the exact argument rules.                                                        ┃
+ - docs/reference.md: describes src/greet.js reading process.argv[2]. It covers the synopsis, the default world, the   ┃
+   empty-string case, ignored extra arguments, no flags, and exit status 0.                                            ┃
+ - Drafted material left out: the "architecture" and "how to contribute" notes had no real content to move, so I       ┃
+   dropped them.                                                                                                       ┃
+ - done.txt: it holds one line naming both files and their modes. I wrote it to fixture-out/pi/done.txt as instructed. ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/technical-writing/fixture-app (refactor/pi-pstack-parity-again)
+↑10 ↓1.6k R94k W23k CH96.8% $0.126 (sub) 3.1%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

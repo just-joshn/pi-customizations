@@ -1,0 +1,44 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": false,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "pty": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": true,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/pr-review-canvas/done.txt",
+    "line": "STATUS=verified reason=canvas built with markers",
+    "status": "verified"
+  },
+  "post": {
+    "artifactHasMarker": true,
+    "hasHtmlStructure": true,
+    "artifactBytes": 15475
+  },
+  "sideCtx": {},
+  "seededSkill": null,
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "artifactOk": true,
+    "post": {
+      "artifactHasMarker": true,
+      "hasHtmlStructure": true,
+      "artifactBytes": 15475
+    },
+    "closed": true,
+    "honestBlocker": false
+  }
+}

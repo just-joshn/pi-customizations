@@ -1,0 +1,51 @@
+V New Chat
+Search
+Automations
+B° Customize
+Cursor automation setup E
+yes
+saved or activated from chat.
+O Y
+IDE 7
+Open Tabs
+(4) Browser
+On Home
++ Browser
+• Terminal
+• Files
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+42m
+/automate PARITY_TOKEN=benny-triage-handoff-001. Create exactly one Cursor Automation.
+The Name field must be exactly benny-triage (refuse Untitled, parity-*, or webhook names).
+Cron every day at 9:05 as a harness stand-in trigger (do not attach Slack; do not post to Slack).
+No tools
+. Instructions must sav: read and follow .cursorlautomations/bennv/skills/triage-issue-
+Thinking
+Repositories
+G No Repo
+:: Cursor automation setup
+Cursor automation setup
+• Cursor automation setup
+• Automation setup instruction
+/make-bot-ui
+• /automate
+/automate
+Sticky mode activation
+Getting Started
+1m
+3m
+5m
+14m
+44m
+46m
+48m
+1h
+3/3 O
+* Connect Slack
+Joshua Humphrey
+Send follow-up
+• This Mac v
+Auto - ! O

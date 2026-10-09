@@ -1,0 +1,39 @@
+    Edited draft.md +4 -8
+
+    ▎    1 - # Notes Helper: A Vibrant Landscape
+    ▎    1 + # Notes helper
+    ▎    2  
+    ▎    3 - This tool serves as a pivotal companion for capturing ideas — showcasing intricate workflows and 
+    ▎        fostering enduring ...
+    ▎    3 + This tool helps you capture ideas. Tag notes and search them so you can find what you wrote later.
+    ▎    4  
+    ▎    5 - In order to delve into the crucial interplay of tags and search, experts believe you should enhance 
+    ▎        every note with ...
+    ▎    5 + Add metadata to notes so tags and search work well. Use folders to keep things organized. Prefer short 
+    ▎        titles.
+    ▎    6  
+    ▎    7 - Additionally, the interface boasts an intricate search landscape: instead of listing matches, it 
+    ▎        underscores what m ...
+    ▎    8 - 
+    ▎    9 - I hope this helps! Let me know if you need anything else. Of course, you're absolutely right to want 
+    ▎        better notes!
+    ▎   13  … truncated (3 more lines) · ctrl+r to review
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/unslop/fixture-out/cursor &&
+    printf '%s\n' 'draft.md unslop rewrite applied' >
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/unslop/fixture-out/cursor/done.txt && cat
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/unslop/fixture-out/cursor/done.txt && cat
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/unslop/fixture-app/draft.md 372ms
+    … 6 output lines hidden · ctrl+o to expand
+    Search shows the matches that matter, not a raw dump. You can filter by tags, timelines, and reminders.
+
+  Rewrote draft.md in place and wrote fixture-out/cursor/done.txt.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.5% · 1 file edited                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/unslop/fixture-app · refactor/pi-pstack-parity-again

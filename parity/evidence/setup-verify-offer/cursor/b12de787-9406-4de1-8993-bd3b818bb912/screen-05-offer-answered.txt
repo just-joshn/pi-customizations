@@ -1,0 +1,39 @@
+  Dropped retired roles: none.
+
+  Accept this as-is, or say which roles to change? Options for any role: the detected slugs above, plus
+  inherit-parent and auto. For panel roles (arena runners, architect runners, interrogate reviewers, arena 
+  cross-judge pool) you can give a comma-separated list — list length sets fan-out.
+
+                                                                                                                       
+  small — medium reasoningAccept as-is. Keep every role inherit-parent. Write the rule.                                
+                                                                                                                       
+
+  Writing the rule with budget small and every role set to inherit-parent.
+
+    Edited pstack-models.mdc
+
+    Globbed 2 globs
+    Globbed "**/verify-*/SKILL.md" in .
+    Globbed "**/verify*/**" in .
+
+  $ ls -la && find . -maxdepth 3 -type f \( -name 'SKILL.md' -o -name '*verify*' -o -name 'package.json' \)
+    2>/dev/null | head -50 909ms
+    … 3 output lines hidden · ctrl+o to expand
+    -rw-r--r-- 1 josh-desktop staff 176 Oct  8 15:22 README.md
+    -rwxr-xr-x 1 josh-desktop staff  40 Oct  8 15:22 hello.sh
+
+  Wrote ~/.cursor/rules/pstack-models.mdc with budget small (medium) and every role inherit-parent. It applies to
+  new sessions; re-run /setup-pstack to update it.
+
+  Want a project-local verification skill, so agents can drive the app the way a user does and prove changes work? I
+  can generate one with /create-verification-skill.
+
+
+
+                                                                                                                       
+  → small — medium reasoningAccept as-is. Keep every role inherit-parent. Write the rule.                              
+                                                                                                                       
+
+  Auto · 10% · 1 file edited                                                                            Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-verify-offer/fixture-app · 
+  refactor/pi-pstack-parity-again

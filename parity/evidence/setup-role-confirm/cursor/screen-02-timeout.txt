@@ -1,0 +1,35 @@
+  │ how explainer                            │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ why investigators                        │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ why synthesizer                          │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ reflect tooling                          │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ reflect judgment, divergent, synthesizer │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ arena runners                            │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ arena cross-judge pool                   │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ swarm workers                            │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ architect runners                        │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ interrogate reviewers                    │ inherit-parent │
+  └──────────────────────────────────────────┴────────────────┘
+
+  Dropped lines: none.
+
+  Accept this as-is, or name roles to change? Options for any role: the detected slugs above, plus inherit-parent
+  and auto. For panel roles (arena runners, architect runners, interrogate reviewers, arena cross-judge pool), you
+  can pass a comma-separated list (one subagent per entry).
+
+
+
+                                                                                                                       
+  → small — medium reasoning                                                                                           
+                                                                                                                       
+
+  Auto · 10%                                                                                            Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

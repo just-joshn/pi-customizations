@@ -1,0 +1,436 @@
+[
+  {
+    "ts": "2026-10-09T00:54:18.257Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:18.658Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:19.060Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:19.461Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:19.861Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:20.262Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:20.663Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:21.066Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:21.466Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:21.866Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:22.267Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:22.669Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:23.069Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:23.469Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:23.870Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:24.272Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:24.672Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:25.073Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:25.474Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:25.875Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:26.276Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:26.677Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:27.078Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:27.478Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:27.879Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:28.280Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:28.682Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:29.083Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:29.485Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:29.886Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:54:30.286Z",
+    "product": [
+      "src/greet.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/greeting-loader.js",
+      "src/greeting-fetch.js",
+      "src/greeting-resolve.js"
+    ]
+  }
+]

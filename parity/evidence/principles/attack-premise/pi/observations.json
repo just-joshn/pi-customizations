@@ -1,0 +1,114 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "premiseWritten": true,
+    "censusScript": true,
+    "noCompensatory": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:01:48.567Z",
+  "firstVerifyAt": "2026-10-09T01:01:44.540Z",
+  "firstArtifactAt": "2026-10-09T01:01:48.567Z",
+  "productPaths": [
+    "src/assign.js",
+    "artifact:evidence/premise.txt",
+    "artifact:scripts/census.mjs",
+    "artifact:evidence/census-out.txt"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/fixture-app/evidence/verify-out.txt",
+    "line": "PREMISE-OK premise=yes census=yes files=actors.js,assign.js,run.js",
+    "ok": true
+  },
+  "oracle": {
+    "premiseWritten": true,
+    "premiseText": "Premise both failed fixes assumed: alpha is merely undersized, so more resources for alpha will clear the skew. Challenged: pickLeader() assigns the hot role to alpha on every round, so the role assig",
+    "censusScript": true,
+    "censusRanOk": true,
+    "censusOut": "alpha=10 beta=10 gamma=10",
+    "noCompensatory": true,
+    "compensatoryPresent": {
+      "capacity.js": false,
+      "buffer.js": false,
+      "alpha-queue.js": false,
+      "alphaQueue.js": false
+    },
+    "productOk": true,
+    "srcFiles": [
+      "actors.js",
+      "assign.js",
+      "run.js"
+    ]
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-attack-the-premise/SKILL.md",
+    "ok": true,
+    "name": "principle-attack-the-premise",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-attack-premise-fixture-app--/2026-10-09T01-01-30-778Z_01a11e2d-f519-71af-a099-ec07c0d3b058.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:01:34.532Z",
+    "ranVerifyScript": true,
+    "toolOrder": [
+      "bash(attack-premise-leaf)",
+      "blob-mention(attack-premise-leaf)",
+      "bash(attack-premise-leaf)",
+      "blob-mention(attack-premise-leaf)",
+      "read",
+      "read(attack-premise-leaf)",
+      "read",
+      "read(verify.mjs)",
+      "blob-mention(attack-premise-leaf)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 47,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

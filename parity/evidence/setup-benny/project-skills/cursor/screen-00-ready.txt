@@ -1,0 +1,15 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /config to customize Cursor settings and behavior.
+
+
+
+                                                                                                                       
+  → Plan, search, build anything                                                                                       
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixture-app · 
+  refactor/pi-pstack-parity-again

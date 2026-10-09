@@ -1,0 +1,40 @@
+                                                                                                                       │
+ BSD sed failed; use Edit.                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ edit src/inc.js                                                                                                       │
+                                                                                                                       │
+  1 export function inc(n) {                                                                                           │
+ -2   return n ;                                                                                                       │
+ +2   return n + 1;                                                                                                    │
+  3 }                                                                                                                  │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ node -e "import('./src/inc.js').then(m=>console.log(m.inc(3)))";                                                    │
+ D=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/fixture-out/pi; ls          │
+ ../fixture-out 2>&1; mkdir -p $D; echo "bug-fix" > $D/done.txt; cat $D/done.txt (timeout 15s)                         │
+                                                                                                                       │
+ 4                                                                                                                     │
+ cursor                                                                                                                │
+ pi                                                                                                                    │
+ bug-fix                                                                                                               ┃
+                                                                                                                       ┃
+ Took 0.1s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Thinking...                                                                                                           ┃
+                                                                                                                       ┃
+ I fixed the off-by-one in src/inc.js: inc now returns n + 1 instead of n, so inc(3) returns 4.                        ┃
+                                                                                                                       ┃
+ I reproduced the bug first with node -e calling inc(3), which printed 3. After the edit the same call printed 4.      ┃
+ There is no test file in the fixture, so I didn't add a regression test. I also skipped the PR step and the subagent  ┃
+ delegation, because this was a one-line change.                                                                       ┃
+                                                                                                                       ┃
+ I wrote bug-fix as the single line in fixture-out/pi/done.txt. That is the playbook I matched.                        ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/fixture-app (refactor/pi-pstack-parity-again)
+↑10 ↓993 R105k W26k CH98.8% $0.133 (sub) 3.4%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

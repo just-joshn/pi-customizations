@@ -1,0 +1,44 @@
+{
+  "mode": "none",
+  "seeded": {
+    "ok": true,
+    "mode": "none"
+  },
+  "mid": {
+    "maintainInvoked": true,
+    "locatedPathMention": false,
+    "createOffer": true,
+    "askWhich": false,
+    "inventing": false,
+    "working": true
+  },
+  "markerMid": {
+    "exists": false,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor/locate.txt",
+    "raw": null,
+    "located": null,
+    "createOffered": null,
+    "ok": false
+  },
+  "final": {
+    "maintainInvoked": false,
+    "locatedPathMention": false,
+    "createOffer": true,
+    "askWhich": false,
+    "inventing": false,
+    "working": false
+  },
+  "marker": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor/locate.txt",
+    "raw": "LOCATED=none\nCREATE_OFFERED=yes\n",
+    "located": "none",
+    "createOffered": "yes",
+    "ok": true
+  },
+  "skillAfter": null,
+  "locateOk": true,
+  "inventedTarget": false,
+  "createOfferOk": true,
+  "askWhichOk": null
+}

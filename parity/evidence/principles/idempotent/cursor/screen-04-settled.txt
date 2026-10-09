@@ -1,0 +1,39 @@
+  apply() now converges after a mid-run crash. node scripts/verify.mjs prints APPLY-OK converge=yes. Wrote
+  verified=yes to the done path.
+
+  Broken. Clean apply wrote final.json with run:1. Crash after step-1 left step-1.json, then re-run wrote run:2.
+  Digests diverged.
+
+  Root cause. Leftover step-1.json was read and run was set to prev.run + 1, so partial state changed the end
+  payload.
+
+  Fix. Dropped that read-and-increment. Desired end state is always { status: 'ready', run: 1, payload: 'DEPLOYED' 
+  }, so re-run after a crash matches a clean run.
+
+  Verified.
+
+  APPLY-FAIL converge=no ... cleanFinal={"status":"ready","run":1,...} afterFinal={"status":"ready","run":2,...}
+
+  APPLY-OK converge=yes digest=4937429a2af37562d35881f93fb984223786dde868d71f2aab621b5980487659
+
+  Principles. Make Operations Idempotent drove convergent end state instead of bumping from leftover step-1.
+  Laziness Protocol drove deletion of the counter logic over adding reconciliation scaffolding. Fix Root Causes and
+  Prove It Works kept the change on the bump site and on scripts/verify.mjs output on disk.
+
+  Playbook steps.
+  1. done
+  2. done (how on apply(); why skip: intentional fixture defect in NOTES, not a regression history hunt)
+  3. done (architect skip: fix stays inside apply(), no new boundary)
+  4. done
+  5. skip: commits only when asked; gate is verify + done.txt
+  6. skip: user asked to write done.txt and stop
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 17.3% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-app · 
+  refactor/pi-pstack-parity-again

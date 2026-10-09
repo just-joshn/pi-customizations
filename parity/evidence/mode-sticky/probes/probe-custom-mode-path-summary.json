@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "scenarioRef": "cursor-custom-mode-path",
+  "results": [
+    {
+      "label": "baseline-meta-enter",
+      "attemptId": "6977eeec-08bd-4829-810c-11d526d9f9fb",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/mode-sticky/probes/baseline-meta-enter/6977eeec-08bd-4829-810c-11d526d9f9fb",
+      "customModeReached": false,
+      "modeFooterHint": false,
+      "sequencesTried": [
+        {
+          "name": "esc-cr",
+          "hex": "1b0d",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "esc-lf",
+          "hex": "1b0a",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-13-3",
+          "hex": "1b5b31333b337e",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-13-3-bare",
+          "hex": "5b31333b337e",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-27-3-13",
+          "hex": "1b5b32373b333b31337e",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-27-3-13-bare",
+          "hex": "5b32373b333b31337e",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-13-3u",
+          "hex": "1b5b31333b3375",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-13-3u-bare",
+          "hex": "5b31333b3375",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        }
+      ]
+    },
+    {
+      "label": "statsig-override-glass-custom-modes",
+      "attemptId": "9857dda0-a74d-4546-b69e-1ff3528bdf3e",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/mode-sticky/probes/statsig-override-glass-custom-modes/9857dda0-a74d-4546-b69e-1ff3528bdf3e",
+      "customModeReached": false,
+      "modeFooterHint": false,
+      "sequencesTried": [
+        {
+          "name": "esc-cr",
+          "hex": "1b0d",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "esc-lf",
+          "hex": "1b0a",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-13-3",
+          "hex": "1b5b31333b337e",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-13-3-bare",
+          "hex": "5b31333b337e",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-27-3-13",
+          "hex": "1b5b32373b333b31337e",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-27-3-13-bare",
+          "hex": "5b32373b333b31337e",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-13-3u",
+          "hex": "1b5b31333b3375",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        },
+        {
+          "name": "csi-13-3u-bare",
+          "hex": "5b31333b3375",
+          "customModeChrome": false,
+          "slashMenuOpen": true,
+          "modeFooterHint": false
+        }
+      ]
+    }
+  ]
+}

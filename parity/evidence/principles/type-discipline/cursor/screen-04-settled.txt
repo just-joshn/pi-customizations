@@ -1,0 +1,38 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /debug to instrument and debug complex problems.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  I'll follow poteto-mode: read its skill first, then fix the ticket type model so illegal completed states can't be
+  represented.
+
+    1 agent completed
+    poteto-agent
+    ✓ Done
+
+  Checking that the fixture fix and done marker match what the agent reported.
+
+    Read 2 files
+    Read src/ticket.ts
+    Read ...les/type-discipline/fixture-out/cursor/done.txt
+
+  $ node scripts/verify.mjs 636ms
+    TYPE-OK value="open:a|done:b@2026-10-08"
+
+  Ticket is now a discriminated union (open vs done with required completedAt). verify.mjs prints TYPE-OK; done.txt
+  has verified=yes.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.2% · 1 file edited                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/type-discipline/fixture-app · 
+  refactor/pi-pstack-parity-again

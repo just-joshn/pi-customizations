@@ -1,0 +1,39 @@
+
+  Act On
+
+  1. Mutates caller-owned input (items.push at line 8) — Reviewer A — Violates a pure-sum contract; callers reuse
+     the array and get a phantom { price: 0 } each call.
+  2. Null-unsafe item.price (lines 5–6) — Reviewer A — total([{ price: 1 }, null]) throws TypeError on .price;
+     happy path only.
+  3. Non-numeric price coerces the sum (+= at line 6) — Reviewer A — e.g. { price: '5' } can turn a numeric sum
+     into string concat ('105') or NaN; fail closed for money-like totals.
+
+  Consider
+
+  1. No guard when items is null/undefined/non-iterable — Reviewer A — Real TypeError path, but no in-fixture
+     callers; worth an explicit Array.isArray check if this is a public boundary.
+
+  Noted
+
+  1. No tests for immutability / null-safety / sums — Reviewer A — True for this fixture; low priority given
+     capture-only scope.
+
+  Dismissed
+
+  1. "Intentional defects" comments next to exported API — Reviewer A — Fixture scaffolding for the no-autoapply
+     oracle, not a product-surface defect to fix in this review.
+
+  Agreement Map
+
+  Single configured reviewer (interrogate reviewers: inherit-parent), so consensus is N/A. The strongest signals are
+  the two defects the file itself advertises (mutation + null-unsafe access), plus the coercion bug the reviewer
+  surfaced independently. Boundary validation and missing tests are secondary.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 13.7%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/interrogate/fixture-app · refactor/pi-pstack-parity-again

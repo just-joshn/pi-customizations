@@ -1,0 +1,40 @@
+                                                                                                                       │
+ $ cd .cursor/automations/benny && for f in FOR_AGENTS.md skills/setup-benny/SKILL.md; do cmp $f                       │
+ ../../../.upstream/automations/benny/$f && echo ok $f; done; ls skills templates                                      │
+ echo "STATUS=settings-ok reason=pstack enabled and validated" >                                                       │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-enable/fixture-out/pi/do │
+ ne.txt; cat                                                                                                           │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-enable/fixture-out/pi/do │
+ ne.txt (timeout 20s)                                                                                                  │
+                                                                                                                       │
+ ... (7 earlier lines, ctrl+o to expand)                                                                               │
+ templates:                                                                                                            │
+ configuration.example.yaml                                                                                            │
+ reproduce-automation-prompt.md                                                                                        │
+ triage-automation-prompt.md                                                                                           │
+ STATUS=settings-ok reason=pstack enabled and validated                                                                │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ plugins.pstack.enabled is now true in .cursor/settings.json. I haven't run the fresh-agent check that pstack's skills │
+ resolve from project scope, and I haven't created or updated any automation.                                          │
+                                                                                                                       │
+ - Settings edit: I changed only that one value. The fixture-marker comment, editor.fontSize, files.exclude and the    │
+   other-plugin entry are untouched. After stripping the comment lines, the file parses as JSON and                    │
+   plugins.pstack.enabled reads true.                                                                                  ┃
+ - Benny pack: I treated the copy as done. FOR_AGENTS.md and skills/setup-benny/SKILL.md under                         ┃
+   .cursor/automations/benny are byte-identical to the .upstream originals. The skills directory has the three         ┃
+   expected subfolders and templates has its three files. I did not diff the pack file by file.                        ┃
+ - Status file: done.txt contains STATUS=settings-ok reason=pstack enabled and validated.                              ┃
+ - Commit before enabling: .cursor/settings.json, .cursor/automations/benny/ and any referenced secret-free            ┃
+   configuration must be committed before either automation is enabled. I haven't committed anything.                  ┃
+                                                                                                                       ┃
+ I also wrote done.txt once too early, after a failed sed left the setting unchanged. I rewrote it once the edit was   ┃
+ verified, so it holds a single line.                                                                                  ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-enable/fixture-app (refactor/pi-pstack-par...
+↑12 ↓1.6k R131k W26k CH98.7% $0.144 (sub) 3.4%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

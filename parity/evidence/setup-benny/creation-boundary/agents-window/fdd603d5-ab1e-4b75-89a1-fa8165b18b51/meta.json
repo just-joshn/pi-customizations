@@ -1,0 +1,56 @@
+{
+  "attemptId": "fdd603d5-ab1e-4b75-89a1-fa8165b18b51",
+  "mode": "open-draft",
+  "method": "agent-helper MCP keyboard/click drive of Cursor Agents Window",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/fdd603d5-ab1e-4b75-89a1-fa8165b18b51",
+  "probe": "open-draft-editor-title",
+  "draftName": "benny-triage",
+  "discardUntitled": {
+    "attempted": false,
+    "dismissed": false,
+    "actions": [],
+    "stuckUntitledEditor": false
+  },
+  "draftRowHits": 0,
+  "clickLog": [
+    {
+      "via": "system-events-axpress",
+      "ok": false,
+      "stdout": "false",
+      "stderr": "",
+      "returncode": 0
+    }
+  ],
+  "clicked": false,
+  "saved": false,
+  "activated": false,
+  "slack": false,
+  "titleOk": false,
+  "chromeOk": false,
+  "editorTitleWitnessed": false,
+  "markers": {
+    "hasInactive": false,
+    "hasAddTrigger": false,
+    "hasAgentInstructions": false,
+    "hasUntitled": true,
+    "hasSave": true
+  },
+  "ocrHasBreadcrumb": false,
+  "axHasAddTrigger": false,
+  "pathsTried": [
+    "cmd+shift+p Open Agents Window",
+    "cmd+shift+p Open Automations",
+    "discard stuck Untitled via Escape/Discard (no Save)",
+    "element_index click draft row",
+    "System Events AXPress fallback on draft name",
+    "OCR+AX editor title oracle"
+  ],
+  "didNot": [
+    "press Save",
+    "toggle Inactive/Activate",
+    "enable Benny",
+    "post to Slack",
+    "edit ledgers",
+    "helper xy click (prefer element_index / System Events)"
+  ]
+}

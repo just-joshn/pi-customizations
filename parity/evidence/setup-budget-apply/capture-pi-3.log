@@ -1,0 +1,46 @@
+file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/journey-helpers.mjs:24
+  throw new Error(`Screen did not show "${needle}" within ${timeoutMs}ms. Last screen:\n${lines.join('\n')}`);
+        ^
+
+Error: Screen did not show "Edited pstack-models.mdc" within 360000ms. Last screen:
+ ▎+ arena runners: claude-subscription/claude-opus-5-5:xhigh, claude-subscription/claude-sonnet-5-5:xhigh              │
+ ▎+ arena cross-judge pool: claude-subscription/claude-opus-5-5:xhigh, claude-subscription/claude-sonnet-5-5:xhigh     │
+ ▎+ swarm workers: claude-subscription/claude-sonnet-5-5:xhigh                                                         │
+ ▎+ architect runners: claude-subscription/claude-opus-5-5:xhigh, claude-subscription/claude-sonnet-5-5:xhigh          │
+ ▎+ interrogate reviewers: claude-subscription/claude-opus-5-5:xhigh, claude-subscription/claude-sonnet-5-5:xhigh      │
+ ▎                                                                                                                     │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ Call pstack_setup action state (or read $PI_CODING_AGENT_DIR/pstack/models.mdc) before answering. Do not invent the   │
+ current table. Budget choice: large — xhigh reasoning. The current rule already has real model values at medium       │
+ effort plus bug-fix: auto and how explorer: inherit-parent. Apply effort mapping only: every real value becomes       │
+ provider/id:xhigh (panel list entries included). Pass those remapped values as roleOverrides on pstack_setup write.   │
+ The write tool does not remap for you. Do not replace real model values with inherit-parent or auto. Keep bug-fix as  │
+ auto and how explorer as inherit-parent exactly. The fixture uses only claude-subscription Claude models already in   │
+ availableModels. Remap those to :xhigh and write. Do not stop to ask which option. Accept that remapped table and     │
+ write the rule. Decline any verification skill offer.                                                                 │
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           │
+                                                                                                                       │
+                                                                                                                       ┃
+ The rule is written to /tmp/pi-ref-agent/pstack/models.mdc with budget large (xhigh). I read it back with             ┃
+ pstack_setup state to confirm. It applies to new sessions, and re-running /setup-pstack updates it.                   ┃
+                                                                                                                       ┃
+ - Remapped to :xhigh: every real model value, panel list entries included. Sonnet roles are                           ┃
+   claude-subscription/claude-sonnet-5-5:xhigh and Opus roles are claude-subscription/claude-opus-5-5:xhigh.           ┃
+ - Unchanged: bug-fix is still auto and how explorer is still inherit-parent.                                          ┃
+ - Dropped lines: none.                                                                                                ┃
+ - Verification skill: I did not offer one, as you asked.                                                              ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑14 ↓1.3k R124k W24k CH94.5% $0.134 (sub) 3.2%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium
+    at waitScreen (file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/journey-helpers.mjs:24:9)
+    at async runSide (file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-budget-apply.mjs:295:5)
+    at async file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-budget-apply.mjs:382:18
+
+Node.js v24.21.0

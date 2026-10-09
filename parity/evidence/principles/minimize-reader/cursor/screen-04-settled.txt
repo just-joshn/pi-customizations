@@ -1,0 +1,39 @@
+    To-do All done
+    ✔ Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or 
+      instrumentation protocol says to ask the user to reproduce.
+    ✔ Binary-search the cause. Surviving mechanism: verify requires wrappers deleted and no layered filenames 
+      (TRACE-FAIL with greet=true).
+    ✔ Plan the fix. If it crosses a function boundary, architect first. Delegate implementation to a subagent 
+      using your configured bug-fix model.
+    ✔ Verify on the same surface. The original repro now passes.
+    ✔ Write verified=yes|no to fixture-out done.txt when TRACE-OK is on disk
+
+  greet() already returned hello, world. Verify failed because three one-caller pass-throughs were still on disk
+  under layered names.
+
+  Root cause. scripts/verify.mjs accepts only the collapse path. Wrappers gone, no facade/, no layered filenames.
+
+  Failing then passing.
+
+     1 │TRACE-FAIL greet=true
+       │wrappersGone={"greeting-loader.js":false,"greeting-fetch.js":false,"greeting-resolve.js":false}
+       │noFacade=true layeredName=true value="hello, world" error=none
+       │files=core.js,greet.js,greeting-fetch.js,greeting-loader.js,greeting-resolve.js
+     2 │TRACE-OK path=collapse files=core.js,greet.js
+
+  Fix. greet.js calls core.message() directly. Deleted greeting-loader.js, greeting-fetch.js, greeting-resolve.js.
+  Wrote verified=yes to the named done path.
+
+  Principles. Minimize Reader Load chose collapse over a facade. Laziness Protocol and Subtract Before You Add kept
+  the change to delete plus one import rewrite. Fix Root Causes and Prove It Works used the verify script output,
+  not a compile guess.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 14.8% · 4 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/fixture-app · 
+  refactor/pi-pstack-parity-again

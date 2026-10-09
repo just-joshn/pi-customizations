@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ You are helping set up Benny for this repository. The human pointed you at .upstream/automations/benny/FOR_AGENTS.md. ┃
+ Read and follow that FOR_AGENTS.md bootstrap so .upstream/automations/benny/skills/setup-benny/SKILL.md is read at    ┃
+ the destination path. Treat setup-benny as not a plugin slash skill. Do not look for or invoke a discovered Benny     ┃
+ slash skill. Do not run /setup-benny. Do not create or update a live automation in this turn. Do not write secret     ┃
+ values into plugin files, prompts, or committed configuration. Do not edit parity ledgers or src/app.js. After you    ┃
+ have confirmed entry via pack bootstrap to the destination setup-benny path and either asked the first required setup ┃
+ question or verified the pack copy is present, stop. When you stop for any reason, write exactly one line to          ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/fixture-out/pi/done.txt as        ┃
+ STATUS=not-slash|slash-invoked|automation-created|blocked|other reason=<short phrase> then stop.                      ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ read .upstream/automations/benny/FOR_AGENTS.md:1-200                                                                  ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/fixture-app (refactor/pi-pstack-parity-again)
+↑4 ↓111 R8.2k W17k CH32.9% $0.069 (sub) 2.7%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

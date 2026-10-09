@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Help set up Benny for this repository. Follow .upstream/automations/benny/FOR_AGENTS.md so                            ┃
+ .upstream/automations/benny/skills/setup-benny/SKILL.md is read. Focus on setup-benny step 6 only: verify the control ┃
+ adapter before enabling the Benny repro automation. Named control skill and completed feature map already exist.      ┃
+ Config is at .cursor/benny/configuration.yaml (control.skill_name=control-target-app,                                 ┃
+ control.feature_map_path=.cursor/benny/feature-map.md). Control skill path:                                           ┃
+ .cursor/skills/control-target-app/SKILL.md. Read                                                                      ┃
+ .upstream/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md and the feature map, then   ┃
+ confirm whether the named skill can bring up the app, navigate every mapped feature through the real UI, exercise     ┃
+ mapped states, inspect without forcing results, capture screenshots, start and stop recording, and clean up. If any   ┃
+ capability is missing, leave the repro automation disabled (fail closed). Do not create or enable a live repro        ┃
+ automation. Do not edit parity ledgers or src/app.js. When the control verification is done (or you stop), write      ┃
+ exactly one line to                                                                                                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/control-fail-closed/fixture-out/p ┃
+ i/done.txt as STATUS=fail-closed|control-ok|automation-enabled|blocked|other reason=<short phrase> then stop.         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cat .upstream/automations/benny/FOR_AGENTS.md; cat .upstream/automations/benny/skills/setup-benny/SKILL.md (timeout ┃
+ 20s)                                                                                                                  ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠴ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/control-fail-closed/fixture-app (refactor/pi-pstack...
+$0.000 (sub) 1.6%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

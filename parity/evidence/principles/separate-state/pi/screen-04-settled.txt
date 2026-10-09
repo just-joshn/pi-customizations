@@ -1,0 +1,40 @@
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/fixture-out/pi/done │
+ .txt (timeout 10s)                                                                                                    │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Concurrent Promise.all runs of runIndexer and runMetrics no longer lose an update. node scripts/verify.mjs now prints │
+ SEPARATE-OK separated=yes. I wrote verified=yes to done.txt.                                                          │
+                                                                                                                       │
+ What was broken. Both workers read and rewrote state/state.json, so whichever finished last overwrote the other's     │
+ field. Before the fix, verify.mjs printed SEPARATE-FAIL reason=still-shared.                                          │
+                                                                                                                       │
+ Fix. In src/workers.js, runIndexer now writes only state/indexer-state.json and runMetrics writes only                │
+ state/metrics-state.json. report() reads both files and returns lastIndexed and lastMetrics.                          │
+                                                                                                                       │
+ Verification. The final run printed SEPARATE-OK separated=yes indexer=state/indexer-state.json                        │
+ metrics=state/metrics-state.json lastIndexed=idx-5 lastMetrics=met-5. The check runs six concurrent rounds and both   │
+ fields survive each time.                                                                                             │
+                                                                                                                       │
+ Principle applied. I read the leaf SKILL.md for principle-separate-before-serializing-shared-state. The two workers   │
+ publish independent facts, so I gave each its own file and merge only in report(), with no lock.                      │
+                                                                                                                       ┃
+ Skipped. I skipped commits and a PR because this is a fixture.                                                        ┃
+                                                                                                                       ┃
+ Nothing else to follow up. The only files I touched are src/workers.js and done.txt.                                  ┃
+
+[>] Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or instr...
+[ ] Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. (pending)
+[ ] Plan the fix. If it crosses a function boundary, architect first. Delegate implementation to a subagent. (skip de...
+[ ] Verify on the same surface. The original repro now passes. (pending)
+[ ] Stage the commits so failing repro lands before fix. skip: fixture, no commits (pending)
+[ ] Run Opening a PR. skip: fixture, no PR (pending)
+[ ] Write done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/fixture-app (refactor/pi-pstack-parit...
+↑16 ↓2.6k R224k W31k CH99.6% $0.193 (sub) 3.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

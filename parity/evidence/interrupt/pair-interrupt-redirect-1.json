@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "pairId": "interrupt-redirect-1",
+  "scenarioRef": "interrupt:how-escape-then-redirect",
+  "journeyFamily": "journey-family-07-interrupt-compact-branch-resume",
+  "requirementIds": [
+    "PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001",
+    "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "howPromptSharedShape": "/how startAttempt allocate + CANCELLED-HOW-COMPLETE marker (side-specific path)",
+  "redirectPromptSharedShape": "Stop prior /how; write REDIRECT-OK marker; reply REDIRECT-OK 56",
+  "steps": [
+    { "send": "/how ... CANCELLED-HOW-COMPLETE ...", "note": "long mid-flight how objective" },
+    { "send": "\r" },
+    { "wait": "Working / [skill] how / mid-flight chrome" },
+    { "send": "\u001b", "note": "Escape user-control cancel" },
+    { "wait": "Working cleared; cancelled marker file still absent" },
+    { "send": "Stop. Ignore the prior /how ... REDIRECT-OK 56 ..." },
+    { "send": "\r" },
+    { "wait": "REDIRECT-OK 56 on screen; redirect-ok.txt present; cancelled-how.txt absent" },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "aa52982b-074e-4c64-954b-c7a968c1fc5f",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/cursor/aa52982b-074e-4c64-954b-c7a968c1fc5f",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "midWorking": true,
+      "cancelKey": "Escape",
+      "afterCancelWorking": false,
+      "cancelChrome": "Working cleared; how prompt restored into composer (→ /how...); footer had shown ctrl+c to stop during Working",
+      "cancelledMarkerWritten": false,
+      "redirectMarkerWritten": true,
+      "redirectAnswerOnScreen": true,
+      "finalDeliverableIsRedirect": true,
+      "silentContinuationOfCancelledHow": false,
+      "composerRestoreAppend": true
+    }
+  },
+  "pi": {
+    "attemptId": "9138c152-0a7c-4e63-9ff5-c0250bb936d3",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/pi/9138c152-0a7c-4e63-9ff5-c0250bb936d3",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/2026-10-08T19-03-58-422Z_01a11ce6-9ed6-7242-be8c-7ca593b368dc.jsonl",
+    "observations": {
+      "midWorking": true,
+      "howSkillBlock": true,
+      "cancelKey": "Escape",
+      "afterCancelWorking": false,
+      "cancelChrome": "Operation aborted",
+      "cancelledMarkerWritten": false,
+      "redirectMarkerWritten": true,
+      "redirectAnswerOnScreen": true,
+      "finalDeliverableIsRedirect": true,
+      "silentContinuationOfCancelledHow": false,
+      "redirectAsSeparateTurn": true
+    }
+  },
+  "deltas": [
+    {
+      "topic": "mid-run Escape chrome",
+      "cursor": "Escape clears Working and restores the cancelled /how text into the composer. Footer advertised ctrl+c to stop while Working.",
+      "pi": "Escape prints Operation aborted and leaves a clear composer for the next turn.",
+      "reconciled": false
+    },
+    {
+      "topic": "redirect turn shape after cancel",
+      "cursor": "Because Escape restored /how into the composer, typing the redirect appended to that text. Settled user bubble shows how+redirect concatenated. Agent still obeyed only the redirect objective.",
+      "pi": "Redirect arrived as a separate user turn after Operation aborted.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    },
+    {
+      "topic": "family stub extras",
+      "cursor": "This pair covers interrupt→redirect only. Compaction, branch session, and Pi restart resume are not in this capture.",
+      "pi": "Same scope limit as Cursor for this pair.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-interrupt-redirect.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/interrupt/fixture-out/{cursor,pi}/"
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "scenario": "team-kit:run-smoke-tests",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "pairPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pair-team-kit-run-smoke-tests-1.json",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/run-smoke-tests/cursor/1d179140-436e-4a7d-80de-17219368c747",
+      "attemptId": "1d179140-436e-4a7d-80de-17219368c747",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/run-smoke-tests Do not ask questions. Follow the run-smoke-tests skill. Workspace is /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/run-smoke-tests. Run npm run smoketest. It currently fails. Apply a minimal fix so ready is true, rerun until SMOKE_OK, and write the results summary to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/run-smoke-tests/summary.md. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/run-smoke-tests/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/run-smoke-tests. Do not edit parity ledgers.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "envBlocked": false,
+          "working": false
+        },
+        "pty": {
+          "skillMention": true,
+          "envBlocked": false,
+          "working": true
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/run-smoke-tests/done.txt",
+          "line": "STATUS=verified reason=SMOKE_OK after ready=true",
+          "status": "verified"
+        },
+        "summaryExists": true,
+        "seededSkill": null,
+        "oracle": {
+          "fixed": true,
+          "summaryExists": true,
+          "mentionsSmoke": true,
+          "done": {
+            "exists": true,
+            "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/run-smoke-tests/done.txt",
+            "line": "STATUS=verified reason=SMOKE_OK after ready=true",
+            "status": "verified"
+          },
+          "closed": true,
+          "honestBlocker": false
+        },
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "oracleClosed": true,
+          "closed": true,
+          "honestBlocker": false,
+          "oracle": {
+            "fixed": true,
+            "summaryExists": true,
+            "mentionsSmoke": true,
+            "done": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/run-smoke-tests/done.txt",
+              "line": "STATUS=verified reason=SMOKE_OK after ready=true",
+              "status": "verified"
+            },
+            "closed": true,
+            "honestBlocker": false
+          }
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "1d179140-436e-4a7d-80de-17219368c747",
+        "side": "cursor",
+        "scenarioRef": "team-kit:run-smoke-tests",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/run-smoke-tests",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/run-smoke-tests/pi/c6fb2d29-e5f2-43b8-a646-0eca5e6aac61",
+      "attemptId": "c6fb2d29-e5f2-43b8-a646-0eca5e6aac61",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/run-smoke-tests Do not ask questions. Follow the run-smoke-tests skill. Workspace is /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/run-smoke-tests. Run npm run smoketest. It currently fails. Apply a minimal fix so ready is true, rerun until SMOKE_OK, and write the results summary to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/run-smoke-tests/summary.md. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/run-smoke-tests/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/run-smoke-tests. Do not edit parity ledgers.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "envBlocked": false,
+          "working": false
+        },
+        "pty": {
+          "skillMention": true,
+          "envBlocked": true,
+          "working": true
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/run-smoke-tests/done.txt",
+          "line": "STATUS=verified reason=SMOKE_OK after setting ready true",
+          "status": "verified"
+        },
+        "summaryExists": true,
+        "seededSkill": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/run-smoke-tests/.pi/skills/run-smoke-tests/SKILL.md",
+          "sha256": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb"
+        },
+        "oracle": {
+          "fixed": true,
+          "summaryExists": true,
+          "mentionsSmoke": true,
+          "done": {
+            "exists": true,
+            "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/run-smoke-tests/done.txt",
+            "line": "STATUS=verified reason=SMOKE_OK after setting ready true",
+            "status": "verified"
+          },
+          "closed": true,
+          "honestBlocker": false
+        },
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "oracleClosed": true,
+          "closed": true,
+          "honestBlocker": false,
+          "oracle": {
+            "fixed": true,
+            "summaryExists": true,
+            "mentionsSmoke": true,
+            "done": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/run-smoke-tests/done.txt",
+              "line": "STATUS=verified reason=SMOKE_OK after setting ready true",
+              "status": "verified"
+            },
+            "closed": true,
+            "honestBlocker": false
+          }
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "c6fb2d29-e5f2-43b8-a646-0eca5e6aac61",
+        "side": "pi",
+        "scenarioRef": "team-kit:run-smoke-tests",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/run-smoke-tests",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

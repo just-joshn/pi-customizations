@@ -1,0 +1,40 @@
+ 13:- [open PR #42] Draft re-adds Launch prove with HELLO-FAMILY-13 stdout assertion (pr-notes.md).                    │
+ 14:- [planned, not started] Maintain offer after generate-then-reuse (user-reports.md).                               │
+ contract=yes                                                                                                          │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ I wrote the brief to fixture-out/pi/brief.md and contract=yes to done.txt. I read only the two transcripts and two    │
+ shared-record files in seed/. I did not check live git or gh state.                                                   │
+                                                                                                                       │
+ Capsule                                                                                                               │
+ - verify-hello-cli was generated for hello.sh, which should print HELLO-FAMILY-13. Prove and maintain were            │
+   deliberately skipped (a1b2c3d4-e5f6-7890-abcd-ef1234567890).                                                        │
+ - evidence/hello-print is empty, so nothing is proven yet.                                                            │
+ - An earlier prove wrapper (PR #41) shipped and was reverted for flaky exit codes                                     │
+   (b2c3d4e5-f6a7-8901-bcde-f12345678901).                                                                             │
+ - Draft PR #42 re-adds Launch prove with a stdout assertion, and branch feature/hello-cli is still open.              │
+                                                                                                                       │
+ Threads                                                                                                               │
+ - [in flight feature/hello-cli] The skill exists, but prove and maintain have not run.                                │
+ - [reverted #41] The prove wrapper was reverted after exit 0 with empty stdout.                                       │
+ - [open PR #42] The draft re-adds Launch prove with a HELLO-FAMILY-13 stdout assertion.                               │
+ - [planned, not started] The maintain offer after the generate-then-reuse pair.                                       │
+                                                                                                                       │
+ Problems                                                                                                              │
+ 1. Prove reported green in CI while hello.sh never printed HELLO-FAMILY-13.                                           ┃
+ 2. The prove wrapper flaked with exit 0 and empty stdout, which caused the #41 revert.                                ┃
+ 3. The maintain offer never ran after the generate-then-reuse pair.                                                   ┃
+ 4. evidence/hello-print is empty, so there is no proof artifact.                                                      ┃
+ 5. Live PR and branch state is unverified.                                                                            ┃
+                                                                                                                       ┃
+ Next move                                                                                                             ┃
+ Run the skill's Launch prove against hello.sh on feature/hello-cli, and assert that stdout contains HELLO-FAMILY-13,  ┃
+ not just the exit code. Save the output to evidence/hello-print, then check that PR #42 makes the same assertion.     ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/recall/fixture-app (refactor/pi-pstack-parity-again)
+↑12 ↓2.2k R119k W21k CH98.5% $0.131 (sub) 3.0%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

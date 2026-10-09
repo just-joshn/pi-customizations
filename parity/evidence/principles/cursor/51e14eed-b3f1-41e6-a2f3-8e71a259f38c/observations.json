@@ -1,0 +1,74 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "ranCheck": true,
+    "directArtifactVerify": true,
+    "productFixed": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:09:02.676Z",
+  "firstVerifyAt": "2026-10-09T00:08:59.067Z",
+  "productPaths": [
+    "src/add.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/cursor/evidence/verify-out.txt",
+    "line": "ADD-OK value=5",
+    "ok": true
+  },
+  "productFixed": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-prove-it-works/SKILL.md",
+    "ok": true,
+    "name": "principle-prove-it-works",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/de734f88-0a4f-4a53-9785-4542c7529760/de734f88-0a4f-4a53-9785-4542c7529760.jsonl",
+    "leafSkillRead": true,
+    "ranVerifyScript": true,
+    "ranNodeCheck": false,
+    "note": "Re-linked to capture-time transcript via fixture-out/cursor/done.txt. Prior hit was parent chat noise."
+  },
+  "pollSamples": 50,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

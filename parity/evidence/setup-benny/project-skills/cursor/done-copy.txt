@@ -1,0 +1,1 @@
+STATUS=stop-explain reason=skills only resolve from user scope, not project pstack

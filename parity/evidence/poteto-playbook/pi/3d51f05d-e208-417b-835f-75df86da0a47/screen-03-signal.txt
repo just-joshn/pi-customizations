@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] poteto-mode (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ fix the off-by-one in src/inc.js so that inc(3) returns 4 (it currently returns 3). Work only inside this fixture     ┃
+ cwd. Do not edit ledgers, parity/, or files outside this cwd. When finished, write exactly one line to                ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/fixture-out/pi/done.txt       ┃
+ naming the playbook you matched, then stop.                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ read ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/poteto-mode/playbooks/bug-fix.md               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 2.1%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

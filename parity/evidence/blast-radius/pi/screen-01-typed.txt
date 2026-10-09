@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/blast-radius review the candidate change in CHANGE.diff for this fixture. Find the one fact the change is safe         
+because of, or prove it is unsafe. For each critical safety fact, push certainty as far down the list as is cheap (1    
+said-so, 2 pointed at line, 3 walked bad case, 4 ran a script or test against real code, 5 reproduced in running app).  
+Step 4 is the usual target. Do not hand back only a narrative writeup with no certainty level. If you stop cheaper      
+than step 4, name the cheaper stop explicitly. Work only inside this fixture cwd. Do not edit ledgers or parity         
+ledgers. When finished, write exactly one line to                                                                       
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/fixture-out/pi/done.txt as         
+PROOF=step5|step4|step3|step2|step1|cheaper-stop|writeup-only certainty=<n-or-label> fact=<short phrase> then stop.     
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

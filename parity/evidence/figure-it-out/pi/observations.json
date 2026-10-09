@@ -1,0 +1,47 @@
+{
+  "screenFinal": {
+    "figureItOutSkill": true,
+    "playbookMention": true,
+    "productMention": true,
+    "working": false
+  },
+  "firstPlaybookAt": "2026-10-08T19:27:17.106Z",
+  "firstProductAt": "2026-10-08T19:27:30.652Z",
+  "playbookPaths": [
+    "PLAYBOOK.md",
+    "decisions.tsv",
+    ".audit/baseline.txt"
+  ],
+  "productPaths": [
+    "src/cli.js",
+    "src/format.js",
+    "src/store.js",
+    "notes.json"
+  ],
+  "playbookDetails": [
+    {
+      "path": "PLAYBOOK.md",
+      "structured": true,
+      "preview": "# PLAYBOOK: note-store persistence migration\n\n## Done predicate (falsifiable)\nFrom the fixture cwd, with notes.json deleted, `node src/cli.js` run twice:\n1. Exits 0 and creates notes.json holding valid JSON with entries for `alpha` and `beta`, each with an ISO-8601 `createdAt`.\n2. Every printed line matches `^- <ISO-8601 ms Z> <text>$` (format dictated by existing verify.mjs, which is the gate; `n"
+    },
+    {
+      "path": "decisions.tsv",
+      "structured": false,
+      "preview": "step\tdecision\treason\nframe\tno arena, no fan-out\tsmall reversible fixture edits\ndesign\tlist() keeps returning strings\tpreserve public store API; add entries()\ndesign\tnotes.json path relative to project root via import.meta.url\tcwd-independent CLI\ndesign\tseed written on first load with fixed createdAt at creation time\ttimestamps stable across runs\nverify\tnode verify.mjs FAIL at baseline, PASS after;"
+    },
+    {
+      "path": ".audit/baseline.txt",
+      "structured": false,
+      "preview": "- alpha\n- beta\n"
+    }
+  ],
+  "structuredPlaybook": true,
+  "ordering": "playbook_before_product",
+  "playbookBeforeProduct": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/figure-it-out/fixture-out/pi/done.txt",
+    "line": "Done predicate: from a clean tree (notes.json deleted) node verify.mjs failed at baseline and now passes — running src/cli.js twice persists notes.json with alpha/beta, prints '- <ISO timestamp> <text>' per line identically on both runs, and added notes survive store reload."
+  },
+  "pollSamples": 71
+}

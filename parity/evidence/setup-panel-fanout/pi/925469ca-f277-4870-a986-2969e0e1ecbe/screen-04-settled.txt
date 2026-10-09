@@ -1,0 +1,40 @@
+                                                                                                                       │
+ The three designs are structurally distinct:                                                                          │
+ - c1: composes Math.min and Math.max.                                                                                 │
+ - c2: uses explicit branches with validation. It throws on non-number or NaN input and swaps the bounds if lo > hi.   │
+ - c3: returns the median of [n, lo, hi] using a numeric sort. It returns NaN if any input is NaN, and it gives a      │
+   meaningless result if lo > hi.                                                                                      │
+                                                                                                                       │
+ I wrote fanout-note.md and done.txt (listLength=3 spawnCount=3 panelDriven=yes), then stopped. I did not run the      │
+ cross-judge, pick, graft or verify phases of the arena, so there is no synthesized artifact.                          │
+                                                                                                                       │
+ Files are in                                                                                                          │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/pi/:           │
+ - fanout-note.md                                                                                                      │
+ - done.txt                                                                                                            │
+                                                                                                                       │
+                                                                                                                       │
+ [system_notification]                                                                                                 │
+                                                                                                                       │
+ Agent "runner-c2" (general-purpose) has finished processing and is now idle. Use read_agent with agent_id             │
+ 5ef7bfb7-b715-4418-a43f-8ca9bfc000ba to read its response.                                                            │
+                                                                                                                       │
+                                                                                                                       │
+ That notification is for runner c2, which I already read. Nothing has changed, and all three runners were done before │
+ I wrote fanout-note.md and done.txt. done.txt reads listLength=3 spawnCount=3 panelDriven=yes.                        │
+                                                                                                                       │
+                                                                                                                       │
+ [system_notification]                                                                                                 │
+                                                                                                                       ┃
+ Agent "runner-c3" (general-purpose) has finished processing and is now idle. Use read_agent with agent_id             ┃
+ 6cb20e9d-d230-4fbe-bc0c-1bc06c69f9bf to read its response.                                                            ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Runner c3's report is the one I already read, so nothing new there. Everything is written, including done.txt         ┃
+ (listLength=3 spawnCount=3 panelDriven=yes), and I'm stopping here.                                                   ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-app (refactor/pi-pstack-parity-again)
+↑24 ↓2.4k R210k W23k CH99.5% $0.157 (sub) 3.1%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

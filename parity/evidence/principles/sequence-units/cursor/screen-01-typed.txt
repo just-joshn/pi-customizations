@@ -1,0 +1,15 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /run-everything to skip all approvals.
+
+
+
+                                                                                                                       
+  → [Pasted text #1 +1 lines]                                                                                          
+                                                                                                                       
+
+  Claude Haiku 5.5 300K High                                                                            Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-app · 
+  refactor/pi-pstack-parity-again

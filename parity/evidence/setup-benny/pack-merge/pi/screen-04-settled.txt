@@ -1,0 +1,40 @@
+ for f in FOR_AGENTS.md skills/setup-benny/SKILL.md skills/reproduce-and-fix-issues/SKILL.md                           │
+ skills/reproduce-and-fix-issues/references/control-adapter.md                                                         │
+ skills/reproduce-and-fix-issues/references/feature-map.example.md                                                     │
+ skills/reproduce-and-fix-issues/references/verify-existing-fix.md skills/triage-issue-reports/SKILL.md                │
+ skills/triage-issue-reports/references/routing.example.md templates/configuration.example.yaml                        │
+ templates/reproduce-automation-prompt.md templates/triage-automation-prompt.md DESTINATION_ONLY.md; do test -f $f ||  │
+ echo MISSING $f; done                                                                                                 │
+ diff -r ../../../.upstream/automations/benny . ; grep -c MARKER README.md DESTINATION_ONLY.md                         │
+ mkdir -p                                                                                                              │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/fixture-out/pi         │
+ echo "STATUS=merge-ok reason=pack merged, local edit and dest-only file preserved" >                                  │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/fixture-out/pi/done.tx │
+ t (timeout 20s)                                                                                                       │
+                                                                                                                       │
+ Unknown option: "-r"                                                                                                  │
+ README.md:1                                                                                                           │
+ DESTINATION_ONLY.md:1                                                                                                 │
+                                                                                                                       │
+ Took 0.2s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The pack-merge step is done, and I wrote STATUS=merge-ok reason=pack merged, local edit and dest-only file preserved  ┃
+ to fixture-out/pi/done.txt.                                                                                           ┃
+                                                                                                                       ┃
+ - Merge: I copied every missing pack file into .cursor/automations/benny/ without overwriting anything.               ┃
+ - README: README.md already matched the source plus your local addition, so I left it as is.                          ┃
+   PACK-MERGE-LOCAL-EDIT-MARKER is still there.                                                                        ┃
+ - Destination-only file: DESTINATION_ONLY.md is untouched, and PACK-MERGE-DEST-ONLY-MARKER is still there.            ┃
+ - Required files: All required pack files exist: FOR_AGENTS.md, skills/setup-benny/SKILL.md, both operational skills  ┃
+   with their references, and the templates.                                                                           ┃
+ - Not verified: My diff -r comparison failed with "Unknown option: -r", so I never confirmed the merged tree against  ┃
+   the source line by line. The check I relied on was file existence plus the two marker counts.                       ┃
+ - Left alone: .cursor/benny/ and .cursor/settings.json. I created no automation, did not edit the parity ledgers, and ┃
+   did not touch src/app.js.                                                                                           ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/fixture-app (refactor/pi-pstack-parity-a...
+↑10 ↓1.3k R89k W21k CH97.6% $0.114 (sub) 2.9%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

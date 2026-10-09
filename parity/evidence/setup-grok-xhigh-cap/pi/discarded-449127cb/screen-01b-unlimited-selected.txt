@@ -1,0 +1,36 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] setup-pstack (ctrl+o to expand)                                                                               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ AskQuestion Clarifying Questions (1)                                                                                  ┃
+ 1. Choose a pstack reasoning budget (current: small (medium)).                                                        ┃
+   [ ] unlimited — max reasoning                                                                                       ┃
+   [ ] large — xhigh reasoning                                                                                         ┃
+   [ ] medium — high reasoning                                                                                         ┃
+   [ ] small — medium reasoning                                                                                        ┃
+   [x] Other: unlimited                                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠹ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑6 ↓231 R35k W21k CH92.7% $0.094 (sub) 2.9%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

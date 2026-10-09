@@ -1,0 +1,39 @@
+            - "desktop-code-path-placeholder"
+          error_signatures:
+
+  The pack copy is already in place and matches the source. .cursor/settings.json is missing, so I'll add the pstack
+  entry first (setup step 1), then write the partial draft.
+
+    Edited settings.json +5
+
+    ▎    1 + {
+    ▎    2 +     "plugins": {
+    ▎    3 +         "pstack": { "enabled": true }
+    ▎    4 +     }
+    ▎    5 + }
+
+    Edited configuration.cursor.yaml +29
+
+    ▎    1 + # Partial user-owned draft. Setup is fail-closed: source_channel_id is unknown.
+    ▎    2 + # Do not enable either automation until every field below is explicit.
+    ▎    3 + 
+    ▎    4 + automations:
+    ▎    5 +   triage_name: "benny-triage"
+    ▎    6 +   reproduce_name: "benny-reproduce"
+    ▎    7 + 
+    ▎    8 + slack:
+    ▎    9 +   # UNKNOWN / TBD. Do not treat as a real channel.
+    ▎   10 +   source_channel_id: ""
+    ▎   11 +   operations_channel_id: ""
+    ▎   12 +   triage_identity_user_id: "U012FIXTURETRIAGE"
+    ▎   13  … truncated (17 more lines) · ctrl+r to review
+
+ ⠰⠳ Editing  9.1k tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Claude Haiku 5.5 300K High · 16.2% · 2 files edited                                                   Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/required-explicit/fixture-app · 
+  refactor/pi-pstack-parity-again

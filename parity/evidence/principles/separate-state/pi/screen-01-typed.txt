@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/poteto-mode Two workers in src/workers.js (runIndexer and runMetrics) both read-modify-write state/state.json.         
+Concurrent Promise.all runs lose one update. The facts are independent. Give each worker its own write target and       
+merge only in report(). node scripts/verify.mjs must print SEPARATE-OK separated=yes. For any poteto-mode principle     
+you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode            
+Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except    
+the named done path. When SEPARATE-OK separated=yes is on disk, write exactly one line to                               
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/fixture-out/pi/done.t 
+xt as verified=yes|no, then stop.                                                                                       
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/fixture-app (refactor/pi-pstack-parit...
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

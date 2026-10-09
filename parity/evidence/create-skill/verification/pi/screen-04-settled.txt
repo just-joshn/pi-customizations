@@ -1,0 +1,40 @@
+ - Description has trigger terms ("run the create-skill probe", "parity-create-skill-probe skill"), third person: PASS │
+ - Terminology consistent (probe / marker): PASS                                                                       │
+ - File refs one level deep: no references, only SKILL.md: PASS                                                        │
+ E (timeout 10s)                                                                                                       │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Verification is written to fixture-out/verification/pi/verify.md. All four checks pass:                               │
+                                                                                                                       │
+ - Length: SKILL.md is 13 lines.                                                                                       │
+ - Description: it has trigger terms.                                                                                  │
+ - Terminology: consistent.                                                                                            │
+ - File references: none; the skill directory holds only SKILL.md.                                                     │
+                                                                                                                       │
+ I'm now waiting for your next message, run the create-skill probe.                                                    │
+                                                                                                                       │
+                                                                                                                       ┃
+ run the create-skill probe                                                                                            ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ d=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/pi; ┃
+ echo "APPLIED=CREATE-SKILL-PROBE-MARKER" >> $d/verify.md; echo "STATUS=verified reason=checks passed and marker       ┃
+ applied" > $d/done.txt (timeout 10s)                                                                                  ┃
+                                                                                                                       ┃
+ (no output)                                                                                                           ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ CREATE-SKILL-PROBE-MARKER                                                                                             ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app (refactor/pi-pstack-parity-again)
+↑14 ↓813 R134k W24k CH99.4% $0.131 (sub) 3.2%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

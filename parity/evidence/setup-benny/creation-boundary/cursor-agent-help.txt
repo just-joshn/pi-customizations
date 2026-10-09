@@ -1,0 +1,24 @@
+Usage: cursor agent [options] [command] [prompt...]
+
+Start the Cursor Agent
+
+Arguments:
+  prompt                       Initial prompt for the agent
+
+Options:
+  -v, --version                Output the version number
+  --api-key <key>              API key for authentication (can also use
+                               CURSOR_API_KEY env var)
+  -H, --header <header>        Add custom header to agent requests (format:
+                               'Name: Value', can be used multiple times)
+  -e, --endpoint <url>         Target API endpoint URL (can also use
+                               CURSOR_API_ENDPOINT env var) (default:
+                               "https://api2.cursor.sh", env:
+                               CURSOR_API_ENDPOINT)
+  -p, --print                  Print responses to console (for scripts or
+                               non-interactive use). Has access to all tools,
+                               including write and shell. (default: false)
+  --output-format <format>     Output format (only works with --print): text |
+                               json | stream-json (default: "text")
+  --stream-partial-output      Stream partial output as individual text deltas
+  

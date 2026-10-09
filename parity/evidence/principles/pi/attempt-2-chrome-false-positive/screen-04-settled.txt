@@ -1,0 +1,40 @@
+ Root cause. The function returned a + b - 1. The stray - 1 was the whole bug.                                         │
+                                                                                                                       │
+ Fix. I changed the line to return a + b;. I touched nothing else and did not commit.                                  │
+                                                                                                                       │
+ Verification. I ran scripts/verify.mjs before and after the edit. It runs the real add and writes                     │
+ evidence/verify-out.txt.                                                                                              │
+                                                                                                                       │
+ Before:                                                                                                               │
+                                                                                                                       │
+ ```                                                                                                                   │
+   ADD-FAIL value=4 expected=5                                                                                         │
+ ```                                                                                                                   │
+                                                                                                                       │
+ After:                                                                                                                │
+                                                                                                                       │
+ ```                                                                                                                   │
+   ADD-OK value=5                                                                                                      │
+ ```                                                                                                                   │
+                                                                                                                       │
+ The script exited 0 after the fix. I wrote verified=yes to done.txt.                                                  │
+                                                                                                                       │
+ Principles. Fix Root Causes (principle-fix-root-causes) made me reproduce the failure before editing. Prove It Works  ┃
+ (principle-prove-it-works) made me check against the real script output rather than assume. I did not read either     ┃
+ leaf SKILL.md this session, so I am citing them by name only.                                                         ┃
+                                                                                                                       ┃
+ Skipped. I skipped the subagent delegation and the architect step because this is a one-line change. I skipped the    ┃
+ failing-test-first commit staging and the PR because you did not ask for them.                                        ┃
+
+[>] Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or instr...
+[ ] Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. Confirm the surviv...
+[ ] Plan the fix. If it crosses a function boundary, architect first. Delegate implementation to a subagent using you...
+[ ] Verify on the same surface. The original repro now passes. "Inconclusive" or wrong-surface is not a pass. Flag it...
+[ ] Stage the commits so the failing repro lands before the fix in git history. skip: no commit requested (pending)
+[ ] Run Opening a PR. skip: not requested, fixture cwd (pending)
+[ ] Write verified=yes|no to done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-app (refactor/pi-pstack-parity-again)
+↑14 ↓1.8k R179k W27k CH99.4% $0.163 (sub) 3.6%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

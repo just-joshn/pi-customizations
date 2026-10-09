@@ -1,0 +1,23 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use subagents to parallelize work and preserve context.
+
+                                                                                                                       
+  In this cwd, run exactly: bun run typecheck Do not edit files. Do not install packages. Do not change the            
+  store. After the command exits 0, paste the shell line that invoked tsc (the "$ tsc --project                        
+  watch-pr/tsconfig.json --noEmit --strict" line), confirm there were no type errors, then write exactly one           
+  line EXIT=0 to                                                                                                       
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/cursor/typecheck-       
+  done.txt and stop.                                                                                                   
+                                                                                                                       
+
+ ⠠⠛ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts · main · #330

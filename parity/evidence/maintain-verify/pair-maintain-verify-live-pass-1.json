@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "pairId": "maintain-verify-live-pass-1",
+  "scenarioRef": "setup-maintain-verify-live-pass",
+  "requirementIds": [
+    "PSTACK-SETUP-MAINTAIN-VERIFY-LIVE-PASS-001"
+  ],
+  "fixtureDigest": "sha256:5d65ce79a57ba326ce2bb3daff3c82735c3eeac7ea2d0ed1ff86b0c49135ce86",
+  "promptTemplateLivePass": "Run /maintain-verification-skill against seeded verify-hello-cli on fixture-app-live-pass. Source looks clean; still run Pass step 4 Live pass. Coordinator owns driving. Report LIVE_PASS_* marker lines including doctor-before-drive, evidence-survives-cleanup, no leftover residue, final teardown, evidence remains. Prefer OUTCOME=clean when live coverage passes with no skill edits.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/maintain-verification-skill live-pass prompt"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "fixture-out/live-pass/<side>/live-pass-marker.txt with LIVE_PASS_RAN=yes and OUTCOME=clean|changed|blocked"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "311766cd-245f-4bfb-8ade-d9235193c6a9",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/cursor/311766cd-245f-4bfb-8ade-d9235193c6a9",
+    "afterDigest": "sha256:5d65ce79a57ba326ce2bb3daff3c82735c3eeac7ea2d0ed1ff86b0c49135ce86",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass/.cursor/skills/verify-hello-cli/SKILL.md",
+    "markerPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/live-pass/cursor/live-pass-marker.txt",
+    "observations": {
+      "maintainRan": true,
+      "livePassRan": true,
+      "sourceLookedClean": true,
+      "coordinatorOwnedDriving": true,
+      "featuresExercised": 1,
+      "doctorBeforeDrive": true,
+      "evidenceSurvivesCleanup": true,
+      "noLeftoverResidue": true,
+      "doctorDriftRetry": "na",
+      "verifiedUnreachable": "na",
+      "harnessRedrive": "na",
+      "finalTeardown": true,
+      "evidenceRemainsAtSettle": true,
+      "evidenceOnDiskAtSettle": {
+        "stdout": "HELLO-FAMILY-13\n",
+        "exitCode": "0",
+        "helloOk": true
+      },
+      "evidenceOnDiskNow": "missing; later Pi seedSkills wiped .cursor/evidence on shared fixture-app-live-pass",
+      "outcome": "clean",
+      "blocker": "none",
+      "livePassClaimOkAtSettle": true,
+      "modelChrome": "Claude Opus 5.5 300K Medium",
+      "skillSlashNote": "Settled screen says /maintain-verification-skill was not installed in session; agent followed cached pstack plugin definition and drove live itself."
+    }
+  },
+  "pi": {
+    "attemptId": "2f0c388b-c4fc-4763-9cab-0f0aa377ae69",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/pi/2f0c388b-c4fc-4763-9cab-0f0aa377ae69",
+    "afterDigest": "sha256:5d65ce79a57ba326ce2bb3daff3c82735c3eeac7ea2d0ed1ff86b0c49135ce86",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "sessionNote": "PI_CODING_AGENT_DIR=/tmp/pi-ref-agent",
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass/.pi/skills/verify-hello-cli/SKILL.md",
+    "markerPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/live-pass/pi/live-pass-marker.txt",
+    "observations": {
+      "maintainRan": true,
+      "livePassRan": true,
+      "sourceLookedClean": true,
+      "coordinatorOwnedDriving": true,
+      "featuresExercised": 1,
+      "doctorBeforeDrive": true,
+      "evidenceSurvivesCleanup": true,
+      "noLeftoverResidue": true,
+      "doctorDriftRetry": "na",
+      "verifiedUnreachable": "na",
+      "harnessRedrive": "na",
+      "finalTeardown": true,
+      "evidenceRemainsAtSettle": true,
+      "evidenceOnDiskNow": {
+        "stdout": "HELLO-FAMILY-13\n",
+        "exitCode": "0",
+        "helloOk": true,
+        "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass/.pi/evidence/verify-hello-cli"
+      },
+      "outcome": "clean",
+      "blocker": "none",
+      "livePassClaimOkAtSettle": true,
+      "sourceWaveSkippedConcurrentChildren": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "live pass when source clean",
+      "cursor": "Marker LIVE_PASS_RAN=yes SOURCE_LOOKED_CLEAN=yes. Settled screen: doctor then drive of hello print; HELLO-FAMILY-13 evidence; OUTCOME=clean.",
+      "pi": "Marker LIVE_PASS_RAN=yes SOURCE_LOOKED_CLEAN=yes. Settled screen: doctor then fresh ./hello.sh drive; evidence under .pi/evidence/verify-hello-cli; OUTCOME=clean.",
+      "reconciled": true
+    },
+    {
+      "topic": "coordinator owns driving",
+      "cursor": "COORDINATOR_OWNED_DRIVING=yes. Screen: coordinator ran doctor/drive in a fresh isolated shell; source-wave child was read-only.",
+      "pi": "COORDINATOR_OWNED_DRIVING=yes. Screen: drove live itself; skipped source-wave subagent and read the feature file directly.",
+      "reconciled": true
+    },
+    {
+      "topic": "doctor-before-drive + evidence + teardown",
+      "cursor": "DOCTOR_BEFORE_DRIVE=yes, EVIDENCE_SURVIVES_CLEANUP=yes, NO_LEFTOVER_RESIDUE=yes, FINAL_TEARDOWN=yes, EVIDENCE_REMAINS=yes. At settle, capture recorded stdout HELLO-FAMILY-13 and exit 0 under .cursor/evidence/verify-hello-cli.",
+      "pi": "Same marker yes lines. On-disk now: stdout HELLO-FAMILY-13, empty stderr, exit 0 under .pi/evidence/verify-hello-cli.",
+      "reconciled": true
+    },
+    {
+      "topic": "post-pair Cursor evidence path",
+      "cursor": "After Pi capture seed, .cursor/evidence is gone on the shared fixture. Within-run survival is proven only by settle observations + screen, not by a surviving path today.",
+      "pi": "Evidence path still present after its own run.",
+      "reconciled": false
+    },
+    {
+      "topic": "failure-path live-pass branches",
+      "cursor": "DOCTOR_DRIFT_RETRY=na VERIFIED_UNREACHABLE=na HARNESS_REDRIVE=na on clean path.",
+      "pi": "Same na markers on clean path.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Status chrome Claude Opus 5.5 300K Medium.",
+      "pi": "Status chrome claude-sonnet-5-5 medium via claude-subscription.",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-maintain-verify-live-pass.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass",
+    "decisionLog": "parity/evidence/maintain-verify/.audit/u-journey-setup-maintain-verify-live-pass.tsv",
+    "notes": "Dedicated fixture-app-live-pass avoids racing outcomes/source-wave on fixture-app. Clean-path live-pass invariants paired. Doctor-drift retry, verified-unreachable, and harness redrive branches not exercised. Capture seedSkills initially wiped sibling host evidence; script now wipes only the active host. Ledgers not edited. No commit."
+  }
+}

@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────── ↑ 19 more ───────────────────────────────────────────────────────
+EVIDENCE_SURVIVES_CLEANUP=<yes|no>                                                                                      
+NO_LEFTOVER_RESIDUE=<yes|no>                                                                                            
+DOCTOR_DRIFT_RETRY=<na|yes|no>                                                                                          
+VERIFIED_UNREACHABLE=<na|yes|no>                                                                                        
+HARNESS_REDRIVE=<na|yes|no>                                                                                             
+FINAL_TEARDOWN=<yes|no>                                                                                                 
+EVIDENCE_REMAINS=<yes|no>                                                                                               
+EVIDENCE_PATH=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live- 
+pass/.pi/evidence/verify-hello-cli                                                                                      
+OUTCOME=<clean|changed|blocked>                                                                                         
+BLOCKER=<none|short reason>                                                                                             
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass (refactor/pi-pstack-parit...
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

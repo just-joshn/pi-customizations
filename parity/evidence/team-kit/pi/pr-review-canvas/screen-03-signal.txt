@@ -1,0 +1,40 @@
+    ✓ auto (project)                                                                                                   │
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/new-branch-and-pr/SKILL.md                │
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/new-branch-and-pr/SKILL.md (skipped)           │
+  "pr-review-canvas" collision:                                                                                        │
+    ✓ auto (project)                                                                                                   │
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/pr-review-canvas/SKILL.md                 │
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/pr-review-canvas/SKILL.md (skipped)            │
+  "tdd" collision:                                                                                                     │
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] pr-review-canvas (ctrl+o to expand)                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Do not ask questions. Follow the pr-review-canvas skill. Generate an interactive HTML review for                      ┃
+ https://github.com/just-joshn/team-kit-gh-fixture/pull/1. Use gh api for PR metadata/files/comments. Inject           ┃
+ styles.css and renderer.js from the skill directory. Write the final HTML to                                          ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/pr-review-canvas/revi ┃
+ ew-canvas.html. It must include the PR title or number and marker FIXTURE_CANVAS. Do not open a browser. When the     ┃
+ HTML file is written with FIXTURE_CANVAS, write STATUS=verified. Then write exactly one line to                       ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/pr-review-canvas/done ┃
+ .txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under    ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/pr-review-canvas. Do  ┃
+ not edit parity ledgers. Do not force-push.                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/pr-review-canvas; ls;        ┃
+ R=just-joshn/team-kit-gh-fixture; gh api repos/$R/pulls/1 --jq '{title, body, user: .user.login, state, additions,    ┃
+ deletions, changed_files, base: .base.ref, head: .head.ref}'; gh api repos/$R/pulls/1/files --paginate --jq '.[] |    ┃
+ {filename, status, additions,                                                                                         ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (fixture/pr-comments-seed)
+$0.000 (sub) 1.8%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

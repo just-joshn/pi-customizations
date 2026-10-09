@@ -1,0 +1,39 @@
+
+  Skill files on disk:
+
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/SKILL.md
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/features/README.md
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/features/hello-print.md
+
+                                                                                                                       
+  Second turn reuse. Discover the verify-hello-cli skill you just generated at                                         
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil       
+  ls/verify-hello-cli/SKILL.md. Do not regenerate it. Read its Launch or Doctor section, then write exactly one        
+  line to                                                                                                              
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/reuse       
+  .txt:                                                                                                                
+  REUSED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.curs       
+  or/skills/verify-hello-cli/SKILL.md. Stop after that write.                                                          
+                                                                                                                       
+
+    Used verify-hello-cli
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor
+    && printf '%s\n' 'REUSED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fix
+    ture-app/.cursor/skills/verify-hello-cli/SKILL.md' >
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/reuse.txt
+    186ms
+
+  Wrote reuse.txt with the REUSED path.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11.5% · 3 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app · refactor/pi-pstack-parity-again

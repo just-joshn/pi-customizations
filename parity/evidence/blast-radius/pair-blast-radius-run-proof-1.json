@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "pairId": "blast-radius-run-proof-1",
+  "scenarioRef": "cmd-blast-radius-run-proof",
+  "journeyFamily": "journey-family-10-pr-and-stack-workflows",
+  "requirementIds": [
+    "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "single turn /blast-radius on CHANGE.diff that flips ttl===0 immortal to dead; require certainty step 4 or named cheaper stop; write PROOF= line to host-specific fixture-out done.txt",
+  "steps": [
+    { "send": "/blast-radius review the candidate change in CHANGE.diff ... step 4 usual target ... PROOF= line" },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "10de693f-5087-438e-bd91-5cd266fc75e3",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/cursor/10de693f-5087-438e-bd91-5cd266fc75e3",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "outcome": "run_proof",
+      "contractHeld": true,
+      "engaged": true,
+      "runEvidence": true,
+      "certaintyStated": true,
+      "doneMarkerWritten": true,
+      "doneLine": "PROOF=step4 certainty=4 fact=ttl0-immortal-sessions-purged",
+      "proofLevel": "step4",
+      "screenRanCode": false,
+      "ptyRanCode": true,
+      "skillChrome": true,
+      "verdictOnChange": "unsafe (immortal ttl:0 sessions purged)"
+    }
+  },
+  "pi": {
+    "attemptId": "25fbb44d-c4bd-40ea-a4e5-c46f62166074",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/pi/25fbb44d-c4bd-40ea-a4e5-c46f62166074",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-blast-radius-fixture-app--/2026-10-09T00-02-07-208Z_01a11df7-94e8-74d7-ac8b-a11d5660280a.jsonl",
+    "observations": {
+      "outcome": "run_proof",
+      "contractHeld": true,
+      "engaged": true,
+      "runEvidence": true,
+      "certaintyStated": true,
+      "doneMarkerWritten": true,
+      "doneLine": "PROOF=step4 certainty=4 fact=sessionStore.retainLive relies on isExpired(ttl:0)=false for immortal sessions; change purges them (UNSAFE)",
+      "proofLevel": "step4",
+      "screenRanCode": true,
+      "ptyRanCode": true,
+      "skillRead": true,
+      "ranCodeTools": true,
+      "sessionToolOrder": [
+        "bash",
+        "bash",
+        "bash(run-code)"
+      ],
+      "retainedProof": "parity/evidence/blast-radius/retained-proofs/prove-unsafe.mjs",
+      "verdictOnChange": "unsafe (immortal ttl:0 sessions purged)"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "run-proof certainty step 4",
+      "cursor": "PROOF=step4 certainty=4. Settled screen cites prove-unsafe.mjs against real modules; PTY shows node run. Contract held.",
+      "pi": "PROOF=step4 certainty=4. Session toolOrder includes bash(run-code); settled screen names prove-unsafe.mjs. Contract held.",
+      "reconciled": true
+    },
+    {
+      "topic": "safety verdict on CHANGE.diff",
+      "cursor": "Unsafe. ttl===0 immortal flipped to dead; retainLive would purge those sessions.",
+      "pi": "Unsafe. Same immortal-session purge finding, with before/after retainLive([]) proof narrative.",
+      "reconciled": true
+    },
+    {
+      "topic": "proof artifact retention",
+      "cursor": "Named prove-unsafe.mjs on screen; harness artifact filter (proofs|scripts|test) missed cwd-root script; PTY ranCode still true.",
+      "pi": "Left prove-unsafe.mjs at fixture cwd root; retained under retained-proofs/ after capture.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    },
+    {
+      "topic": "exact PROOF fact string",
+      "cursor": "ttl0-immortal-sessions-purged",
+      "pi": "longer fact naming sessionStore.retainLive and UNSAFE",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-blast-radius-run-proof.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/blast-radius/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/blast-radius/.audit/u-journey-cmd-blast-radius.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "heldOutFixture": "parity/evidence/blast-radius/fixture-app (CHANGE.diff flips ttl===0 immortal to dead)",
+    "markerRoot": "parity/evidence/blast-radius/fixture-out/{cursor,pi}/",
+    "locks": {
+      "pstackModelsMdc": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "cursorAgent": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233",
+      "pi": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    }
+  }
+}

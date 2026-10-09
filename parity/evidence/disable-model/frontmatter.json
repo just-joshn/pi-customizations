@@ -1,0 +1,14 @@
+{
+  "cursor": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/how/SKILL.md",
+    "ok": true,
+    "name": "how",
+    "disableModelInvocation": true
+  },
+  "pi": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/how/SKILL.md",
+    "ok": true,
+    "name": "how",
+    "disableModelInvocation": true
+  }
+}

@@ -1,0 +1,40 @@
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure; mkdir -p    │
+ fixture-out/pi; printf 'verified=yes\n' > fixture-out/pi/done.txt; cat fixture-out/pi/done.txt (timeout 10s)          │
+                                                                                                                       │
+ verified=yes                                                                                                          │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ node scripts/verify.mjs now prints ENCODE-OK, and evidence/verify-out.txt contains the same line. I wrote             │
+ verified=yes to fixture-out/pi/done.txt.                                                                              │
+                                                                                                                       │
+ - Config: src/config.js now returns ALLOW_DEBUG: false.                                                               │
+ - Lint: I added scripts/check-debug.mjs. It scans src/ for ALLOW_DEBUG set to true and exits 1 if it finds one. I ran │
+   it standalone and it passed after the config fix. It failed on the original config.                                 │
+ - Prose: I did not add a second reminder to CONTRIBUTING.md. NOTES.md stays the only prose copy.                      │
+                                                                                                                       │
+ I applied principle-encode-lessons-in-structure, whose leaf SKILL.md I read in full. It turned the requested second   │
+ reminder into the check script.                                                                                       ┃
+                                                                                                                       ┃
+ Nothing runs check-debug.mjs automatically. It only runs when someone calls it directly. verify.mjs detects its       ┃
+ presence rather than running it.                                                                                      ┃
+
+[>] `how` over the affected subsystem. skip: tiny fixture, read directly (in_progress)
+[ ] `architect` for parallel design exploration. skip: single-file check (pending)
+[ ] Throughput checkpoint. n/a: single small fixture, one owner, no fan-out or shared state (pending)
+[ ] Delegate code-writing to a subagent. skip: owning the diff directly, tiny scope (pending)
+[ ] Verify on the matching surface: run node scripts/verify.mjs (pending)
+[ ] Rebase into small commits. skip: not a git workflow here (pending)
+[ ] interrogate. skip: not contested (pending)
+[ ] Opening a PR. skip: no PR requested (pending)
+... 1 more
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-app (refactor/pi-pstack-par...
+↑18 ↓2.6k R267k W32k CH99.5% $0.206 (sub) 4.0%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

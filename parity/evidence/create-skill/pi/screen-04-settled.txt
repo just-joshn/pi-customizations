@@ -1,0 +1,40 @@
+ ---                                                                                                                   │
+                                                                                                                       │
+ # Parity Create-Skill Probe                                                                                           │
+                                                                                                                       │
+ ## Instructions                                                                                                       │
+                                                                                                                       │
+ ... (3 more lines, 13 total, ctrl+o to expand)                                                                        │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/pi &&     │
+ echo "STATUS=wrote reason=skill file created" >                                                                       │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/pi/done.txt; ls      │
+ .pi/skills/parity-create-skill-probe (timeout 10s)                                                                    │
+                                                                                                                       │
+ SKILL.md                                                                                                              │
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Thinking...                                                                                                           ┃
+                                                                                                                       ┃
+ I wrote .pi/skills/parity-create-skill-probe/SKILL.md. It's a project skill with no supporting files or scripts, and  ┃
+ I didn't run it or test discovery.                                                                                    ┃
+                                                                                                                       ┃
+ - Frontmatter: name is parity-create-skill-probe. The third-person description includes the phrases "create-skill     ┃
+   probe" and "parity-create-skill-probe". I also set disable-model-invocation: true, which is the create-skill        ┃
+   default.                                                                                                            ┃
+ - Body: It tells the agent to reply to "run the create-skill probe" with CREATE-SKILL-PROBE-MARKER on its own line.   ┃
+   The file is well under 80 lines.                                                                                    ┃
+ - Status file: fixture-out/pi/done.txt contains the single line STATUS=wrote reason=skill file created. I created the ┃
+   pi directory to write it.                                                                                           ┃
+                                                                                                                       ┃
+ I didn't touch the parity ledgers, parity/mismatches.json, parity/requirements.json or parity/progress.md.            ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app (refactor/pi-pstack-parity-again)
+↑6 ↓846 R39k W23k CH98.2% $0.110 (sub) 3.2%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

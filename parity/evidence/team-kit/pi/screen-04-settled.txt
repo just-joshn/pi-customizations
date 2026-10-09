@@ -1,0 +1,40 @@
+ Claim: fixture-app/probe.txt contains a line exactly equal to `VALUE=7` (grep -x). Falsified if no such line exists.  │
+ E                                                                                                                     │
+ cat -A probe.txt > $O/verify-this/baseline/probe.txt.out; grep -nx 'VALUE=7' probe.txt >                              │
+ $O/verify-this/baseline/grep.out                                                                                      │
+ cat -A probe.txt > $O/verify-this/treatment/probe.txt.out; grep -nx 'VALUE=7' probe.txt >                             │
+ $O/verify-this/treatment/grep.out                                                                                     │
+ cat > $O/verify-this/verdict.md <<'E'                                                                                 │
+ VERIFIED                                                                                                              │
+                                                                                                                       │
+ Claim: probe.txt contains exact line VALUE=7.                                                                         │
+                                                                                                                       │
+ Evidence: baseline=`VALUE=7$` (grep -nx match at line 1), treatment (unedited file) identical, delta=none,            │
+ threshold=exact line match.                                                                                           │
+                                                                                                                       │
+ Reasoning: The file is 8 bytes, a single line `VALUE=7` plus newline; no confounds.                                   │
+ E                                                                                                                     │
+ echo 'STATUS=verified reason=probe.txt has exact line VALUE=7' > $O/done.txt (timeout 20s)                            │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ VERIFIED                                                                                                              ┃
+                                                                                                                       ┃
+ Claim: probe.txt contains the exact line VALUE=7.                                                                     ┃
+                                                                                                                       ┃
+ Evidence: baseline and treatment (the same file, unedited) both show VALUE=7$, an 8-byte file. grep -nx matches it at ┃
+ line 1 in both. Delta is none, against a threshold of an exact line match.                                            ┃
+                                                                                                                       ┃
+ Reasoning: The file is a single line, VALUE=7 plus a newline. I found no confounds.                                   ┃
+                                                                                                                       ┃
+ I wrote claim.md, verdict.md and the baseline and treatment outputs under verify-this/ in the fixture-out directory.  ┃
+ I also wrote done.txt there as STATUS=verified reason=probe.txt has exact line VALUE=7.                               ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-app (refactor/pi-pstack-parity-again)
+↑8 ↓968 R61k W19k CH97.9% $0.097 (sub) 2.7%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

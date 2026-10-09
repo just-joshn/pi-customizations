@@ -1,0 +1,1 @@
+STATUS=key-server-ok reason=probe HTTP 200 via server relay, ignored in routine transcript; key stayed server-side

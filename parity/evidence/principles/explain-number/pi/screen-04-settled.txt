@@ -1,0 +1,40 @@
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-out/pi/done │
+ .txt (timeout 20s)                                                                                                    │
+                                                                                                                       │
+ EXPLAIN-OK                                                                                                            │
+ EXPLAIN-OK                                                                                                            │
+ verified=yes                                                                                                          │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ evidence/verify-out.txt now contains EXPLAIN-OK, and done.txt contains verified=yes. The report is                    │
+ evidence/explain-report.md. I read the leaf principle-explain-the-number SKILL.md in full before applying it.         │
+                                                                                                                       │
+ - Speedup. The measured speedup is 4.7x, not 4.8x. The ratio of means is 413.2 ms over 87.6 ms, which is 4.72x.       │
+   RESULTS.md rounds it up.                                                                                            │
+ - Runs and spread. There were 5 warm runs per side. Baseline ranged 408 to 421 ms and optimized ranged 84 to 91 ms.   │
+   Pairing the extremes gives a ratio range of 4.48x to 5.01x.                                                         │
+ - Limiter. The optimized path is bounded by the single-threaded parse loop in src/parse.js. data/profile-notes.txt    │
+   shows one CPU core near 100% while the others idled, and rules out disk, network and the load generator.            │
+ - Ruled out. Cold-cache runs were discarded, and noise is small next to the gap.                                      │
+ - Not ruled out. Neither artifact records output counts or errors for the 10k records, so failed or skipped work is   │
+   unchecked. The baseline's settings are also unrecorded, so an untuned baseline is not ruled out. I listed both as   │
+   open gaps in the report.                                                                                            ┃
+                                                                                                                       ┃
+ The principle changed two things. It made me ask why the result is not higher, which gave the single-core limiter. It ┃
+ also made me report the ratio and its range, not the bare 4.8x.                                                       ┃
+                                                                                                                       ┃
+ I would not ship on the number alone until those two gaps are closed. A quick check of parsed record counts on both   ┃
+ sides would cover the first one.                                                                                      ┃
+
+[x] Investigation: Route through the how skill. For motivation questions, also route through the why skill. skip: fix...
+[x] throughput checkpoint: n/a, read-only investigation (completed)
+[>] Produce the how-shaped output or recommendation. skip: output is evidence/explain-report.md (in_progress)
+[ ] Apply the unslop skill to the reply (pending)
+[ ] Write evidence/explain-report.md, run node scripts/verify.mjs, write done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-app (refactor/pi-pstack-parit...
+↑14 ↓2.7k R183k W29k CH99.2% $0.180 (sub) 3.8%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

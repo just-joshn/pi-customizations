@@ -1,0 +1,47 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": false,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "pty": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": true,
+    "working": true,
+    "fixtureComment": false,
+    "fixtureGuidance": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/pr-review-canvas/done.txt",
+    "line": "STATUS=verified reason=canvas written with marker",
+    "status": "verified"
+  },
+  "post": {
+    "artifactHasMarker": true,
+    "hasHtmlStructure": true,
+    "artifactBytes": 14154
+  },
+  "sideCtx": {},
+  "seededSkill": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/pr-review-canvas/SKILL.md",
+    "sha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6"
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "artifactOk": true,
+    "post": {
+      "artifactHasMarker": true,
+      "hasHtmlStructure": true,
+      "artifactBytes": 14154
+    },
+    "closed": true,
+    "honestBlocker": false
+  }
+}

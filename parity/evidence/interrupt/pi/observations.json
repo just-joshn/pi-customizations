@@ -1,0 +1,62 @@
+{
+  "ready": {
+    "howSkill": false,
+    "midFlightSignal": false,
+    "working": false,
+    "cancelledMarkerMention": false,
+    "redirectMarkerMention": false,
+    "redirectAnswer": false,
+    "cancelChrome": false
+  },
+  "mid": {
+    "howSkill": true,
+    "midFlightSignal": true,
+    "working": true,
+    "cancelledMarkerMention": true,
+    "redirectMarkerMention": false,
+    "redirectAnswer": false,
+    "cancelChrome": true
+  },
+  "midMarkers": {
+    "cancelledPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/fixture-out/pi/cancelled-how.txt",
+    "redirectPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/fixture-out/pi/redirect-ok.txt",
+    "cancelled": null,
+    "redirect": null,
+    "redirectOk": false,
+    "cancelledCompleted": false
+  },
+  "afterCancel": {
+    "howSkill": true,
+    "midFlightSignal": true,
+    "working": false,
+    "cancelledMarkerMention": true,
+    "redirectMarkerMention": false,
+    "redirectAnswer": false,
+    "cancelChrome": true
+  },
+  "afterCancelMarkers": {
+    "cancelledPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/fixture-out/pi/cancelled-how.txt",
+    "redirectPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/fixture-out/pi/redirect-ok.txt",
+    "cancelled": null,
+    "redirect": null,
+    "redirectOk": false,
+    "cancelledCompleted": false
+  },
+  "final": {
+    "howSkill": true,
+    "midFlightSignal": true,
+    "working": false,
+    "cancelledMarkerMention": true,
+    "redirectMarkerMention": true,
+    "redirectAnswer": true,
+    "cancelChrome": true
+  },
+  "finalMarkers": {
+    "cancelledPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/fixture-out/pi/cancelled-how.txt",
+    "redirectPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/fixture-out/pi/redirect-ok.txt",
+    "cancelled": null,
+    "redirect": "REDIRECT-OK",
+    "redirectOk": true,
+    "cancelledCompleted": false
+  }
+}

@@ -1,0 +1,52 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] setup-pstack (ctrl+o to expand)                                                                               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ AskQuestion Clarifying Questions (1)                                                                                  ┃
+ 1. Choose a reasoning budget (current: small (medium); all roles inherit-parent).                                     ┃
+   [ ] unlimited — max reasoning                                                                                       ┃
+   [ ] large — xhigh reasoning                                                                                         ┃
+   [ ] medium — high reasoning                                                                                         ┃
+   [ ] small — medium reasoning                                                                                        ┃
+   [x] Other: small                                                                                                    ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Thinking...                                                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ Clarifying Questions                                                                                               │
+ │                                                                                                                    │
+ │ Question 1 of 1                                                                                                    │
+ │                                                                                                                    │
+ │ 1. All 17 roles are currently inherit-parent (no dropped lines). Accept as-is?                                     │
+ │                                                                                                                    │
+ │   › [ ] Accept as-is                                                                                               │
+ │     [ ] Change specific roles                                                                                      │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑8 ↓417 R63k W20k CH99.1% $0.098 (sub) 2.9%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

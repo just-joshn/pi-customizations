@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "pairId": "team-kit-what-did-i-get-done-1",
+  "scenarioRef": "team-kit:what-did-i-get-done",
+  "journeyFamily": "cursor-team-kit",
+  "skillId": "what-did-i-get-done",
+  "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/what-did-i-get-done/SKILL.md",
+  "skillMdSha256": "479813c9abaacb5b6b0531f1de7dc5eb2f3bd9673707a992d1073335836e82f8",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/what-did-i-get-done ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "STATUS=verified with skill oracle, or STATUS=env-blocked"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "693fb3db-8e81-4107-8653-7512c032efe5",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/what-did-i-get-done/cursor/693fb3db-8e81-4107-8653-7512c032efe5",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/what-did-i-get-done/done.txt",
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "summaryExists": true,
+        "mentionsAlpha": true,
+        "hasRange": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/what-did-i-get-done/done.txt",
+          "line": "STATUS=verified reason=authored commits summarized",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "pi": {
+    "attemptId": "ae92f0cb-5421-4182-bdd4-575c3110ba71",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/what-did-i-get-done/pi/ae92f0cb-5421-4182-bdd4-575c3110ba71",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/what-did-i-get-done/done.txt",
+    "seededSkill": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/what-did-i-get-done/.pi/skills/what-did-i-get-done/SKILL.md",
+      "sha256": "479813c9abaacb5b6b0531f1de7dc5eb2f3bd9673707a992d1073335836e82f8"
+    },
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "summaryExists": true,
+        "mentionsAlpha": true,
+        "hasRange": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/what-did-i-get-done/done.txt",
+          "line": "STATUS=verified reason=summary written from 2 authored commits",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "skillClosure": {
+    "what-did-i-get-done": "closed_by_this_pair"
+  },
+  "note": "Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/.",
+  "verdict": "pass"
+}

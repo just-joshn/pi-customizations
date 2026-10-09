@@ -1,0 +1,2 @@
+LOCATED=none
+CREATE_OFFERED=yes

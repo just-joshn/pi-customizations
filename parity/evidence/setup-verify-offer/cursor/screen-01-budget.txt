@@ -1,0 +1,39 @@
+                                                                                                                       
+
+  I'll load the current pstack model rule and confirm which subagent model slugs this session can use, then ask for
+  your budget.
+
+    Read /Users/josh-desktop/.cursor/rules/pstack-models.mdc
+
+    Explored available MCP tools pattern AskQuestion|ask
+
+  Detected Task subagent slugs for this session:
+
+  • claude-fable-5-1-thinking-high
+  • claude-opus-5-5-medium
+  • claude-sonnet-5-5-medium
+  • composer-2.5-fast
+  • cursor-grok-4.6-high-fast
+  • gemini-3.8-flash-high
+  • gpt-5.6-sol-medium
+  • grok-4.7-high
+  • muse-spark-1.3-high
+
+  Plus always-valid aliases: inherit-parent, auto.
+
+  Current rule budget: small — medium reasoning (every role is inherit-parent).
+
+  Pick a budget:
+
+  1. unlimited — keep max
+  2. large — xhigh reasoning
+
+ ⠠⠛ Working  644 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto · 9.1%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-verify-offer/fixture-app · 
+  refactor/pi-pstack-parity-again

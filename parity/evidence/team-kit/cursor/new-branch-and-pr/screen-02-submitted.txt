@@ -1,0 +1,18 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /mcp to connect Cursor to your tools and data sources.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+ ⠠⠛ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh · main

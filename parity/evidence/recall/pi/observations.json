@@ -1,0 +1,124 @@
+{
+  "skillActivated": true,
+  "screenScore": {
+    "hasCapsuleHeading": true,
+    "hasThreadsHeading": true,
+    "hasProblemsHeading": true,
+    "hasNextHeading": true,
+    "capsuleBullets": 0,
+    "threadCount": 0,
+    "taggedThreadCount": 0,
+    "problemsBullets": 0,
+    "nextLineCount": 0,
+    "nextLine": null,
+    "threads": [],
+    "capsuleOk": false,
+    "threadsOk": false,
+    "problemsOk": false,
+    "nextOk": false,
+    "contractHeld": false
+  },
+  "ptyScore": {
+    "hasCapsuleHeading": true,
+    "hasThreadsHeading": true,
+    "hasProblemsHeading": true,
+    "hasNextHeading": true,
+    "capsuleBullets": 0,
+    "threadCount": 0,
+    "taggedThreadCount": 0,
+    "problemsBullets": 0,
+    "nextLineCount": 0,
+    "nextLine": null,
+    "threads": [],
+    "capsuleOk": false,
+    "threadsOk": false,
+    "problemsOk": false,
+    "nextOk": false,
+    "contractHeld": false
+  },
+  "briefScore": {
+    "hasCapsuleHeading": true,
+    "hasThreadsHeading": true,
+    "hasProblemsHeading": true,
+    "hasNextHeading": true,
+    "capsuleBullets": 5,
+    "threadCount": 4,
+    "taggedThreadCount": 4,
+    "problemsBullets": 5,
+    "nextLineCount": 1,
+    "nextLine": "Run the skill's Launch prove against hello.sh on feature/hello-cli and assert that stdout contains HELLO-FAMILY-13 (not just exit code). Save the output to evidence/hello-print, then check that PR #42 does the same.",
+    "threads": [
+      "[in flight feature/hello-cli] verify-hello-cli skill created, prove and maintain not run (a1b2c3d4-...).",
+      "[reverted #41] Prove wrapper reverted after exit 0 with empty stdout (b2c3d4e5-...; pr-notes.md).",
+      "[open PR #42] Draft re-adds Launch prove with HELLO-FAMILY-13 stdout assertion (pr-notes.md).",
+      "[planned, not started] Maintain offer after generate-then-reuse (user-reports.md)."
+    ],
+    "capsuleOk": true,
+    "threadsOk": true,
+    "problemsOk": true,
+    "nextOk": true,
+    "contractHeld": true
+  },
+  "sessionScore": {
+    "hasCapsuleHeading": true,
+    "hasThreadsHeading": true,
+    "hasProblemsHeading": true,
+    "hasNextHeading": true,
+    "capsuleBullets": 0,
+    "threadCount": 0,
+    "taggedThreadCount": 0,
+    "problemsBullets": 13,
+    "nextLineCount": 0,
+    "nextLine": null,
+    "threads": [],
+    "capsuleOk": false,
+    "threadsOk": false,
+    "problemsOk": false,
+    "nextOk": false,
+    "contractHeld": false
+  },
+  "bestScore": {
+    "hasCapsuleHeading": true,
+    "hasThreadsHeading": true,
+    "hasProblemsHeading": true,
+    "hasNextHeading": true,
+    "capsuleBullets": 5,
+    "threadCount": 4,
+    "taggedThreadCount": 4,
+    "problemsBullets": 5,
+    "nextLineCount": 1,
+    "nextLine": "Run the skill's Launch prove against hello.sh on feature/hello-cli and assert that stdout contains HELLO-FAMILY-13 (not just exit code). Save the output to evidence/hello-print, then check that PR #42 does the same.",
+    "threads": [
+      "[in flight feature/hello-cli] verify-hello-cli skill created, prove and maintain not run (a1b2c3d4-...).",
+      "[reverted #41] Prove wrapper reverted after exit 0 with empty stdout (b2c3d4e5-...; pr-notes.md).",
+      "[open PR #42] Draft re-adds Launch prove with HELLO-FAMILY-13 stdout assertion (pr-notes.md).",
+      "[planned, not started] Maintain offer after generate-then-reuse (user-reports.md)."
+    ],
+    "capsuleOk": true,
+    "threadsOk": true,
+    "problemsOk": true,
+    "nextOk": true,
+    "contractHeld": true
+  },
+  "contractHeld": true,
+  "brief": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/recall/fixture-out/pi/brief.md",
+    "text": "# Recall: hello-cli verification (scope: this fixture, last 7 days; seed/ only)\n\n## Capsule\n- verify-hello-cli was generated for hello.sh (expected output HELLO-FAMILY-13); prove and maintain were deliberately skipped (a1b2c3d4-e5f6-7890-abcd-ef1234567890).\n- evidence/hello-print is empty, so nothing is proven yet (a1b2c3d4-...).\n- An earlier prove wrapper (PR #41) shipped and was reverted for flaky exit codes (b2c3d4e5-f6a7-8901-bcde-f12345678901; shared-record/pr-notes.md).\n- Draft PR #42 re-adds Launch prove with a stdout assertion; branch feature/hello-cli is still open.\n- Live git/gh state was not checked; this brief is from seed/ only.\n\n## Threads\n- [in flight feature/hello-cli] verify-hello-cli skill created, prove and maintain not run (a1b2c3d4-...).\n- [reverted #41] Prove wrapper reverted after exit 0 with empty stdout (b2c3d4e5-...; pr-notes.md).\n- [open PR #42] Draft re-adds Launch prove with HELLO-FAMILY-13 stdout assertion (pr-notes.md).\n- [planned, not started] Maintain offer after generate-then-reuse (user-reports.md).\n\n## Problems\n1. Prove reported green while hello.sh never printed HELLO-FAMILY-13 in CI (user-reports.md).\n2. Prove wrapper flaked: exit 0 with empty stdout, causing the #41 revert.\n3. Maintain offer never ran after the generate-then-reuse pair (user-reports.md).\n4. evidence/hello-print is empty, so there is no proof artifact.\n5. Live PR/branch state unverified here.\n\n## Next move\nRun the skill's Launch prove against hello.sh on feature/hello-cli and assert that stdout contains HELLO-FAMILY-13 (not just exit code). Save the output to evidence/hello-print, then check that PR #42 does the same.\n"
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/recall/fixture-out/pi/done.txt",
+    "line": "contract=yes"
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-recall-fixture-app--/2026-10-08T20-54-07-318Z_01a11d4b-76d5-71c2-9e98-126e45004f41.jsonl",
+    "skillInjected": true,
+    "toolOrder": [
+      "bash",
+      "bash",
+      "bash",
+      "bash"
+    ]
+  }
+}

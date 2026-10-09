@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "attemptId": "9857dda0-a74d-4546-b69e-1ff3528bdf3e",
+  "side": "cursor",
+  "scenarioRef": "cursor-custom-mode-path:statsig-override-glass-custom-modes",
+  "fixtureRef": {
+    "path": "n/a",
+    "digest": "sha256:probe"
+  },
+  "executable": {
+    "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+    "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+  },
+  "artifacts": [],
+  "launch": {
+    "argv": [
+      "/Users/josh-desktop/.local/bin/cursor-agent",
+      "--statsig-overrides",
+      "{\"featureFlags\":{\"glass_custom_modes\":true}}",
+      "--plugin-dir",
+      "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+      "--plugin-dir",
+      "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+    ],
+    "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run",
+    "envNames": [
+      "HOME",
+      "PATH",
+      "TERM"
+    ],
+    "publicEnv": {
+      "TERM": "xterm-256color"
+    }
+  },
+  "geometry": {
+    "rows": 36,
+    "cols": 120
+  },
+  "observedEnv": {
+    "platform": "darwin",
+    "node": "v24.21.0",
+    "TERM": "xterm-256color"
+  }
+}

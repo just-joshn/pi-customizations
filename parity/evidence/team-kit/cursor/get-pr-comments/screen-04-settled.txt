@@ -1,0 +1,39 @@
+    Read pr-url.txt
+
+  Fetching review and discussion comments from the active PR with gh.
+
+  $ gh api repos/just-joshn/team-kit-gh-fixture/pulls/1/comments && echo '---ISSUE---' && gh api
+    repos/just-joshn/team-kit-gh-fixture/issues/1/comments && echo '---REVIEWS---' && gh api
+    repos/just-joshn/team-kit-gh-fixture/pulls/1/reviews && echo '---REVIEW_COMMENTS---' && gh pr view 1 --repo
+    just-joshn/team-kit-gh-fixture --comments --json comments,reviews,reviewRequests,title,number,url exit 1 • 1.5s
+    … 42 output lines hidden · ctrl+o to expand
+      Learn about accessibility experiences using `gh help accessibility`
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/get-p
+    r-comments && ls -la /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/
+    cursor/get-pr-comments 2>/dev/null; gh pr view 1 --repo just-joshn/team-kit-gh-fixture --json
+    number,title,url,body,comments,reviews 909ms
+    … 2 output lines hidden · ctrl+o to expand
+    drwxr-xr-x 5 josh-desktop staff 160 Oct  8 19:57 ..
+    {"body":"## Summary\nSeed PR for disposable team-kit GitHub skill journeys.\n\n## Test plan\n- [ ] npm test","com…
+
+  Writing the grouped action summary and done marker.
+
+  $ cat > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/get-pr-c
+    omments/summary.md << 'EOF'
+    # PR #1 comments — Fixture PR for team-kit journeys 228ms
+    … 23 input + 23 output lines hidden · ctrl+o to expand
+    - None.
+
+  Action: rename fixture-alpha → fixture-beta before merge (FIXTURE_REVIEW_COMMENT).
+
+  Artifacts written under parity/evidence/team-kit/fixture-out/cursor/get-pr-comments/ — STATUS=verified.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.2%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh · fixture/pr-comments-seed · #1

@@ -1,0 +1,36 @@
+   [ ] medium — high reasoning                                                                                         │
+   [ ] small — medium reasoning                                                                                        │
+                                                                                                                       │
+ 2. All 17 roles are currently inherit-parent (none dropped). Accept as-is?                                            │
+   [ ] Accept as-is                                                                                                    │
+   [ ] Change specific roles                                                                                           │
+                                                                                                                       │
+                                                                                                                       │
+ I didn't write anything. The budget and role questions were cancelled, and I don't treat a cancellation as approval.  │
+                                                                                                                       │
+ The current rule at /tmp/pi-ref-agent/pstack/models.mdc is unchanged. It has budget small (medium), and all 17 roles  ┃
+ are set to inherit-parent. No retired lines needed dropping.                                                          ┃
+                                                                                                                       ┃
+ Run /setup-pstack again when you're ready. Or tell me here which budget you want (unlimited, large, medium or small)  ┃
+ and whether to keep every role on inherit-parent.                                                                     ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] poteto-help (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ which skill should i use to review this branch?                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Use /review-and-ship. It reviews the current branch for bugs, intent fit and test coverage. It then runs or writes    ┃
+ tests, commits focused work, and opens or updates a PR.                                                               ┃
+                                                                                                                       ┃
+ Pick a different skill if you want something narrower:                                                                ┃
+ - /interrogate: different models review the diff and try to break it.                                                 ┃
+ - /blast-radius: looks for what a small diff could break outside it                                                   ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑8 ↓488 R62k W20k CH98.8% $0.099 (sub) 3.2%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

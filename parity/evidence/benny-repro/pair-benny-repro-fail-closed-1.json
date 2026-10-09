@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "pairId": "benny-repro-fail-closed-1",
+  "scenarioRef": "cmd-benny-repro-fail-closed",
+  "journeyFamily": "journey-family-11-benny-and-automations",
+  "requirementIds": [
+    "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "Start Benny reproduce-and-fix-issues against incomplete .upstream/benny/configuration.yaml with synthetic Slack trigger; write STATUS= line to host-specific fixture-out done.txt",
+  "steps": [
+    { "send": "Read and follow .upstream/automations/benny/skills/reproduce-and-fix-issues/SKILL.md ... incomplete config at .upstream/benny/configuration.yaml ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "e3e5e224-5d6a-4e9d-ab62-064386174fdc",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/cursor/e3e5e224-5d6a-4e9d-ab62-064386174fdc",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "outcome": "fail_closed",
+      "contractHeld": true,
+      "productBeforeDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+      "productAfterDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=fail-closed reason=incomplete config missing control adapter and feature map",
+      "uiReproAttempt": false,
+      "draftPrAttempt": false,
+      "productEditAttempt": false,
+      "skillChrome": true,
+      "filesRead": [
+        ".upstream/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+        ".upstream/benny/configuration.yaml",
+        "README.md",
+        "parity/evidence/benny-repro/PLAYBOOK.md"
+      ]
+    }
+  },
+  "pi": {
+    "attemptId": "85ff157c-90dc-43dd-927f-e2a8b32488bf",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/pi/85ff157c-90dc-43dd-927f-e2a8b32488bf",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-benny-repro-fixture-app--/2026-10-08T22-23-53-816Z_01a11d9d-a7d8-73b7-bcae-2a727506c12a.jsonl",
+    "observations": {
+      "outcome": "fail_closed",
+      "contractHeld": true,
+      "productBeforeDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+      "productAfterDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=fail-closed reason=config missing control adapter, feature map, and Slack actions",
+      "uiReproAttempt": false,
+      "draftPrAttempt": false,
+      "productEditAttempt": false,
+      "skillRead": true,
+      "sessionToolOrder": [
+        "bash(reproduce-and-fix-issues/SKILL.md)",
+        "bash"
+      ]
+    }
+  },
+  "deltas": [
+    {
+      "topic": "fail-closed on incomplete Benny config",
+      "cursor": "STATUS=fail-closed reason=incomplete config missing control adapter and feature map. Settled screen states no Slack actions, control.skill_name, feature_map_path, or feature map. src/app.js digest unchanged.",
+      "pi": "STATUS=fail-closed reason=config missing control adapter, feature map, and Slack actions. Assistant text says no repro work, no Slack posts, no code changes. src/app.js digest unchanged.",
+      "reconciled": true
+    },
+    {
+      "topic": "skill engagement path",
+      "cursor": "Read tool on reproduce-and-fix-issues/SKILL.md and configuration.yaml.",
+      "pi": "bash cat of SKILL.md then configuration.yaml (session toolOrder labels bash).",
+      "reconciled": true
+    },
+    {
+      "topic": "worker PLAYBOOK curiosity",
+      "cursor": "Also Read parity/evidence/benny-repro/PLAYBOOK.md (worker harness file adjacent to fixture).",
+      "pi": "Did not open PLAYBOOK.md on settled screen.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    },
+    {
+      "topic": "exact fail-closed reason string",
+      "cursor": "incomplete config missing control adapter and feature map",
+      "pi": "config missing control adapter, feature map, and Slack actions",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-benny-repro-fail-closed.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/benny-repro/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/benny-repro/.audit/u-journey-cmd-benny-repro.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "heldOutFixture": "parity/evidence/benny-repro/fixture-app (Benny pack + incomplete .upstream/benny/configuration.yaml)",
+    "markerRoot": "parity/evidence/benny-repro/fixture-out/{cursor,pi}/",
+    "preflightNote": "Restored ~/.cursor/rules/pstack-models.mdc to locked digest sha256:2b6b4668…6004 from /tmp/pi-ref-agent/pstack/models.mdc before capture (was sha256:c839b86e…9bf7)."
+  }
+}

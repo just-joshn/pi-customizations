@@ -1,0 +1,40 @@
+ feature-value                                                                                                         │
+ >>>>>>> feature                                                                                                       │
+ ls: cannot access 'package.json': No such file or directory                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ echo resolved-value > value.txt && git add value.txt && git status --short; grep -c '<<<<' value.txt                │
+ O=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-merge-conflicts │
+ mkdir -p $O                                                                                                           │
+ cat > $O/summary.md <<'E'                                                                                             │
+ # Resolution summary                                                                                                  │
+ - Files resolved: value.txt (only conflict)                                                                           │
+ - Choice: both sides (main-value / feature-value) replaced with the required `resolved-value`.                        │
+ - Build/test: none exist (no package.json); verified no conflict markers and file is one line.                        │
+ - Staged value.txt; no commit, no push.                                                                               │
+ E                                                                                                                     ┃
+ echo "STATUS=verified reason=markers removed and file staged" > $O/done.txt (timeout 20s)                             ┃
+                                                                                                                       ┃
+ M  value.txt                                                                                                          ┃
+ ?? .pi/                                                                                                               ┃
+ 0                                                                                                                     ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ I resolved the conflict in value.txt. It now holds the single line resolved-value, with no conflict markers left, and ┃
+ it is staged. I made no commit and did not push.                                                                      ┃
+                                                                                                                       ┃
+ The repo has no package.json, so there was no build, lint or test to run. I only checked that the markers are gone.   ┃
+                                                                                                                       ┃
+ I wrote the summary to fixture-out/pi/fix-merge-conflicts/summary.md. done.txt in the same directory reads            ┃
+ STATUS=verified reason=markers removed and file staged.                                                               ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/fix-merge-conflicts (main)
+↑8 ↓595 R59k W18k CH98.6% $0.089 (sub) 2.6%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

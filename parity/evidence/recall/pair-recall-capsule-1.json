@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "pairId": "recall-capsule-1",
+  "scenarioRef": "cmd-recall-capsule",
+  "journeyFamily": "journey-family-13-generated-resources-reuse",
+  "requirementIds": [
+    "PSTACK-CMD-RECALL-CAPSULE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/recall catch me up on hello-cli verification; mine only seed/transcripts + seed/shared-record; write contract brief to fixture-out/<side>/brief.md and done.txt",
+  "steps": [
+    { "send": "/recall catch me up on the hello-cli verification work. Scope: this fixture cwd only, last 7 days. Mine only seed/..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "25c1bcca-e7ad-41b3-80dd-1fbac71066ec",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/recall/cursor/25c1bcca-e7ad-41b3-80dd-1fbac71066ec",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "recallSkill": true,
+      "skillSource": "slash /recall via plugin-dir pstack skill",
+      "briefPath": "parity/evidence/recall/fixture-out/cursor/brief.md",
+      "doneLine": "contract=yes",
+      "contractHeld": true,
+      "capsuleBullets": 5,
+      "taggedThreadCount": 4,
+      "problemsBullets": 5,
+      "nextLineCount": 1,
+      "scorerNote": "brief.md re-scored after capture-recall-capsule.mjs heading regex fix (#{1,3}); live PTY wrap is not the oracle"
+    }
+  },
+  "pi": {
+    "attemptId": "ed0f279b-00a6-4934-8142-5859899cf832",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/recall/pi/ed0f279b-00a6-4934-8142-5859899cf832",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-recall-fixture-app--/2026-10-08T20-54-07-318Z_01a11d4b-76d5-71c2-9e98-126e45004f41.jsonl",
+    "observations": {
+      "recallSkill": true,
+      "skillSource": "session injects extensions/pi-pstack/skills/recall/SKILL.md",
+      "briefPath": "parity/evidence/recall/fixture-out/pi/brief.md",
+      "doneLine": "contract=yes",
+      "contractHeld": true,
+      "capsuleBullets": 5,
+      "taggedThreadCount": 4,
+      "problemsBullets": 5,
+      "nextLineCount": 1,
+      "sessionToolOrder": ["bash", "bash", "bash", "bash"],
+      "settledScreenShowsContractSections": true
+    }
+  },
+  "deltas": [
+    {
+      "topic": "output contract on brief.md",
+      "cursor": "Capsule 5, Threads 4 all tagged, Problems 5, one Next move. contractHeld true.",
+      "pi": "Capsule 5, Threads 4 all tagged, Problems 5, one Next move. contractHeld true.",
+      "reconciled": true
+    },
+    {
+      "topic": "PTY screen vs brief oracle",
+      "cursor": "Settled screen wraps mid-thread lines; automated screenScore false without ## Capsule. Durable brief.md is the scored artifact.",
+      "pi": "Settled screen shows Capsule/Threads/Problems/Next move without markdown hashes; screenScore false, briefScore true.",
+      "reconciled": true
+    },
+    {
+      "topic": "mining path",
+      "cursor": "Read seed/transcripts and seed/shared-record; wrote brief via host edit cards (2 files).",
+      "pi": "bash listed/read seed files only; wrote brief.md and done.txt; stated live git/gh not checked.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-recall-capsule.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/recall/PLAYBOOK.md",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/recall/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/recall/fixture-app (seed/transcripts + seed/shared-record)",
+    "auditTrail": "parity/evidence/recall/.audit/u-journey-cmd-recall.tsv"
+  }
+}

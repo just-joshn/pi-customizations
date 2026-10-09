@@ -1,0 +1,39 @@
+    Globbed 2 globs
+    Globbed "**/*maintain*verif*" in ...osh-desktop/src/personal/pi-pstack-parity-again
+    Globbed "**/.cursor/skills/**/*" in .
+
+  $ ls -la .cursor/skills 2>/dev/null || echo "NO_SKILLS_DIR"; ls -la .cursor 2>/dev/null || echo "NO_CURSOR_DIR"; ls
+    -la /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor/
+    2>/dev/null || echo "NO_OUT_DIR" 910ms
+    … 5 output lines hidden · ctrl+o to expand
+    drwxr-xr-x 2 josh-desktop staff  64 Oct  8 17:01 .
+    drwxr-xr-x 6 josh-desktop staff 192 Oct  8 17:01 ..
+
+  Confirmed: no verify-* skill under .cursor/skills. Writing the locate artifact and stopping.
+
+  $ printf '%s\n' 'LOCATED=none' 'CREATE_OFFERED=yes' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity
+    /evidence/maintain-verify/fixture-out/cursor/locate.txt && cat /Users/josh-desktop/src/personal/pi-pstack-parity-a
+    gain/parity/evidence/maintain-verify/fixture-out/cursor/locate.txt 197ms
+    LOCATED=none
+    CREATE_OFFERED=yes
+
+  Pass 0 Locate done.
+
+  No verify-* skill under .cursor/skills in this project. Wrote:
+
+     1 │LOCATED=none
+     2 │CREATE_OFFERED=yes
+
+  to parity/evidence/maintain-verify/fixture-out/cursor/locate.txt.
+
+  No verification skill target to maintain — use /create-verification-skill instead. Stopped here; no further
+  passes.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.1%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app · refactor/pi-pstack-parity-again

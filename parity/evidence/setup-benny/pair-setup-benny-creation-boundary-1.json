@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "pairId": "setup-benny-creation-boundary-1",
+  "scenarioRef": "setup-benny-creation-boundary",
+  "journeyFamily": "journey-family-11-benny-and-automations",
+  "requirementIds": [
+    "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001"
+  ],
+  "verdict": "pass",
+  "blockerPath": "parity/evidence/setup-benny/blocker-setup-benny-creation-boundary-1.json",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "Explicit first-time create of Benny triage then repro; setup-benny section 7 creation boundary; finish only via /automate Automations editor handoff; STATUS=editor-handoff|env-blocked|boundary-violated|other",
+  "steps": [
+    {
+      "send": "I explicitly ask you to create the Benny live automations... STATUS=..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+    "desktopAttempts": {
+      "slashAutomate": "be874194-d680-4f9f-8a88-5ee1b4858a0f",
+      "openAutomations": "16a11cc9-c257-412c-bc71-fa8fd00ec609",
+      "newAutomationProbe": "d540ea19-389f-4d6c-a713-3d5b63a10883"
+    },
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/e11d7225-4c8a-4c09-8f30-273e941a52d2",
+    "desktopDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "outcome": "editor_handoff_inactive_named",
+      "contractHeld": true,
+      "listInactiveBennyTriage": true,
+      "editorTitleBennyTriage": true,
+      "enabled": false,
+      "deepLinkOrBackend": false,
+      "note": "Cursor /automate created Inactive benny-triage in Mine (e11d7225); same-frame editor titled benny-triage (475ab346/2c525e93). Save/Activate not pressed on Cursor half; enable deferred to thread-safety."
+    },
+    "paidHalves": {
+      "bennyTriageList": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+      "editorTitle": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+      "editorReverify": "2c525e93-3392-4253-81ef-dd965fde2e7d"
+    },
+    "editorTitleAttemptId": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+    "editorReverifyAttemptId": "2c525e93-3392-4253-81ef-dd965fde2e7d",
+    "priorPtyEnvBlockedAttemptId": "d6992fb0-3759-474f-b1da-dafa9e13fde8"
+  },
+  "pi": {
+    "attemptId": "4d40a1d5-ea54-4ce2-922b-bf82e78b6577",
+    "priorEnvBlockedAttemptId": "f4c7eec5-6ac5-4431-b4b1-23c7e267dc96",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/pi/4d40a1d5-ea54-4ce2-922b-bf82e78b6577",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-creation-boundary-fixture-app--/2026-10-09T10-15-57-142Z_01a12029-8fd6-7492-9039-e3b288ea5c8b.jsonl",
+    "observations": {
+      "outcome": "editor_saved_disabled",
+      "contractHeld": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=editor-saved-disabled reason=editor opened and disabled draft persisted",
+      "liveAutomationCreated": [],
+      "productUnchanged": true,
+      "forbiddenSideEffects": false,
+      "enabledCalled": false,
+      "sessionToolOrder": [
+        "read(automate-or-setup-benny)",
+        "bash",
+        "AutomationPrepare(benny-triage)",
+        "AutomationOpenEditor",
+        "bash"
+      ],
+      "rescore": "parity/research/setup-benny-creation-pi-002/rescore-4d40a1d5.json",
+      "note": "Live harness first printed boundary_violated (did not call AutomationEnable); rescored editor_saved_disabled after forbidEnable cover."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "Automations editor handoff",
+      "cursor": "Inactive named benny-triage via /automate list + titled editor chrome; no enable.",
+      "pi": "AutomationPrepare+OpenEditor+Save kind=disabled; chrome:pi-automations-editor-v1; enabledCalled=false.",
+      "reconciled": true
+    },
+    {
+      "topic": "Forbidden finish paths",
+      "cursor": "No deep link, backend call, or enable.",
+      "pi": "No deep link, backend call, or Enable.",
+      "reconciled": true
+    },
+    {
+      "topic": "Requirement pass",
+      "cursor": "Creation finishes through reviewed Automations editor handoff; enable deferred.",
+      "pi": "Same; disabled Save only.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-benny-creation-boundary.mjs --cursor-only then --pi-only; desktop follow-up parity/scripts/capture-automations-desktop-agents-window.py + Open Automations drive (u-automations-desktop-001)",
+    "probe": "parity/scripts/probe-setup-benny-creation-boundary-host.mjs",
+    "workerPlaybook": "parity/evidence/setup-benny/PLAYBOOK-creation-boundary.md",
+    "decisionTrail": "parity/evidence/setup-benny/.audit/u-journey-setup-benny-creation-boundary.tsv",
+    "desktopDecisionTrail": "parity/research/automations-desktop-001/decisions.tsv",
+    "heldOutFixture": "parity/evidence/setup-benny/creation-boundary/fixture-app",
+    "markerRoot": "parity/evidence/setup-benny/creation-boundary/fixture-out/{cursor,pi}/",
+    "evidenceRoot": "parity/evidence/setup-benny/creation-boundary/",
+    "scorerNote": "Paired Method A: Cursor desktop handoff + Pi PTY editor_saved_disabled. Thread-safety remains a separate requirement.",
+    "siblingClaim": "none; other SETUP-BENNY-* ids not claimed",
+    "pathChoice": "honest blocker preferred over fabricating editor handoff",
+    "desktopReport": "parity/briefs/reports/u-automations-desktop-001-report.md",
+    "pi002Report": "parity/briefs/reports/u-journey-setup-benny-creation-pi-002-report.md"
+  },
+  "closedAt": "2026-10-09T10:20:53Z",
+  "blockerSuperseded": true
+}

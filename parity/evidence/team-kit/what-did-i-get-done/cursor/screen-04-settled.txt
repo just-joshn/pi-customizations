@@ -1,0 +1,39 @@
+    --until="2026-10-09" --no-merges --pretty=format:"%H%n%an <%ae>%n%ad%n%s%n%b%n---" --date=short 689ms
+    … 12 output lines hidden · ctrl+o to expand
+    ---
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/what-
+    did-i-get-done && ls -la && git log --oneline -20 --all && git log --since="7 days ago" --no-merges
+    --pretty=format:"%H | %ae | %ad | %s" --date=short 239ms
+    … 8 output lines hidden · ctrl+o to expand
+    8bba16d0e2f35a160195d2e5c4c4147632d6a52c | worker@example.com | 2026-10-08 | ship BETA polish
+    c3ab73cd2d540196da133ed9a15718a5a2d6aeda | worker@example.com | 2026-10-07 | ship ALPHA feature
+
+  $ git show --stat c3ab73cd2d540196da133ed9a15718a5a2d6aeda && echo "====" && git show --stat
+    8bba16d0e2f35a160195d2e5c4c4147632d6a52c && echo "====" && cat alpha.txt beta.txt 253ms
+    … 18 output lines hidden · ctrl+o to expand
+    alpha
+    beta
+
+  Writing the summary and done.txt artifacts.
+
+  $ cat > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/what-did
+    -i-get-done/summary.md << 'EOF'
+    # Status update (2026-10-01 – 2026-10-08) 208ms
+    … 10 input + 6 output lines hidden · ctrl+o to expand
+    ---
+    STATUS=verified reason=authored commits summarized
+
+  Artifacts written under fixture-out/cursor/what-did-i-get-done:
+
+  • summary.md — range 2026-10-01 – 2026-10-08; covers ALPHA (2026-10-07) and BETA (2026-10-08)
+  • done.txt — STATUS=verified reason=authored commits summarized
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 8.4%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/what-did-i-get-done · main

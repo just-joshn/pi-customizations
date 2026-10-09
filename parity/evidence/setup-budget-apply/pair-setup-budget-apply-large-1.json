@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "pairId": "setup-budget-apply-large-1",
+  "scenarioRef": "setup-pstack:budget-apply-large",
+  "scenarioId": "setup-budget-apply",
+  "requirementIds": [
+    "PSTACK-SETUP-BUDGET-APPLY-001"
+  ],
+  "targetBudget": "large",
+  "targetEffort": "xhigh",
+  "steps": [
+    { "send": "/setup-pstack" },
+    { "send": "\r" },
+    { "send": "\r" },
+    {
+      "send": "<instruction: choose large, remap real slugs to xhigh, keep auto and inherit-parent>",
+      "note": "Cursor used chat-form free text; Pi used AskQuestion Other with a Pi-native instruction"
+    },
+    { "wait": "budget large (xhigh) written with remapped real slugs" }
+  ],
+  "cursor": {
+    "attemptId": "66de566f-5754-4e84-b3c2-2683254d419d",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-budget-apply/cursor/66de566f-5754-4e84-b3c2-2683254d419d",
+    "path": "chatform",
+    "fixturePath": "parity/evidence/setup-budget-apply/fixture-cursor.mdc",
+    "fixtureDigest": "sha256:c839b86ed7605f6fa4fb70efc10a5fa573f687c809229a8b4fd0687535c29bf7",
+    "afterDigest": "sha256:9e20c425d0af4c4df6b5fb7140e554a896ffcb236b4a9aaaee37f08e98c2ee6d",
+    "score": {
+      "budgetBefore": "small (medium)",
+      "budgetAfter": "large (xhigh)",
+      "realMappedCount": 19,
+      "realTotal": 19,
+      "aliasesPreserved": true,
+      "panelMapped": true,
+      "pass": true
+    },
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "pi": {
+    "attemptId": "bf23823c-fcb1-4d97-9367-6d15b7a66591",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-budget-apply/pi/bf23823c-fcb1-4d97-9367-6d15b7a66591",
+    "path": "askquestion-driven",
+    "fixturePath": "parity/evidence/setup-budget-apply/fixture-pi.mdc",
+    "fixtureDigest": "sha256:7730fa20076154d85fe522cc685975982ca7ee1008213ae45a300bffbb448843",
+    "afterDigest": "sha256:d4fe44fb31719706d0fb66b147cc0b4352219fbc2dbfa1480fa9f581fe77f83d",
+    "score": {
+      "budgetBefore": "small (medium)",
+      "budgetAfter": "large (xhigh)",
+      "realMappedCount": 19,
+      "realTotal": 19,
+      "aliasesPreserved": true,
+      "panelMapped": true,
+      "pass": true
+    },
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-budget-apply.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "lockedFixtureRestored": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "failedAttempts": {
+      "cursor": ["f9d28087-8987-4534-865e-8f2051ee1e6c"],
+      "pi": [
+        "09c6b499-8da4-4dd8-b519-9024b493e951",
+        "1920f5e5-6004-4195-9476-b2c658692852",
+        "14a9cc18-ec55-4018-aadb-acbb4a0816cc"
+      ]
+    }
+  },
+  "hostDeltas": [
+    "Cursor fixture uses effort-in-slug tokens (grok-4.7-medium-fast, claude-opus-5-5-medium). Pi fixture uses provider/id:effort (claude-subscription/...:medium) because xai/grok-4.7 was not in pstack_setup availableModels and Cursor-style slugs fail Pi validateRole.",
+    "Pi pstack_setup write does not apply budget remapping; the agent must pass roleOverrides. Cursor agent writes the rule file directly.",
+    "After digests differ because host slug formats differ. Mapping oracle (19/19 real entries to xhigh, aliases preserved) matches on both sides."
+  ],
+  "verdict": "pass"
+}

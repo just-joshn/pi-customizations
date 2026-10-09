@@ -1,0 +1,39 @@
+    checks 4 --json name,bucket,state,workflow,link 2>&1 || true) && grep -n REVIEW_SHIP_cursor README.md && mkdir -p
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/review-and-sh
+    ip 1.5s
+    … 22 output lines hidden · ctrl+o to expand
+    [{"bucket":"pending","link":"https://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37878606401/job/11365…
+    6:REVIEW_SHIP_cursor
+
+  CI is still pending; waiting for checks before writing the final status.
+
+    Explored available MCP tools cursor · AwaitShell
+
+    Monitored background tasks
+    Waited 45s
+    Ran gh pr checks 4 --json name,bucket,state,workflow,link 2>&1
+
+  CI passed. Writing ship-notes and done artifacts.
+
+  $ OUT=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/review-and
+    -ship
+    cat > "$OUT/ship-notes.md" <<'EOF' 235ms
+    … 26 input + 21 output lines hidden · ctrl+o to expand
+    STATUS=verified reason=pr-open-ci-green
+    1 /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/review-and-…
+
+  Shipped.
+
+  • Branch fixture/review-ship-cursor-mv0e9p76 with README line REVIEW_SHIP_cursor
+  • PR: https://github.com/just-joshn/team-kit-gh-fixture/pull/4 (CI green)
+  • Artifacts under parity/evidence/team-kit/fixture-out/cursor/review-and-ship/ (ship-notes.md with FIXTURE_SHIP,
+    done.txt: STATUS=verified reason=pr-open-ci-green)
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.2%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh · fixture/review-ship-cursor-mv0e9p76 · #4

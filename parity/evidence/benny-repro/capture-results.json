@@ -1,0 +1,106 @@
+{
+  "scenario": "cmd-benny-repro-fail-closed",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "pair": "parity/evidence/benny-repro/pair-benny-repro-fail-closed-1.json",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptId": "e3e5e224-5d6a-4e9d-ab62-064386174fdc",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/cursor/e3e5e224-5d6a-4e9d-ab62-064386174fdc",
+      "ruleUnchanged": true,
+      "observations": {
+        "skillRel": ".upstream/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+        "configRel": ".upstream/benny/configuration.yaml",
+        "productRel": "src/app.js",
+        "productBeforeDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+        "productAfterDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+        "productUnchanged": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-out/cursor/done.txt",
+          "line": "STATUS=fail-closed reason=incomplete config missing control adapter and feature map",
+          "status": "fail-closed"
+        },
+        "outcome": "fail_closed",
+        "contractHeld": true,
+        "engaged": true,
+        "failClosedSignal": true,
+        "forbidden": false,
+        "screen": {
+          "failClosedPhrase": true,
+          "uiReproAttempt": false,
+          "draftPrAttempt": false,
+          "productEditAttempt": false,
+          "skillChrome": true,
+          "working": false
+        },
+        "pty": {
+          "failClosedPhrase": true,
+          "uiReproAttempt": false,
+          "draftPrAttempt": false,
+          "productEditAttempt": false,
+          "skillChrome": true,
+          "working": true
+        },
+        "session": null,
+        "pollSamples": 27,
+        "scorerNote": "fail_closed requires engagement + fail-closed/blocked signal + unchanged src/app.js + no UI/PR/product side effects"
+      }
+    },
+    {
+      "side": "pi",
+      "attemptId": "85ff157c-90dc-43dd-927f-e2a8b32488bf",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/pi/85ff157c-90dc-43dd-927f-e2a8b32488bf",
+      "ruleUnchanged": true,
+      "observations": {
+        "skillRel": ".upstream/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+        "configRel": ".upstream/benny/configuration.yaml",
+        "productRel": "src/app.js",
+        "productBeforeDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+        "productAfterDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+        "productUnchanged": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-out/pi/done.txt",
+          "line": "STATUS=fail-closed reason=config missing control adapter, feature map, and Slack actions",
+          "status": "fail-closed"
+        },
+        "outcome": "fail_closed",
+        "contractHeld": true,
+        "engaged": true,
+        "failClosedSignal": true,
+        "forbidden": false,
+        "screen": {
+          "failClosedPhrase": true,
+          "uiReproAttempt": false,
+          "draftPrAttempt": false,
+          "productEditAttempt": false,
+          "skillChrome": false,
+          "working": false
+        },
+        "pty": {
+          "failClosedPhrase": true,
+          "uiReproAttempt": false,
+          "draftPrAttempt": false,
+          "productEditAttempt": false,
+          "skillChrome": true,
+          "working": true
+        },
+        "session": {
+          "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-benny-repro-fixture-app--/2026-10-08T22-23-53-816Z_01a11d9d-a7d8-73b7-bcae-2a727506c12a.jsonl",
+          "skillRead": true,
+          "uiReproTools": false,
+          "draftPrTools": false,
+          "productWrite": false,
+          "failClosedPhrase": true,
+          "toolOrder": [
+            "bash(reproduce-and-fix-issues/SKILL.md)",
+            "bash"
+          ]
+        },
+        "pollSamples": 21,
+        "scorerNote": "fail_closed requires engagement + fail-closed/blocked signal + unchanged src/app.js + no UI/PR/product side effects"
+      }
+    }
+  ]
+}

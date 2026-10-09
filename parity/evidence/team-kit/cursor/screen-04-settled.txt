@@ -1,0 +1,39 @@
+    ▎        `diff` exit  ...
+    ▎    6 + 
+    ▎    7 + Reasoning:
+    ▎    8 + Baseline read of `fixture-app/probe.txt` shows a single line that is exactly `VALUE=7`. Treatment used 
+    ▎        the same fil ...
+
+    Edited done.txt +1
+
+    ▎    1 + STATUS=verified reason=exact line VALUE=7 present
+
+    Edited timeline.md +7
+
+    ▎    1 + # Timeline
+    ▎    2 + 
+    ▎    3 + 1. Restated claim falsifiably in `claim.md`.
+    ▎    4 + 2. Baseline: read `fixture-app/probe.txt` → line `VALUE=7` (bytes `VALUE=7\n`); copied to 
+    ▎        `baseline/probe.txt`.
+    ▎    5 + 3. Treatment: same file, no edits; copied to `treatment/probe.txt`.
+    ▎    6 + 4. Diff: `diff -u baseline/probe.txt treatment/probe.txt` exit 0; `rg -x 'VALUE=7'` match at line 1.
+    ▎    7 + 5. Verdict: VERIFIED.
+
+  VERIFIED
+  Claim: probe.txt contains an exact full-line match of VALUE=7 (baseline read; treatment same file, no edits).
+
+  Evidence:
+  exact-line VALUE=7: baseline=present (line 1; bytes VALUE=7\n), treatment=present (identical; diff exit 0),
+  delta=none, threshold=exact line match count >= 1
+
+  Artifacts under parity/evidence/team-kit/fixture-out/cursor/verify-this/; done.txt written as STATUS=verified 
+  reason=exact line VALUE=7 present.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.8% · 4 files edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-app · refactor/pi-pstack-parity-again

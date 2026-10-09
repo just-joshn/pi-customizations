@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "pairId": "prin-fix-root-1",
+  "scenarioRef": "prin-fix-root",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-FIX-ROOT-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Debug the crash in greet(). node scripts/verify.mjs currently fails (TypeError when the display name is missing). Fix the bug so verify prints GREET-OK. Prefer fixing the real cause over silencing the crash. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When the fix is verified against the real artifact, write exactly one line to .../fix-root/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode debug greet crash; prefer real cause; leaf SKILL.md for applied principles; verify; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with GREET-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "5d36f6ca-23fd-462c-8e35-7666ddf387de",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/cursor/5d36f6ca-23fd-462c-8e35-7666ddf387de",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/b7069fda-f127-4d2b-b528-f0f4be72c3ef/b7069fda-f127-4d2b-b528-f0f4be72c3ef.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-fix-root-causes/SKILL.md",
+      "reproducedFirst": true,
+      "rootCauseFixed": true,
+      "soleNilGuard": false,
+      "keptVerifyOk": true,
+      "verifyLine": "GREET-OK value=\"hello, WORLD\"",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "Claude Haiku 5.5 300K High",
+      "oracleNote": "Poll and session tool order show verify before product write. Fixed cfg.displayNam typo in src/config.js. greet.js unchanged (no nil guard)."
+    }
+  },
+  "pi": {
+    "attemptId": "dffb963b-d1b4-42a4-bca0-e36b02bef0f3",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/pi/dffb963b-d1b4-42a4-bca0-e36b02bef0f3",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-fix-root-fixture-app--/2026-10-09T00-44-35-315Z_01a11e1e-7672-7492-9dc8-a1a2bb50efae.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-fix-root-causes/SKILL.md",
+      "reproducedFirst": true,
+      "rootCauseFixed": true,
+      "soleNilGuard": false,
+      "keptVerifyOk": true,
+      "verifyLine": "GREET-OK value=\"hello, WORLD\"",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "oracleNote": "Session tool order: bash(verify.mjs) then read(fix-root-leaf) then edit(product) then verify. Same displayName root fix. No nil guard in greet.js."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-fix-root-causes/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-fix-root-causes/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Claude Haiku 5.5 300K High",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "fix-root outcome",
+      "cursor": "contractHeld. Leaf Read + reproduce-first + displayName root fix + GREET-OK. No sole nil guard.",
+      "pi": "contractHeld. Leaf Read + reproduce-first + displayName root fix + GREET-OK. No sole nil guard.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-fix-root.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/fixture-app",
+    "decisionLog": "parity/evidence/principles/fix-root/.audit/u-journey-prin-fix-root.tsv",
+    "notes": "PSTACK-PRIN-FIX-ROOT-001. Dedicated fix-root/ fixture. Nil crash from cfg.displayNam typo. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both."
+  }
+}

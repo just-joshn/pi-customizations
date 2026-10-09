@@ -1,0 +1,64 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] setup-pstack (ctrl+o to expand)                                                                               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ AskQuestion Clarifying Questions (1)                                                                                  ┃
+ 1. Pick a reasoning budget (current: small (medium)).                                                                 ┃
+   [ ] unlimited — max reasoning                                                                                       ┃
+   [ ] large — xhigh reasoning                                                                                         ┃
+   [ ] medium — high reasoning                                                                                         ┃
+   [ ] small — medium reasoning                                                                                        ┃
+   [x] Other: small                                                                                                    ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ Clarifying Questions                                                                                               │
+ │                                                                                                                    │
+ │ Question 1 of 1                                                                                                    │
+ │                                                                                                                    │
+ │ 1. Current roles (one line per role; do not summarize):                                                            │
+ │ feature, refactoring: inherit-parent                                                                               │
+ │ bug-fix: inherit-parent                                                                                            │
+ │ perf-issue: inherit-parent                                                                                         │
+ │ hillclimb: inherit-parent                                                                                          │
+ │ judgment and prose: inherit-parent                                                                                 │
+ │ hardest tasks: inherit-parent                                                                                      │
+ │ how explorer: inherit-parent                                                                                       │
+ │ how explainer: inherit-parent                                                                                      │
+ │ why investigators: inherit-parent                                                                                  │
+ │ why synthesizer: inherit-parent                                                                                    │
+ │ reflect tooling: inherit-parent                                                                                    │
+ │ reflect judgment, divergent, synthesizer: inherit-parent                                                           │
+ │ arena runners: inherit-parent                                                                                      │
+ │ arena cross-judge pool: inherit-parent                                                                             │
+ │ swarm workers: inherit-parent                                                                                      │
+ │ architect runners: inherit-parent                                                                                  │
+ │ interrogate reviewers: inherit-parent                                                                              │
+ │ Dropped retired roles: none.                                                                                       │
+ │ Accept as-is, or change specific roles?                                                                            │
+ │                                                                                                                    │
+ │   › [ ] Accept as-is                                                                                               │
+ │     [ ] Change specific roles                                                                                      │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑8 ↓649 R55k W29k CH99.2% $0.133 (sub) 2.9%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

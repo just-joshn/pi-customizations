@@ -1,0 +1,39 @@
+    Used verify-hello-cli
+    Globbed "**/maintain-verification*/**/*" in ...osh-desktop/src/personal/pi-pstack-parity-again
+    Globbed "**/maintain*verif*/SKILL.md" in /Users/josh-desktop/.claude/skills
+
+  Confirming the skill has Launch/Drive; checking for a feature map and locating the maintain-verification-skill
+  instructions.
+
+    Grepped, globbed 2 greps, 2 globs
+    Grepped "... step 0|Locate the target|feature map" in ...osh-desktop/src/personal/pi-pstack-parity-again
+    Grepped "Feature [Mm]ap|feature map|## Features" in .cursor/skills/verify-hello-cli
+    Globbed "**/maintain*/**" in /Users/josh-desktop/.claude/skills
+    Globbed "**/*maintain*" in /Users/josh-desktop/.cursor/skills
+
+  Target confirmed (Launch/Drive + feature map). Writing the locate artifact and stopping.
+
+  $ mkdir -p
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor &&
+    printf '%s\n' 'LOCATED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fix
+    ture-app/.cursor/skills/verify-hello-cli/SKILL.md' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parit
+    y/evidence/maintain-verify/fixture-out/cursor/locate.txt && cat /Users/josh-desktop/src/personal/pi-pstack-parity-
+    again/parity/evidence/maintain-verify/fixture-out/cursor/locate.txt 841ms
+    LOCATED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.curs…
+
+  Pass step 0 done.
+
+  Located verify-hello-cli at the expected path (Launch/Drive sections + feature map under features/). Wrote:
+
+  parity/evidence/maintain-verify/fixture-out/cursor/locate.txt
+
+  Stopped after locate — no further passes.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 8.8%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app · refactor/pi-pstack-parity-again

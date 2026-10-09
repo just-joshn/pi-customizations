@@ -1,0 +1,63 @@
+file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/journey-helpers.mjs:36
+  throw new Error(`Screen did not show any of ${JSON.stringify(needles)} within ${timeoutMs}ms. Last screen:\n${lines.join('\n')}`);
+        ^
+
+Error: Screen did not show any of ["› [","Pick a budget:","Reply with a number","Reply with one of those four labels","Choose a budget","Edited pstack-models.mdc","Accept as-is","Change specific roles","accept as-is","change specific roles","Current roles","Roles:","Roles keep","keep all as"] within 300000ms. Last screen:
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use subagents to parallelize work and preserve context.
+
+                                                                                                                       
+  /setup-pstack                                                                                                        
+                                                                                                                       
+
+  I'll follow the setup-pstack skill and start by reading its instructions.
+
+    Read 2 files
+    Used setup-pstack
+    Read ...rs/josh-desktop/.cursor/rules/pstack-models.mdc
+
+    Explored available MCP tools cursor · TodoWrite
+
+  Checking the Cursor-side setup-pstack path and whether AskUserQuestion is available.
+
+    Used setup-pstack
+
+    Explored available MCP tools pattern AskUserQuestion|ask.?user
+
+    Read, globbed 1 file, 1 glob
+    Read /Users/josh-desktop/.claude/rules/pstack-models.md
+    Globbed "**/AskUserQuestion*" in /Users/josh-desktop/.cursor
+
+    Explored available MCP tools cursor
+
+    Explored available MCP tools pattern AskQuestion|question
+
+  Current pstack budget is small (medium) — every role is inherit-parent.
+
+  Pick a budget (effort target in parentheses):
+
+  1. unlimited — max reasoning
+  2. large — xhigh reasoning
+  3. medium — high reasoning
+  4. small — medium reasoning
+
+  Reply with one of those four. Your hand-picked inherit-parent roles stay unless you change them next.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 12.9%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again
+
+    at waitEither (file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/journey-helpers.mjs:36:9)
+    at async answerBudgetOnly (file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-role-confirm.mjs:182:17)
+    at async runSide (file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-role-confirm.mjs:297:20)
+    at async file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-role-confirm.mjs:408:18
+
+Node.js v24.21.0

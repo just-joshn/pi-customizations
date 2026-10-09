@@ -1,0 +1,54 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": false,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "pty": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": true,
+    "working": true,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-ci/done.txt",
+    "line": "STATUS=verified reason=gh pr checks all pass after VALUE fix",
+    "status": "verified"
+  },
+  "post": {
+    "artifactHasMarker": true,
+    "checksPass": true,
+    "checkSummary": "test\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879565204/job/113655883639\t\ntest\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879568583/job/113655894019",
+    "artifactBytes": 219
+  },
+  "sideCtx": {
+    "failingPrUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/8",
+    "failingPrNumber": 8,
+    "branch": "fixture/fail-ci-pi-mv0eoqcw",
+    "initialChecks": "test\tfail\t6s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879468575/job/113655574425\t\ntest\tfail\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879471823/job/113655584832\t\n"
+  },
+  "seededSkill": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/fix-ci/SKILL.md",
+    "sha256": "925f8c3e11de8bcc0cd015ec907f4d00b12cde6714246554ed3a52e096536522"
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "artifactOk": true,
+    "post": {
+      "artifactHasMarker": true,
+      "checksPass": true,
+      "checkSummary": "test\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879565204/job/113655883639\t\ntest\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879568583/job/113655894019",
+      "artifactBytes": 219
+    },
+    "closed": true,
+    "honestBlocker": false
+  }
+}

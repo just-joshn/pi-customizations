@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "pairId": "poteto-playbook-todo-2",
+  "scenarioRef": "cmd-poteto-playbook-todo",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode fix off-by-one in src/inc.js plus side-specific done.txt path naming matched playbook",
+  "steps": [
+    { "send": "/poteto-mode fix the off-by-one in src/inc.js so that inc(3) returns 4 ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "ff0f431a-1d09-40e2-b395-16a031182476",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/cursor/ff0f431a-1d09-40e2-b395-16a031182476",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "potetoModeSkill": true,
+      "skillSource": "slash /poteto-mode via plugin-dir pstack skill (prompt retained on screen)",
+      "matchedPlaybook": "Bug fix",
+      "firstTodoAt": "2026-10-08T19:52:26.654Z",
+      "firstPlaybookTodoAt": "2026-10-08T19:52:44.637Z",
+      "firstProductAt": "2026-10-08T19:53:32.719Z",
+      "productPaths": ["src/inc.js"],
+      "playbookSignalsSeen": ["bug_fix", "feature"],
+      "ordering": "todo_before_product",
+      "todoBeforeProduct": true,
+      "playbookTodosBeforeProduct": true,
+      "ptyTodoExcerpt": "To-do Working on 7 to-dos; first item verbatim Bug fix step 1 Reproduce it yourself on the matching surface via the control skill...",
+      "doneMarkerWritten": true,
+      "doneLine": "Bug fix",
+      "reuseNote": "Reuse from pair-1. Fixture digest unchanged; Cursor already passed playbookTodosBeforeProduct."
+    }
+  },
+  "pi": {
+    "attemptId": "6954317a-4e7e-42d9-b6ca-1c4a1651531a",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/pi/6954317a-4e7e-42d9-b6ca-1c4a1651531a",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-poteto-playbook-fixture-app--/2026-10-08T20-01-29-177Z_01a11d1b-4659-775c-9770-7853010944f1.jsonl",
+    "observations": {
+      "potetoModeSkill": true,
+      "skillSource": "extensions/pi-pstack/skills/poteto-mode/SKILL.md (session user message skill block)",
+      "matchedPlaybookNamed": "bug-fix",
+      "openedPlaybookFile": "extensions/pi-pstack/skills/poteto-mode/playbooks/bug-fix.md",
+      "firstTodoAt": "2026-10-08T20:01:35.638Z",
+      "firstPlaybookTodoAt": "2026-10-08T20:01:42.581Z",
+      "firstProductAt": "2026-10-08T20:01:46.419Z",
+      "productPaths": ["src/inc.js"],
+      "playbookSignalsSeen": ["bug_fix", "feature"],
+      "ordering": "todo_before_product",
+      "todoBeforeProduct": true,
+      "playbookTodosBeforeProduct": true,
+      "sessionToolOrder": [
+        "read poteto-mode/playbooks/bug-fix.md",
+        "bash (blocked by poteto-playbook-todo-gate)",
+        "TodoWrite with verbatim Bug fix steps",
+        "bash readonly cat/node require (after TodoWrite)",
+        "bash sed mutates src/inc.js + done.txt"
+      ],
+      "gateBlockedEarlyBash": true,
+      "todoWriteCalled": true,
+      "firstTodoContentsIncludeReproduce": true,
+      "doneMarkerWritten": true,
+      "doneLine": "bug-fix"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "playbook todos before product work",
+      "cursor": "Reuse pair-1. TodoWrite with verbatim Bug fix steps at 19:52:44Z before first product src/inc.js at 19:53:32Z. playbookTodosBeforeProduct true.",
+      "pi": "Fresh after registerPotetoPlaybookTodoGate. Early bash blocked. TodoWrite with Reproduce it yourself... at 20:01:42Z; FS first product src/inc.js at 20:01:46Z. playbookTodosBeforeProduct true.",
+      "reconciled": true
+    },
+    {
+      "topic": "playbook match naming",
+      "cursor": "done.txt line Bug fix.",
+      "pi": "done.txt line bug-fix.",
+      "reconciled": true
+    },
+    {
+      "topic": "skill activation",
+      "cursor": "PTY keeps /poteto-mode with the full prompt.",
+      "pi": "Session injects package SKILL.md; also reads playbooks/bug-fix.md.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-poteto-playbook-todo.mjs --pi-only (Cursor reused from pair-1)",
+    "workerPlaybook": "parity/evidence/poteto-playbook/PLAYBOOK.md",
+    "priorFailPair": "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-1.json",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/poteto-playbook/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/poteto-playbook/fixture-app (buggy src/inc.js)",
+    "productGate": "extensions/pi-pstack/src/poteto-playbook-todo-gate.ts"
+  }
+}

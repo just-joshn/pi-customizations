@@ -1,0 +1,25 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to plan execution and reach the right outcome faster.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  I'll follow the create-verification-skill flow: read the skill, interview this fixture from files, then write
+  interview.json, the skill, and the feature map.
+
+    Reading, globbing 1 file, 1 glob
+    Using create-verification-skill
+    Globbing "**/*" in .
+
+ ⠰⠰ Globbing  9 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app · refactor/pi-pstack-parity-again

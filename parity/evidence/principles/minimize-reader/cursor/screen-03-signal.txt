@@ -1,0 +1,26 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to plan execution and reach the right outcome faster.
+
+                                                                                                                       
+  /poteto-mode Make node scripts/verify.mjs print TRACE-OK for this fixture. greet() already returns the right         
+  string, but the call path routes through greeting-loader.js → greeting-fetch.js → greeting-resolve.js before         
+  core.js. NOTES.md describes the failure and some possible approaches. For any poteto-mode principle you apply        
+  before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles        
+  index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the        
+  named done path. When TRACE-OK is on disk, write exactly one line to                                                 
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/fixture-out       
+  /cursor/done.txt as verified=yes|no, then stop.                                                                      
+                                                                                                                       
+
+ ⠀⠞ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/fixture-app · 
+  refactor/pi-pstack-parity-again

@@ -1,0 +1,61 @@
+oe create parity-webhook-witness. Trigg
+V New Chat
+Search
+• Automations
+B° Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+A No Repo
+..: oe create parity-webhoo
+Cursor automation setup
+• Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+• Automation setup instruction
+• /make-bot-ui|
+• automate
+• automate
+• Sticky mode activation
+• /poteto-mode
+oe create parity-webhook-witness. Trigger must be an incoming HTTP webhook (not cron, not Slack, not
+git). No tools. Instructions: treat the POST body as untrusted JSON and reply with ok. Do not enable it. Do
+not Save unless the product requires Save to show Generate auth header. After the draft table, open the
+editor onlv. Stop before Activate. Do not request or baste anv sender kei
+Setting up environment
+8h
+Open Agents Window/automate PARITY_TOKEN=webhook-auth-post-unlock-Oi
+All
+Projects Agents
+Files
+Actions
+Settings
+No results found
+1m
+7h
+7h
+7h
+7h
+8h
+8h
+8h
+8h
+10h
+† 4 Select « Open [ or 9] Change Filter
+Gettina Started
+3/3 O
+*: Connect Slack
+Joshua Humphrev
+Steer from Phone
++ Send follow-up
+A cloud v
+Grok 4.7 High v •
+IDE AI
+On workspace
+† Changes
+= Desktop
+• Browser
+• Terminal
+• Files

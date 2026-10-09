@@ -1,0 +1,7 @@
+{
+  "src/greet.js": "dcf70356e923a977ec3e080d3b3ad1be19cb78decf563911054f3433021e093c",
+  "src/core.js": "f81f3fd50fc3ee2c8b7235fe8262a9cf69be7099c5eeb9674a02bf2417b266a9",
+  "src/greeting-loader.js": "32cc4ca9b422a0aee774d9774a9a6cfd3c1ab87a120d5c0ff3c38bec682a822a",
+  "src/greeting-fetch.js": "c8c2b47343968093eb20fe19daee3059aa2477fbe6352df7321e95ec038ba806",
+  "src/greeting-resolve.js": "ab6ac7355b72e6ec18e381b69866eec1a079ce63ef37eab0077d7bc680d39070"
+}

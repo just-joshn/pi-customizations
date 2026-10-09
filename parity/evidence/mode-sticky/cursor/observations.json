@@ -1,0 +1,90 @@
+{
+  "ready": {
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": false,
+    "slashMenuOpen": false,
+    "composerHasPoteto": false,
+    "followUpReady": false,
+    "working": false,
+    "firstReply": false,
+    "secondReply": false
+  },
+  "slashMenu": {
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": false,
+    "slashMenuOpen": true,
+    "composerHasPoteto": true,
+    "followUpReady": false,
+    "working": false,
+    "firstReply": false,
+    "secondReply": false
+  },
+  "optionEnterProbes": [
+    {
+      "sequence": "esc-cr",
+      "hex": "1b0d",
+      "screen": "02-option-enter-0-esc-cr",
+      "usedSkill": false,
+      "usedAny": false,
+      "customModeChrome": false,
+      "piStickyBadge": false,
+      "slashMenuOpen": true,
+      "composerHasPoteto": true,
+      "followUpReady": false,
+      "working": false,
+      "firstReply": false,
+      "secondReply": false
+    },
+    {
+      "sequence": "esc-lf",
+      "hex": "1b0a",
+      "screen": "02-option-enter-1-esc-lf",
+      "usedSkill": false,
+      "usedAny": false,
+      "customModeChrome": false,
+      "piStickyBadge": false,
+      "slashMenuOpen": true,
+      "composerHasPoteto": true,
+      "followUpReady": false,
+      "working": false,
+      "firstReply": false,
+      "secondReply": false
+    },
+    {
+      "sequence": "csi-27-13",
+      "hex": "1b5b32373b333b31337e",
+      "screen": "02-option-enter-2-csi-27-13",
+      "usedSkill": false,
+      "usedAny": false,
+      "customModeChrome": false,
+      "piStickyBadge": false,
+      "slashMenuOpen": true,
+      "composerHasPoteto": true,
+      "followUpReady": false,
+      "working": false,
+      "firstReply": false,
+      "secondReply": false
+    }
+  ],
+  "afterOptionEnter": {
+    "sequence": "csi-27-13",
+    "hex": "1b5b32373b333b31337e",
+    "screen": "02-option-enter-2-csi-27-13",
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": false,
+    "slashMenuOpen": true,
+    "composerHasPoteto": true,
+    "followUpReady": false,
+    "working": false,
+    "firstReply": false,
+    "secondReply": false
+  },
+  "customModeReached": false,
+  "harnessLimitation": "No tested Option+Enter / Alt+Enter byte sequence selected Custom Mode from the slash menu in this PTY harness."
+}

@@ -1,0 +1,60 @@
+{
+  "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+  "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+  "inventoryRel": ".cursor/benny/existing-live-automations.json",
+  "productRel": "src/app.js",
+  "productBeforeDigest": "e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e",
+  "productAfterDigest": "e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e",
+  "productUnchanged": true,
+  "inventoryIntact": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/existing-no-automate/fixture-out/pi/done.txt",
+    "line": "STATUS=checklist-ok reason=checklist given; editor not openable in CLI PTY, user edits both existing automations",
+    "status": "checklist-ok"
+  },
+  "outcome": "checklist_no_automate",
+  "contractHeld": true,
+  "automateHit": false,
+  "checklist": true,
+  "askEditor": true,
+  "duplicateCreated": [],
+  "screen": {
+    "usedAutomate": false,
+    "refuseAutomate": false,
+    "automateUsedForUpdate": false,
+    "checklistChrome": true,
+    "askEditorUpdate": true,
+    "noDuplicateChrome": false,
+    "editorBlockedChrome": false,
+    "working": false
+  },
+  "pty": {
+    "usedAutomate": false,
+    "refuseAutomate": true,
+    "automateUsedForUpdate": false,
+    "checklistChrome": true,
+    "askEditorUpdate": true,
+    "noDuplicateChrome": true,
+    "editorBlockedChrome": true,
+    "working": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-existing-no-automate-fixture-app--/2026-10-09T00-52-37-429Z_01a11e25-d1b5-76f8-ad96-4a8e34545626.jsonl",
+    "forAgentsRead": true,
+    "setupBennyRead": true,
+    "inventoryRead": true,
+    "automateUsed": false,
+    "checklistChrome": true,
+    "askEditorUpdate": true,
+    "toolOrder": [
+      "bash(existing-live-automations.json)",
+      "bash",
+      "bash",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 26,
+  "scorerNote": "checklist_no_automate requires checklist + ask-editor chrome, no /automate update path, inventory intact, no duplicate creates, product unchanged"
+}

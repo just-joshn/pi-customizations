@@ -1,0 +1,102 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "leverPresent": true,
+    "leverArtifacts": [
+      "scripts/rewrite-prefix.mjs"
+    ],
+    "productFixed": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "leverMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "leverMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:32:52.719Z",
+  "firstVerifyAt": "2026-10-09T00:32:32.610Z",
+  "firstLeverAt": "2026-10-09T00:32:51.113Z",
+  "productPaths": [
+    "src/alpha.js",
+    "src/beta.js",
+    "src/gamma.js"
+  ],
+  "leverArtifacts": [
+    "scripts/rewrite-prefix.mjs"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-app/evidence/verify-out.txt",
+    "line": "PREFIX-OK units=3",
+    "ok": true
+  },
+  "productFixed": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-build-the-lever/SKILL.md",
+    "ok": true,
+    "name": "principle-build-the-lever",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/8180c89c-6511-4392-8f21-01120528d326/8180c89c-6511-4392-8f21-01120528d326.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:33:15.565Z",
+    "ranVerifyScript": true,
+    "wroteLever": true,
+    "toolOrder": [
+      "Read",
+      "Shell",
+      "Read",
+      "Read(lever-leaf)",
+      "Read",
+      "Shell(verify.mjs)",
+      "blob-mention(lever-leaf)",
+      "GetDynamicTools",
+      "CallDynamicTool(verify.mjs)",
+      "Write(lever-file)",
+      "Shell(verify.mjs)",
+      "Shell",
+      "Shell"
+    ],
+    "mtimeMs": 1791505987324.3962
+  },
+  "pollSamples": 105,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "leverMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "leverMention": true,
+    "working": true
+  }
+}

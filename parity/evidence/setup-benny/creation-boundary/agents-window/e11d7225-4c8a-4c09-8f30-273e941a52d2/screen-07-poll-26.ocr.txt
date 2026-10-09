@@ -1,0 +1,64 @@
+V New Chat
+Search
+Automations
+Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+G No Repo
+• Cursor automation setup
+Cursor automation setup
+• Cursor automation setup
+• Automation setup instructior
+/make-bot-ui
+/automate
+/automate
+Sticky mode activation
+Getting Started
+* Connect Slack
+Joshua Humphrey
+45m
+1m
+6m
+8m
+17m
+47m
+49m
+51m
+1h
+3/3 O
+DE 7
+Automations
+Automate repetitive tasks with always-on agents and configure Cursor's built-in agents for your team.
+From Cursor
+New Automation
+Cursor
+Secrets written to plaintext logs
+High • Security
+Ship better code, faster
+Review Code with Bugbot
+Catch bugs and auto-fix before they ship.
+Scan and Triage Security Vulnerabilities
+Security checks on every change.
+Route PR Reviews and Auto-Approve
+Assign reviewers and approve PRs.
+Get Started →
+Mine
+Team
+Name
+parity-webhook-witness
+Untitled
+benny-triage
+All Runs A
+Search...
+Created By
+Joshua Humphrey 4m
+Joshua Humphrey 6m
+Joshua Humphrey 8m
+Status
+× Inactive
+× Inactive
+× Inactive
+Tools

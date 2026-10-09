@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "attemptId": "bbb6f903-9a40-46a1-9f97-50d5ed85512e",
+  "side": "pi",
+  "scenarioRef": "consumer:watch-pr-help-commander",
+  "fixtureRef": {
+    "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "executable": {
+    "path": "/Users/josh-desktop/.local/bin/pi",
+    "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+  },
+  "artifacts": [
+    {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "digest": "sha256:89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680"
+    }
+  ],
+  "launch": {
+    "argv": [
+      "/Users/josh-desktop/.local/bin/pi",
+      "--model",
+      "claude-subscription/claude-sonnet-5-5:medium"
+    ],
+    "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+    "envNames": [
+      "HOME",
+      "PATH",
+      "PI_CODING_AGENT_DIR",
+      "TERM"
+    ],
+    "publicEnv": {
+      "TERM": "xterm-256color"
+    }
+  },
+  "geometry": {
+    "rows": 36,
+    "cols": 120
+  },
+  "observedEnv": {
+    "platform": "darwin",
+    "node": "v24.21.0",
+    "TERM": "xterm-256color"
+  }
+}

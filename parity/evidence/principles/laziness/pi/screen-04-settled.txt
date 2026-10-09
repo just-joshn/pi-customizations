@@ -1,0 +1,40 @@
+   return 'hello, world';                                                                                              │
+ }                                                                                                                     │
+ FLAT-OK path=delete files=core.js,greet.js                                                                            │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ echo "verified=yes" >                                                                                               │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-out/pi/done.txt   │
+ (timeout 10s)                                                                                                         │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ node scripts/verify.mjs now prints FLAT-OK path=delete files=core.js,greet.js, and I wrote verified=yes to done.txt.  │
+                                                                                                                       │
+ What was broken. greet() went through FormatPipeline.run(), which only threw "FormatPipeline incomplete".             │
+                                                                                                                       │
+ Fix. I deleted src/pipeline.js and made src/greet.js return message() from src/core.js. That's option 2 in NOTES.md.  │
+ I skipped the FormatStrategy registry because it would add a layer with no behaviour.                                 ┃
+                                                                                                                       ┃
+ Verification. Before the change, verify.mjs printed FLAT-FAIL greet=false pipelineGone=false … layeredName=true.      ┃
+ After it, FLAT-OK.                                                                                                    ┃
+                                                                                                                       ┃
+ Principle applied. Laziness Protocol (I read its leaf SKILL.md this session). It led me to remove the layer rather    ┃
+ than build the registry. The diff is one deleted file and a three-line greet.js.                                      ┃
+                                                                                                                       ┃
+ I skipped the Opening a PR step because no PR was requested.                                                          ┃
+
+[>] Reproduce it yourself on the matching surface via the control skill; binary-search cause; plan fix; verify on sam...
+[-] Run Opening a PR (skip: fixture, no PR requested) (cancelled)
+[ ] Make verify print FLAT-OK, write done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-app (refactor/pi-pstack-parity-again)
+↑14 ↓1.4k R181k W28k CH99.6% $0.162 (sub) 3.7%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

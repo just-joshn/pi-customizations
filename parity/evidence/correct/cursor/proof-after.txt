@@ -1,0 +1,2 @@
+node scripts/check-store-boundary.js history/past-mistake-1.js
+exit_code=1

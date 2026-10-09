@@ -1,0 +1,1 @@
+Done predicate: from a clean tree (notes.json deleted) node verify.mjs failed at baseline and now passes — running src/cli.js twice persists notes.json with alpha/beta, prints '- <ISO timestamp> <text>' per line identically on both runs, and added notes survive store reload.

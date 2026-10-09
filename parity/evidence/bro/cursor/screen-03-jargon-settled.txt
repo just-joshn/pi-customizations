@@ -1,0 +1,27 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use subagents to parallelize work and preserve context.
+
+                                                                                                                       
+  In one short reply only, explain how Node's event loop interacts with the promise microtask queue and the            
+  libuv thread pool using precise systems terminology (event loop phases, microtasks, macrotasks, libuv thread         
+  pool, I/O completion). Do not create or edit any files. Do not run tools. Stop after the explanation.                
+                                                                                                                       
+
+  Node’s event loop (libuv) advances through phases—timers → pending callbacks → idle/prepare → poll → check →
+  close—dequeuing one macrotask/callback per turn from that phase’s queue. After each macrotask (and between phase
+  transitions), V8 drains the promise microtask queue to empty before the next macrotask or phase step.
+  Blocking/fs/crypto/DNS work is offloaded to the libuv thread pool; when that work finishes, the result is posted
+  as an I/O completion that becomes a macrotask in a later poll/pending phase—microtasks never run on the thread
+  pool, only on the main loop after the completion callback is scheduled.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 8.5%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-app · refactor/pi-pstack-parity-again

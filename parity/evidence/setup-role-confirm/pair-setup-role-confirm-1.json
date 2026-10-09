@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "pairId": "setup-role-confirm-1",
+  "scenarioRef": "setup-pstack:role-confirm",
+  "scenarioId": "setup-role-confirm",
+  "requirementIds": [
+    "PSTACK-SETUP-ROLE-CONFIRM-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "fixturePath": "parity/evidence/setup-role-confirm/fixture-locked.mdc",
+  "verdict": "pass",
+  "checks": {
+    "everyRoleShownWithModel": {
+      "cursor": true,
+      "pi": true
+    },
+    "acceptOrChangePrompt": {
+      "cursor": true,
+      "pi": true
+    },
+    "writeOnlyAfterConfirm": {
+      "cursor": true,
+      "pi": true
+    }
+  },
+  "cursor": {
+    "attemptId": "b72b2ad5-c36a-4219-81ba-04954cb9888c",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-role-confirm/cursor/b72b2ad5-c36a-4219-81ba-04954cb9888c",
+    "path": "chatform-budget",
+    "acceptPath": "chatform-accept",
+    "roleConfirmScore": {
+      "expectedRoleCount": 17,
+      "rolesListedAnyForm": 17,
+      "rolesListedWithModel": 17,
+      "rolesMissing": [],
+      "acceptOrChangePrompt": true,
+      "acceptPrompt": true,
+      "changePrompt": false,
+      "summaryOnly": false,
+      "askQuestion": false,
+      "writeCardOnSameScreen": false,
+      "everyRoleShownWithModel": true
+    },
+    "writeBeforeConfirm": false,
+    "writeCardSeen": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "wroteBytesChanged": false,
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "pi": {
+    "attemptId": "f9259bfa-d306-4b5b-8ea4-c4d0de00b6fb",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-role-confirm/pi/f9259bfa-d306-4b5b-8ea4-c4d0de00b6fb",
+    "path": "askquestion-budget",
+    "budgetPath": "askquestion-budget",
+    "acceptPath": "askquestion-accept",
+    "roleConfirmScore": {
+      "expectedRoleCount": 17,
+      "rolesListedAnyForm": 17,
+      "rolesListedWithModel": 17,
+      "rolesMissing": [],
+      "acceptOrChangePrompt": true,
+      "acceptPrompt": true,
+      "changePrompt": true,
+      "summaryOnly": false,
+      "askQuestion": true,
+      "writeCardOnSameScreen": false,
+      "everyRoleShownWithModel": true
+    },
+    "writeBeforeConfirm": false,
+    "writeCardSeen": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "wroteBytesChanged": false,
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "summaryOnlyConfirm": false
+  },
+  "hostDeltas": [
+    "Cursor shows a Role/Model markdown table in chat before accept; Pi pastes roleConfirmPrompt into AskQuestion with one role: model line per role.",
+    "Cursor role confirm used free-text Accept as-is; Pi used AskQuestion Accept as-is / Change specific roles.",
+    "Both sides emitted Edited pstack-models.mdc after confirm with +0/-0 (accept-as-is left locked digest unchanged)."
+  ],
+  "discardedAttempts": [
+    {
+      "side": "cursor",
+      "attemptId": "9bead650-43fc-4d76-94bd-02f1bc4117ab",
+      "reason": "early scorer missed table cells; viewport truncated; superseded"
+    },
+    {
+      "side": "cursor",
+      "attemptId": "53574fca-951f-4ed6-8f9b-bdd8a5ac4225",
+      "reason": "budget needle miss (Pick a budget without colon); timed out; superseded"
+    },
+    {
+      "side": "pi",
+      "attemptId": "b2a2debf-e221-4e95-bd04-3579aa9eafe3",
+      "reason": "accept stuck on Other; write wait threw before observations sealed; superseded"
+    },
+    {
+      "side": "pi",
+      "attemptId": "08ab0e09-4a60-4b44-836e-01ca750bb534",
+      "reason": "summary-only AskQuestion (rolesListedWithModel 0/17); superseded by listing fix recapture"
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-role-confirm.mjs --cursor-only (reuse) then --pi-only after product fix",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "lockedFixtureRestored": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "productFix": "pstack_setup state.roleConfirmPrompt + newline-preserving AskQuestion wrap + setup-pstack skill paste-verbatim"
+  }
+}

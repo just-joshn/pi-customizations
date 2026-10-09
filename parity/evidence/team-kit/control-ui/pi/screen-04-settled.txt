@@ -1,0 +1,40 @@
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ O=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/control-ui        │
+ cat > $O/summary.md <<'EOF'                                                                                           │
+ # Control UI harness notes                                                                                            │
+ Marker: UI_PROBE                                                                                                      │
+ - Server: node serve.mjs on 127.0.0.1:8765                                                                            │
+ - Harness: headless Google Chrome + raw CDP (Node 24 WebSocket, /tmp/cdp.mjs); no Playwright added.                   │
+ - Steps: navigate, read #out (before: "idle"), click #go (DOM click), read #out (after: "UI_PROBE_OK").               │
+ - Screenshot: ui-harness-after.png                                                                                    │
+ - Result: UI_PROBE_OK confirmed.                                                                                      │
+ EOF                                                                                                                   │
+ echo "STATUS=verified reason=#out became UI_PROBE_OK after Go click" > $O/done.txt                                    │
+ pkill -f "fixture-apps/control-ui/serve.mjs"; pkill -f "node serve.mjs"; rm -rf /tmp/cdp-prof (timeout 10s)           │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ STATUS=verified. After clicking Go, #out changed from idle to UI_PROBE_OK.                                            │
+                                                                                                                       │
+ I started serve.mjs, drove headless Chrome over raw CDP, and added no Playwright dependency. The click was a DOM      │
+ .click() on #go, not a real mouse event. I stopped the server and removed the temp Chrome profile afterwards.         │
+                                                                                                                       ┃
+ Files are in                                                                                                          ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/control-ui:           ┃
+ - ui-harness-after.png                                                                                                ┃
+ - summary.md                                                                                                          ┃
+ - done.txt                                                                                                            ┃
+ - result.json                                                                                                         ┃
+                                                                                                                       ┃
+ The CDP script is at /tmp/cdp.mjs, outside the artifacts folder.                                                      ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/control-ui (refactor/pi-pstack-parity-again)
+↑12 ↓2.0k R119k W21k CH98.5% $0.128 (sub) 2.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

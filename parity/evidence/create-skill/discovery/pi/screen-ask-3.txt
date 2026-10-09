@@ -1,0 +1,40 @@
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/discovery/pi/require │
+ ments.md covering Purpose, Location, Triggers, Constraints, Patterns. Then write exactly one line to                  │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/discovery/pi/done.tx │
+ t as STATUS=discovered|env-blocked|other reason=<short>. Do not edit parity ledgers, parity/mismatches.json,          │
+ parity/requirements.json, or parity/progress.md.                                                                      │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       ┃
+ [skill] create-skill:1-120 (ctrl+o to expand)                                                                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ AskQuestion create-skill discovery (4)                                                                                ┃
+ 1. What should the probe skill do?                                                                                    ┃
+   [ ] Trivial no-op/echo workflow just to exercise create-skill                                                       ┃
+   [ ] Small repo-specific helper (e.g. run fixture-app checks)                                                        ┃
+   [ ] Something else                                                                                                  ┃
+   [x] Other: noop                                                                                                     ┃
+                                                                                                                       ┃
+ 2. Where should it live?                                                                                              ┃
+   [ ] Project (.pi/skills/)                                                                                           ┃
+   [ ] Personal (~/.pi/agent/skills/)                                                                                  ┃
+   [x] Other: project                                                                                                  ┃
+                                                                                                                       ┃
+ 3. When should it trigger?                                                                                            ┃
+   [ ] Only when named explicitly (disable-model-invocation)                                                           ┃
+   [ ] Auto-invoke from ambient context                                                                                ┃
+   [x] Other: explicit                                                                                                 ┃
+                                                                                                                       ┃
+ 4. Output format / existing patterns to follow?                                                                       ┃
+   [ ] None; keep minimal, single SKILL.md                                                                             ┃
+   [ ] Follow existing repo skill conventions                                                                          ┃
+   [x] Other: none                                                                                                     ┃
+                                                                                                                       ┃
+
+── ⠹ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app (refactor/pi-pstack-parity-again)
+↑6 ↓584 R33k W19k CH92.7% $0.087 (sub) 2.7%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

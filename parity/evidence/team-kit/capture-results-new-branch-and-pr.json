@@ -1,0 +1,193 @@
+{
+  "scenario": "team-kit:new-branch-and-pr",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "pairPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pair-team-kit-new-branch-and-pr-1.json",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/cursor/new-branch-and-pr/6337794e-d2c9-4a4e-b0ef-25551e3013bc",
+      "attemptId": "6337794e-d2c9-4a4e-b0ef-25551e3013bc",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/new-branch-and-pr Do not ask questions. Follow the new-branch-and-pr skill. From this fixture repo, create branch fixture/new-branch-cursor-mv0dmpif from latest main, make a tiny focused change (append one line to README.md mentioning cursor), commit, push, and open a PR into main. Write the new PR URL alone to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/new-branch-and-pr/pr-url.txt. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/new-branch-and-pr/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/new-branch-and-pr. Do not edit parity ledgers. Do not force-push.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": false,
+          "working": false,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "pty": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": false,
+          "working": true,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/new-branch-and-pr/done.txt",
+          "line": "STATUS=verified reason=pr opened successfully",
+          "status": "verified"
+        },
+        "post": {
+          "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/2",
+          "prExists": true
+        },
+        "seededSkill": null,
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "artifactOk": true,
+          "post": {
+            "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/2",
+            "prExists": true
+          },
+          "closed": true,
+          "honestBlocker": false
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "6337794e-d2c9-4a4e-b0ef-25551e3013bc",
+        "side": "cursor",
+        "scenarioRef": "team-kit:new-branch-and-pr",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pi/new-branch-and-pr/f76fbd4b-0e21-4bca-931c-b3fca1fb6088",
+      "attemptId": "f76fbd4b-0e21-4bca-931c-b3fca1fb6088",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/new-branch-and-pr Do not ask questions. Follow the new-branch-and-pr skill. From this fixture repo, create branch fixture/new-branch-pi-mv0dnast from latest main, make a tiny focused change (append one line to README.md mentioning pi), commit, push, and open a PR into main. Write the new PR URL alone to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/new-branch-and-pr/pr-url.txt. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/new-branch-and-pr/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/new-branch-and-pr. Do not edit parity ledgers. Do not force-push.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": false,
+          "working": false,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "pty": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": true,
+          "working": true,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/new-branch-and-pr/done.txt",
+          "line": "STATUS=verified reason=PR created and pushed",
+          "status": "verified"
+        },
+        "post": {
+          "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/3",
+          "prExists": true
+        },
+        "seededSkill": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/new-branch-and-pr/SKILL.md",
+          "sha256": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd"
+        },
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "artifactOk": true,
+          "post": {
+            "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/3",
+            "prExists": true
+          },
+          "closed": true,
+          "honestBlocker": false
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "f76fbd4b-0e21-4bca-931c-b3fca1fb6088",
+        "side": "pi",
+        "scenarioRef": "team-kit:new-branch-and-pr",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

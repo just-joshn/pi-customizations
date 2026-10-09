@@ -1,0 +1,203 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "productFixed": true,
+    "verifiedDone": true,
+    "perUnitVerify": true,
+    "progressiveLog": true,
+    "interleavedOk": true,
+    "unitMarkersOk": true,
+    "batchedOnce": false,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:41:02.661Z",
+  "firstVerifyAt": "2026-10-09T00:40:59.052Z",
+  "firstLogAt": "2026-10-09T00:40:59.052Z",
+  "productPaths": [
+    "src/alpha.js",
+    "src/beta.js",
+    "src/gamma.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-app/evidence/verify-out.txt",
+    "line": "SEQUENCE-OK units=3",
+    "ok": true
+  },
+  "verifyLog": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-app/evidence/verify-log.jsonl",
+    "entries": [
+      {
+        "ts": "2026-10-09T00:40:58.823Z",
+        "green": [],
+        "greenCount": 0,
+        "status": "fail",
+        "line": "SEQUENCE-FAIL green=none alpha=OLD_alpha expected=NEW_alpha; beta=OLD_beta expected=NEW_beta; gamma=OLD_gamma expected=NEW_gamma"
+      },
+      {
+        "ts": "2026-10-09T00:41:04.066Z",
+        "green": [
+          "alpha"
+        ],
+        "greenCount": 1,
+        "status": "partial",
+        "line": "SEQUENCE-FAIL green=alpha beta=OLD_beta expected=NEW_beta; gamma=OLD_gamma expected=NEW_gamma"
+      },
+      {
+        "ts": "2026-10-09T00:41:08.118Z",
+        "green": [
+          "alpha",
+          "beta"
+        ],
+        "greenCount": 2,
+        "status": "partial",
+        "line": "SEQUENCE-FAIL green=alpha,beta gamma=OLD_gamma expected=NEW_gamma"
+      },
+      {
+        "ts": "2026-10-09T00:41:14.594Z",
+        "green": [
+          "alpha",
+          "beta",
+          "gamma"
+        ],
+        "greenCount": 3,
+        "status": "ok",
+        "line": "SEQUENCE-OK units=3"
+      }
+    ],
+    "score": {
+      "progressive": true,
+      "entryCount": 4,
+      "maxGreen": 3,
+      "greenCounts": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  "unitMarkers": [
+    {
+      "rel": "evidence/units/alpha.txt",
+      "exists": true,
+      "line": "UNIT-OK alpha=NEW_alpha"
+    },
+    {
+      "rel": "evidence/units/beta.txt",
+      "exists": true,
+      "line": "UNIT-OK beta=NEW_beta"
+    },
+    {
+      "rel": "evidence/units/gamma.txt",
+      "exists": true,
+      "line": "UNIT-OK gamma=NEW_gamma"
+    }
+  ],
+  "productFixed": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+    "ok": true,
+    "name": "principle-sequence-verifiable-units",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/00b58d68-3690-416b-a0c5-17de6ec977ac/00b58d68-3690-416b-a0c5-17de6ec977ac.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:41:40.775Z",
+    "ranVerifyScript": true,
+    "verifyRuns": 7,
+    "productEdits": [
+      {
+        "stem": "alpha",
+        "ts": null,
+        "via": "Shell"
+      },
+      {
+        "stem": "alpha",
+        "ts": null,
+        "via": "StrReplace"
+      },
+      {
+        "stem": "beta",
+        "ts": null,
+        "via": "StrReplace"
+      },
+      {
+        "stem": "gamma",
+        "ts": null,
+        "via": "StrReplace"
+      }
+    ],
+    "interleaved": {
+      "distinctProductStems": 3,
+      "verifiesAfterDistinctEdit": 3,
+      "ok": true
+    },
+    "toolOrder": [
+      "Read",
+      "Shell(verify.mjs)",
+      "Read",
+      "Shell(product:alpha)",
+      "Read(seq-leaf)",
+      "Read",
+      "GetDynamicTools",
+      "blob-mention(seq-leaf)",
+      "CallDynamicTool(verify.mjs)",
+      "Shell(verify.mjs)",
+      "StrReplace(product:alpha)",
+      "CallDynamicTool(verify.mjs)",
+      "Shell(verify.mjs)",
+      "StrReplace(product:beta)",
+      "CallDynamicTool",
+      "Shell(verify.mjs)",
+      "StrReplace(product:gamma)",
+      "CallDynamicTool",
+      "Shell(verify.mjs)",
+      "Write",
+      "CallDynamicTool",
+      "Shell"
+    ],
+    "mtimeMs": 1791506488823.608
+  },
+  "pollSamples": 101,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

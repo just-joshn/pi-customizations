@@ -1,0 +1,18 @@
+{
+  "afterHelp": {
+    "usageOrch": true,
+    "commandsHeader": true,
+    "cmdInit": true,
+    "cmdUnit": true,
+    "cmdStanding": true,
+    "helpFlag": false,
+    "working": false
+  },
+  "helpChromeOk": true,
+  "doneMarkerOk": true,
+  "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+  "consumerSha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+  "consumerMatchesLocked": true,
+  "journeyClosed": true,
+  "rejudgedFrom": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/cursor/076e12b0-fbfa-4ce8-be13-bc846be2c7cb/screen-03-settled.txt"
+}

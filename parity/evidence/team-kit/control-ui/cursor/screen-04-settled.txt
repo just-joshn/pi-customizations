@@ -1,0 +1,39 @@
+    ▎    9 + - Result: `#out` text became `UI_PROBE_OK`
+    ▎   10 + - Marker: UI_PROBE
+    ▎   11 + - Screenshot: `ui-harness-after.png`
+
+    Edited done.txt +1
+
+    ▎    1 + STATUS=verified reason=UI_PROBE_OK confirmed via Chrome CDP
+
+  $ kill 10080 2>/dev/null || true; ls -la
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/control-ui/
+    244ms
+    … 4 output lines hidden · ctrl+o to expand
+    -rw-r--r--  1 josh-desktop staff  578 Oct  8 20:12 summary.md
+    -rw-r--r--  1 josh-desktop staff 9364 Oct  8 20:12 ui-harness-after.png
+
+    To-do All done
+    ✔ Start serve.mjs if needed on :8765
+    ✔ Drive UI with local Chrome/CDP harness (no Playwright dep)
+    ✔ Confirm #out=UI_PROBE_OK + screenshot
+    ✔ Write summary.md + done.txt artifacts
+
+    Waited for shell
+
+  Verified. Chrome headless CDP clicked Go; #out became UI_PROBE_OK.
+
+  Artifacts under parity/evidence/team-kit/fixture-out/cursor/control-ui/:
+  • ui-harness-after.png
+  • summary.md (includes UI_PROBE)
+  • done.txt → STATUS=verified reason=UI_PROBE_OK confirmed via Chrome CDP
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 12.8% · 3 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/control-ui · 
+  refactor/pi-pstack-parity-again

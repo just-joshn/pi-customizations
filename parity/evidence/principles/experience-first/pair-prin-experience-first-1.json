@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "pairId": "prin-experience-first-1",
+  "scenarioRef": "prin-experience-first",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-EXPERIENCE-FIRST-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Make node scripts/verify.mjs print EXPERIENCE-OK for this fixture. formatStatus in src/status.js currently dumps raw JSON by default (convenient for the implementer). NOTES.md describes two approaches: keep the JSON default and bolt on rough exporters later, or ship a polished human default with --json for machines and write IMPACT.md naming consumer and maintainer impact. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When EXPERIENCE-OK is on disk, write exactly one line to .../experience-first/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode make EXPERIENCE-OK; NOTES.md approaches; leaf SKILL.md for applied principles; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with EXPERIENCE-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "c4dcc551-833e-46ee-bffc-651864b86bf7",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/cursor/c4dcc551-833e-46ee-bffc-651864b86bf7",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/ead89d81-a64e-4062-ad2f-b8e8876147cd/ead89d81-a64e-4062-ad2f-b8e8876147cd.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-experience-first/SKILL.md",
+      "experienceOverConvenience": true,
+      "dualImpact": true,
+      "kitchenSink": false,
+      "keptVerifyOk": true,
+      "verifyLine": "EXPERIENCE-OK default=human json=yes impact=dual files=status.js",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "unobserved on ready/settled screen dumps",
+      "oracleNote": "Transcript Read of experience-first leaf. Human Status/Ready/Next/Queue default; --json kept. IMPACT.md Consumer+Maintainer. EXPERIENCE-OK. No kitchen-sink exporters."
+    }
+  },
+  "pi": {
+    "attemptId": "624b7baf-b01d-424d-9dac-3b9c39828a79",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/pi/624b7baf-b01d-424d-9dac-3b9c39828a79",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-experience-first-fixture-app--/2026-10-09T01-19-30-101Z_01a11e3e-6d35-7677-a29e-9321a14d0f76.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-experience-first/SKILL.md",
+      "experienceOverConvenience": true,
+      "dualImpact": true,
+      "kitchenSink": false,
+      "keptVerifyOk": true,
+      "verifyLine": "EXPERIENCE-OK default=human json=yes impact=dual files=status.js",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 \u2022 medium",
+      "oracleNote": "Session tool order includes read(experience-first-leaf) and bash(verify.mjs). Same human-default + dual IMPACT.md. EXPERIENCE-OK. No kitchen-sink exporters."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-experience-first/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-experience-first/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "unobserved on screen dumps",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "experience-first outcome",
+      "cursor": "contractHeld. Leaf Read + human default over JSON dump + dual IMPACT.md + EXPERIENCE-OK.",
+      "pi": "contractHeld. Leaf Read + human default over JSON dump + dual IMPACT.md + EXPERIENCE-OK.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-experience-first.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-app",
+    "decisionLog": "parity/evidence/principles/experience-first/.audit/u-journey-prin-experience-first.tsv",
+    "notes": "PSTACK-PRIN-EXPERIENCE-FIRST-001. Dedicated experience-first/ fixture. Oracle requires polished human default, --json machine path, IMPACT.md Consumer+Maintainer, no kitchen-sink exporters. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both."
+  }
+}

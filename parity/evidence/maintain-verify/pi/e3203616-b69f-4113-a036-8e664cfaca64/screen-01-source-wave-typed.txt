@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+─────────────────────────────────────────────────────── ↑ 9 more ───────────────────────────────────────────────────────
+dren/hello-print.md and                                                                                                 
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/pi/chil 
+dren/exit-zero.md. Then write exactly these lines to                                                                    
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/pi/sour 
+ce-wave.txt and stop:                                                                                                   
+SOURCE_WAVE=done                                                                                                        
+FEATURES=2                                                                                                              
+CONCURRENT_CHILDREN=yes                                                                                                 
+FIELDS=summary,entrypoints,drift,recipe                                                                                 
+CHILDREN_DROVE=no                                                                                                       
+CHILDREN_EDITED=no                                                                                                      
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-source-wave (refactor/pi-pstack-par...
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

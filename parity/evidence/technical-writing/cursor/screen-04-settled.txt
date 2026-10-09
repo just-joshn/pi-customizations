@@ -1,0 +1,39 @@
+    ▎    1 + # greet CLI argv reference
+    ▎    2 + 
+    ▎    3 + `src/greet.js` reads its name from `process.argv`.
+    ▎    4 + 
+    ▎    5 + ## Invocation
+    ▎    6 + 
+    ▎    7 + | Form | Meaning |
+    ▎    8 + | --- | --- |
+    ▎    9 + | `node src/greet.js` | No name argument. |
+    ▎   10 + | `node src/greet.js <name>` | One name argument. |
+    ▎   11 + | `npm start` | Runs `node src/greet.js` with no name argument. |
+    ▎   12 + 
+    ▎   13  … truncated (23 more lines) · ctrl+r to review
+
+  Quick pass against STE and unslop, then I'll write the done marker.
+
+    Edited done.txt +1
+
+    ▎    1 + README.md (how-to), docs/reference.md (reference)
+
+    To-do All done
+    ✔ Rewrite README.md as how-to-oriented Diátaxis docs
+    ✔ Write docs/reference.md for greet CLI argv contract
+    ✔ Write one-line done.txt naming paths and Diátaxis modes
+
+  Done.
+
+  • README.md — how-to (default greeting, greet by name)
+  • docs/reference.md — reference (process.argv contract)
+  • fixture-out/cursor/done.txt — one-line marker written
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11.1% · 3 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/technical-writing/fixture-app · refactor/pi-pstack-parity-again

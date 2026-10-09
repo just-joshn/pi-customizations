@@ -1,0 +1,36 @@
+  0 fail                                                                                                               │
+  206 expect() calls                                                                                                   │
+ Ran 52 tests across 4 files. [1084.00ms]                                                                              │
+ RC=0                                                                                                                  │
+                                                                                                                       │
+ Took 1.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ echo "EXIT=0" >                                                                                                     │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/pi/bun-test-done.txt &&  │
+ cat /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/pi/bun-test-done.txt ┃
+  (timeout 10s)                                                                                                        ┃
+                                                                                                                       ┃
+ EXIT=0                                                                                                                ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ bun run test exited 0. The summary lines:                                                                             ┃
+                                                                                                                       ┃
+ ```                                                                                                                   ┃
+    52 pass                                                                                                            ┃
+    0 fail                                                                                                             ┃
+    206 expect() calls                                                                                                 ┃
+   Ran 52 tests across 4 files. [1084.00ms]                                                                            ┃
+ ```                                                                                                                   ┃
+                                                                                                                       ┃
+ I wrote EXIT=0 as a single line to                                                                                    ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/pi/bun-test-done.txt.    ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts (main)
+↑8 ↓425 R60k W19k CH99.2% $0.091 (sub) 2.7%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

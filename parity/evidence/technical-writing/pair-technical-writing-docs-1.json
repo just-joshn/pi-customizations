@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "pairId": "technical-writing-docs-1",
+  "scenarioRef": "cmd-technical-writing-docs",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-TECHNICAL-WRITING-DOCS-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/technical-writing rewrite draft README into layered Diátaxis how-to + docs/reference.md plus side-specific done.txt path",
+  "steps": [
+    { "send": "/technical-writing rewrite the draft README.md into layered Diátaxis-shaped docs ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "5b48533b-5d65-48de-ab6d-08c089583c46",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/technical-writing/cursor/5b48533b-5d65-48de-ab6d-08c089583c46",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "technicalWritingSkill": true,
+      "skillSource": "slash /technical-writing via plugin-dir pstack skill (prompt retained on screen)",
+      "firstDocsAt": "2026-10-08T19:42:34.948Z",
+      "firstProductAt": null,
+      "docsPaths": ["README.md", "docs/reference.md"],
+      "productPaths": [],
+      "outcome": "structured_docs",
+      "structuredDocs": true,
+      "diataxisModes": {
+        "README.md": "how-to (numbered procedures; done.txt labels how-to; body lacks the literal how-to token)",
+        "docs/reference.md": "reference (argv tables, dry facts)"
+      },
+      "doneMarkerWritten": true,
+      "doneLine": "README.md (how-to), docs/reference.md (reference)"
+    }
+  },
+  "pi": {
+    "attemptId": "60f6b4f6-d503-4b64-9909-853243f70563",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/technical-writing/pi/60f6b4f6-d503-4b64-9909-853243f70563",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-technical-writing-fixture-app--/2026-10-08T19-43-43-732Z_01a11d0b-0473-70ee-bc4e-6d8c59099651.jsonl",
+    "observations": {
+      "technicalWritingSkill": true,
+      "skillSource": "extensions/pi-pstack/skills/technical-writing/SKILL.md (session user message skill block; screen shows [skill] technical-writing)",
+      "firstDocsAt": "2026-10-08T19:43:59.247Z",
+      "firstProductAt": null,
+      "docsPaths": ["README.md", "docs/reference.md"],
+      "productPaths": [],
+      "outcome": "structured_docs",
+      "structuredDocs": true,
+      "diataxisModes": {
+        "README.md": "how-to (title How to greet someone with greet)",
+        "docs/reference.md": "reference (argv tables, dry facts)"
+      },
+      "sessionToolOrder": [
+        "bash: inspect fixture README + package.json + unslop skill head",
+        "bash: read src/greet.js",
+        "bash: write README.md + docs/reference.md + fixture-out/pi/done.txt"
+      ],
+      "doneMarkerWritten": true,
+      "doneLine": "README.md (how-to) and docs/reference.md (reference) written in fixture-app."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "skill activation",
+      "cursor": "PTY keeps /technical-writing with the full prompt; working spinner then docs land.",
+      "pi": "Screen shows [skill] technical-writing; session injects package SKILL.md at extensions/pi-pstack/skills/technical-writing/SKILL.md.",
+      "reconciled": true
+    },
+    {
+      "topic": "structured Diátaxis docs on disk",
+      "cursor": "README.md how-to procedures + docs/reference.md argv reference. FS poll firstDocsAt 19:42:34Z. done.txt names both modes.",
+      "pi": "README.md titled How to greet... + docs/reference.md. FS poll firstDocsAt 19:43:59Z. Session bash wrote both files then done.txt.",
+      "reconciled": true
+    },
+    {
+      "topic": "README how-to labeling",
+      "cursor": "Procedural numbered steps without the literal how-to token in the body; done.txt still labels README as how-to.",
+      "pi": "H1 is How to greet someone with greet; body and scorer both see how-to.",
+      "reconciled": true
+    },
+    {
+      "topic": "unrelated skill collision chrome",
+      "cursor": "No collision banner on the captured screens.",
+      "pi": "Screen still shows a tdd collision banner (user ~/.agents/skills/tdd vs package), unrelated to technical-writing which loaded from the package path.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    },
+    {
+      "topic": "slash residual",
+      "cursor": "Keeps /technical-writing visible with the full prompt.",
+      "pi": "Shows [skill] technical-writing; residual prompt starts with rewrite the draft README.md...",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-technical-writing-docs.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/technical-writing/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/technical-writing/.audit/u-journey-cmd-tech-writing.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/technical-writing/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/technical-writing/fixture-app (messy README.md, src/greet.js)"
+  }
+}

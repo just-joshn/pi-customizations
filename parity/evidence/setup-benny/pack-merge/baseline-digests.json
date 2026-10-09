@@ -1,0 +1,24 @@
+{
+  "paths": {
+    ".cursor/automations/benny/DESTINATION_ONLY.md": "sha256:3d48854a350499edfe3e82dd6aa87d2226d31158b1021e13205481fb473ef4fb",
+    ".cursor/automations/benny/README.md": "sha256:f8ba1b7ca1b9ac98c7fe1b8e02a99d6255d100568f84537cc4ab3abef0d263fb",
+    ".cursor/benny/configuration.yaml": "sha256:42dfc14a301ba91eec6fe9d6be78748a1525f77f754c34cc5d7c2462b1077d38",
+    ".cursor/benny/feature-map.md": "sha256:02ab1d9462873f9a5566d46e3f7da8bc158b68afe96c53395e7abadf7fda5d09",
+    ".cursor/benny/routing.md": "sha256:66245d0a373a793ef9ed7b763394e474a3d3190fd599023de3298374c237c23e",
+    "src/app.js": "sha256:a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  "sourceRelPaths": [
+    "FOR_AGENTS.md",
+    "README.md",
+    "skills/reproduce-and-fix-issues/SKILL.md",
+    "skills/reproduce-and-fix-issues/references/control-adapter.md",
+    "skills/reproduce-and-fix-issues/references/feature-map.example.md",
+    "skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+    "skills/setup-benny/SKILL.md",
+    "skills/triage-issue-reports/SKILL.md",
+    "skills/triage-issue-reports/references/routing.example.md",
+    "templates/configuration.example.yaml",
+    "templates/reproduce-automation-prompt.md",
+    "templates/triage-automation-prompt.md"
+  ]
+}

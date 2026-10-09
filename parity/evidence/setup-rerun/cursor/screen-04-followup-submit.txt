@@ -1,0 +1,32 @@
+  Updating the Cursor pstack rule: keep budget small, set feature, refactoring to auto, leave the rest as-is.
+
+    Edited pstack-models.mdc +1 -1
+
+    ▎    5   # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+    ▎    6   # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`).
+    ▎        Alias entries  ...
+    ▎    7   # budget: small (medium)
+    ▎    8 - feature, refactoring: inherit-parent
+    ▎    8 + feature, refactoring: auto
+    ▎    9   bug-fix: auto
+    ▎   10   perf-issue: inherit-parent
+    ▎   11   hillclimb: inherit-parent
+
+  Wrote ~/.cursor/rules/pstack-models.mdc. Budget stays small (medium); only change is feature, refactoring → auto.
+  Applies to new sessions; re-run /setup-pstack to update.
+
+                                                                                                                       
+  Budget: keep small — medium reasoning. Change only the role "feature, refactoring" to auto. Keep "bug-fix"           
+  exactly as auto. Leave every other role unchanged. Accept and write the rule. Decline any verification skill         
+  offer.No                                                                                                             
+  Reply with exactly one line that starts with MODEL-ID-CHECK and then your model identifier. Do no other work.        
+                                                                                                                       
+
+ ⠠⠛ Thinking  12 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto · 10.9% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

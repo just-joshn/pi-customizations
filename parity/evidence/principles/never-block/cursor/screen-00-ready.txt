@@ -1,0 +1,15 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /config to customize Cursor settings and behavior.
+
+
+
+                                                                                                                       
+  → Plan, search, build anything                                                                                       
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-app · 
+  refactor/pi-pstack-parity-again

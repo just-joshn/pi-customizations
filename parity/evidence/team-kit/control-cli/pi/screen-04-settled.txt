@@ -1,0 +1,40 @@
+ E                                                                                                                     │
+ python3 /tmp/h/h.py > $O/transcript.txt; echo rc=$?; cat $O/transcript.txt (timeout 40s)                              │
+                                                                                                                       │
+ rc=0                                                                                                                  │
+ READY                                                                                                                 │
+ ping                                                                                                                  │
+ ping                                                                                                                  │
+ PONG                                                                                                                  │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ O=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/control-cli       │
+ printf '# control-cli harness summary\n\nTemp PTY harness (/tmp/h/h.py, Python pty) launched toy-cli.mjs, waited for  │
+ READY, sent "ping", and captured PONG (exit 0). Transcript: transcript.txt (ping appears twice due to PTY echo).\n' > │
+ $O/summary.md                                                                                                         │
+ echo 'STATUS=verified reason=READY then PONG captured via PTY' > $O/done.txt; rm -rf /tmp/h (timeout 10s)             │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       ┃
+                                                                                                                       ┃
+ The harness worked: the toy CLI printed READY, I sent ping, and it replied PONG and exited 0. I used a temporary      ┃
+ Python PTY script in /tmp/h/h.py and deleted it afterwards.                                                           ┃
+                                                                                                                       ┃
+ The transcript shows ping twice because the terminal echoes the input.                                                ┃
+                                                                                                                       ┃
+ Files are in                                                                                                          ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/control-cli:          ┃
+ - transcript.txt                                                                                                      ┃
+ - summary.md                                                                                                          ┃
+ - done.txt, which reads STATUS=verified reason=READY then PONG captured via PTY                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/control-cli (refactor/pi-pstack-parity-ag...
+↑10 ↓1.2k R89k W20k CH98.9% $0.109 (sub) 2.8%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

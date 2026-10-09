@@ -1,0 +1,39 @@
+
+    Read 2 files
+    Read src/greet.js
+    Read decisions.tsv
+
+    1 agent completed
+    Cross-model trail review
+    ✓ Done
+
+  $ mkdir -p
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-out/cursor &&
+    printf '%s\n' '/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-a
+    pp/decisions.tsv 2' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fi
+    xture-out/cursor/done.txt && cat /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-y
+    our-work/fixture-out/cursor/done.txt 215ms
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-app/decisions.t…
+
+  Both phases done in the fixture cwd. greet() returns hello, farewell() returns bye, trail at decisions.tsv (2 data
+  rows). No commit.
+
+  Attention
+
+  reviewed by claude-sonnet-5-5-medium
+
+  • phase-1 / phase-2: Evidence is only file:line; result cells restate the code with no test/run artifact
+    pointer.
+  • phase-1: No check logged for callers/tests that might still expect "hi".
+  • phase-1 / phase-2: Same timestamp — both rows written in one shot after the edits.
+  • phase-2: Quote style (' vs task’s ") is fine; nothing verified it.
+  • Both phases: No verification or no-commit row (by design: one row per phase decision).
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11.5% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-app · refactor/pi-pstack-parity-again

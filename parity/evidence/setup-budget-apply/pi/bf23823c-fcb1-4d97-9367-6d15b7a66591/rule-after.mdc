@@ -1,0 +1,24 @@
+---
+description: pstack per-role model choices (overrides skill defaults)
+alwaysApply: true
+---
+# pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.
+# budget: large (xhigh)
+feature, refactoring: claude-subscription/claude-sonnet-5-5:xhigh
+bug-fix: auto
+perf-issue: claude-subscription/claude-sonnet-5-5:xhigh
+hillclimb: claude-subscription/claude-sonnet-5-5:xhigh
+judgment and prose: claude-subscription/claude-opus-5-5:xhigh
+hardest tasks: claude-subscription/claude-opus-5-5:xhigh
+how explorer: inherit-parent
+how explainer: claude-subscription/claude-opus-5-5:xhigh
+why investigators: claude-subscription/claude-sonnet-5-5:xhigh
+why synthesizer: claude-subscription/claude-opus-5-5:xhigh
+reflect tooling: claude-subscription/claude-sonnet-5-5:xhigh
+reflect judgment, divergent, synthesizer: claude-subscription/claude-opus-5-5:xhigh
+arena runners: claude-subscription/claude-opus-5-5:xhigh, claude-subscription/claude-sonnet-5-5:xhigh
+arena cross-judge pool: claude-subscription/claude-opus-5-5:xhigh, claude-subscription/claude-sonnet-5-5:xhigh
+swarm workers: claude-subscription/claude-sonnet-5-5:xhigh
+architect runners: claude-subscription/claude-opus-5-5:xhigh, claude-subscription/claude-sonnet-5-5:xhigh
+interrogate reviewers: claude-subscription/claude-opus-5-5:xhigh, claude-subscription/claude-sonnet-5-5:xhigh

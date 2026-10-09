@@ -1,0 +1,22 @@
+{
+  "scenario": "setup-benny-project-skills",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptId": "59fc7130-bd2d-4edc-8ee0-f491ed12128a",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/cursor/59fc7130-bd2d-4edc-8ee0-f491ed12128a",
+      "outcome": "stop_explain",
+      "contractHeld": true,
+      "doneLine": "STATUS=stop-explain reason=skills only resolve from user scope, not project pstack"
+    },
+    {
+      "side": "pi",
+      "attemptId": "29b59723-b273-423c-a63a-524b3040157d",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/pi/29b59723-b273-423c-a63a-524b3040157d",
+      "outcome": "stop_explain",
+      "contractHeld": true,
+      "doneLine": "STATUS=stop-explain reason=no project-scoped pi package; pstack only via user-level settings"
+    }
+  ]
+}

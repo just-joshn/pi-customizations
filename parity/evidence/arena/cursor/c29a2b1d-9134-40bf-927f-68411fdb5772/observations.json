@@ -1,0 +1,57 @@
+{
+  "arenaSkill": true,
+  "fanoutChrome": true,
+  "baseChrome": true,
+  "graftChrome": true,
+  "candidateDirs": [
+    {
+      "name": "c1",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/cursor/candidates/c1",
+      "hasCode": true,
+      "hasRationale": true
+    },
+    {
+      "name": "c2",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/cursor/candidates/c2",
+      "hasCode": true,
+      "hasRationale": true
+    }
+  ],
+  "synthesis": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/cursor/synthesis.md",
+    "text": "# parseQuery arena synthesis\n\n## Base\n**c2** — named normalize → tokenize → `splitPair` → decode/accumulate pipeline; own-property-safe accumulation. Cross-judge totals: c2 29, c1 28; parent agreed on maintainer-extendability.\n\n## Grafts\n| Graft | Source | Why |\n| --- | --- | --- |\n| Shrinking `%HH` walk (`decodeComponentSafe` / `isHex`) in place of regex whole-run fallback | **c1** | Recovers valid percent-sequences adjacent to malformed UTF-8; still never throws |\n| `typeof qs !== \"string\"` → empty body (no `String(qs)` coercion) | **c1** | Matches nullish/empty/`?` → `{}` contract; avoids surprising coercion of numbers/objects |\n\n## Rejections\n| Idea | Source | Why rejected |\n| --- | --- | --- |\n| Monolithic inline normalize/split/accumulate in `parseQuery` | c1 | Weaker extension seams than c2’s helpers |\n| Regex `/(?:%[0-9A-Fa-f]{2})+/g` decode fallback | c2 | Leaves entire failed runs undecoded |\n| `String(qs)` for non-strings | c2 | Diverges from strict empty handling |\n| Optional “accumulate helper / comment only” note | judge optional | No behavioral gain |\n| `Object.create(null)` accumulator | neither (shared weakness note) | Not present in either candidate; out of graft scope for this pass |\n\n## Convergence\nCandidates shared the same pipeline *shape* but diverged on helper extraction and decode fallback quality — grafts were needed; not a no-graft convergence.\n\n## Verification\nRan Node ESM assertions against `synthesized/parseQuery.js` from the fixture cwd: empty/nullish/non-string/`?`; multi-value order; bare keys / `a=`; first-`=` split; `+` and UTF-8 decode; malformed `%` non-throw; `toString` key own-property push. All passed.\n",
+    "mtimeMs": 1791495003453.748
+  },
+  "synthesized": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/cursor/synthesized/parseQuery.js",
+    "text": "/**\n * Decode one application/x-www-form-urlencoded component.\n * `+` → space; percent-decode with a safe fallback for malformed sequences.\n */\nfunction decodeFormComponent(raw) {\n  const spaced = raw.replace(/\\+/g, \" \");\n  try {\n    return decodeURIComponent(spaced);\n  } catch {\n    return decodeComponentSafe(spaced);\n  }\n}\n\nfunction isHex(ch) {\n  return (\n    (ch >= \"0\" && ch <= \"9\") ||\n    (ch >= \"A\" && ch <= \"F\") ||\n    (ch >= \"a\" && ch <= \"f\")\n  );\n}\n\n/**\n * Walk the string, decoding maximal runs of well-formed %HH that\n * decodeURIComponent accepts; leave undecodable spans unchanged.\n */\nfunction decodeComponentSafe(spaced) {\n  let out = \"\";\n  let i = 0;\n  while (i < spaced.length) {\n    if (spaced[i] !== \"%\") {\n      out += spaced[i];\n      i += 1;\n      continue;\n    }\n\n    let end = i;\n    while (\n      end + 2 < spaced.length &&\n      spaced[end] === \"%\" &&\n      isHex(spaced[end + 1]) &&\n      isHex(spaced[end + 2])\n    ) {\n      end += 3;\n    }\n\n    if (end === i) {\n      out += \"%\";\n      i += 1;\n      continue;\n    }\n\n    let decoded = false;\n    for (let e = end; e > i; e -= 3) {\n      try {\n        out += decodeURIComponent(spaced.slice(i, e));\n        i = e;\n        decoded = true;\n        break;\n      } catch {\n        // shrink the run and retry\n      }\n    }\n    if (!decoded) {\n      out += \"%\";\n      i += 1;\n    }\n  }\n  return out;\n}\n\n/** Strip a leading `?`; nullish / empty / non-string → empty body. */\nfunction normalizeQueryString(qs) {\n  if (qs == null || qs === \"\") return \"\";\n  if (typeof qs !== \"string\") return \"\";\n  return qs.startsWith(\"?\") ? qs.slice(1) : qs;\n}\n\n/** Split one `key` or `key=value` segment. Missing `=` ⇒ empty string value. */\nfunction splitPair(segment) {\n  const eq = segment.indexOf(\"=\");\n  if (eq === -1) {\n    return { rawKey: segment, rawValue: \"\" };\n  }\n  return {\n    rawKey: segment.slice(0, eq),\n    rawValue: segment.slice(eq + 1),\n  };\n}\n\n/**\n * Parse a URL query string into Record<string, string[]>.\n *\n * @param {unknown} qs\n * @returns {Record<string, string[]>}\n */\nexport function parseQuery(qs) {\n  const body = normalizeQueryString(qs);\n  if (body === \"\") return {};\n\n  /** @type {Record<string, string[]>} */\n  const out = {};\n\n  for (const segment of body.split(\"&\")) {\n    if (segment === \"\") continue;\n\n    const { rawKey, rawValue } = splitPair(segment);\n    const key = decodeFormComponent(rawKey);\n    const value = decodeFormComponent(rawValue);\n\n    if (Object.prototype.hasOwnProperty.call(out, key)) {\n      out[key].push(value);\n    } else {\n      out[key] = [value];\n    }\n  }\n\n  return out;\n}\n",
+    "mtimeMs": 1791494994542.3594
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/cursor/done.txt",
+    "line": "fanout=yes base=yes graft=yes verify=yes candidates=2"
+  },
+  "scoring": {
+    "arenaSkill": true,
+    "candidateCountOnDisk": 2,
+    "taskCount": 0,
+    "fanout": true,
+    "base": true,
+    "graft": "yes",
+    "verify": true,
+    "contractOk": true,
+    "doneParsed": {
+      "raw": "fanout=yes base=yes graft=yes verify=yes candidates=2",
+      "fanout": "yes",
+      "base": "yes",
+      "graft": "yes",
+      "verify": "yes",
+      "candidates": "2"
+    },
+    "toolOrder": []
+  },
+  "session": null
+}

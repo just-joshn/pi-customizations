@@ -1,0 +1,36 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] setup-pstack (ctrl+o to expand)                                                                               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ Clarifying Questions                                                                                               │
+ │                                                                                                                    │
+ │ Question 2 of 2                                                                                                    │
+ │                                                                                                                    │
+ │ 2. All roles currently inherit-parent (perf-issue: auto). Accept as-is?                                            │
+ │                                                                                                                    │
+ │   › [ ] Accept as-is                                                                                               │
+ │     [ ] Change specific roles                                                                                      │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑6 ↓310 R35k W20k CH95.0% $0.090 (sub) 2.8%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

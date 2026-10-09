@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "attemptId": "16520327-0d45-4817-a0cd-2f8c1c0e494a",
+  "side": "pi",
+  "scenarioRef": "cmd-benny-triage-thread-only",
+  "fixtureRef": {
+    "path": "valid-config",
+    "digest": "playwright-results-live"
+  },
+  "executable": {
+    "path": "/Users/josh-desktop/.local/bin/pi",
+    "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+  },
+  "artifacts": [],
+  "launch": {
+    "argv": [
+      "/Users/josh-desktop/.local/bin/pi",
+      "--model",
+      "claude-subscription/claude-sonnet-5-5:medium"
+    ],
+    "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again",
+    "envNames": [
+      "BENNY_SLACK_BOT_TOKEN",
+      "HOME",
+      "PATH",
+      "PI_CODING_AGENT_DIR",
+      "SLACK_BOT_TOKEN",
+      "TERM"
+    ],
+    "publicEnv": {
+      "TERM": "xterm-256color"
+    }
+  },
+  "geometry": {
+    "rows": 40,
+    "cols": 120
+  },
+  "observedEnv": {
+    "platform": "darwin",
+    "node": "v24.21.0",
+    "TERM": "xterm-256color"
+  }
+}

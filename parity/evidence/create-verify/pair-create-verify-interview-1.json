@@ -1,0 +1,156 @@
+{
+  "schema": 1,
+  "pairId": "create-verify-interview-1",
+  "scenarioRef": "setup-create-verify-interview",
+  "journeyFamily": "journey-family-13-generated-resources-reuse",
+  "requirementIds": [
+    "PSTACK-SETUP-CREATE-VERIFY-INTERVIEW-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptTemplateInterview": "/create-verification-skill for this tiny hello-cli only. Interview the repository yourself. Answer Surface, Run, Drive, Observe, and Isolate from files in this cwd. Do not ask the user for any of those five answers when the files already show them. Before writing the skill, write JSON to <interview-path> with surface, run, drive, observe, isolate, evidencePaths, askedUser, askedUserAbout, baseBuildsOrReported. Then write <host-skill-root>/verify-hello-cli/SKILL.md with YAML frontmatter and Launch through Helpers. Seed features/README.md plus one feature file. Skip live prove and maintain. Stop when interview.json, skill, and feature map are on disk.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/create-verification-skill ... interview from repo, write interview.json, generate skill+feature map ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk interview.json with five answers + evidencePaths README.md/hello.sh + askedUser false"
+    },
+    {
+      "wait": "on-disk SKILL.md with name: verify-hello-cli and ## Launch through ## Helpers"
+    },
+    {
+      "wait": "on-disk features/README.md plus one feature file"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "ee9d86df-a0c3-4169-80e1-103a3d000bf9",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/cursor/ee9d86df-a0c3-4169-80e1-103a3d000bf9",
+    "ruleUnchanged": false,
+    "afterDigest": "sha256:7a45a664ea4b64fdcaf14f237da5231fadedeeafd7578af2bb282f1576654d35",
+    "ruleRaceNote": "Concurrent capture-setup-budget-apply mutated ~/.cursor/rules/pstack-models.mdc mid-attempt. Capture finally restored locked digest sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004. Interview oracle still passed.",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+    "skillLiveNote": "Present and sectionsOk at settle time per observations.json and screen-04. Pi cleanGenerated later removed the .cursor/skills tree. Durable interview artifact is fixture-out/cursor/interview.json.",
+    "interviewPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/interview.json",
+    "observations": {
+      "createVerifyInvoked": true,
+      "interviewOk": true,
+      "interviewKeysOk": true,
+      "readRepoFiles": true,
+      "evidencePaths": ["README.md", "hello.sh"],
+      "askedUser": false,
+      "askedUserAbout": [],
+      "askedUserOnScreen": false,
+      "baseBuildsOrReported": true,
+      "skillCreated": true,
+      "skillNameOk": true,
+      "skillHasDescription": true,
+      "sectionsOk": true,
+      "hasTodoPlaceholder": false,
+      "featureMapOk": true,
+      "featureFiles": ["hello-print.md"],
+      "liveProveSkippedAsInstructed": true,
+      "maintainOffered": false,
+      "modelChrome": "Auto",
+      "ruleUnchanged": false
+    }
+  },
+  "pi": {
+    "attemptId": "27b66016-7b03-4c3b-bc36-1e7fe17f27e3",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/pi/27b66016-7b03-4c3b-bc36-1e7fe17f27e3",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-create-verify-fixture-app--/2026-10-08T22-45-59-749Z_01a11db1-e345-77d7-a482-d9e23dccd362.jsonl",
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify-hello-cli/SKILL.md",
+    "interviewPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/pi/interview.json",
+    "observations": {
+      "createVerifyInvoked": true,
+      "interviewOk": true,
+      "interviewKeysOk": true,
+      "readRepoFiles": true,
+      "evidencePaths": ["README.md", "hello.sh"],
+      "askedUser": false,
+      "askedUserAbout": [],
+      "askedUserOnScreen": false,
+      "baseBuildsOrReported": true,
+      "skillCreated": true,
+      "skillNameOk": true,
+      "skillHasDescription": true,
+      "sectionsOk": true,
+      "hasTodoPlaceholder": false,
+      "featureMapOk": true,
+      "featureFiles": ["hello-print.md"],
+      "liveProveSkippedAsInstructed": true,
+      "maintainOffered": false,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "ruleUnchanged": true,
+      "screenSaidDidNotAskUser": true
+    }
+  },
+  "deltas": [
+    {
+      "topic": "interview answers source",
+      "cursor": "interview.json evidencePaths README.md + hello.sh; askedUser false; askedUserOnScreen false.",
+      "pi": "interview.json evidencePaths README.md + hello.sh; askedUser false; settled screen says did not ask the user.",
+      "reconciled": true
+    },
+    {
+      "topic": "base builds",
+      "cursor": "baseBuildsOrReported true (fixture ./hello.sh).",
+      "pi": "baseBuildsOrReported true; screen shows HELLO-FAMILY-13 rc=0 from a base check.",
+      "reconciled": true
+    },
+    {
+      "topic": "generated skill root",
+      "cursor": "Wrote under .cursor/skills/verify-hello-cli/ at settle; later removed by Pi cleanGenerated.",
+      "pi": "Writes under .pi/skills/verify-hello-cli/; still present.",
+      "reconciled": false
+    },
+    {
+      "topic": "shared rule digest during capture",
+      "cursor": "ruleUnchanged false; peer budget-apply rewrote pstack-models.mdc; finally restored lock.",
+      "pi": "ruleUnchanged true at locked digest.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Status chrome Auto.",
+      "pi": "Status chrome claude-sonnet-5-5 medium via claude-subscription.",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-create-verify-reuse.mjs --interview --cursor-only then --interview --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "decisionLog": "parity/evidence/create-verify/.audit/u-journey-setup-create-verify-interview.tsv",
+    "notes": "Interview gate for PSTACK-SETUP-CREATE-VERIFY-INTERVIEW-001. Prove and maintain intentionally skipped. Cursor live skill tree wiped when Pi cleanGenerated ran; durable Cursor interview is fixture-out/cursor/interview.json plus screens and observations. Shared rule race with budget-apply recorded, not hidden."
+  }
+}

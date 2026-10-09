@@ -1,0 +1,1 @@
+STATUS=adapt-ok reason=user-owned copies created in .cursor/benny

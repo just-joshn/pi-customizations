@@ -1,0 +1,42 @@
+{
+  "screenFinal": {
+    "createSkillMention": true,
+    "skillPathMention": true,
+    "markerMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "createSkillMention": true,
+    "skillPathMention": true,
+    "markerMention": true,
+    "envBlocked": false,
+    "working": true
+  },
+  "skill": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.cursor/skills/parity-create-skill-probe/SKILL.md",
+    "nameOk": true,
+    "hasMarker": true,
+    "hasDescription": true,
+    "byteLength": 332,
+    "sha256": "sha256:c5a3793642d9c279bbf69b4f068944f676b9dc7d03dbea17b19102b94557b309",
+    "ok": true,
+    "text": "---\nname: parity-create-skill-probe\ndescription: >-\n  Echoes the create-skill probe marker when the user runs the create-skill\n  probe or invokes parity-create-skill-probe.\n---\n\n# Parity Create-Skill Probe\n\nWhen the user says to run the create-skill probe, reply with exactly this marker on its own line:\n\nCREATE-SKILL-PROBE-MARKER\n"
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/cursor/done.txt",
+    "line": "STATUS=wrote",
+    "status": "wrote"
+  },
+  "durableSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/cursor/SKILL.md",
+  "score": {
+    "wroteOk": true,
+    "createPath": true,
+    "envBlocked": false,
+    "doneStatus": "wrote",
+    "phase3Closed": true,
+    "honestBlocker": false
+  }
+}

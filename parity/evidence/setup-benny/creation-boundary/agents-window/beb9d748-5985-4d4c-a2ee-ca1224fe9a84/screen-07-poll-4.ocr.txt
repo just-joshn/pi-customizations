@@ -1,0 +1,53 @@
+New Chat
+Search
+Automations
+B° Customize
+Projects
++ New Project
+Cursor automation setup
+yes
+• Webhook URL and auth (set after you save there - I won't
+request or paste any sender key)
+• Leave it disabled; do not Save or Activate from this chat
+handoff
+Cloud compute is configured in the • Cloud Agent dashboard.
+Are you ready for me to open the Automations editor with this
+draft?
+4 9 0 Y Just now
+IDE A ...
++ Browser
++
+Search or enter URL
+Q Search or enter URL...
+Recents
+• Cursor Changelog cursor.com/changelog
+• Cursor Docs cursor.com/docs
+Pinned
+• /make-bot-ui
+Repositories
+G No Repo
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+/automate
+/automate
+58m
+1m
+7m
+19m
+21m
+30m
+1h
+1h
+1h
+Getting Started
+* Connect Slack
+3/3 O
+Joshua Humphrey
++
+Send follow-up
+• This Mac V
+Auto v

@@ -1,0 +1,40 @@
+ `stderr.txt` is empty, `exit-code.txt` holds `0`.'                                                                    │
+ open(f,"w").write(s[:i]+new+s[j:])                                                                                    │
+ EOF                                                                                                                   │
+ # re-drive fixed recipe                                                                                               │
+ E=.pi/skills/verify-hello-cli/evidence/hello-print; mkdir -p $E; ./hello.sh >$E/stdout.txt 2>$E/stderr.txt; echo $?   │
+ >$E/exit-code.txt                                                                                                     │
+ cat $E/stdout.txt $E/exit-code.txt; wc -c <$E/stderr.txt; grep Capture $F                                             │
+ mkdir -p ../fixture-out/pi; echo OUTCOME=changed > ../fixture-out/pi/maintain-outcome.txt; cat                        │
+ ../fixture-out/pi/maintain-outcome.txt (timeout 20s)                                                                  │
+                                                                                                                       │
+ ... (2 earlier lines, ctrl+o to expand)                                                                               │
+ 0                                                                                                                     │
+ - **Capture.** From the repo root run `E=.pi/skills/verify-hello-cli/evidence/hello-print; mkdir -p $E; ./hello.sh    │
+ >$E/stdout.txt 2>$E/stderr.txt; echo $? >$E/exit-code.txt`. `stdout.txt` holds `HELLO-FAMILY-13`, `stderr.txt` is     │
+ empty, `exit-code.txt` holds `0`.                                                                                     │
+ OUTCOME=changed                                                                                                       │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Outcome: changed. I wrote OUTCOME=changed to                                                                          │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/pi/maintain-outcome │
+ .txt.                                                                                                                 │
+                                                                                                                       │
+ - Source wave: I skipped the subagent fan-out and read hello.sh and the one feature file myself. The map had no dead  │
+   or extra entries.                                                                                                   │
+ - Live pass: the doctor check passed. ./hello.sh printed HELLO-FAMILY-13, stderr was empty, and the exit code was 0.  │
+   The feature behaves as the map says.                                                                                │
+ - Drift found: the Capture step in features/hello-print.md said to run ./hello.sh from inside the evidence directory  │
+   and "adjust the script path". That doesn't work as written. I replaced it with a command that runs from the repo    │
+   root and writes to .pi/skills/verify-hello-cli/evidence/hello-print/. I re-ran that command and it produced the     ┃
+   expected stdout, empty stderr and exit code 0.                                                                      ┃
+ - Ship step: I made the edit in place and did not open a PR, since you asked for edits only.                          ┃
+ - Evidence: the files under evidence/hello-print/ are still there, and I touched no product code.                     ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app (refactor/pi-pstack-parity-again)
+↑20 ↓4.7k R222k W28k CH97.5% $0.203 (sub) 3.6%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

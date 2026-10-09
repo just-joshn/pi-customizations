@@ -1,0 +1,39 @@
+    ▎    1 + export type UserId = string & { readonly __brand: "UserId" };
+    ▎    2  
+    ▎    3   export function asUserId(raw: string): UserId {
+    ▎    4 -   return raw;
+    ▎    4 +   return raw as UserId;
+    ▎    5   }
+
+    Edited Badge.tsx +5 -5
+
+    ▎    1 - export type BadgeProps = {
+    ▎    2 -   status?: 'ok' | 'warn' | 'err';
+    ▎    3 -   label?: string;
+    ▎    4 - };
+    ▎    1 + export type BadgeProps =
+    ▎    2 +   | { status: "ok"; label?: string }
+    ▎    3 +   | { status: "warn"; label?: string }
+    ▎    4 +   | { status: "err"; label?: string };
+    ▎    5  
+    ▎    6   export function Badge(props: BadgeProps) {
+    ▎    7 -   return props.label ?? props.status ?? 'unknown';
+    ▎    7 +   return props.label ?? props.status;
+    ▎   13  … truncated (1 more line) · ctrl+r to review
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/typescript/fixture-out/cursor &&
+    printf '%s\n' 'src/id.ts src/Badge.tsx' >
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/typescript/fixture-out/cursor/done.txt
+    386ms
+
+  Branded UserId in src/id.ts and made BadgeProps a required status discriminant union in src/Badge.tsx. Wrote the
+  edited paths to fixture-out/cursor/done.txt.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11.1% · 2 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/typescript/fixture-app · refactor/pi-pstack-parity-again

@@ -1,0 +1,105 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": false,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "illegalUnrepresentable": true,
+    "soleCastBag": false,
+    "keptVerifyOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "failMention": true,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "failMention": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:51:34.996Z",
+  "firstVerifyAt": "2026-10-09T00:51:30.589Z",
+  "productPaths": [
+    "src/ticket.ts"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/type-discipline/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/type-discipline/fixture-app/evidence/verify-out.txt",
+    "line": "TYPE-OK value=\"open:a|done:b@2026-10-08\"",
+    "ok": true
+  },
+  "productOk": true,
+  "productAnalysis": {
+    "stillBagOptional": false,
+    "hasKindUnion": true,
+    "hasStatusUnion": false,
+    "hasDiscriminatedUnion": true,
+    "derivedTimestamp": false,
+    "hasParseBoundary": true,
+    "primaryCast": false,
+    "illegalUnrepresentable": true,
+    "soleCastBag": false
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-type-system-discipline/SKILL.md",
+    "ok": true,
+    "name": "principle-type-system-discipline",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-type-discipline-fixture-app--/2026-10-09T00-51-20-862Z_01a11e24-a69d-73a5-a11b-2d41a3864e32.jsonl",
+    "hostAttached": false,
+    "failMention": true,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:51:26.558Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T00:51:26.558Z",
+    "firstProductWriteAt": "2026-10-09T00:51:34.967Z",
+    "sawFailBeforeWrite": true,
+    "toolOrder": [
+      "read",
+      "bash(verify.mjs)",
+      "read(type-discipline-leaf)",
+      "read",
+      "blob-mention(type-discipline-leaf)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "write(product)",
+      "bash(verify.mjs)"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 46,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "failMention": true,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "failMention": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "pairId": "team-kit-weekly-review-1",
+  "scenarioRef": "team-kit:weekly-review",
+  "journeyFamily": "cursor-team-kit",
+  "skillId": "weekly-review",
+  "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/weekly-review/SKILL.md",
+  "skillMdSha256": "b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/weekly-review ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "STATUS=verified with skill oracle, or STATUS=env-blocked"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "94f72e17-1ed4-4379-8a22-0f73dd5729cd",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/weekly-review/cursor/94f72e17-1ed4-4379-8a22-0f73dd5729cd",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/weekly-review/done.txt",
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "summaryExists": true,
+        "mentionsAlpha": true,
+        "hasClass": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/weekly-review/done.txt",
+          "line": "STATUS=verified reason=authored commits summarized",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "pi": {
+    "attemptId": "46e6a5ce-97a4-4b43-b447-7b073b891107",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/weekly-review/pi/46e6a5ce-97a4-4b43-b447-7b073b891107",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/weekly-review/done.txt",
+    "seededSkill": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/weekly-review/.pi/skills/weekly-review/SKILL.md",
+      "sha256": "b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712"
+    },
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "summaryExists": true,
+        "mentionsAlpha": true,
+        "hasClass": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/weekly-review/done.txt",
+          "line": "STATUS=verified reason=summary written from 2 authored commits",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "skillClosure": {
+    "weekly-review": "closed_by_this_pair"
+  },
+  "note": "Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/.",
+  "verdict": "pass"
+}

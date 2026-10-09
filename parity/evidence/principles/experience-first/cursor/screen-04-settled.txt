@@ -1,0 +1,39 @@
+    ✔ Smallest safe decomposition. One worker owns status.js + IMPACT.md
+
+  node scripts/verify.mjs prints EXPERIENCE-OK. done.txt is verified=yes.
+
+  What changed for people. CLI operators get labeled Status / Ready / Next / Queue by default. Scripts keep --json.
+  Maintainers get IMPACT.md instead of a pile of rough exporters.
+
+  Choice. Human default plus --json and dual-audience IMPACT.md. Rejected JSON-default plus later CSV/YAML/XML.
+  verify.mjs already grades only the polished path.
+
+  Principles that moved the call.
+  • Experience First. Default serves the operator, not the one-line JSON.stringify convenience.
+  • Model the Domain. StatusState plus a json format option, not more export modules.
+  • Laziness Protocol. No kitchen-sink exporters.
+  • Never Block on the Human. Took approach 2 without asking.
+  • Prove It Works. Ran scripts/verify.mjs (exit 0) and scripts/status.mjs with and without --json.
+
+  Throughput checkpoint.
+  • Blocking first. Honor the verify contract before edits.
+  • Independent workstreams. n/a, one module and one doc.
+  • Shared mutable state. n/a, pure formatter.
+  • Smallest safe decomposition. One owner for status.js and IMPACT.md.
+
+  Skipped. Commits, interrogate, Opening a PR. Fixture evidence only, cwd-bound.
+
+  Finished You are writing an architectural explanation for a senior engineer. Read-only. E
+
+  No follow-up needed. How status CLI works (c02b0ce5-9df0-4f36-99fd-cb7508925310) described the pre-change fixture;
+  the human-default path, IMPACT.md, EXPERIENCE-OK, and verified=yes were already landed before it finished.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 19% · 3 files edited                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-app · 
+  refactor/pi-pstack-parity-again

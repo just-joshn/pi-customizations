@@ -1,0 +1,2119 @@
+[
+  {
+    "ts": "2026-10-09T01:17:40.997Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/stalest-first.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:41.398Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/stalest-first.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:41.799Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/stalest-first.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:42.201Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/stalest-first.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:42.601Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/stalest-first.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:43.001Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:43.403Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:43.804Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:44.205Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:44.609Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:45.011Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:45.414Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:45.817Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:46.221Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:46.623Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:47.025Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:47.427Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:47.829Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:48.232Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:48.633Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:49.035Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:49.438Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:49.840Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:50.241Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:50.643Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:51.046Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:51.448Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:51.848Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:52.249Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:52.651Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:53.053Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/switcher.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:53.453Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:53.854Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:54.257Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:54.661Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:55.063Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:55.465Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:55.867Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:56.271Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:56.671Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:57.073Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:57.476Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:57.878Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:58.282Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:58.685Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:59.087Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:59.489Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:17:59.892Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:00.294Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:00.696Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:01.097Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:01.498Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:01.900Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:02.301Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:02.702Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:03.104Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:03.506Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:03.906Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:04.307Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:04.709Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:05.111Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:05.513Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:05.915Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:06.317Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:06.720Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:07.122Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:07.527Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:07.929Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:08.331Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:08.734Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:09.137Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:09.540Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:09.941Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:10.344Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:10.746Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:11.148Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:11.549Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:11.951Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:12.354Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:12.756Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:13.159Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:13.561Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:13.964Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:14.369Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:14.772Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": []
+  },
+  {
+    "ts": "2026-10-09T01:18:15.174Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:15.575Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:15.977Z",
+    "product": [],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:16.378Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:16.780Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:17.183Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:17.586Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:17.992Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:18.393Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:18.794Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:19.197Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:19.599Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:20.001Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:20.404Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:20.806Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:21.209Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:21.613Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:22.014Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:22.418Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:22.820Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:23.221Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:23.623Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:24.025Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:24.427Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:24.828Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:25.231Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:25.632Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:26.034Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:26.435Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:26.837Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:27.239Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:27.643Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:28.046Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:28.448Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:28.850Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:29.252Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:29.653Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:30.053Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:30.458Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:30.862Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:31.263Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:31.666Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:32.069Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:32.471Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:32.875Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:33.279Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:33.681Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:34.083Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:34.485Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:34.886Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:35.290Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:35.693Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:36.096Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:36.499Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:36.902Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:37.305Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:37.706Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:38.108Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:38.509Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:38.911Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:39.313Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:39.714Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:40.116Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:40.519Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:40.923Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:41.327Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:41.730Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:42.134Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:42.537Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:42.940Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:18:43.343Z",
+    "product": [
+      "src/picker.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "prototypes": [
+      "prototypes/menu-index.mjs",
+      "prototypes/stalest-first.mjs",
+      "prototypes/title-scan.mjs"
+    ],
+    "decision": [
+      "DECISION.md"
+    ]
+  }
+]

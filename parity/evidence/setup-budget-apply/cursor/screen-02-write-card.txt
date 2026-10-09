@@ -1,0 +1,35 @@
+    Globbed "**/fixtures/**/*" in ...ktop/src/personal/pi-pstack-parity-again/parity
+    Grepped "...ax|claude-sonnet-5-5-max|setup-pstack" in ...osh-desktop/src/personal/pi-pstack-parity-again
+
+  $ ls -la /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/ 2>/dev/null; ls -la
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run 2>/dev/null; find
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again -name '*first-run*' 2>/dev/null | head -20 383ms
+    … 16 output lines hidden · ctrl+o to expand
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/cursor-first-run
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run
+
+    Edited pstack-models.mdc +17 -17
+
+    ▎    4   ---
+    ▎    5   # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+    ▎    6   # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`).
+    ▎        Alias entries  ...
+    ▎    7 - # budget: small (medium)
+    ▎    8 - feature, refactoring: inherit-parent
+    ▎    9 - bug-fix: inherit-parent
+    ▎   10 - perf-issue: inherit-parent
+    ▎   11 - hillclimb: inherit-parent
+    ▎   12 - judgment and prose: inherit-parent
+    ▎   13 - hardest tasks: inherit-parent
+    ▎    7 + # budget: unlimited (max)
+    ▎    8 + feature, refactoring: claude-sonnet-5-5-max
+    ▎   13  … truncated (26 more lines) · ctrl+r to review
+
+ ⠘⠣ Editing  2.62k tokens
+
+                                                                                                                       
+  → [Pasted text #1 +1 lines]                                                                                          
+                                                                                                                       
+
+  Auto · 14.2% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

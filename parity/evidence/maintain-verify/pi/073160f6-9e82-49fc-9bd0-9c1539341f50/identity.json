@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "attemptId": "073160f6-9e82-49fc-9bd0-9c1539341f50",
+  "side": "pi",
+  "scenarioRef": "setup-maintain-verify-locate:one",
+  "fixtureRef": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app",
+    "digest": "sha256:50d81673998406581c10f69f7924c91835b99a6ca2c453e551ea9dcd92786b4b"
+  },
+  "executable": {
+    "path": "/Users/josh-desktop/.local/bin/pi",
+    "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+  },
+  "artifacts": [],
+  "launch": {
+    "argv": [
+      "/Users/josh-desktop/.local/bin/pi",
+      "--model",
+      "claude-subscription/claude-sonnet-5-5:medium"
+    ],
+    "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app",
+    "envNames": [
+      "HOME",
+      "PATH",
+      "PI_CODING_AGENT_DIR",
+      "TERM"
+    ],
+    "publicEnv": {
+      "TERM": "xterm-256color"
+    }
+  },
+  "geometry": {
+    "rows": 40,
+    "cols": 120
+  },
+  "observedEnv": {
+    "platform": "darwin",
+    "node": "v24.21.0",
+    "TERM": "xterm-256color"
+  }
+}

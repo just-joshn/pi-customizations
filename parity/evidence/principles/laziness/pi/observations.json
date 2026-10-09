@@ -1,0 +1,110 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "preferredDeletion": true,
+    "addedLayer": false,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "askPhrase": false,
+      "irreversibleMention": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "askPhrase": false,
+      "irreversibleMention": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:40:58.014Z",
+  "firstVerifyAt": "2026-10-09T00:40:56.008Z",
+  "firstDeletedAt": "2026-10-09T00:40:58.014Z",
+  "productPaths": [
+    "src/greet.js",
+    "deleted:src/pipeline.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-app/evidence/verify-out.txt",
+    "line": "FLAT-OK path=delete files=core.js,greet.js",
+    "ok": true
+  },
+  "oracle": {
+    "greetOk": true,
+    "pipelineGone": true,
+    "noStrategies": true,
+    "layeredName": false,
+    "preferredDeletion": true,
+    "addedLayer": false,
+    "productOk": true,
+    "srcFiles": [
+      "core.js",
+      "greet.js"
+    ]
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-laziness-protocol/SKILL.md",
+    "ok": true,
+    "name": "principle-laziness-protocol",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-laziness-fixture-app--/2026-10-09T00-40-43-072Z_01a11e1a-eb40-7314-8313-7ca44d283e23.jsonl",
+    "hostAttached": false,
+    "askPhrase": true,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:40:51.183Z",
+    "ranVerifyScript": true,
+    "askTool": false,
+    "irreversibleTool": false,
+    "toolOrder": [
+      "bash(verify.mjs)",
+      "read(lazy-leaf)",
+      "read",
+      "blob-mention(lazy-leaf)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 39,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "askPhrase": false,
+    "irreversibleMention": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "askPhrase": false,
+    "irreversibleMention": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

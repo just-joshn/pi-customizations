@@ -1,0 +1,36 @@
+ $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/pi && echo    │
+ "EXIT=0" >                                                                                                            │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/pi/bootstrap-install-don │
+ e.txt (timeout 10s)                                                                                                   │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The command exited 0.                                                                                                 │
+                                                                                                                       │
+ ```                                                                                                                   │
+   Usage: orch [--store <dir>] [--json] [--force] <command>                                                            │
+                                                                                                                       ┃
+   Commands:                                                                                                           ┃
+     init           initialize the store                                                                               ┃
+     unit           manage work units                                                                                  ┃
+     ledger         manage verification records                                                                        ┃
+     inbox          manage agent pointers                                                                              ┃
+     gate           manage decision gates                                                                              ┃
+     frontier       manage the Graphite stack frontier                                                                 ┃
+     status         render status.md and print a summary                                                               ┃
+     standing       manage standing orders                                                                             ┃
+ ```                                                                                                                   ┃
+                                                                                                                       ┃
+ I wrote EXIT=0 to                                                                                                     ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/pi/bootstrap-install-don ┃
+ e.txt. I had to create the pi directory first because it didn't exist. I didn't edit any other files or change the    ┃
+ store.                                                                                                                ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts (main)
+↑8 ↓536 R58k W17k CH99.2% $0.085 (sub) 2.6%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

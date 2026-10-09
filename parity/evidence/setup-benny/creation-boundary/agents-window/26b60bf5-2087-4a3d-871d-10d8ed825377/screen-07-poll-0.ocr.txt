@@ -1,0 +1,52 @@
+Cursor automation setup E
+IDE A ...
++ Browser
++
+Search or enter URL
+V New Chat
+• Search
+• Automations
+B° Customize
+Projects
++ New Project
+yes
+Pinned
+• /make-bot-ui
+53m
+Repositories
+A No Repo
+Cursor automation setup
+Cursor automation setup
+• Cursor automation setup
+• Automation setup instructior
+/make-bot-ui
+• /automate
+/automate
+Sticky mode activation
+To finish in the editor: webhook URL and auth appear only after
+you save there. Leave it disabled - do not Save or Activate from
+this chat. No sender key will be requested or pasted here.
+Cloud compute is configured in the • Cloud Agent dashboard if
+you need it later.
+Are you ready for me to open the Automations editor with this
+draft?
+• 9 • Y 2m ago
+Q Search or enter URL...
+Recents
+• Cursor Changelog cursor.com/changelog
+• Cursor Docs cursor.com/docs
+Getting Started
+2m
+14m
+16m
+25m
+55m
+57m
+59m
+1h
+3/3 O
+* Connect Slack
+Joshua Humphrey
++ Send follow-up
+• This Mac v
+Auto v

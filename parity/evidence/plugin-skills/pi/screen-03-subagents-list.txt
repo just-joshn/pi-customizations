@@ -1,0 +1,36 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Subagent preferences                                                                                                  ┃
+ ci-watcher: model default, effort default, tier inherit                                                               ┃
+ code-review: model default, effort default, tier inherit                                                              ┃
+ Comment Sicko: model default, effort default, tier inherit                                                            ┃
+ comment-sicko: model default, effort default, tier inherit                                                            ┃
+ explore: model default, effort low, tier inherit                                                                      ┃
+ general-purpose: model default, effort default, tier inherit                                                          ┃
+ poteto-agent: model default, effort default, tier inherit                                                             ┃
+ research: model default, effort default, tier inherit                                                                 ┃
+ rubber-duck: model default, effort default, tier inherit                                                              ┃
+ security-review: model default, effort default, tier inherit                                                          ┃
+ task: model default, effort default, tier inherit                                                                     ┃
+ thermo-nuclear-code-quality-review: model default, effort default, tier inherit                                       ┃
+ rubber-duck: on                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

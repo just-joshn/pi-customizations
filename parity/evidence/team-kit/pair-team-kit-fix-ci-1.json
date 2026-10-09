@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "pairId": "team-kit-fix-ci-1",
+  "scenarioRef": "team-kit:fix-ci",
+  "journeyFamily": "cursor-team-kit",
+  "skillId": "fix-ci",
+  "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/fix-ci/SKILL.md",
+  "skillMdSha256": "925f8c3e11de8bcc0cd015ec907f4d00b12cde6714246554ed3a52e096536522",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "fixturePrUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/1",
+  "fixtureRepo": "https://github.com/just-joshn/team-kit-gh-fixture",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/fix-ci ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "STATUS=verified with skill artifact oracle, or STATUS=env-blocked"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "f7f2e2f3-171f-4ef5-9cee-4e5a1758f93c",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/cursor/fix-ci/f7f2e2f3-171f-4ef5-9cee-4e5a1758f93c",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/fix-ci/done.txt",
+    "artifactPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/fix-ci/ci-fix-notes.md",
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "artifactOk": true,
+      "post": {
+        "artifactHasMarker": true,
+        "checksPass": true,
+        "checkSummary": "test\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879310558/job/113655067794\t\ntest\tpass\t6s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879313360/job/113655075327",
+        "artifactBytes": 671
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  },
+  "pi": {
+    "attemptId": "935698cb-d1dd-42d2-9c6b-244a965b3499",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pi/fix-ci/935698cb-d1dd-42d2-9c6b-244a965b3499",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-ci/done.txt",
+    "artifactPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-ci/ci-fix-notes.md",
+    "seededSkill": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/fix-ci/SKILL.md",
+      "sha256": "925f8c3e11de8bcc0cd015ec907f4d00b12cde6714246554ed3a52e096536522"
+    },
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "artifactOk": true,
+      "post": {
+        "artifactHasMarker": true,
+        "checksPass": true,
+        "checkSummary": "test\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879565204/job/113655883639\t\ntest\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879568583/job/113655894019",
+        "artifactBytes": 219
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  },
+  "skillClosure": {
+    "fix-ci": "closed_by_this_pair"
+  },
+  "note": "Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/. Fixture is disposable just-joshn/team-kit-gh-fixture. Full 18-skill closure is not claimed by this pair alone.",
+  "verdict": "pass"
+}

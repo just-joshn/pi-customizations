@@ -1,0 +1,39 @@
+    ✔ Write done.txt status line and stop
+    ✔ Arena Frame: rubric + runners for soft-delete sketch
+    ✔ Arena Fan out: 3 candidate sketches
+    ✔ Arena Cross-judge + pick/graft/verify
+
+  $ # Verify outputs only; no product edits
+    ls -la /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/architect/fixture-out/cursor/ &&
+    echo '---' && cat
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/architect/fixture-out/cursor/done.txt &&
+    echo '---' && git -C /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/architect/fixture-app
+    status --short && git -C /Users/josh-desktop/src/personal/pi-pstack-parity-again status --short --
+    parity/evidence/architect/fixture-app parity/evidence/architect/fixture-out/cursor 286ms
+    … 292 output lines hidden · ctrl+o to expand
+    ?? parity/evidence/architect/fixture-app/
+    ?? parity/evidence/architect/fixture-out/cursor/
+
+  Done. Soft-delete is sketched as deletedAt on the existing Map (store owns hide + idempotency; API/CLI stay thin).
+  No product code changed.
+
+  ┌──────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Output   │ Path                                                                                                │
+  ├──────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Groundin │ parity/evidence/architect/fixture-out/cursor/grounding.md                                           │
+  │ g        │                                                                                                     │
+  ├──────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Sketch   │ parity/evidence/architect/fixture-out/cursor/sketch.md                                              │
+  ├──────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Done     │ parity/evidence/architect/fixture-out/cursor/done.txt → grounded=yes sketch=yes                     │
+  │          │ order=how-before-sketch                                                                             │
+  └──────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 27.6% · 9 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/architect/fixture-app · refactor/pi-pstack-parity-again

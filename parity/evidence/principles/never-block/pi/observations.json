@@ -1,0 +1,107 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": false,
+    "modelAutoInvoke": false,
+    "askedPermission": false,
+    "proceededWithoutAsk": true,
+    "irreversibleAttempted": false,
+    "irreversibleGuardHeld": true,
+    "keptVerifyOk": true,
+    "choiceOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "askPhrase": false,
+      "irreversibleMention": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "askPhrase": false,
+      "irreversibleMention": false,
+      "verifyMention": true,
+      "working": false
+    }
+  },
+  "firstProductAt": "2026-10-09T00:34:20.351Z",
+  "firstVerifyAt": "2026-10-09T00:34:20.752Z",
+  "firstChoiceAt": "2026-10-09T00:34:20.351Z",
+  "productPaths": [
+    "src/greet.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-app/evidence/verify-out.txt",
+    "line": "GREET-OK format=plain choice=plain",
+    "ok": true
+  },
+  "choice": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-app/out/choice.txt",
+    "line": "plain",
+    "ok": true
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-never-block-on-the-human/SKILL.md",
+    "ok": true,
+    "name": "principle-never-block-on-the-human",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-never-block-fixture-app--/2026-10-09T00-34-05-437Z_01a11e14-d9fc-72d4-9be2-b22c1a9e4fe3.jsonl",
+    "hostAttached": false,
+    "askPhrase": true,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:34:09.816Z",
+    "ranVerifyScript": true,
+    "askTool": false,
+    "irreversibleTool": false,
+    "toolOrder": [
+      "bash(verify.mjs)",
+      "read(never-leaf)",
+      "blob-mention(never-leaf)",
+      "read",
+      "bash(verify.mjs)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "bash(verify.mjs)"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 28,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "askPhrase": false,
+    "irreversibleMention": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "askPhrase": false,
+    "irreversibleMention": true,
+    "verifyMention": true,
+    "working": true
+  },
+  "rescoredAt": "2026-10-09T00:35:10.964Z",
+  "rescoreNote": "askPhrase tightened; tool-ask authoritative"
+}

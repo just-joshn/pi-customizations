@@ -1,0 +1,26 @@
+{
+  "scenario": "setup-benny-existing-no-automate",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptId": "7f533016-def9-48db-9e2b-9f53ce47c127",
+      "contractHeld": true,
+      "outcome": "checklist_no_automate",
+      "automateHit": false,
+      "checklist": true,
+      "askEditor": true,
+      "duplicateCreated": []
+    },
+    {
+      "side": "pi",
+      "attemptId": "0564c7c5-740d-48f0-b4ad-011d9422e558",
+      "contractHeld": true,
+      "outcome": "checklist_no_automate",
+      "automateHit": false,
+      "checklist": true,
+      "askEditor": true,
+      "duplicateCreated": []
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "startedAt": "2026-10-09T06:04:40.350Z",
+  "helper": "/Users/josh-desktop/.cursor/agent-helper/Cursor Agent Helper.app/Contents/MacOS/cursor-agent-helper",
+  "app": "TextEdit",
+  "marker": "CU_LIVE_001_177e3351",
+  "spawnDisclaimed": true,
+  "steps": [
+    {
+      "step": "initialize",
+      "ok": true,
+      "at": "2026-10-09T06:04:40.435Z"
+    },
+    {
+      "step": "list_apps",
+      "ok": true,
+      "at": "2026-10-09T06:04:40.467Z"
+    },
+    {
+      "step": "get_app_state_before",
+      "ok": true,
+      "imageCount": 1,
+      "paths": [
+        "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/computer-use/live-001/before-0.png"
+      ],
+      "at": "2026-10-09T06:04:41.084Z"
+    },
+    {
+      "step": "type_text",
+      "ok": true,
+      "isError": false,
+      "text": "Typed text.",
+      "at": "2026-10-09T06:04:41.111Z"
+    },
+    {
+      "step": "get_app_state_after",
+      "ok": true,
+      "imageCount": 1,
+      "paths": [
+        "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/computer-use/live-001/after-0.png"
+      ],
+      "markerVisible": true,
+      "screenshotBytesDiffer": true,
+      "at": "2026-10-09T06:04:41.555Z"
+    }
+  ],
+  "liveExercise": true,
+  "finishedAt": "2026-10-09T06:04:41.555Z"
+}

@@ -1,0 +1,42 @@
+{
+  "screenFinal": {
+    "createSkillMention": true,
+    "skillPathMention": true,
+    "markerMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "createSkillMention": true,
+    "skillPathMention": true,
+    "markerMention": true,
+    "envBlocked": true,
+    "working": true
+  },
+  "skill": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.pi/skills/parity-create-skill-probe/SKILL.md",
+    "nameOk": true,
+    "hasMarker": true,
+    "hasDescription": true,
+    "byteLength": 450,
+    "sha256": "sha256:2ea35e992d7a32834b19e7c70e3c631fe60fb22cf41414a54a6dbebe6e9c7995",
+    "ok": true,
+    "text": "---\nname: parity-create-skill-probe\ndescription: Echoes the probe marker for the parity create-skill probe. Use when the user says \"run the create-skill probe\" or asks for the parity-create-skill-probe skill.\ndisable-model-invocation: true\n---\n\n# Parity Create-Skill Probe\n\n## Instructions\n\nWhen the user says \"run the create-skill probe\", reply with the marker below exactly as written, on its own line, and nothing else:\n\nCREATE-SKILL-PROBE-MARKER\n"
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/pi/done.txt",
+    "line": "STATUS=wrote reason=skill file created",
+    "status": "wrote"
+  },
+  "durableSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/pi/SKILL.md",
+  "score": {
+    "wroteOk": true,
+    "createPath": true,
+    "envBlocked": false,
+    "doneStatus": "wrote",
+    "phase3Closed": true,
+    "honestBlocker": false
+  }
+}

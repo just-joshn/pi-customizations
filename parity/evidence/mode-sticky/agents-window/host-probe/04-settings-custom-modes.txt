@@ -1,0 +1,15 @@
+path: /Users/josh-desktop/Library/Application Support/Cursor/User/settings.json
+exists: false
+needles: null
+
+path: /Users/josh-desktop/Library/Application Support/Cursor Nightly/User/settings.json
+exists: false
+needles: null
+
+path: /Users/josh-desktop/.cursor/settings.json
+exists: false
+needles: null
+
+path: /Users/josh-desktop/.cursor/cli-config.json
+exists: true
+needles: {"customMode":false,"glassCustomModes":false,"useAsMode":false,"agentsWindow":false}

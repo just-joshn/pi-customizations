@@ -1,0 +1,68 @@
+{
+  "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+  "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+  "productRel": "src/app.js",
+  "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productUnchanged": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/fixture-out/pi/done.txt",
+    "line": "STATUS=editor-saved-disabled reason=editor opened and disabled draft persisted",
+    "status": "editor-saved-disabled"
+  },
+  "outcome": "editor_saved_disabled",
+  "contractHeld": true,
+  "liveAutomationCreated": [],
+  "forbidden": false,
+  "screen": {
+    "editorHandoffChrome": true,
+    "piEditorChrome": false,
+    "automateInvoked": true,
+    "envBlockedChrome": false,
+    "deepLinkOrUrl": false,
+    "backendTool": false,
+    "enabledEarly": false,
+    "confirmPrompt": false,
+    "working": false
+  },
+  "pty": {
+    "editorHandoffChrome": true,
+    "piEditorChrome": true,
+    "automateInvoked": true,
+    "envBlockedChrome": false,
+    "deepLinkOrUrl": false,
+    "backendTool": false,
+    "enabledEarly": false,
+    "confirmPrompt": false,
+    "working": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-creation-boundary-fixture-app--/2026-10-09T10-15-57-142Z_01a12029-8fd6-7492-9039-e3b288ea5c8b.jsonl",
+    "forAgentsRead": false,
+    "setupBennyRead": true,
+    "envBlocked": false,
+    "boundaryViolated": false,
+    "liveAutomationWrite": false,
+    "prepared": true,
+    "openedEditor": true,
+    "editorSavedDisabled": true,
+    "enabledCalled": false,
+    "sawInactiveChrome": true,
+    "toolOrder": [
+      "read(automate-or-setup-benny)",
+      "bash",
+      "AutomationPrepare(benny-triage)",
+      "AutomationOpenEditor",
+      "bash"
+    ]
+  },
+  "pollSamples": 25,
+  "operatorDrives": {
+    "confirmCount": 0,
+    "editorSaveCount": 1
+  },
+  "scorerNote": "Rescored after forbidEnable covers \"did not call AutomationEnable\". Session prepared+openedEditor+editorSavedDisabled; STATUS=editor-saved-disabled; enabledCalled=false. Requirement verify stays no until coordinator pairs Cursor half.",
+  "rescoredAt": "2026-10-09T10:16:58.634Z",
+  "rescoredFrom": "false_positive_enabledEarly_did_not_call"
+}

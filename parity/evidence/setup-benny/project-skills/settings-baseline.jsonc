@@ -1,0 +1,11 @@
+{
+	// fixture-marker: keep-this-comment
+	"editor.fontSize": 14,
+	"files.exclude": {
+		"**/.git": true
+	},
+	"plugins": {
+		"other-plugin": { "enabled": true, "version": "1.0.0" },
+		"pstack": { "enabled": true }
+	}
+}

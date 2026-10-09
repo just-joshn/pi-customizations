@@ -1,0 +1,1 @@
+FLAT-OK path=delete files=core.js,greet.js

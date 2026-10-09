@@ -1,0 +1,39 @@
+  $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/fixture-app &&
+    /usr/bin/diff -r .upstream/automations/benny .cursor/automations/benny; echo "exit=$?" 208ms
+    … 5 output lines hidden · ctrl+o to expand
+    > <!-- PACK-MERGE-LOCAL-EDIT-MARKER: keep this local note through merge -->
+    exit=1
+
+  The only differences are the two expected ones. I'll write the status line.
+
+    Edited done.txt +1
+
+    ▎    1 + STATUS=merge-ok reason=full pack merged with local README edit and dest-only file preserved
+
+  The pack merge is finished: the whole source pack is now in .cursor/automations/benny/, and nothing that already
+  existed was overwritten.
+
+  • What was added: every source file that was missing from the destination, copied to the same relative path.
+    That covers FOR_AGENTS.md, skills/setup-benny/SKILL.md, both operational skills with all their reference
+    files, and the three templates. I checked afterwards that all 11 required files are there.
+  • README: the destination copy was the upstream README with your PACK-MERGE-LOCAL-EDIT-MARKER note added at the
+    end. It already contained all the upstream text, so the merged result is the existing file as it was. Who owns
+    it wasn't in doubt, so I didn't need to stop and ask.
+  • Preserved files: DESTINATION_ONLY.md (with PACK-MERGE-DEST-ONLY-MARKER) is still there. The checksums for
+    .cursor/benny/configuration.yaml, feature-map.md and routing.md match before and after.
+  • Final check: a recursive diff between source and destination shows only two differences: the destination-only
+    file and the appended README note.
+
+  As asked, I didn't create or update any automation, edit .cursor/settings.json, or touch the parity ledgers or
+  src/app.js. done.txt contains: STATUS=merge-ok reason=full pack merged with local README edit and dest-only file 
+  preserved.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium · 15.7% · 1 file edited                                                   Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/fixture-app · 
+  refactor/pi-pstack-parity-again

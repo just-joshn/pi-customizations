@@ -1,0 +1,39 @@
+    Globbed "**/fixture-out/design/**/*" in ...stack-parity-again/parity/evidence/create-skill
+
+  Writing Phase 2 design artifacts from the gathered requirements.
+
+  $ mkdir -p
+    "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/design/cursor"
+    && cat > "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/design/
+    cursor/design.md" << 'EOF'
+    # Skill Design: parity-create-skill-probe 402ms
+    … 30 input lines hidden · ctrl+o to expand
+
+  $ printf '%s\n' 'STATUS=designed' > "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-
+    skill/fixture-out/design/cursor/done.txt" && ls -la
+    "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/design/cursor/"
+    && wc -l "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/design/
+    cursor/done.txt" && cat "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixt
+    ure-out/design/cursor/done.txt" 524ms
+    … 5 output lines hidden · ctrl+o to expand
+    1 /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/design/cursor/…
+    STATUS=designed
+
+  Phase 2 Design is done.
+
+  Wrote parity/evidence/create-skill/fixture-out/design/cursor/design.md with:
+  • name: parity-create-skill-probe
+  • description: third-person, includes "create-skill probe" / "parity-create-skill-probe"
+  • outline: frontmatter → title → instructions (echo marker on its own line)
+  • supporting files/scripts: no
+
+  done.txt: STATUS=designed
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 10.4%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app · refactor/pi-pstack-parity-again

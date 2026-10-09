@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "make-bot-ui-key-server-1",
+  "scenarioRef": "cmd-make-bot-ui-key-server",
+  "requirements": [
+    "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001"
+  ],
+  "path": "create-page-and-webhook-key-server-boundary",
+  "verdict": "blocker",
+  "attemptIds": {
+    "cursorPty": "bb50ed1b-29ac-4961-bb0a-5c2ffd9834b2",
+    "cursorDesktopSlashMakeBotUi": "ecac27a8-740d-494b-bc1f-93f36d27f80f",
+    "cursorDesktopPaletteProbe": "1e5149f4-d4b5-4377-8587-ec2ed0e0db49",
+    "cursorAutomationsEditorUrl": "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+    "cursorAutomateHandoffSchedule": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+    "cursorAutomateHandoffWebhook": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+    "cursorTriggerPickerExhaustive": "8ff6b213-1dbf-4d47-8cec-6671d5ec9cc7",
+    "pi": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf",
+    "piPriorIncomplete": "8721faf4-89e1-4bc5-8abd-105870b4923d"
+  },
+  "pairPath": "parity/evidence/make-bot-ui/pair-make-bot-ui-key-server-1.json",
+  "probe": "parity/evidence/make-bot-ui/host-env-probe.json",
+  "probeScript": "parity/scripts/probe-make-bot-ui-host.mjs",
+  "desktopLever": "parity/scripts/capture-automations-desktop-agents-window.py",
+  "desktopUnit": "u-make-bot-automations-editor-001",
+  "whyBlocked": [
+    "Cursor Automations webhook path is now proven via /automate handoff (c345b7ed): draft table Incoming HTTP webhook, editor Webhook triggered, api2.cursor.sh webhook URL, Generate auth header control. Harness did not Save or Activate.",
+    "Cursor key-server end-to-end remains unpaid: Generate auth header was not clicked, no local sender-key store, no probe HTTP 200 on Cursor.",
+    "Make Bot UI skill still names update_state + secret-request. That PTY/Agents palette path remains missing (bb50ed1b / 1e5149f4). Automations editor uses a different auth UI (Generate auth header), not secret-request.",
+    "Manual Add Trigger picker clicks (helper xy, System Events, AXShowMenu, set_value) did not expose trigger options in AX (8ff6b213). Product webhook create works through /automate prefill instead.",
+    "Pi half remains key_server_ok (e75f8e08). Pair still cannot close.",
+    "No sender key value was placed in chat, browser AX evidence, or skill files."
+  ],
+  "whatWouldUnblock": [
+    "On Cursor Automations draft parity-webhook-witness (or a fresh webhook draft): exercise Generate auth header without leaking the key into chat/evidence, copy key only into a local server config, probe webhook HTTP 200, leak-scan artifacts.",
+    "Optionally migrate Make Bot UI skill docs to Automations webhook + Generate auth header when update_state is unavailable on Cursor.",
+    "Recapture Cursor half as key_server_ok; keep Pi e75f8e08 unless pair linkage requires refresh."
+  ],
+  "honestGaps": [
+    "Webhook Automations create path proven; Cursor key_server_ok not claimed.",
+    "update_state / secret-request still absent on Cursor PTY and Actions palette.",
+    "Add Trigger dropdown options still not readable via accessibility automation."
+  ],
+  "noFabrication": [
+    "No sender key value was planted in env, evidence, chat, or skill files.",
+    "No fabricated Cursor update_state success.",
+    "No invented webhook routine via update_state.",
+    "Harness did not press Save or Activate on the webhook draft."
+  ],
+  "mergeRecommendation": "Do not close MAKE-BOT-UI-KEY-SERVER-HOST or mark PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001 verified. Record webhook handoff attempt c345b7ed as path progress. Ledgers untouched by this unit."
+}

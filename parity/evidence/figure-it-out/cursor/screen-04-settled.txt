@@ -1,0 +1,39 @@
+  Trail. parity/evidence/figure-it-out/fixture-app/decisions.tsv (in-cwd only; no ledger edits).
+
+  Verified. Seed objects in notes.json. Stable stamped lines across two CLI runs. Measured, not inferred.
+
+  Open. Per-unit red/green was batched into one final harness run (reviewer flag). formatNote still accepts bare
+  strings.
+
+  Principles that changed choices. foundational-thinking put the harness and {text,createdAt} first.
+  model-the-domain made timestamps live on notes so reruns stay stable. build-the-lever / prove-it-works made
+  verify.mjs the gate. never-block-on-the-human locked that note shape without asking. encode-lessons-in-structure
+  kept the check as a script.
+
+  Attention.
+  reviewed by claude-sonnet-5-5-medium
+  • harness row claims baseline red without a recorded pre-change verify.mjs run
+  • store/format/cli rows share one timestamp (batched, not per-unit)
+  • loose endsWith(text) check; string branch in format.js is small scope creep
+  • playbook-before-code is ordered in the log, not proven by file mtimes alone
+
+  Playbook steps.
+  1. Load poteto-mode + Principles — done
+  2. Phase A Frame — done
+  3. Phase B Design workflow — done
+  4. Harness + baseline red — done
+  5. Unit store → notes.json — done
+  6. Unit format ISO — done
+  7. Unit cli load — done
+  8. Phase C loop — done (batch verify caveat logged)
+  9. Phase D show-me-your-work trail — done
+  10. Phase E verify + done.txt — done
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 18.8% · 4 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/figure-it-out/fixture-app · refactor/pi-pstack-parity-again

@@ -1,0 +1,38 @@
+{
+  "skillRel": ".upstream/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+  "configRel": ".upstream/benny/configuration.yaml",
+  "productRel": "src/app.js",
+  "productBeforeDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+  "productAfterDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+  "productUnchanged": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-out/cursor/done.txt",
+    "line": "STATUS=fail-closed reason=incomplete config missing control adapter and feature map",
+    "status": "fail-closed"
+  },
+  "outcome": "fail_closed",
+  "contractHeld": true,
+  "engaged": true,
+  "failClosedSignal": true,
+  "forbidden": false,
+  "screen": {
+    "failClosedPhrase": true,
+    "uiReproAttempt": false,
+    "draftPrAttempt": false,
+    "productEditAttempt": false,
+    "skillChrome": true,
+    "working": false
+  },
+  "pty": {
+    "failClosedPhrase": true,
+    "uiReproAttempt": false,
+    "draftPrAttempt": false,
+    "productEditAttempt": false,
+    "skillChrome": true,
+    "working": true
+  },
+  "session": null,
+  "pollSamples": 27,
+  "scorerNote": "fail_closed requires engagement + fail-closed/blocked signal + unchanged src/app.js + no UI/PR/product side effects"
+}

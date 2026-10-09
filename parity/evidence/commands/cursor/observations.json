@@ -1,0 +1,31 @@
+{
+  "ready": {
+    "clarifyingPanel": false,
+    "questionPrompt": false,
+    "freeformBudgetAsk": false,
+    "setupMention": false,
+    "working": false
+  },
+  "beforeCancel": {
+    "clarifyingPanel": false,
+    "questionPrompt": false,
+    "freeformBudgetAsk": true,
+    "setupMention": false,
+    "working": false
+  },
+  "afterCancel": {
+    "clarifyingPanel": false,
+    "questionPrompt": false,
+    "freeformBudgetAsk": true,
+    "setupMention": false,
+    "working": false
+  },
+  "afterHelp": {
+    "usedPotetoHelp": false,
+    "skillBlock": false,
+    "mentionsReviewOrSkill": true,
+    "handsPrompt": true,
+    "working": false,
+    "clarifyingPanel": false
+  }
+}

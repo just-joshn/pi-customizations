@@ -1,0 +1,132 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "premiseWritten": true,
+    "censusScript": true,
+    "noCompensatory": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": null,
+  "firstVerifyAt": "2026-10-09T01:00:51.477Z",
+  "firstArtifactAt": "2026-10-09T01:01:03.552Z",
+  "productPaths": [
+    "artifact:evidence/premise.txt",
+    "artifact:scripts/census.mjs",
+    "artifact:evidence/census-out.txt"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/fixture-app/evidence/verify-out.txt",
+    "line": "PREMISE-OK premise=yes census=yes files=actors.js,assign.js,run.js",
+    "ok": true
+  },
+  "oracle": {
+    "premiseWritten": true,
+    "premiseText": "Shared premise of both failed fixes: alpha is merely undersized, so giving alpha more resources will clear the skew.",
+    "censusScript": true,
+    "censusRanOk": true,
+    "censusOut": "alpha=100 beta=0 gamma=0",
+    "noCompensatory": true,
+    "compensatoryPresent": {
+      "capacity.js": false,
+      "buffer.js": false,
+      "alpha-queue.js": false,
+      "alphaQueue.js": false
+    },
+    "productOk": true,
+    "srcFiles": [
+      "actors.js",
+      "assign.js",
+      "run.js"
+    ]
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-attack-the-premise/SKILL.md",
+    "ok": true,
+    "name": "principle-attack-the-premise",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/ecdbecf3-0002-4bf3-8d29-ba3242b5c649/ecdbecf3-0002-4bf3-8d29-ba3242b5c649.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:01:30.464Z",
+    "ranVerifyScript": true,
+    "toolOrder": [
+      "Read",
+      "Glob",
+      "GetDynamicTools",
+      "Read",
+      "Read(attack-premise-leaf)",
+      "CallDynamicTool(verify.mjs)",
+      "blob-mention(attack-premise-leaf)",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Shell(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Shell",
+      "CallDynamicTool",
+      "Write",
+      "Write",
+      "Shell(verify.mjs)",
+      "Shell(verify.mjs)",
+      "CallDynamicTool"
+    ],
+    "mtimeMs": 1791507678405.6633
+  },
+  "pollSamples": 94,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

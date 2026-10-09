@@ -1,0 +1,19 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to plan execution and reach the right outcome faster.
+
+
+
+                                                                                                                       
+  → browser, in chat, in the skill file, in tool arguments, in environment variables, or in logs. If this host cannot  
+     create webhook routines (missing update_state or RoutinePrepare), stop honestly and say so. Do not invent a       
+    sender key. Work only inside this fixture cwd. Do not edit parity ledgers. When finished, write exactly one line   
+    to                                                                                                                 
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/fixture-out/cursor/done.txt    
+    as STATUS=key-server-ok|key-leaked|host-blocked|incomplete|other reason=<short phrase> then stop.                  
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/fixture-app · refactor/pi-pstack-parity-again

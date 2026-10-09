@@ -1,0 +1,40 @@
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        │
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         │
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Run /maintain-verification-skill now. Complete only Pass step 0 Locate the target. This project has no verify-* skill ┃
+ under .pi/skills. Do not invent a verification skill target. Do not create a skill. Stop and point at                 ┃
+ /create-verification-skill. Write exactly these two lines to                                                          ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/pi/locate.txt and ┃
+ stop:                                                                                                                 ┃
+ LOCATED=none                                                                                                          ┃
+ CREATE_OFFERED=yes                                                                                                    ┃
+ Do not run index hygiene, source wave, live pass, triage, or ship. Do not edit any other files. Do not edit ledgers   ┃
+ or parity/.                                                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ ls .pi/skills 2>&1 | head; mkdir -p                                                                                 ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/pi && printf      ┃
+ 'LOCATED=none\nCREATE_OFFERED=yes\n' >                                                                                ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/pi/locate.txt &&  ┃
+ cat /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/pi/locate.txt ┃
+  (timeout 10s)                                                                                                        ┃
+                                                                                                                       ┃
+ ls: cannot access '.pi/skills': No such file or directory                                                             ┃
+ LOCATED=none                                                                                                          ┃
+ CREATE_OFFERED=yes                                                                                                    ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ No verify-* skill exists under .pi/skills, because the .pi/skills directory itself doesn't exist. I didn't create or  ┃
+ invent a target. To build one, run /create-verification-skill.                                                        ┃
+                                                                                                                       ┃
+ I wrote LOCATED=none and CREATE_OFFERED=yes to fixture-out/pi/locate.txt and stopped there.                           ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app (refactor/pi-pstack-parity-again)
+↑6 ↓412 R33k W17k CH98.6% $0.078 (sub) 2.5%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

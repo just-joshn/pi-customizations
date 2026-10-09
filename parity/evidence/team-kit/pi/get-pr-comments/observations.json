@@ -1,0 +1,44 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": false,
+    "fixtureComment": true,
+    "fixtureGuidance": false
+  },
+  "pty": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": true,
+    "working": true,
+    "fixtureComment": true,
+    "fixtureGuidance": false
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/get-pr-comments/done.txt",
+    "line": "STATUS=verified reason=comment fetched and summarized",
+    "status": "verified"
+  },
+  "post": {
+    "artifactHasMarker": true,
+    "artifactBytes": 493
+  },
+  "seededSkill": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/get-pr-comments/SKILL.md",
+    "sha256": "8bf292736cab922276feb4d8377edc2fc4102a7beb62bcd1f3f5cf72a79b16cc"
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "artifactOk": true,
+    "post": {
+      "artifactHasMarker": true,
+      "artifactBytes": 493
+    },
+    "closed": true,
+    "honestBlocker": false
+  }
+}

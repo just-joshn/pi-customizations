@@ -1,0 +1,49 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": false,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "pty": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": true,
+    "working": true,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship/done.txt",
+    "line": "STATUS=verified reason=pr opened and notes written",
+    "status": "verified"
+  },
+  "post": {
+    "artifactHasMarker": true,
+    "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/5",
+    "prExists": true,
+    "artifactBytes": 258
+  },
+  "sideCtx": {},
+  "seededSkill": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/review-and-ship/SKILL.md",
+    "sha256": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1"
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "artifactOk": true,
+    "post": {
+      "artifactHasMarker": true,
+      "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/5",
+      "prExists": true,
+      "artifactBytes": 258
+    },
+    "closed": true,
+    "honestBlocker": false
+  }
+}

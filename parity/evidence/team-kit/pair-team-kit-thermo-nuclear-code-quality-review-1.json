@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "pairId": "team-kit-thermo-nuclear-code-quality-review-1",
+  "scenarioRef": "team-kit:thermo-nuclear-code-quality-review",
+  "journeyFamily": "cursor-team-kit",
+  "skillId": "thermo-nuclear-code-quality-review",
+  "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
+  "skillMdSha256": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/thermo-nuclear-code-quality-review ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "STATUS=verified with skill oracle, or STATUS=env-blocked"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "1d776764-5bc4-43ac-b586-2a95b7592fe5",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/thermo-nuclear-code-quality-review/cursor/1d776764-5bc4-43ac-b586-2a95b7592fe5",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/thermo-nuclear-code-quality-review/done.txt",
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "summaryExists": true,
+        "mentionsNest": true,
+        "proposesSimplify": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/thermo-nuclear-code-quality-review/done.txt",
+          "line": "STATUS=verified reason=review written with spaghetti and code-judo",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "pi": {
+    "attemptId": "dc7ee54f-c0e0-474f-bd7f-c690ef0ef5ce",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/thermo-nuclear-code-quality-review/pi/dc7ee54f-c0e0-474f-bd7f-c690ef0ef5ce",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/thermo-nuclear-code-quality-review/done.txt",
+    "seededSkill": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/thermo-nuclear-code-quality-review/.pi/skills/thermo-nuclear-code-quality-review/SKILL.md",
+      "sha256": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f"
+    },
+    "observations": {
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "oracleClosed": true,
+      "closed": true,
+      "honestBlocker": false,
+      "oracle": {
+        "summaryExists": true,
+        "mentionsNest": true,
+        "proposesSimplify": true,
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/thermo-nuclear-code-quality-review/done.txt",
+          "line": "STATUS=verified reason=review written with nested-conditional findings and code-judo proposal",
+          "status": "verified"
+        },
+        "closed": true,
+        "honestBlocker": false
+      }
+    }
+  },
+  "skillClosure": {
+    "thermo-nuclear-code-quality-review": "closed_by_this_pair"
+  },
+  "note": "Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/.",
+  "verdict": "pass"
+}

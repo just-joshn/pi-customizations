@@ -1,0 +1,36 @@
+ and stop.                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ bun run typecheck; echo "rc=$?" (timeout 300s)                                                                      │
+                                                                                                                       │
+ $ tsc --project watch-pr/tsconfig.json --noEmit --strict                                                              │
+ rc=0                                                                                                                  ┃
+                                                                                                                       ┃
+ Took 0.1s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ echo "EXIT=0" >                                                                                                     ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/pi/typecheck-done.txt    ┃
+ (timeout 10s)                                                                                                         ┃
+                                                                                                                       ┃
+ (no output)                                                                                                           ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ bun run typecheck exited 0. The line that invoked tsc was:                                                            ┃
+                                                                                                                       ┃
+ ```                                                                                                                   ┃
+   $ tsc --project watch-pr/tsconfig.json --noEmit --strict                                                            ┃
+ ```                                                                                                                   ┃
+                                                                                                                       ┃
+ It printed no type errors. I wrote EXIT=0 to                                                                          ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/pi/typecheck-done.txt.   ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts (main)
+↑8 ↓365 R58k W17k CH99.4% $0.083 (sub) 2.5%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

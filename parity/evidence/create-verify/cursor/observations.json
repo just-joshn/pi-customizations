@@ -1,0 +1,122 @@
+{
+  "createMid": {
+    "createVerifySkill": true,
+    "wroteSkill": false,
+    "working": true
+  },
+  "skillMid": {
+    "exists": false,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+    "nameOk": false,
+    "hasDescription": false,
+    "hasLaunch": false,
+    "hasHelpers": false,
+    "sectionsOk": false,
+    "missingSections": [
+      "Launch",
+      "Doctor",
+      "Drive",
+      "Evidence",
+      "Cleanup",
+      "Helpers"
+    ],
+    "hasTodoPlaceholder": false,
+    "body": null
+  },
+  "proofMid": {
+    "exists": false,
+    "dir": null,
+    "stdoutPath": null,
+    "stdoutOk": false,
+    "exitOk": false,
+    "exitRaw": null,
+    "stderrOk": false,
+    "pass": false
+  },
+  "interviewMid": {
+    "exists": false,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/interview.json",
+    "data": null,
+    "keysOk": false,
+    "missing": [
+      "surface",
+      "run",
+      "drive",
+      "observe",
+      "isolate"
+    ],
+    "evidencePaths": [],
+    "readRepoFiles": false,
+    "askedUser": false,
+    "askedUserAbout": [],
+    "askedAboutObservable": false,
+    "baseBuildsOrReported": false,
+    "ok": false
+  },
+  "createFinal": {
+    "createVerifySkill": true,
+    "wroteSkill": true,
+    "working": false
+  },
+  "interviewFinal": {
+    "interviewMention": true,
+    "askedUserOnScreen": false,
+    "working": false
+  },
+  "skillAfterCreate": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+    "nameOk": true,
+    "hasDescription": true,
+    "hasLaunch": true,
+    "hasHelpers": true,
+    "sectionsOk": true,
+    "missingSections": [],
+    "hasTodoPlaceholder": false,
+    "bodyPreview": "---\nname: verify-hello-cli\ndescription: \"Drive the hello-cli fixture (./hello.sh) as a user would: print HELLO-FAMILY-13 on stdout and exit 0. Use when proving hello-cli behavior or verifying the create-verify journey fixture.\"\n---\n\n# Verify hello-cli\n\nShort-lived CLI only. There is no server to keep alive. Build readiness means `hello.sh` is present and executable; each drive is its own isolated "
+  },
+  "interview": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/interview.json",
+    "data": {
+      "surface": "CLI: a short-lived shell script (hello.sh) that prints a fixed line to stdout and exits. No web UI, TUI, server, or library surface.",
+      "run": "From the fixture-app root, run ./hello.sh (documented in README.md). No deps, ports, env vars, seed data, or auth. Ready when the process exits; success is exit 0 with stdout HELLO-FAMILY-13.",
+      "drive": "Invoke ./hello.sh in an isolated shell (or capture stdout/stderr/exit via a one-shot shell redirection). No Playwright, PTY prompt loop, or HTTP harness is required; the user path is a single command.",
+      "observe": "Capture the command, stdout (must be exactly HELLO-FAMILY-13 plus a trailing newline), empty stderr, and exit code 0. Write transcript artifacts under a named proof directory that cleanup must leave alone.",
+      "isolate": "Each run is a new process with no shared ports, data dirs, or profiles. Multiple side-by-side invocations are safe; never attach to or kill an unrelated shell session.",
+      "evidencePaths": [
+        "README.md",
+        "hello.sh"
+      ],
+      "askedUser": false,
+      "askedUserAbout": [],
+      "baseBuildsOrReported": true
+    },
+    "keysOk": true,
+    "missing": [],
+    "evidencePaths": [
+      "README.md",
+      "hello.sh"
+    ],
+    "readRepoFiles": true,
+    "askedUser": false,
+    "askedUserAbout": [],
+    "askedAboutObservable": false,
+    "baseBuildsOrReported": true,
+    "ok": true
+  },
+  "featureMap": {
+    "readmeExists": true,
+    "featureFiles": [
+      "hello-print.md"
+    ],
+    "ok": true,
+    "paths": {
+      "readme": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skills/verify-hello-cli/features/README.md",
+      "featureDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skills/verify-hello-cli/features"
+    }
+  },
+  "interviewOk": true,
+  "featureMapOk": true,
+  "askedUserOnScreen": false
+}

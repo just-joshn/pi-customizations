@@ -1,0 +1,40 @@
+ .upstream/benny/configuration.yaml (timeout 20s)                                                                      │
+                                                                                                                       │
+ ... (366 earlier lines, ctrl+o to expand)                                                                             │
+                                                                                                                       │
+ verdict_markers:                                                                                                      │
+   bug: "[benny:bug]"                                                                                                  │
+   performance: "[benny:performance]"                                                                                  │
+   other: "[benny:other]"                                                                                              │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Config lacks control skill, feature map, and Slack actions. Fail closed.                                              │
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-out/pi && echo ┃
+ "STATUS=fail-closed reason=config missing control adapter, feature map, and Slack actions" >                          ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-out/pi/done.txt (timeout  ┃
+ 10s)                                                                                                                  ┃
+                                                                                                                       ┃
+ (no output)                                                                                                           ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ The run failed closed. I did no repro work, posted nothing to Slack, and made no code changes.                        ┃
+                                                                                                                       ┃
+ .upstream/benny/configuration.yaml is missing what the skill requires. It has no control.skill_name, no               ┃
+ control.feature_map_path and no feature map file. It also has no required Slack actions and no                        ┃
+ repository.pull_request_action. Without a control adapter and feature map there's no way to reproduce the bug through ┃
+ the real UI, and the skill says to fail closed in that case.                                                          ┃
+                                                                                                                       ┃
+ I wrote this line to fixture-out/pi/done.txt:                                                                         ┃
+ STATUS=fail-closed reason=config missing control adapter, feature map, and Slack actions                              ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-app (refactor/pi-pstack-parity-again)
+↑8 ↓585 R63k W22k CH99.2% $0.108 (sub) 3.1%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

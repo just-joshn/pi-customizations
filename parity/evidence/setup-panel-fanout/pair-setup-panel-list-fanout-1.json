@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "pairId": "setup-panel-list-fanout-1",
+  "scenarioRef": "setup-panel-list-fanout",
+  "journeyFamily": "u-journey-setup-panel-fanout",
+  "requirementIds": [
+    "PSTACK-SETUP-PANEL-LIST-FANOUT-001"
+  ],
+  "panelRole": "arena runners",
+  "panelList": {
+    "raw": "inherit-parent, inherit-parent, inherit-parent",
+    "entries": ["inherit-parent", "inherit-parent", "inherit-parent"],
+    "length": 3
+  },
+  "fixtureDigest": "sha256:b3619375c3368685352e4e213ec1fb8d1391a661ff87c59f79e662c96b95ed43",
+  "fixturePath": "parity/evidence/setup-panel-fanout/fixture-panel-list.mdc",
+  "lockedDigestRestored": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/arena use arena runners line as sole fan-out count (no N override); one seat per alias entry; clamp bakeoff under c1/c2/c3; write fanout-note.md + done.txt listLength/spawnCount/panelDriven",
+  "steps": [
+    { "plant": "fixture-panel-list.mdc onto host models.mdc (L=3 inherit-parent aliases)" },
+    { "send": "/arena Use the arena runners line in pstack-models.mdc as the sole source of fan-out count ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true },
+    { "restore": "locked inherit-parent rule sha256:2b6b4668…" }
+  ],
+  "cursor": {
+    "attemptId": "43dc2c2b-215d-4765-ab70-2682cb620fd8",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/cursor/43dc2c2b-215d-4765-ab70-2682cb620fd8",
+    "ruleUnchanged": false,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "afterDigestNote": "End-of-run rule bytes matched locked digest, not the planted panel fixture. Concurrent cursor-agent processes shared ~/.cursor/rules/pstack-models.mdc. Fan-out still observed against the planted list at session start.",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "arenaSkill": true,
+      "panelListLength": 3,
+      "candidateCountOnDisk": 3,
+      "spawnCount": 3,
+      "panelDriven": true,
+      "contractOk": true,
+      "doneLine": "listLength=3 spawnCount=3 panelDriven=yes",
+      "fanoutPath": "settled screen Phase B Fan out spawn 3 arena runners; c1+c2+c3 clamp.js+rationale.md; fanout-note names three inherit-parent aliases",
+      "scorerNote": "durable c1/c2/c3 + done line + settled Phase B; scorer contractOk true"
+    }
+  },
+  "pi": {
+    "attemptId": "925469ca-f277-4870-a986-2969e0e1ecbe",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/pi/925469ca-f277-4870-a986-2969e0e1ecbe",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:b3619375c3368685352e4e213ec1fb8d1391a661ff87c59f79e662c96b95ed43",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-panel-fanout-fixture-app--/2026-10-08T21-47-59-599Z_01a11d7c-c8ef-76f8-891b-5bb4dec702ec.jsonl",
+    "observations": {
+      "arenaSkill": true,
+      "panelListLength": 3,
+      "candidateCountOnDisk": 3,
+      "taskCount": 3,
+      "spawnCount": 3,
+      "panelDriven": true,
+      "contractOk": true,
+      "doneLine": "listLength=3 spawnCount=3 panelDriven=yes",
+      "fanoutPath": "session task×3 (runner-c1/c2/c3) in one assistant turn; c1+c2+c3 on disk; fanout-note quotes arena runners list",
+      "toolOrder": ["TodoWrite", "task", "task", "task", "read_agent", "read_agent", "bash"],
+      "scorerNote": "session task×3 proves spawn count; durable candidates + done line; contractOk true"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "spawn oracle",
+      "cursor": "candidate dirs + settled Phase B chrome (no session task tool log in observations)",
+      "pi": "session task×3 plus candidate dirs"
+    },
+    {
+      "topic": "rule bytes at settle",
+      "cursor": "afterDigest drifted to locked (concurrent writers); panel list still drove fan-out",
+      "pi": "panel fixture digest held through settle (ruleUnchanged true)"
+    },
+    {
+      "topic": "post-fanout arena phases",
+      "cursor": "stopped after fan-out note/done as prompted",
+      "pi": "explicitly skipped cross-judge/pick/graft/verify; read_agent×2 after task×3"
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-panel-fanout.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "selfTest": "pass and fail cases in --self-test"
+  }
+}

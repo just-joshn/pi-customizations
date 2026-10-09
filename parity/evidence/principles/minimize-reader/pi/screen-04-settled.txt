@@ -1,0 +1,40 @@
+ E                                                                                                                     │
+ cd .. && node scripts/verify.mjs && echo "verified=yes" >                                                             │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/fixture-out/pi/don │
+ e.txt; cat                                                                                                            │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/fixture-out/pi/don │
+ e.txt (timeout 30s)                                                                                                   │
+                                                                                                                       │
+ TRACE-OK path=collapse files=core.js,greet.js                                                                         │
+ verified=yes                                                                                                          │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ node scripts/verify.mjs now prints TRACE-OK path=collapse files=core.js,greet.js, and I wrote verified=yes to         │
+ done.txt.                                                                                                             │
+                                                                                                                       │
+ I took the collapse approach from NOTES.md rather than the facade. greet.js now calls message() in core.js directly.  │
+ I deleted greeting-loader.js, greeting-fetch.js and greeting-resolve.js. A reader now follows one hop to find the     │
+ greeting instead of four files. greet() still returns hello, world.                                                   │
+                                                                                                                       │
+ I didn't write a separate characterization test. verify.mjs already checks that greet() returns hello, world, so I    │
+ used it as the check before and after.                                                                                │
+                                                                                                                       │
+ Principles applied:                                                                                                   ┃
+ - principle-subtract-before-you-add: I deleted the three pass-through files and added no facade.                      ┃
+ - principle-laziness-protocol: the diff is one rewritten file plus three deletions, and the call path is now flat.    ┃
+ - principle-minimize-reader-load: I removed layers that repeated the same method and arguments, and no state was      ┃
+   added.                                                                                                              ┃
+ - principle-prove-it-works: I ran the real script and read its output rather than inferring from the edit.            ┃
+
+[>] Pin the behavior contract first. Run the how skill over the affected subsystem to learn the contract, then write ...
+[ ] Subtract before you add. Delete dead code, collapse one-caller wrappers (principle-subtract-before-you-add, princ...
+[ ] Prove behavior is unchanged on the real artifact (principle-prove-it-works): node scripts/verify.mjs (pending)
+[ ] Confirm reader load reduced (principle-minimize-reader-load) (pending)
+[ ] Write done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/fixture-app (refactor/pi-pstack-pari...
+↑16 ↓2.4k R220k W31k CH99.2% $0.193 (sub) 4.0%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

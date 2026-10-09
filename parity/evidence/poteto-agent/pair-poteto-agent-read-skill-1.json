@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "pairId": "poteto-agent-read-skill-1",
+  "scenarioRef": "cmd-poteto-agent-read-skill",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-POTETO-AGENT-READ-SKILL-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode spawn one fresh poteto-agent Task to write HELLO to side-specific marker.txt; parent writes agent type to done.txt",
+  "steps": [
+    { "send": "/poteto-mode New playbook task. Spawn exactly one fresh poteto-agent Task ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "3632cd35-dfe5-4cc4-9bd0-ebcf7d44d240",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/cursor/3632cd35-dfe5-4cc4-9bd0-ebcf7d44d240",
+    "ruleUnchanged": false,
+    "afterDigest": "sha256:b3619375c3368685352e4e213ec1fb8d1391a661ff87c59f79e662c96b95ed43",
+    "restoredDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "potetoAgentSpawned": true,
+      "generalPurposeSubstituted": false,
+      "unknownAgentType": false,
+      "childTranscript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/472f69d3-26bc-4362-a9d9-154807fc1704/472f69d3-26bc-4362-a9d9-154807fc1704.jsonl",
+      "childId": "472f69d3-26bc-4362-a9d9-154807fc1704",
+      "skillPath": "/Users/josh-desktop/.claude/skills/poteto-mode/SKILL.md",
+      "skillLimit": null,
+      "firstTool": "Read poteto-mode/SKILL.md",
+      "toolOrderHead": [
+        "Read poteto-mode/SKILL.md",
+        "Read figure-it-out/SKILL.md",
+        "Glob",
+        "GetDynamicTools",
+        "Read principle-*",
+        "CallDynamicTool TodoWrite",
+        "Shell printf HELLO > marker.txt"
+      ],
+      "ordering": "skill_before_work",
+      "skillBeforeWork": true,
+      "principlesIndexCovered": true,
+      "principlesEvidence": "inferred: Read of SKILL.md with no limit; on-disk file contains ## Principles. Cursor agent-transcripts omit tool results so Principles body text is not retained in the child jsonl.",
+      "markerOk": true,
+      "doneLine": "poteto-agent",
+      "ruleMutationNote": "Parent mutated arena runners line in pstack-models.mdc during the run; worker restored locked digest after capture."
+    }
+  },
+  "pi": {
+    "attemptId": "6288c9b7-08ac-4b5f-850c-021446b26409",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/pi/6288c9b7-08ac-4b5f-850c-021446b26409",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-poteto-agent-fixture-app--/2026-10-08T21-46-32-881Z_01a11d7b-7631-76f4-a40d-02c96db3f2cd.jsonl",
+    "observations": {
+      "potetoAgentSpawned": true,
+      "generalPurposeSubstituted": false,
+      "unknownAgentType": false,
+      "parentToolOrder": ["read", "TodoWrite", "task", "bash"],
+      "taskArgs": {
+        "name": "task",
+        "agent_type": "poteto-agent"
+      },
+      "childTranscript": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-poteto-agent-fixture-app--/01a11d7b-7631-76f4-a40d-02c96db3f2cd/subagents/agent-afc76f98-c9b7-4e10-a511-58c475143615.jsonl",
+      "childId": "agent-afc76f98-c9b7-4e10-a511-58c475143615",
+      "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/poteto-mode/SKILL.md",
+      "firstTool": "read poteto-mode/SKILL.md",
+      "firstSkillReadAt": "2026-10-08T21:46:49.224Z",
+      "firstOtherWorkAt": "2026-10-08T21:46:51.348Z",
+      "toolOrderHead": [
+        "read poteto-mode/SKILL.md",
+        "bash printf HELLO > marker.txt"
+      ],
+      "ordering": "skill_before_work",
+      "skillBeforeWork": true,
+      "principlesIndexCovered": true,
+      "principlesEvidence": "measured: child transcript contains ## Principles / Laziness Protocol text after the skill read tool result.",
+      "markerOk": true,
+      "doneLine": "poteto-agent"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "poteto-agent spawn + SKILL.md before other work",
+      "cursor": "Parent spawned poteto-agent child 472f69d3. Child first tool Read ~/.claude/skills/poteto-mode/SKILL.md (no limit; Principles present), then Shell wrote HELLO. No generalPurpose substitution.",
+      "pi": "Parent lowercase task agent_type poteto-agent. Child agent-afc76f98 first tool read extensions/pi-pstack/skills/poteto-mode/SKILL.md at 21:46:49Z, then bash wrote HELLO at 21:46:51Z. Principles text present in child transcript. No generalPurpose substitution.",
+      "reconciled": true
+    },
+    {
+      "topic": "skill file path",
+      "cursor": "User-global ~/.claude/skills/poteto-mode/SKILL.md",
+      "pi": "Package extensions/pi-pstack/skills/poteto-mode/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "Task tool naming",
+      "cursor": "Cursor Task / agent transcript UUID (settled screen names child 472f69d3).",
+      "pi": "lowercase task with agent_type poteto-agent (persona bridge).",
+      "reconciled": true
+    },
+    {
+      "topic": "models.mdc during capture",
+      "cursor": "Parent mutated arena runners to three inherit-parent entries; worker restored locked digest after.",
+      "pi": "ruleUnchanged true.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto / plugin-dir pstack",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-poteto-agent-read-skill.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/poteto-agent/PLAYBOOK.md",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/poteto-agent/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/poteto-agent/fixture-app",
+    "decisionTrail": "parity/evidence/poteto-agent/.audit/u-journey-cmd-poteto-agent.tsv"
+  }
+}

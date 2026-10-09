@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+  "workflow-from-chats" collision:                                                                                     ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats/.pi/skills/workflow-fro┃
+m-chats/SKILL.md                                                                                                       ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/workflow-from-chats/SKILL.md (skipped)         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+─────────────────────────────────────────────────────── ↑ 1 more ───────────────────────────────────────────────────────
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats/synth 
+etic-chats as the parent transcript corpus for this fixture (do not invent other chats). Extract durable preferences.   
+Write the synthesis to                                                                                                  
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/sum 
+mary.md and a reusable rule draft to                                                                                    
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/ext 
+racted-preferences.md. Both must include the exact marker FIXTURE_PREF and mention test-before-PR. Then write exactly   
+one line to                                                                                                             
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/don 
+e.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under     
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats.    
+Do not edit parity ledgers. Do not expose secrets.                                                                      
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats (refactor/pi-pstack-p...
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

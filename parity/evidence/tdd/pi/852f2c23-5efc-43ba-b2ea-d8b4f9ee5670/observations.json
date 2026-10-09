@@ -1,0 +1,35 @@
+{
+  "screenFinal": {
+    "tddSkill": true,
+    "redSignal": true,
+    "greenSignal": true,
+    "skipImpractical": false,
+    "working": false
+  },
+  "firstTestAt": "2026-10-08T19:34:37.357Z",
+  "firstProductAt": "2026-10-08T19:34:39.873Z",
+  "testPaths": [
+    "test/clamp.test.js"
+  ],
+  "productPaths": [
+    "src/clamp.js"
+  ],
+  "ordering": "test_before_product",
+  "testBeforeProduct": true,
+  "redBeforeGreen": true,
+  "done": {
+    "exists": false,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/tdd/fixture-out/pi/done.txt",
+    "line": null
+  },
+  "pollSamples": 23,
+  "sessionToolOrder": [
+    "bash: inspect clamp.js + package.json",
+    "bash: write test/clamp.test.js then node --test (RED: 10 !== 5)",
+    "bash: write fixed src/clamp.js then node --test (GREEN: pass 1) then done.txt at wrong relative path ../../fixture-out/pi"
+  ],
+  "redRunBeforeProduct": true,
+  "donePathActual": "parity/evidence/fixture-out/pi/done.txt",
+  "donePathExpected": "parity/evidence/tdd/fixture-out/pi/done.txt",
+  "skillSource": "~/.agents/skills/tdd/SKILL.md (package skill skipped on name collision)"
+}

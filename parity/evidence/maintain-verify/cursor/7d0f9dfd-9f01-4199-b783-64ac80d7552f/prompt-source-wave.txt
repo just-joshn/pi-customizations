@@ -1,0 +1,8 @@
+Run /maintain-verification-skill now against the existing verify-hello-cli skill at /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-source-wave/.cursor/skills/verify-hello-cli/SKILL.md. Complete Pass steps 0–2 only (Locate, Index hygiene, Source wave). Stop after Source wave. Do not run Live pass. Do not open a PR. Do not edit product code (hello.sh, README.md). Never edit parity/ ledgers or ~/.cursor/rules/pstack-models.mdc. The feature map has exactly two feature files (hello-print.md and exit-zero.md). After index hygiene, launch one read-only subagent per feature file concurrently (two children). Each child must return feature summary, source entry points, likely drift or none, and one live-verification recipe. Children must never drive the app and must never edit files. Write each child's return verbatim to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/cursor/children/hello-print.md and /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/cursor/children/exit-zero.md. Then write exactly these lines to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/cursor/source-wave.txt and stop:
+SOURCE_WAVE=done
+FEATURES=2
+CONCURRENT_CHILDREN=yes
+FIELDS=summary,entrypoints,drift,recipe
+CHILDREN_DROVE=no
+CHILDREN_EDITED=no
+

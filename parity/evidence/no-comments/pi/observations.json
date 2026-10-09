@@ -1,0 +1,49 @@
+{
+  "screenFinal": {
+    "noCommentsSkill": true,
+    "commentSicko": true,
+    "taskSpawn": false,
+    "catchphrase": false,
+    "sickoPath": true,
+    "working": false
+  },
+  "pty": {
+    "noCommentsSkill": true,
+    "sickoPath": true,
+    "catchphrase": false,
+    "commentSicko": true,
+    "taskSpawn": false
+  },
+  "firstSkillAt": "2026-10-08T20:19:55.109Z",
+  "firstSickoAt": "2026-10-08T20:20:00.146Z",
+  "firstCatchphraseAt": "2026-10-08T20:20:00.146Z",
+  "firstProductAt": "2026-10-08T20:20:06.075Z",
+  "productPaths": [
+    "src/greet.js"
+  ],
+  "baselineCommentCount": 7,
+  "afterCommentCount": 0,
+  "commentsRemoved": true,
+  "skillActivated": true,
+  "sickoSpawned": true,
+  "catchphraseObserved": true,
+  "cleanupHeld": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/no-comments/fixture-out/pi/done.txt",
+    "line": "delete-count=7 sicko=yes catchphrase=no"
+  },
+  "pollSamples": 33,
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-no-comments-fixture-app--/2026-10-08T20-19-54-746Z_01a11d2c-24fa-738c-9e7a-53549f4347bb.jsonl",
+    "sickoTask": true,
+    "catchphraseSeen": true,
+    "firstProductWriteAt": "2026-10-08T20:19:58.759Z",
+    "skillInjected": true,
+    "toolOrder": [
+      "bash",
+      "task",
+      "bash"
+    ]
+  }
+}

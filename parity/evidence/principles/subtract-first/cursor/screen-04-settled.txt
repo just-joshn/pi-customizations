@@ -1,0 +1,39 @@
+  opts?.shout === true from candidate 2. Rejected voicedMessage as extra hop for one boolean.
+
+  Throughput checkpoint.
+  • Blocking. Delete dead modules, then add shout.
+  • Independent workstreams. n/a. One shared greet.js write.
+  • Shared mutable state. n/a. One sequential owner.
+  • Smallest decomposition. One worker.
+
+  Open decisions. None for this fixture.
+
+  Principles applied (leaf skills read).
+  • Subtract before you add. Deleted dead modules before shout.
+  • Exhaust the design space. Two arena sketches before pick.
+  • Laziness / minimize reader load. Chose greet-owned casing over a voice API.
+  • Model the domain. Optional boolean, one string source.
+  • Foundational thinking. Subtraction before the feature.
+  • Boundary discipline. Presentation at greet, copy in core.
+  • Separate before serializing. Per-candidate /tmp outputs.
+  • Prove it works. Re-ran scripts/verify.mjs on the real artifact.
+
+  Playbook steps.
+  1. how — done
+  2. architect — done
+  3. Throughput checkpoint — done
+  4. Delegate code — done
+  5. Verify surface — done
+  6. Rebase/commits — skip: fixture evidence, no commit ask
+  7. Interrogate — skip: design not contested
+  8. Opening a PR — skip: outside cwd / evidence stop rule
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 25.5% · 5 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/subtract-first/fixture-app · 
+  refactor/pi-pstack-parity-again

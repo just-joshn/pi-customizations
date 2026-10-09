@@ -1,0 +1,36 @@
+ Run /setup-pstack again when you're ready. Or tell me here which budget you want (unlimited, large, medium or small)  │
+ and whether to keep every role on inherit-parent.                                                                     │
+                                                                                                                       │
+                                                                                                                       │
+ [skill] poteto-help (ctrl+o to expand)                                                                                │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ which skill should i use to review this branch?                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ Use /review-and-ship. It reviews the current branch for bugs, intent fit and test coverage. It then runs or writes    │
+ tests, commits focused work, and opens or updates a PR.                                                               │
+                                                                                                                       │
+ Pick a different skill if you want something narrower:                                                                ┃
+ - /interrogate: different models review the diff and try to break it.                                                 ┃
+ - /blast-radius: looks for what a small diff could break outside itself.                                              ┃
+ - code-review: reviews the changes since a fixed point (commit, branch, tag or merge-base). It covers Standards and   ┃
+   Spec in parallel sub-agents.                                                                                        ┃
+                                                                                                                       ┃
+ Example prompt (I haven't run anything):                                                                              ┃
+                                                                                                                       ┃
+ ```                                                                                                                   ┃
+   /review-and-ship review this branch against main for bugs and missing test coverage. Don't open a PR yet.           ┃
+ ```                                                                                                                   ┃
+                                                                                                                       ┃
+ Source: https://github.com/cursor/plugins/blob/main/pstack/skills/review-and-ship/SKILL.md                            ┃
+                                                                                                                       ┃
+ You don't have a model rule set up yet, so every role uses its default model. Run /setup-pstack if you want to pick   ┃
+ models and a reasoning budget.                                                                                        ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑12 ↓824 R90k W26k CH84.1% $0.129 (sub) 3.4%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,335 @@
+{
+  "scenario": "prin-explain-number",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "frontmatter": {
+    "cursor": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-explain-the-number/SKILL.md",
+      "ok": true,
+      "name": "principle-explain-the-number",
+      "disableModelInvocation": true
+    },
+    "pi": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-explain-the-number/SKILL.md",
+      "ok": true,
+      "name": "principle-explain-the-number",
+      "disableModelInvocation": true
+    }
+  },
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/cursor/0adb3d89-a142-4c2a-9487-4209954140ef",
+      "attemptId": "0adb3d89-a142-4c2a-9487-4209954140ef",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode RESULTS.md claims a bare 4.8x speedup. Before trusting or shipping that number, apply principle-explain-the-number: read its leaf SKILL.md in full first (not only the poteto-mode Principles index). Use data/trials.json and data/profile-notes.txt. Write evidence/explain-report.md that reports the measured speedup with a named limiter plus run count and spread (or a link to the trials artifact), not the bare number alone. Then run node scripts/verify.mjs so evidence/verify-out.txt contains EXPLAIN-OK. Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When EXPLAIN-OK is on disk, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-out/cursor/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": false,
+          "modelAutoInvoke": false,
+          "keptVerifyOk": true,
+          "reportOk": true,
+          "namedLimiter": true,
+          "runCountPresent": true,
+          "spreadPresent": true,
+          "verifiedDone": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "verifyMention": true,
+            "reportMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": true,
+            "hostAttached": false,
+            "verifyMention": true,
+            "reportMention": true,
+            "working": true
+          }
+        },
+        "firstReportAt": "2026-10-09T01:21:48.054Z",
+        "firstVerifyAt": "2026-10-09T01:21:53.288Z",
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-out/cursor/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-app/evidence/verify-out.txt",
+          "line": "EXPLAIN-OK",
+          "ok": true
+        },
+        "report": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-app/evidence/explain-report.md",
+          "hasLimiter": true,
+          "hasRunCount": true,
+          "hasSpread": true,
+          "hasNumber": true,
+          "textPreview": "# Explain report: parser microbench speedup\n\n## Measured speedup\n\nRatio of means from `data/trials.json` is **4.72x** (baseline mean 413.2 ms / optimized mean 87.6 ms).\n`RESULTS.md` rounds this to 4.8x. Do not ship the bare 4.8x without the limiter and trial context below.\n\nWorkload: parse 10k synthetic records (`src/parse.js`).\n\n## Named limiter\n\nProfile notes (`data/profile-notes.txt`) say that during the five warm runs, one CPU core stayed near 100% while other cores were idle.\nWall time tracked the single-threaded parse loop in `src/parse.js`.\nNot disk, not network, not the load generator.\n\nWhy not double: the optimized path is still single-threaded and bound by that one-core parse loop. Doubling throughput would need more than one core on the parse work, or less work per record inside that loop.\n\n## Run count and spread\n\n- Runs: n = 5 warm trials per side (cold-cache first runs discarded; not in the artifact).\n- Baseline spread: min 408 ms, max 421 ms.\n- Optimized spread: min 84 ms, max 91 ms.\n- Trial artifact: `data/trials.json`.\n\n## What else this number could be measuring (ruled out)\n\n| Alternative | Evidence |\n| --- | --- |\n| Failed or errored requests | Each trial returns"
+        },
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-explain-the-number/SKILL.md",
+          "ok": true,
+          "name": "principle-explain-the-number",
+          "disableModelInvocation": true
+        },
+        "session": null,
+        "transcript": {
+          "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/0015e749-445a-4faf-beae-1c7f8086ad89/0015e749-445a-4faf-beae-1c7f8086ad89.jsonl",
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T01:22:25.270Z",
+          "ranVerifyScript": true,
+          "wroteReport": true,
+          "toolOrder": [
+            "GetDynamicTools",
+            "Read",
+            "Read",
+            "Glob",
+            "Glob",
+            "GetDynamicTools",
+            "Glob",
+            "Grep",
+            "Shell",
+            "Grep",
+            "Glob",
+            "Read",
+            "Read",
+            "Read(verify.mjs)",
+            "Grep",
+            "Shell",
+            "Read(explain-leaf)",
+            "CallDynamicTool(verify.mjs)",
+            "blob-mention(explain-leaf)",
+            "Read",
+            "Read",
+            "Read",
+            "CallDynamicTool",
+            "Shell",
+            "Read",
+            "Write(report)",
+            "Shell(verify.mjs)",
+            "CallDynamicTool",
+            "CallDynamicTool"
+          ],
+          "mtimeMs": 1791508928253.4475
+        },
+        "pollSamples": 88,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "verifyMention": true,
+          "reportMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": true,
+          "hostAttached": false,
+          "verifyMention": true,
+          "reportMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "0adb3d89-a142-4c2a-9487-4209954140ef",
+        "side": "cursor",
+        "scenarioRef": "prin-explain-number",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/pi/029fedbc-568d-499e-ba31-1da197a2d866",
+      "attemptId": "029fedbc-568d-499e-ba31-1da197a2d866",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode RESULTS.md claims a bare 4.8x speedup. Before trusting or shipping that number, apply principle-explain-the-number: read its leaf SKILL.md in full first (not only the poteto-mode Principles index). Use data/trials.json and data/profile-notes.txt. Write evidence/explain-report.md that reports the measured speedup with a named limiter plus run count and spread (or a link to the trials artifact), not the bare number alone. Then run node scripts/verify.mjs so evidence/verify-out.txt contains EXPLAIN-OK. Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When EXPLAIN-OK is on disk, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-out/pi/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": true,
+          "modelAutoInvoke": false,
+          "keptVerifyOk": true,
+          "reportOk": true,
+          "namedLimiter": true,
+          "runCountPresent": true,
+          "spreadPresent": true,
+          "verifiedDone": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "verifyMention": true,
+            "reportMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": false,
+            "hostAttached": true,
+            "verifyMention": true,
+            "reportMention": true,
+            "working": true
+          }
+        },
+        "firstReportAt": "2026-10-09T01:22:47.634Z",
+        "firstVerifyAt": "2026-10-09T01:22:49.649Z",
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-out/pi/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-app/evidence/verify-out.txt",
+          "line": "EXPLAIN-OK",
+          "ok": true
+        },
+        "report": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-app/evidence/explain-report.md",
+          "hasLimiter": true,
+          "hasRunCount": true,
+          "hasSpread": true,
+          "hasNumber": true,
+          "textPreview": "# Explain the number\n\n**Measured speedup: 4.7x** (ratio of means 413.2 ms / 87.6 ms = 4.72x). RESULTS.md says 4.8x, which rounds up. Use 4.7x.\n\n**Runs.** 5 runs per side (n=5), warm. Workload: parse 10k synthetic records. Artifact: data/trials.json.\n\n**Spread.**\n- Baseline: min 408 ms, max 421 ms.\n- Optimized: min 84 ms, max 91 ms.\n- Ratio range across extreme pairings: 4.48x (408/91) to 5.01x (421/84). Run-to-run noise is under 4% per side, so the ratio is stable to about 0.5x.\n\n**Limiter.** The optimized path is bounded by the single-threaded parse loop in src/parse.js. In the five warm runs one CPU core sat near 100% while the others idled (data/profile-notes.txt). It is not disk, network, or the load generator. This is why the result is not higher: more cores do not help until the loop is parallelized.\n\n**Other explanations ruled out.**\n- Cold cache: cold first runs were discarded, so both sides are warm.\n- Failed or skipped work: not checked directly. Neither artifact records output counts or errors for the 10k records. Treat this as an open gap.\n- Untuned side: not evidenced either way. Baseline settings are not recorded.\n- Noise: spread above is small relative to the gap.\n- "
+        },
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-explain-the-number/SKILL.md",
+          "ok": true,
+          "name": "principle-explain-the-number",
+          "disableModelInvocation": true
+        },
+        "session": {
+          "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-explain-number-fixture-app--/2026-10-09T01-22-25-596Z_01a11e41-1abc-72ef-b20b-abb36494fbae.jsonl",
+          "hostAttached": false,
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T01:22:29.293Z",
+          "ranVerifyScript": true,
+          "wroteReport": true,
+          "toolOrder": [
+            "read(explain-leaf)",
+            "bash(verify.mjs)",
+            "blob-mention(explain-leaf)",
+            "read",
+            "read",
+            "read",
+            "read(verify.mjs)",
+            "read",
+            "TodoWrite(verify.mjs)",
+            "write(report)",
+            "bash(verify.mjs)"
+          ]
+        },
+        "transcript": null,
+        "pollSamples": 36,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "verifyMention": true,
+          "reportMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": false,
+          "hostAttached": true,
+          "verifyMention": true,
+          "reportMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "029fedbc-568d-499e-ba31-1da197a2d866",
+        "side": "pi",
+        "scenarioRef": "prin-explain-number",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

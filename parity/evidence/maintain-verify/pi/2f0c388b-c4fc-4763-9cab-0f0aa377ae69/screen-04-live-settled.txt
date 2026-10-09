@@ -1,0 +1,40 @@
+ DOCTOR_BEFORE_DRIVE=yes                                                                                               │
+ EVIDENCE_SURVIVES_CLEANUP=yes                                                                                         │
+ NO_LEFTOVER_RESIDUE=yes                                                                                               │
+ DOCTOR_DRIFT_RETRY=na                                                                                                 │
+ VERIFIED_UNREACHABLE=na                                                                                               │
+ HARNESS_REDRIVE=na                                                                                                    │
+ FINAL_TEARDOWN=yes                                                                                                    │
+ EVIDENCE_REMAINS=yes                                                                                                  │
+ EVIDENCE_PATH=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-liv │
+ e-pass/.pi/evidence/verify-hello-cli                                                                                  │
+ OUTCOME=clean                                                                                                         │
+ BLOCKER=none                                                                                                          │
+ E                                                                                                                     │
+ cat $d/live-pass-marker.txt | wc -l (timeout 10s)                                                                     │
+                                                                                                                       │
+ 15                                                                                                                    │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The maintain pass finished with OUTCOME=clean. I made no edits and opened no PR. I wrote the marker file with the 15  │
+ requested lines to fixture-out/live-pass/pi/live-pass-marker.txt.                                                     │
+                                                                                                                       │
+ - Index and source: The feature map lists one feature, "hello print". The map and skill match hello.sh and README.md. │
+   I read that single feature file myself instead of launching a source-wave subagent.                                 │
+ - Live pass: I drove it myself as one fresh ./hello.sh run. Doctor ran first and printed #!/bin/sh and doctor-ok.     │
+ - Evidence:                                                                                                           ┃
+     - stdout.txt contains HELLO-FAMILY-13.                                                                            ┃
+     - stderr.txt is empty.                                                                                            ┃
+     - exit-code.txt contains 0.                                                                                       ┃
+     - All three files are still at .pi/evidence/verify-hello-cli.                                                     ┃
+ - Cleanup: hello.sh exits on its own, so no process was left running and teardown was a no-op.                        ┃
+ - Retry paths: The doctor-drift retry, verified-unreachable and harness re-drive paths were never triggered, so those ┃
+   marker lines are na.                                                                                                ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass (refactor/pi-pstack-parit...
+↑12 ↓2.0k R122k W22k CH98.2% $0.133 (sub) 3.1%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

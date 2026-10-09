@@ -1,0 +1,1 @@
+DONE iff notes.json holds seed notes on disk, every cli line matches /^- \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z /, and node src/cli.js loads that file then prints one such line for alpha and beta (verify.mjs PASS).

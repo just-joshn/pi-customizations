@@ -1,0 +1,978 @@
+{
+  "scenario": "setup-pstack:grok-xhigh-cap-unlimited",
+  "scenarioId": "setup-grok-xhigh-cap",
+  "requirementIds": [
+    "PSTACK-SETUP-GROK-XHIGH-CAP-001"
+  ],
+  "targetBudget": "unlimited",
+  "piFixture": "mixed",
+  "cursorFixturePath": "fixture-cursor.mdc",
+  "piFixturePath": "fixture-pi.mdc",
+  "instructionCursor": "Re-read ~/.cursor/rules/pstack-models.mdc from disk now. It is NOT all inherit-parent. Budget choice already selected or to select: unlimited — max reasoning (selector label may say unlimited — keep max). Write # budget: unlimited (max). On-disk roles already include real medium-effort slugs: grok-4.7-medium-fast and claude-opus-5-5-medium, plus bug-fix: auto and how explorer: inherit-parent. Under unlimited, remap every real slug to its highest supported effort at or below max. Grok tops out at xhigh. Remap every Grok real slug to grok-4.7-xhigh-fast. Never write grok-*-max. Keep panel list Grok entries at xhigh too. Non-Grok Claude real slugs that support max become claude-opus-5-5-max, including panel lists. Do not replace real model values with inherit-parent or auto. Keep bug-fix as auto and how explorer as inherit-parent exactly. Write the full remapped table to the rule file now. Decline any verification skill offer.",
+  "instructionPi": "Call pstack_setup action state (or read $PI_CODING_AGENT_DIR/pstack/models.mdc) before answering. Do not invent the current table. Budget choice: unlimited — max reasoning. Write # budget: unlimited (max). Current roles already have real medium-effort values including xai/grok-4.7:medium and claude-subscription/claude-*:medium, plus bug-fix: auto and how explorer: inherit-parent. Apply effort mapping only: every Claude real value becomes provider/id:max; every xai/grok real value becomes provider/id:xhigh (never :max). Panel list entries included. Pass those remapped values as roleOverrides on pstack_setup write. The write tool does not remap for you. Do not replace real model values with inherit-parent or auto. Keep bug-fix as auto and how explorer as inherit-parent exactly. If any Grok slug is unavailable / not in availableModels, report that and stop. Do not drop Grok from the table to force a write. Accept that remapped table and write the rule. Do not stop to ask which option. Decline any verification skill offer.",
+  "cursorFixtureDigest": "sha256:c839b86ed7605f6fa4fb70efc10a5fa573f687c809229a8b4fd0687535c29bf7",
+  "piFixtureDigest": "sha256:b8f73977ec5959896a0bad18ba625caca2850523abcc654ae6b99cb36b123ed9",
+  "lockedFixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "restoredLockedDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-grok-xhigh-cap/cursor/faeae5d9-c831-4b7b-9f47-abad3ed21433",
+      "attemptId": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+      "fixtureDigest": "sha256:c839b86ed7605f6fa4fb70efc10a5fa573f687c809229a8b4fd0687535c29bf7",
+      "afterDigest": "sha256:81d8f8a6a6c730b190773c3eefe209e78bc4c20d8fbe18e0a2a2d7a5216180e7",
+      "wrote": true,
+      "score": {
+        "budgetBefore": "small (medium)",
+        "budgetAfter": "unlimited (max)",
+        "budgetOk": true,
+        "grokEntries": [
+          {
+            "role": "architect runners",
+            "index": 1,
+            "from": "grok-4.7-medium-fast",
+            "to": "grok-4.7-xhigh-fast",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "arena cross-judge pool",
+            "index": 1,
+            "from": "grok-4.7-medium-fast",
+            "to": "grok-4.7-xhigh-fast",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "arena runners",
+            "index": 1,
+            "from": "grok-4.7-medium-fast",
+            "to": "grok-4.7-xhigh-fast",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "feature, refactoring",
+            "index": 0,
+            "from": "grok-4.7-medium-fast",
+            "to": "grok-4.7-xhigh-fast",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "hillclimb",
+            "index": 0,
+            "from": "grok-4.7-medium-fast",
+            "to": "grok-4.7-xhigh-fast",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "interrogate reviewers",
+            "index": 1,
+            "from": "grok-4.7-medium-fast",
+            "to": "grok-4.7-xhigh-fast",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "perf-issue",
+            "index": 0,
+            "from": "grok-4.7-medium-fast",
+            "to": "grok-4.7-xhigh-fast",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "reflect tooling",
+            "index": 0,
+            "from": "grok-4.7-medium-fast",
+            "to": "grok-4.7-xhigh-fast",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "swarm workers",
+            "index": 0,
+            "from": "grok-4.7-medium-fast",
+            "to": "grok-4.7-xhigh-fast",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "why investigators",
+            "index": 0,
+            "from": "grok-4.7-medium-fast",
+            "to": "grok-4.7-xhigh-fast",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          }
+        ],
+        "nonGrokEntries": [
+          {
+            "role": "architect runners",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "arena cross-judge pool",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "arena runners",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "hardest tasks",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "how explainer",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "interrogate reviewers",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "judgment and prose",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "reflect judgment, divergent, synthesizer",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "why synthesizer",
+            "index": 0,
+            "from": "claude-opus-5-5-medium",
+            "to": "claude-opus-5-5-max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          }
+        ],
+        "aliasEntries": [
+          {
+            "role": "bug-fix",
+            "index": 0,
+            "from": "auto",
+            "to": "auto",
+            "preserved": true
+          },
+          {
+            "role": "how explorer",
+            "index": 0,
+            "from": "inherit-parent",
+            "to": "inherit-parent",
+            "preserved": true
+          }
+        ],
+        "grokPresent": true,
+        "grokCappedCount": 10,
+        "grokTotal": 10,
+        "nonGrokMaxCount": 9,
+        "nonGrokTotal": 9,
+        "aliasesPreserved": true,
+        "pass": true,
+        "failures": []
+      },
+      "observations": {
+        "side": "cursor",
+        "path": "chatform-two-step",
+        "screens": {
+          "ready": {
+            "writeCard": false,
+            "askQuestion": false,
+            "chatForm": false,
+            "working": false,
+            "unavailable": false
+          },
+          "writeCard": {
+            "writeCard": true,
+            "askQuestion": false,
+            "chatForm": false,
+            "working": true,
+            "unavailable": false
+          }
+        },
+        "targetBudget": "unlimited",
+        "grokCap": true,
+        "score": {
+          "budgetBefore": "small (medium)",
+          "budgetAfter": "unlimited (max)",
+          "budgetOk": true,
+          "grokEntries": [
+            {
+              "role": "architect runners",
+              "index": 1,
+              "from": "grok-4.7-medium-fast",
+              "to": "grok-4.7-xhigh-fast",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "arena cross-judge pool",
+              "index": 1,
+              "from": "grok-4.7-medium-fast",
+              "to": "grok-4.7-xhigh-fast",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "arena runners",
+              "index": 1,
+              "from": "grok-4.7-medium-fast",
+              "to": "grok-4.7-xhigh-fast",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "feature, refactoring",
+              "index": 0,
+              "from": "grok-4.7-medium-fast",
+              "to": "grok-4.7-xhigh-fast",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "hillclimb",
+              "index": 0,
+              "from": "grok-4.7-medium-fast",
+              "to": "grok-4.7-xhigh-fast",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "interrogate reviewers",
+              "index": 1,
+              "from": "grok-4.7-medium-fast",
+              "to": "grok-4.7-xhigh-fast",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "perf-issue",
+              "index": 0,
+              "from": "grok-4.7-medium-fast",
+              "to": "grok-4.7-xhigh-fast",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "reflect tooling",
+              "index": 0,
+              "from": "grok-4.7-medium-fast",
+              "to": "grok-4.7-xhigh-fast",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "swarm workers",
+              "index": 0,
+              "from": "grok-4.7-medium-fast",
+              "to": "grok-4.7-xhigh-fast",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "why investigators",
+              "index": 0,
+              "from": "grok-4.7-medium-fast",
+              "to": "grok-4.7-xhigh-fast",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            }
+          ],
+          "nonGrokEntries": [
+            {
+              "role": "architect runners",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "arena cross-judge pool",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "arena runners",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "hardest tasks",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "how explainer",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "interrogate reviewers",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "judgment and prose",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "reflect judgment, divergent, synthesizer",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "why synthesizer",
+              "index": 0,
+              "from": "claude-opus-5-5-medium",
+              "to": "claude-opus-5-5-max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            }
+          ],
+          "aliasEntries": [
+            {
+              "role": "bug-fix",
+              "index": 0,
+              "from": "auto",
+              "to": "auto",
+              "preserved": true
+            },
+            {
+              "role": "how explorer",
+              "index": 0,
+              "from": "inherit-parent",
+              "to": "inherit-parent",
+              "preserved": true
+            }
+          ],
+          "grokPresent": true,
+          "grokCappedCount": 10,
+          "grokTotal": 10,
+          "nonGrokMaxCount": 9,
+          "nonGrokTotal": 9,
+          "aliasesPreserved": true,
+          "pass": true,
+          "failures": []
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+        "side": "cursor",
+        "scenarioRef": "setup-pstack:grok-xhigh-cap-unlimited",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:c839b86ed7605f6fa4fb70efc10a5fa573f687c809229a8b4fd0687535c29bf7"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 36,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-grok-xhigh-cap/pi/94c9aab6-b015-44b7-8815-5cf6849f8025",
+      "attemptId": "94c9aab6-b015-44b7-8815-5cf6849f8025",
+      "fixtureDigest": "sha256:b8f73977ec5959896a0bad18ba625caca2850523abcc654ae6b99cb36b123ed9",
+      "afterDigest": "sha256:4a3705be59028be11c36cb66435ed53d91453d91ea09bc3ac81a8d4a2d7cb202",
+      "wrote": true,
+      "score": {
+        "budgetBefore": "small (medium)",
+        "budgetAfter": "unlimited (max)",
+        "budgetOk": true,
+        "grokEntries": [
+          {
+            "role": "architect runners",
+            "index": 1,
+            "from": "xai/grok-4.7:medium",
+            "to": "xai/grok-4.7:xhigh",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "arena cross-judge pool",
+            "index": 1,
+            "from": "xai/grok-4.7:medium",
+            "to": "xai/grok-4.7:xhigh",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "arena runners",
+            "index": 1,
+            "from": "xai/grok-4.7:medium",
+            "to": "xai/grok-4.7:xhigh",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "feature, refactoring",
+            "index": 0,
+            "from": "xai/grok-4.7:medium",
+            "to": "xai/grok-4.7:xhigh",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "hillclimb",
+            "index": 0,
+            "from": "xai/grok-4.7:medium",
+            "to": "xai/grok-4.7:xhigh",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "interrogate reviewers",
+            "index": 1,
+            "from": "xai/grok-4.7:medium",
+            "to": "xai/grok-4.7:xhigh",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "perf-issue",
+            "index": 0,
+            "from": "xai/grok-4.7:medium",
+            "to": "xai/grok-4.7:xhigh",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "reflect tooling",
+            "index": 0,
+            "from": "xai/grok-4.7:medium",
+            "to": "xai/grok-4.7:xhigh",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "swarm workers",
+            "index": 0,
+            "from": "xai/grok-4.7:medium",
+            "to": "xai/grok-4.7:xhigh",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          },
+          {
+            "role": "why investigators",
+            "index": 0,
+            "from": "xai/grok-4.7:medium",
+            "to": "xai/grok-4.7:xhigh",
+            "fromEffort": "medium",
+            "toEffort": "xhigh",
+            "cappedXhigh": true
+          }
+        ],
+        "nonGrokEntries": [
+          {
+            "role": "architect runners",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "arena cross-judge pool",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "arena runners",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "hardest tasks",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "how explainer",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "interrogate reviewers",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "judgment and prose",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "reflect judgment, divergent, synthesizer",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          },
+          {
+            "role": "why synthesizer",
+            "index": 0,
+            "from": "claude-subscription/claude-opus-5-5:medium",
+            "to": "claude-subscription/claude-opus-5-5:max",
+            "fromEffort": "medium",
+            "toEffort": "max",
+            "mappedMax": true
+          }
+        ],
+        "aliasEntries": [
+          {
+            "role": "bug-fix",
+            "index": 0,
+            "from": "auto",
+            "to": "auto",
+            "preserved": true
+          },
+          {
+            "role": "how explorer",
+            "index": 0,
+            "from": "inherit-parent",
+            "to": "inherit-parent",
+            "preserved": true
+          }
+        ],
+        "grokPresent": true,
+        "grokCappedCount": 10,
+        "grokTotal": 10,
+        "nonGrokMaxCount": 9,
+        "nonGrokTotal": 9,
+        "aliasesPreserved": true,
+        "pass": true,
+        "failures": []
+      },
+      "observations": {
+        "side": "pi",
+        "path": "askquestion-unlimited-then-other",
+        "screens": {
+          "ready": {
+            "writeCard": false,
+            "askQuestion": false,
+            "chatForm": false,
+            "working": false,
+            "unavailable": false
+          },
+          "writeCard": {
+            "writeCard": false,
+            "askQuestion": false,
+            "chatForm": false,
+            "working": false,
+            "unavailable": false
+          }
+        },
+        "targetBudget": "unlimited",
+        "grokCap": true,
+        "score": {
+          "budgetBefore": "small (medium)",
+          "budgetAfter": "unlimited (max)",
+          "budgetOk": true,
+          "grokEntries": [
+            {
+              "role": "architect runners",
+              "index": 1,
+              "from": "xai/grok-4.7:medium",
+              "to": "xai/grok-4.7:xhigh",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "arena cross-judge pool",
+              "index": 1,
+              "from": "xai/grok-4.7:medium",
+              "to": "xai/grok-4.7:xhigh",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "arena runners",
+              "index": 1,
+              "from": "xai/grok-4.7:medium",
+              "to": "xai/grok-4.7:xhigh",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "feature, refactoring",
+              "index": 0,
+              "from": "xai/grok-4.7:medium",
+              "to": "xai/grok-4.7:xhigh",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "hillclimb",
+              "index": 0,
+              "from": "xai/grok-4.7:medium",
+              "to": "xai/grok-4.7:xhigh",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "interrogate reviewers",
+              "index": 1,
+              "from": "xai/grok-4.7:medium",
+              "to": "xai/grok-4.7:xhigh",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "perf-issue",
+              "index": 0,
+              "from": "xai/grok-4.7:medium",
+              "to": "xai/grok-4.7:xhigh",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "reflect tooling",
+              "index": 0,
+              "from": "xai/grok-4.7:medium",
+              "to": "xai/grok-4.7:xhigh",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "swarm workers",
+              "index": 0,
+              "from": "xai/grok-4.7:medium",
+              "to": "xai/grok-4.7:xhigh",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            },
+            {
+              "role": "why investigators",
+              "index": 0,
+              "from": "xai/grok-4.7:medium",
+              "to": "xai/grok-4.7:xhigh",
+              "fromEffort": "medium",
+              "toEffort": "xhigh",
+              "cappedXhigh": true
+            }
+          ],
+          "nonGrokEntries": [
+            {
+              "role": "architect runners",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "arena cross-judge pool",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "arena runners",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "hardest tasks",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "how explainer",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "interrogate reviewers",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "judgment and prose",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "reflect judgment, divergent, synthesizer",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            },
+            {
+              "role": "why synthesizer",
+              "index": 0,
+              "from": "claude-subscription/claude-opus-5-5:medium",
+              "to": "claude-subscription/claude-opus-5-5:max",
+              "fromEffort": "medium",
+              "toEffort": "max",
+              "mappedMax": true
+            }
+          ],
+          "aliasEntries": [
+            {
+              "role": "bug-fix",
+              "index": 0,
+              "from": "auto",
+              "to": "auto",
+              "preserved": true
+            },
+            {
+              "role": "how explorer",
+              "index": 0,
+              "from": "inherit-parent",
+              "to": "inherit-parent",
+              "preserved": true
+            }
+          ],
+          "grokPresent": true,
+          "grokCappedCount": 10,
+          "grokTotal": 10,
+          "nonGrokMaxCount": 9,
+          "nonGrokTotal": 9,
+          "aliasesPreserved": true,
+          "pass": true,
+          "failures": []
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "94c9aab6-b015-44b7-8815-5cf6849f8025",
+        "side": "pi",
+        "scenarioRef": "setup-pstack:grok-xhigh-cap-unlimited",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:b8f73977ec5959896a0bad18ba625caca2850523abcc654ae6b99cb36b123ed9"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 36,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

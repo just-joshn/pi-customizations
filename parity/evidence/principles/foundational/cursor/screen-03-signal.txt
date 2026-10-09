@@ -1,0 +1,26 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to iterate on an implementation plan before code changes.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  Implementing the in-process job board per poteto-mode Feature playbook. Exploring the fixture and loading the
+  playbook plus principles that will shape the work.
+
+    Explored available MCP tools cursor · TodoWrite
+
+    Reading /Users/josh-desktop/.claude/skills/poteto-mode/playbooks/feature.md
+
+ ⠘⠣ Reading  536 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/foundational/fixture-app · 
+  refactor/pi-pstack-parity-again

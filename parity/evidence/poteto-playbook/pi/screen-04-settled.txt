@@ -1,0 +1,40 @@
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/fixture-out/pi/done.txt       │
+ (timeout 10s)                                                                                                         │
+                                                                                                                       │
+ before 3                                                                                                              │
+ after 4                                                                                                               │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ inc(3) now returns 4. I matched the Bug fix playbook.                                                                 │
+                                                                                                                       │
+ What was broken. inc in src/inc.js returned n instead of n + 1.                                                       │
+                                                                                                                       │
+ Fix. One line, return n + 1;.                                                                                         │
+                                                                                                                       │
+ Verification. I ran inc(3) through Node on the real module before and after the change. It printed before 3, then     │
+ after 4. I didn't add a test file, since the fixture has no test setup. I didn't commit or open a PR either, because  │
+ you didn't ask for either.                                                                                            │
+                                                                                                                       │
+ Playbook steps. I skipped hypothesis search, delegation to a subagent, and commit staging because a single-line bug   ┃
+ needs none of them.                                                                                                   ┃
+                                                                                                                       ┃
+ Done file. fixture-out/pi/done.txt contains the single line bug-fix.                                                  ┃
+                                                                                                                       ┃
+ Principles applied. Fix Root Causes (principle-fix-root-causes) pushed me to reproduce the failure before changing    ┃
+ anything. Prove It Works (principle-prove-it-works) pushed me to check the result by running the real module. I       ┃
+ didn't read either skill's file this session, so treat both as informal.                                              ┃
+
+[>] Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or instr...
+[ ] Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. (skip: single-file...
+[ ] Plan the fix. If it crosses a function boundary, architect first. Delegate implementation to a subagent using you...
+[ ] Verify on the same surface. The original repro now passes. "Inconclusive" or wrong-surface is not a pass. Flag it...
+[ ] Stage the commits so the failing repro lands before the fix in git history. (skip: no commit requested) (pending)
+[ ] Run Opening a PR. (skip: fixture, not requested) (pending)
+[ ] Write one line to fixture-out/pi/done.txt naming the playbook, then stop (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/fixture-app (refactor/pi-pstack-parity-again)
+↑10 ↓1.6k R107k W27k CH99.1% $0.145 (sub) 3.5%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

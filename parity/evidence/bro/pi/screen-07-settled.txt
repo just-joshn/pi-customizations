@@ -1,0 +1,40 @@
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           │
+                                                                                                                       │
+                                                                                                                       │
+ write ~/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/pi/restate.md                             │
+                                                                                                                       │
+ Node runs your code one piece at a time, in a loop. Each time around, it checks for things that are due: timers that  │
+ have gone off, finished file or network work, and tasks you asked to run "right after this".                          │
+                                                                                                                       │
+ Small follow-up steps from promises (what happens after an `await` finishes) get priority. As soon as the current     │
+ piece of code ends, Node runs all of those before it moves on to anything else. The catch: if those follow-ups keep   │
+ creating more follow-ups, everything else gets stuck waiting.                                                         │
+                                                                                                                       │
+ Some slow jobs, like reading files or heavy math, can't be done without making Node wait. So Node hands them to a     │
+ small team of helper workers (four by default). When a helper finishes, it tells the main loop, and the loop runs     │
+ your code that was waiting on the result. If you were using `await`, your code picks up right there, ahead of         │
+ anything else queued.                                                                                                 │
+                                                                                                                       │
+ Network connections don't need the helpers. The operating system tells Node when they're ready.                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ write ~/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/pi/done.txt                               ┃
+                                                                                                                       ┃
+ bro=yes                                                                                                               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ I wrote the plain-language version to restate.md and bro=yes to done.txt, both in fixture-out/pi/.                    ┃
+                                                                                                                       ┃
+ Both paths are outside the fixture cwd, but you named them explicitly, so I wrote them there.                         ┃
+                                                                                                                       ┃
+ I wasn't sure what bro=yes|no|fail was meant to track, so I picked yes because both writes succeeded. Say so if it    ┃
+ should mean something else.                                                                                           ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-app (refactor/pi-pstack-parity-again)
+↑10 ↓1.5k R58k W18k CH96.8% $0.100 (sub) 2.6%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

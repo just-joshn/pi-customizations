@@ -1,0 +1,40 @@
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/pi/done.txt; cat       │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/pi/done.txt (timeout   │
+ 20s)                                                                                                                  │
+                                                                                                                       │
+ ADD-OK value=5                                                                                                        │
+ ADD-OK value=5                                                                                                        │
+ verified=yes                                                                                                          │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ add(2, 3) now returns 5, and I wrote verified=yes to done.txt. I didn't commit or open a PR, since you didn't ask for │
+ either.                                                                                                               │
+                                                                                                                       │
+ What was broken. src/add.js returned a + b - 1, so add(2, 3) gave 4.                                                  │
+                                                                                                                       │
+ Fix. I removed the stray - 1, so it now returns a + b. This was a one-line change, so I didn't delegate it.           │
+                                                                                                                       │
+ Verification. I ran scripts/verify.mjs before and after the edit, and it rewrote evidence/verify-out.txt each time.   │
+ - Before: ADD-FAIL value=4 expected=5, exit 1.                                                                        │
+ - After: ADD-OK value=5, exit 0.                                                                                      │
+                                                                                                                       ┃
+ Principles applied. I read both leaf skills in full.                                                                  ┃
+ - Prove it works: I re-ran the script against the real add function instead of trusting the edit. I wrote done.txt    ┃
+   only after the script exited 0.                                                                                     ┃
+ - Fix root causes: I reproduced the failure first, then changed the arithmetic itself rather than adding a guard or   ┃
+   offset elsewhere.                                                                                                   ┃
+
+[>] Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or instr...
+[ ] Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. Confirm the surviv...
+[ ] Plan the fix. If it crosses a function boundary, architect first. Delegate implementation to a subagent using you...
+[ ] Verify on the same surface. The original repro now passes. "Inconclusive" or wrong-surface is not a pass. Flag it...
+[ ] Stage the commits so the failing repro lands before the fix in git history. (skip: no commit requested) (pending)
+[ ] Run Opening a PR. (skip: no PR requested) (pending)
+[ ] Read principle-prove-it-works and principle-fix-root-causes leaf SKILL.md, then write done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-app (refactor/pi-pstack-parity-again)
+↑12 ↓2.1k R147k W29k CH98.8% $0.166 (sub) 3.7%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

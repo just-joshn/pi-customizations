@@ -1,0 +1,39 @@
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/check
+    -compiler-errors && npm run typecheck; echo "exit: $?" 418ms
+    … 5 output lines hidden · ctrl+o to expand
+    typecheck ok
+    exit: 0
+
+    Edited summary.md +15
+
+    ▎    1 + # check-compiler-errors summary
+    ▎    2 + 
+    ▎    3 + ## Status
+    ▎    4 + Pass after fix.
+    ▎    5 + 
+    ▎    6 + ## Errors (initial)
+    ▎    7 + | File | Category | Message |
+    ▎    8 + |------|----------|---------|
+    ▎    9 + | `src/broken.js` | value type | `VALUE must be a number, found null` |
+    ▎   10 + 
+    ▎   11 + ## Fix
+    ▎   12 + Changed `export const VALUE = null;` to `export const VALUE = 7;` in `src/broken.js`.
+    ▎   13  … truncated (3 more lines) · ctrl+r to review
+
+    Edited done.txt +1
+
+    ▎    1 + STATUS=verified reason=typecheck ok after VALUE=7
+
+  Typecheck failed on src/broken.js (VALUE was null). Set VALUE to 7; npm run typecheck is clean. Artifacts:
+  summary.md and done.txt (STATUS=verified).
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.4% · 3 files edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/check-compiler-errors · 
+  refactor/pi-pstack-parity-again

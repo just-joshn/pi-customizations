@@ -1,0 +1,38 @@
+{
+  "attemptId": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+  "draftName": "parity-webhook-witness",
+  "profile": "auth-header-probe",
+  "savedByHarness": false,
+  "activatedByHarness": false,
+  "generateAuthHeaderClicked": false,
+  "keyStoredServerSide": false,
+  "secretPathOwned": "/Users/josh-desktop/.local/share/pi-pstack-parity/make-bot-auth-header-probe-001/475ab346-80a0-4d73-8ae1-d2b8042ee66f.json",
+  "secretMode": null,
+  "webhookUrlHost": null,
+  "probe": null,
+  "cursorOutcome": "host_blocked",
+  "blocker": "generate_auth_header_not_clicked",
+  "updateStateUsed": false,
+  "senderKeyInChatOrEvidence": false,
+  "evidenceDir": "parity/evidence/make-bot-ui/auth-header-probe/475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+  "draftRowClick": {
+    "draftHits": 2,
+    "clicked": true,
+    "targetRole": "AXButton",
+    "targetTitle": "parity-webhook-witness Joshua Humphrey 5m Inactive -",
+    "elementIndex": "257",
+    "via": "index"
+  },
+  "editorOpen": true,
+  "fallbackHandoff": true,
+  "handoff": {
+    "promptSent": true,
+    "editorWitnessed": true,
+    "yesSent": true,
+    "poll": 4
+  },
+  "generateClick": {
+    "hits": 0,
+    "clicked": false
+  }
+}

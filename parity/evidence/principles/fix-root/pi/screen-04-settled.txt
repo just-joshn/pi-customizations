@@ -1,0 +1,40 @@
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ node scripts/verify.mjs && mkdir -p                                                                                 │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/fixture-out/pi && echo    │
+ "verified=yes" >                                                                                                      │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/fixture-out/pi/done.txt   │
+ (timeout 20s)                                                                                                         │
+                                                                                                                       │
+ GREET-OK value="hello, WORLD"                                                                                         │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ What was broken. greet() crashed because readDisplayName returned undefined. node scripts/verify.mjs printed          │
+ GREET-FAIL value=null error=Cannot read properties of undefined (reading 'toUpperCase').                              │
+                                                                                                                       │
+ Root cause. src/config.js read cfg.displayNam, a typo for displayName.                                                │
+                                                                                                                       │
+ Fix. I corrected the property name in src/config.js. I added no fallback or guard, so a real config bug would still   │
+ surface instead of being hidden.                                                                                      ┃
+                                                                                                                       ┃
+ Verification. I re-ran node scripts/verify.mjs and it printed GREET-OK value="hello, WORLD". I wrote verified=yes to  ┃
+ done.txt. I skipped committing and opening a PR, since the task didn't ask for them.                                  ┃
+                                                                                                                       ┃
+ Principle applied. Fix Root Causes (I read its leaf SKILL.md this session). It led me to correct the misspelled       ┃
+ property rather than add a fallback string or null check that would silence the crash.                                ┃
+
+[>] Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or instr...
+[ ] Binary-search the cause. Form candidate hypotheses, rule them out with runtime evidence. (pending)
+[ ] Plan the fix. If it crosses a function boundary, architect first. Delegate implementation with a specific scope. ...
+[ ] Verify on the same surface. The original repro now passes. (pending)
+[ ] Stage commits failing repro before fix. skip: fixture, no commits requested (pending)
+[ ] Run Opening a PR. skip: fixture, no PR (pending)
+[ ] Write verified=yes|no to done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/fixture-app (refactor/pi-pstack-parity-again)
+↑12 ↓1.7k R146k W28k CH98.8% $0.159 (sub) 3.7%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

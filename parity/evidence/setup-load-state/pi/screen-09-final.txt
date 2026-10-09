@@ -1,0 +1,36 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] setup-pstack (ctrl+o to expand)                                                                               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ AskQuestion pstack setup (1)               Questions skipped by user                                                  ┃
+ 1. Pick a budget (current: small (medium)). Roles currently all inherit-parent except bug-fix: auto. Retired line     ┃
+ dropped: how critics.                                                                                                 ┃
+   [ ] unlimited — max reasoning                                                                                       ┃
+   [ ] large — xhigh reasoning                                                                                         ┃
+   [ ] medium — high reasoning                                                                                         ┃
+   [ ] small — medium reasoning                                                                                        ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ I didn't write the rule, because the budget question was cancelled and I don't treat that as an answer.               ┃
+                                                                                                                       ┃
+ Your current rule at /tmp/pi-ref-agent/pstack/models.mdc is unchanged:                                                ┃
+ - Budget: small (medium).                                                                                             ┃
+ - Roles: all inherit-parent, except bug-fix, which is auto.                                                           ┃
+ - Retired line: how critics would be dropped on the next write.                                                       ┃
+                                                                                                                       ┃
+ Tell me which budget you want: unlimited, large, medium or small. I can also keep the current roles as they are.      ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑8 ↓464 R63k W20k CH99.0% $0.099 (sub) 2.9%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,28 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to plan execution and reach the right outcome faster.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  I'll follow poteto-mode: read its SKILL.md first, then work only inside this fixture to ship pickNext and the
+  design artifacts.
+
+    Using poteto-mode
+
+    Explored available MCP tools cursor · Task
+
+    Globbing "**/*" in .
+
+ ⠘⠤ Exploring  1.81k tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-app · 
+  refactor/pi-pstack-parity-again

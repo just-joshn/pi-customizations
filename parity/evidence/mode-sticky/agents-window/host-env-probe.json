@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "scenario": "mode-sticky-agents-window",
+  "requirementId": "PSTACK-MODE-STICKY-001",
+  "mismatchId": "MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS",
+  "path": "agents-window-ide-custom-mode-sticky",
+  "probeId": "3c169585-3597-479e-94c9-590891dc8e1f",
+  "capturedAt": "2026-10-09T01:57:06.492Z",
+  "runnable": false,
+  "verdict": "exhaustive-negative-host-blocked",
+  "customModeStickyReached": false,
+  "cursorAttemptId": null,
+  "checks": {
+    "cursorAppPresent": false,
+    "cursorApplicationSupportPresent": false,
+    "cursorSettingsPresent": false,
+    "settingsCustomModesTogglePresent": false,
+    "settingsUseAsModePresent": false,
+    "foregroundCursorProcess": false,
+    "cdpAnyOpen": false,
+    "screencaptureOk": false,
+    "cursorShimFindsIde": false,
+    "cursorAgentHelpMentionsAgentsWindow": false,
+    "cursorAgentHelpMentionsUseAsMode": false,
+    "cursorAgentHelpMentionsCustomMode": false,
+    "docsSayAgentsWindowCustomModes": true,
+    "docsUrl": "https://cursor.com/docs/agent/agents-window",
+    "statsigGlassCustomModesKeyPresent": false,
+    "agentsWindowUiDriveable": false,
+    "customModeStickyReached": false
+  },
+  "missing": [
+    "Cursor.app not installed on this host",
+    "~/Library/Application Support/Cursor absent (no IDE settings / Custom Modes toggle)",
+    "cursor shim reports No Cursor IDE installation found",
+    "no Cursor Electron CDP debug port open",
+    "Agents Window slash → Use as Mode UI is not driveable without Cursor desktop",
+    "Custom Mode sticky not reached (no success attempt ID)"
+  ],
+  "uiPathsTried": [
+    {
+      "path": "Desktop Cursor.app → Agents Window → slash → Use as Mode",
+      "tried": true,
+      "reachable": false,
+      "reason": "No Cursor.app on host; mdfind empty; /Applications has no Cursor entry",
+      "customModeChrome": false
+    },
+    {
+      "path": "Desktop Cursor Settings → Custom Modes toggle",
+      "tried": true,
+      "reachable": false,
+      "reason": "No Application Support/Cursor User/settings.json; cli-config has no Custom Mode keys",
+      "customModeChrome": false
+    },
+    {
+      "path": "cursor shim open IDE / Agents Window",
+      "tried": true,
+      "reachable": false,
+      "reason": "Error: No Cursor IDE installation found. Use 'cursor agent' or 'agent' to run the agent.",
+      "customModeChrome": false
+    },
+    {
+      "path": "CDP attach to running Cursor Electron (remote-debugging-port)",
+      "tried": true,
+      "reachable": false,
+      "reason": "No open CDP on 9222,9223,9229,9230; no Cursor process in foreground list",
+      "customModeChrome": false
+    },
+    {
+      "path": "Computer-use / desktop screenshot drive of Agents Window",
+      "tried": true,
+      "reachable": false,
+      "reason": "No computer-use MCP tools in this session; screencapture cannot create image from display",
+      "customModeChrome": false
+    },
+    {
+      "path": "cursor-agent PTY Meta+Enter / Use as Mode (prior exhaustive-negative, not re-run as Agents Window)",
+      "tried": false,
+      "reachable": true,
+      "reason": "Out of scope for this unit (CLI glass_custom_modes already negative: attempts 6977eeec, 9857dda0)",
+      "customModeChrome": false,
+      "priorAttempts": [
+        "6977eeec-08bd-4829-810c-11d526d9f9fb",
+        "9857dda0-a74d-4546-b69e-1ff3528bdf3e"
+      ]
+    }
+  ],
+  "evidenceNotes": {
+    "hostProbeDir": "parity/evidence/mode-sticky/agents-window/host-probe",
+    "screens": [
+      "parity/evidence/mode-sticky/agents-window/host-probe/00-host-inventory.txt",
+      "parity/evidence/mode-sticky/agents-window/host-probe/01-foreground-apps.txt",
+      "parity/evidence/mode-sticky/agents-window/host-probe/02-applications-listing-screen.txt",
+      "parity/evidence/mode-sticky/agents-window/host-probe/05-cursor-shim-error.txt"
+    ],
+    "docsClaim": "Custom Modes available in Agents Window and CLI (parity/research/cursor-host/customization/sources/prompting.md)",
+    "priorCliNegativeReport": "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+    "piStickyAttemptId": "96494327-f90c-470a-8e11-cf7c5b6cad89",
+    "cursorShimDigest": "sha256:beb2d1981f6772e4d4490f0a6b48895230fd0f80e0cc1b7f2bca1f0862e3ab45",
+    "cursorAgentHelpDigest": "sha256:c24026e17118188478fcb47ed8113fa842f93df2043da5116660a368d3dc64b0"
+  },
+  "skillAcceptanceNote": "Sticky Custom Mode requires Agents Window or CLI Use as Mode / Option+Enter with glass_custom_modes on. This host has cursor-agent only, no Cursor IDE, so Agents Window chrome cannot be shown or proven present."
+}

@@ -1,0 +1,55 @@
+{
+  "mode": "one",
+  "seeded": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+    "hasLaunch": true,
+    "hasDrive": true,
+    "featureMap": true,
+    "ok": true
+  },
+  "mid": {
+    "maintainInvoked": true,
+    "locatedPathMention": true,
+    "createOffer": false,
+    "askWhich": false,
+    "inventing": false,
+    "working": true
+  },
+  "markerMid": {
+    "exists": false,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor/locate.txt",
+    "raw": null,
+    "located": null,
+    "createOffered": null,
+    "ok": false
+  },
+  "final": {
+    "maintainInvoked": true,
+    "locatedPathMention": true,
+    "createOffer": false,
+    "askWhich": false,
+    "inventing": false,
+    "working": false
+  },
+  "marker": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor/locate.txt",
+    "raw": "LOCATED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md\n",
+    "located": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+    "createOffered": null,
+    "ok": true
+  },
+  "skillAfter": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+    "hasLaunch": true,
+    "hasDrive": true,
+    "featureMap": true,
+    "ok": true
+  },
+  "locateOk": true,
+  "inventedTarget": false,
+  "createOfferOk": null,
+  "askWhichOk": null
+}

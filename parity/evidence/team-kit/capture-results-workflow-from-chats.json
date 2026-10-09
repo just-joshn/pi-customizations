@@ -1,0 +1,223 @@
+{
+  "scenario": "team-kit:workflow-from-chats",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "pairPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pair-team-kit-workflow-from-chats-1.json",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/workflow-from-chats/cursor/bb7ebe78-d734-4624-8170-ac22f99a59cc",
+      "attemptId": "bb7ebe78-d734-4624-8170-ac22f99a59cc",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/workflow-from-chats Do not ask questions. Follow the workflow-from-chats skill. Treat /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats/synthetic-chats as the parent transcript corpus for this fixture (do not invent other chats). Extract durable preferences. Write the synthesis to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats/summary.md and a reusable rule draft to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats/extracted-preferences.md. Both must include the exact marker FIXTURE_PREF and mention test-before-PR. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats. Do not edit parity ledgers. Do not expose secrets.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "envBlocked": false,
+          "working": false
+        },
+        "pty": {
+          "skillMention": true,
+          "envBlocked": false,
+          "working": true
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats/done.txt",
+          "line": "STATUS=verified reason=prefs encoded from synthetic parent-alpha",
+          "status": "verified"
+        },
+        "summaryExists": true,
+        "seededSkill": null,
+        "oracle": {
+          "summaryExists": true,
+          "ruleExists": true,
+          "markerOk": true,
+          "testPref": true,
+          "done": {
+            "exists": true,
+            "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats/done.txt",
+            "line": "STATUS=verified reason=prefs encoded from synthetic parent-alpha",
+            "status": "verified"
+          },
+          "closed": true,
+          "honestBlocker": false
+        },
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "oracleClosed": true,
+          "closed": true,
+          "honestBlocker": false,
+          "oracle": {
+            "summaryExists": true,
+            "ruleExists": true,
+            "markerOk": true,
+            "testPref": true,
+            "done": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats/done.txt",
+              "line": "STATUS=verified reason=prefs encoded from synthetic parent-alpha",
+              "status": "verified"
+            },
+            "closed": true,
+            "honestBlocker": false
+          }
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "bb7ebe78-d734-4624-8170-ac22f99a59cc",
+        "side": "cursor",
+        "scenarioRef": "team-kit:workflow-from-chats",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/workflow-from-chats/pi/3dd29e6b-1e1a-4214-be65-f6d2dd587d7d",
+      "attemptId": "3dd29e6b-1e1a-4214-be65-f6d2dd587d7d",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/workflow-from-chats Do not ask questions. Follow the workflow-from-chats skill. Treat /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats/synthetic-chats as the parent transcript corpus for this fixture (do not invent other chats). Extract durable preferences. Write the synthesis to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/summary.md and a reusable rule draft to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/extracted-preferences.md. Both must include the exact marker FIXTURE_PREF and mention test-before-PR. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats. Do not edit parity ledgers. Do not expose secrets.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "envBlocked": false,
+          "working": false
+        },
+        "pty": {
+          "skillMention": true,
+          "envBlocked": true,
+          "working": true
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/done.txt",
+          "line": "STATUS=verified reason=artifacts written from synthetic corpus",
+          "status": "verified"
+        },
+        "summaryExists": true,
+        "seededSkill": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats/.pi/skills/workflow-from-chats/SKILL.md",
+          "sha256": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16"
+        },
+        "oracle": {
+          "summaryExists": true,
+          "ruleExists": true,
+          "markerOk": true,
+          "testPref": true,
+          "done": {
+            "exists": true,
+            "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/done.txt",
+            "line": "STATUS=verified reason=artifacts written from synthetic corpus",
+            "status": "verified"
+          },
+          "closed": true,
+          "honestBlocker": false
+        },
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "oracleClosed": true,
+          "closed": true,
+          "honestBlocker": false,
+          "oracle": {
+            "summaryExists": true,
+            "ruleExists": true,
+            "markerOk": true,
+            "testPref": true,
+            "done": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/done.txt",
+              "line": "STATUS=verified reason=artifacts written from synthetic corpus",
+              "status": "verified"
+            },
+            "closed": true,
+            "honestBlocker": false
+          }
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "3dd29e6b-1e1a-4214-be65-f6d2dd587d7d",
+        "side": "pi",
+        "scenarioRef": "team-kit:workflow-from-chats",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

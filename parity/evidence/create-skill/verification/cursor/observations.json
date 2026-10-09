@@ -1,0 +1,54 @@
+{
+  "screenFinal": {
+    "createSkillMention": true,
+    "skillPathMention": true,
+    "markerMention": true,
+    "askMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "createSkillMention": true,
+    "skillPathMention": true,
+    "markerMention": true,
+    "askMention": true,
+    "envBlocked": false,
+    "working": true
+  },
+  "artifact": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/cursor/verify.md",
+    "text": "# Phase 4 Verification — parity-create-skill-probe\n\nSkill path: `.cursor/skills/parity-create-skill-probe/SKILL.md`\n\n## Checks\n\n| Check | Result | Notes |\n|-------|--------|-------|\n| SKILL.md under 500 lines | PASS | 12 lines |\n| Description has trigger terms | PASS | Includes \"create-skill probe\", \"parity-create-skill-probe\", and when-to-use wording |\n| Terminology consistent | PASS | Uses \"create-skill probe\" / \"marker\" consistently; no conflicting aliases |\n| File refs one level deep | PASS | No supporting-file links in SKILL.md (N/A; nothing nested) |\n\n## Critical rewrite\n\nNo critical failures. Skill not rewritten.\n\n## Discovery / apply\n\nDeferred: waiting for next user message exactly: `run the create-skill probe`\n\nAPPLIED=CREATE-SKILL-PROBE-MARKER\n",
+    "byteLength": 766,
+    "sha256": "sha256:90a7ff106f9589bde8b5901fc5546da4821d1a8ce65176ac3d839cf0d6640ed7",
+    "ok": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/cursor/done.txt",
+    "line": "STATUS=verified reason=probe-applied",
+    "status": "verified"
+  },
+  "skill": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.cursor/skills/parity-create-skill-probe/SKILL.md",
+    "nameOk": true,
+    "hasMarker": true,
+    "byteLength": 332,
+    "sha256": "sha256:c5a3793642d9c279bbf69b4f068944f676b9dc7d03dbea17b19102b94557b309",
+    "ok": true,
+    "text": "---\nname: parity-create-skill-probe\ndescription: >-\n  Echoes the create-skill probe marker when the user runs the create-skill\n  probe or invokes parity-create-skill-probe.\n---\n\n# Parity Create-Skill Probe\n\nWhen the user says to run the create-skill probe, reply with exactly this marker on its own line:\n\nCREATE-SKILL-PROBE-MARKER\n"
+  },
+  "discoveryAnswersSent": false,
+  "verifyTriggerSent": true,
+  "askUiDrives": 0,
+  "score": {
+    "artifactOk": true,
+    "createPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "applied": true,
+    "phaseClosed": true,
+    "honestBlocker": false
+  }
+}

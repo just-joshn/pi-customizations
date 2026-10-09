@@ -1,0 +1,12 @@
+{
+  "attemptId": "fb8ae189-e177-477a-87bf-c214d7fd925d",
+  "parentAttempt": "be874194-d680-4f9f-8a88-5ee1b4858a0f",
+  "mode": "benny-followup-automations-and-invoke",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/fb8ae189-e177-477a-87bf-c214d7fd925d",
+  "didNot": [
+    "enable Benny",
+    "fabricate editor save",
+    "Slack post",
+    "Cloud Agent mint"
+  ]
+}

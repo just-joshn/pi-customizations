@@ -1,0 +1,56 @@
+{
+  "side": "pi",
+  "branch": "no",
+  "screens": {
+    "writeCard": {
+      "writeCard": true,
+      "askQuestion": false,
+      "chatForm": false,
+      "offerHit": null,
+      "offered": false,
+      "createAttached": false,
+      "declinedLanguage": false,
+      "working": true
+    },
+    "offer": {
+      "writeCard": true,
+      "askQuestion": false,
+      "chatForm": false,
+      "offerHit": "create-verification-skill",
+      "offered": true,
+      "createAttached": false,
+      "declinedLanguage": false,
+      "working": false
+    },
+    "branchSettled": {
+      "writeCard": true,
+      "askQuestion": false,
+      "chatForm": false,
+      "offerHit": "create-verification-skill",
+      "offered": true,
+      "createAttached": false,
+      "declinedLanguage": false,
+      "working": false
+    }
+  },
+  "pathNotes": [
+    "budget=askquestion-budget",
+    "confirm=role-confirm",
+    "accept=askquestion-accept",
+    "answer=chatform-offer"
+  ],
+  "budgetPath": "askquestion-budget",
+  "confirmKind": "role-confirm",
+  "acceptPath": "askquestion-accept",
+  "writeCardSeen": true,
+  "offerKind": "offer",
+  "offeredOnce": true,
+  "offerHit": "create-verification-skill",
+  "answerPath": "chatform-offer",
+  "createVerifyInvoked": false,
+  "skillWritten": false,
+  "continuedWithoutPush": true,
+  "branchOk": true,
+  "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "wroteBytesChanged": false
+}

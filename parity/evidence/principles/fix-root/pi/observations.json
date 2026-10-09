@@ -1,0 +1,102 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "reproducedFirst": true,
+    "rootCauseFixed": true,
+    "soleNilGuard": false,
+    "keptVerifyOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "failMention": true,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "failMention": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:44:55.065Z",
+  "firstVerifyAt": "2026-10-09T00:44:49.444Z",
+  "productPaths": [
+    "src/config.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fix-root/fixture-app/evidence/verify-out.txt",
+    "line": "GREET-OK value=\"hello, WORLD\"",
+    "ok": true
+  },
+  "productOk": true,
+  "productAnalysis": {
+    "rootCauseFixed": true,
+    "stillTypo": false,
+    "nilGuardInGreet": false,
+    "hardcodedOk": false,
+    "soleNilGuard": false
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-fix-root-causes/SKILL.md",
+    "ok": true,
+    "name": "principle-fix-root-causes",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-fix-root-fixture-app--/2026-10-09T00-44-35-315Z_01a11e1e-7672-7492-9dc8-a1a2bb50efae.jsonl",
+    "hostAttached": false,
+    "failMention": true,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:44:42.152Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T00:44:42.152Z",
+    "firstProductWriteAt": "2026-10-09T00:44:55.041Z",
+    "sawFailBeforeWrite": true,
+    "toolOrder": [
+      "read",
+      "bash(verify.mjs)",
+      "read(fix-root-leaf)",
+      "blob-mention(fix-root-leaf)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "bash",
+      "edit(product)",
+      "bash(verify.mjs)"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 42,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "failMention": true,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "failMention": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

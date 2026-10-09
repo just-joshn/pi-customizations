@@ -1,0 +1,39 @@
+    ✔ architect for parallel design exploration
+    ✔ Write the throughput checkpoint as four task-list items
+    ✔ Delegate/own code-writing with named data shape and success criteria
+    ✔ Verify on the matching surface (node scripts/verify.mjs → ENCODE-OK)
+    ✔ Write verified=yes|no to fixture-out/cursor/done.txt
+    ✔ Blocking first steps: turn ALLOW_DEBUG off; keep single NOTES reminder; add check script
+    ✔ Independent workstreams: n/a: single fixture, shared verify contract serializes
+    ✔ Shared mutable state: n/a: no concurrent writers
+    ✔ Smallest safe decomposition: one owner; check script + config flip
+
+  node scripts/verify.mjs prints ENCODE-OK. done.txt is verified=yes.
+
+  For the next engineer. Debug ships off in src/config.js. A second CONTRIBUTING reminder was skipped.
+  scripts/check-allow-debug.mjs fails CI-style when ALLOW_DEBUG is set true under src/.
+
+  Throughput checkpoint.
+  • Blocking first steps. Flip config, keep the single NOTES reminder, add the check script.
+  • Independent workstreams. n/a. One fixture, one verify contract.
+  • Shared mutable state. n/a. No concurrent writers.
+  • Smallest safe decomposition. One owner. Config flip plus check script.
+
+  Principles that changed a choice.
+  • Encode Lessons in Structure. Chose a check script instead of pasting the NOTES reminder into CONTRIBUTING.md.
+  • Model the Domain. Named the invariant as “shipped modules must not set ALLOW_DEBUG true,” then put it in one
+    scanner.
+  • Laziness Protocol. Prefered scripts/check-allow-debug.mjs over an eslint dependency.
+  • Prove It Works. Re-ran node scripts/verify.mjs here. Measured ENCODE-OK in stdout and evidence/verify-out.txt.
+
+  skip: commits, interrogate, Opening a PR. Fixture-only scope, stop after done.txt.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 16.6% · 2 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-app · 
+  refactor/pi-pstack-parity-again

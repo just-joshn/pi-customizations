@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/benchmark-checklist I need a quick ballpark only. One run is enough. Claim draft is claim.md. Measurement script is    
+measure.mjs. Run measure.mjs if needed, then answer the checklist against the claim using evidence from that run, not   
+guesses about the code. Still check questions 4 and 7, and say that it is one run. Skip the rest unless that run looks  
+wrong. Write the checklist answers to                                                                                   
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benchmark/fixture-out/pi/checklist-report.md.   
+Work only inside this fixture cwd and the marker dir. Do not edit ledgers, parity requirements, or files outside this   
+cwd except the marker paths named here. When finished, write exactly one line to                                        
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benchmark/fixture-out/pi/done.txt with fields   
+q4=yes|no q7=yes|no oneRun=yes|no evidence=<path-or-number> then stop.                                                  
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/benchmark/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

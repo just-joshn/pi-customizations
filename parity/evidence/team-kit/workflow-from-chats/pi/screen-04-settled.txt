@@ -1,0 +1,40 @@
+                                                                                                                       │
+ **Adopt:** all four above. **Consider:** none. **Dismissed:** none.                                                   │
+                                                                                                                       │
+ **Proposed artifact:** rule (broad behavior) — see extracted-preferences.md.                                          │
+                                                                                                                       │
+ **Open questions:** none. Caveat: single transcript, so no cross-chat repetition.                                     │
+ E                                                                                                                     │
+ cat > $d/extracted-preferences.md <<'E'                                                                               │
+ # Shipping rule draft (FIXTURE_PREF)                                                                                  │
+                                                                                                                       │
+ - Keep commits short and small.                                                                                       │
+ - test-before-PR: always run the tests and confirm they pass before opening a PR.                                     │
+ - Never force-push.                                                                                                   │
+ - Output reusable guidance, not chat summaries.                                                                       │
+ E                                                                                                                     │
+ echo "STATUS=verified reason=artifacts written from synthetic corpus" > $d/done.txt (timeout 20s)                     │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ I wrote the synthesis, the rule draft and the status line, all under fixture-out/pi/workflow-from-chats/. Nothing was ┃
+ run or checked beyond writing the files.                                                                              ┃
+                                                                                                                       ┃
+ The corpus was a single synthetic transcript, parent-alpha, so there is no repetition across chats. All four          ┃
+ preferences come from explicit user statements, which I rated strong:                                                 ┃
+ - Keep commits short and small.                                                                                       ┃
+ - Run tests before opening a PR (test-before-PR).                                                                     ┃
+ - Never force-push.                                                                                                   ┃
+ - Give reusable guidance, not chat summaries.                                                                         ┃
+                                                                                                                       ┃
+ Both summary.md and extracted-preferences.md contain the marker FIXTURE_PREF and mention test-before-PR. done.txt is  ┃
+ the single line STATUS=verified reason=artifacts written from synthetic corpus.                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats (refactor/pi-pstack-p...
+↑8 ↓1.0k R61k W19k CH97.7% $0.098 (sub) 2.7%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

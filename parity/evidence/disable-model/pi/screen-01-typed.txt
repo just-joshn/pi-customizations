@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+In this fixture, walk through how store.js and api.js connect at runtime, and say which file should own soft-delete if  
+we add it. This is an ordinary chat turn with no slash-skill invocation and no skill handoff. Do not edit src/,         
+ledgers, or parity/ outside this cwd except the named out paths. Write a short overview to                              
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/disable-model/fixture-out/pi/answer.md. Then    
+write exactly one line to                                                                                               
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/disable-model/fixture-out/pi/done.txt as        
+answered=yes|no and stop.                                                                                               
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/disable-model/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

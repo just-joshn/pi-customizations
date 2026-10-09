@@ -1,0 +1,20 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use subagents to parallelize work and preserve context.
+
+                                                                                                                       
+  In one short reply only, explain how Node's event loop interacts with the promise microtask queue and the            
+  libuv thread pool using precise systems terminology (event loop phases, microtasks, macrotasks, libuv thread         
+  pool, I/O completion). Do not create or edit any files. Do not run tools. Stop after the explanation.                
+                                                                                                                       
+
+ ⠠⠛ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-app · refactor/pi-pstack-parity-again

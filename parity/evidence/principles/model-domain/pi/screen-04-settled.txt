@@ -1,0 +1,40 @@
+                                                                                                                       │
+ $ echo "verified=yes" >                                                                                               │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/fixture-out/pi/done.t │
+ xt (timeout 10s)                                                                                                      │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Tickets in src/ticket.js now have hold and release. node scripts/verify.mjs prints DOMAIN-OK hold=held-label          │
+ close-held=rejected release=open and exits 0. I wrote verified=yes to done.txt.                                       │
+                                                                                                                       │
+ What changed for callers. A held ticket labels HELD, close throws on it, and release returns it to open. hold on a    │
+ draft also throws, which verify.mjs checks. The booleans are gone, so a ticket is now { status }. Nothing else in the │
+ fixture read isDraft or isOpen.                                                                                       │
+                                                                                                                       │
+ Model the Domain (principle-model-the-domain) shaped the design. I replaced the two booleans with one status field    │
+ and a transition table (open, hold, release, close). A state can't contradict itself, and a new state is one table    │
+ row. label is now just the uppercased status.                                                                         │
+                                                                                                                       ┃
+ Prove It Works (principle-prove-it-works) shaped the check. I ran the real scripts/verify.mjs and did not rely on     ┃
+ reading the code.                                                                                                     ┃
+                                                                                                                       ┃
+ I skipped the delegate and architect steps because this is a single-file change. I wrote it myself and reviewed it.   ┃
+
+... 1 earlier
+[-] `architect` for parallel design exploration. skip: one-file lifecycle, design is obvious (state field) (cancelled)
+[-] Write the throughput checkpoint as four todo items. n/a: single file, no fan-out, one owner (cancelled)
+[>] Delegate code-writing to a subagent using your configured feature model with a specific scope (named data shape p...
+[ ] Verify on the matching surface. "Inconclusive" or wrong-surface is not a pass. Flag it. (pending)
+[-] Rebase into small, ordered commits. skip: no commit requested (cancelled)
+[-] If the design is contested, `interrogate` before shipping. skip: not contested (cancelled)
+[-] Run **Opening a PR**. skip: fixture, no PR requested (cancelled)
+[ ] Replace isDraft/isOpen with a status lifecycle; add hold/release; verify DOMAIN-OK; write done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/fixture-app (refactor/pi-pstack-parity-...
+↑16 ↓2.4k R223k W30k CH99.6% $0.190 (sub) 3.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

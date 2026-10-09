@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Help set up Benny for this repository by completing the adapt-configuration step only. Follow                         ┃
+ .upstream/automations/benny/FOR_AGENTS.md so .upstream/automations/benny/skills/setup-benny/SKILL.md is read (section ┃
+ 2, adapt the configuration). Pack copy under .cursor/automations/benny is already done; treat pack merge as complete. ┃
+ Create user-owned copies of configuration, feature map, and routing map outside .cursor/automations/benny. Preferred  ┃
+ location is .cursor/benny/ (configuration.yaml, feature-map.md, routing.md). Adapt from the copied examples under the ┃
+ pack; use only fixture-safe public placeholders (no real secrets). Do not edit the copied example files. Pack         ┃
+ refreshes may update source-managed pack files but must never touch user-owned copies. Do not create or update a live ┃
+ automation. Do not edit parity ledgers or src/app.js. When the adapt step is done (or you stop), write exactly one    ┃
+ line to                                                                                                               ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-out/p ┃
+ i/done.txt as STATUS=adapt-ok|adapt-mismatch|no-adapt|blocked|other reason=<short phrase> then stop.                  ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cat .upstream/automations/benny/FOR_AGENTS.md; echo ----; cat                                                       ┃
+ .upstream/automations/benny/skills/setup-benny/SKILL.md; find .cursor .upstream -type f | head -50                    ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app (refactor/pi-pstack...
+$0.000 (sub) 1.6%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

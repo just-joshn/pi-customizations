@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ In one short reply only, explain how Node's event loop interacts with the promise microtask queue and the libuv       ┃
+ thread pool using precise systems terminology (event loop phases, microtasks, macrotasks, libuv thread pool, I/O      ┃
+ completion). Do not create or edit any files. Do not run tools. Stop after the explanation.                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Node's event loop is a libuv-driven cycle with ordered phases: timers → pending callbacks → idle/prepare → poll (I/O  ┃
+ completion) → check (setImmediate) → close callbacks. Each phase has its own FIFO queue of macrotask callbacks.       ┃
+                                                                                                                       ┃
+ Microtasks (promise reactions, queueMicrotask)                                                                        ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 1.6%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

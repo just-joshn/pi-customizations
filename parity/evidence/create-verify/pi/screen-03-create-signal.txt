@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] create-verification-skill (ctrl+o to expand)                                                                  ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ for this tiny hello-cli only. Interview the repository yourself. Answer Surface, Run, Drive, Observe, and Isolate     ┃
+ from files in this cwd. Do not ask the user for any of those five answers when the files already show them. Before    ┃
+ writing the skill, write JSON to                                                                                      ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/pi/interview.json   ┃
+ with exactly these keys: surface, run, drive, observe, isolate (non-empty strings), evidencePaths (array of relative  ┃
+ paths you read), askedUser (boolean), askedUserAbout (array; empty when askedUser is false), baseBuildsOrReported     ┃
+ (boolean; true if ./hello.sh works or you reported the break precisely). Then write                                   ┃
+ .pi/skills/verify-hello-cli/SKILL.md with YAML frontmatter name: verify-hello-cli and a real description. Fill        ┃
+ Launch, Doctor, Drive, Evidence, Cleanup, and Helpers as ## headings grounded in the interview. Helpers may be the    ┃
+ single word None if no helper scripts ship. Every section body must be real text with no TODO or placeholder wording. ┃
+ Cleanup must not kill by process name and must not delete named proof artifacts. Seed features/README.md plus one     ┃
+ feature file for the hello print. Skip the live prove-the-skill step and skip the maintain offer. When                ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/pi/interview.json,  ┃
+ the skill, and the feature map are on disk, list their absolute paths and stop. Do not edit ledgers, parity/, or      ┃
+ product package code outside this fixture cwd.                                                                        ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ ls -la; cat hello.sh; cat README* package.json 2>/dev/null | head -50; ls                                           ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/                                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 1.8%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

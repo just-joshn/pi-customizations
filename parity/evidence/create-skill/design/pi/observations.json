@@ -1,0 +1,53 @@
+{
+  "screenFinal": {
+    "createSkillMention": true,
+    "skillPathMention": true,
+    "markerMention": true,
+    "askMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "createSkillMention": true,
+    "skillPathMention": true,
+    "markerMention": true,
+    "askMention": true,
+    "envBlocked": true,
+    "working": true
+  },
+  "artifact": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/design/pi/design.md",
+    "text": "# Design: parity-create-skill-probe\n\n## Skill name\n`parity-create-skill-probe` (project skill at `.pi/skills/parity-create-skill-probe/SKILL.md`)\n\n## Frontmatter\n```yaml\n---\nname: parity-create-skill-probe\ndescription: Echoes the CREATE-SKILL-PROBE-MARKER line for parity checks. Use when the user says \"run the create-skill probe\", mentions \"create-skill probe\", or names \"parity-create-skill-probe\".\ndisable-model-invocation: true\n---\n```\nDescription is third person, with WHAT and WHEN, trigger terms included.\n\n## Main section outline\n1. `# Parity Create-Skill Probe` - one-line purpose.\n2. `## Instructions` - when the user says \"run the create-skill probe\", reply with the marker on its own line and nothing else required.\n3. `## Output` - exact marker line: `CREATE-SKILL-PROBE-MARKER`, alone on its line.\n\nConstraints: under 80 lines total (target ~15), concise.\n\n## Supporting files / scripts\nNeeded: **no**. SKILL.md only; no reference.md, examples.md, or scripts/.\n",
+    "byteLength": 976,
+    "sha256": "sha256:26b41f525067b185059fb8dcdf089194b4ebd2238cc6eced41e4cd793d92896d",
+    "ok": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/design/pi/done.txt",
+    "line": "STATUS=designed reason=design.md written",
+    "status": "designed"
+  },
+  "skill": {
+    "exists": false,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.pi/skills/parity-create-skill-probe/SKILL.md",
+    "nameOk": false,
+    "hasMarker": false,
+    "byteLength": 0,
+    "sha256": null,
+    "ok": false
+  },
+  "discoveryAnswersSent": false,
+  "verifyTriggerSent": false,
+  "askUiDrives": 0,
+  "score": {
+    "artifactOk": true,
+    "createPath": true,
+    "envBlocked": false,
+    "doneStatus": "designed",
+    "wroteSkill": false,
+    "phaseClosed": true,
+    "honestBlocker": false
+  }
+}

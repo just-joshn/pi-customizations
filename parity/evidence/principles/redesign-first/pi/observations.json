@@ -1,0 +1,106 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "productFixed": true,
+    "docsPropagated": true,
+    "bareRejected": true,
+    "foundationalRedesign": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "redesignMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "redesignMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:40:56.484Z",
+  "firstVerifyAt": "2026-10-09T01:40:56.484Z",
+  "firstDocsAt": "2026-10-09T01:40:56.484Z",
+  "productPaths": [
+    "src/product.js"
+  ],
+  "docsPaths": [
+    "README.md",
+    "docs/price.md"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/redesign-first/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/redesign-first/fixture-app/evidence/verify-out.txt",
+    "line": "REDESIGN-OK",
+    "ok": true
+  },
+  "productCheck": {
+    "ok": true,
+    "bareRejected": true,
+    "label": "12.00 EUR"
+  },
+  "docsCheck": {
+    "ok": true,
+    "coreDoc": true,
+    "oldDoc": false,
+    "readmeOk": true
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+    "ok": true,
+    "name": "principle-redesign-from-first-principles",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-redesign-first-fixture-app--/2026-10-09T01-40-35-082Z_01a11e51-ba89-723b-850c-9b0d266abf4c.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:40:40.207Z",
+    "ranVerifyScript": true,
+    "wroteProduct": false,
+    "wroteDocs": false,
+    "toolOrder": [
+      "bash(verify.mjs)",
+      "read(redesign-leaf)",
+      "blob-mention(redesign-leaf)",
+      "read",
+      "TodoWrite(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 45,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "redesignMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "redesignMention": true,
+    "working": true
+  }
+}

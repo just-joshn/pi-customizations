@@ -1,0 +1,42 @@
+{
+  "attemptId": "57539177-fcf8-43c5-96f5-2b4ba0b22f04",
+  "mode": "web",
+  "method": "agent-helper MCP on Google Chrome at cursor.com/automations",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/web/57539177-fcf8-43c5-96f5-2b4ba0b22f04",
+  "probe": "automations-web-editor",
+  "url": "https://cursor.com/automations",
+  "app": "Google Chrome",
+  "editorChromeWitnessed": false,
+  "newAutomationButtons": [],
+  "clickLog": [],
+  "initialMarkers": {
+    "hasAutomations": true,
+    "hasNewAutomation": false,
+    "hasNoAutomationsYet": false,
+    "hasSignIn": false,
+    "hasEditorMarkers": false,
+    "urlHint": true
+  },
+  "finalMarkers": {
+    "hasAutomations": true,
+    "hasNewAutomation": false,
+    "hasNoAutomationsYet": false,
+    "hasSignIn": false,
+    "hasEditorMarkers": false,
+    "urlHint": true
+  },
+  "finalStillOnList": true,
+  "pathsTried": [
+    "open Chrome URL",
+    "cmd+l navigate to cursor.com/automations",
+    "Tab cycle + Return/Space (no Escape)"
+  ],
+  "didNot": [
+    "save automation",
+    "enable Benny",
+    "post to Slack",
+    "mint Cloud Agent",
+    "edit ledgers",
+    "Escape that dismisses host"
+  ]
+}

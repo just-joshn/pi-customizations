@@ -1,0 +1,39 @@
+  enabling either automation.
+
+  This CLI PTY cannot open the Automations editor. Update each existing automation in the real editor — do not
+  create replacements or duplicates.
+
+  Editor checklist — benny-triage
+
+  • Name and description
+  • Direct instruction to read .cursor/automations/benny/skills/triage-issue-reports/SKILL.md
+  • New top-level Slack report trigger and source channel (C0FIXTURE001)
+  • Slack thread read and reply capabilities
+  • Issue-tracker integration (Linear / configured adapter)
+  • Paraphrased triage instructions, thread-only rule, and Benny verdict markers ([benny:bug],
+    [benny:performance], [benny:other])
+
+  Editor checklist — benny-reproduce
+
+  • Name and description
+  • Direct instruction to read .cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md
+  • Matching Slack trigger and source channel
+  • Repository and default branch (https://github.com/fixture-org/fixture-app, main)
+  • Slack thread read and reply capabilities
+  • Pull request action (draft only)
+  • Tracker, control-adapter (control-target-app), and feature-map (.cursor/benny/feature-map.md) requirements
+  • Paraphrased marker wait, evidence, verification, and bounded-fix instructions
+
+  Please open each existing automation in its Automations editor and apply the matching checklist fields. Pick real
+  model slugs from your Cursor model picker (config still has placeholders). Leave both disabled until thread-safety
+  testing after save.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 19.8% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/existing-no-automate/fixture-app · 
+  refactor/pi-pstack-parity-again

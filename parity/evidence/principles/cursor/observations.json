@@ -1,0 +1,102 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": false,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "ranCheck": true,
+    "directArtifactVerify": true,
+    "productFixed": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:15:54.357Z",
+  "firstVerifyAt": "2026-10-09T00:15:45.130Z",
+  "productPaths": [
+    "src/add.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-app/evidence/verify-out.txt",
+    "line": "ADD-OK value=5",
+    "ok": true
+  },
+  "productFixed": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-prove-it-works/SKILL.md",
+    "ok": true,
+    "name": "principle-prove-it-works",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/6231a104-00c2-49b8-ae30-77b058f5fff5/6231a104-00c2-49b8-ae30-77b058f5fff5.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:16:19.464Z",
+    "ranVerifyScript": true,
+    "ranNodeCheck": false,
+    "toolOrder": [
+      "Read",
+      "GetDynamicTools",
+      "Glob",
+      "Read",
+      "CallDynamicTool",
+      "CallDynamicTool",
+      "Read",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Shell(verify.mjs)",
+      "Read(prove-leaf)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "blob-mention(prove-leaf)",
+      "StrReplace",
+      "CallDynamicTool",
+      "Shell(verify.mjs)",
+      "Shell",
+      "CallDynamicTool"
+    ],
+    "mtimeMs": 1791504967483.5745
+  },
+  "pollSamples": 83,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": true
+  }
+}

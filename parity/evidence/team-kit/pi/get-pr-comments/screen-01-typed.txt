@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "get-pr-comments" collision:                                                                                         ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/get-pr-comments/SKILL.md                  ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/get-pr-comments/SKILL.md (skipped)             ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/get-pr-comments Do not ask questions. Follow the get-pr-comments skill. Active PR is                                   
+https://github.com/just-joshn/team-kit-gh-fixture/pull/1 on the current branch. Use gh to fetch review and discussion   
+comments. Write a concise grouped action list to                                                                        
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/get-pr-comments/summary 
+.md that includes the exact marker FIXTURE_REVIEW_COMMENT if that comment exists. Then write exactly one line to        
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/get-pr-comments/done.tx 
+t as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under         
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/get-pr-comments. Do     
+not edit parity ledgers. Do not force-push.                                                                             
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (fixture/pr-comments-seed)
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

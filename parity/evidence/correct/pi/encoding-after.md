@@ -1,0 +1,2 @@
+Level: lint/CI check (level 2). Architecture can't hide db.js: plain Node relative imports can't be made private without a bundler or restructuring. scripts/check-store-boundary.js fails any file importing db.js outside src/store.js, with an error naming src/store.js. It runs in `npm test`, so local and CI use the same command. A test confirms both history specimens are rejected. AGENTS.md has a rule table.
+Proof: `node scripts/check-store-boundary.js history/past-mistake-1.js`

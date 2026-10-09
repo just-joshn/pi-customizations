@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "pairId": "no-comments-sicko-1",
+  "scenarioRef": "cmd-no-comments-sicko",
+  "optionalScenarioRef": "cmd-comment-sicko-first-output",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-NO-COMMENTS-SICKO-001",
+    "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/no-comments clean AI slop comments in src/greet.js plus side-specific done.txt delete-count/sicko/catchphrase line",
+  "steps": [
+    { "send": "/no-comments clean the AI slop comments in src/greet.js. Scope is only that file. ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/no-comments/cursor/f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "noCommentsSkill": true,
+      "skillSource": "slash /no-comments via plugin-dir pstack skill",
+      "sickoSpawnAttempted": true,
+      "sickoSpawnSucceeded": true,
+      "sickoPathHeld": true,
+      "firstSickoAt": "2026-10-08T20:08:31.788Z",
+      "firstProductAt": "2026-10-08T20:08:42.794Z",
+      "productPaths": ["src/greet.js"],
+      "baselineCommentCount": 7,
+      "afterCommentCount": 0,
+      "commentsRemoved": true,
+      "cleanupHeld": true,
+      "catchphraseObservedOnParentPty": false,
+      "catchphraseObservedInChildTranscript": true,
+      "catchphraseFirstAssistantOutput": true,
+      "childTranscript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/139f27a2-1329-40fc-b2b1-86a7b25ba916/139f27a2-1329-40fc-b2b1-86a7b25ba916.jsonl",
+      "doneMarkerWritten": true,
+      "doneLine": "delete-count=7 sicko=yes catchphrase=yes",
+      "screenEvidence": "Spawning Comment Sicko on src/greet.js only; 1 agent completed; Comment Sicko greet.js Done"
+    }
+  },
+  "pi": {
+    "attemptId": "44860f00-0364-48b9-805d-0c4146cb9e9d",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/no-comments/pi/44860f00-0364-48b9-805d-0c4146cb9e9d",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-no-comments-fixture-app--/2026-10-08T20-09-38-679Z_01a11d22-be77-7557-afe7-d51085db782a.jsonl",
+    "observations": {
+      "noCommentsSkill": true,
+      "skillSource": "session injects extensions/pi-pstack/skills/no-comments/SKILL.md",
+      "sickoSpawnAttempted": true,
+      "sickoSpawnSucceeded": false,
+      "sickoPathHeld": false,
+      "sickoSpawnError": "Unknown agent_type: Comment Sicko. Valid types are: code-review, explore, general-purpose, research, rubber-duck, security-review, task",
+      "taskArgs": {
+        "agent_type": "Comment Sicko",
+        "name": "Comment Sicko",
+        "promptScope": "src/greet.js only"
+      },
+      "sessionToolOrder": ["read", "bash", "task", "bash"],
+      "firstProductAt": "2026-10-08T20:09:50.218Z",
+      "productPaths": ["src/greet.js"],
+      "baselineCommentCount": 7,
+      "afterCommentCount": 0,
+      "commentsRemoved": true,
+      "cleanupHeld": true,
+      "inlineReviewFallback": true,
+      "catchphraseObserved": false,
+      "doneMarkerWritten": true,
+      "doneLine": "delete-count=7 sicko=no catchphrase=no"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "Comment Sicko spawn success",
+      "cursor": "Task/Agent spawned Comment Sicko; screen shows 1 agent completed on greet.js.",
+      "pi": "task called with agent_type Comment Sicko; host rejected Unknown agent_type. No successful Sicko child.",
+      "reconciled": false
+    },
+    {
+      "topic": "comment cleanup",
+      "cursor": "src/greet.js went from 7 line comments to 0. cleanupHeld true.",
+      "pi": "src/greet.js went from 7 line comments to 0 via inline fallback after spawn fail. cleanupHeld true.",
+      "reconciled": true
+    },
+    {
+      "topic": "Comment Sicko first-output catchphrase",
+      "cursor": "Child transcript 139f27a2 first assistant text is exactly Yes... Ha ha ha... Yes! before review body. Parent PTY did not show it.",
+      "pi": "No Sicko child; catchphrase not observed.",
+      "reconciled": false
+    },
+    {
+      "topic": "skill activation",
+      "cursor": "PTY keeps /no-comments with prompt; Comment Sicko chrome on screen.",
+      "pi": "Session injects no-comments SKILL.md; agent follows spawn-then-act steps until Task rejects.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-no-comments-sicko.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/no-comments/PLAYBOOK.md",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/no-comments/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/no-comments/fixture-app (AI-commented src/greet.js)",
+    "auditTrail": "parity/evidence/no-comments/.audit/u-journey-cmd-no-comments.tsv"
+  }
+}

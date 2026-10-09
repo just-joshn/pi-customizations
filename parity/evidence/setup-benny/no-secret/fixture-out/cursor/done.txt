@@ -1,0 +1,1 @@
+STATUS=secret-ok reason=config written without token

@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "pairId": "prin-encode-structure-1",
+  "scenarioRef": "prin-encode-structure",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-ENCODE-STRUCTURE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Make node scripts/verify.mjs print ENCODE-OK for this fixture. NOTES.md already states the ALLOW_DEBUG rule. REVIEW.md asks to paste that same reminder into CONTRIBUTING.md again. Prefer a lasting lint or check over a second prose copy of the same instruction, and turn debug off in src/config.js. Keep verify output under evidence/ (scripts/verify.mjs already writes evidence/verify-out.txt). For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When ENCODE-OK is on disk, write exactly one line to .../encode-structure/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode make ENCODE-OK; prefer lint/check over second prose; leaf SKILL.md for applied principles; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with ENCODE-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "28d00da4-064a-466a-ae71-2d1f249fb6cd",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/cursor/28d00da4-064a-466a-ae71-2d1f249fb6cd",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/9d7f4ff3-1a2e-401c-9690-1690796f8904/9d7f4ff3-1a2e-401c-9690-1690796f8904.jsonl",
+    "proofCopyPath": "parity/evidence/principles/encode-structure/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "mechanismPresent": true,
+      "mechanismArtifacts": [
+        "scripts/check-allow-debug.mjs"
+      ],
+      "productFixed": true,
+      "noSecondProse": true,
+      "keptVerifyOk": true,
+      "verifyLine": "ENCODE-OK",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "unobserved on ready/settled screen dumps",
+      "oracleNote": "Fixed src/config.js debug off; added scripts/check-allow-debug.mjs; ENCODE-OK; no second CONTRIBUTING.md prose copy."
+    }
+  },
+  "pi": {
+    "attemptId": "fa41db21-da46-4503-b8dc-35d69586e835",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/pi/fa41db21-da46-4503-b8dc-35d69586e835",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-encode-structure-fixture-app--/2026-10-09T01-06-06-015Z_01a11e32-283e-7056-904f-6f638dbcdd9d.jsonl",
+    "proofCopyPath": "parity/evidence/principles/encode-structure/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "extensions/pi-pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "mechanismPresent": true,
+      "mechanismArtifacts": [
+        "scripts/check-debug.mjs"
+      ],
+      "productFixed": true,
+      "noSecondProse": true,
+      "keptVerifyOk": true,
+      "verifyLine": "ENCODE-OK",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 \u2022 medium",
+      "oracleNote": "Fixed src/config.js debug off; added scripts/check-debug.mjs; ENCODE-OK; no second CONTRIBUTING.md prose copy."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "mechanism artifact name",
+      "cursor": "scripts/check-allow-debug.mjs",
+      "pi": "scripts/check-debug.mjs",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "unobserved on screen dumps",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "encode-structure outcome",
+      "cursor": "contractHeld. Leaf Read + lasting check + product fix + ENCODE-OK, no second prose.",
+      "pi": "contractHeld. Leaf Read + lasting check + product fix + ENCODE-OK, no second prose.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-encode-structure.mjs --both",
+    "capturedAt": "2026-10-09T01:06:43Z",
+    "shellTaskId": "935041",
+    "brief": "parity/briefs/u-journey-prin-encode-structure.md"
+  }
+}

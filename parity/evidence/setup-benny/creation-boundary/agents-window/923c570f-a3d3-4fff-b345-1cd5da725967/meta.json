@@ -1,0 +1,12 @@
+{
+  "attemptId": "923c570f-a3d3-4fff-b345-1cd5da725967",
+  "mode": "new-automation-editor-chrome",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/923c570f-a3d3-4fff-b345-1cd5da725967",
+  "intent": "witness Automations editor chrome only; cancel without save/enable",
+  "didNot": [
+    "save automation",
+    "enable Benny",
+    "Slack",
+    "spend cloud agent"
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "scenario": "team-kit:review-and-ship",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "pairPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pair-team-kit-review-and-ship-1.json",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/cursor/review-and-ship/c2cfa27a-0cbb-490e-b69f-a08ed7cd8693",
+      "attemptId": "c2cfa27a-0cbb-490e-b69f-a08ed7cd8693",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/review-and-ship Do not ask questions. Follow the review-and-ship skill. From main, create branch fixture/review-ship-cursor-mv0e9p76, append one README.md line mentioning REVIEW_SHIP_cursor, commit, push, open a PR into main, and write findings plus the PR URL to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/review-and-ship/ship-notes.md. Include marker FIXTURE_SHIP in /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/review-and-ship/ship-notes.md. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/review-and-ship/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/review-and-ship. Do not edit parity ledgers. Do not force-push.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": false,
+          "working": false,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "pty": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": false,
+          "working": true,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/review-and-ship/done.txt",
+          "line": "STATUS=verified reason=pr-open-ci-green",
+          "status": "verified"
+        },
+        "post": {
+          "artifactHasMarker": true,
+          "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/4",
+          "prExists": true,
+          "artifactBytes": 645
+        },
+        "sideCtx": {},
+        "seededSkill": null,
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "artifactOk": true,
+          "post": {
+            "artifactHasMarker": true,
+            "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/4",
+            "prExists": true,
+            "artifactBytes": 645
+          },
+          "closed": true,
+          "honestBlocker": false
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "c2cfa27a-0cbb-490e-b69f-a08ed7cd8693",
+        "side": "cursor",
+        "scenarioRef": "team-kit:review-and-ship",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pi/review-and-ship/39499099-9f3e-4685-b7ed-b3bbaac00702",
+      "attemptId": "39499099-9f3e-4685-b7ed-b3bbaac00702",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/review-and-ship Do not ask questions. Follow the review-and-ship skill. From main, create branch fixture/review-ship-pi-mv0ectuf, append one README.md line mentioning REVIEW_SHIP_pi, commit, push, open a PR into main, and write findings plus the PR URL to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship/ship-notes.md. Include marker FIXTURE_SHIP in /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship/ship-notes.md. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship. Do not edit parity ledgers. Do not force-push.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": false,
+          "working": false,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "pty": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": true,
+          "working": true,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship/done.txt",
+          "line": "STATUS=verified reason=pr opened and notes written",
+          "status": "verified"
+        },
+        "post": {
+          "artifactHasMarker": true,
+          "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/5",
+          "prExists": true,
+          "artifactBytes": 258
+        },
+        "sideCtx": {},
+        "seededSkill": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/review-and-ship/SKILL.md",
+          "sha256": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1"
+        },
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "artifactOk": true,
+          "post": {
+            "artifactHasMarker": true,
+            "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/5",
+            "prExists": true,
+            "artifactBytes": 258
+          },
+          "closed": true,
+          "honestBlocker": false
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "39499099-9f3e-4685-b7ed-b3bbaac00702",
+        "side": "pi",
+        "scenarioRef": "team-kit:review-and-ship",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+
+    ▎    1 + # Reviewer notes — team-kit-gh-fixture#1
+    ▎    2 + 
+    ▎    3 + ## TL;DR
+    ▎    4 + Adds a tiny `notes.md` placeholder (3 lines) so team-kit GitHub skill journeys have a disposable open 
+    ▎        PR to comment ...
+    ▎    5 + 
+    ▎    6 + FIXTURE_REVIEW_GUIDANCE
+    ▎    7 + 
+    ▎    8 + ## Reviewer guidance
+    ▎    9 + - **Core file:** `notes.md` only — new markdown placeholder; skim it first and you are done.
+    ▎   10 + - **Mechanical / generated:** none.
+    ▎   11 + - **Risk:** negligible; content is fixture seed text, not runtime code.
+    ▎   12 + - **Commits:** one commit (`Add notes placeholder for review journey`); history left intact (no rewrite
+    ▎        / no force- ...
+    ▎   13  … truncated (6 more lines) · ctrl+r to review
+
+  $ gh pr view 1 --repo just-joshn/team-kit-gh-fixture --json body --jq '.body' | rg -n
+    'TL;DR|FIXTURE_REVIEW_GUIDANCE|notes\.md' ; echo EXIT:$? 591ms
+    … 5 output lines hidden · ctrl+o to expand
+    18:- [ ] Confirm body includes TL;DR and FIXTURE_REVIEW_GUIDANCE
+    EXIT:0
+
+    Edited done.txt +1
+
+    ▎    1 + STATUS=verified reason=PR body and notes updated
+
+  PR #1 (https://github.com/just-joshn/team-kit-gh-fixture/pull/1) description now has a TL;DR plus 
+  FIXTURE_REVIEW_GUIDANCE (notes-only; no history rewrite). Same guidance is in reviewer-notes.md; done.txt is
+  STATUS=verified.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 8.7% · 2 files edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh · fixture/pr-comments-seed · #1

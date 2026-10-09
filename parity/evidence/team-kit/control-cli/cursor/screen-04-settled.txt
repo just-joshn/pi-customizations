@@ -1,0 +1,39 @@
+
+  $ HARNESS_DIR="/tmp/control-cli-harness-$$"
+    OUT_DIR="/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/contr
+    ol-cli" 15s
+    … 75 input + 2 output lines hidden · ctrl+o to expand
+    HARNESS_DIR=/tmp/control-cli-harness-96806
+
+  tmux capture came back empty — switching to a PTY harness for deterministic I/O.
+
+  $ HARNESS_DIR="/tmp/control-cli-harness-pty-$$"
+    OUT_DIR="/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/contr
+    ol-cli" 374ms
+    … 104 input + 11 output lines hidden · ctrl+o to expand
+    0000020   g  \r  \r  \n   P   O   N   G  \r  \n
+    0000032
+
+  PTY harness verified READY → ping → PONG. Writing the summary and done artifacts.
+
+  $ OUT_DIR="/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/contr
+    ol-cli"
+    HARNESS_DIR="/tmp/control-cli-harness-pty-97443" 241ms
+    … 21 input + 19 output lines hidden · ctrl+o to expand
+    ping
+    PONG
+
+  STATUS=verified reason=READY ping PONG
+
+  PTY harness under /tmp drove the toy CLI: waited for READY, sent ping, captured PONG. Artifacts are in
+  parity/evidence/team-kit/fixture-out/cursor/control-cli/ (transcript.txt, summary.md, done.txt).
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 10.3%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/control-cli · 
+  refactor/pi-pstack-parity-again

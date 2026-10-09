@@ -1,0 +1,39 @@
+    ▎    3 -   // Defensive check in case n is somehow not a number
+    ▎    4 -   try {
+    ▎    5 -     const value = /** @type {any} */ (n);
+    ▎    6 -     return value * 2;
+    ▎    7 -   } catch (error) {
+    ▎    8 -     // Unexpected, but keep going
+    ▎    9 -     return 0;
+    ▎   10 -   }
+    ▎    2 +   return n * 2;
+    ▎    3   }
+
+  $ mkdir -p
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop && cat
+    > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop/summa
+    ry.md << 'EOF'
+    Restored `src/util.js` to a minimal `double(n)` that returns `n * 2`. Removed the explanatory comments, try/catch
+    defensive wrapper, and `@type {any}` cast that had been added on the branch. exit 1 • 248ms
+    … 2 input lines hidden · ctrl+o to expand
+    (eval):4: parse error near `&&'
+
+  $ mkdir -p
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop
+    cat > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop/s
+    ummary.md << 'EOF' 262ms
+    … 10 input + 5 output lines hidden · ctrl+o to expand
+    ---
+    STATUS=verified reason=restored minimal double(n)
+
+  Restored minimal double(n) in src/util.js (no try/catch, @type any, or comments). Artifacts written under
+  fixture-out/cursor/deslop: summary.md and done.txt with STATUS=verified.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 8.4% · 1 file edited                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/deslop · slop-branch

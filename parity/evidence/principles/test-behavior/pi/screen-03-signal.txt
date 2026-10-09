@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] poteto-mode (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ The unit test in test/slugify.test.js is too weak. Rewrite it so it calls slugify with the concrete input "Hello,     ┃
+ World!" and asserts the literal result hello-world. node scripts/verify.mjs must print TEST-OK. Keep the verify       ┃
+ output under evidence/. For any poteto-mode principle you apply before declaring done, read that principle's leaf     ┃
+ SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit    ┃
+ ledgers, parity/, or files outside this cwd except the named done path. When verify passes, write exactly one line to ┃
+                                                                                                                       ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/pi/done. ┃
+ txt as verified=yes|no, then stop.                                                                                    ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cat test/slugify.test.js scripts/verify.mjs; ls; ls src evidence 2>&1; cat package.json                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-app (refactor/pi-pstack-parity...
+$0.000 (sub) 2.1%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

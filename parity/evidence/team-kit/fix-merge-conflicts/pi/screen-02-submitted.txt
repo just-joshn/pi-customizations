@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "fix-merge-conflicts" collision:                                                                                     ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/fix-merge-conflicts/.pi/skills/fix-merge-co┃
+nflicts/SKILL.md                                                                                                       ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/fix-merge-conflicts/SKILL.md (skipped)         ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] fix-merge-conflicts (ctrl+o to expand)                                                                        ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Do not ask questions. Follow the fix-merge-conflicts skill. Workspace is                                              ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/fix-merge-conflicts.    ┃
+ Resolve conflict markers in value.txt. Final file content must be exactly one line: resolved-value (no conflict       ┃
+ markers). Do not push. Write a short resolution summary to                                                            ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-merge-conflicts/s ┃
+ ummary.md. Then write exactly one line to                                                                             ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-merge-conflicts/d ┃
+ one.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-merge-conflicts.  ┃
+ Do not edit parity ledgers. Do not commit unless staging resolution requires it; prefer writing the resolved file and ┃
+ summarizing.                                                                                                          ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ git status --short; cat value.txt; ls package.json 2>&1 | head -1 (timeout 20s)                                     ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/fix-merge-conflicts (main)
+$0.000 (sub) 1.7%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

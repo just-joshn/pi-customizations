@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "pairId": "maintain-verify-outcomes-1",
+  "scenarioRef": "setup-maintain-verify-outcomes",
+  "siblingScenarioRef": "setup-maintain-verify-ship",
+  "requirementIds": [
+    "PSTACK-SETUP-MAINTAIN-VERIFY-OUTCOMES-001",
+    "PSTACK-SETUP-MAINTAIN-VERIFY-SHIP-001"
+  ],
+  "fixtureDigest": "sha256:e35c4ab18e7868d44c3b6486f022e7144b98c51c9d32487d40a9e29de3e62527",
+  "promptTemplateOutcomes": "Run /maintain-verification-skill now against the existing verify-hello-cli skill. Complete one full maintain pass for this tiny hello-cli (one feature). Only edit that skill directory. Never edit product code. End with exactly one named outcome among clean, changed, or blocked. Prefer clean when the seeded skill already matches ./hello.sh. If clean or blocked: no branch and no PR. If changed: one PR of proven skill-dir corrections. Write OUTCOME=, PR=, and BLOCKER= lines to fixture-out/<side>/maintain-outcome.txt and stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/maintain-verification-skill outcomes prompt"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "fixture-out/<side>/maintain-outcome.txt with OUTCOME=clean|changed|blocked and matching PR= line"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "c3f0f75c-eb59-4cfc-b4e1-9495dc84e4e7",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/cursor/c3f0f75c-eb59-4cfc-b4e1-9495dc84e4e7",
+    "afterDigest": "sha256:e35c4ab18e7868d44c3b6486f022e7144b98c51c9d32487d40a9e29de3e62527",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+    "outcomeMarkerPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor/maintain-outcome.txt",
+    "observations": {
+      "maintainRan": true,
+      "outcome": "clean",
+      "pr": "none",
+      "blocker": "none",
+      "outcomeDefOk": true,
+      "prNoneOk": true,
+      "noPrOpenedOnScreen": true,
+      "livePassMentioned": true,
+      "skillEdits": false,
+      "modelChrome": "Auto"
+    }
+  },
+  "pi": {
+    "attemptId": "d2597177-5cde-460b-8458-c2ee14b395d7",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/pi/d2597177-5cde-460b-8458-c2ee14b395d7",
+    "afterDigest": "sha256:e35c4ab18e7868d44c3b6486f022e7144b98c51c9d32487d40a9e29de3e62527",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "sessionNote": "PI_CODING_AGENT_DIR=/tmp/pi-ref-agent",
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.pi/skills/verify-hello-cli/SKILL.md",
+    "outcomeMarkerPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/pi/maintain-outcome.txt",
+    "observations": {
+      "maintainRan": true,
+      "outcome": "clean",
+      "pr": "none",
+      "blocker": "none",
+      "outcomeDefOk": true,
+      "prNoneOk": true,
+      "noPrOpenedOnScreen": true,
+      "livePassMentioned": true,
+      "skillEdits": false,
+      "sourceWaveSkippedConcurrentChildren": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "named outcome",
+      "cursor": "OUTCOME=clean. Marker PR=none BLOCKER=none. Settled screen reports full source+live coverage, no skill edits, no branch, no PR.",
+      "pi": "OUTCOME=clean. Marker PR=none BLOCKER=none. Settled screen reports index+source+live agree, no edits, no branch, no PR.",
+      "reconciled": true
+    },
+    {
+      "topic": "PR or no-PR (SHIP)",
+      "cursor": "clean path: PR=none; screen states no branch and no PR; no github.com/pull URL on settled screen.",
+      "pi": "clean path: PR=none; screen states no branch and no PR; no github.com/pull URL on settled screen.",
+      "reconciled": true
+    },
+    {
+      "topic": "source wave concurrency",
+      "cursor": "Screen summarizes source wave with no drift; concurrent child fan-out not separately asserted here.",
+      "pi": "Screen says it read hello.sh itself and did not launch a source-wave subagent.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Status chrome Auto.",
+      "pi": "Status chrome claude-sonnet-5-5 medium via claude-subscription.",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-maintain-verify-outcomes.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app",
+    "decisionLog": "parity/evidence/maintain-verify/.audit/u-journey-setup-maintain-verify-outcomes.tsv",
+    "notes": "Prior create-verify-maintain-1 had Pi changed without PR, so it could not close SETUP-OUTCOMES. This pair seeds an aligned skill and observes clean+PR=none on both hosts. SHIP-001 claimed only for the clean/no-PR rule. SOURCE-WAVE and LIVE-PASS not claimed. Ledgers not edited. pstack-models.mdc not touched."
+  }
+}

@@ -1,0 +1,40 @@
+                                                                                                                       │
+ I can go further on the edge cases, or on how a caller would guard against `NaN` or reversed bounds.                  │
+ E                                                                                                                     │
+ echo "teach=yes how=yes why=yes order=how-why-before-teach" > $O/done.txt (timeout 20s)                               │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ clamp(n, lo, hi) forces a number into the range from lo to hi, both ends included. If n is below lo you get lo. If    │
+ it's above hi you get hi. Otherwise you get n back.                                                                   │
+                                                                                                                       │
+ It's three comparisons in src/clamp.js. The lower check runs first, then the upper, then it falls through to n. A     │
+ value exactly on a bound comes back unchanged. lo === hi always returns that one value.                               │
+                                                                                                                       │
+ It does no validation, so a few inputs behave in ways you might not expect:                                           │
+ - NaN: it fails both comparisons, so you get NaN back.                                                                │
+ - lo > hi: a value between them returns lo, because the lower check wins.                                             │
+ - Types: nothing is checked, so JavaScript's normal comparison rules decide the result.                               │
+                                                                                                                       │
+ On why the checks live here, the source says so directly. The doc comment says callers use the helper "once instead   │
+ of repeating min/max at every site". The README says it keeps call sites thin. So the stated reason is to avoid       │
+ duplicating the bound logic. I'd guess every caller also gets identical behavior, but that's my inference. Nothing in │
+ the repo names testability or future consistency as a goal.                                                           │
+                                                                                                                       │
+ I couldn't find out when or why the decision was made. The file has no git history, and the fixture has no call       │
+ sites, so I can't tell how widely it's used. The reason above is the author's stated intent only.                     │
+                                                                                                                       ┃
+ I wrote how.md, why.md, teach.md and done.txt to parity/evidence/teach/fixture-out/pi/. I ran how and why as two      ┃
+ parallel read-only explore agents. I didn't load their skills' prompt templates. why was narrowed to git, the file's  ┃
+ comments and the README.                                                                                              ┃
+                                                                                                                       ┃
+ I can go further on the edge cases, or on how a caller would guard against NaN or reversed bounds.                    ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/teach/fixture-app (refactor/pi-pstack-parity-again)
+↑12 ↓3.2k R128k W26k CH96.3% $0.161 (sub) 3.5%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

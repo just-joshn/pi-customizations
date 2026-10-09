@@ -1,0 +1,350 @@
+{
+  "scenario": "prin-idempotent",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "frontmatter": {
+    "cursor": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-make-operations-idempotent/SKILL.md",
+      "ok": true,
+      "name": "principle-make-operations-idempotent",
+      "disableModelInvocation": true
+    },
+    "pi": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-make-operations-idempotent/SKILL.md",
+      "ok": true,
+      "name": "principle-make-operations-idempotent",
+      "disableModelInvocation": true
+    }
+  },
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/cursor/fef5e774-50d6-4214-9d76-6228f155b229",
+      "attemptId": "fef5e774-50d6-4214-9d76-6228f155b229",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode The lifecycle in src/apply.js may crash mid-run (CRASH_AFTER=1 after step-1). Today a re-run after that partial state changes the end state (run counter drifts). Make apply() converge to the same end state on re-run after a partial prior execution. node scripts/verify.mjs must print APPLY-OK converge=yes (it cleans, runs once, crashes after step-1, re-runs, and compares final digests). For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When APPLY-OK converge=yes is on disk, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-out/cursor/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": true,
+          "modelAutoInvoke": false,
+          "ranVerifyScript": true,
+          "convergeOk": true,
+          "convergentFix": true,
+          "stillIncrementsRun": false,
+          "productOk": true,
+          "verifiedDone": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "failMention": true,
+            "verifyMention": true,
+            "crashMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": false,
+            "hostAttached": true,
+            "failMention": true,
+            "verifyMention": true,
+            "crashMention": true,
+            "working": true
+          }
+        },
+        "firstProductAt": "2026-10-09T01:05:08.264Z",
+        "firstVerifyAt": "2026-10-09T01:04:21.750Z",
+        "productPaths": [
+          "src/apply.js"
+        ],
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-out/cursor/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-app/evidence/verify-out.txt",
+          "line": "APPLY-OK converge=yes digest=4937429a2af37562d35881f93fb984223786dde868d71f2aab621b5980487659",
+          "ok": true
+        },
+        "productOk": true,
+        "productAnalysis": {
+          "stillIncrementsRun": false,
+          "fixedToken": true,
+          "writesFinal": true,
+          "keepsCrashHook": true,
+          "convergent": true
+        },
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-make-operations-idempotent/SKILL.md",
+          "ok": true,
+          "name": "principle-make-operations-idempotent",
+          "disableModelInvocation": true
+        },
+        "session": null,
+        "transcript": {
+          "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/281d4a7e-0759-477c-b2b8-cea56b81dafc/281d4a7e-0759-477c-b2b8-cea56b81dafc.jsonl",
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T01:05:41.166Z",
+          "ranVerifyScript": true,
+          "firstVerifyAt": "2026-10-09T01:05:41.166Z",
+          "firstProductWriteAt": "2026-10-09T01:05:41.166Z",
+          "ranCrashProof": false,
+          "toolOrder": [
+            "GetDynamicTools",
+            "Read",
+            "Read",
+            "Read(idempotent-leaf)",
+            "GetDynamicTools",
+            "blob-mention(idempotent-leaf)",
+            "CallDynamicTool(verify.mjs)",
+            "Glob",
+            "Read",
+            "Read",
+            "Read(verify.mjs)",
+            "Read",
+            "Read",
+            "Read",
+            "Shell(verify.mjs)",
+            "Read",
+            "Read",
+            "CallDynamicTool(verify.mjs)",
+            "Read",
+            "Read",
+            "CallDynamicTool",
+            "Read",
+            "StrReplace(product)",
+            "StrReplace(product)",
+            "Shell(verify.mjs)",
+            "Shell",
+            "Read",
+            "CallDynamicTool"
+          ],
+          "failMention": true,
+          "mtimeMs": 1791507924613.6216
+        },
+        "pollSamples": 194,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "failMention": true,
+          "verifyMention": true,
+          "crashMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": false,
+          "hostAttached": true,
+          "failMention": true,
+          "verifyMention": true,
+          "crashMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "fef5e774-50d6-4214-9d76-6228f155b229",
+        "side": "cursor",
+        "scenarioRef": "prin-idempotent",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/pi/4e21a4e0-18c1-42e8-b286-6779858d9fe1",
+      "attemptId": "4e21a4e0-18c1-42e8-b286-6779858d9fe1",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode The lifecycle in src/apply.js may crash mid-run (CRASH_AFTER=1 after step-1). Today a re-run after that partial state changes the end state (run counter drifts). Make apply() converge to the same end state on re-run after a partial prior execution. node scripts/verify.mjs must print APPLY-OK converge=yes (it cleans, runs once, crashes after step-1, re-runs, and compares final digests). For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When APPLY-OK converge=yes is on disk, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-out/pi/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": true,
+          "modelAutoInvoke": false,
+          "ranVerifyScript": true,
+          "convergeOk": true,
+          "convergentFix": true,
+          "stillIncrementsRun": false,
+          "productOk": true,
+          "verifiedDone": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "failMention": true,
+            "verifyMention": true,
+            "crashMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": false,
+            "hostAttached": true,
+            "failMention": true,
+            "verifyMention": true,
+            "crashMention": true,
+            "working": true
+          }
+        },
+        "firstProductAt": "2026-10-09T01:05:57.988Z",
+        "firstVerifyAt": "2026-10-09T01:05:54.780Z",
+        "productPaths": [
+          "src/apply.js"
+        ],
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-out/pi/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-app/evidence/verify-out.txt",
+          "line": "APPLY-OK converge=yes digest=4937429a2af37562d35881f93fb984223786dde868d71f2aab621b5980487659",
+          "ok": true
+        },
+        "productOk": true,
+        "productAnalysis": {
+          "stillIncrementsRun": false,
+          "fixedToken": true,
+          "writesFinal": true,
+          "keepsCrashHook": true,
+          "convergent": true
+        },
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-make-operations-idempotent/SKILL.md",
+          "ok": true,
+          "name": "principle-make-operations-idempotent",
+          "disableModelInvocation": true
+        },
+        "session": {
+          "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-idempotent-fixture-app--/2026-10-09T01-05-41-464Z_01a11e31-c857-74af-9e53-c39401b6383f.jsonl",
+          "hostAttached": false,
+          "failMention": true,
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T01:05:47.159Z",
+          "ranVerifyScript": true,
+          "firstVerifyAt": "2026-10-09T01:05:47.159Z",
+          "firstProductWriteAt": null,
+          "ranCrashProof": false,
+          "toolOrder": [
+            "bash(verify.mjs)",
+            "read(idempotent-leaf)",
+            "blob-mention(idempotent-leaf)",
+            "bash(verify.mjs)",
+            "read",
+            "TodoWrite(verify.mjs)",
+            "bash(verify.mjs)",
+            "bash(verify.mjs)",
+            "bash"
+          ]
+        },
+        "transcript": null,
+        "pollSamples": 43,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "failMention": true,
+          "verifyMention": true,
+          "crashMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": false,
+          "hostAttached": true,
+          "failMention": true,
+          "verifyMention": true,
+          "crashMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "4e21a4e0-18c1-42e8-b286-6779858d9fe1",
+        "side": "pi",
+        "scenarioRef": "prin-idempotent",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

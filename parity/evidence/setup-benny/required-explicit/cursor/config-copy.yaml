@@ -1,0 +1,29 @@
+# Partial user-owned draft. Setup is fail-closed: source_channel_id is unknown.
+# Do not enable either automation until every field below is explicit.
+
+automations:
+  triage_name: "benny-triage"
+  reproduce_name: "benny-reproduce"
+
+slack:
+  # UNKNOWN / TBD. Do not treat as a real channel.
+  source_channel_id: ""
+  operations_channel_id: ""
+  triage_identity_user_id: "U012FIXTURETRIAGE"
+
+repository:
+  url: "https://github.com/example-org/fixture-app"
+  default_branch: "main"
+
+tracker:
+  adapter_skill_name: "issue-tracker-adapter-placeholder"
+
+routing:
+  map_path: ""
+
+control:
+  skill_name: "control-target-app"
+  feature_map_path: ".cursor/benny/feature-map.md"
+
+# Not yet confirmed: status_emoji, pull_request_url_format, budgets, models.
+# Model slugs must come from the Cursor model picker; none are confirmed.

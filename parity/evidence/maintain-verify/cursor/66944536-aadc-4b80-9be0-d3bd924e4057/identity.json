@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "attemptId": "66944536-aadc-4b80-9be0-d3bd924e4057",
+  "side": "cursor",
+  "scenarioRef": "setup-maintain-verify-locate:one",
+  "fixtureRef": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app",
+    "digest": "sha256:50d81673998406581c10f69f7924c91835b99a6ca2c453e551ea9dcd92786b4b"
+  },
+  "executable": {
+    "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+    "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+  },
+  "artifacts": [],
+  "launch": {
+    "argv": [
+      "/Users/josh-desktop/.local/bin/cursor-agent",
+      "--plugin-dir",
+      "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+      "--plugin-dir",
+      "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+    ],
+    "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app",
+    "envNames": [
+      "HOME",
+      "PATH",
+      "TERM"
+    ],
+    "publicEnv": {
+      "TERM": "xterm-256color"
+    }
+  },
+  "geometry": {
+    "rows": 40,
+    "cols": 120
+  },
+  "observedEnv": {
+    "platform": "darwin",
+    "node": "v24.21.0",
+    "TERM": "xterm-256color"
+  }
+}

@@ -1,0 +1,18 @@
+# creation-boundary fixture: secret-free draft for first-time create path
+schema: 1
+CREATION-BOUNDARY-FIXTURE-MARKER: first-time-no-existing-live
+slack:
+  source_channel_id: C-FIXTURE-TEST-CHANNEL
+  triage_user_id: U012FIXTURETRIAGE
+repository:
+  url: https://github.com/example-org/fixture-app
+  default_branch: main
+tracker:
+  adapter_skill: issue-tracker-adapter-placeholder
+control:
+  skill: control-target-app
+feature_map:
+  path: .cursor/benny/feature-map.md
+models:
+  triage: ""
+  reproduce: ""

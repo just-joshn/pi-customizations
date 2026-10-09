@@ -1,0 +1,139 @@
+{
+  "attemptId": "5a404316-b586-4811-a895-8d702c5f0b57",
+  "steps": [
+    {
+      "path": "element_index",
+      "index": "171",
+      "error": null
+    },
+    {
+      "label": "screen-04a-idx-171",
+      "editor": false,
+      "onList": true
+    },
+    {
+      "path": "element_index",
+      "index": "197",
+      "error": null
+    },
+    {
+      "label": "screen-04a-idx-197",
+      "editor": false,
+      "onList": true
+    },
+    {
+      "path": "xy",
+      "index": "171",
+      "cx": 1126,
+      "cy": 118,
+      "error": null
+    },
+    {
+      "label": "screen-04b-xy-171-1126-118",
+      "editor": false,
+      "onList": true
+    },
+    {
+      "path": "xy",
+      "index": "197",
+      "cx": 765,
+      "cy": 749,
+      "error": null
+    },
+    {
+      "label": "screen-04b-xy-197-765-749",
+      "editor": false,
+      "onList": true
+    },
+    {
+      "label": "screen-04c-xy-171-1126-118",
+      "editor": false,
+      "onList": true
+    },
+    {
+      "label": "screen-04c-xy-197-765-749",
+      "editor": false,
+      "onList": true
+    },
+    {
+      "path": "double-click",
+      "index": "171",
+      "error": null
+    },
+    {
+      "label": "screen-04d-dbl-171",
+      "editor": false,
+      "onList": true
+    },
+    {
+      "path": "double-click",
+      "index": "197",
+      "error": null
+    },
+    {
+      "label": "screen-04d-dbl-197",
+      "editor": false,
+      "onList": true
+    },
+    {
+      "label": "screen-05-after-return",
+      "editor": false,
+      "onList": true
+    },
+    {
+      "label": "screen-05-after-space",
+      "editor": false,
+      "onList": true
+    },
+    {
+      "label": "screen-09-final",
+      "editor": false,
+      "onList": false
+    }
+  ],
+  "editorChromeWitnessed": false,
+  "buttons": [
+    {
+      "index": "171",
+      "role": "AXButton",
+      "title": "New Automation",
+      "actions": [
+        "AXPress",
+        "AXShowMenu",
+        "AXScrollToVisible"
+      ],
+      "frame": {
+        "width": 126,
+        "y": 195,
+        "x": 1178,
+        "height": 28
+      },
+      "enabled": true
+    },
+    {
+      "index": "197",
+      "role": "AXButton",
+      "title": "New Automation",
+      "actions": [
+        "AXPress",
+        "AXShowMenu",
+        "AXScrollToVisible"
+      ],
+      "frame": {
+        "width": 122,
+        "y": 828,
+        "x": 819,
+        "height": 24
+      },
+      "enabled": true
+    }
+  ],
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/5a404316-b586-4811-a895-8d702c5f0b57",
+  "didNot": [
+    "save",
+    "enable Benny",
+    "Slack",
+    "Cloud Agent mint",
+    "ledger edits"
+  ]
+}

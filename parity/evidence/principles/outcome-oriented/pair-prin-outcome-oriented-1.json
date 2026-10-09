@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "pairId": "prin-outcome-oriented-1",
+  "scenarioRef": "prin-outcome-oriented",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-OUTCOME-ORIENTED-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Finish the pricing rewrite described in NOTES.md. The phase plan is already written. Converge on a single priceFor API in src/pricing.js, point cart.js and checkout.js at it, and remove pricingV1 so node scripts/verify.mjs prints OUTCOME-OK. Do not leave a long-lived dual path or throwaway compatibility bridge. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When OUTCOME-OK is on disk, write exactly one line to .../outcome-oriented/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode finish phased pricing rewrite; converge on priceFor; no dual path; leaf SKILL.md for applied principles; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with OUTCOME-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "342ef99a-aa7a-41b2-9cea-1fad66a4e714",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/outcome-oriented/cursor/342ef99a-aa7a-41b2-9cea-1fad66a4e714",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/4187a9c2-62a3-499f-80fe-e00a531514ce/4187a9c2-62a3-499f-80fe-e00a531514ce.jsonl",
+    "proofCopyPath": "parity/evidence/principles/outcome-oriented/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-outcome-oriented-execution/SKILL.md",
+      "convergeWithoutDualPath": true,
+      "v1Deleted": true,
+      "pricingPresent": true,
+      "callersConverged": true,
+      "dualPath": false,
+      "keptVerifyOk": true,
+      "verifyLine": "OUTCOME-OK cart=\"cart:5\" checkout=\"pay:5\" files=cart.js,checkout.js,pricing.js",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "unobserved on ready/settled screen dumps",
+      "oracleNote": "Added src/pricing.js priceFor; rewired cart/checkout; deleted pricingV1; OUTCOME-OK; no dual-path bridge."
+    }
+  },
+  "pi": {
+    "attemptId": "df45bc1d-780c-410a-9475-a41c2bde9e1e",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/outcome-oriented/pi/df45bc1d-780c-410a-9475-a41c2bde9e1e",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-outcome-oriented-fixture-app--/2026-10-09T01-15-38-505Z_01a11e3a-e489-71b0-9e6b-2a0e3d17cbd9.jsonl",
+    "proofCopyPath": "parity/evidence/principles/outcome-oriented/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "extensions/pi-pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+      "convergeWithoutDualPath": true,
+      "v1Deleted": true,
+      "pricingPresent": true,
+      "callersConverged": true,
+      "dualPath": false,
+      "keptVerifyOk": true,
+      "verifyLine": "OUTCOME-OK cart=\"cart:5\" checkout=\"pay:5\" files=cart.js,checkout.js,pricing.js",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "oracleNote": "Bash wrote pricing.js, rewired callers, removed pricingV1; OUTCOME-OK; no dual-path bridge."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-outcome-oriented-execution/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "unobserved on screen dumps",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "outcome-oriented converge-without-dual-path",
+      "cursor": "contractHeld. Leaf Read + priceFor + pricingV1 gone + OUTCOME-OK, dualPath false.",
+      "pi": "contractHeld. Leaf Read + same end state via bash + OUTCOME-OK, dualPath false.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-outcome-oriented.mjs --both",
+    "capturedAt": "2026-10-09T01:16:30Z",
+    "brief": "parity/briefs/u-journey-prin-outcome-oriented.md"
+  }
+}

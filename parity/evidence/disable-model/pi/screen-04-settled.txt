@@ -1,0 +1,40 @@
+ - The api layer only translates requests into store calls and results into status codes. The store owns persistence   │
+ and ids.                                                                                                              │
+                                                                                                                       │
+ ## Soft-delete ownership                                                                                              │
+                                                                                                                       │
+ `store.js` should own soft-delete.                                                                                    │
+                                                                                                                       │
+ - It is a persistence and state concern: a `deletedAt` marker on the record, plus a `deleteTicket(id)` function.      │
+ - `getTicket` and `listTickets` must filter out deleted records by default. Only the store can do that consistently.  │
+ - `api.js` should only add a `DELETE /tickets/:id` route that calls the store and maps the result to 204 or 404.      │
+ EOF                                                                                                                   │
+ echo "answered=yes" > done.txt (timeout 20s)                                                                          │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ store.js should own soft-delete. I wrote the overview to fixture-out/pi/answer.md and answered=yes to done.txt.       │
+                                                                                                                       ┃
+ How they connect: api.js imports createTicket, getTicket and listTickets from store.js. store.js keeps a module-level ┃
+ Map and an id counter, so there is one shared store per process. handle(req) in api.js routes on method and path:     ┃
+                                                                                                                       ┃
+ - GET /tickets returns the list with 200.                                                                             ┃
+ - GET /tickets/:id returns the ticket with 200, or 404 if it's missing.                                               ┃
+ - POST /tickets creates a ticket and returns 201. A validation error from the store becomes 400.                      ┃
+ - Any other route returns 404.                                                                                        ┃
+                                                                                                                       ┃
+ Why the store owns soft-delete: it is a persistence concern. The store would add a deletedAt marker and a             ┃
+ deleteTicket(id) function. getTicket and listTickets would filter out deleted records by default, and only the store  ┃
+ can do that consistently. api.js would just add a DELETE /tickets/:id route that calls the store and maps the result  ┃
+ to 204 or 404.                                                                                                        ┃
+                                                                                                                       ┃
+ I didn't edit anything under src/.                                                                                    ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/disable-model/fixture-app (refactor/pi-pstack-parity-again)
+↑8 ↓1.2k R58k W18k CH97.3% $0.096 (sub) 2.7%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

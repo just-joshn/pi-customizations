@@ -1,0 +1,66 @@
+{
+  "seeded": true,
+  "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass",
+  "mid": {
+    "maintainInvoked": true,
+    "livePassMentioned": true,
+    "doctorMentioned": true,
+    "driveMentioned": true,
+    "cleanupMentioned": true,
+    "working": true
+  },
+  "markerMid": {
+    "exists": false,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/live-pass/pi/live-pass-marker.txt",
+    "raw": null,
+    "fields": {},
+    "ok": false
+  },
+  "final": {
+    "maintainInvoked": false,
+    "livePassMentioned": true,
+    "doctorMentioned": true,
+    "driveMentioned": true,
+    "cleanupMentioned": true,
+    "working": false
+  },
+  "marker": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/live-pass/pi/live-pass-marker.txt",
+    "raw": "LIVE_PASS_RAN=yes\nSOURCE_LOOKED_CLEAN=yes\nCOORDINATOR_OWNED_DRIVING=yes\nFEATURES_EXERCISED=1\nDOCTOR_BEFORE_DRIVE=yes\nEVIDENCE_SURVIVES_CLEANUP=yes\nNO_LEFTOVER_RESIDUE=yes\nDOCTOR_DRIFT_RETRY=na\nVERIFIED_UNREACHABLE=na\nHARNESS_REDRIVE=na\nFINAL_TEARDOWN=yes\nEVIDENCE_REMAINS=yes\nEVIDENCE_PATH=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass/.pi/evidence/verify-hello-cli\nOUTCOME=clean\nBLOCKER=none\n",
+    "fields": {
+      "LIVE_PASS_RAN": "yes",
+      "SOURCE_LOOKED_CLEAN": "yes",
+      "COORDINATOR_OWNED_DRIVING": "yes",
+      "FEATURES_EXERCISED": "1",
+      "DOCTOR_BEFORE_DRIVE": "yes",
+      "EVIDENCE_SURVIVES_CLEANUP": "yes",
+      "NO_LEFTOVER_RESIDUE": "yes",
+      "DOCTOR_DRIFT_RETRY": "na",
+      "VERIFIED_UNREACHABLE": "na",
+      "HARNESS_REDRIVE": "na",
+      "FINAL_TEARDOWN": "yes",
+      "EVIDENCE_REMAINS": "yes",
+      "EVIDENCE_PATH": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass/.pi/evidence/verify-hello-cli",
+      "OUTCOME": "clean",
+      "BLOCKER": "none"
+    },
+    "features": 1,
+    "ok": true,
+    "liveClaimOk": true
+  },
+  "evidenceOnDisk": {
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass/.pi/evidence/verify-hello-cli",
+    "present": {
+      "dir": true,
+      "stdout": true,
+      "exitCode": true,
+      "stderr": true
+    },
+    "stdout": "HELLO-FAMILY-13\n",
+    "exitCode": "0",
+    "helloOk": true
+  },
+  "maintainRan": true,
+  "livePassClaimOk": true
+}

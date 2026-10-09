@@ -1,0 +1,39 @@
+    drwxr-xr-x 4 josh-desktop staff 128 Oct  8 14:42 ..
+
+  Clear layering: api.js routes and validates; store.js owns persistence—soft-delete belongs there. Writing the
+  overview and done marker.
+
+    Edited answer.md +13
+
+    ▎    1 + # store.js ↔ api.js at runtime
+    ▎    2 + 
+    ▎    3 + `api.js` is the HTTP-shaped entrypoint. Callers invoke `handle(req)`; it matches method/path, then 
+    ▎        calls into `stor ...
+    ▎    4 + 
+    ▎    5 + - `GET /tickets` → `listTickets()`
+    ▎    6 + - `GET /tickets/:id` → `getTicket(id)` (404 if missing)
+    ▎    7 + - `POST /tickets` → `createTicket(body)` (400 on validation throw)
+    ▎    8 + 
+    ▎    9 + `store.js` holds the in-memory `Map`, allocates ids, and returns copies of ticket records. `api.js` 
+    ▎        only routes and ...
+    ▎   10 + 
+    ▎   11 + ## Soft-delete ownership
+    ▎   12 + 
+    ▎   13  … truncated (1 more line) · ctrl+r to review
+
+    Edited done.txt +1
+
+    ▎    1 + answered=yes
+
+  api.js routes handle(req) into store.js (listTickets / getTicket / createTicket). Soft-delete belongs in store.js.
+
+  Wrote fixture-out/cursor/answer.md and done.txt (answered=yes).
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.3% · 2 files edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/disable-model/fixture-app · refactor/pi-pstack-parity-again

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-benny-thread-safety-1",
+  "scenarioRef": "setup-benny-thread-safety",
+  "requirements": [
+    "PSTACK-SETUP-BENNY-THREAD-SAFETY-001"
+  ],
+  "path": "seven-check-after-editor-save",
+  "verdict": "blocker",
+  "attemptIds": null,
+  "pairPath": "parity/evidence/setup-benny/pair-setup-benny-thread-safety-1.json",
+  "probe": "parity/evidence/setup-benny/thread-safety/env-probe.json",
+  "probeScript": "parity/scripts/probe-setup-benny-thread-safety-env.mjs",
+  "whyBlocked": [
+    "No operator Benny user config at ~/.config/benny/configuration.yaml.",
+    "No BENNY_SLACK_BOT_TOKEN or SLACK_BOT_TOKEN in this environment.",
+    "cursor-agent --help does not expose Automations editor, update_state, or RoutinePrepare; editor-save after automate handoff cannot be exercised in the PTY harness.",
+    "Slack MCP mcp_auth failed with Interactive MCP authentication only available in the Cursor desktop IDE.",
+    "slack doctor reports Valid workspace app-dev credentials, but slack api auth.test returns not_authed without a bot/user token env or app project, so no harness-usable test channel session.",
+    "Configured Slack read/post action names in example config are placeholders, not resolvable Cursor/Reference tools in this harness.",
+    "No operator-designated Benny test channel or harmless-report fixture is wired for the seven checks.",
+    "Standing preferences forbid customer messages without explicit account-owner action; seven-check posts and enabling normal Benny traffic are that class of action."
+  ],
+  "attemptedSteps": [
+    "Read extensions/pi-pstack and fixture setup-benny SKILL.md \u00a78 plus parity/scenarios/setup-benny-thread-safety.json.",
+    "Checked for ~/.config/benny/configuration.yaml (absent).",
+    "Checked BENNY_SLACK_BOT_TOKEN and SLACK_BOT_TOKEN (unset).",
+    "Inspected cursor-agent --help for Automations editor / update_state / RoutinePrepare (no matches).",
+    "Called plugin-slack-slack mcp_auth (IDE-only interactive auth unavailable here).",
+    "Ran slack doctor (Token status Valid for acreconnect workspace app-dev auth).",
+    "Ran slack api auth.test read-only (not_authed).",
+    "Ran node parity/scripts/probe-setup-benny-thread-safety-env.mjs (exit 2, verdict blocker).",
+    "Did not start Cursor/Pi PTY seven-check captures (would fabricate a pass without live editor save and Slack).",
+    "Did not enable normal Benny traffic."
+  ],
+  "whatWouldUnblock": [
+    "Operator-owned valid Benny configuration with real triage identity, secret-free committed checkout files, and live prompts pointing at those files.",
+    "A designated non-customer test channel or harmless report, plus workspace-wired Slack read/thread-post actions resolvable on both Cursor and Pi hosts.",
+    "An Automations editor save path the harness can witness (or an oracle freeze that accepts a narrower cell without claiming editor-save).",
+    "Explicit account-owner grant to run the seven live checks and only then enable normal Benny traffic.",
+    "Slack MCP authenticated in Cursor desktop IDE when MCP is the chosen Slack surface."
+  ],
+  "honestGaps": [
+    "Seven-check pass remains unpaid. No fabricated check passes.",
+    "No Cursor or Pi attempt IDs (none run; a PTY-only stub would be a fake pass).",
+    "Sibling setup-benny pairs do not cover \u00a78 live thread safety."
+  ],
+  "noFabrication": [
+    "No seven-check pass claimed.",
+    "No Slack post performed.",
+    "No normal Benny traffic enabled.",
+    "No invented test-channel coordinates or bot tokens written into evidence."
+  ]
+}

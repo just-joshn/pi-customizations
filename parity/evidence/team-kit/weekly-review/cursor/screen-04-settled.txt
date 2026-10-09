@@ -1,0 +1,39 @@
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/weekly-review
+    && ls -la
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/weekly-review
+    && ls -la . && find . -maxdepth 3 -type f | head -40 288ms
+    … 50 output lines hidden · ctrl+o to expand
+    ./.git/MERGE_RR
+    ./.git/COMMIT_EDITMSG
+
+  $ git show c3ab73cd2d540196da133ed9a15718a5a2d6aeda -p && echo '====' && git show
+    8bba16d0e2f35a160195d2e5c4c4147632d6a52c -p && cat alpha.txt beta.txt && git log --oneline --all && git rev-list
+    --count HEAD && git log --pretty=format:'%H %s' --reverse 539ms
+    … 32 output lines hidden · ctrl+o to expand
+    c3ab73cd2d540196da133ed9a15718a5a2d6aeda ship ALPHA feature
+    8bba16d0e2f35a160195d2e5c4c4147632d6a52c ship BETA polish
+
+  Writing the weekly recap and status line from the two authored commits.
+
+  $ mkdir -p
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/weekly-review
+    && cat > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/weekl
+    y-review/summary.md << 'EOF'
+    # Weekly review (2026-10-07 – 2026-10-08) 264ms
+    … 9 input + 15 output lines hidden · ctrl+o to expand
+    STATUS=verified reason=authored commits summarized
+    1 /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/weekly-revi…
+
+  Weekly recap written from 2 authored commits (ship ALPHA feature, ship BETA polish).
+
+  • summary.md — 2 bullets + classification (ALPHA called out as net-new)
+  • done.txt — STATUS=verified reason=authored commits summarized
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 8.5%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/weekly-review · main

@@ -1,0 +1,32 @@
+[
+  {
+    "side": "cursor",
+    "attemptId": "c38eb9b1-9ac3-4d16-a43d-009c3c9d7eb8",
+    "contractHeld": true,
+    "leafSkillRead": true,
+    "askedPermission": false,
+    "proceededWithoutAsk": true,
+    "modelAutoInvoke": false,
+    "verify": "GREET-OK format=plain choice=plain",
+    "choice": "plain",
+    "transcriptAskTools": [],
+    "sessionAskTools": [],
+    "sessionPath": null,
+    "transcriptPath": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/051d0c3f-7305-4965-b857-c4e66509bb7f/051d0c3f-7305-4965-b857-c4e66509bb7f.jsonl"
+  },
+  {
+    "side": "pi",
+    "attemptId": "d0a66bac-7951-4adb-a7d5-95b46f0d4e15",
+    "contractHeld": true,
+    "leafSkillRead": true,
+    "askedPermission": false,
+    "proceededWithoutAsk": true,
+    "modelAutoInvoke": false,
+    "verify": "GREET-OK format=plain choice=plain",
+    "choice": "plain",
+    "transcriptAskTools": [],
+    "sessionAskTools": [],
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-never-block-fixture-app--/2026-10-09T00-34-05-437Z_01a11e14-d9fc-72d4-9be2-b22c1a9e4fe3.jsonl",
+    "transcriptPath": null
+  }
+]

@@ -1,0 +1,39 @@
+    re-out/cursor/run-smoke-tests 453ms
+    … 4 output lines hidden · ctrl+o to expand
+    SMOKE_OK
+
+    Edited summary.md +31
+
+    ▎    1 + # run-smoke-tests results
+    ▎    2 + 
+    ▎    3 + ## Command
+    ▎    4 + 
+    ▎    5 + ```bash
+    ▎    6 + npm run smoketest
+    ▎    7 + ```
+    ▎    8 + 
+    ▎    9 + Workspace: `parity/evidence/team-kit/fixture-apps/run-smoke-tests`
+    ▎   10 + 
+    ▎   11 + ## Initial failure
+    ▎   12 + 
+    ▎   13  … truncated (19 more lines) · ctrl+r to review
+
+    Edited done.txt +1
+
+    ▎    1 + STATUS=verified reason=SMOKE_OK after ready=true
+
+  Smoke failed because app.js had ready = false. Set it to true; rerun printed SMOKE_OK.
+
+  Artifacts:
+  • parity/evidence/team-kit/fixture-out/cursor/run-smoke-tests/summary.md
+  • parity/evidence/team-kit/fixture-out/cursor/run-smoke-tests/done.txt → STATUS=verified
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.3% · 3 files edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/run-smoke-tests · 
+  refactor/pi-pstack-parity-again

@@ -1,0 +1,91 @@
+{
+  "autoCandidates": [
+    [
+      "\u2022 Automations",
+      15.99999987179487,
+      119.99999998461544
+    ]
+  ],
+  "sidebarClick": {
+    "xy": [
+      65.99999987179487,
+      125.9999999846154
+    ],
+    "text": "\u2022 Automations",
+    "ox": 0,
+    "oy": 0
+  },
+  "afterSidebar": {
+    "untitled": true,
+    "prefill": false,
+    "unsaved": false,
+    "draft": false,
+    "head": [
+      "Automations > New Automation",
+      "V New Chat",
+      "\u2022 Search",
+      "\u2022 Automations",
+      "Customize,",
+      "Projects",
+      "+ New Project|",
+      "Pinned",
+      "\u2022 /make-bot-ui|",
+      "Repositories",
+      "G No Repo",
+      "\u2022 Cursor automation setup",
+      "\u2022 Cursor automation setup",
+      "Cursor automation setup",
+      "Cursor automation setup,",
+      "Automation setup instructio",
+      "/make-bot-ui|",
+      "/automate",
+      "/automate",
+      "Getting Started",
+      "Connect Slack",
+      "Untitled",
+      "Activel",
+      "Select repository V",
+      "Open Agents Window/automate PARITY_TOKEN=webhook-auth-retry-001. Pref"
+    ]
+  },
+  "listOpen": {
+    "untitled": true,
+    "prefill": false,
+    "draft": false,
+    "witnessDrafts": [
+      "Open Agents Window/automate PARITY_TOKEN=webhook-auth-retry-001. Pref"
+    ],
+    "head": [
+      "Automations > New Automation",
+      "V New Chat",
+      "\u2022 Search",
+      "\u2022 Automations",
+      "Customize,",
+      "Projects",
+      "+ New Project|",
+      "Pinned",
+      "\u2022 /make-bot-ui|",
+      "Repositories",
+      "G No Repo",
+      "\u2022 Cursor automation setup",
+      "\u2022 Cursor automation setup",
+      "Cursor automation setup",
+      "Cursor automation setup,",
+      "Automation setup instructio",
+      "/make-bot-ui|",
+      "/automate",
+      "/automate",
+      "Getting Started",
+      "Connect Slack",
+      "Untitled",
+      "Activel",
+      "Select repository V",
+      "Open Agents Window/automate PARITY_TOKEN=webhook-auth-retry-001. Pref",
+      "All",
+      "Projects",
+      "Agents",
+      "Files",
+      "Actions"
+    ]
+  }
+}

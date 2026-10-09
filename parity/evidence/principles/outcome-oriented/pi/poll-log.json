@@ -1,0 +1,902 @@
+[
+  {
+    "ts": "2026-10-09T01:15:58.495Z",
+    "product": [
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:15:58.897Z",
+    "product": [
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:15:59.298Z",
+    "product": [
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:15:59.702Z",
+    "product": [
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:00.106Z",
+    "product": [
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:00.508Z",
+    "product": [
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:00.909Z",
+    "product": [
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:01.313Z",
+    "product": [
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:01.717Z",
+    "product": [
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:02.119Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:02.521Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:02.924Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:03.325Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:03.727Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:04.130Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:04.534Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:04.935Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:05.336Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:05.739Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:06.142Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:06.544Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:06.946Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:07.350Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:07.753Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:08.157Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:08.559Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:08.964Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:09.368Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:09.770Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:10.172Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:10.575Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:10.977Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:11.378Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:11.781Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:12.182Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:12.585Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:12.989Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:13.390Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:13.791Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:14.194Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:14.597Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:15.000Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:15.403Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:15.806Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:16:16.209Z",
+    "product": [
+      "src/cart.js",
+      "src/checkout.js",
+      "src/pricing.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "deleted": [
+      "src/pricingV1.js"
+    ],
+    "callers": [
+      "src/cart.js",
+      "src/checkout.js"
+    ],
+    "format": [
+      "src/pricing.js"
+    ]
+  }
+]

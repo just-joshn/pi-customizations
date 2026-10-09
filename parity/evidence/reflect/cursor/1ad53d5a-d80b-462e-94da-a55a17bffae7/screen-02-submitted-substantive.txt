@@ -1,0 +1,20 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /mcp to connect Cursor to your tools and data sources.
+
+                                                                                                                       
+  In this fixture cwd only: implement clamp(n, lo, hi) in src/clamp.js so values below lo return lo and values         
+  above hi return hi. Add exactly one line to NOTES.md stating that bound checks belong at the API boundary. Do        
+  not edit ledgers, parity/, skills, or paths outside this cwd. When the two files are updated, stop and wait.         
+                                                                                                                       
+
+ ⠠⠛ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/reflect/fixture-app · refactor/pi-pstack-parity-again

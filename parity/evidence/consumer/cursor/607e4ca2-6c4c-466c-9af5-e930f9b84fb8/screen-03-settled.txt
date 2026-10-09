@@ -1,0 +1,35 @@
+  In this cwd, run exactly: bun run test Do not edit files. Do not install packages. Do not change the store.          
+  After the command exits 0, paste the summary lines that show 52 pass and 0 fail (or the equivalent pass/fail         
+  totals), then write exactly one line EXIT=0 to                                                                       
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/cursor/bun-test-d       
+  one.txt and stop.                                                                                                    
+                                                                                                                       
+
+  Running bun run test in this cwd, then writing the EXIT=0 evidence file once it passes.
+
+  $ bun run test 1.8s
+    … 65 output lines hidden · ctrl+o to expand
+     206 expect() calls
+    Ran 52 tests across 4 files. [1086.00ms]
+
+  Writing the evidence file with EXIT=0.
+
+  $ printf 'EXIT=0\n' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/c
+    ursor/bun-test-done.txt 198ms
+
+     1 │ 52 pass
+     2 │ 0 fail
+     3 │ 206 expect() calls
+     4 │Ran 52 tests across 4 files. [1086.00ms]
+
+  Wrote EXIT=0 to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/curso
+  r/bun-test-done.txt.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 8.1%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts · main · #330

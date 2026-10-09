@@ -1,0 +1,40 @@
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ node scripts/verify.mjs now prints EXPERIENCE-OK default=human json=yes impact=dual files=status.js. I wrote          │
+ verified=yes to done.txt.                                                                                             │
+                                                                                                                       │
+ What changed. The CLI default is now a short human summary with Status, Ready, Next and Queue lines.                  │
+ formatStatus(state, { json: true }) returns the same JSON as before, for scripts. IMPACT.md names the impact for the  │
+ CLI user and for the maintainer.                                                                                      │
+                                                                                                                       │
+ Choice. I took approach 2 from NOTES.md. I added no CSV, YAML or XML exporters.                                       │
+                                                                                                                       │
+ Principle applied. Experience First (principle-experience-first), whose leaf SKILL.md I read this session. It pushed  │
+ me to make the human default polished and to ship only the one machine format. It also made me treat the maintainer   │
+ as a user, which is why IMPACT.md has a maintainer section.                                                           │
+                                                                                                                       │
+ Deviations from the Feature playbook. I skipped the how and architect steps, the contested-design review, commits and │
+ the PR, because this is a one-function change that NOTES.md already settles. I did not delegate the code to a         │
+ subagent. I wrote the diff myself.                                                                                    ┃
+                                                                                                                       ┃
+ Not done. I did not add a --json flag handler, because the fixture has no CLI entry point. The { json: true } option  ┃
+ on formatStatus is the only machine switch. There are no open decisions.                                              ┃
+
+... 1 earlier
+[-] `architect` for parallel design exploration. (cancelled)
+[-] Write the throughput checkpoint as four todo items. (cancelled)
+[>] Delegate code-writing to a subagent (own the diff directly: tiny single-file change) (in_progress)
+[ ] Verify on the matching surface. (pending)
+[-] Rebase into small, ordered commits. skip: no commits requested (cancelled)
+[-] If the design is contested, interrogate. skip: NOTES.md settles it (cancelled)
+[-] Run Opening a PR. skip: fixture, no PR (cancelled)
+[ ] Implement human default + json, write IMPACT.md, run verify, write done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-app (refactor/pi-pstack-par...
+↑14 ↓2.3k R185k W30k CH99.6% $0.181 (sub) 3.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

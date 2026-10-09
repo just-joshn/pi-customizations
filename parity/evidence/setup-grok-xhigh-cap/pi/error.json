@@ -1,0 +1,4 @@
+{
+  "message": "Error: Timed out waiting for write; screen showed Unavailable model / missing provider.",
+  "code": "GROK_UNAVAILABLE"
+}
